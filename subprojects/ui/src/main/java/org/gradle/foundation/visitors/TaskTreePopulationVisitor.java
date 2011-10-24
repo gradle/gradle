@@ -106,7 +106,7 @@ public class TaskTreePopulationVisitor {
         List<P> userProjectObjects = visitProjects(visitor, filter, projects, rootProjectObject, new AlphabeticalProjectNameComparator(), new AlphabeticalTaskNameComparator());
 
         //notify the visitation of the root projects. There are no tasks for this one, but there are projects.
-        visitor.completedVisitingProject(rootProjectObject, userProjectObjects, Collections.EMPTY_LIST);
+        visitor.completedVisitingProject(rootProjectObject, userProjectObjects, Collections.<T>emptyList());
     }
 
     private static <P, T> List<P> visitProjects(Visitor<P, T> visitor, ProjectAndTaskFilter filter,

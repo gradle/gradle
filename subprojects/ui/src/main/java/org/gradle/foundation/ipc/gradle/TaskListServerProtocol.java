@@ -17,8 +17,6 @@ package org.gradle.foundation.ipc.gradle;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.ipc.basic.MessageObject;
 
@@ -32,8 +30,6 @@ import java.util.List;
  * @author mhunsicker
  */
 public class TaskListServerProtocol extends AbstractGradleServerProtocol {
-    private final Logger logger = Logging.getLogger(TaskListServerProtocol.class);
-
     private static final String INIT_SCRIPT_NAME = "refresh-tasks-init-script";
 
     private ExecutionInteraction executionInteraction;

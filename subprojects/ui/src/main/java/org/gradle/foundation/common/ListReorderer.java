@@ -29,7 +29,7 @@ public class ListReorderer {
      * @param sourceList The list whose elements we want to reorder.
      * @param object The object to move.
      */
-    public static boolean moveBefore(List sourceList, Object object) {
+    public static <T> boolean moveBefore(List<T> sourceList, T object) {
         // Get the old index of the object
         int previousIndex = sourceList.indexOf(object);
         // If the index of the object is 0 it can't go any lower. If it's
@@ -57,22 +57,22 @@ public class ListReorderer {
      * @param sourceList The list whose elements we want to reorder.
      * @param objectsToMove List of elements to move.
      */
-    public static void moveBefore(List sourceList, List objectsToMove) {
+    public static <T> void moveBefore(List<T> sourceList, List<T> objectsToMove) {
         sortMoveListByRelativeOrder(sourceList, objectsToMove);
         // Create a new list to put elements in we try to move
-        List triedToMove = new ArrayList();
+        List<T> triedToMove = new ArrayList<T>();
         // Now iterate through the elements to move and attempt to move them
-        Iterator iterator = objectsToMove.iterator();
+        Iterator<T> iterator = objectsToMove.iterator();
         while (iterator.hasNext()) {
             // Get the next object to move
-            Object objectToMove = iterator.next();
+            T objectToMove = iterator.next();
             // Get the index of the object to move
             int currentPosition = sourceList.indexOf(objectToMove);
             // Only move the element if it's not already at the front of the list
             if (currentPosition > 0) {
                 // Get the element at the position we want to move to and make sure it's not
                 // an element in the list that we'vd already moved
-                Object occupyingObject = sourceList.get(currentPosition - 1);
+                T occupyingObject = sourceList.get(currentPosition - 1);
                 if (currentPosition < sourceList.size() && !triedToMove.contains(occupyingObject)) {
                     moveBefore(sourceList, objectToMove);
                 }
@@ -90,18 +90,18 @@ public class ListReorderer {
      * @param moveList The objects to move.
      * @param index The object's new location in the list.
      */
-    public static void moveTo(List sourceList, List moveList, int index) {
+    public static <T> void moveTo(List<T> sourceList, List<T> moveList, int index) {
         // First make sure the move is valid
         if (index < 0 || index >= sourceList.size()) {
             return;
         }
         // Store the object at the index to move to
-        Object moveBeforeObject = sourceList.get(index);
+        T moveBeforeObject = sourceList.get(index);
 
         //This fixes a bug. This happens if the user selects things and moves them to an index where something is already selected. I select 1, 2, and 4 and I say move to 2. 2 is already selected. This makes no sense, but its happened in the field.
         if (moveList.contains(moveBeforeObject)) //just remove the item from the move list.
         {
-            List newMoveList = new ArrayList(
+            List<T> newMoveList = new ArrayList<T>(
                     moveList);   //we don't want to actually affect the move list. Callers use it for visually selecting items after the move. So we'll make a duplicate and just recursively call ourselves again.
             newMoveList.remove(moveBeforeObject);
             moveTo(sourceList, newMoveList, index + 1);   //skip over the one we took out
@@ -132,7 +132,7 @@ public class ListReorderer {
      * @param object The object to move.
      * @return True if the object was in the list and it was moved.
      */
-    public static boolean moveToFront(List sourceList, Object object) {
+    public static <T> boolean moveToFront(List<T> sourceList, T object) {
         boolean moved = false;
         // If we can remove it, then it was in the list
         if (sourceList.remove(object)) {
@@ -149,10 +149,10 @@ public class ListReorderer {
      * @param sourceList The list the object is in.
      * @param objectsToMove The object to move.
      */
-    public static void moveToFront(List sourceList, List objectsToMove) {
+    public static <T> void moveToFront(List<T> sourceList, List<T> objectsToMove) {
         sortMoveListByRelativeOrder(sourceList, objectsToMove);
         for (int i = objectsToMove.size() - 1; i >= 0; i--) {
-            Object object = objectsToMove.get(i);
+            T object = objectsToMove.get(i);
             if (sourceList.remove(object)) {
                 sourceList.add(0, object);
             }
@@ -165,7 +165,7 @@ public class ListReorderer {
      * @param sourceList The list whose elements we want to reorder.
      * @param object The object to move.
      */
-    public static boolean moveAfter(List sourceList, Object object) {
+    public static <T> boolean moveAfter(List<T> sourceList, T object) {
         // Get the old index of the object
         int previousIndex = sourceList.indexOf(object);
         // If the index of the object is 0 it can't go any higher. If it's
@@ -193,14 +193,14 @@ public class ListReorderer {
      * @param sourceList The list whose elements we want to reorder.
      * @param objectsToMove List of elements to move.
      */
-    public static void moveAfter(List sourceList, List objectsToMove) {
+    public static <T> void moveAfter(List<T> sourceList, List<T> objectsToMove) {
         sortMoveListByRelativeOrder(sourceList, objectsToMove);
-        List triedToMove = new ArrayList();
+        List<T> triedToMove = new ArrayList<T>();
         // Since we are moving elements to a greater index in the list,
         // we iterate through the list backwards to move the highest indexed
         // element first
         for (int i = objectsToMove.size() - 1; i >= 0; i--) {
-            Object objectToMove = objectsToMove.get(i);
+            T objectToMove = objectsToMove.get(i);
             // Get the index of the object to move
             int currentPosition = sourceList.indexOf(objectToMove);
             // Make sure the element we want to move isn't already at the end of
@@ -209,7 +209,7 @@ public class ListReorderer {
                 // Now get the index of the elment occupying the spot we want
                 // to move to and only move the current objectToMove if it
                 // does not overwite a previously moved element
-                Object occupyingObject = sourceList.get(currentPosition + 1);
+                T occupyingObject = sourceList.get(currentPosition + 1);
                 if (!triedToMove.contains(occupyingObject)) {
                     moveAfter(sourceList, objectToMove);
                 }
@@ -227,7 +227,7 @@ public class ListReorderer {
      * @param object The object to move.
      * @return True if the object was in the list and it was moved.
      */
-    public static boolean moveToBack(List sourceList, Object object) {
+    public static <T> boolean moveToBack(List<T> sourceList, T object) {
         boolean moved = false;
 
         // If we can remove it, then it was in the list
@@ -244,10 +244,10 @@ public class ListReorderer {
      * @param sourceList The list the object is in.
      * @param objectsToMove The object to move.
      */
-    public static void moveToBack(List sourceList, List objectsToMove) {
+    public static <T> void moveToBack(List<T> sourceList, List<T> objectsToMove) {
         sortMoveListByRelativeOrder(sourceList, objectsToMove);
         for (int i = 0; i < objectsToMove.size(); i++) {
-            Object object = objectsToMove.get(i);
+            T object = objectsToMove.get(i);
             if (sourceList.remove(object)) {
                 sourceList.add(object);
             }
@@ -260,9 +260,9 @@ public class ListReorderer {
      * @param parentList .
      * @param childList .
      */
-    public static void sortMoveListByRelativeOrder(final List parentList, List childList) {
-        Collections.sort(childList, new Comparator() {
-            public int compare(Object o, Object o1) {
+    public static <T> void sortMoveListByRelativeOrder(final List<T> parentList, List<T> childList) {
+        Collections.sort(childList, new Comparator<T>() {
+            public int compare(T o, T o1) {
                 int index = parentList.indexOf(o);
                 int index1 = parentList.indexOf(o1);
                 return (index < index1) ? -1 : (index > index1) ? 1 : 0;
@@ -277,7 +277,7 @@ public class ListReorderer {
      * @param checkList .
      * @return .
      */
-    public static boolean allElementsInFront(List sourceList, List checkList) {
+    public static <T> boolean allElementsInFront(List<T> sourceList, List<T> checkList) {
         // Quick check, if the source list doesn't contain all elements of the checklist,
         // abort and return false
         if (!sourceList.containsAll(checkList)) {
@@ -289,7 +289,7 @@ public class ListReorderer {
         // in the source list; and check it's index against the index
         // we should be on to match the source.
         for (int index = 0; index < checkList.size(); index++) {
-            Object element = checkList.get(index);
+            T element = checkList.get(index);
             int checkIndex = sourceList.indexOf(element);
             if (checkIndex >= sourceIndex) {
                 return false;
@@ -299,7 +299,7 @@ public class ListReorderer {
         return true;
     }
 
-    public static boolean allElementsInBack(List sourceList, List checkList) {
+    public static <T> boolean allElementsInBack(List<T> sourceList, List<T> checkList) {
         // Quick check, if the source list doesn't contain all elements of the checklist,
         // abort and return false
         if (!sourceList.containsAll(checkList)) {
@@ -311,7 +311,7 @@ public class ListReorderer {
         // in the source list; and check it's index against the index
         // we should be on to match the source.
         for (int index = checkList.size() - 1; index >= 0; index--) {
-            Object element = checkList.get(index);
+            T element = checkList.get(index);
             int checkIndex = sourceList.indexOf(element);
             if (checkIndex < sourceIndex) {
                 return false;
@@ -328,11 +328,11 @@ public class ListReorderer {
      * @param objectsToMove the elements to move
      * @return an integer array of the items to select.
      */
-    public static int[] getIndices(List sourceList, List objectsToMove) {
+    public static <T> int[] getIndices(List<T> sourceList, List<T> objectsToMove) {
         int[] newIndices = new int[objectsToMove.size()];
 
         for (int index = 0; index < objectsToMove.size(); index++) {
-            Object elementToMove = objectsToMove.get(index);
+            T elementToMove = objectsToMove.get(index);
             int sourceIndexOfElement = sourceList.indexOf(elementToMove);
 
             newIndices[index] = sourceIndexOfElement;
