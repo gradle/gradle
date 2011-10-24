@@ -38,7 +38,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         this.simpleName = classMetaData.getSimpleName();
         this.style = classMetaData.isGroovy() ? LinkMetaData.Style.Groovydoc : LinkMetaData.Style.Javadoc;
         for (MethodMetaData method : classMetaData.getDeclaredMethods()) {
-            addMethod(method, method.getOverrideSignature(), style);
+            addMethod(method, style);
         }
     }
 
@@ -48,7 +48,13 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
 
     public LinkMetaData getMethod(String method) {
         MethodLinkMetaData methodMetaData = findMethod(method);
-        return new LinkMetaData(methodMetaData.style, String.format("%s.%s()", simpleName, methodMetaData.name), methodMetaData.id);
+        String displayName;
+        if (methodMetaData.block) {
+            displayName = String.format("%s.%s{}", simpleName, methodMetaData.name);
+        } else {
+            displayName = String.format("%s.%s()", simpleName, methodMetaData.name);
+        }
+        return new LinkMetaData(methodMetaData.style, displayName, style == LinkMetaData.Style.Dsldoc ? String.format("%s:%s", className, methodMetaData.signature) : methodMetaData.signature);
     }
 
     private MethodLinkMetaData findMethod(String method) {
@@ -81,8 +87,12 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         this.style = style;
     }
 
-    public void addMethod(MethodMetaData method, String id, LinkMetaData.Style style) {
-        methods.put(method.getOverrideSignature(), new MethodLinkMetaData(method.getName(), method.getOverrideSignature(), id, style));
+    public void addMethod(MethodMetaData method, LinkMetaData.Style style) {
+        methods.put(method.getOverrideSignature(), new MethodLinkMetaData(method.getName(), method.getOverrideSignature(), false, style));
+    }
+
+    public void addBlockMethod(MethodMetaData method, LinkMetaData.Style style) {
+        methods.put(method.getOverrideSignature(), new MethodLinkMetaData(method.getName(), method.getOverrideSignature(), true, style));
     }
 
     public void attach(ClassMetaDataRepository<ClassLinkMetaData> linkMetaDataClassMetaDataRepository) {
@@ -91,13 +101,13 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
     private static class MethodLinkMetaData implements Serializable {
         private final String name;
         private final String signature;
-        private final String id;
+        private final boolean block;
         private final LinkMetaData.Style style;
 
-        private MethodLinkMetaData(String name, String signature, String id, LinkMetaData.Style style) {
+        private MethodLinkMetaData(String name, String signature, boolean isBlock, LinkMetaData.Style style) {
             this.name = name;
             this.signature = signature;
-            this.id = id;
+            block = isBlock;
             this.style = style;
         }
 

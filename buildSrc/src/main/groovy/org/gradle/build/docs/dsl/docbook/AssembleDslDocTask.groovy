@@ -191,7 +191,10 @@ class AssembleDslDocTask extends DefaultTask {
             def linkMetaData = linkRepository.get(className)
             linkMetaData.style = LinkMetaData.Style.Dsldoc
             classDoc.classMethods.each { methodDoc ->
-                linkMetaData.addMethod(methodDoc.metaData, methodDoc.id, LinkMetaData.Style.Dsldoc)
+                linkMetaData.addMethod(methodDoc.metaData, LinkMetaData.Style.Dsldoc)
+            }
+            classDoc.classBlocks.each { blockDoc ->
+                linkMetaData.addBlockMethod(blockDoc.blockMethod.metaData, LinkMetaData.Style.Dsldoc)
             }
             Element root = tr.ownerDocument.documentElement
             root << classDoc.classSection
