@@ -13,8 +13,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='dependency_management' xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Dependency Management</title>
+<chapter id='dependency_management'>
+    <title>Dependency Management: The things your project needs</title>
     <section id='sec:Introduction'>
         <title>Introduction</title>
         <para>This chapter gives an overview of issues related with dependency management and presents how Gradle can be used to overcome them.
@@ -144,7 +144,7 @@
         <section id='sub:configurations'>
             <title>Configurations</title>
             <para>Dependencies are grouped in configurations. Configurations have a name, a number of other properties,
-                and they can extend each other. For examples see: <xref linkend='sec:artifact_configurations'/>.
+                and they can extend each other.
                 If you use the Java plugin, Gradle adds a number of pre-defined configurations to your build. The
                 plugin also assigns configurations to tasks. See <xref linkend='sec:java_plugin_and_dependency_management'/>
                 for details. Of course you can add your add custom configurations on top of that. There are many use cases
@@ -154,6 +154,18 @@
                 the configurations object is applied against its API. To learn more about this API have a look at
                 <apilink class='org.gradle.api.artifacts.ConfigurationContainer'/>.
             </para>
+            <para>To define a configuration:</para>
+            <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Definition of a configuration">
+                <sourcefile file="build.gradle" snippet="define-configuration"/>
+            </sample>
+            <para>To access a configuration:</para>
+            <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Accessing a configuration">
+                <sourcefile file="build.gradle" snippet="lookup-configuration"/>
+            </sample>
+            <para>To configure a configuration:</para>
+            <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Configuration of a configuration">
+                <sourcefile file="build.gradle" snippet="configure-configuration"/>
+            </sample>
         </section>
         <section id='sub:module_dependencies'>
             <title>Module dependencies</title>
@@ -212,6 +224,11 @@
                 <para>As you can see in the example, classifiers can be used together with setting
                 an explicit extension (artifact only notation).</para>
             </section>
+            <para>To use the external dependencies of a configuration:</para>
+            <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies"  title="Usage of external dependency of a configuration">
+                <sourcefile file="build.gradle" snippet="use-configuration"/>
+                <output args="-q listJars"/>
+            </sample>
         </section>
         <section id='sub:client_module_dependencies'>
             <title>Client module dependencies</title>
@@ -508,6 +525,17 @@
                     <sourcefile file="build.gradle" snippet="authenticated-ivy-repo"/>
                 </sample>
             </section>
+        </section>
+        <section>
+            <title>Working with repositories</title>
+            <para>To access a repository:</para>
+            <sample id="defineRepository" dir="userguide/artifacts/defineRepository" title="Accessing a repository">
+                <sourcefile file="build.gradle" snippet="lookup-resolver"/>
+            </sample>
+            <para>To configure a repository:</para>
+            <sample id="defineRepository" dir="userguide/artifacts/defineRepository" title="Configuration of a repository">
+                <sourcefile file="build.gradle" snippet="configure-resolver"/>
+            </sample>
         </section>
         <section>
             <title>More about preconfigured repositories</title>

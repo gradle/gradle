@@ -49,6 +49,14 @@
             </varlistentry>
             <varlistentry>
                 <term>
+                    <xref linkend="artifact_dependencies_tutorial"/>
+                </term>
+                <listitem>
+                    <para>Shows how to start using Gradle's dependency management.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
                     <xref linkend="tutorial_groovy_projects"/>
                 </term>
                 <listitem>

@@ -17,15 +17,25 @@ repositories {
 }
 
 uploadArchives {
-    uploadDescriptor = false
     repositories {
         add project.repositories.fileRepo
-        add(new org.apache.ivy.plugins.resolver.SshResolver()) {
-            name = "sshRepo"
-            user = "username"
-            userPassword = "pw"
-            host = "http://repo.mycompany.com"
+        ivy {
+            userName "username"
+            password "pw"
+            url "http://repo.mycompany.com"
         }
     }
 }
 //END SNIPPET uploading
+
+//START SNIPPET publish-repository
+uploadArchives {
+    repositories {
+        ivy {
+            userName "username"
+            password "pw"
+            url "http://repo.mycompany.com"
+        }
+    }
+}
+//END SNIPPET publish-repository

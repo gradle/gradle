@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='tutorial_java_projects' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='tutorial_java_projects'>
     <title>Java Quickstart</title>
 
     <section>
@@ -126,7 +126,7 @@
             <sample id="javaQuickstart" dir="java/quickstart" title="Adding dependencies">
                 <sourcefile file="build.gradle" snippet="dependencies"/>
             </sample>
-            <para>You can find out more in <xref linkend="dependency_management"/>.</para>
+            <para>You can find out more in <xref linkend="artifact_dependencies_tutorial"/>.</para>
         </section>
 
         <section>
@@ -261,16 +261,18 @@
     </section>
 
     <section>
-        <title>Summary</title>
-        <para>In this chapter, you have seen how to do some of the things you commonly need to build a Java based
-            project. This chapter is not exhaustive, and there are many other things you can do with Java projects in
-            Gradle. These are dealt with in later chapters. Also, a lot of the behaviour you have seen in this chapter
-            is configurable. For example, you can change where Gradle looks Java source files, or add extra tasks, or
-            you can change what any task actually does. Again, you will see how this works in later chapters.
-        </para>
+        <title>Where to next?</title>
         <para>
+            In this chapter, you have seen how to do some of the things you commonly need to build a Java based
+            project. This chapter is not exhaustive, and there are many other things you can do with Java projects in
+            Gradle.
             You can find out more about the Java plugin in <xref linkend="java_plugin"/>, and you can find more sample
             Java projects in the <filename>samples/java</filename> directory in the Gradle distribution.
+        </para>
+        <para>
+            Otherwise, continue on to <xref linkend="artifact_dependencies_tutorial"/>.
+        </para>
+        <para>
         </para>
     </section>
 </chapter>
