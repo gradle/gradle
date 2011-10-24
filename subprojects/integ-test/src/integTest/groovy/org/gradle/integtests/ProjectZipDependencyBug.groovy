@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests
 
+import spock.lang.*
 import org.gradle.integtests.fixtures.*
 import org.gradle.integtests.fixtures.internal.*
 
