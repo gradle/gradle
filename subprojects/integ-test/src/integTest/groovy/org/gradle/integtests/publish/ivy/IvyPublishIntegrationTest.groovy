@@ -22,6 +22,7 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import org.junit.Test
 import org.mortbay.jetty.HttpStatus
+import spock.lang.Issue
 
 public class IvyPublishIntegrationTest {
     @Rule
@@ -52,6 +53,40 @@ uploadArchives {
         def uploadedIvy = dist.testFile('build/repo/org.gradle/publish/2/ivy-2.xml')
         uploadedJar.assertIsCopyOf(dist.testFile('build/libs/publish-2.jar'))
         uploadedIvy.assertIsFile()
+    }
+
+    @Issue("GRADLE-1811")
+    @Test
+    public void canGenerateTheIvyXmlWithoutPublishing() {
+        //this is more like documenting the current behavior.
+        //Down the road we should add explicit task to create ivy.xml file
+
+        //given
+        dist.testFile("build.gradle") << '''
+apply plugin: 'java'
+
+configurations {
+  myJars
+}
+
+task myJar(type: Jar)
+
+artifacts {
+  'myJars' myJar
+}
+
+task ivyXml(type: Upload) {
+  descriptorDestination = file('ivy.xml')
+  uploadDescriptor = true
+  configuration = configurations.myJars
+}
+'''
+        //when
+        executer.withTasks("ivyXml").run()
+
+        //then
+        def ivyXml = dist.file('ivy.xml')
+        ivyXml.assertIsFile()
     }
 
     @Test
