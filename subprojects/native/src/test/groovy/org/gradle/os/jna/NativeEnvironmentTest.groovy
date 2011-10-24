@@ -21,12 +21,14 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Issue
+import spock.lang.IgnoreIf
 
 class NativeEnvironmentTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
     final ProcessEnvironment env = NativeEnvironment.current()
 
+    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
     def "can set and remove environment variable"() {
         when:
         env.setEnvironmentVariable("TEST_ENV_1", "value")
@@ -45,11 +47,13 @@ class NativeEnvironmentTest extends Specification {
         System.getenv("TEST_ENV_2") == null
     }
 
+    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
     def "can get working directory of current process"() {
         expect:
         env.processDir.canonicalFile == new File('.').canonicalFile
     }
 
+    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
     def "can get set working directory of current process"() {
         File originalDir = new File(System.getProperty("user.dir"))
 
@@ -65,6 +69,7 @@ class NativeEnvironmentTest extends Specification {
         env.setProcessDir(originalDir)
     }
 
+    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
     def "can get pid of current process"() {
         expect:
         env.pid != null
