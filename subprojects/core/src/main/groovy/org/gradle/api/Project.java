@@ -850,6 +850,8 @@ public interface Project extends Comparable<Project> {
      * <li>An Object. Its {@code toString()} value is treated the same way as a String, as for {@link
      * #file(Object)}.</li> </ul>
      *
+     * <li>A {@link Task}. Converted to the task's output files.</li>
+     *
      * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
      * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
      * of the collection is queried.</p>

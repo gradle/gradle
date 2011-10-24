@@ -48,9 +48,9 @@ class ApplicationPlugin implements Plugin<Project> {
         addPluginConvention()
         addRunTask()
         addCreateScriptsTask()
-        
+
         configureDistSpec(pluginConvention.applicationDistribution)
-        
+
         addInstallTask()
         addDistZipTask()
     }
@@ -119,15 +119,15 @@ class ApplicationPlugin implements Plugin<Project> {
             from(project.file("src/dist"))
 
             into("lib") {
-                from(jar.outputs.files)
+                from(jar)
                 from(project.configurations.runtime)
             }
             into("bin") {
-                from(startScripts.outputs.files)
+                from(startScripts)
                 fileMode = 0755
             }
         }
-        
+
         distSpec
     }
 }

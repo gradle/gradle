@@ -87,14 +87,29 @@
             <output args="-q list"/>
         </sample>
 
+        <para>
+            Some other types of things you can pass to <literal>files()</literal>:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><classname>FileCollection</classname></term>
+                <listitem>
+                    <para>These are flattened and the contents included in the file collection.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><classname>Task</classname></term>
+                <listitem>
+                    <para>The output files of the task are included in the file collection.</para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+
         <para>It is important to note that the content of a file collection is evaluated lazily, when it is needed.
             This means you can, for example, create a <literal>FileCollection</literal> that represents files which
             will be created in the future by, say, some task.
         </para>
 
-        <para>The <literal>files()</literal> method also accepts <classname>FileCollection</classname> instances.
-            These are flattened and the contents included in the file collection.
-        </para>
     </section>
 
     <section id="sec:file_trees">

@@ -298,6 +298,39 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
+    @Test public void testCopyFromTaskOutputs() {
+        TestFile buildFile = testFile("build.gradle").writelns(
+                """
+                configurations { compile }
+                dependencies { compile files('a.jar') }
+                task fileProducer {
+                    outputs.file 'build/out.txt'
+                    doLast {
+                        file('build/out.txt').text = 'some content'
+                    }
+                }
+                task dirProducer {
+                    outputs.dir 'build/outdir'
+                    doLast {
+                        file('build/outdir').mkdirs()
+                        file('build/outdir/file1.txt').text = 'some content'
+                        file('build/outdir/sub').mkdirs()
+                        file('build/outdir/sub/file2.txt').text = 'some content'
+                    }
+                }
+                task copy(type: Copy) {
+                    from fileProducer, dirProducer
+                    into 'dest'
+                }"""
+        )
+        usingBuildFile(buildFile).withTasks("copy").run()
+        testFile('dest').assertHasDescendants(
+                'out.txt',
+                'file1.txt',
+                'sub/file2.txt'
+        )
+    }
+
     @Test public void testCopyWithCopyspec() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """

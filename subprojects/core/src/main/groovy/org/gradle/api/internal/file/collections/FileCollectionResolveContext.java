@@ -26,6 +26,7 @@ public interface FileCollectionResolveContext {
      *     <li>{@link groovy.lang.Closure} - return value is recursively resolved, if not null.
      *     <li>{@link java.util.concurrent.Callable} - return value is recursively resolved, if not null.
      *     <li>{@link org.gradle.api.file.FileCollection} - resolved as is.
+     *     <li>{@link org.gradle.api.Task} - resolved to task.outputs.files
      *     <li>{@link MinimalFileSet} - wrapped as a {@link org.gradle.api.file.FileCollection}.
      *     <li>{@link MinimalFileTree} - wrapped as a {@link org.gradle.api.file.FileTree}.
      *     <li>{@link FileCollectionContainer} - recursively resolved.
@@ -41,7 +42,7 @@ public interface FileCollectionResolveContext {
     FileCollectionResolveContext add(Object element);
 
     /**
-     * Adds a nested context which resolves elements using the given resolvers. Any element added to the returned context will be added to this context. Those elements
+     * Adds a nested context which resolves elements using the given resolver. Any element added to the returned context will be added to this context. Those elements
      * which need to be resolved using a file resolver will use the provided resolver, instead of the default used by this context.
      */
     FileCollectionResolveContext push(FileResolver fileResolver);
