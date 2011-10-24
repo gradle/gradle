@@ -18,7 +18,7 @@ package org.gradle.build.docs.dsl;
 import java.io.Serializable;
 
 public class LinkMetaData implements Serializable {
-    enum Style { Javadoc, Groovydoc, Dsldoc }
+    public enum Style { Javadoc, Groovydoc, Dsldoc }
 
     private final Style style;
     private final String displayName;

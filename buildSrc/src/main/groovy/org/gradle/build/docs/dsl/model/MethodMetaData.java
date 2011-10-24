@@ -38,10 +38,6 @@ public class MethodMetaData implements Serializable, LanguageElement, TypeContai
         return name;
     }
 
-    public String getFormattedGetterName() {
-        return name + "()";
-    }
-
     @Override
     public String toString() {
         return String.format("%s.%s()", ownerClass, name);
@@ -118,6 +114,9 @@ public class MethodMetaData implements Serializable, LanguageElement, TypeContai
         return builder.toString();
     }
 
+    /**
+     * Returns the signature of this method, excluding the return type, and converting generic types to their raw types.
+     */
     public String getOverrideSignature() {
         StringBuilder builder = new StringBuilder();
         builder.append(name);

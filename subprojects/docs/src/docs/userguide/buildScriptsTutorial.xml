@@ -228,10 +228,13 @@
         </para>
     </section>
     <section>
-        <title>Summary</title>
-        <para>This is not the end of the story for tasks. So far we have worked with simple tasks. Tasks will be
-            revisited in <xref linkend='more_about_tasks'/> and when we look at the Java plugin in
-            <xref linkend='java_plugin'/>.
+        <title>Where to next?</title>
+        <para>
+            In this chapter, we have had a first look at tasks. But this is not the end of the story for tasks. If you want to jump into more of the details,
+            have a look at <xref linkend='more_about_tasks'/>.
+        </para>
+        <para>
+            Otherwise, continue on to the tutorials in <xref linkend="tutorial_java_projects"/> and <xref linkend="artifact_dependencies_tutorial"/>.
         </para>
     </section>
 </chapter>

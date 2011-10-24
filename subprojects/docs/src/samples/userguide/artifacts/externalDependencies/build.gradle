@@ -2,15 +2,21 @@ repositories {
     mavenCentral()
 }
 
-//START SNIPPET define-dependency
 configurations {
     compile
 }
 
+//START SNIPPET define-dependency
 dependencies {
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
 }
 //END SNIPPET define-dependency
+
+//START SNIPPET define-dependency-shortcut
+dependencies {
+    compile 'commons-collections:commons-collections:3.2'
+}
+//END SNIPPET define-dependency-shortcut
 
 //START SNIPPET use-configuration
 task listJars << {

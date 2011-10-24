@@ -1,0 +1,7 @@
+:compileIntTestJava
+:processIntTestResources
+:intTestClasses
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs
