@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.copy;
 import groovy.lang.Closure;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
+import groovy.text.TemplateEngine;
 import org.apache.tools.ant.util.ReaderInputStream;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
@@ -96,6 +97,30 @@ public class FilterChain implements Transformer<InputStream> {
                     return new StringReader(writer.toString());
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
+                }
+            }
+        });
+    }
+
+    public void expand(final Class<? extends TemplateEngine> templateType, final Map<String, ?> properties) {
+        transformers.add(new Transformer<Reader>() {
+            public Reader transform(Reader original) {
+                try {
+                    Template template;
+                    try {
+                        Constructor<? extends TemplateEngine> constructor = templateType.getConstructor();
+                        TemplateEngine result = constructor.newInstance();
+                        template = result.createTemplate(original);
+                    } finally {
+                        original.close();
+                    }
+                    StringWriter writer = new StringWriter();
+                    template.make(properties).writeTo(writer);
+                    return new StringReader(writer.toString());
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                } catch (Throwable th) {
+                    throw new InvalidUserDataException("Error - Invalid template specification for " + templateType.getName(), th);
                 }
             }
         });

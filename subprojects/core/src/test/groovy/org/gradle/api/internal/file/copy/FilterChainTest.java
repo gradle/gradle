@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import groovy.text.SimpleTemplateEngine;
 import org.apache.commons.io.IOUtils;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.TokenTemplateEngine;
 import org.gradle.util.WrapUtil;
 import org.junit.Test;
 
@@ -25,9 +27,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.WrapUtil.toMap;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 public class FilterChainTest {
     private final FilterChain filterChain = new FilterChain();
@@ -69,6 +71,20 @@ public class FilterChainTest {
         filterChain.expand(WrapUtil.toMap("prop", 1));
         Reader transformedReader = filterChain.transform(new StringReader("[$prop][${prop+1}][<%= prop+2 %>]"));
         assertThat(IOUtils.toString(transformedReader), equalTo("[1][2][3]"));
+    }
+
+    @Test
+    public void canAddDefaultExpandFilterToEndOfChain() throws IOException {
+        filterChain.expand(SimpleTemplateEngine.class, WrapUtil.toMap("prop", 1));
+        Reader transformedReader = filterChain.transform(new StringReader("[$prop][${prop+1}][<%= prop+2 %>]"));
+        assertThat(IOUtils.toString(transformedReader), equalTo("[1][2][3]"));
+    }
+
+    @Test
+    public void canAddCustomExpandFilterToEndOfChain() throws IOException {
+        filterChain.expand(TokenTemplateEngine.class, WrapUtil.toMap("prop", 1));
+        Reader transformedReader = filterChain.transform(new StringReader("[$prop][${prop+1}][<%= prop+2 %>]"));
+        assertThat(IOUtils.toString(transformedReader), equalTo("[$prop][2][<%= prop+2 %>]"));
     }
 
     public static class TestFilterReader extends FilterReader {

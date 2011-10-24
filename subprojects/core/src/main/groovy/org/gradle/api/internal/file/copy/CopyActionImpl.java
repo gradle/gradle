@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
+import groovy.text.TemplateEngine;
 import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.file.FileResolver;
@@ -114,6 +115,11 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
 
     public CopySpec expand(Map<String, ?> properties) {
         mainContent.expand(properties);
+        return this;
+    }
+
+    public CopySpec expand(Class<? extends TemplateEngine> templateType, Map<String, ?> properties) {
+        mainContent.expand(templateType, properties);
         return this;
     }
 

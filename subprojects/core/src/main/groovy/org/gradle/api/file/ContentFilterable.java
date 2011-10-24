@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
+import groovy.text.TemplateEngine;
 
 import java.io.FilterReader;
 import java.util.Map;
@@ -78,4 +79,14 @@ public interface ContentFilterable {
      * @return this
      */
     ContentFilterable expand(Map<String, ?> properties);
+
+    /**
+     * <p>Expands property references in each file as it is copied. More specifically, each file is transformed using
+     * an implementation of Groovy's {@link groovy.text.TemplateEngine}.
+     *
+     * @param properties to implement line based filtering
+     * @param templateType Class of template engine to use
+     * @return this
+     */
+    ContentFilterable expand(Class<? extends TemplateEngine> templateType, Map<String, ?> properties);
 }

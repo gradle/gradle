@@ -59,6 +59,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                'root.a',
                'one/one.a',
                'two/two.a',
+               'three/three.a'
        )
    }
 
@@ -131,7 +132,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                 'one/sub/onesub.renamed',
                 'one/sub/onesub.b',
                 'two/two.renamed',
-                'two/two.b'
+                'two/two.b',
+                'three/three.renamed'
         )
     }
 
@@ -156,6 +158,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                 'one/sub/onesub.b',
                 'two/two.a',
                 'two/two.b',
+                'three/three.a'
         )
     }
 
@@ -223,7 +226,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                 'prefix/one/one.renamed_twice',
                 'prefix/one/one.b',
                 'prefix/one_sub/onesub.renamed_twice',
-                'prefix/one_sub/onesub.b'
+                'prefix/one_sub/onesub.b',
+                'prefix/three/three.renamed_twice'
         )
 
         Iterator<String> it = testFile('dest/root.renamed_twice').readLines().iterator()
@@ -248,6 +252,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                 'one/one.b',
                 'two/two.a',
                 'two/two.b',
+                'three/three.a'
         )
     }
 
@@ -270,6 +275,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                 'one/one.b',
                 'two/two.a',
                 'two/two.b',
+                'three/three.a'
         )
     }
 
@@ -315,7 +321,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         usingBuildFile(buildFile).withTasks("copy").run()
         testFile('dest').assertHasDescendants(
                 'subdir/one/one.a',
-                'subdir/two/two.a'
+                'subdir/two/two.a',
+                'subdir/three/three.a'
         )
     }
 
@@ -364,5 +371,49 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
 
         assert !file("dest", "emptyDir").exists()
         assert !file("dest", "yet", "another", "veryEmptyDir").exists()
+    }
+
+    /*
+     * two.a starts off with "$one\n${one+1}\n${one+1+1}\n"
+     * If these filters are chained in the correct order, you should get 6, 11, and 16
+     */
+    @Test public void copyMultipleFilterDefaultExpandTest() {
+        TestFile buildFile = testFile('build.gradle').writelns(
+                """task (copy, type:Copy) {
+                   into 'dest'
+                   expand(groovy.text.SimpleTemplateEngine, [one: 1])
+                   filter { (Integer.parseInt(it) * 10) as String }
+                   filter { (Integer.parseInt(it) + 2) as String }
+                   from('src/two/two.a') {
+                     filter { (Integer.parseInt(it) / 2) as String }
+                   }
+                }
+                """
+        )
+        usingBuildFile(buildFile).withTasks("copy").run()
+        Iterator<String> it = testFile('dest/two.a').readLines().iterator()
+        assertThat(it.next(), startsWith('6'))
+        assertThat(it.next(), startsWith('11'))
+        assertThat(it.next(), startsWith('16'))
+    }
+
+    /*
+     * two.a starts off with "$one\n${one+1}\n${one+1+1}\n"
+     * If these filters are chained in the correct order, you should get 1, $one, and 3
+     */
+    @Test public void copyMultipleFilterCustomExpandTest() {
+        TestFile buildFile = testFile('build.gradle').writelns(
+                """task (copy, type:Copy) {
+                   into 'dest'
+                   expand(org.gradle.util.TokenTemplateEngine, [one: 1])
+                   from('src/three/three.a')
+                }
+                """
+        )
+        usingBuildFile(buildFile).withTasks("copy").run()
+        Iterator<String> it = testFile('dest/three.a').readLines().iterator()
+        assertThat(it.next(), startsWith('1'))
+        assertThat(it.next(), startsWith('$one'))
+        assertThat(it.next(), startsWith('3'))
     }
 }

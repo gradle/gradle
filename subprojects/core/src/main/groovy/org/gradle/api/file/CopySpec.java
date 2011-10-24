@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
+import groovy.text.TemplateEngine;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.specs.Spec;
@@ -237,6 +238,11 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     CopySpec expand(Map<String, ?> properties);
+
+    /**
+     * {@inheritDoc}
+     */
+    CopySpec expand(Class<? extends TemplateEngine> templateType, Map<String, ?> properties);
 
     /**
      * {@inheritDoc}
