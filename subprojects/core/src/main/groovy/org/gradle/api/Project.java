@@ -1113,6 +1113,7 @@ public interface Project extends Comparable<Project> {
 
     /**
      * Returns a handler for assigning artifacts produced by the project to configurations.
+     * <h3>Examples:</h3>See docs for {@link ArtifactHandler}
      */
     ArtifactHandler getArtifacts();
 
