@@ -4,6 +4,7 @@ repositories {
 
 configurations {
     compile
+    runtime
 }
 
 //START SNIPPET define-dependency
@@ -23,10 +24,6 @@ task listJars << {
     configurations.compile.each { File file -> println file.name }
 }
 //END SNIPPET use-configuration
-
-configurations {
-    runtime
-}
 
 //START SNIPPET module-dependencies
 dependencies {
