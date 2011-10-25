@@ -18,6 +18,7 @@ import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import groovy.text.TemplateEngine
 import java.util.regex.Matcher
+import java.text.SimpleDateFormat
 
 // we only need a test source set
 apply plugin: 'groovy'
@@ -74,14 +75,14 @@ task configureReleases << {
     assert releasesFile.exists() : "$releasesFile does not exist. Please run :docs:websiteDocs"
     def releaseXml = new XmlParser().parse(releasesFile)
     def current = releaseXml.current[0]
-    def currentRelease = new CurrentRelease(version: current.'@version', versionInfo: versionInfo)
+    def currentRelease = new CurrentRelease(version: current.'@version', versionInfo: versionInfo, buildTime: current.'@build-time')
     println "Is release version: $versionInfo.release"
     println "Current release distribution url: ${currentRelease.allDistributionUrl}"
     println "Current release distribution base: ${currentRelease.distributionBase}"
     releases << currentRelease
     releaseXml.release.each {
         def broken = it.attributes()['status'] == 'broken'
-        releases << new Release(version: it.'@version', broken: broken, versionInfo: versionInfo)
+        releases << new Release(version: it.'@version', broken: broken, versionInfo: versionInfo, buildTime: it.'@build-time')
     }
 }
 
@@ -300,6 +301,7 @@ class Release {
     def String version
     def VersionInfo versionInfo
     def boolean broken
+    def String buildTime
 
     def BigDecimal getMajorVersion() {
         Matcher matcher = version =~ /(\d+\.\d+).*/
@@ -316,6 +318,10 @@ class Release {
 
     def String getDisplayName() {
         return "Gradle $version"
+    }
+
+    def String getReleaseDate() {
+        return buildTime ? new SimpleDateFormat("d MMMM yyyy").format(new SimpleDateFormat("yyyyMMddHHmmssZ").parse(buildTime)) : null
     }
 
     def String getAllDistributionUrl() {
@@ -348,6 +354,10 @@ class Release {
 
     def String getReleaseNotesUrl() {
         return "http://wiki.gradle.org/display/GRADLE/Gradle+${releaseNoteVersion}+Release+Notes"
+    }
+
+    def String getMigrationNotesUrl() {
+        return "http://wiki.gradle.org/display/GRADLE/Gradle+${releaseNoteVersion}+Migration+Guide"
     }
 
     def String getUserGuideHtmlUrl() {

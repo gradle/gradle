@@ -377,8 +377,22 @@ table.table td.colHeader {
     list-style: none;
 }
 
+div.extraInfo {
+    color: #808080;
+    margin-top: -0.3em;
+    margin-bottom: 1em;
+}
+
 div.caution {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    border: solid #e6c8c8 1px;
     font-weight: bold;
+    padding-top: 0.8em;
+    padding-bottom: 0.8em;
+    padding-left: 1.6em;
+    padding-right: 1.6em;
+    background-color: #fff5f5;
 }
 
 #footer {

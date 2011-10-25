@@ -64,6 +64,15 @@ repositories {
 }
 //END SNIPPET ivy-repo
 
+//START SNIPPET local-ivy-repo
+repositories {
+    ivy {
+        // URL can refer to a local directory
+        url "../local-repo"
+    }
+}
+//END SNIPPET local-ivy-repo
+
 //START SNIPPET ivy-repo-with-maven-layout
 repositories {
     ivy {

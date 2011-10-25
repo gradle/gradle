@@ -4,17 +4,18 @@ repositories {
 
 configurations {
     compile
+    runtime
 }
 
 //START SNIPPET define-dependency
 dependencies {
-    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+    compile group: 'org.hibernate', name: 'hibernate-core', version: '3.6.7.Final'
 }
 //END SNIPPET define-dependency
 
 //START SNIPPET define-dependency-shortcut
 dependencies {
-    compile 'commons-collections:commons-collections:3.2'
+    compile 'org.hibernate:hibernate-core:3.6.7.Final'
 }
 //END SNIPPET define-dependency-shortcut
 
@@ -23,10 +24,6 @@ task listJars << {
     configurations.compile.each { File file -> println file.name }
 }
 //END SNIPPET use-configuration
-
-configurations {
-    runtime
-}
 
 //START SNIPPET module-dependencies
 dependencies {

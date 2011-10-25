@@ -105,7 +105,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(NO_OPT).hasDescription("Ignore any task optimization.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
-        parser.option(CONTINUE).hasDescription("Continues task execution after a task failure. [EXPERIMENTAL]");
+        parser.option(CONTINUE).hasDescription("Continues task execution after a task failure. [experimental]");
     }
 
     @Override
