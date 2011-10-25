@@ -6,36 +6,38 @@ apply plugin: 'maven'
 //START SNIPPET customize-pom
 //START SNIPPET multiple-poms
 uploadArchives {
-    repositories.mavenDeployer {
-        repository(url: "file://localhost/tmp/myRepo/")
+    repositories {
+        mavenDeployer {
+            repository(url: "file://localhost/tmp/myRepo/")
 //END SNIPPET upload-file
 //END SNIPPET multiple-poms
 //END SNIPPET builder
-        pom.version = '1.0Maven'
-        pom.artifactId = 'myMavenName'
+            pom.version = '1.0Maven'
+            pom.artifactId = 'myMavenName'
 //END SNIPPET customize-pom
 //START SNIPPET builder
-        pom.project {
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    distribution 'repo'
+            pom.project {
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
                 }
             }
-        }
 //END SNIPPET builder
 //START SNIPPET multiple-poms
-        addFilter('api') {artifact, file ->
-            artifact.name == 'api'
-        }
-        addFilter('service') {artifact, file ->
-            artifact.name == 'service'
-        }
-        pom('api').version = 'mySpecialMavenVersion'
+            addFilter('api') {artifact, file ->
+                artifact.name == 'api'
+            }
+            addFilter('service') {artifact, file ->
+                artifact.name == 'service'
+            }
+            pom('api').version = 'mySpecialMavenVersion'
 //START SNIPPET customize-pom
 //START SNIPPET upload-file
 //START SNIPPET builder
+        }
     }
 }
 //END SNIPPET customize-pom

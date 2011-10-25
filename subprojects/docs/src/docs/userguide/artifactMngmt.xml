@@ -13,8 +13,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id="artifact_management" xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Artifact Management: The things your project produces</title>
+<chapter id="artifact_management">
+    <title>Artifact Management</title>
     <section>
         <title>Introduction</title>
         <para>This chapter is about how you declare what are the artifacts of your project and how to work with

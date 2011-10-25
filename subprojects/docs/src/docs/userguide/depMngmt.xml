@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <chapter id='dependency_management'>
-    <title>Dependency Management: The things your project needs</title>
+    <title>Dependency Management</title>
     <section id='sec:Introduction'>
         <title>Introduction</title>
         <para>This chapter gives an overview of issues related with dependency management and presents how Gradle can be used to overcome them.
