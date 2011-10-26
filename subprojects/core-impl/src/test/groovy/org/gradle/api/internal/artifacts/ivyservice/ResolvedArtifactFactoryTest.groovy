@@ -20,17 +20,49 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.resolve.ResolveEngine
 import org.gradle.api.artifacts.ResolvedDependency
+import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.gradle.api.artifacts.ResolvedArtifact
+import java.util.concurrent.Callable
+import org.apache.ivy.core.report.DownloadReport
+import org.apache.ivy.core.report.ArtifactDownloadReport
 
 class ResolvedArtifactFactoryTest extends Specification {
     final CacheLockingManager lockingManager = Mock()
     final ResolvedArtifactFactory factory = new ResolvedArtifactFactory(lockingManager)
 
-    def "creates an artifact"() {
+    def "creates an artifact backed by resolve engine"() {
         Artifact artifact = Mock()
         ResolveEngine resolveEngine = Mock()
         ResolvedDependency resolvedDependency = Mock()
 
         expect:
         factory.create(resolvedDependency, artifact, resolveEngine) instanceof DefaultResolvedArtifact
+    }
+
+    def "creates an artifact backed by resolver"() {
+        Artifact artifact = Mock()
+        DependencyResolver resolver = Mock()
+        ResolvedDependency resolvedDependency = Mock()
+        DownloadReport downloadReport = Mock()
+        ArtifactDownloadReport artifactDownloadReport = Mock()
+        File file = new File("something.jar")
+
+        when:
+        ResolvedArtifact resolvedArtifact = factory.create(resolvedDependency, artifact, resolver)
+
+        then:
+        resolvedArtifact instanceof DefaultResolvedArtifact
+
+        when:
+        resolvedArtifact.file
+
+        then:
+        1 * lockingManager.withCacheLock(!null, !null) >> {String displayName, Callable action ->
+            return action.call()
+        }
+        1 * resolver.download({it.length == 1 && it[0] == artifact}, _) >> downloadReport
+        _ * downloadReport.getArtifactReport(artifact) >> artifactDownloadReport
+        _ * artifactDownloadReport.localFile >> file
+        0 * _._
     }
 }

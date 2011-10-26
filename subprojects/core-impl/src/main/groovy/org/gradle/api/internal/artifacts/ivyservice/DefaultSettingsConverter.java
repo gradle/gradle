@@ -24,6 +24,7 @@ import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.*;
+import org.apache.ivy.util.Message;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCache;
@@ -53,6 +54,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         this.progressLoggerFactory = progressLoggerFactory;
         this.settingsFactory = settingsFactory;
         this.dynamicRevisionCache = dynamicRevisionCache;
+        Message.setDefaultLogger(new IvyLoggingAdaper());
     }
 
     private static String getLengthText(TransferEvent evt) {

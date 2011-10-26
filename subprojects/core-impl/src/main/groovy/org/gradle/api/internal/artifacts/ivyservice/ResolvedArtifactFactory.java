@@ -16,8 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveEngine;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
@@ -39,6 +41,19 @@ public class ResolvedArtifactFactory {
                 return lockingManager.withCacheLock(String.format("download %s", artifact), new Callable<File>() {
                     public File call() throws Exception {
                         return resolvedEngine.download(artifact, new DownloadOptions()).getLocalFile();
+                    }
+                });
+            }
+        });
+    }
+    
+    public ResolvedArtifact create(ResolvedDependency owner, final Artifact artifact, final DependencyResolver resolver) {
+        return new DefaultResolvedArtifact(owner, artifact, new FileSource() {
+            public File get() {
+                return lockingManager.withCacheLock(String.format("download %s", artifact), new Callable<File>() {
+                    public File call() throws Exception {
+                        DownloadReport downloadReport = resolver.download(new Artifact[]{artifact}, new DownloadOptions());
+                        return downloadReport.getArtifactReport(artifact).getLocalFile();
                     }
                 });
             }

@@ -220,26 +220,42 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         }
 
         ArtifactDependencyResolver createDependencyResolver(DefaultRepositoryHandler resolverProvider) {
+            ResolveIvyFactory ivyFactory = new ResolveIvyFactory(
+                    get(IvyFactory.class),
+                    resolverProvider,
+                    get(SettingsConverter.class),
+                    new DefaultInternalRepository(
+                            get(PublishModuleDescriptorConverter.class)),
+                    clientModuleRegistry);
+
+            ResolvedArtifactFactory resolvedArtifactFactory = new ResolvedArtifactFactory(
+                    get(CacheLockingManager.class)
+            );
+
+            ArtifactDependencyResolver actualResolver;
+            String resolverName = System.getProperty("org.gradle.resolver", "ivy");
+            if (resolverName.equalsIgnoreCase("ivy")) {
+                actualResolver = new DefaultIvyDependencyResolver(
+                        new DefaultIvyReportConverter(
+                                get(DependencyDescriptorFactory.class),
+                                resolvedArtifactFactory),
+                        get(PublishModuleDescriptorConverter.class),
+                        ivyFactory);
+            } else if (resolverName.equalsIgnoreCase("gradle")) {
+                actualResolver = new DefaultDependencyResolver(
+                        ivyFactory,
+                        get(PublishModuleDescriptorConverter.class),
+                        resolvedArtifactFactory);
+            } else {
+                throw new IllegalArgumentException(String.format("Unknown resolver implementation '%s' specified.", resolverName));
+            }
             return new ErrorHandlingArtifactDependencyResolver(
                     new EventBroadcastingArtifactDependencyResolver(
                             new ShortcircuitEmptyConfigsArtifactDependencyResolver(
                                     new SelfResolvingDependencyResolver(
                                             new CacheLockingArtifactDependencyResolver(
                                                     get(CacheLockingManager.class),
-                                                    new DefaultIvyDependencyResolver(
-                                                            new DefaultIvyReportConverter(
-                                                                    get(DependencyDescriptorFactory.class),
-                                                                    new ResolvedArtifactFactory(
-                                                                            get(CacheLockingManager.class)
-                                                                    )),
-                                                            get(PublishModuleDescriptorConverter.class),
-                                                            new ResolveIvyFactory(
-                                                                    get(IvyFactory.class),
-                                                                    resolverProvider,
-                                                                    get(SettingsConverter.class),
-                                                                    new DefaultInternalRepository(
-                                                                            get(PublishModuleDescriptorConverter.class)),
-                                                                    clientModuleRegistry)))))));
+                                                    actualResolver)))));
         }
 
         ArtifactPublisher createArtifactPublisher(DefaultRepositoryHandler resolverProvider) {

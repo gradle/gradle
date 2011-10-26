@@ -21,7 +21,6 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.ResolveOptions;
-import org.apache.ivy.util.Message;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.CachingDirectedGraphWalker;
 import org.gradle.api.internal.DirectedGraphWithEdgeValues;
@@ -30,7 +29,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,11 +49,9 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
         this.ivyReportTranslator = ivyReportTranslator;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.ivyFactory = ivyFactory;
-        Message.setDefaultLogger(new IvyLoggingAdaper());
     }
 
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) {
-        Clock clock = new Clock();
         Ivy ivy = ivyFactory.create(configuration.getResolutionStrategy());
 
         IvyConfig ivyConfig = new IvyConfig(ivy.getSettings(), configuration.getResolutionStrategy());
@@ -68,7 +64,6 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
             ivyConfig.maybeTranslateIvyResolveException(e);
             throw new RuntimeException(e);
         }
-        LOGGER.debug("Timing: Ivy resolve took {}", clock.getTime());
         return new ResolvedConfigurationImpl(resolveReport, configuration);
     }
 
