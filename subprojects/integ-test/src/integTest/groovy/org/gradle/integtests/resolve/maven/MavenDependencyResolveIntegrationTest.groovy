@@ -154,6 +154,19 @@ task check << {
         'hibernate-jpa-2.0-api-1.0.1.Final.jar',
         'jta-1.1.jar'
     ]
+
+    assert compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == [
+        'logback-classic-0.9.30.jar',
+        'hibernate-core-3.6.7.Final.jar',
+        'logback-core-0.9.30.jar',
+        'slf4j-api-1.6.2.jar',
+        'antlr-2.7.6.jar',
+        'dom4j-1.6.1.jar',
+        'hibernate-commons-annotations-3.2.0.Final.jar',
+        'hibernate-jpa-2.0-api-1.0.1.Final.jar',
+        'jta-1.1.jar',
+        'commons-collections-3.1.jar'
+    ]
 }
 """
 

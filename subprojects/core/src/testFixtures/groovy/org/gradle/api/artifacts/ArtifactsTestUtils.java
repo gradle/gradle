@@ -17,6 +17,7 @@ package org.gradle.api.artifacts;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
+import org.gradle.api.internal.artifacts.DefaultResolvedModuleId;
 import org.gradle.api.internal.file.FileSource;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -26,7 +27,7 @@ import java.util.Collections;
 
 public class ArtifactsTestUtils {
     
-    public static DefaultResolvedArtifact createResolvedArtifact(Mockery context, final String name, final String type, final String extension, final File file) {
+    public static DefaultResolvedArtifact createResolvedArtifact(final Mockery context, final String name, final String type, final String extension, final File file) {
         final Artifact artifactStub = context.mock(Artifact.class, "artifact" + name);
         context.checking(new Expectations() {{
             allowing(artifactStub).getName();
@@ -45,7 +46,15 @@ public class ArtifactsTestUtils {
             allowing(artifactSource).get();
             will(returnValue(file));
         }});
-        return new DefaultResolvedArtifact(context.mock(ResolvedDependency.class), artifactStub, artifactSource);
+        final ResolvedDependency resolvedDependency = context.mock(ResolvedDependency.class);
+        final ResolvedModule resolvedModule = context.mock(ResolvedModule.class);
+        context.checking(new Expectations() {{
+            allowing(resolvedDependency).getModule();
+            will(returnValue(resolvedModule));
+            allowing(resolvedModule).getId();
+            will(returnValue(new DefaultResolvedModuleId("group", name, "1.2")));
+        }});
+        return new DefaultResolvedArtifact(resolvedDependency, artifactStub, artifactSource);
     }
     
 }

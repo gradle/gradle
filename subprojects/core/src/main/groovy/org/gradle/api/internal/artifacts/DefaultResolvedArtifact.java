@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.ResolvedModule;
 import org.gradle.api.internal.file.FileSource;
 
 import java.io.File;
@@ -42,6 +43,10 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
         return resolvedDependency;
     }
 
+    public ResolvedModule getModule() {
+        return resolvedDependency.getModule();
+    }
+
     @Override
     public String toString() {
         return String.format("[ResolvedArtifact dependency:%s name:%s classifier:%s extension:%s type:%s]", resolvedDependency, getName(), getClassifier(), getExtension(), getType());
@@ -56,7 +61,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
             return false;
         }
         DefaultResolvedArtifact other = (DefaultResolvedArtifact) obj;
-        if (!other.resolvedDependency.equals(resolvedDependency)) {
+        if (!other.resolvedDependency.getModule().getId().equals(resolvedDependency.getModule().getId())) {
             return false;
         }
         if (!other.getName().equals(getName())) {
@@ -76,7 +81,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
 
     @Override
     public int hashCode() {
-        return resolvedDependency.hashCode() ^ getName().hashCode() ^ getType().hashCode() ^ getExtension().hashCode() ^ artifact.getExtraAttributes().hashCode();
+        return resolvedDependency.getModule().getId().hashCode() ^ getName().hashCode() ^ getType().hashCode() ^ getExtension().hashCode() ^ artifact.getExtraAttributes().hashCode();
     }
 
     public String getName() {

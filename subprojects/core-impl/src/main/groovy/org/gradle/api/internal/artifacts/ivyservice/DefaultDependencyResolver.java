@@ -409,10 +409,12 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             parent.addChild(child);
 
             Set<ResolvedArtifact> artifacts = getArtifacts(childConfiguration, resolvedArtifactFactory, resolver);
-            if (!artifacts.isEmpty()) {
-                child.addParentSpecificArtifacts(parent, artifacts);
-            } else {
-                child.addParentSpecificArtifacts(parent, childConfiguration.getArtifacts(resolvedArtifactFactory, resolver));
+            if (artifacts.isEmpty()) {
+                artifacts = childConfiguration.getArtifacts(resolvedArtifactFactory, resolver);
+            }
+            child.addParentSpecificArtifacts(parent, artifacts);
+            for (ResolvedArtifact artifact : artifacts) {
+                result.addArtifact(artifact);
             }
 
             if (parent == result.getRoot()) {
@@ -425,6 +427,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private static class ResolvedConfigurationImpl extends AbstractResolvedConfiguration {
         private final ResolvedDependency root;
         private final Map<ModuleDependency, ResolvedDependency> firstLevelDependencies = new LinkedHashMap<ModuleDependency, ResolvedDependency>();
+        private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
 
         private ResolvedConfigurationImpl(ResolvedDependency root) {
             this.root = root;
@@ -458,11 +461,15 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
-            throw new UnsupportedOperationException();
+            return artifacts;
         }
 
         public void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedDependency refersTo) {
             firstLevelDependencies.put(moduleDependency, refersTo);
+        }
+
+        public void addArtifact(ResolvedArtifact artifact) {
+            artifacts.add(artifact);
         }
     }
 

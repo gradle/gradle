@@ -20,6 +20,7 @@ import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.ResolvedModule;
 import org.gradle.util.GUtil;
 
 import java.util.*;
@@ -69,6 +70,14 @@ public class DefaultResolvedDependency implements ResolvedDependency {
 
     public String getConfiguration() {
         return id.getConfiguration();
+    }
+
+    public ResolvedModule getModule() {
+        return new ResolvedModule() {
+            public ModuleIdentifier getId() {
+                return new DefaultResolvedModuleId(id.getModuleGroup(), id.getModuleName(), id.getModuleVersion());
+            }
+        };
     }
 
     public Set<ResolvedDependency> getChildren() {

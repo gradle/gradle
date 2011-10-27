@@ -49,6 +49,13 @@ public interface ResolvedDependency {
     String getConfiguration();
 
     /**
+     * Returns the module which this resolved dependency belongs to.
+     *
+     * @return The module.
+     */
+    ResolvedModule getModule();
+
+    /**
      * Returns the transitive ResolvedDependency instances of this resolved dependency. Returns never null.
      */
     Set<ResolvedDependency> getChildren();

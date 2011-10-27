@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.internal.file.FileSource
 import org.gradle.util.Matchers
 import spock.lang.Specification
+import org.gradle.api.artifacts.ResolvedModule
 
 class DefaultResolvedArtifactTest extends Specification {
     final FileSource artifactSource = Mock()
@@ -37,15 +38,16 @@ class DefaultResolvedArtifactTest extends Specification {
     }
 
     def "attributes are equal when module, name, type, extension and extended attributes are equal"() {
-        ResolvedDependency dependency = Mock()
-        ResolvedDependency dependency2 = Mock()
+        ResolvedDependency dependency = dep("group", "module1", "1.2")
+        ResolvedDependency dependencySameModule = dep("group", "module1", "1.2")
+        ResolvedDependency dependency2 = dep("group", "module2", "1-beta")
         Artifact ivyArt = ivyArtifact("name", "type", "ext", [attr: "value"])
         Artifact ivyArtifactWithDifferentName = ivyArtifact("name2", "type", "ext", [attr: "value"])
         Artifact ivyArtifactWithDifferentType = ivyArtifact("name", "type2", "ext", [attr: "value"])
         Artifact ivyArtifactWithDifferentExt = ivyArtifact("name", "type", "ext2", [attr: "value"])
         Artifact ivyArtWithDifferentAttributes = ivyArtifact("name", "type", "ext", [attr: "value2"])
         def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactSource)
-        def equalArtifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactSource)
+        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, ivyArt, artifactSource)
         def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactSource)
         def differentName = new DefaultResolvedArtifact(dependency, ivyArtifactWithDifferentName, artifactSource)
         def differentType = new DefaultResolvedArtifact(dependency, ivyArtifactWithDifferentType, artifactSource)
@@ -68,5 +70,13 @@ class DefaultResolvedArtifactTest extends Specification {
         _ * artifact.ext >> extension
         _ * artifact.extraAttributes >> attributes
         return artifact
+    }
+
+    def dep(String group, String moduleName, String version) {
+        ResolvedDependency dependency = Mock()
+        ResolvedModule module = Mock()
+        _ * dependency.module >> module
+        _ * module.id >> new DefaultResolvedModuleId(group, moduleName, version)
+        return dependency
     }
 }

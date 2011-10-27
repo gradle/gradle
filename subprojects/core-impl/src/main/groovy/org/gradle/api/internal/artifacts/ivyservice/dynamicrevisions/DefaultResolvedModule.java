@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ResolvedModule;
+import org.gradle.api.internal.artifacts.DefaultResolvedModuleId;
 
 public class DefaultResolvedModule implements ResolvedModule {
     private final ModuleRevisionId moduleRevisionId;
@@ -26,18 +27,6 @@ public class DefaultResolvedModule implements ResolvedModule {
     }
 
     public ModuleIdentifier getId() {
-        return new ModuleIdentifier() {
-            public String getGroup() {
-                return moduleRevisionId.getOrganisation();
-            }
-
-            public String getName() {
-                return moduleRevisionId.getName();
-            }
-
-            public String getVersion() {
-                return moduleRevisionId.getRevision();
-            }
-        };
+        return new DefaultResolvedModuleId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
     }
 }

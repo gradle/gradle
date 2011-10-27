@@ -21,6 +21,13 @@ import spock.lang.Specification
 class DefaultResolvedDependencySpec extends Specification {
     final DefaultResolvedDependency dependency = new DefaultResolvedDependency("name", "group", "module", "version", "config")
 
+    def "provides meta-data about the module"() {
+        expect:
+        dependency.module.id.group == "group"
+        dependency.module.id.name == "module"
+        dependency.module.id.version == "version"
+    }
+
     def "artifacts are ordered by name then classifier then extension then type"() {
         ResolvedArtifact artifact1 = artifact("a", null, "jar", "jar")
         ResolvedArtifact artifact2 = artifact("b", null, "jar", "jar")

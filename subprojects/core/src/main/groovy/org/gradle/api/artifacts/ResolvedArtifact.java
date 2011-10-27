@@ -25,6 +25,20 @@ import java.io.File;
 public interface ResolvedArtifact {
     File getFile();
 
+    /**
+     * Returns the module which this artifact belongs to.
+     *
+     * @return The module.
+     */
+    ResolvedModule getModule();
+
+    /**
+     * Returns one of the dependencies which this artifact belongs to.
+     *
+     * @return One of the dependencies which this artifact belongs to.
+     * @deprecated An artifact can belong to multiple dependencies. Use {@link #getModule()} instead.
+     */
+    @Deprecated
     ResolvedDependency getResolvedDependency();
 
     String getName();
