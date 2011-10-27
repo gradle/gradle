@@ -15,16 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import spock.lang.Specification
-import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
+import java.util.concurrent.Callable
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.resolve.ResolveEngine
-import org.gradle.api.artifacts.ResolvedDependency
-import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.artifacts.ResolvedArtifact
-import java.util.concurrent.Callable
-import org.apache.ivy.core.report.DownloadReport
-import org.apache.ivy.core.report.ArtifactDownloadReport
+import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
+import spock.lang.Specification
 
 class ResolvedArtifactFactoryTest extends Specification {
     final CacheLockingManager lockingManager = Mock()
@@ -41,10 +38,8 @@ class ResolvedArtifactFactoryTest extends Specification {
 
     def "creates an artifact backed by resolver"() {
         Artifact artifact = Mock()
-        DependencyResolver resolver = Mock()
+        ArtifactToFileResolver resolver = Mock()
         ResolvedDependency resolvedDependency = Mock()
-        DownloadReport downloadReport = Mock()
-        ArtifactDownloadReport artifactDownloadReport = Mock()
         File file = new File("something.jar")
 
         when:
@@ -60,9 +55,7 @@ class ResolvedArtifactFactoryTest extends Specification {
         1 * lockingManager.withCacheLock(!null, !null) >> {String displayName, Callable action ->
             return action.call()
         }
-        1 * resolver.download({it.length == 1 && it[0] == artifact}, _) >> downloadReport
-        _ * downloadReport.getArtifactReport(artifact) >> artifactDownloadReport
-        _ * artifactDownloadReport.localFile >> file
+        1 * resolver.resolve(artifact) >> file
         0 * _._
     }
 }

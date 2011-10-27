@@ -17,17 +17,15 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.project.ProjectInternal;
 
 public class ProjectDependencyDescriptor extends EnhancedDependencyDescriptor {
-    private final ProjectInternal targetProject;
-
-    public ProjectDependencyDescriptor(ModuleDescriptor md, ModuleRevisionId mrid, boolean force, boolean changing, boolean transitive, ProjectInternal targetProject) {
-        super(md, mrid, force, changing, transitive);
-        this.targetProject = targetProject;
+    public ProjectDependencyDescriptor(ProjectDependency projectDependency, ModuleDescriptor md, ModuleRevisionId mrid, boolean force, boolean changing, boolean transitive) {
+        super(projectDependency, md, mrid, force, changing, transitive);
     }
 
     public ProjectInternal getTargetProject() {
-        return targetProject;
+        return (ProjectInternal) ((ProjectDependency) getModuleDependency()).getDependencyProject();
     }
 }

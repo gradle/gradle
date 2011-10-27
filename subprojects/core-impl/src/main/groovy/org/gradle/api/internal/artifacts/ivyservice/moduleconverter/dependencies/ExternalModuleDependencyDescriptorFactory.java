@@ -38,9 +38,13 @@ public class ExternalModuleDependencyDescriptorFactory extends AbstractDependenc
 
     public EnhancedDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
                                                            ModuleRevisionId moduleRevisionId) {
-        EnhancedDependencyDescriptor dependencyDescriptor = new EnhancedDependencyDescriptor(parent,
-                moduleRevisionId, getExternalModuleDependency(dependency).isForce(),
-                getExternalModuleDependency(dependency).isChanging(), getExternalModuleDependency(dependency).isTransitive());
+        EnhancedDependencyDescriptor dependencyDescriptor = new EnhancedDependencyDescriptor(
+                dependency,
+                parent,
+                moduleRevisionId,
+                getExternalModuleDependency(dependency).isForce(),
+                getExternalModuleDependency(dependency).isChanging(),
+                getExternalModuleDependency(dependency).isTransitive());
         addExcludesArtifactsAndDependencies(configuration, getExternalModuleDependency(dependency), dependencyDescriptor);
         return dependencyDescriptor;
     }

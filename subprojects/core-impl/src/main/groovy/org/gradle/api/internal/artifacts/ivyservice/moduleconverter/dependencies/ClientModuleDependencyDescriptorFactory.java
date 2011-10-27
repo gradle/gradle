@@ -45,9 +45,13 @@ public class ClientModuleDependencyDescriptorFactory extends AbstractDependencyD
 
     public EnhancedDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
                                                            ModuleRevisionId moduleRevisionId) {
-        EnhancedDependencyDescriptor dependencyDescriptor = new EnhancedDependencyDescriptor(parent,
-                moduleRevisionId, getClientModule(dependency).isForce(),
-                false, getClientModule(dependency).isTransitive());
+        EnhancedDependencyDescriptor dependencyDescriptor = new EnhancedDependencyDescriptor(
+                dependency,
+                parent,
+                moduleRevisionId,
+                getClientModule(dependency).isForce(),
+                false,
+                getClientModule(dependency).isTransitive());
         addExcludesArtifactsAndDependencies(configuration, getClientModule(dependency), dependencyDescriptor);
 
         ModuleDescriptor moduleDescriptor = moduleDescriptorFactoryForClientModule.createModuleDescriptor(

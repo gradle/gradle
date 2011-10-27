@@ -22,25 +22,22 @@ import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.CachingDirectedGraphWalker;
-import org.gradle.api.internal.DirectedGraphWithEdgeValues;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.WrapUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIvyDependencyResolver.class);
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final ResolveIvyFactory ivyFactory;
     private final IvyReportConverter ivyReportTranslator;
@@ -74,33 +71,33 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
         return resolveOptions;
     }
 
-    class ResolvedConfigurationImpl implements ResolvedConfiguration {
+    class ResolvedConfigurationImpl extends AbstractResolvedConfiguration {
         private final Configuration configuration;
         private boolean hasError;
         private List<String> problemMessages;
         private IvyConversionResult conversionResult;
-        private final CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker
-                = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph());
         private final ResolveReport resolveReport;
-
-        public LenientConfiguration getLenientConfiguration() {
-            if (!hasError) {
-                return new DelegatingLenientConfiguration(this);
-            }
-            return new LenientConfigurationImpl(this, resolveReport, configuration, ivyReportTranslator);
-        }
 
         public ResolvedConfigurationImpl(ResolveReport resolveReport, Configuration configuration) {
             this.resolveReport = resolveReport;
             this.hasError = resolveReport.hasError();
             if (this.hasError) {
                 this.problemMessages = resolveReport.getAllProblemMessages();
-            } else {
-                 this.conversionResult = ivyReportTranslator.convertReport(
-                    resolveReport,
-                    configuration);
             }
+            conversionResult = ivyReportTranslator.convertReport(resolveReport, configuration);
             this.configuration = configuration;
+        }
+
+        public LenientConfiguration getLenientConfiguration() {
+            if (!hasError) {
+                return new DelegatingLenientConfiguration(this);
+            }
+            return new LenientConfigurationImpl(this, resolveReport, configuration);
+        }
+
+        @Override
+        protected ResolvedDependency getRoot() {
+            return conversionResult.getRoot();
         }
 
         public boolean hasError() {
@@ -120,44 +117,8 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
             }
         }
 
-        public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
-            Set<ResolvedDependency> firstLevelModuleDependencies = getFirstLevelModuleDependencies(dependencySpec);
-            return getFiles(firstLevelModuleDependencies, this.conversionResult);
-        }
-
-        Set<File> getFiles(Set<ResolvedDependency> firstLevelModuleDependencies, IvyConversionResult conversionResult) {
-            Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-
-            for (ResolvedDependency resolvedDependency : firstLevelModuleDependencies) {
-                artifacts.addAll(resolvedDependency.getParentArtifacts(conversionResult.getRoot()));
-                walker.add(resolvedDependency);
-            }
-
-            artifacts.addAll(walker.findValues());
-
-            Set<File> files = new LinkedHashSet<File>();
-            for (ResolvedArtifact artifact : artifacts) {
-                File depFile = artifact.getFile();
-                if (depFile != null) {
-                    files.add(depFile);
-                } else {
-                    LOGGER.debug(String.format("Resolved artifact %s contains a null value.", artifact));
-                }
-            }
-            return files;
-        }
-
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-            rethrowFailure();
-            return conversionResult.getRoot().getChildren();
-        }
-
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
-            rethrowFailure();
-            return getFirstLevelModuleDependencies(dependencySpec, conversionResult);
-        }
-
-        Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec, IvyConversionResult conversionResult) {
+        @Override
+        Set<ResolvedDependency> doGetFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
             Set<ModuleDependency> allDependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
             Set<ModuleDependency> selectedDependencies = Specs.filterIterable(allDependencies, dependencySpec);
 
@@ -172,18 +133,6 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
         public Set<ResolvedArtifact> getResolvedArtifacts() {
             rethrowFailure();
             return conversionResult.getResolvedArtifacts();
-        }
-
-        private class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<ResolvedDependency, ResolvedArtifact> {
-            public void getNodeValues(ResolvedDependency node, Collection<ResolvedArtifact> values,
-                                      Collection<ResolvedDependency> connectedNodes) {
-                connectedNodes.addAll(node.getChildren());
-            }
-
-            public void getEdgeValues(ResolvedDependency from, ResolvedDependency to,
-                                      Collection<ResolvedArtifact> values) {
-                values.addAll(to.getParentArtifacts(from));
-            }
         }
     }
 }

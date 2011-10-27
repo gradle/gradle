@@ -35,8 +35,7 @@ public class ProjectDependencyDescriptorFactory extends AbstractDependencyDescri
     public EnhancedDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
                                                            ModuleRevisionId moduleRevisionId) {
         ProjectDependency projectDependency = (ProjectDependency) dependency;
-        ProjectInternal dependencyProject = (ProjectInternal) projectDependency.getDependencyProject();
-        ProjectDependencyDescriptor dependencyDescriptor = new ProjectDependencyDescriptor(parent, moduleRevisionId, false, false, dependency.isTransitive(), dependencyProject);
+        ProjectDependencyDescriptor dependencyDescriptor = new ProjectDependencyDescriptor(projectDependency, parent, moduleRevisionId, false, false, dependency.isTransitive());
         addExcludesArtifactsAndDependencies(configuration, dependency, dependencyDescriptor);
         return dependencyDescriptor;
     }

@@ -18,12 +18,19 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleDependency;
 
 public class EnhancedDependencyDescriptor extends DefaultDependencyDescriptor {
     private boolean include;
+    private final ModuleDependency moduleDependency;
 
-    public EnhancedDependencyDescriptor(ModuleDescriptor md, ModuleRevisionId mrid, boolean force, boolean changing, boolean transitive) {
+    public EnhancedDependencyDescriptor(ModuleDependency moduleDependency, ModuleDescriptor md, ModuleRevisionId mrid, boolean force, boolean changing, boolean transitive) {
         super(md, mrid, force, changing, transitive);
+        this.moduleDependency = moduleDependency;
+    }
+
+    public ModuleDependency getModuleDependency() {
+        return moduleDependency;
     }
 
     public void setIncludeDefaultArtifacts(boolean include) {

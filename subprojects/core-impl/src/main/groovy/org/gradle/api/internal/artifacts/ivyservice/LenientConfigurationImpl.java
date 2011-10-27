@@ -29,30 +29,22 @@ import java.util.Set;
  * @author: Szczepan Faber, created at: 8/9/11
  */
 public class LenientConfigurationImpl implements LenientConfiguration {
-    private final IvyConversionResult lenientConversionResult;
     private final DefaultIvyDependencyResolver.ResolvedConfigurationImpl delegate;
     private final ResolveReport resolveReport;
     private final Configuration configuration;
 
-    public LenientConfigurationImpl(DefaultIvyDependencyResolver.ResolvedConfigurationImpl resolvedConfiguration, ResolveReport resolveReport, Configuration configuration, IvyReportConverter ivyReportTranslator) {
+    public LenientConfigurationImpl(DefaultIvyDependencyResolver.ResolvedConfigurationImpl resolvedConfiguration, ResolveReport resolveReport, Configuration configuration) {
         this.delegate = resolvedConfiguration;
         this.resolveReport = resolveReport;
         this.configuration = configuration;
-        //I think it's pretty safe to try to convert even though translator has some code that only Nostradamus understands.
-        // Regular behavior fails the build anyway in case of error (unresolved dependency) so ...
-        // at worst we will have a different failure translator misbehaves.
-        lenientConversionResult = ivyReportTranslator.convertReport(resolveReport, configuration);
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) {
-        //delegate to regular method, just passing the lenient result
-        return delegate.getFirstLevelModuleDependencies(dependencySpec, lenientConversionResult);
+        return delegate.doGetFirstLevelModuleDependencies(dependencySpec);
     }
 
     public Set<File> getFiles(Spec<Dependency> dependencySpec) {
-        Set<ResolvedDependency> deps = this.getFirstLevelModuleDependencies(dependencySpec);
-        //delegate to regular method, just passing the lenient result
-        return delegate.getFiles(deps, lenientConversionResult);
+        return delegate.doGetFiles(dependencySpec);
     }
 
     public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
