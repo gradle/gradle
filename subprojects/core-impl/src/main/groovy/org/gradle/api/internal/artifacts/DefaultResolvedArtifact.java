@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModule;
 import org.gradle.api.internal.file.FileSource;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -40,6 +41,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     }
 
     public ResolvedDependency getResolvedDependency() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("ResolvedArtifact.getResolvedDependency()");
         return resolvedDependency;
     }
 
