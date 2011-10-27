@@ -21,6 +21,7 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.IvyNode;
@@ -294,12 +295,19 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
     private static abstract class ResolvePath {
         public abstract void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationImpl result);
+
+        public abstract boolean isExcluded(ModuleRevisionResolveState moduleRevision);
     }
     
     private static class RootPath extends ResolvePath {
         @Override
         public String toString() {
             return "<root>";
+        }
+
+        @Override
+        public boolean isExcluded(ModuleRevisionResolveState moduleRevision) {
+            return false;
         }
 
         @Override
@@ -348,13 +356,26 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         public void addOutgoingDependencies(ResolveData resolveData, ResolveState resolveState, Collection<DependencyResolvePath> queue) {
+            if (isExcluded(targetModuleRevision)) {
+                return;
+            }
+
             targetModuleRevision.addOutgoingPath(this);
-            ModuleDescriptor targetDescrptor = targetModuleRevision.descriptor;
-            for (String targetConfigurationName : getTargetConfigurations(targetDescrptor, resolveData)) {
-                ConfigurationResolveState targetConfiguration = resolveState.getConfiguration(targetDescrptor, targetConfigurationName);
+            ModuleDescriptor targetDescriptor = targetModuleRevision.descriptor;
+            for (String targetConfigurationName : getTargetConfigurations(targetDescriptor, resolveData)) {
+                ConfigurationResolveState targetConfiguration = resolveState.getConfiguration(targetDescriptor, targetConfigurationName);
                 System.out.println("    refers to config " + targetConfiguration);
                 targetConfiguration.addOutgoingDependencies(this, queue);
             }
+        }
+
+        public boolean isExcluded(ModuleRevisionResolveState moduleRevision) {
+            boolean excluded = descriptor.doesExclude(new String[]{from.configurationName}, new ArtifactId(moduleRevision.descriptor.getModuleRevisionId().getModuleId(), "ivy", "ivy", "ivy"));
+            if (excluded) {
+                System.out.println("   excluded by " + this);
+                return true;
+            }
+            return path.isExcluded(moduleRevision);
         }
 
         public void restart(ModuleRevisionResolveState moduleRevision, List<DependencyResolvePath> queue) {
