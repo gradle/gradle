@@ -35,10 +35,10 @@ class VersionConflictResolutionIntegTest extends AbstractIntegrationTest {
         maven(repo).module("org", "foo", '1.3.3').publish()
         maven(repo).module("org", "foo", '1.4.4').publish()
 
-        def settingsFile = file("master/settings.gradle")
+        def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
 allprojects {
 	apply plugin: 'java'
@@ -71,9 +71,7 @@ project(':tool') {
 
         try {
             //when
-            executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
-                .withArguments("-s")
-                .withTasks("tool:dependencies").run() //cannot runWithFailure until the error reporting is fixed
+            executer.withTasks("tool:dependencies").run() //cannot runWithFailure until the error reporting is fixed
 
             //then
             assert false
@@ -96,10 +94,10 @@ project(':tool') {
         TestFile repo = file("repo")
         maven(repo).module("org", "foo", '1.3.3').publish()
 
-        def settingsFile = file("master/settings.gradle")
+        def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
 allprojects {
 	apply plugin: 'java'
@@ -131,9 +129,7 @@ project(':tool') {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
-            .withArguments("-s")
-            .withTasks("tool:dependencies").run()
+        executer.withTasks("tool:dependencies").run()
 
         //then no exceptions are thrown
     }
@@ -145,10 +141,10 @@ project(':tool') {
         maven(repo).module("org", "foo", '1.4.4').publish()
         maven(repo).module("org", "foo", '1.5.5').publish()
 
-        def settingsFile = file("master/settings.gradle")
+        def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
 allprojects {
 	apply plugin: 'java'
@@ -183,9 +179,7 @@ project(':tool') {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
-            .withArguments("-s")
-            .withTasks("tool:dependencies").run()
+        executer.withTasks("tool:dependencies").run()
 
         //then no exceptions are thrown because we forced a certain version of conflicting dependency
     }
@@ -196,10 +190,10 @@ project(':tool') {
         maven(repo).module("org", "foo", '1.3.3').publish()
         maven(repo).module("org", "foo", '1.4.4').publish()
 
-        def settingsFile = file("master/settings.gradle")
+        def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
 allprojects {
 	apply plugin: 'java'
@@ -238,21 +232,19 @@ allprojects {
 """
 
         //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile)
-            .withArguments("-s")
-            .withTasks("api:dependencies", "tool:dependencies").run()
+        executer.withTasks("api:dependencies", "tool:dependencies").run()
 
         //then no exceptions are thrown because we forced a certain version of conflicting dependency
         //TODO SF add coverage that checks if dependencies are not pushed to 1st level (write a functional test for it)
     }
 
     @Test
-    void "can force the version of the dependency"() {
+    void "can force the version of a direct dependency"() {
         TestFile repo = file("repo")
         maven(repo).module("org", "foo", '1.3.3').publish()
         maven(repo).module("org", "foo", '1.4.4').publish()
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
 apply plugin: 'java'
 repositories {
@@ -266,14 +258,14 @@ dependencies {
 configurations.all {
     resolutionStrategy.force 'org:foo:1.4.4'
 }
+
+task checkDeps << {
+    assert configurations.compile.collect { it.name == '1.4.4.jar' }
+}
 """
 
-        //when
-        def result = executer.usingBuildScript(buildFile).withArguments("-s").withTasks("dependencies").run()
-
-        //then
-        assert result.output.contains("1.4.4")
-        assert !result.output.contains("1.3.3")
+        //expect
+        executer.withTasks("checkDeps").run()
     }
 
     @Test
@@ -346,10 +338,10 @@ allprojects {
         maven(repo).module("org", "foo", '1.3.3').publish()
         maven(repo).module("org", "foo", '1.4.4').publish()
 
-        def settingsFile = file("master/settings.gradle")
+        def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
 
-        def buildFile = file("master/build.gradle")
+        def buildFile = file("build.gradle")
         buildFile << """
 allprojects {
 	apply plugin: 'java'
@@ -375,16 +367,13 @@ project(':tool') {
 		compile project(':api')
 		compile project(':impl')
 	}
+    task checkDeps(dependsOn: configurations.compile) << {
+        assert configurations.compile.collect { it.name } == ['api.jar', 'impl.jar', 'foo-1.4.4.jar']
+    }
 }
 """
 
-        //when
-        def result = executer.usingBuildScript(buildFile)
-                .usingSettingsFile(settingsFile).withArguments("-s")
-                .withTasks("tool:dependencies").run()
-
-        //then
-        assert result.output.contains('1.4.4')
-        assert !result.output.contains('1.3.3')
+        //expect
+        executer.withTasks("tool:checkDeps").run()
     }
 }
