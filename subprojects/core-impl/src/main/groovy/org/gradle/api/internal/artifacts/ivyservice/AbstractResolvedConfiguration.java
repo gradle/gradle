@@ -33,6 +33,12 @@ abstract class AbstractResolvedConfiguration implements ResolvedConfiguration {
 
     abstract Set<ResolvedDependency> doGetFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec);
 
+    abstract Set<UnresolvedDependency> getUnresolvedDependencies();
+
+    public LenientConfiguration getLenientConfiguration() {
+        return new LenientConfigurationImpl(this);
+    }
+
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
         rethrowFailure();
         return getRoot().getChildren();

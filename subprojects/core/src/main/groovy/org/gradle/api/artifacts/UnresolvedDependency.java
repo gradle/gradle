@@ -33,5 +33,5 @@ public interface UnresolvedDependency {
     /**
      * the exception that is the cause of unresolved state
      */
-    Exception getProblem();
+    Throwable getProblem();
 }

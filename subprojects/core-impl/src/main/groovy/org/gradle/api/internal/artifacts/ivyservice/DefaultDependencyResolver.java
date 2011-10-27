@@ -29,8 +29,8 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -67,7 +67,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         IvyResolverBackedArtifactToFileResolver artifactResolver = new IvyResolverBackedArtifactToFileResolver(resolver);
         ResolveState resolveState = new ResolveState();
         ConfigurationResolveState root = resolveState.getConfiguration(moduleDescriptor, configuration.getName());
-        ResolvedConfigurationImpl result = new ResolvedConfigurationImpl(root.getResult());
+        ResolvedConfigurationImpl result = new ResolvedConfigurationImpl(configuration, root.getResult());
         resolve(dependencyResolver, result, root, resolveState, resolveData, artifactResolver, configuration);
         return result;
     }
@@ -116,6 +116,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 path.resolve(resolver, resolveState);
             } catch (Throwable t) {
                 failures.add(t);
+                result.addUnresolvedDependency(path.descriptor, t);
                 continue;
             }
 
@@ -426,10 +427,13 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
     private static class ResolvedConfigurationImpl extends AbstractResolvedConfiguration {
         private final ResolvedDependency root;
+        private final Configuration configuration;
         private final Map<ModuleDependency, ResolvedDependency> firstLevelDependencies = new LinkedHashMap<ModuleDependency, ResolvedDependency>();
         private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
+        private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
 
-        private ResolvedConfigurationImpl(ResolvedDependency root) {
+        private ResolvedConfigurationImpl(Configuration configuration, ResolvedDependency root) {
+            this.configuration = configuration;
             this.root = root;
         }
 
@@ -440,8 +444,9 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         public void rethrowFailure() throws ResolveException {
         }
 
-        public LenientConfiguration getLenientConfiguration() {
-            throw new UnsupportedOperationException();
+        @Override
+        Set<UnresolvedDependency> getUnresolvedDependencies() {
+            return unresolvedDependencies;
         }
 
         @Override
@@ -470,6 +475,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         public void addArtifact(ResolvedArtifact artifact) {
             artifacts.add(artifact);
+        }
+
+        public void addUnresolvedDependency(final DependencyDescriptor descriptor, final Throwable failure) {
+            unresolvedDependencies.add(new DefaultUnresolvedDependency(descriptor.getDependencyRevisionId().toString(), configuration, failure));
         }
     }
 

@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
+import org.gradle.api.GradleException;
 
-/**
- * Resolves a dependency to the meta-data for a module.
- */
-interface DependencyToModuleResolver {
-    ResolvedModuleRevision resolve(DependencyDescriptor dependencyDescriptor) throws ModuleNotFoundException;
+public class ModuleNotFoundException extends GradleException {
+    public ModuleNotFoundException(String message) {
+        super(message);
+    }
 }

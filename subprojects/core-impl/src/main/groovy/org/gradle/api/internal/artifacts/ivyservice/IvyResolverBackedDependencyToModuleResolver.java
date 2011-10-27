@@ -49,7 +49,7 @@ class IvyResolverBackedDependencyToModuleResolver implements DependencyToModuleR
                 throw new RuntimeException(String.format("Could not resolve %s", dependencyDescriptor.getDependencyRevisionId()), t);
             }
             if (resolvedRevision == null) {
-                throw new RuntimeException(String.format("%s not found.", dependencyDescriptor.getDependencyRevisionId()));
+                throw new ModuleNotFoundException(String.format("%s not found.", dependencyDescriptor.getDependencyRevisionId()));
             }
             return resolvedRevision;
         } finally {

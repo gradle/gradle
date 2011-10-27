@@ -16,27 +16,23 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.report.ResolveReport;
-import org.apache.ivy.core.resolve.IvyNode;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.LenientConfiguration;
+import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
  * @author: Szczepan Faber, created at: 8/9/11
  */
 public class LenientConfigurationImpl implements LenientConfiguration {
-    private final DefaultIvyDependencyResolver.ResolvedConfigurationImpl delegate;
-    private final ResolveReport resolveReport;
-    private final Configuration configuration;
+    private final AbstractResolvedConfiguration delegate;
 
-    public LenientConfigurationImpl(DefaultIvyDependencyResolver.ResolvedConfigurationImpl resolvedConfiguration, ResolveReport resolveReport, Configuration configuration) {
+    public LenientConfigurationImpl(AbstractResolvedConfiguration resolvedConfiguration) {
         this.delegate = resolvedConfiguration;
-        this.resolveReport = resolveReport;
-        this.configuration = configuration;
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) {
@@ -48,42 +44,6 @@ public class LenientConfigurationImpl implements LenientConfiguration {
     }
 
     public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
-        Set<UnresolvedDependency> result = new LinkedHashSet<UnresolvedDependency>();
-        IvyNode[] unresolved = resolveReport.getConfigurationReport(configuration.getName()).getUnresolvedDependencies();
-
-        for (IvyNode node : unresolved) {
-            result.add(new UnResolvedDependencyImpl(node.getId().toString(), configuration, node.getProblem()));
-        }
-
-        return result;
-    }
-
-    private class UnResolvedDependencyImpl implements UnresolvedDependency {
-
-        private final String id;
-        private final Configuration configuration;
-        private final Exception problem;
-
-        public UnResolvedDependencyImpl(String id, Configuration configuration, Exception problem) {
-            this.id = id;
-            this.configuration = configuration;
-            this.problem = problem;
-        }
-
-        public Configuration getGradleConfiguration() {
-            return configuration;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public Exception getProblem() {
-            return problem;
-        }
-
-        public String toString() {
-            return id;
-        }
+        return delegate.getUnresolvedDependencies();
     }
 }

@@ -88,13 +88,6 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
             this.configuration = configuration;
         }
 
-        public LenientConfiguration getLenientConfiguration() {
-            if (!hasError) {
-                return new DelegatingLenientConfiguration(this);
-            }
-            return new LenientConfigurationImpl(this, resolveReport, configuration);
-        }
-
         @Override
         protected ResolvedDependency getRoot() {
             return conversionResult.getRoot();
@@ -115,6 +108,18 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
 
                 throw new ResolveException(configuration, problemMessages, unresolvedFailures);
             }
+        }
+
+        @Override
+        Set<UnresolvedDependency> getUnresolvedDependencies() {
+            Set<UnresolvedDependency> result = new LinkedHashSet<UnresolvedDependency>();
+            IvyNode[] unresolved = resolveReport.getConfigurationReport(configuration.getName()).getUnresolvedDependencies();
+
+            for (IvyNode node : unresolved) {
+                result.add(new DefaultUnresolvedDependency(node.getId().toString(), configuration, node.getProblem()));
+            }
+
+            return result;
         }
 
         @Override
