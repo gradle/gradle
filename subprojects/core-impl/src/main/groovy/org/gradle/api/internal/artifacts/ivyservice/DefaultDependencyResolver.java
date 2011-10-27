@@ -18,9 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 import org.apache.ivy.Ivy;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -32,6 +30,7 @@ import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -212,6 +211,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         final Set<String> heirarchy = new LinkedHashSet<String>();
         final Set<ResolvePath> incomingPaths = new LinkedHashSet<ResolvePath>();
         DefaultResolvedDependency result;
+        Set<ResolvedArtifact> artifacts;
 
         private ConfigurationResolveState(ModuleRevisionResolveState moduleRevision, ModuleDescriptor descriptor, String configurationName, ResolveState container) {
             this.moduleRevision = moduleRevision;
@@ -255,10 +255,12 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         public Set<ResolvedArtifact> getArtifacts(ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver) {
-            Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-            for (String config : heirarchy) {
-                for (Artifact artifact : descriptor.getArtifacts(config)) {
-                    artifacts.add(resolvedArtifactFactory.create(getResult(), artifact, resolver));
+            if (artifacts == null) {
+                artifacts = new LinkedHashSet<ResolvedArtifact>();
+                for (String config : heirarchy) {
+                    for (Artifact artifact : descriptor.getArtifacts(config)) {
+                        artifacts.add(resolvedArtifactFactory.create(getResult(), artifact, resolver));
+                    }
                 }
             }
             return artifacts;
@@ -385,6 +387,19 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             queue.add(this);
         }
 
+        private Set<ResolvedArtifact> getArtifacts(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver) {
+            DependencyArtifactDescriptor[] dependencyArtifacts = descriptor.getDependencyArtifacts(from.configurationName);
+            if (dependencyArtifacts.length == 0) {
+                return Collections.emptySet();
+            }
+            Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
+            for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
+                MDArtifact artifact = new MDArtifact(childConfiguration.descriptor, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
+                artifacts.add(resolvedArtifactFactory.create(childConfiguration.getResult(), artifact, resolver));
+            }
+            return artifacts;
+        }
+
         @Override
         public void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationImpl result) {
             System.out.println("  attach via " + this);
@@ -392,7 +407,14 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             DefaultResolvedDependency parent = from.getResult();
             DefaultResolvedDependency child = childConfiguration.getResult();
             parent.addChild(child);
-            child.addParentSpecificArtifacts(parent, childConfiguration.getArtifacts(resolvedArtifactFactory, resolver));
+
+            Set<ResolvedArtifact> artifacts = getArtifacts(childConfiguration, resolvedArtifactFactory, resolver);
+            if (!artifacts.isEmpty()) {
+                child.addParentSpecificArtifacts(parent, artifacts);
+            } else {
+                child.addParentSpecificArtifacts(parent, childConfiguration.getArtifacts(resolvedArtifactFactory, resolver));
+            }
+
             if (parent == result.getRoot()) {
                 EnhancedDependencyDescriptor enhancedDependencyDescriptor = (EnhancedDependencyDescriptor) descriptor;
                 result.addFirstLevelDependency(enhancedDependencyDescriptor.getModuleDependency(), child);
