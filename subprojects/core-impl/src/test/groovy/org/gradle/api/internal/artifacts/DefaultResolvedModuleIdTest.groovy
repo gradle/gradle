@@ -19,6 +19,13 @@ import spock.lang.Specification
 import static org.gradle.util.Matchers.strictlyEqual
 
 class DefaultResolvedModuleIdTest extends Specification {
+    def "has useful toString()"() {
+        def module = new DefaultResolvedModuleId("group", "module", "version")
+
+        expect:
+        module.toString() == "[group: group, module: module, version: version]"
+    }
+
     def "ids are equal when group, module and version are equal"() {
         def module = new DefaultResolvedModuleId("group", "module", "version")
         def same = new DefaultResolvedModuleId("group", "module", "version")

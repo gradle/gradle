@@ -41,6 +41,11 @@ public class DefaultResolvedModuleId implements ResolvedModule.ModuleIdentifier 
     }
 
     @Override
+    public String toString() {
+        return String.format("[group: %s, module: %s, version: %s]", group, name, version);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == this) {
             return true;

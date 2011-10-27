@@ -69,13 +69,21 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         ConfigurationResolveState root = resolveState.getConfiguration(moduleDescriptor, configuration.getName());
         ResolvedConfigurationImpl result = new ResolvedConfigurationImpl(configuration, root.getResult());
         resolve(dependencyResolver, result, root, resolveState, resolveData, artifactResolver, configuration);
+
+        System.out.println("-> RESULT");
+        for (ResolvedArtifact artifact : result.getResolvedArtifacts()) {
+            System.out.println("  " + artifact.getModule().getId() + " " + artifact.getName());
+        }
+        for (UnresolvedDependency dependency : result.getUnresolvedDependencies()) {
+            System.out.println("  unresolved " + dependency.getId());
+        }
+
         return result;
     }
 
     private void resolve(DependencyToModuleResolver resolver, ResolvedConfigurationImpl result, ConfigurationResolveState root, ResolveState resolveState, ResolveData resolveData, ArtifactToFileResolver artifactResolver, Configuration configuration) {
         System.out.println("-> RESOLVE " + root);
 
-        List<Throwable> failures = new ArrayList<Throwable>();
         SetMultimap<ModuleId, DependencyResolvePath> conflicts = LinkedHashMultimap.create();
 
         List<DependencyResolvePath> queue = new ArrayList<DependencyResolvePath>();
@@ -115,22 +123,17 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             try {
                 path.resolve(resolver, resolveState);
             } catch (Throwable t) {
-                failures.add(t);
-                result.addUnresolvedDependency(path.descriptor, t);
+                result.addUnresolvedDependency(path.dependency.descriptor, t);
                 continue;
             }
 
             if (path.targetModuleRevision.status == Status.Conflict) {
-                conflicts.put(path.resolvedRevision.getId().getModuleId(), path);
+                conflicts.put(path.targetModuleRevision.descriptor.getModuleRevisionId().getModuleId(), path);
             } else {
                 path.addOutgoingDependencies(resolveData, resolveState, queue);
             }
         }
         
-        if (!failures.isEmpty()) {
-            throw new ResolveException(configuration, Collections.<String>emptyList(), failures);
-        }
-
         for (ConfigurationResolveState resolvedConfiguration : resolveState.getConfigurations()) {
             resolvedConfiguration.attachToParents(resolvedArtifactFactory, artifactResolver, result);
         }
@@ -186,6 +189,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         final ModuleDescriptor descriptor;
         Status status = Status.Include;
         final Set<DependencyResolvePath> outgoingPaths = new LinkedHashSet<DependencyResolvePath>();
+        Set<DependencyResolveState> dependencies;
 
         private ModuleRevisionResolveState(ModuleDescriptor descriptor) {
             this.descriptor = descriptor;
@@ -198,6 +202,16 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         public Status getStatus() {
             return status;
+        }
+
+        public Set<DependencyResolveState> getDependencies() {
+            if (dependencies == null) {
+                dependencies = new LinkedHashSet<DependencyResolveState>();
+                for (DependencyDescriptor dependencyDescriptor : descriptor.getDependencies()) {
+                    dependencies.add(new DependencyResolveState(dependencyDescriptor));
+                }
+            }
+            return dependencies;
         }
 
         public void addOutgoingPath(DependencyResolvePath path) {
@@ -234,17 +248,17 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         void addOutgoingDependencies(ResolvePath incomingPath, Collection<DependencyResolvePath> dependencies) {
             incomingPaths.add(incomingPath);
-            for (DependencyDescriptor dependencyDescriptor : descriptor.getDependencies()) {
+            for (DependencyResolveState dependency : moduleRevision.getDependencies()) {
                 Set<String> targetConfigurations = new LinkedHashSet<String>();
-                for (String moduleConfiguration : dependencyDescriptor.getModuleConfigurations()) {
+                for (String moduleConfiguration : dependency.descriptor.getModuleConfigurations()) {
                     if (heirarchy.contains(moduleConfiguration)) {
-                        for (String targetConfiguration : dependencyDescriptor.getDependencyConfigurations(moduleConfiguration)) {
+                        for (String targetConfiguration : dependency.descriptor.getDependencyConfigurations(moduleConfiguration)) {
                             targetConfigurations.add(targetConfiguration);
                         }
                     }
                 }
                 if (!targetConfigurations.isEmpty()) {
-                    DependencyResolvePath dependencyResolvePath = new DependencyResolvePath(incomingPath, this, dependencyDescriptor, targetConfigurations);
+                    DependencyResolvePath dependencyResolvePath = new DependencyResolvePath(incomingPath, this, dependency, targetConfigurations);
                     dependencies.add(dependencyResolvePath);
                 }
             }
@@ -319,43 +333,52 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
     }
 
-    private static class DependencyResolvePath extends ResolvePath {
-        final ResolvePath path;
-        final ConfigurationResolveState from;
+    private static class DependencyResolveState {
         final DependencyDescriptor descriptor;
-        final Set<String> targetConfigurations;
         ModuleRevisionResolveState targetModuleRevision;
         ResolvedModuleRevision resolvedRevision;
 
-        private DependencyResolvePath(ResolvePath path, ConfigurationResolveState from, DependencyDescriptor descriptor, Set<String> targetConfigurations) {
+        private DependencyResolveState(DependencyDescriptor descriptor) {
+            this.descriptor = descriptor;
+        }
+
+        @Override
+        public String toString() {
+            return descriptor.toString();
+        }
+
+        public void resolve(DependencyToModuleResolver resolver, ResolveState resolveState) {
+            if (resolvedRevision == null) {
+                System.out.println("--> RESOLVE " + this);
+                resolvedRevision = resolver.resolve(descriptor);
+                targetModuleRevision = resolveState.getRevision(resolvedRevision.getDescriptor());
+                System.out.println(this + " resolved to " + targetModuleRevision);
+            }
+        }
+    }
+
+    private static class DependencyResolvePath extends ResolvePath {
+        final ResolvePath path;
+        final ConfigurationResolveState from;
+        final Set<String> targetConfigurations;
+        final DependencyResolveState dependency;
+        ModuleRevisionResolveState targetModuleRevision;
+
+        private DependencyResolvePath(ResolvePath path, ConfigurationResolveState from, DependencyResolveState dependency, Set<String> targetConfigurations) {
             this.path = path;
             this.from = from;
-            this.descriptor = descriptor;
+            this.dependency = dependency;
             this.targetConfigurations = targetConfigurations;
         }
 
         @Override
         public String toString() {
-            return String.format("%s | %s -> %s(%s)", path, from, descriptor.getDependencyRevisionId(), targetConfigurations);
-        }
-
-        public Set<String> getTargetConfigurations(ModuleDescriptor targetModule, ResolveData resolveData) {
-            IvyNode node = new IvyNode(resolveData, targetModule);
-            Set<String> targets = new LinkedHashSet<String>();
-            for (String targetConfiguration : targetConfigurations) {
-                for (String realConfig : node.getRealConfs(targetConfiguration)) {
-                    targets.add(realConfig);
-                }
-            }
-            return targets;
+            return String.format("%s | %s -> %s(%s)", path, from, dependency.descriptor.getDependencyRevisionId(), targetConfigurations);
         }
 
         public void resolve(DependencyToModuleResolver resolver, ResolveState resolveState) {
-            if (resolvedRevision == null) {
-                resolvedRevision = resolver.resolve(descriptor);
-                targetModuleRevision = resolveState.getRevision(resolvedRevision.getDescriptor());
-                System.out.println("  resolved to " + targetModuleRevision);
-            }
+            dependency.resolve(resolver, resolveState);
+            targetModuleRevision = dependency.targetModuleRevision;
         }
 
         public void addOutgoingDependencies(ResolveData resolveData, ResolveState resolveState, Collection<DependencyResolvePath> queue) {
@@ -365,7 +388,16 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
             targetModuleRevision.addOutgoingPath(this);
             ModuleDescriptor targetDescriptor = targetModuleRevision.descriptor;
-            for (String targetConfigurationName : getTargetConfigurations(targetDescriptor, resolveData)) {
+
+            IvyNode node = new IvyNode(resolveData, targetDescriptor);
+            Set<String> targets = new LinkedHashSet<String>();
+            for (String targetConfiguration : targetConfigurations) {
+                for (String realConfig : node.getRealConfs(targetConfiguration)) {
+                    targets.add(realConfig);
+                }
+            }
+
+            for (String targetConfigurationName : targets) {
                 ConfigurationResolveState targetConfiguration = resolveState.getConfiguration(targetDescriptor, targetConfigurationName);
                 System.out.println("    refers to config " + targetConfiguration);
                 targetConfiguration.addOutgoingDependencies(this, queue);
@@ -373,7 +405,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         public boolean isExcluded(ModuleRevisionResolveState moduleRevision) {
-            boolean excluded = descriptor.doesExclude(new String[]{from.configurationName}, new ArtifactId(moduleRevision.descriptor.getModuleRevisionId().getModuleId(), "ivy", "ivy", "ivy"));
+            boolean excluded = dependency.descriptor.doesExclude(new String[]{from.configurationName}, new ArtifactId(moduleRevision.descriptor.getModuleRevisionId().getModuleId(), "ivy", "ivy", "ivy"));
             if (excluded) {
                 System.out.println("   excluded by " + this);
                 return true;
@@ -389,7 +421,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         private Set<ResolvedArtifact> getArtifacts(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver) {
-            DependencyArtifactDescriptor[] dependencyArtifacts = descriptor.getDependencyArtifacts(from.configurationName);
+            DependencyArtifactDescriptor[] dependencyArtifacts = dependency.descriptor.getDependencyArtifacts(from.configurationName);
             if (dependencyArtifacts.length == 0) {
                 return Collections.emptySet();
             }
@@ -419,7 +451,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             }
 
             if (parent == result.getRoot()) {
-                EnhancedDependencyDescriptor enhancedDependencyDescriptor = (EnhancedDependencyDescriptor) descriptor;
+                EnhancedDependencyDescriptor enhancedDependencyDescriptor = (EnhancedDependencyDescriptor) dependency.descriptor;
                 result.addFirstLevelDependency(enhancedDependencyDescriptor.getModuleDependency(), child);
             }
         }
@@ -438,10 +470,17 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         public boolean hasError() {
-            return false;
+            return !unresolvedDependencies.isEmpty();
         }
 
         public void rethrowFailure() throws ResolveException {
+            if (!unresolvedDependencies.isEmpty()) {
+                List<Throwable> failures = new ArrayList<Throwable>();
+                for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
+                    failures.add(unresolvedDependency.getProblem());
+                }
+                throw new ResolveException(configuration, Collections.<String>emptyList(), failures);
+            }
         }
 
         @Override
