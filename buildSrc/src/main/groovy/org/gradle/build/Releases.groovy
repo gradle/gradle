@@ -42,6 +42,7 @@ class Releases {
         releases.next.each { releases.remove(it) }
         releases.current[0].'@version' = project.version.versionNumber
         releases.current[0].'@build-time' = formattedBuildTime
+        releases.current[0].'@type' = project.version.release ? 'release' : 'snapshot'
         resourceFile.withPrintWriter { writer -> new XmlNodePrinter(writer).print(releases) }
     }
 

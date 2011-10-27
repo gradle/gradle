@@ -38,7 +38,7 @@ class ReleasesTest extends Specification {
         releasesXml << '''
 <releases>
     <next version="1.2-preview-45"/>
-    <current version="ignore-me" build-time="ignore-me"/>
+    <current version="ignore-me" build-time="ignore-me" type="release"/>
     <release version="ignore-me" build-time="ignore-me"/>
 </releases>
 '''
@@ -63,7 +63,18 @@ class ReleasesTest extends Specification {
 
         then:
         destFile.text == """<releases>
-  <current version="1.0-milestone-2" build-time="${dateFormat.format(buildTime)}"/>
+  <current version="1.0-milestone-2" build-time="${dateFormat.format(buildTime)}" type="snapshot"/>
+  <release version="ignore-me" build-time="ignore-me"/>
+</releases>
+"""
+
+        when:
+        project.version.release = true
+        releases.generateTo(destFile)
+
+        then:
+        destFile.text == """<releases>
+  <current version="1.0-milestone-2" build-time="${dateFormat.format(buildTime)}" type="release"/>
   <release version="ignore-me" build-time="ignore-me"/>
 </releases>
 """

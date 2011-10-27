@@ -75,7 +75,13 @@ task configureReleases << {
     assert releasesFile.exists() : "$releasesFile does not exist. Please run :docs:websiteDocs"
     def releaseXml = new XmlParser().parse(releasesFile)
     def current = releaseXml.current[0]
-    def currentRelease = new CurrentRelease(version: current.'@version', versionInfo: versionInfo, buildTime: current.'@build-time')
+    def snapshot = current.'@type' == 'snapshot'
+    def currentRelease
+    if (snapshot) {
+        currentRelease = new CurrentSnapshot(version: current.'@version', versionInfo: versionInfo, buildTime: current.'@build-time')
+    } else {
+        currentRelease = new CurrentRelease(version: current.'@version', versionInfo: versionInfo, buildTime: current.'@build-time')
+    }
     println "Is release version: $versionInfo.release"
     println "Current release distribution url: ${currentRelease.allDistributionUrl}"
     println "Current release distribution base: ${currentRelease.distributionBase}"
@@ -395,17 +401,26 @@ class CurrentRelease extends Release {
     }
 
     def String getDocsUrl() {
-        super.versionInfo.release? "current/docs" : "/releases/latest/docs"
+        return "/current/docs"
+    }
+}
+
+class CurrentSnapshot extends Release {
+    def String getDisplayName() {
+        return "Gradle $version (current snapshot)"
+    }
+
+    def String getDocsUrl() {
+        return "/releases/latest/docs"
     }
 
     def String getDistributionBase() {
-        String artifactoryFolder = super.versionInfo.release? 'distributions' : 'distributions-snapshots'
-        return "http://repo.gradle.org/gradle/$artifactoryFolder/"
+        return "http://repo.gradle.org/gradle/distributions-snapshots/"
     }
 
-    def String getReleaseNotesUrl() {
-        super.versionInfo.release?
-            "http://wiki.gradle.org/display/GRADLE/Gradle+${releaseNoteVersion}+Release+Notes" : "http://wiki.gradle.org/display/GRADLE/Releases"
+    @Override
+    String getReleaseNoteVersion() {
+        return "1.0-next"
     }
 }
 
