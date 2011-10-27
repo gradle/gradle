@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
+import static org.hamcrest.Matchers.*
 
 /**
  * @author Szczepan Faber, @date 03.03.11
@@ -69,15 +70,11 @@ project(':tool') {
 }
 """
 
-        try {
-            //when
-            executer.withTasks("tool:dependencies").run() //cannot runWithFailure until the error reporting is fixed
+        //when
+        def result = executer.withTasks("tool:dependencies").runWithFailure()
 
-            //then
-            assert false
-        } catch(Exception e) {
-            assert messages(e).contains('StrictConflictException')
-        }
+        //then
+        result.assertThatCause(containsString('Your dependencies exhibit a version conflict'))
     }
 
     String messages(Exception e) {
