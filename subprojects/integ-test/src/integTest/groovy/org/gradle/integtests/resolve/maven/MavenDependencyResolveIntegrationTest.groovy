@@ -101,6 +101,65 @@ task check << {
         succeeds "check"
     }
 
+    def "resolves dependencies on real projects"() {
+        // Hibernate core brings in conflicts, exclusions and parent poms
+        // Add a direct dependency on an earlier version of commons-collection than required by hibernate core
+        // Logback classic depends on a later version of slf4j-api than required by hibernate core
+
+        given:
+        buildFile << """
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    compile
+}
+
+dependencies {
+    compile "commons-collections:commons-collections:3.0"
+    compile "ch.qos.logback:logback-classic:0.9.30"
+    compile "org.hibernate:hibernate-core:3.6.7.Final"
+}
+
+task check << {
+    def compile = configurations.compile
+    assert compile.resolvedConfiguration.firstLevelModuleDependencies.collect { it.name } == [
+        'ch.qos.logback:logback-classic:0.9.30',
+        'org.hibernate:hibernate-core:3.6.7.Final',
+        'commons-collections:commons-collections:3.1'
+    ]
+
+    def filteredDependencies = compile.resolvedConfiguration.getFirstLevelModuleDependencies({ it.name == 'logback-classic' } as Spec)
+    assert filteredDependencies.collect { it.name } == [
+        'ch.qos.logback:logback-classic:0.9.30'
+    ]
+
+    def filteredFiles = compile.resolvedConfiguration.getFiles({ it.name == 'logback-classic' } as Spec)
+    assert filteredFiles.collect { it.name } == [
+        'logback-classic-0.9.30.jar',
+         'logback-core-0.9.30.jar',
+          'slf4j-api-1.6.2.jar'
+    ]
+
+    assert compile.collect { it.name } == [
+        'logback-classic-0.9.30.jar',
+        'hibernate-core-3.6.7.Final.jar',
+        'commons-collections-3.1.jar',
+        'logback-core-0.9.30.jar',
+        'slf4j-api-1.6.2.jar',
+        'antlr-2.7.6.jar',
+        'hibernate-commons-annotations-3.2.0.Final.jar',
+        'hibernate-jpa-2.0-api-1.0.1.Final.jar',
+        'jta-1.1.jar'
+    ]
+}
+"""
+
+        expect:
+        succeeds "check"
+    }
+
     def getRepo() {
         return new MavenRepository(file("repo"))
     }
