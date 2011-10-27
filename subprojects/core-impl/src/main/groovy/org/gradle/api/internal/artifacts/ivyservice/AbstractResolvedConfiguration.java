@@ -63,7 +63,9 @@ abstract class AbstractResolvedConfiguration implements ResolvedConfiguration {
         Set<File> files = new LinkedHashSet<File>();
         for (ResolvedArtifact artifact : artifacts) {
             File depFile = artifact.getFile();
-            files.add(depFile);
+            if (depFile != null) {
+                files.add(depFile);
+            }
         }
         return files;
     }
