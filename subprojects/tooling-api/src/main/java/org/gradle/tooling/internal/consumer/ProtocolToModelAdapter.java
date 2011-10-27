@@ -26,7 +26,7 @@ import java.util.*;
 
 public class ProtocolToModelAdapter {
 
-    Map<String, Class> configuredTargetTypes = new HashMap<String, Class>();
+    Map<String, Class<?>> configuredTargetTypes = new HashMap<String, Class<?>>();
 
     public ProtocolToModelAdapter() {
         configuredTargetTypes.put("org.gradle.tooling.internal.idea.DefaultIdeaSingleEntryLibraryDependency", IdeaSingleEntryLibraryDependency.class);

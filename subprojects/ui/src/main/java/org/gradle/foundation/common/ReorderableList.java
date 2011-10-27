@@ -519,7 +519,7 @@ public class ReorderableList<E> implements List<E> {
     @author mhunsicker
     */
 
-    public int[] getIndices(List elementsToMove) {
+    public int[] getIndices(List<E> elementsToMove) {
         return ListReorderer.getIndices(elements, elementsToMove);
     }
 }
