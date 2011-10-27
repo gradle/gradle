@@ -102,14 +102,6 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
         return artifact.getExtraAttribute(Dependency.CLASSIFIER);
     }
     
-    public String getVersion() {
-        return getResolvedDependency() == null ? null : getResolvedDependency().getModuleVersion();
-    }
-
-    public String getDependencyName() {
-        return getResolvedDependency() == null ? null : getResolvedDependency().getModuleName();
-    }
-
     public File getFile() {
         if (file == null) {
             file = artifactSource.get();

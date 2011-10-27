@@ -28,8 +28,8 @@ task listJars << {
     assert ['projectA-jar-jar', 'projectB-jar-jar'] as Set == artifacts
 
     Set modules = compile.resolvedConfiguration.resolvedArtifacts.collect {
-        def dep = it.resolvedDependency
-        "${dep.moduleGroup}-${dep.moduleName}-${dep.moduleVersion}" as String
+        def dep = it.module
+        "${dep.id.group}-${dep.id.name}-${dep.id.version}" as String
     } as Set
     assert ['test-projectA-1.2', 'test-projectB-1.5'] as Set == modules
 }
