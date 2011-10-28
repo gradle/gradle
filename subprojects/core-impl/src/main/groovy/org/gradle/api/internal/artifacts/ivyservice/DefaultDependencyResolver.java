@@ -68,7 +68,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         ResolveState resolveState = new ResolveState();
         ConfigurationResolveState root = resolveState.getConfiguration(moduleDescriptor, configuration.getName());
         ResolvedConfigurationImpl result = new ResolvedConfigurationImpl(configuration, root.getResult());
-        resolve(dependencyResolver, result, root, resolveState, resolveData, artifactResolver, configuration);
+        resolve(dependencyResolver, result, root, resolveState, resolveData, artifactResolver);
 
         System.out.println("-> RESULT");
         for (ResolvedArtifact artifact : result.getResolvedArtifacts()) {
@@ -81,7 +81,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         return result;
     }
 
-    private void resolve(DependencyToModuleResolver resolver, ResolvedConfigurationImpl result, ConfigurationResolveState root, ResolveState resolveState, ResolveData resolveData, ArtifactToFileResolver artifactResolver, Configuration configuration) {
+    private void resolve(DependencyToModuleResolver resolver, ResolvedConfigurationImpl result, ConfigurationResolveState root, ResolveState resolveState, ResolveData resolveData, ArtifactToFileResolver artifactResolver) {
         System.out.println("-> RESOLVE " + root);
 
         SetMultimap<ModuleId, DependencyResolvePath> conflicts = LinkedHashMultimap.create();
@@ -247,6 +247,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         void addOutgoingDependencies(ResolvePath incomingPath, Collection<DependencyResolvePath> dependencies) {
+            if (incomingPath.canReach(this)) {
+                System.out.println("    skipping " + incomingPath + " as it already traverses " + this);
+                return;
+            }
             incomingPaths.add(incomingPath);
             for (DependencyResolveState dependency : moduleRevision.getDependencies()) {
                 Set<String> targetConfigurations = new LinkedHashSet<String>();
@@ -314,6 +318,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         public abstract void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationImpl result);
 
         public abstract boolean isExcluded(ModuleRevisionResolveState moduleRevision);
+
+        public abstract boolean canReach(ConfigurationResolveState configuration);
     }
     
     private static class RootPath extends ResolvePath {
@@ -324,6 +330,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         @Override
         public boolean isExcluded(ModuleRevisionResolveState moduleRevision) {
+            return false;
+        }
+
+        @Override
+        public boolean canReach(ConfigurationResolveState configuration) {
             return false;
         }
 
@@ -405,12 +416,18 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         public boolean isExcluded(ModuleRevisionResolveState moduleRevision) {
-            boolean excluded = dependency.descriptor.doesExclude(new String[]{from.configurationName}, new ArtifactId(moduleRevision.descriptor.getModuleRevisionId().getModuleId(), "ivy", "ivy", "ivy"));
+            String[] configurations = from.heirarchy.toArray(new String[from.heirarchy.size()]);
+            boolean excluded = dependency.descriptor.doesExclude(configurations, new ArtifactId(moduleRevision.descriptor.getModuleRevisionId().getModuleId(), "ivy", "ivy", "ivy"));
             if (excluded) {
                 System.out.println("   excluded by " + this);
                 return true;
             }
             return path.isExcluded(moduleRevision);
+        }
+
+        @Override
+        public boolean canReach(ConfigurationResolveState configuration) {
+            return from.equals(configuration) || path.canReach(configuration);
         }
 
         public void restart(ModuleRevisionResolveState moduleRevision, List<DependencyResolvePath> queue) {
@@ -421,7 +438,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         private Set<ResolvedArtifact> getArtifacts(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver) {
-            DependencyArtifactDescriptor[] dependencyArtifacts = dependency.descriptor.getDependencyArtifacts(from.configurationName);
+            String[] targetConfigurations = from.heirarchy.toArray(new String[from.heirarchy.size()]);
+            DependencyArtifactDescriptor[] dependencyArtifacts = dependency.descriptor.getDependencyArtifacts(targetConfigurations);
             if (dependencyArtifacts.length == 0) {
                 return Collections.emptySet();
             }
@@ -442,11 +460,15 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             parent.addChild(child);
 
             Set<ResolvedArtifact> artifacts = getArtifacts(childConfiguration, resolvedArtifactFactory, resolver);
-            if (artifacts.isEmpty()) {
-                artifacts = childConfiguration.getArtifacts(resolvedArtifactFactory, resolver);
+            if (!artifacts.isEmpty()) {
+                child.addParentSpecificArtifacts(parent, artifacts);
             }
-            child.addParentSpecificArtifacts(parent, artifacts);
-            for (ResolvedArtifact artifact : artifacts) {
+            
+            boolean includeDefaults = dependency.descriptor instanceof EnhancedDependencyDescriptor && ((EnhancedDependencyDescriptor) dependency.descriptor).isIncludeDefaultArtifacts();
+            if (artifacts.isEmpty() || includeDefaults) {
+                child.addParentSpecificArtifacts(parent, childConfiguration.getArtifacts(resolvedArtifactFactory, resolver));
+            }
+            for (ResolvedArtifact artifact : child.getParentArtifacts(parent)) {
                 result.addArtifact(artifact);
             }
 
