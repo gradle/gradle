@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModule;

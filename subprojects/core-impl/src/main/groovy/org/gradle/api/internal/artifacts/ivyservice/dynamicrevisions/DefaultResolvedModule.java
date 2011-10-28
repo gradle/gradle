@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ResolvedModule;
 import org.gradle.api.internal.artifacts.DefaultResolvedModuleId;
 

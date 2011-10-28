@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ResolvedModule;
+import org.gradle.api.artifacts.ModuleIdentifier;
 
-public class DefaultResolvedModuleId implements ResolvedModule.ModuleIdentifier {
+public class DefaultResolvedModuleId implements ModuleIdentifier {
     private final String group;
     private final String name;
     private final String version;

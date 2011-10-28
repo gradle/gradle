@@ -126,7 +126,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
             if (path.targetModuleRevision.status == Status.Conflict) {
                 LOGGER.debug("Found a conflict. Park this path.");
-                conflicts.put(path.targetModuleRevision.descriptor.getModuleRevisionId().getModuleId(), path);
+                conflicts.put(path.targetModuleRevision.id.getModuleId(), path);
             } else {
                 path.addOutgoingDependencies(resolveData, resolveState, queue);
             }
@@ -143,11 +143,13 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         final Map<ResolvedConfigurationIdentifier, ConfigurationResolveState> configurations = new LinkedHashMap<ResolvedConfigurationIdentifier, ConfigurationResolveState>();
 
         ModuleRevisionResolveState getRevision(ModuleDescriptor descriptor) {
-            ModuleRevisionResolveState moduleRevision = revisions.get(descriptor.getModuleRevisionId());
+            ModuleRevisionId original = descriptor.getModuleRevisionId();
+            ModuleRevisionId id = new ModuleRevisionId(new ModuleId(original.getOrganisation(), original.getName()), original.getRevision());
+            ModuleRevisionResolveState moduleRevision = revisions.get(id);
             if (moduleRevision == null) {
-                moduleRevision = new ModuleRevisionResolveState(descriptor);
-                revisions.put(descriptor.getModuleRevisionId(), moduleRevision);
-                ModuleId moduleId = descriptor.getModuleRevisionId().getModuleId();
+                moduleRevision = new ModuleRevisionResolveState(id, descriptor);
+                revisions.put(id, moduleRevision);
+                ModuleId moduleId = id.getModuleId();
                 modules.put(moduleId, moduleRevision);
                 Set<ModuleRevisionResolveState> revisionsForModule = modules.get(moduleId);
                 if (revisionsForModule.size() > 1) {
@@ -161,7 +163,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         ConfigurationResolveState getConfiguration(ModuleDescriptor descriptor, String configurationName) {
-            ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(descriptor.getModuleRevisionId(), configurationName);
+            ModuleRevisionId original = descriptor.getModuleRevisionId();
+            ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(original.getOrganisation(), original.getName(), original.getRevision(), configurationName);
             ConfigurationResolveState configuration = configurations.get(id);
             if (configuration == null) {
                 ModuleRevisionResolveState moduleRevision = getRevision(descriptor);
@@ -183,18 +186,20 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     enum Status {Include, Conflict, Evict}
 
     private static class ModuleRevisionResolveState {
+        final ModuleRevisionId id;
         final ModuleDescriptor descriptor;
         Status status = Status.Include;
         final Set<DependencyResolvePath> incomingPaths = new LinkedHashSet<DependencyResolvePath>();
         Set<DependencyResolveState> dependencies;
 
-        private ModuleRevisionResolveState(ModuleDescriptor descriptor) {
+        private ModuleRevisionResolveState(ModuleRevisionId id, ModuleDescriptor descriptor) {
+            this.id = id;
             this.descriptor = descriptor;
         }
 
         @Override
         public String toString() {
-            return descriptor.getModuleRevisionId().toString();
+            return id.toString();
         }
 
         public Status getStatus() {
@@ -216,7 +221,6 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         public String getId() {
-            ModuleRevisionId id = descriptor.getModuleRevisionId();
             return String.format("%s:%s:%s", id.getOrganisation(), id.getName(), id.getRevision());
         }
     }
@@ -268,7 +272,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         @Override
         public String toString() {
-            return String.format("%s(%s)", descriptor.getModuleRevisionId(), configurationName);
+            return String.format("%s(%s)", moduleRevision, configurationName);
         }
 
         public Set<ResolvedArtifact> getArtifacts(ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver) {
@@ -286,9 +290,9 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         public DefaultResolvedDependency getResult() {
             if (result == null) {
                 result = new DefaultResolvedDependency(
-                        descriptor.getModuleRevisionId().getOrganisation(),
-                        descriptor.getModuleRevisionId().getName(),
-                        descriptor.getModuleRevisionId().getRevision(),
+                        moduleRevision.id.getOrganisation(),
+                        moduleRevision.id.getName(),
+                        moduleRevision.id.getRevision(),
                         configurationName);
             }
 
@@ -462,7 +466,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         @Override
         public boolean excludes(ModuleRevisionResolveState moduleRevision) {
             String[] configurations = from.heirarchy.toArray(new String[from.heirarchy.size()]);
-            ArtifactId placeholderArtifact = new ArtifactId(moduleRevision.descriptor.getModuleRevisionId().getModuleId(), "ivy", "ivy", "ivy");
+            ArtifactId placeholderArtifact = new ArtifactId(moduleRevision.id.getModuleId(), "ivy", "ivy", "ivy");
             boolean excluded = dependency.descriptor.doesExclude(configurations, placeholderArtifact);
             if (excluded) {
                 LOGGER.debug("{} is excluded by {}.", moduleRevision, this);
