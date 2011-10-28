@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.api.specs.Spec;
@@ -67,8 +68,15 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         IvyResolverBackedArtifactToFileResolver artifactResolver = new IvyResolverBackedArtifactToFileResolver(resolver);
         ResolveState resolveState = new ResolveState();
         ConfigurationResolveState root = resolveState.getConfiguration(moduleDescriptor, configuration.getName());
+        ModuleConflictResolver conflictResolver;
+        if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
+            conflictResolver = new StrictConflictResolver();
+        } else {
+            conflictResolver = new LatestModuleConflictResolver();
+        }
+        conflictResolver = new ForcedVersionConflictResolver(conflictResolver);
         ResolvedConfigurationImpl result = new ResolvedConfigurationImpl(configuration, root.getResult());
-        resolve(dependencyResolver, result, root, resolveState, resolveData, artifactResolver);
+        resolve(dependencyResolver, result, root, resolveState, resolveData, artifactResolver, conflictResolver);
 
         System.out.println("-> RESULT");
         for (ResolvedArtifact artifact : result.getResolvedArtifacts()) {
@@ -81,7 +89,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         return result;
     }
 
-    private void resolve(DependencyToModuleResolver resolver, ResolvedConfigurationImpl result, ConfigurationResolveState root, ResolveState resolveState, ResolveData resolveData, ArtifactToFileResolver artifactResolver) {
+    private void resolve(DependencyToModuleResolver resolver, ResolvedConfigurationImpl result, ConfigurationResolveState root, ResolveState resolveState, ResolveData resolveData, ArtifactToFileResolver artifactResolver, ModuleConflictResolver conflictResolver) {
         System.out.println("-> RESOLVE " + root);
 
         SetMultimap<ModuleId, DependencyResolvePath> conflicts = LinkedHashMultimap.create();
@@ -94,12 +102,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 ModuleId moduleId = conflicts.keySet().iterator().next();
                 Set<ModuleRevisionResolveState> candidates = resolveState.getRevisions(moduleId);
                 System.out.println("selecting moduleId from conflicts " + candidates);
-                List<ModuleResolveStateBackedArtifactInfo> artifactInfos = new ArrayList<ModuleResolveStateBackedArtifactInfo>();
-                for (final ModuleRevisionResolveState moduleRevision : candidates) {
-                    artifactInfos.add(new ModuleResolveStateBackedArtifactInfo(moduleRevision));
-                }
-                List<ModuleResolveStateBackedArtifactInfo> sorted = new LatestRevisionStrategy().sort(artifactInfos.toArray(new ArtifactInfo[artifactInfos.size()]));
-                ModuleRevisionResolveState selected = sorted.get(sorted.size() - 1).moduleRevision;
+                ModuleRevisionResolveState selected = conflictResolver.select(candidates);
                 System.out.println("  selected " + selected);
                 selected.status = Status.Include;
                 for (ModuleRevisionResolveState candidate : candidates) {
@@ -190,6 +193,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         Status status = Status.Include;
         final Set<DependencyResolvePath> incomingPaths = new LinkedHashSet<DependencyResolvePath>();
         Set<DependencyResolveState> dependencies;
+        public boolean forced;
 
         private ModuleRevisionResolveState(ModuleDescriptor descriptor) {
             this.descriptor = descriptor;
@@ -369,6 +373,9 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             if (resolvedRevision == null) {
                 resolvedRevision = resolver.resolve(descriptor);
                 targetModuleRevision = resolveState.getRevision(resolvedRevision.getDescriptor());
+                if (descriptor.isForce()) {
+                    targetModuleRevision.forced = true;
+                }
                 System.out.println("  " + this + " resolved to " + targetModuleRevision);
             }
         }
@@ -525,6 +532,51 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 EnhancedDependencyDescriptor enhancedDependencyDescriptor = (EnhancedDependencyDescriptor) dependency.descriptor;
                 result.addFirstLevelDependency(enhancedDependencyDescriptor.getModuleDependency(), child);
             }
+        }
+    }
+
+    private static abstract class ModuleConflictResolver {
+        abstract ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates);
+    }
+
+    private static class ForcedVersionConflictResolver extends ModuleConflictResolver {
+        private final ModuleConflictResolver resolver;
+
+        private ForcedVersionConflictResolver(ModuleConflictResolver resolver) {
+            this.resolver = resolver;
+        }
+
+        @Override
+        ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates) {
+            for (ModuleRevisionResolveState candidate : candidates) {
+                if (candidate.forced) {
+                    return candidate;
+                }
+            }
+            return resolver.select(candidates);
+        }
+    }
+
+    private static class StrictConflictResolver extends ModuleConflictResolver {
+        @Override
+        ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates) {
+            Formatter formatter = new Formatter();
+            formatter.format("A conflict was found between the following modules:");
+            for (ModuleRevisionResolveState candidate : candidates) {
+                formatter.format("%n - %s", candidate.getId());
+            }
+            throw new RuntimeException(formatter.toString());
+        }
+    }
+
+    private static class LatestModuleConflictResolver extends ModuleConflictResolver {
+        ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates) {
+            List<ModuleResolveStateBackedArtifactInfo> artifactInfos = new ArrayList<ModuleResolveStateBackedArtifactInfo>();
+            for (final ModuleRevisionResolveState moduleRevision : candidates) {
+                artifactInfos.add(new ModuleResolveStateBackedArtifactInfo(moduleRevision));
+            }
+            List<ModuleResolveStateBackedArtifactInfo> sorted = new LatestRevisionStrategy().sort(artifactInfos.toArray(new ArtifactInfo[artifactInfos.size()]));
+            return sorted.get(sorted.size() - 1).moduleRevision;
         }
     }
 
