@@ -17,8 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
@@ -55,25 +53,5 @@ public class ExternalModuleDependencyDescriptorFactory extends AbstractDependenc
 
     public boolean canConvert(ModuleDependency dependency) {
         return dependency instanceof ExternalModuleDependency;
-    }
-
-    @Override
-    protected void workAroundIvyLimitationsByCopyingDefaultIncludesForExtendedDependencies(Configuration configuration,
-                                                                                           EnhancedDependencyDescriptor dependencyDescriptor,
-                                                                                           ModuleDependency dependency) {
-        if (!canConvert(dependency)) {
-            return;
-        }
-        // If anywhere in the inherited dependencies for the configuration, we have another dependency with the same "id" and no defined artifacts, need to add the default include rule
-        for (ExternalDependency extendedDependency : configuration.getAllDependencies().withType(ExternalDependency.class)) {
-            ModuleRevisionId extendedRevisionId = createModuleRevisionId(extendedDependency);
-            if (extendedRevisionId.equals(dependencyDescriptor.getDependencyRevisionId())) {
-                if (extendedDependency.getArtifacts().isEmpty()) {
-                    if (dependency != extendedDependency) {
-                        includeDefaultArtifacts(dependencyDescriptor);
-                    }
-                }
-            }
-        }
     }
 }

@@ -21,7 +21,6 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleDependency;
 
 public class EnhancedDependencyDescriptor extends DefaultDependencyDescriptor {
-    private boolean include;
     private final ModuleDependency moduleDependency;
 
     public EnhancedDependencyDescriptor(ModuleDependency moduleDependency, ModuleDescriptor md, ModuleRevisionId mrid, boolean force, boolean changing, boolean transitive) {
@@ -31,13 +30,5 @@ public class EnhancedDependencyDescriptor extends DefaultDependencyDescriptor {
 
     public ModuleDependency getModuleDependency() {
         return moduleDependency;
-    }
-
-    public void setIncludeDefaultArtifacts(boolean include) {
-        this.include = include;
-    }
-
-    public boolean isIncludeDefaultArtifacts() {
-        return include;
     }
 }

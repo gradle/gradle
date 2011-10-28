@@ -63,14 +63,4 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         dependencyProject.setVersion("someVersion");
         return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, new ProjectDependenciesBuildInstruction(true));
     }
-
-    @Test
-    public void addExternalModuleDependenciesWithSameModuleRevisionIdAndDifferentConfsShouldBePartOfSameDependencyDescriptor() {
-        ProjectDependency dependency1 = createProjectDependency(TEST_DEP_CONF);
-        ProjectDependency dependency2 = createProjectDependency(TEST_OTHER_DEP_CONF);
-
-        assertThataddDependenciesWithSameModuleRevisionIdAndDifferentConfsShouldBePartOfSameDependencyDescriptor(
-                dependency1, dependency2, projectDependencyDescriptorFactory
-        );
-    }
 }

@@ -514,8 +514,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 child.addParentSpecificArtifacts(parent, artifacts);
             }
             
-            boolean includeDefaults = dependency.descriptor instanceof EnhancedDependencyDescriptor && ((EnhancedDependencyDescriptor) dependency.descriptor).isIncludeDefaultArtifacts();
-            if (artifacts.isEmpty() || includeDefaults) {
+            if (artifacts.isEmpty()) {
                 child.addParentSpecificArtifacts(parent, childConfiguration.getArtifacts(resolvedArtifactFactory, resolver));
             }
             for (ResolvedArtifact artifact : child.getParentArtifacts(parent)) {

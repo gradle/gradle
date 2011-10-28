@@ -29,7 +29,6 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
 import org.gradle.util.Clock;
 import org.gradle.util.UncheckedException;
 import org.gradle.util.WrapUtil;
@@ -141,7 +140,7 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
         }
 
         // Add in the default artifacts of the target configuration if required
-        if (artifacts.isEmpty() || (dependencyDescriptor instanceof EnhancedDependencyDescriptor && ((EnhancedDependencyDescriptor)dependencyDescriptor).isIncludeDefaultArtifacts())) {
+        if (artifacts.isEmpty()) {
             for (String childConfig : child.configurationHierarchy) {
                 for (Artifact artifact : childNode.getDescriptor().getArtifacts(childConfig)) {
                     artifacts.add(createResolvedArtifact(child.dependency, artifact, childNode));

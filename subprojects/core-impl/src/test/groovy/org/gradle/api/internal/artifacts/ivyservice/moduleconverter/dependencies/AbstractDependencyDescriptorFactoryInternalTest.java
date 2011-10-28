@@ -27,13 +27,9 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
@@ -41,6 +37,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
@@ -51,7 +51,6 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
 
     protected static final String TEST_CONF = "conf";
     protected static final String TEST_DEP_CONF = "depconf1";
-    protected static final String TEST_OTHER_DEP_CONF = "depconf2";
 
     protected static final ExcludeRule TEST_EXCLUDE_RULE = new org.gradle.api.internal.artifacts.DefaultExcludeRule(WrapUtil.toMap("org", "testOrg"));
     protected static final org.apache.ivy.core.module.descriptor.ExcludeRule TEST_IVY_EXCLUDE_RULE = HelperUtil.getTestExcludeRule("testOrg");
@@ -59,8 +58,6 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
     protected final DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(WrapUtil.toSet(TEST_CONF));
     private DefaultDependencyArtifact artifact = new DefaultDependencyArtifact("name", "type", null, null, null);
     private DefaultDependencyArtifact artifactWithClassifiers = new DefaultDependencyArtifact("name2", "type2", "ext2", "classifier2", "http://www.url2.com");
-
-    private DependencyDescriptorFactoryInternal dependencyDescriptorFactoryInternal;
 
     @Before
     public void setUp() {
@@ -72,19 +69,6 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
             allowing(excludeRuleConverterStub).createExcludeRule(TEST_CONF, excludeRule);
             will(returnValue(ivyExcludeRule));
         }});
-    }
-
-    protected void assertThataddDependenciesWithSameModuleRevisionIdAndDifferentConfsShouldBePartOfSameDependencyDescriptor(
-            ModuleDependency dependency1, ModuleDependency dependency2, DependencyDescriptorFactoryInternal factoryInternal
-    ) {
-        factoryInternal.addDependencyDescriptor(TEST_CONF, moduleDescriptor, dependency1);
-        factoryInternal.addDependencyDescriptor(TEST_CONF, moduleDescriptor, dependency2);
-        assertThat(moduleDescriptor.getDependencies().length, equalTo(1));
-
-        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
-        assertThat(dependencyDescriptor.getDependencyConfigurations(TEST_CONF), Matchers.hasItemInArray(TEST_DEP_CONF));
-        assertThat(dependencyDescriptor.getDependencyConfigurations(TEST_CONF), Matchers.hasItemInArray(TEST_OTHER_DEP_CONF));
-        assertThat(dependencyDescriptor.getDependencyConfigurations(TEST_CONF).length, equalTo(2));
     }
 
     protected Dependency setUpDependency(ModuleDependency dependency) {
