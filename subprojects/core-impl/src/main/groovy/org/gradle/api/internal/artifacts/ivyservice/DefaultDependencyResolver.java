@@ -217,6 +217,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         public void addIncomingPaths(DependencyResolvePath path) {
             incomingPaths.add(path);
         }
+
+        public String getId() {
+            ModuleRevisionId id = descriptor.getModuleRevisionId();
+            return String.format("%s:%s:%s", id.getOrganisation(), id.getName(), id.getRevision());
+        }
     }
 
     private static class ConfigurationResolveState {
@@ -316,6 +321,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         public abstract boolean excludes(ModuleRevisionResolveState moduleRevision);
 
         public abstract boolean canReach(ConfigurationResolveState configuration);
+
+        public abstract void addPathAsModules(Collection<ModuleRevisionResolveState> modules);
     }
     
     private static class RootPath extends ResolvePath {
@@ -332,6 +339,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         @Override
         public boolean canReach(ConfigurationResolveState configuration) {
             return false;
+        }
+
+        @Override
+        public void addPathAsModules(Collection<ModuleRevisionResolveState> modules) {
         }
 
         @Override
@@ -377,6 +388,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             }
             return targetConfigurations;
         }
+
+        public String getDependencyId() {
+            ModuleRevisionId depId = descriptor.getDependencyRevisionId();
+            return String.format("%s:%s:%s", depId.getOrganisation(), depId.getName(), depId.getRevision());
+        }
     }
 
     private static class DependencyResolvePath extends ResolvePath {
@@ -400,7 +416,19 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         public void resolve(DependencyToModuleResolver resolver, ResolveState resolveState) {
             if (targetModuleRevision == null) {
-                dependency.resolve(resolver, resolveState);
+                try {
+                    dependency.resolve(resolver, resolveState);
+                } catch (ModuleNotFoundException e) {
+                    Formatter formatter = new Formatter();
+                    formatter.format("Module %s not found. It is required by:", dependency.getDependencyId());
+                    Set<ModuleRevisionResolveState> modules = new LinkedHashSet<ModuleRevisionResolveState>();
+                    addPathAsModules(modules);
+                    for (ModuleRevisionResolveState module : modules) {
+                        formatter.format("%n    %s", module.getId());
+                    }
+                    throw new ModuleNotFoundException(formatter.toString(), e);
+                }
+                
                 targetModuleRevision = dependency.targetModuleRevision;
             } // Else, we've been restarted
         }
@@ -430,6 +458,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             }
         }
 
+        @Override
         public boolean excludes(ModuleRevisionResolveState moduleRevision) {
             String[] configurations = from.heirarchy.toArray(new String[from.heirarchy.size()]);
             boolean excluded = dependency.descriptor.doesExclude(configurations, new ArtifactId(moduleRevision.descriptor.getModuleRevisionId().getModuleId(), "ivy", "ivy", "ivy"));
@@ -440,6 +469,12 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             return path.excludes(moduleRevision);
         }
 
+        @Override
+        public void addPathAsModules(Collection<ModuleRevisionResolveState> modules) {
+            modules.add(from.moduleRevision);
+            path.addPathAsModules(modules);
+        }                
+        
         @Override
         public boolean canReach(ConfigurationResolveState configuration) {
             return from.equals(configuration) || path.canReach(configuration);

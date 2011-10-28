@@ -21,4 +21,8 @@ public class ModuleNotFoundException extends GradleException {
     public ModuleNotFoundException(String message) {
         super(message);
     }
+
+    public ModuleNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
