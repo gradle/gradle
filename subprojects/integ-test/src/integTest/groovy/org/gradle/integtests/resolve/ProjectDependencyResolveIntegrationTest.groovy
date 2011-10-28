@@ -189,9 +189,8 @@ project(':a') {
     }
 }
 project(':b') {
-    configurations.compile.transitive = false
     dependencies {
-        compile project(':a') { transitive = false }
+        compile project(':a'), { transitive = false }
     }
     task listJars << {
         assert configurations.compile.collect { it.name } == ['a.jar']

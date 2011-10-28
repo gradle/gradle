@@ -233,7 +233,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             );
 
             ArtifactDependencyResolver actualResolver;
-            String resolverName = System.getProperty("org.gradle.resolver", "ivy");
+            String resolverName = System.getProperty("org.gradle.resolver", "gradle");
             if (resolverName.equalsIgnoreCase("ivy")) {
                 actualResolver = new DefaultIvyDependencyResolver(
                         new DefaultIvyReportConverter(

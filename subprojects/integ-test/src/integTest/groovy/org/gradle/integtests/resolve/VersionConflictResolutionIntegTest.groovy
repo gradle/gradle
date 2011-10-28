@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.containsString
 
 /**
  * @author Szczepan Faber, @date 03.03.11
@@ -74,16 +74,7 @@ project(':tool') {
         def result = executer.withTasks("tool:dependencies").runWithFailure()
 
         //then
-        result.assertThatCause(containsString('Your dependencies exhibit a version conflict'))
-    }
-
-    String messages(Exception e) {
-        String out = e.toString()
-        while(e.cause) {
-            e = e.cause
-            out += "\n$e"
-        }
-        out
+        result.assertThatCause(containsString('A conflict was found between the following modules:'))
     }
 
     @Test
@@ -236,37 +227,7 @@ allprojects {
     }
 
     @Test
-    void "can force the version of a direct dependency"() {
-        TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publish()
-        maven(repo).module("org", "foo", '1.4.4').publish()
-
-        def buildFile = file("build.gradle")
-        buildFile << """
-apply plugin: 'java'
-repositories {
-    maven { url "${repo.toURI()}" }
-}
-
-dependencies {
-    compile 'org:foo:1.3.3'
-}
-
-configurations.all {
-    resolutionStrategy.force 'org:foo:1.4.4'
-}
-
-task checkDeps << {
-    assert configurations.compile.collect { it.name == '1.4.4.jar' }
-}
-"""
-
-        //expect
-        executer.withTasks("checkDeps").run()
-    }
-
-    @Test
-    void "can force the version of transitive dependency and avoid conflict"() {
+    void "can force the version of a module and avoid conflict"() {
         TestFile repo = file("repo")
         maven(repo).module("org", "foo", '1.3.3').publish()
         maven(repo).module("org", "foobar", '1.3.3').publish()
@@ -372,5 +333,62 @@ project(':tool') {
 
         //expect
         executer.withTasks("tool:checkDeps").run()
+    }
+
+    @Test
+    void "can force the version of a particular module"() {
+        TestFile repo = file("repo")
+        maven(repo).module("org", "foo", '1.3.3').publish()
+        maven(repo).module("org", "foo", '1.4.4').publish()
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+apply plugin: 'java'
+repositories {
+    maven { url "${repo.toURI()}" }
+}
+
+dependencies {
+    compile 'org:foo:1.3.3'
+}
+
+configurations.all {
+    resolutionStrategy.force 'org:foo:1.4.4'
+}
+
+task checkDeps << {
+    assert configurations.compile.collect { it.name == '1.4.4.jar' }
+}
+"""
+
+        //expect
+        executer.withTasks("checkDeps").run()
+    }
+
+    @Test
+    void "can force the version of a direct dependency"() {
+        TestFile repo = file("repo")
+        maven(repo).module("org", "foo", '1.3.3').publish()
+        maven(repo).module("org", "foo", '1.4.4').publish()
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+apply plugin: 'java'
+repositories {
+    maven { url "${repo.toURI()}" }
+}
+
+dependencies {
+    compile 'org:foo:1.4.4'
+    compile ('org:foo:1.3.3') { force = true }
+}
+
+task checkDeps << {
+    assert configurations.compile.collect { it.name } == ['foo-1.3.3.jar']
+}
+"""
+
+        //expect
+        executer.withTasks("checkDeps").run()
     }
 }

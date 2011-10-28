@@ -96,7 +96,7 @@ project(':b') {
 
         inTestDirectory().withTasks('a:listDeps').run()
         def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
-        result.assertThatCause(containsString('unresolved dependency: org.gradle.test#external1;1.0: not found'))
+        result.assertThatCause(containsString('Module org.gradle.test:external1:1.0 not found.'))
     }
 
     @Test
@@ -134,7 +134,7 @@ project(':b') {
 
         inTestDirectory().withTasks('a:listDeps').run()
         def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
-        result.assertThatCause(containsString('unresolved dependency: org.gradle.test#external1;1.0: not found'))
+        result.assertThatCause(containsString('Module org.gradle.test:external1:1.0 not found.'))
     }
 
     @Test
@@ -166,14 +166,14 @@ task test << {
     assert artifacts[0].name == 'lib'
     assert artifacts[0].type == 'jar'
     assert artifacts[0].extension == 'jar'
-    assert artifacts[0].classifier == 'classifier'
+    assert artifacts[0].classifier == null
     assert artifacts[1].name == 'lib'
-    assert artifacts[1].type == 'zip'
-    assert artifacts[1].extension == 'zip'
-    assert artifacts[1].classifier == null
+    assert artifacts[1].type == 'jar'
+    assert artifacts[1].extension == 'jar'
+    assert artifacts[1].classifier == 'classifier'
     assert artifacts[2].name == 'lib'
-    assert artifacts[2].type == 'jar'
-    assert artifacts[2].extension == 'jar'
+    assert artifacts[2].type == 'zip'
+    assert artifacts[2].extension == 'zip'
     assert artifacts[2].classifier == null
     assert artifacts[3].name == 'dist'
     assert artifacts[3].type == 'zip'
@@ -491,24 +491,25 @@ task test << {
         failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
         failure.assertHasDescription("Execution failed for task ':listJars'");
         failure.assertThatCause(startsWith("Could not resolve all dependencies for configuration ':compile'"));
-        failure.assertThatCause(containsString("unresolved dependency: test#unknownProjectA;1.2: not found"));
-        failure.assertThatCause(containsString("unresolved dependency: test#unknownProjectB;2.1.5: not found"));
+        failure.assertThatCause(containsString("Module test:unknownProjectA:1.2 not found."));
+        failure.assertThatCause(containsString("Module test:unknownProjectB:2.1.5 not found."));
     }
 
     @Test
-    public void reportsProjectDependsOnSelfError() {
+    public void projectCanDependOnItself() {
         TestFile buildFile = testFile("build.gradle");
         buildFile << '''
-            configurations { compile }
+            configurations { compile; add('default') }
             dependencies { compile project(':') }
-            defaultTasks 'listJars'
-            task listJars << { configurations.compile.each { println it } }
+            task jar1(type: Jar) { destinationDir = buildDir; baseName = '1' }
+            task jar2(type: Jar) { destinationDir = buildDir; baseName = '2' }
+            artifacts { compile jar1; 'default' jar2 }
+            task listJars << {
+                assert configurations.compile.collect { it.name } == ['2.jar']
+            }
 '''
-        ExecutionFailure failure = usingBuildFile(buildFile).runWithFailure();
-        failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
-        failure.assertHasDescription("Execution failed for task ':listJars'");
-        failure.assertThatCause(startsWith("Could not resolve all dependencies for configuration ':compile'"));
-        failure.assertThatCause(containsString("a module is not authorized to depend on itself"));
+
+        inTestDirectory().withTasks("listJars").run()
     }
 
     @Test

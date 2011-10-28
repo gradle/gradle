@@ -104,10 +104,10 @@ dependencies {
         then:
         def libraries = classpath.libs
         assert libraries.size() == 4
-        libraries[0].assertHasJar(anotherJar)
-        libraries[1].assertHasJar(baseJar)
-        libraries[2].assertHasJar(extraJar)
-        libraries[3].assertHasJar(testsJar)
+        libraries[0].assertHasJar(baseJar)
+        libraries[1].assertHasJar(extraJar)
+        libraries[2].assertHasJar(testsJar)
+        libraries[3].assertHasJar(anotherJar)
     }
 
     @Test

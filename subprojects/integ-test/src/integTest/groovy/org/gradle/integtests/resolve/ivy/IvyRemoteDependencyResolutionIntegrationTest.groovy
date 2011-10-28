@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.junit.Rule
+import org.hamcrest.Matchers
 
 class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -176,8 +177,8 @@ task show << { println configurations.compile.files }
 
         then:
         failure.assertHasDescription('Execution failed for task \':show\'.')
-        failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\':')
-        assert failure.getOutput().contains('group#projectA;1.2: not found')
+        failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertThatCause(Matchers.containsString('Module group:projectA:1.2 not found.'))
 
         when:
         server.addBroken('/')
@@ -185,7 +186,8 @@ task show << { println configurations.compile.files }
 
         then:
         failure.assertHasDescription('Execution failed for task \':show\'.')
-        failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\':')
+        failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertThatCause(Matchers.containsString('Could not resolve group#projectA;1.2'))
     }
 
     public void "uses all configured patterns to resolve artifacts and caches result"() {
