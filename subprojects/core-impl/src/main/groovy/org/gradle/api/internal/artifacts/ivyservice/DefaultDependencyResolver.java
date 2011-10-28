@@ -105,7 +105,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 for (ModuleRevisionResolveState candidate : candidates) {
                     if (candidate != selected) {
                         candidate.status = Status.Evict;
-                        for (DependencyResolvePath path : candidate.outgoingPaths) {
+                        for (DependencyResolvePath path : candidate.incomingPaths) {
                             path.restart(selected, queue);
                         }
                     }
@@ -188,7 +188,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private static class ModuleRevisionResolveState {
         final ModuleDescriptor descriptor;
         Status status = Status.Include;
-        final Set<DependencyResolvePath> outgoingPaths = new LinkedHashSet<DependencyResolvePath>();
+        final Set<DependencyResolvePath> incomingPaths = new LinkedHashSet<DependencyResolvePath>();
         Set<DependencyResolveState> dependencies;
 
         private ModuleRevisionResolveState(ModuleDescriptor descriptor) {
@@ -214,8 +214,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             return dependencies;
         }
 
-        public void addOutgoingPath(DependencyResolvePath path) {
-            outgoingPaths.add(path);
+        public void addIncomingPaths(DependencyResolvePath path) {
+            incomingPaths.add(path);
         }
     }
 
@@ -246,21 +246,17 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             }
         }
 
+        void addIncomingPath(DependencyResolvePath path) {
+            incomingPaths.add(path);
+        }
+
         void addOutgoingDependencies(ResolvePath incomingPath, Collection<DependencyResolvePath> dependencies) {
             if (incomingPath.canReach(this)) {
                 System.out.println("    skipping " + incomingPath + " as it already traverses " + this);
                 return;
             }
-            incomingPaths.add(incomingPath);
             for (DependencyResolveState dependency : moduleRevision.getDependencies()) {
-                Set<String> targetConfigurations = new LinkedHashSet<String>();
-                for (String moduleConfiguration : dependency.descriptor.getModuleConfigurations()) {
-                    if (heirarchy.contains(moduleConfiguration)) {
-                        for (String targetConfiguration : dependency.descriptor.getDependencyConfigurations(moduleConfiguration)) {
-                            targetConfigurations.add(targetConfiguration);
-                        }
-                    }
-                }
+                Set<String> targetConfigurations = dependency.getTargetConfigurations(this);
                 if (!targetConfigurations.isEmpty()) {
                     DependencyResolvePath dependencyResolvePath = new DependencyResolvePath(incomingPath, this, dependency, targetConfigurations);
                     dependencies.add(dependencyResolvePath);
@@ -317,7 +313,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private static abstract class ResolvePath {
         public abstract void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationImpl result);
 
-        public abstract boolean isExcluded(ModuleRevisionResolveState moduleRevision);
+        public abstract boolean excludes(ModuleRevisionResolveState moduleRevision);
 
         public abstract boolean canReach(ConfigurationResolveState configuration);
     }
@@ -329,7 +325,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         @Override
-        public boolean isExcluded(ModuleRevisionResolveState moduleRevision) {
+        public boolean excludes(ModuleRevisionResolveState moduleRevision) {
             return false;
         }
 
@@ -360,11 +356,26 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         public void resolve(DependencyToModuleResolver resolver, ResolveState resolveState) {
             if (resolvedRevision == null) {
-                System.out.println("--> RESOLVE " + this);
                 resolvedRevision = resolver.resolve(descriptor);
                 targetModuleRevision = resolveState.getRevision(resolvedRevision.getDescriptor());
-                System.out.println(this + " resolved to " + targetModuleRevision);
+                System.out.println("  " + this + " resolved to " + targetModuleRevision);
             }
+        }
+
+        public Set<String> getTargetConfigurations(ConfigurationResolveState fromConfiguration) {
+            Set<String> targetConfigurations = new LinkedHashSet<String>();
+            for (String moduleConfiguration : descriptor.getModuleConfigurations()) {
+                if (moduleConfiguration.equals("*") || fromConfiguration.heirarchy.contains(moduleConfiguration)) {
+                    for (String targetConfiguration : descriptor.getDependencyConfigurations(moduleConfiguration)) {
+                        if (targetConfiguration.equals("*")) {
+                            Collections.addAll(targetConfigurations, fromConfiguration.descriptor.getPublicConfigurationsNames());
+                        } else {
+                            targetConfigurations.add(targetConfiguration);
+                        }
+                    }
+                }
+            }
+            return targetConfigurations;
         }
     }
 
@@ -388,41 +399,45 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         public void resolve(DependencyToModuleResolver resolver, ResolveState resolveState) {
-            dependency.resolve(resolver, resolveState);
-            targetModuleRevision = dependency.targetModuleRevision;
+            if (targetModuleRevision == null) {
+                dependency.resolve(resolver, resolveState);
+                targetModuleRevision = dependency.targetModuleRevision;
+            } // Else, we've been restarted
         }
 
         public void addOutgoingDependencies(ResolveData resolveData, ResolveState resolveState, Collection<DependencyResolvePath> queue) {
-            if (isExcluded(targetModuleRevision)) {
+            if (excludes(targetModuleRevision)) {
                 return;
             }
 
-            targetModuleRevision.addOutgoingPath(this);
+            targetModuleRevision.addIncomingPaths(this);
+
             ModuleDescriptor targetDescriptor = targetModuleRevision.descriptor;
 
             IvyNode node = new IvyNode(resolveData, targetDescriptor);
             Set<String> targets = new LinkedHashSet<String>();
             for (String targetConfiguration : targetConfigurations) {
-                for (String realConfig : node.getRealConfs(targetConfiguration)) {
-                    targets.add(realConfig);
-                }
+                Collections.addAll(targets, node.getRealConfs(targetConfiguration));
             }
 
             for (String targetConfigurationName : targets) {
                 ConfigurationResolveState targetConfiguration = resolveState.getConfiguration(targetDescriptor, targetConfigurationName);
                 System.out.println("    refers to config " + targetConfiguration);
-                targetConfiguration.addOutgoingDependencies(this, queue);
+                targetConfiguration.addIncomingPath(this);
+                if (dependency.descriptor.isTransitive()) {
+                    targetConfiguration.addOutgoingDependencies(this, queue);
+                }
             }
         }
 
-        public boolean isExcluded(ModuleRevisionResolveState moduleRevision) {
+        public boolean excludes(ModuleRevisionResolveState moduleRevision) {
             String[] configurations = from.heirarchy.toArray(new String[from.heirarchy.size()]);
             boolean excluded = dependency.descriptor.doesExclude(configurations, new ArtifactId(moduleRevision.descriptor.getModuleRevisionId().getModuleId(), "ivy", "ivy", "ivy"));
             if (excluded) {
                 System.out.println("   excluded by " + this);
                 return true;
             }
-            return path.isExcluded(moduleRevision);
+            return path.excludes(moduleRevision);
         }
 
         @Override
