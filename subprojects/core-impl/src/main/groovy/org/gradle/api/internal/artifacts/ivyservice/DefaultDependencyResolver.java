@@ -40,10 +40,13 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.WrapUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class DefaultDependencyResolver implements ArtifactDependencyResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDependencyResolver.class);
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final ResolvedArtifactFactory resolvedArtifactFactory;
     private final ResolveIvyFactory ivyFactory;
@@ -78,19 +81,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         ResolvedConfigurationImpl result = new ResolvedConfigurationImpl(configuration, root.getResult());
         resolve(dependencyResolver, result, root, resolveState, resolveData, artifactResolver, conflictResolver);
 
-        System.out.println("-> RESULT");
-        for (ResolvedArtifact artifact : result.getResolvedArtifacts()) {
-            System.out.println("  " + artifact.getModule().getId() + " " + artifact.getName());
-        }
-        for (UnresolvedDependency dependency : result.getUnresolvedDependencies()) {
-            System.out.println("  unresolved " + dependency.getId());
-        }
-
         return result;
     }
 
     private void resolve(DependencyToModuleResolver resolver, ResolvedConfigurationImpl result, ConfigurationResolveState root, ResolveState resolveState, ResolveData resolveData, ArtifactToFileResolver artifactResolver, ModuleConflictResolver conflictResolver) {
-        System.out.println("-> RESOLVE " + root);
+        LOGGER.debug("Resolving {}", root);
 
         SetMultimap<ModuleId, DependencyResolvePath> conflicts = LinkedHashMultimap.create();
 
@@ -101,14 +96,13 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             if (queue.isEmpty()) {
                 ModuleId moduleId = conflicts.keySet().iterator().next();
                 Set<ModuleRevisionResolveState> candidates = resolveState.getRevisions(moduleId);
-                System.out.println("selecting moduleId from conflicts " + candidates);
-                ModuleRevisionResolveState selected = conflictResolver.select(candidates);
-                System.out.println("  selected " + selected);
+                ModuleRevisionResolveState selected = conflictResolver.select(candidates, root.moduleRevision);
+                LOGGER.debug("Selected {} from conflicting modules {}.", selected, candidates);
                 selected.status = Status.Include;
                 for (ModuleRevisionResolveState candidate : candidates) {
                     if (candidate != selected) {
                         candidate.status = Status.Evict;
-                        for (DependencyResolvePath path : candidate.incomingPaths) {
+                        for (DependencyResolvePath path : new LinkedHashSet<DependencyResolvePath>(candidate.incomingPaths)) {
                             path.restart(selected, queue);
                         }
                     }
@@ -121,7 +115,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             }
 
             DependencyResolvePath path = queue.remove(0);
-            System.out.println("* path " + path);
+            LOGGER.debug("Visiting path {}.", path);
 
             try {
                 path.resolve(resolver, resolveState);
@@ -131,12 +125,13 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             }
 
             if (path.targetModuleRevision.status == Status.Conflict) {
+                LOGGER.debug("Found a conflict. Park this path.");
                 conflicts.put(path.targetModuleRevision.descriptor.getModuleRevisionId().getModuleId(), path);
             } else {
                 path.addOutgoingDependencies(resolveData, resolveState, queue);
             }
         }
-        
+
         for (ConfigurationResolveState resolvedConfiguration : resolveState.getConfigurations()) {
             resolvedConfiguration.attachToParents(resolvedArtifactFactory, artifactResolver, result);
         }
@@ -156,13 +151,12 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 modules.put(moduleId, moduleRevision);
                 Set<ModuleRevisionResolveState> revisionsForModule = modules.get(moduleId);
                 if (revisionsForModule.size() > 1) {
-                    System.out.println("-> conflicts " + revisionsForModule);
                     for (ModuleRevisionResolveState revision : revisionsForModule) {
                         revision.status = Status.Conflict;
                     }
                 }
             }
-            
+
             return moduleRevision;
         }
 
@@ -186,14 +180,13 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
     }
 
-    enum Status { Include, Conflict, Evict }
+    enum Status {Include, Conflict, Evict}
 
     private static class ModuleRevisionResolveState {
         final ModuleDescriptor descriptor;
         Status status = Status.Include;
         final Set<DependencyResolvePath> incomingPaths = new LinkedHashSet<DependencyResolvePath>();
         Set<DependencyResolveState> dependencies;
-        public boolean forced;
 
         private ModuleRevisionResolveState(ModuleDescriptor descriptor) {
             this.descriptor = descriptor;
@@ -218,7 +211,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             return dependencies;
         }
 
-        public void addIncomingPaths(DependencyResolvePath path) {
+        public void addIncomingPath(DependencyResolvePath path) {
             incomingPaths.add(path);
         }
 
@@ -261,7 +254,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         void addOutgoingDependencies(ResolvePath incomingPath, Collection<DependencyResolvePath> dependencies) {
             if (incomingPath.canReach(this)) {
-                System.out.println("    skipping " + incomingPath + " as it already traverses " + this);
+                LOGGER.debug("Skipping {} as it already traverses {}.", incomingPath, this);
                 return;
             }
             for (DependencyResolveState dependency : moduleRevision.getDependencies()) {
@@ -305,13 +298,13 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         public void attachToParents(ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationImpl result) {
             switch (getStatus()) {
                 case Include:
-                    System.out.println("Attaching " + this + " to parents");
+                    LOGGER.debug("Attaching {} to its parents.", this);
                     for (ResolvePath incomingPath : incomingPaths) {
                         incomingPath.attachToParents(this, resolvedArtifactFactory, resolver, result);
                     }
                     break;
                 case Evict:
-                    System.out.println("Ignoring evicted configuration " + this);
+                    LOGGER.debug("Ignoring evicted {}.", this);
                     break;
                 default:
                     throw new IllegalStateException(String.format("Unexpected state %s for %s at end of resolution.", getStatus(), this));
@@ -328,7 +321,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         public abstract void addPathAsModules(Collection<ModuleRevisionResolveState> modules);
     }
-    
+
     private static class RootPath extends ResolvePath {
         @Override
         public String toString() {
@@ -373,10 +366,6 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             if (resolvedRevision == null) {
                 resolvedRevision = resolver.resolve(descriptor);
                 targetModuleRevision = resolveState.getRevision(resolvedRevision.getDescriptor());
-                if (descriptor.isForce()) {
-                    targetModuleRevision.forced = true;
-                }
-                System.out.println("  " + this + " resolved to " + targetModuleRevision);
             }
         }
 
@@ -435,17 +424,22 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                     }
                     throw new ModuleNotFoundException(formatter.toString(), e);
                 }
-                
-                targetModuleRevision = dependency.targetModuleRevision;
+
+                referTo(dependency.targetModuleRevision);
             } // Else, we've been restarted
+        }
+
+        private void referTo(ModuleRevisionResolveState targetModuleRevision) {
+            this.targetModuleRevision = targetModuleRevision;
+            if (!excludes(targetModuleRevision)) {
+                targetModuleRevision.addIncomingPath(this);
+            }
         }
 
         public void addOutgoingDependencies(ResolveData resolveData, ResolveState resolveState, Collection<DependencyResolvePath> queue) {
             if (excludes(targetModuleRevision)) {
                 return;
             }
-
-            targetModuleRevision.addIncomingPaths(this);
 
             ModuleDescriptor targetDescriptor = targetModuleRevision.descriptor;
 
@@ -457,7 +451,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
             for (String targetConfigurationName : targets) {
                 ConfigurationResolveState targetConfiguration = resolveState.getConfiguration(targetDescriptor, targetConfigurationName);
-                System.out.println("    refers to config " + targetConfiguration);
+                LOGGER.debug("{} is outgoing to {}.", this, targetConfiguration);
                 targetConfiguration.addIncomingPath(this);
                 if (dependency.descriptor.isTransitive()) {
                     targetConfiguration.addOutgoingDependencies(this, queue);
@@ -468,9 +462,15 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         @Override
         public boolean excludes(ModuleRevisionResolveState moduleRevision) {
             String[] configurations = from.heirarchy.toArray(new String[from.heirarchy.size()]);
-            boolean excluded = dependency.descriptor.doesExclude(configurations, new ArtifactId(moduleRevision.descriptor.getModuleRevisionId().getModuleId(), "ivy", "ivy", "ivy"));
+            ArtifactId placeholderArtifact = new ArtifactId(moduleRevision.descriptor.getModuleRevisionId().getModuleId(), "ivy", "ivy", "ivy");
+            boolean excluded = dependency.descriptor.doesExclude(configurations, placeholderArtifact);
             if (excluded) {
-                System.out.println("   excluded by " + this);
+                LOGGER.debug("{} is excluded by {}.", moduleRevision, this);
+                return true;
+            }
+            excluded = from.descriptor.doesExclude(configurations, placeholderArtifact);
+            if (excluded) {
+                LOGGER.debug("{} is excluded by {}.", moduleRevision, from);
                 return true;
             }
             return path.excludes(moduleRevision);
@@ -480,8 +480,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         public void addPathAsModules(Collection<ModuleRevisionResolveState> modules) {
             modules.add(from.moduleRevision);
             path.addPathAsModules(modules);
-        }                
-        
+        }
+
         @Override
         public boolean canReach(ConfigurationResolveState configuration) {
             return from.equals(configuration) || path.canReach(configuration);
@@ -489,8 +489,9 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         public void restart(ModuleRevisionResolveState moduleRevision, List<DependencyResolvePath> queue) {
             assert targetModuleRevision != null;
-            targetModuleRevision = moduleRevision;
-            System.out.println("    restart " + this + " with " + moduleRevision);
+            targetModuleRevision.incomingPaths.remove(this);
+            referTo(moduleRevision);
+            LOGGER.debug("Restarting {} on conflict, now refers to {}.", this, moduleRevision);
             queue.add(this);
         }
 
@@ -510,8 +511,6 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         @Override
         public void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationImpl result) {
-            System.out.println("  attach via " + this);
-            System.out.println("    " + from + " -> " + childConfiguration);
             DefaultResolvedDependency parent = from.getResult();
             DefaultResolvedDependency child = childConfiguration.getResult();
             parent.addChild(child);
@@ -520,7 +519,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             if (!artifacts.isEmpty()) {
                 child.addParentSpecificArtifacts(parent, artifacts);
             }
-            
+
             if (artifacts.isEmpty()) {
                 child.addParentSpecificArtifacts(parent, childConfiguration.getArtifacts(resolvedArtifactFactory, resolver));
             }
@@ -536,7 +535,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     }
 
     private static abstract class ModuleConflictResolver {
-        abstract ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates);
+        abstract ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root);
     }
 
     private static class ForcedVersionConflictResolver extends ModuleConflictResolver {
@@ -547,19 +546,21 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         @Override
-        ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates) {
+        ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root) {
             for (ModuleRevisionResolveState candidate : candidates) {
-                if (candidate.forced) {
-                    return candidate;
+                for (DependencyResolvePath incomingPath : candidate.incomingPaths) {
+                    if (incomingPath.from.moduleRevision == root && incomingPath.dependency.descriptor.isForce()) {
+                        return candidate;
+                    }
                 }
             }
-            return resolver.select(candidates);
+            return resolver.select(candidates, root);
         }
     }
 
     private static class StrictConflictResolver extends ModuleConflictResolver {
         @Override
-        ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates) {
+        ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root) {
             Formatter formatter = new Formatter();
             formatter.format("A conflict was found between the following modules:");
             for (ModuleRevisionResolveState candidate : candidates) {
@@ -570,7 +571,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     }
 
     private static class LatestModuleConflictResolver extends ModuleConflictResolver {
-        ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates) {
+        ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root) {
             List<ModuleResolveStateBackedArtifactInfo> artifactInfos = new ArrayList<ModuleResolveStateBackedArtifactInfo>();
             for (final ModuleRevisionResolveState moduleRevision : candidates) {
                 artifactInfos.add(new ModuleResolveStateBackedArtifactInfo(moduleRevision));
