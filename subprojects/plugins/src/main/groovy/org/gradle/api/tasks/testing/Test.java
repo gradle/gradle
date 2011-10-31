@@ -25,6 +25,8 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.verbosity.TestVerbosityImpl;
+import org.gradle.api.internal.tasks.testing.verbosity.VerbosityApplier;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
@@ -75,6 +77,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private int maxParallelForks = 1;
     private ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> outputListenerBroadcaster;
+    private final TestVerbosity verbosity = new TestVerbosityImpl();
 
     public Test() {
         testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(
@@ -329,6 +332,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(Test.class));
         addTestListener(listener);
         addTestListener(new TestLogger(getServices().get(ProgressLoggerFactory.class)));
+        addTestOutputListener(new VerbosityApplier(LoggerFactory.getLogger(Test.class), verbosity));
 
         TestResultProcessor resultProcessor = new TestListenerAdapter(
                 getTestListenerBroadcaster().getSource(), outputListenerBroadcaster.getSource());
@@ -364,7 +368,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @param listener The listener to add.
      */
-    public void addOutputListener(TestOutputListener listener) {
+    public void addTestOutputListener(TestOutputListener listener) {
         outputListenerBroadcaster.add(listener);
     }
 
@@ -815,5 +819,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Input // Also marked as input to force tests to run when the set of candidate class files changes 
     public FileTree getCandidateClassFiles() {
         return getProject().fileTree(getTestClassesDir()).matching(patternSet);
+    }
+
+    /**
+     * Allows configuring the verbosity of the test execution, e.g. whether to show eagerly the standar output, etc.
+     *
+     * @return verbosity configuration
+     */
+    public TestVerbosity getVerbosity() {
+        return verbosity;
     }
 }

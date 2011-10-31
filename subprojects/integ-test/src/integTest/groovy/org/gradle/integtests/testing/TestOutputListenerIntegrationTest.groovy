@@ -59,7 +59,7 @@ dependencies {
     testCompile "junit:junit:4.8.2"
 }
 
-test.addOutputListener(new VerboseOutputListener(logger: project.logger))
+test.addTestOutputListener(new VerboseOutputListener(logger: project.logger))
 
 class VerboseOutputListener implements TestOutputListener {
 
@@ -128,5 +128,46 @@ class VerboseOutputListener implements TestOutputListener {
         //then
         assert result.output.contains('first: message from foo')
         assert result.output.contains('second: message from foo')
+    }
+
+    @Test
+    public void "shows standard stream"() {
+        def test = file("src/test/java/SomeTest.java")
+        test << """
+import org.junit.*;
+
+public class SomeTest {
+    @Test
+    public void foo() {
+        System.out.println("output from foo");
+        System.err.println("error from foo");
+    }
+}
+"""
+        def buildFile = file('build.gradle')
+        buildFile << """
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile "junit:junit:4.8.2"
+}
+
+test.verbosity.showStandardStream = true
+"""
+        //when run without '-i'
+        def result = executer.withTasks('test').run()
+        //then
+        assert !result.output.contains('output from foo')
+
+        //when run with '-i'
+        result = executer.withTasks('cleanTest', 'test').withArguments('-i').run()
+
+        //then
+        assert result.output.contains('output from foo')
+        assert result.output.contains('error from foo')
     }
 }
