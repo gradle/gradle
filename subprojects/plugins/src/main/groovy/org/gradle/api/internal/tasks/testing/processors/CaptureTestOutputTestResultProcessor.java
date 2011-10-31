@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.api.tasks.testing.OutputEvent;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.logging.StandardOutputRedirector;
 
 /**
@@ -43,12 +43,12 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
         suite = test.getId();
         outputRedirector.redirectStandardOutputTo(new StandardOutputListener() {
             public void onOutput(CharSequence output) {
-                processor.output(suite, new TestOutputEvent(OutputEvent.Destination.StdOut, output.toString()));
+                processor.output(suite, new TestOutputEventImpl(TestOutputEvent.Destination.StdOut, output.toString()));
             }
         });
         outputRedirector.redirectStandardErrorTo(new StandardOutputListener() {
             public void onOutput(CharSequence output) {
-                processor.output(suite, new TestOutputEvent(OutputEvent.Destination.StdErr, output.toString()));
+                processor.output(suite, new TestOutputEventImpl(TestOutputEvent.Destination.StdErr, output.toString()));
             }
         });
         outputRedirector.start();

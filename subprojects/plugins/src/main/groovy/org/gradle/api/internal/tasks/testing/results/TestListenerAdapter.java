@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.internal.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.OutputListener;
 import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
 public class TestListenerAdapter extends StateTrackingTestResultProcessor {

@@ -20,10 +20,10 @@ import org.apache.tools.ant.util.DOMElementWriter;
 import org.apache.tools.ant.util.DateUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.internal.tasks.testing.TestOutputEvent;
+import org.gradle.api.internal.tasks.testing.TestOutputEventImpl;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestState;
-import org.gradle.api.tasks.testing.OutputEvent;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.UncheckedException;
 import org.w3c.dom.Document;
@@ -44,7 +44,7 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
     private Document testSuiteReport;
     private TestState testSuite;
     private Element rootElement;
-    private Map<TestOutputEvent.Destination, StringBuilder> outputs
+    private Map<TestOutputEventImpl.Destination, StringBuilder> outputs
             = new EnumMap<TestOutputEvent.Destination, StringBuilder>(TestOutputEvent.Destination.class);
 
     public JUnitXmlReportGenerator(File testResultsDir) {
@@ -57,7 +57,6 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
         hostName = getHostname();
     }
 
-    @Override
     public void output(Object testId, TestOutputEvent event) {
         outputs.get(event.getDestination()).append(event.getMessage());
     }
@@ -71,8 +70,8 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
             testSuiteReport.appendChild(rootElement);
             // Add an empty properties element for compatibility
             rootElement.appendChild(testSuiteReport.createElement("properties"));
-            outputs.put(OutputEvent.Destination.StdOut, new StringBuilder());
-            outputs.put(OutputEvent.Destination.StdErr, new StringBuilder());
+            outputs.put(TestOutputEvent.Destination.StdOut, new StringBuilder());
+            outputs.put(TestOutputEvent.Destination.StdErr, new StringBuilder());
             testSuite = state;
         }
     }
@@ -95,11 +94,11 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
             rootElement.setAttribute("timestamp", DateUtils.format(state.getStartTime(), DateUtils.ISO8601_DATETIME_PATTERN));
             rootElement.setAttribute("hostname", hostName);
             Element stdoutElement = testSuiteReport.createElement("system-out");
-            stdoutElement.appendChild(testSuiteReport.createCDATASection(outputs.get(OutputEvent.Destination.StdOut)
+            stdoutElement.appendChild(testSuiteReport.createCDATASection(outputs.get(TestOutputEvent.Destination.StdOut)
                     .toString()));
             rootElement.appendChild(stdoutElement);
             Element stderrElement = testSuiteReport.createElement("system-err");
-            stderrElement.appendChild(testSuiteReport.createCDATASection(outputs.get(OutputEvent.Destination.StdErr)
+            stderrElement.appendChild(testSuiteReport.createCDATASection(outputs.get(TestOutputEvent.Destination.StdErr)
                     .toString()));
             rootElement.appendChild(stderrElement);
         }

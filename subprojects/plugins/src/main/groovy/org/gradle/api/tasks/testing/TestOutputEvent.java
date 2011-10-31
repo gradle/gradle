@@ -19,7 +19,7 @@ package org.gradle.api.tasks.testing;
 /**
  * by Szczepan Faber, created at: 10/31/11
  */
-public interface OutputEvent {
+public interface TestOutputEvent {
 
     Destination getDestination();
 

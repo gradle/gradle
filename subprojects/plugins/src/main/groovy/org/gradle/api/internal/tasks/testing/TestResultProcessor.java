@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.tasks.testing.TestOutputEvent;
+
 /**
  * A processor for test results. Implementations are not required to be thread-safe.
  */

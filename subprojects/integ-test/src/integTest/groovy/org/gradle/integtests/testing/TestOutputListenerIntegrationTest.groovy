@@ -65,8 +65,8 @@ class VerboseOutputListener implements OutputListener {
 
     def logger
 
-    public void onOutput(OutputEvent outputEvent) {
-        logger.lifecycle("" + outputEvent.destination + " " + outputEvent.message);
+    public void onOutput(TestOutputEvent event) {
+        logger.lifecycle("" + event.destination + " " + event.message);
     }
 }
 """

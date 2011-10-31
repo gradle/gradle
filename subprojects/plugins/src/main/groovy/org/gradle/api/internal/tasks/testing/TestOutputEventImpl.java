@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.tasks.testing.OutputEvent;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.Serializable;
 
-public class TestOutputEvent implements Serializable, OutputEvent {
+public class TestOutputEventImpl implements Serializable, TestOutputEvent {
 
     private final Destination destination;
     private final String message;
 
-    public TestOutputEvent(Destination destination, String message) {
+    public TestOutputEventImpl(Destination destination, String message) {
         this.destination = destination;
         this.message = message;
     }

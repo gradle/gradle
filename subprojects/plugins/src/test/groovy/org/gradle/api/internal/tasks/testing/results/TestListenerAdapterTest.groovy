@@ -23,7 +23,7 @@ import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.junit.Test
 import spock.lang.Specification
 import org.gradle.api.internal.tasks.testing.*
-import org.gradle.api.tasks.testing.OutputEvent
+import org.gradle.api.tasks.testing.TestOutputEvent
 
 class TestListenerAdapterTest extends Specification {
 
@@ -239,7 +239,7 @@ class TestListenerAdapterTest extends Specification {
 
     def "notifies output listener"() {
         given:
-        def event = new TestOutputEvent(OutputEvent.Destination.StdOut, "hey!")
+        def event = new TestOutputEventImpl(TestOutputEvent.Destination.StdOut, "hey!")
 
         when:
         adapter.output("14", event)
