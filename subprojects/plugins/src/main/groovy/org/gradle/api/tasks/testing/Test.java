@@ -74,8 +74,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private long forkEvery;
     private int maxParallelForks = 1;
     private ListenerBroadcast<TestListener> testListenerBroadcaster;
-    private final ListenerBroadcast<OutputListener> outputListenerBroadcaster
-            = new ListenerBroadcast<OutputListener>(OutputListener.class);
+    private final ListenerBroadcast<TestOutputListener> outputListenerBroadcaster
+            = new ListenerBroadcast<TestOutputListener>(TestOutputListener.class);
 
     public Test() {
         //TODO SF - find out why should we use this way of creating listeners
@@ -365,7 +365,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @param listener The listener to add.
      */
-    public void addOutputListener(OutputListener listener) {
+    public void addOutputListener(TestOutputListener listener) {
         outputListenerBroadcaster.add(listener);
     }
 

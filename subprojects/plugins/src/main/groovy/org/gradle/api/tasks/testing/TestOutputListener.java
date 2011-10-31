@@ -19,7 +19,7 @@ package org.gradle.api.tasks.testing;
 /**
  * Listens to standard output
  */
-public interface OutputListener {
+public interface TestOutputListener {
 
     void onOutput(TestOutputEvent outputEvent);
 }

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.results
 
-import org.gradle.api.tasks.testing.OutputListener
+import org.gradle.api.tasks.testing.TestOutputListener
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestResult
@@ -28,7 +28,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent
 class TestListenerAdapterTest extends Specification {
 
     def listener = Mock(TestListener.class)
-    def outputListener = Mock(OutputListener.class)
+    def outputListener = Mock(TestOutputListener.class)
     TestListenerAdapter adapter = new TestListenerAdapter(listener, outputListener)
 
     public void notifiesBefore() {

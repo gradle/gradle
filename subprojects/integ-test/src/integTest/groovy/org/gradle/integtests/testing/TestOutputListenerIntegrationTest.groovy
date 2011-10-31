@@ -61,7 +61,7 @@ dependencies {
 
 test.addOutputListener(new VerboseOutputListener(logger: project.logger))
 
-class VerboseOutputListener implements OutputListener {
+class VerboseOutputListener implements TestOutputListener {
 
     def logger
 
