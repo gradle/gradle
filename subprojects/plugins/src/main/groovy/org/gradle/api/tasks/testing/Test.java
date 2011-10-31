@@ -427,6 +427,17 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
+     * Adds a closure to be notified when output from the test received.
+     * A {@link org.gradle.api.tasks.testing.TestDescriptor}
+     * and {@link org.gradle.api.tasks.testing.TestOutputEvent} instance are passed to the closure as a parameter.
+     *
+     * @param closure The closure to call.
+     */
+    public void onOutput(Closure closure) {
+        outputListenerBroadcaster.add("onOutput", closure);
+    }
+
+    /**
      * Adds include patterns for the files in the test classes directory (e.g. '**&#2F;*Test.class')).
      *
      * @see #setIncludes(Iterable)

@@ -106,10 +106,9 @@ dependencies {
     testCompile "junit:junit:4.8.2"
 }
 
-/*
-test.onOuput { descriptor, event
-    println event.message
-}*/
+test.onOutput { descriptor, event ->
+    println "first: " + event.message
+}
 
 gradle.addListener(new VerboseOutputListener(logger: project.logger))
 
@@ -118,7 +117,7 @@ class VerboseOutputListener implements TestOutputListener {
     def logger
 
     public void onOutput(TestDescriptor descriptor, TestOutputEvent event) {
-        logger.lifecycle(descriptor.name + " " + event.destination + " " + event.message);
+        logger.lifecycle("second: " + event.message);
     }
 }
 """
@@ -127,6 +126,7 @@ class VerboseOutputListener implements TestOutputListener {
         def result = executer.withTasks('test').run()
 
         //then
-        assert result.output.contains('message from foo')
+        assert result.output.contains('first: message from foo')
+        assert result.output.contains('second: message from foo')
     }
 }
