@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions;
+package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
@@ -29,39 +29,39 @@ import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 import java.io.File;
 import java.io.Serializable;
 
-public class SingleFileBackedDynamicRevisionCache implements DynamicRevisionCache {
+public class SingleFileBackedDynamicVersionCache implements DynamicVersionCache {
     private final TimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
-    private PersistentIndexedCache<RevisionKey, CachedRevisionEntry> cache;
+    private PersistentIndexedCache<RevisionKey, DynamicVersionCacheEntry> cache;
 
-    public SingleFileBackedDynamicRevisionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public SingleFileBackedDynamicVersionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
         this.cacheMetadata = cacheMetadata;
     }
     
-    private PersistentIndexedCache<RevisionKey, CachedRevisionEntry> getCache() {
+    private PersistentIndexedCache<RevisionKey, DynamicVersionCacheEntry> getCache() {
         if (cache == null) {
             cache = initCache();
         }
         return cache;
     }
 
-    private PersistentIndexedCache<RevisionKey, CachedRevisionEntry> initCache() {
+    private PersistentIndexedCache<RevisionKey, DynamicVersionCacheEntry> initCache() {
         File dynamicRevisionsFile = new File(cacheMetadata.getCacheDir(), "dynamic-revisions.bin");
         FileLock dynamicRevisionsLock = cacheLockingManager.getCacheMetadataFileLock(dynamicRevisionsFile);
-        return new BTreePersistentIndexedCache<RevisionKey, CachedRevisionEntry>(dynamicRevisionsFile, dynamicRevisionsLock,
-                new DefaultSerializer<CachedRevisionEntry>(CachedRevisionEntry.class.getClassLoader()));
+        return new BTreePersistentIndexedCache<RevisionKey, DynamicVersionCacheEntry>(dynamicRevisionsFile, dynamicRevisionsLock,
+                new DefaultSerializer<DynamicVersionCacheEntry>(DynamicVersionCacheEntry.class.getClassLoader()));
     }
 
-    public CachedRevision getResolvedRevision(DependencyResolver resolver, ModuleRevisionId dynamicRevision) {
-        CachedRevisionEntry cachedRevisionEntry = getCache().get(createKey(resolver, dynamicRevision));
-        return cachedRevisionEntry == null ? null : new DefaultCachedRevision(cachedRevisionEntry, timeProvider);
+    public ResolvedDynamicVersion getResolvedDynamicVersion(DependencyResolver resolver, ModuleRevisionId dynamicVersion) {
+        DynamicVersionCacheEntry dynamicVersionCacheEntry = getCache().get(createKey(resolver, dynamicVersion));
+        return dynamicVersionCacheEntry == null ? null : new DefaultResolvedDynamicVersion(dynamicVersionCacheEntry, timeProvider);
     }
 
-    public void saveResolvedRevision(DependencyResolver resolver, ModuleRevisionId dynamicRevision, ModuleRevisionId resolvedRevision) {
-        getCache().put(createKey(resolver, dynamicRevision), createEntry(resolvedRevision));
+    public void saveResolvedDynamicVersion(DependencyResolver resolver, ModuleRevisionId dynamicVersion, ModuleRevisionId resolvedVersion) {
+        getCache().put(createKey(resolver, dynamicVersion), createEntry(resolvedVersion));
     }
 
     private RevisionKey createKey(DependencyResolver resolver, ModuleRevisionId revisionId) {
@@ -92,8 +92,8 @@ public class SingleFileBackedDynamicRevisionCache implements DynamicRevisionCach
         }
     }
 
-    private CachedRevisionEntry createEntry(ModuleRevisionId revisionId) {
-        return new CachedRevisionEntry(revisionId, timeProvider);
+    private DynamicVersionCacheEntry createEntry(ModuleRevisionId revisionId) {
+        return new DynamicVersionCacheEntry(revisionId, timeProvider);
     }
 
 }

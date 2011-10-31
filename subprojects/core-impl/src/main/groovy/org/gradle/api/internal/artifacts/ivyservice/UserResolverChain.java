@@ -33,7 +33,7 @@ import org.apache.ivy.util.Message;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DynamicRevisionCachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions.DynamicRevisionCache;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DynamicVersionCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,8 +50,8 @@ public class UserResolverChain extends ChainResolver {
     private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
     private final DynamicRevisionDependencyConverter dynamicRevisions;
 
-    public UserResolverChain(DynamicRevisionCache dynamicRevisionCache) {
-        dynamicRevisions = new DynamicRevisionDependencyConverter(dynamicRevisionCache);
+    public UserResolverChain(DynamicVersionCache dynamicVersionCache) {
+        dynamicRevisions = new DynamicRevisionDependencyConverter(dynamicVersionCache);
     }
 
     public void setDynamicRevisionCachePolicy(DynamicRevisionCachePolicy dynamicRevisionCachePolicy) {
@@ -84,7 +84,7 @@ public class UserResolverChain extends ChainResolver {
         return downloadedModule;
     }
 
-
+    
     private ResolvedModuleRevision findModuleInCache(DependencyResolver resolver, DependencyDescriptor dd, ResolveData resolveData) {
         CacheMetadataOptions cacheOptions = getCacheMetadataOptions(resolver, resolveData);
         return resolver.getRepositoryCacheManager().findModuleInCache(dd, dd.getDependencyRevisionId(), cacheOptions, resolver.getName());
@@ -193,11 +193,11 @@ public class UserResolverChain extends ChainResolver {
     }
 
     private static class DynamicRevisionDependencyConverter {
-        private final DynamicRevisionCache dynamicRevisionCache;
+        private final DynamicVersionCache dynamicVersionCache;
         private DynamicRevisionCachePolicy dynamicRevisionCachePolicy;
 
-        private DynamicRevisionDependencyConverter(DynamicRevisionCache dynamicRevisionCache) {
-            this.dynamicRevisionCache = dynamicRevisionCache;
+        private DynamicRevisionDependencyConverter(DynamicVersionCache dynamicVersionCache) {
+            this.dynamicVersionCache = dynamicVersionCache;
         }
 
         public void setDynamicRevisionCachePolicy(DynamicRevisionCachePolicy dynamicRevisionCachePolicy) {
@@ -212,14 +212,14 @@ public class UserResolverChain extends ChainResolver {
             }
 
             LOGGER.debug("Caching resolved revision in dynamic revision cache: Will use '{}' for '{}'", resolvedId, originalId);
-            dynamicRevisionCache.saveResolvedRevision(downloadedModule.getResolver(), originalId, resolvedId);
+            dynamicVersionCache.saveResolvedDynamicVersion(downloadedModule.getResolver(), originalId, resolvedId);
         }
 
         public DependencyDescriptor maybeResolveDynamicRevision(DependencyResolver resolver, DependencyDescriptor original) {
             assert dynamicRevisionCachePolicy != null : "dynamicRevisionExpiryPolicy was not configured";
 
             ModuleRevisionId originalId = original.getDependencyRevisionId();
-            DynamicRevisionCache.CachedRevision resolvedRevision = dynamicRevisionCache.getResolvedRevision(resolver, originalId);
+            DynamicVersionCache.ResolvedDynamicVersion resolvedRevision = dynamicVersionCache.getResolvedDynamicVersion(resolver, originalId);
             if (resolvedRevision == null) {
                 return original;
             }

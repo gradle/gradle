@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions;
+package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.ModuleIdentifier;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ResolvedModule;
-import org.gradle.api.internal.artifacts.DefaultResolvedModuleId;
 
-public class DefaultResolvedModule implements ResolvedModule {
-    private final ModuleRevisionId moduleRevisionId;
+public interface DynamicVersionCache {
 
-    public DefaultResolvedModule(ModuleRevisionId moduleRevisionId) {
-        this.moduleRevisionId = moduleRevisionId;
-    }
+    void saveResolvedDynamicVersion(DependencyResolver resolver, ModuleRevisionId dynamicVersion, ModuleRevisionId resolvedVersion);
 
-    public ModuleIdentifier getId() {
-        return new DefaultResolvedModuleId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+    ResolvedDynamicVersion getResolvedDynamicVersion(DependencyResolver resolver, ModuleRevisionId dynamicVersion);
+    
+    interface ResolvedDynamicVersion {
+        ResolvedModule getModule();
+        ModuleRevisionId getRevision();
+        long getAgeMillis();
     }
 }

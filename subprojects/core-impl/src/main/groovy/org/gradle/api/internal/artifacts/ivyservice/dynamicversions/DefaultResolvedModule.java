@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions;
+package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.util.TimeProvider;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ResolvedModule;
+import org.gradle.api.internal.artifacts.DefaultResolvedModuleId;
 
-import java.io.Serializable;
+public class DefaultResolvedModule implements ResolvedModule {
+    private final ModuleRevisionId moduleRevisionId;
 
-class CachedRevisionEntry implements Serializable {
-    public String encodedRevisionId;
-    public long createTimestamp;
+    public DefaultResolvedModule(ModuleRevisionId moduleRevisionId) {
+        this.moduleRevisionId = moduleRevisionId;
+    }
 
-    CachedRevisionEntry(ModuleRevisionId revisionId, TimeProvider timeProvider) {
-        this.encodedRevisionId = revisionId.encodeToString();
-        this.createTimestamp = timeProvider.getCurrentTime();
+    public ModuleIdentifier getId() {
+        return new DefaultResolvedModuleId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
     }
 }

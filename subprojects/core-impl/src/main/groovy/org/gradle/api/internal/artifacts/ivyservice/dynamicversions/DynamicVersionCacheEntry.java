@@ -13,10 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.dynamicrevisions;
+package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
-import java.io.File;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.util.TimeProvider;
 
-public interface DynamicRevisionCacheFactory {
-    DynamicRevisionCache create(File cacheDir);
+import java.io.Serializable;
+
+class DynamicVersionCacheEntry implements Serializable {
+    public String encodedRevisionId;
+    public long createTimestamp;
+
+    DynamicVersionCacheEntry(ModuleRevisionId revisionId, TimeProvider timeProvider) {
+        this.encodedRevisionId = revisionId.encodeToString();
+        this.createTimestamp = timeProvider.getCurrentTime();
+    }
 }
