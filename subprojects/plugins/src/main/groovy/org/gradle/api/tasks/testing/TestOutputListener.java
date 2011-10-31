@@ -17,9 +17,15 @@
 package org.gradle.api.tasks.testing;
 
 /**
- * Listens to standard output
+ * Listens to the output events like printing to standard output or error
  */
 public interface TestOutputListener {
 
+    /**
+     * Fired when during test execution anything is printed to standard output or error
+     *
+     * @param testDescriptor describes the test
+     * @param outputEvent the event that contains the output message and the destination (standard output or error, etc.)
+     */
     void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent);
 }

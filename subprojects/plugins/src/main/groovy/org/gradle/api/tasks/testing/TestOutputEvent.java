@@ -17,17 +17,24 @@
 package org.gradle.api.tasks.testing;
 
 /**
- * by Szczepan Faber, created at: 10/31/11
+ * Standard output or standard error message logged during the execution of the test
  */
 public interface TestOutputEvent {
 
+    /**
+     * Destination of the message
+     */
     Destination getDestination();
 
+    /**
+     * Message content
+     */
     String getMessage();
 
+    /**
+     * Destination of the message
+     */
     enum Destination {
         StdOut, StdErr
     }
-
-
 }
