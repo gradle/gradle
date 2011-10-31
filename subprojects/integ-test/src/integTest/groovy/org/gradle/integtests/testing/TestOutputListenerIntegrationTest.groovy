@@ -80,4 +80,53 @@ class VerboseOutputListener implements TestOutputListener {
         assert failure.output.contains('SomeTest StdErr err passing')
         assert failure.output.contains('SomeTest StdErr err failing')
     }
+
+    @Test
+    public void "can register output listener at gradle level"() {
+        def test = file("src/test/java/SomeTest.java")
+        test << """
+import org.junit.*;
+
+public class SomeTest {
+    @Test
+    public void foo() {
+        System.out.println("message from foo");
+    }
+}
+"""
+        def buildFile = file('build.gradle')
+        buildFile << """
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile "junit:junit:4.8.2"
+}
+
+/*
+test.onOuput { descriptor, event
+    println event.message
+}*/
+
+gradle.addListener(new VerboseOutputListener(logger: project.logger))
+
+class VerboseOutputListener implements TestOutputListener {
+
+    def logger
+
+    public void onOutput(TestDescriptor descriptor, TestOutputEvent event) {
+        logger.lifecycle(descriptor.name + " " + event.destination + " " + event.message);
+    }
+}
+"""
+
+        //when
+        def result = executer.withTasks('test').run()
+
+        //then
+        assert result.output.contains('message from foo')
+    }
 }

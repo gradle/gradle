@@ -74,13 +74,12 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private long forkEvery;
     private int maxParallelForks = 1;
     private ListenerBroadcast<TestListener> testListenerBroadcaster;
-    private final ListenerBroadcast<TestOutputListener> outputListenerBroadcaster
-            = new ListenerBroadcast<TestOutputListener>(TestOutputListener.class);
+    private final ListenerBroadcast<TestOutputListener> outputListenerBroadcaster;
 
     public Test() {
-        //TODO SF - find out why should we use this way of creating listeners
         testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(
                 TestListener.class);
+        outputListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(TestOutputListener.class);
         this.testExecuter = new DefaultTestExecuter(getServices().getFactory(WorkerProcessBuilder.class), getServices().get(
                 ActorFactory.class));
         options = new DefaultJavaForkOptions(getServices().get(FileResolver.class));

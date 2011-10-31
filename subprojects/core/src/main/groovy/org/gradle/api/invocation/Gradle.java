@@ -196,6 +196,8 @@ public interface Gradle {
      *
      * <li>{@link org.gradle.api.tasks.testing.TestListener}
      *
+     * <li>{@link org.gradle.api.tasks.testing.TestOutputListener}
+     *
      * <li>{@link org.gradle.api.artifacts.DependencyResolutionListener}
      *
      * </ul>
