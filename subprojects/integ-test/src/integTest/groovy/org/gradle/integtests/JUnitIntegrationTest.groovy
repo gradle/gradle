@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import spock.lang.Issue
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
@@ -393,58 +392,5 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.assertTestClassesExecuted('org.gradle.Test1', 'org.gradle.Test2')
         result.testClass('org.gradle.Test1').assertTestPassed('ok')
         result.testClass('org.gradle.Test2').assertTestPassed('ok')
-    }
-
-    @Test
-    @Issue("GRADLE-1009")
-    public void "standard output is shown when tests are executed"() {
-        def test = file("src/test/java/SomeTest.java")
-        test << """
-import org.junit.*;
-
-public class SomeTest {
-    @Test
-    public void showsOutputWhenPassing() {
-        System.out.println("passing");
-        Assert.assertTrue(true);
-    }
-
-    @Test
-    public void showsOutputWhenFailing() {
-        System.out.println("failing");
-        Assert.assertTrue(false);
-    }
-}
-"""
-        def buildFile = file('build.gradle')
-        buildFile << """
-apply plugin: 'java'
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    testCompile "junit:junit:4.8.2"
-}
-
-test.addOutputListener(new VerboseOutputListener(logger: project.logger))
-
-class VerboseOutputListener implements OutputListener {
-
-    def logger
-
-    public void onOutput(String output) {
-        logger.lifecycle(output);
-    }
-}
-"""
-
-        //when
-        def failure = executer.withTasks('test').runWithFailure()
-
-        //then
-        assert failure.output.contains('passing')
-        assert failure.output.contains('failing')
     }
 }
