@@ -55,6 +55,6 @@ public class TestListenerAdapter extends StateTrackingTestResultProcessor {
     @Override
     public void output(Object testId, TestOutputEvent event) {
         super.output(testId, event);
-        outputListener.onOutput(event.getMessage());
+        outputListener.onOutput(event);
     }
 }

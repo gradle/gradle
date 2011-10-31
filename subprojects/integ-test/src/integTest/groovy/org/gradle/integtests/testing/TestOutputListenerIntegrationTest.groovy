@@ -34,13 +34,15 @@ import org.junit.*;
 public class SomeTest {
     @Test
     public void showsOutputWhenPassing() {
-        System.out.println("passing");
+        System.out.println("out passing");
+        System.err.println("err passing");
         Assert.assertTrue(true);
     }
 
     @Test
     public void showsOutputWhenFailing() {
-        System.out.println("failing");
+        System.out.println("out failing");
+        System.err.println("err failing");
         Assert.assertTrue(false);
     }
 }
@@ -63,8 +65,8 @@ class VerboseOutputListener implements OutputListener {
 
     def logger
 
-    public void onOutput(String output) {
-        logger.lifecycle(output);
+    public void onOutput(OutputEvent outputEvent) {
+        logger.lifecycle("" + outputEvent.destination + " " + outputEvent.message);
     }
 }
 """
@@ -73,7 +75,9 @@ class VerboseOutputListener implements OutputListener {
         def failure = executer.withTasks('test').runWithFailure()
 
         //then
-        assert failure.output.contains('passing')
-        assert failure.output.contains('failing')
+        assert failure.output.contains('StdOut out passing')
+        assert failure.output.contains('StdOut out failing')
+        assert failure.output.contains('StdErr err passing')
+        assert failure.output.contains('StdErr err failing')
     }
 }

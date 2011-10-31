@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.processors
 import org.gradle.logging.StandardOutputRedirector
 import spock.lang.Specification
 import org.gradle.api.internal.tasks.testing.*
+import org.gradle.api.tasks.testing.OutputEvent
 
 class CaptureTestOutputTestResultProcessorTest extends Specification {
     private final TestResultProcessor target = Mock()
@@ -49,10 +50,10 @@ class CaptureTestOutputTestResultProcessorTest extends Specification {
 
         then:
         1 * target.output(testId, { TestOutputEvent event ->
-            event.destination == TestOutputEvent.Destination.StdOut && event.message == 'this is stdout'
+            event.destination == OutputEvent.Destination.StdOut && event.message == 'this is stdout'
         })
         1 * target.output(testId, { TestOutputEvent event ->
-            event.destination == TestOutputEvent.Destination.StdErr && event.message == 'this is stderr' })
+            event.destination == OutputEvent.Destination.StdErr && event.message == 'this is stderr' })
 
         when:
         processor.completed(testId, completeEvent)

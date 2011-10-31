@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestOutputEvent;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestState;
+import org.gradle.api.tasks.testing.OutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.UncheckedException;
 import org.w3c.dom.Document;
@@ -70,8 +71,8 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
             testSuiteReport.appendChild(rootElement);
             // Add an empty properties element for compatibility
             rootElement.appendChild(testSuiteReport.createElement("properties"));
-            outputs.put(TestOutputEvent.Destination.StdOut, new StringBuilder());
-            outputs.put(TestOutputEvent.Destination.StdErr, new StringBuilder());
+            outputs.put(OutputEvent.Destination.StdOut, new StringBuilder());
+            outputs.put(OutputEvent.Destination.StdErr, new StringBuilder());
             testSuite = state;
         }
     }
@@ -94,11 +95,11 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
             rootElement.setAttribute("timestamp", DateUtils.format(state.getStartTime(), DateUtils.ISO8601_DATETIME_PATTERN));
             rootElement.setAttribute("hostname", hostName);
             Element stdoutElement = testSuiteReport.createElement("system-out");
-            stdoutElement.appendChild(testSuiteReport.createCDATASection(outputs.get(TestOutputEvent.Destination.StdOut)
+            stdoutElement.appendChild(testSuiteReport.createCDATASection(outputs.get(OutputEvent.Destination.StdOut)
                     .toString()));
             rootElement.appendChild(stdoutElement);
             Element stderrElement = testSuiteReport.createElement("system-err");
-            stderrElement.appendChild(testSuiteReport.createCDATASection(outputs.get(TestOutputEvent.Destination.StdErr)
+            stderrElement.appendChild(testSuiteReport.createCDATASection(outputs.get(OutputEvent.Destination.StdErr)
                     .toString()));
             rootElement.appendChild(stderrElement);
         }

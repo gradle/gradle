@@ -17,9 +17,17 @@
 package org.gradle.api.tasks.testing;
 
 /**
- * Listens to standard output
+ * by Szczepan Faber, created at: 10/31/11
  */
-public interface OutputListener {
+public interface OutputEvent {
 
-    void onOutput(OutputEvent outputEvent);
+    Destination getDestination();
+
+    String getMessage();
+
+    enum Destination {
+        StdOut, StdErr
+    }
+
+
 }

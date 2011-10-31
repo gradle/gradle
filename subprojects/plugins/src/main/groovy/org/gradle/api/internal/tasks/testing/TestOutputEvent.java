@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.tasks.testing.OutputEvent;
+
 import java.io.Serializable;
 
-public class TestOutputEvent implements Serializable {
-    public enum Destination {
-        StdOut, StdErr
-    }
+public class TestOutputEvent implements Serializable, OutputEvent {
 
     private final Destination destination;
     private final String message;
