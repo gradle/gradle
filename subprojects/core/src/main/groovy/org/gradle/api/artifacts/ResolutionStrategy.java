@@ -72,21 +72,11 @@ public interface ResolutionStrategy {
     ConflictResolution strict();
 
     /**
-     * Gets the current expiry policy for dynamic revisions.
-     * @return the expiry policy
-     */
-    DynamicRevisionCachePolicy getDynamicRevisionCachePolicy();
-
-    /**
-     * Sets the expiry policy to use for dynamic revisions.
-     * @param policy the policy to use
-     */
-    void setDynamicRevisionCachePolicy(DynamicRevisionCachePolicy policy);
-
-    /**
-     * Provides a time after which all dynamic revisions will be expired, using the default implementation of {@link DynamicRevisionCachePolicy}.
+     * Gradle keeps a cache of dynamic version => resolved version (ie 2.+ => 2.3). By default, these cached values are kept for 24 hours, after which the cached entry is expired
+     * and the dynamic version is resolved again.
+     * Use this method to provide a custom expiry time after which the cached value for any dynamic version will be expired, using the default implementation of {@link org.gradle.api.internal.artifacts.configurations.dynamicversion.DynamicVersionCachePolicy}.
      * @param value The number of time units
      * @param unit The time units
      */
-    void expireDynamicRevisionsAfter(int value, TimeUnit unit);
+    void expireDynamicVersionsAfter(int value, TimeUnit unit);
 }

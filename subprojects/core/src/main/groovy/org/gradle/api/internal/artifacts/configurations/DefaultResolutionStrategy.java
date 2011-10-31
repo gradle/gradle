@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.DefaultDynamicVersionCachePolicy;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.DynamicVersionCachePolicy;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -27,12 +29,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * by Szczepan Faber, created at: 10/7/11
  */
-public class DefaultResolutionStrategy implements ResolutionStrategy {
-    private static final int SECONDS_IN_DAY = 24 * 60 * 60;
+public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     private Set<ForcedVersion> forcedVersions = new LinkedHashSet<ForcedVersion>();
     private ConflictResolution conflictResolution = new LatestConflictResolution();
-    private DynamicRevisionCachePolicy dynamicRevisionCachePolicy = new FixedAgeDynamicRevisionCachePolicy(SECONDS_IN_DAY, TimeUnit.SECONDS);
+    private final DefaultDynamicVersionCachePolicy dynamicRevisionCachePolicy = new DefaultDynamicVersionCachePolicy();
 
     public Set<ForcedVersion> getForcedVersions() {
         return forcedVersions;
@@ -62,27 +63,11 @@ public class DefaultResolutionStrategy implements ResolutionStrategy {
         }
     }
 
-    public DynamicRevisionCachePolicy getDynamicRevisionCachePolicy() {
+    public DynamicVersionCachePolicy getDynamicRevisionCachePolicy() {
         return dynamicRevisionCachePolicy;
     }
 
-    public void setDynamicRevisionCachePolicy(DynamicRevisionCachePolicy policy) {
-        this.dynamicRevisionCachePolicy = policy;
-    }
-
-    public void expireDynamicRevisionsAfter(int value, TimeUnit unit) {
-        this.dynamicRevisionCachePolicy = new FixedAgeDynamicRevisionCachePolicy(value, unit);
-    }
-
-    private class FixedAgeDynamicRevisionCachePolicy implements DynamicRevisionCachePolicy {
-        private long expiryMillis;
-
-        private FixedAgeDynamicRevisionCachePolicy(int value, TimeUnit units) {
-            expiryMillis = TimeUnit.MILLISECONDS.convert(value, units);
-        }
-
-        public boolean canUseCachedRevision(ResolvedModule module, long ageMillis) {
-            return ageMillis < expiryMillis;
-        }
+    public void expireDynamicVersionsAfter(int value, TimeUnit unit) {
+        this.dynamicRevisionCachePolicy.expireDynamicRevisionsAfter(value, unit);
     }
 }

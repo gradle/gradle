@@ -13,13 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.configurations;
+package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencyResolutionListener;
+import org.gradle.api.artifacts.ResolvedModule;
 
-public interface ConfigurationInternal extends Configuration, DependencyMetaDataProvider {
-    DependencyResolutionListener getDependencyResolutionBroadcast();
+public interface CachedDynamicVersion {
+    /**
+     * @return The module resolved for the dynamic version.
+     */
+    ResolvedModule getModule();
 
-    ResolutionStrategyInternal getResolutionStrategy();
+    /**
+     * @return The age of the cached entry, in milliseconds.
+     */
+    long getAgeMillis();
+
+    /**
+     * Call this method if you want to invalidate the cached version, forcing resolution of this dynamic version.
+     */
+    void mustCheckForUpdates();
 }

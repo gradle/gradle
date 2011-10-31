@@ -143,7 +143,7 @@ task retrieve(type: Sync) {
         def version2 = repo.module("group", "projectA", "1.2")
         version2.publish()
 
-        and: "We request 1.+, with dynamic mappings cached"
+        and: "We request 1.+, with dynamic mappings cached. No server requests."
         run 'retrieve'
 
         then: "Version 1.1 is still used, as the 1.+ -> 1.1 mapping is cached"

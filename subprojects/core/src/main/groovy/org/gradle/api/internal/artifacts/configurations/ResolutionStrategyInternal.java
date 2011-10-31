@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts;
+package org.gradle.api.internal.artifacts.configurations;
 
-/**
- * Specifies when we can use cached values for Dynamic Revisions.
- */
-public interface DynamicRevisionCachePolicy {
-    /**
-     * Returns whether a cached resolution value for a dynamic revision can be used, or if the dynamic revision should be resolved again to get the latest version.
-     * @param module The resolved module
-     * @param ageMillis The age of the cache entry in milliseconds
-     * @return True if the resolved value can be used
-     */
-    boolean canUseCachedRevision(ResolvedModule module, long ageMillis);
+import org.gradle.api.artifacts.ResolutionStrategy;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.DynamicVersionCachePolicy;
+
+public interface ResolutionStrategyInternal extends ResolutionStrategy {
+        /**
+         * Gets the current expiry policy for dynamic revisions.
+         * @return the expiry policy
+         */
+        DynamicVersionCachePolicy getDynamicRevisionCachePolicy();
 }

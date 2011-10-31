@@ -20,19 +20,18 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.resolver.ChainResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
-import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.internal.Factory
-
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DynamicVersionCache
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DynamicVersionCache
 
 class DefaultSettingsConverterTest extends Specification {
     final IBiblioResolver testResolver = new IBiblioResolver()
     final IBiblioResolver testResolver2 = new IBiblioResolver()
 
     Map clientModuleRegistry = [a: [:] as ModuleDescriptor]
-    ResolutionStrategy resolutionStrategy = Mock()
+    ResolutionStrategyInternal resolutionStrategy = Mock()
     DynamicVersionCache dynamicRevisionCache = Mock()
 
     File testGradleUserHome = new File('gradleUserHome')

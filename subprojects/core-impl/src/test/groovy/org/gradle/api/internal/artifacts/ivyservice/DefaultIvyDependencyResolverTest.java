@@ -27,6 +27,7 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultResolutionStrategy;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -59,7 +60,7 @@ public class DefaultIvyDependencyResolverTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     private ConfigurationInternal configurationStub = context.mock(ConfigurationInternal.class, "<configuration>");
-    private ResolutionStrategy resolutionStrategy = context.mock(ResolutionStrategy.class);
+    private ResolutionStrategyInternal resolutionStrategy = context.mock(ResolutionStrategyInternal.class);
     private Ivy ivyStub = context.mock(Ivy.class);
     private DefaultIvyReportConverter ivyReportConverterStub = context.mock(DefaultIvyReportConverter.class);
     private ResolveReport resolveReportMock = context.mock(ResolveReport.class);
