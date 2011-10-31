@@ -55,6 +55,9 @@
             <tr>
                 <td>excludeRules</td>
             </tr>
+            <tr>
+                <td>resolutionStrategy</td>
+            </tr>
         </table>
     </section>
     <section>

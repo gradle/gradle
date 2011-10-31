@@ -109,6 +109,26 @@
                 feature of dependency management.
             </para>
         </section>
+        <section id='sub:dynamic_versions_and_changing_modules'>
+            <title>Dynamic Versions and Changing Modules</title>
+            <para>Sometimes, you always want to use the latest version of a particular dependency, or the latest in a range of versions.
+                You can easily do this using a <emphasis>dynamic version</emphasis>. A dynamic version can be either a version range (eg. <literal>2.+</literal>)
+                or it can be a placeholder for the latest version available (eg. <literal>latest.integration</literal>).
+            </para>
+            <para>Alternatively, sometimes the module you request can change over time, even for the same version.
+                An example of this type of <emphasis>changing module</emphasis> is a maven <literal>SNAPSHOT</literal> module,
+                which always points at the latest artifacts published.
+            </para>
+            <para>
+                The main difference between a <emphasis>dynamic version</emphasis> and a <emphasis>changing module</emphasis> is
+                that when you resolve a <emphasis>dynamic version</emphasis>, you'll get the real, static version as the module name.
+                When you resolve a <emphasis>changing module</emphasis>, the artifacts are named using the version you requested,
+                but the underlying artifacts may change over time.
+            </para>
+            <para>By default, Gradle caches dynamic versions for 24 hours. You can change this cache expiry time for a configuration using the resolution strategy.
+                See <xref linkend='sub:controlling_caching'/> for details.
+            </para>
+        </section>
         <section id='sub:dependency_management_and_java'>
             <title>Dependency management and Java</title>
             <para>Traditionally, Java has offered no support at all for dealing with libraries and versions. There are
@@ -323,6 +343,16 @@
                 Have also a look at the API documentation of <apilink class="org.gradle.api.artifacts.Dependency"/> and
                 <apilink class="org.gradle.api.artifacts.Configuration"/>.
             </para>
+        </section>
+        <section id='sub:controlling_caching'>
+            <title>Fine-tuned control over dependency caching</title>
+            <para>You can fine-tune certain aspects of caching using the <literal>ResolutionStrategy</literal> for a configuration.</para>
+            <para>By default, Gradle caches dynamic versions for 24 hours. To change how long Gradle will cache the resolved version for a dynamic version, use:
+            </para>
+            <sample id="dynamic_version_cache_expiry" dir="userguide/artifacts/resolutionStrategy" title="Dynamic version expiry">
+                <sourcefile file="build.gradle" snippet="dynamic-version-cache-expiry"/>
+            </sample>
+            <para>For more details, take a look at the API documentation for <apilink class="org.gradle.api.artifacts.ResolutionStrategy"/>.</para>
         </section>
         <section>
             <title>Optional attributes</title>

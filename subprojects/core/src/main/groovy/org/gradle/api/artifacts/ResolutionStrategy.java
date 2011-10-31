@@ -27,6 +27,8 @@ import java.util.concurrent.TimeUnit;
  * configurations.all {
  *   //fail eagerly on conflict
  *   resolutionStrategy.conflictResolution = resolutionStrategy.strict()
+ *   // cache dynamic versions for 10 minutes
+ *   resolutionStrategy.expireDynamicVersionsAfter 10, TimeUnit.MINUTES
  * }
  * </pre>
  */
@@ -74,7 +76,7 @@ public interface ResolutionStrategy {
     /**
      * Gradle keeps a cache of dynamic version => resolved version (ie 2.+ => 2.3). By default, these cached values are kept for 24 hours, after which the cached entry is expired
      * and the dynamic version is resolved again.
-     * Use this method to provide a custom expiry time after which the cached value for any dynamic version will be expired, using the default implementation of {@link org.gradle.api.internal.artifacts.configurations.dynamicversion.DynamicVersionCachePolicy}.
+     * Use this method to provide a custom expiry time after which the cached value for any dynamic version will be expired.
      * @param value The number of time units
      * @param unit The time units
      */

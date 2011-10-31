@@ -31,9 +31,8 @@ import java.util.Set;
 public interface Configuration extends FileCollection {
 
     /**
-     * Returns the resolution strategy used by this configuration
-     * <p>
-     * Warning: the DSL is not yet defined for this part of the api. It may change!
+     * Returns the resolution strategy used by this configuration. The resolution strategy provides extra details on how to resolve this configuration.
+     * <p>Warning: the DSL is not yet defined for this part of the api. It may change!</p>
      *
      * @return strategy
      */
