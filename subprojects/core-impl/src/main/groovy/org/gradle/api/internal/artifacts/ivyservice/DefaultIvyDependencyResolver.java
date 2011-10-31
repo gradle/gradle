@@ -24,7 +24,6 @@ import org.apache.ivy.core.resolve.ResolveOptions;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.WrapUtil;
@@ -51,14 +50,12 @@ public class DefaultIvyDependencyResolver implements ArtifactDependencyResolver 
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) {
         Ivy ivy = ivyFactory.create(configuration.getResolutionStrategy());
 
-        IvyConfig ivyConfig = new IvyConfig(ivy.getSettings(), configuration.getResolutionStrategy());
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule(), ivyConfig);
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule());
         ResolveOptions resolveOptions = createResolveOptions(configuration);
         ResolveReport resolveReport;
         try {
             resolveReport = ivy.resolve(moduleDescriptor, resolveOptions);
         } catch (Exception e) {
-            ivyConfig.maybeTranslateIvyResolveException(e);
             throw new RuntimeException(e);
         }
         return new ResolvedConfigurationImpl(resolveReport, configuration);

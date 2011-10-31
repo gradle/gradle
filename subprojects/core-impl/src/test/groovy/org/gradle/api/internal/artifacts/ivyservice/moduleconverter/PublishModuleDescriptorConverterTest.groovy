@@ -21,7 +21,6 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Module
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig
 import spock.lang.Specification
 
 /**
@@ -33,7 +32,6 @@ public class PublishModuleDescriptorConverterTest extends Specification {
         given:
         def configurationsDummy = [Mock(Configuration)] as Set
         def moduleDummy = Mock(Module)
-        def ivyConfig = Mock(IvyConfig)
         def moduleDescriptorDummy = Mock(DefaultModuleDescriptor)
         def artifactsToModuleDescriptorConverter = Mock(ArtifactsToModuleDescriptorConverter)
         def resolveModuleDescriptorConverter = Mock(ModuleDescriptorConverter)
@@ -42,10 +40,10 @@ public class PublishModuleDescriptorConverterTest extends Specification {
                 resolveModuleDescriptorConverter,
                 artifactsToModuleDescriptorConverter);
 
-        resolveModuleDescriptorConverter.convert(configurationsDummy, moduleDummy, ivyConfig) >> moduleDescriptorDummy
+        resolveModuleDescriptorConverter.convert(configurationsDummy, moduleDummy) >> moduleDescriptorDummy
 
         when:
-        def actualModuleDescriptor = publishModuleDescriptorConverter.convert(configurationsDummy, moduleDummy, ivyConfig);
+        def actualModuleDescriptor = publishModuleDescriptorConverter.convert(configurationsDummy, moduleDummy);
 
         then:
         1 * moduleDescriptorDummy.addExtraAttributeNamespace(PublishModuleDescriptorConverter.IVY_MAVEN_NAMESPACE_PREFIX,

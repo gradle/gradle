@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,23 +67,22 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         Ivy ivy = ivyForPublish(publishResolvers);
         Set<Configuration> configurationsToPublish = configuration.getHierarchy();
         Set<String> confs = Configurations.getNames(configurationsToPublish, false);
-        IvyConfig ivyConfig = new IvyConfig(ivy.getSettings(), configuration.getResolutionStrategy());
-        writeDescriptorFile(descriptorDestination, configurationsToPublish, ivyConfig, configuration.getModule());
+        writeDescriptorFile(descriptorDestination, configurationsToPublish, configuration.getModule());
         dependencyPublisher.publish(
                 confs,
                 publishResolvers,
-                publishModuleDescriptorConverter.convert(configurationsToPublish, configuration.getModule(), ivyConfig),
+                publishModuleDescriptorConverter.convert(configurationsToPublish, configuration.getModule()),
                 descriptorDestination,
                 ivy.getPublishEngine());
     }
 
-    private void writeDescriptorFile(File descriptorDestination, Set<Configuration> configurationsToPublish, IvyConfig ivyConfig, Module module) {
+    private void writeDescriptorFile(File descriptorDestination, Set<Configuration> configurationsToPublish, Module module) {
         if (descriptorDestination == null) {
             return;
         }
         assert configurationsToPublish.size() > 0;
         Set<Configuration> allConfigurations = configurationsToPublish.iterator().next().getAll();
-        ModuleDescriptor moduleDescriptor = fileModuleDescriptorConverter.convert(allConfigurations, module, ivyConfig);
+        ModuleDescriptor moduleDescriptor = fileModuleDescriptorConverter.convert(allConfigurations, module);
         try {
             moduleDescriptor.toIvyFile(descriptorDestination);
         } catch (ParseException e) {

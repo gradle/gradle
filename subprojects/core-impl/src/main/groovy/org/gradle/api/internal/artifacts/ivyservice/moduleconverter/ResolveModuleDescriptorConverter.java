@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 
 import java.util.Set;
 
@@ -42,11 +41,11 @@ public class ResolveModuleDescriptorConverter implements ModuleDescriptorConvert
         this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
     }
 
-    public ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module, IvyConfig ivyConfig) {
+    public ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module) {
         assert configurations.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
         DefaultModuleDescriptor moduleDescriptor = moduleDescriptorFactory.createModuleDescriptor(module);
         configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurations);
-        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations, ivyConfig);
+        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations);
         return moduleDescriptor;
     }
 }

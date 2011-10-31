@@ -27,7 +27,6 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultResolutionStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -291,7 +290,7 @@ public class DefaultIvyDependencyResolverTest {
             one(ivyFactory).create(resolutionStrategy);
             will(returnValue(ivyStub));
             one(moduleDescriptorConverter)
-                    .convert(with(equalTo(toSet(configurationStub, otherConfiguration))), with(equalTo(module)), (IvyConfig) with(instanceOf(IvyConfig.class)));
+                    .convert(with(equalTo(toSet(configurationStub, otherConfiguration))), with(equalTo(module)));
             will(returnValue(moduleDescriptor));
             one(ivyStub).resolve(with(equal(moduleDescriptor)), with(equalResolveOptions(confName)));
             will(returnValue(resolveReportMock));

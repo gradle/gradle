@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MavenRepository
 
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
-    public void "project dependency includes artifacts and dependencies of default configuration in target project"() {
+    public void "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
         given:
         repo.module("org.other", "externalA", 1.2).publish()
         repo.module("org.other", "externalB", 2.1).publish()
@@ -61,7 +61,7 @@ project(":b") {
         succeeds "check"
     }
 
-    public void "project dependency that specifies a target configuration includes artifacts and dependencies of selected configuration"() {
+    public void "project dependency that specifies a target configuration includes artifacts and transitive dependencies of selected configuration"() {
         given:
         repo.module("org.other", "externalA", 1.2).publish()
 
@@ -132,7 +132,7 @@ project(":b") {
         succeeds "test"
     }
 
-    public void "project dependency that references an artifact includes the matching artifact only plus the runtime dependencies of referenced configuration"() {
+    public void "project dependency that references an artifact includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
         given:
         repo.module("group", "externalA", 1.5).publish()
 

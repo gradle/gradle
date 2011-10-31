@@ -42,6 +42,7 @@ class IvyModule {
     final String module
     final String revision
     final List dependencies = []
+    final Map<String, Map> configurations = [:]
     final List artifacts = []
     int publishCount
 
@@ -51,6 +52,8 @@ class IvyModule {
         this.module = module
         this.revision = revision
         artifact([:])
+        configurations['runtime'] = [extendsFrom: [], transitive: true]
+        configurations['default'] = [extendsFrom: ['runtime'], transitive: true]
     }
 
     /**
@@ -65,6 +68,11 @@ class IvyModule {
 
     IvyModule dependsOn(String organisation, String module, String revision) {
         dependencies << [organisation: organisation, module: module, revision: revision]
+        return this
+    }
+
+    IvyModule nonTransitive(String config) {
+        configurations[config].transitive = false
         return this
     }
 
@@ -96,10 +104,18 @@ class IvyModule {
 		module="${module}"
 		revision="${revision}"
 	/>
-	<configurations>
-		<conf name="runtime" visibility="public"/>
-		<conf name="default" visibility="public" extends="runtime"/>
-	</configurations>
+	<configurations>"""
+        configurations.each { name, config ->
+            ivyFile << "<conf name='$name' visibility='public'"
+            if (config.extendsFrom) {
+                ivyFile << " extends='${config.extendsFrom.join(',')}'"
+            }
+            if (!config.transitive) {
+                ivyFile << " transitive='false'"
+            }
+            ivyFile << "/>"
+        }
+	ivyFile << """</configurations>
 	<publications>
 """
         artifacts.each { artifact ->

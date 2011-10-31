@@ -43,7 +43,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategy {
     }
 
     public ConflictResolution strict() {
-        return new StrictConflictResolution().setForcedVersions(forcedVersions);
+        return new StrictConflictResolution();
     }
 
     public ConflictResolution getConflictResolution() {
@@ -59,11 +59,6 @@ public class DefaultResolutionStrategy implements ResolutionStrategy {
         assert forcedVersions != null : "forcedVersions cannot be null";
         for (String forcedVersion : forcedVersions) {
             this.forcedVersions.add(new DefaultForcedVersion(forcedVersion));
-        }
-        if (conflictResolution instanceof StrictConflictResolution) {
-            //TODO SF - only working for strict strategy for now. Unit test.
-            //I need tests for the other before I enable it. (it it make sense)
-            ((StrictConflictResolution) conflictResolution).setForcedVersions(this.forcedVersions);
         }
     }
 

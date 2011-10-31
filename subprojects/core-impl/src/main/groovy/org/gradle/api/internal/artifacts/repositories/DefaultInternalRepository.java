@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
@@ -28,16 +27,13 @@ import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.configurations.DefaultResolutionStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.NoOpRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.ReflectionUtil;
@@ -64,17 +60,10 @@ public class DefaultInternalRepository extends AbstractResolver implements Inter
             return data.getCurrentResolvedModuleRevision();
         }
 
-        IvyContext context = IvyContext.pushNewCopyContext();
-        try {
-            context.setDependencyDescriptor(dd);
-            context.setResolveData(data);
-            MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.getMetadataArtifact());
-            downloadReport.setDownloadStatus(DownloadStatus.NO);
-            downloadReport.setSearched(false);
-            return new ResolvedModuleRevision(this, this, moduleDescriptor, downloadReport);
-        } finally {
-            IvyContext.popContext();
-        }
+        MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.getMetadataArtifact());
+        downloadReport.setDownloadStatus(DownloadStatus.NO);
+        downloadReport.setSearched(false);
+        return new ResolvedModuleRevision(this, this, moduleDescriptor, downloadReport);
     }
 
     private ModuleDescriptor findProject(DependencyDescriptor descriptor) {
@@ -84,11 +73,7 @@ public class DefaultInternalRepository extends AbstractResolver implements Inter
         ProjectDependencyDescriptor projectDependencyDescriptor = (ProjectDependencyDescriptor) descriptor;
         ProjectInternal project = projectDependencyDescriptor.getTargetProject();
         Module projectModule = project.getModule();
-        IvySettings ivySettings = IvyContext.getContext().getIvy().getSettings();
-        //in this instance we don't care about the resolution strategy because we're not resolving
-        DefaultResolutionStrategy whateverStrategy = new DefaultResolutionStrategy();
-        IvyConfig ivyConfig = new IvyConfig(ivySettings, whateverStrategy);
-        ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations(), projectModule, ivyConfig);
+        ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations(), projectModule);
 
         for (DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {
             for (Artifact artifact : projectDescriptor.getAllArtifacts()) {

@@ -24,5 +24,5 @@ import java.util.Collection;
  * @author Hans Dockter
  */
 public interface DependenciesToModuleDescriptorConverter {
-    void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations, IvyConfig ivyConfig);
+    void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations);
 }

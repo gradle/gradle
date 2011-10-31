@@ -17,9 +17,6 @@
 package org.gradle.api.internal.artifacts.configurations.conflicts;
 
 import org.gradle.api.artifacts.ConflictResolution;
-import org.gradle.api.artifacts.ForcedVersion;
-
-import java.util.Set;
 
 /**
  * Strict type, allows configuring (forcing) certain dependency versions using dependency notation
@@ -27,15 +24,4 @@ import java.util.Set;
  * by Szczepan Faber, created at: 10/5/11
  */
 public class StrictConflictResolution implements ConflictResolution {
-
-    private Set<ForcedVersion> forcedVersions;
-
-    public Set<ForcedVersion> getForcedVersions() {
-        return forcedVersions;
-    }
-
-    public StrictConflictResolution setForcedVersions(Set<ForcedVersion> forcedVersions) {
-        this.forcedVersions = forcedVersions;
-        return this;
-    }
 }

@@ -21,7 +21,6 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 
 import java.util.Set;
 
@@ -41,9 +40,9 @@ public class PublishModuleDescriptorConverter implements ModuleDescriptorConvert
         this.artifactsToModuleDescriptorConverter = artifactsToModuleDescriptorConverter;
     }
 
-    public ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module, IvyConfig ivyConfig) {
+    public ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module) {
         DefaultModuleDescriptor moduleDescriptor = (DefaultModuleDescriptor) resolveModuleDescriptorConverter
-                .convert(configurations, module, ivyConfig);
+                .convert(configurations, module);
         moduleDescriptor.addExtraAttributeNamespace(IVY_MAVEN_NAMESPACE_PREFIX, IVY_MAVEN_NAMESPACE);
         artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor, configurations);
         return moduleDescriptor;

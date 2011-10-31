@@ -36,12 +36,10 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
-    public void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations,
-                                         IvyConfig ivyConfig) {
+    public void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations) {
         assert !configurations.isEmpty();
         addDependencies(moduleDescriptor, configurations);
         addExcludeRules(moduleDescriptor, configurations);
-        addConflictManager(moduleDescriptor, ivyConfig);
     }
 
     private void addDependencies(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations) {
@@ -60,25 +58,5 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
                 moduleDescriptor.addExcludeRule(rule);
             }
         }
-    }
-
-    private void addConflictManager(DefaultModuleDescriptor moduleDescriptor, IvyConfig ivyConfig) {
-        ivyConfig.applyConflictManager(moduleDescriptor);
-    }
-
-    public DependencyDescriptorFactory getDependencyDescriptorFactory() {
-        return dependencyDescriptorFactory;
-    }
-
-    public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
-        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
-    }
-
-    public ExcludeRuleConverter getExcludeRuleConverter() {
-        return excludeRuleConverter;
-    }
-
-    public void setExcludeRuleConverter(ExcludeRuleConverter excludeRuleConverter) {
-        this.excludeRuleConverter = excludeRuleConverter;
     }
 }

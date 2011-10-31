@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 
 class IvyDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
-    def "dependency includes all artifacts and runtime dependencies of referenced configuration"() {
+    def "dependency includes all artifacts and transitive dependencies of referenced configuration"() {
         given:
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
@@ -45,7 +45,7 @@ task check << {
         succeeds "check"
     }
 
-    def "dependency that references a classifier includes the matching artifact only plus the runtime dependencies of referenced module"() {
+    def "dependency that references a classifier includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
         given:
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
@@ -71,7 +71,7 @@ task check << {
         succeeds "check"
     }
 
-    def "dependency that references an artifact includes the matching artifact only plus the runtime dependencies of referenced module"() {
+    def "dependency that references an artifact includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
         given:
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
@@ -95,6 +95,42 @@ dependencies {
 
 task check << {
     assert configurations.compile.collect { it.name } == ['test-extra-1.45.jar', 'other-preview-1.jar']
+}
+"""
+
+        expect:
+        succeeds "check"
+    }
+
+    def "transitive flag of referenced configuration affects its transitive dependencies only"() {
+        given:
+        def module = repo.module("org.gradle", "test", "1.45")
+        module.dependsOn("org.gradle", "other", "preview-1")
+        module.nonTransitive('default')
+        module.publish()
+        repo.module("org.gradle", "other", "preview-1").dependsOn("org.gradle", "other2", "7").publish()
+        repo.module("org.gradle", "other2", "7").publish()
+
+        and:
+        buildFile << """
+repositories { ivy { url "${repo.uri}" } }
+configurations {
+    compile
+    runtime.extendsFrom compile
+}
+dependencies {
+    compile "org.gradle:test:1.45"
+    runtime "org.gradle:other:preview-1"
+}
+
+task check << {
+    def spec = { it.name == 'test' } as Spec
+
+    assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
+    assert configurations.compile.resolvedConfiguration.getFiles(spec).collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
+
+    assert configurations.runtime.collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar', 'other2-7.jar']
+    assert configurations.compile.resolvedConfiguration.getFiles(spec).collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
 }
 """
 

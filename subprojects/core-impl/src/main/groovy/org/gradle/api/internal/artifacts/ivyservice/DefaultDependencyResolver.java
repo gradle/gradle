@@ -37,7 +37,6 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.IvyConfig;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
@@ -60,8 +59,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) throws ResolveException {
         Ivy ivy = ivyFactory.create(configuration.getResolutionStrategy());
 
-        IvyConfig ivyConfig = new IvyConfig(ivy.getSettings(), configuration.getResolutionStrategy());
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule(), ivyConfig);
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule());
         DependencyResolver resolver = ivy.getSettings().getDefaultResolver();
         ResolveOptions options = new ResolveOptions();
         options.setDownload(false);
@@ -314,6 +312,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                     throw new IllegalStateException(String.format("Unexpected state %s for %s at end of resolution.", getStatus(), this));
             }
         }
+
+        public boolean isTransitive() {
+            return descriptor.getConfiguration(configurationName).isTransitive();
+        }
     }
 
     private static abstract class ResolvePath {
@@ -393,6 +395,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             ModuleRevisionId depId = descriptor.getDependencyRevisionId();
             return String.format("%s:%s:%s", depId.getOrganisation(), depId.getName(), depId.getRevision());
         }
+
+        public boolean isTransitive() {
+            return descriptor.isTransitive();
+        }
     }
 
     private static class DependencyResolvePath extends ResolvePath {
@@ -457,7 +463,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 ConfigurationResolveState targetConfiguration = resolveState.getConfiguration(targetDescriptor, targetConfigurationName);
                 LOGGER.debug("{} is outgoing to {}.", this, targetConfiguration);
                 targetConfiguration.addIncomingPath(this);
-                if (dependency.descriptor.isTransitive()) {
+                if (from.isTransitive() && dependency.isTransitive()) {
                     targetConfiguration.addOutgoingDependencies(this, queue);
                 }
             }

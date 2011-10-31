@@ -425,6 +425,7 @@ configurations {
     transitive
     nonTransitive
     extendedNonTransitive.extendsFrom nonTransitive
+    extendedBoth.extendsFrom transitive, nonTransitive
     mergedNonTransitive
 }
 dependencies {
@@ -443,9 +444,37 @@ task test << {
     checkDeps configurations.transitive, ['external1-1.0.jar', 'one-1.0.jar']
     checkDeps configurations.nonTransitive, ['external1-1.0.jar']
     checkDeps configurations.extendedNonTransitive, ['external1-1.0.jar', 'two-1.0.jar']
+    checkDeps configurations.extendedBoth, ['external1-1.0.jar', 'one-1.0.jar']
     checkDeps configurations.mergedNonTransitive, ['external1-1.0.jar', 'external1-1.0-classifier.jar']
 }
 """
+        inTestDirectory().withTasks('test').run()
+    }
+
+    @Test
+    public void "configuration transitive = false overrides dependency transitive flag"() {
+        def repo = repo()
+        repo.module('org.gradle.test', 'one', '1.0').publish()
+        def module = repo.module('org.gradle.test', 'external1', '1.0')
+        module.dependsOn('org.gradle.test', 'one', '1.0')
+        module.publish()
+
+        testFile('build.gradle') << """
+repositories {
+    mavenRepo url: '${repo.uri}'
+}
+configurations {
+    override { transitive = false }
+}
+dependencies {
+    override 'org.gradle.test:external1:1.0'
+}
+
+task test << {
+    assert configurations.override.collect { it.name } == ['external1-1.0.jar']
+}
+"""
+
         inTestDirectory().withTasks('test').run()
     }
 

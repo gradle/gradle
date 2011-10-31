@@ -59,7 +59,6 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
 
     private DependencyDescriptorFactory dependencyDescriptorFactoryStub = context.mock(DependencyDescriptorFactory.class);
     private ExcludeRuleConverter excludeRuleConverterStub = context.mock(ExcludeRuleConverter.class);
-    private IvyConfig ivyConfig = context.mock(IvyConfig.class);
 
     @Test
     public void testAddDependencyDescriptors() {
@@ -78,13 +77,8 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
         associateGradleExcludeRuleWithIvyExcludeRule(GRADLE_EXCLUDE_RULE_DUMMY_1, ivyExcludeRuleStub1, configurationStub1);
         associateGradleExcludeRuleWithIvyExcludeRule(GRADLE_EXCLUDE_RULE_DUMMY_2, ivyExcludeRuleStub2, configurationStub2);
 
-        context.checking(new Expectations() {{
-            one(ivyConfig).applyConflictManager(moduleDescriptor);
-        }});
+        converter.addDependencyDescriptors(moduleDescriptor, toSet(configurationStub1, configurationStub2, configurationStub3));
 
-        converter.addDependencyDescriptors(moduleDescriptor, toSet(configurationStub1, configurationStub2, configurationStub3),
-                ivyConfig);
-                
         assertThat(moduleDescriptor.getExcludeRules(toArray(configurationStub1.getName())), equalTo(toArray(
                 ivyExcludeRuleStub1)));
         assertThat(moduleDescriptor.getExcludeRules(toArray(configurationStub2.getName())), equalTo(toArray(

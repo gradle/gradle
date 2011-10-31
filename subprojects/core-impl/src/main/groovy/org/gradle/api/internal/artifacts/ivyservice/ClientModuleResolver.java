@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
@@ -54,18 +53,11 @@ public class ClientModuleResolver extends AbstractResolver {
             return data.getCurrentResolvedModuleRevision();
         }
 
-        IvyContext context = IvyContext.pushNewCopyContext();
-        try {
-            context.setDependencyDescriptor(dde);
-            context.setResolveData(data);
-            ModuleDescriptor moduleDescriptor = moduleRegistry.get(dde.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY));
-            MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.getMetadataArtifact());
-            downloadReport.setDownloadStatus(DownloadStatus.NO);
-            downloadReport.setSearched(false);
-            return new ResolvedModuleRevision(userResolver, userResolver, moduleDescriptor, downloadReport);
-        } finally {
-            IvyContext.popContext();
-        }
+        ModuleDescriptor moduleDescriptor = moduleRegistry.get(dde.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY));
+        MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.getMetadataArtifact());
+        downloadReport.setDownloadStatus(DownloadStatus.NO);
+        downloadReport.setSearched(false);
+        return new ResolvedModuleRevision(userResolver, userResolver, moduleDescriptor, downloadReport);
     }
 
     public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
