@@ -16,7 +16,6 @@
 package org.gradle.build.docs
 
 import groovy.xml.DOMBuilder
-import groovy.xml.dom.DOMUtil
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
@@ -25,6 +24,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Element
 import groovy.xml.dom.DOMCategory
 import org.gradle.api.tasks.OutputFile
+import groovy.xml.XmlUtil
 
 /**
  * Generates a chapter containing a summary of the readme files for the samples.
@@ -113,7 +113,7 @@ class AssembleSamplesDocTask extends SourceTask {
             }
 
             destFile.withOutputStream {OutputStream stream ->
-                DOMUtil.serialize(doc.documentElement, stream)
+                XmlUtil.serialize(doc.documentElement, stream)
             }
         }
     }
