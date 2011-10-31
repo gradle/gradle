@@ -21,5 +21,5 @@ package org.gradle.api.tasks.testing;
  */
 public interface TestOutputListener {
 
-    void onOutput(TestOutputEvent outputEvent);
+    void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent);
 }

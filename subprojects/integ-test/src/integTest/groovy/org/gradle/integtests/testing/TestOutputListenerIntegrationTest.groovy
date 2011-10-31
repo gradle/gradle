@@ -65,8 +65,8 @@ class VerboseOutputListener implements TestOutputListener {
 
     def logger
 
-    public void onOutput(TestOutputEvent event) {
-        logger.lifecycle("" + event.destination + " " + event.message);
+    public void onOutput(TestDescriptor descriptor, TestOutputEvent event) {
+        logger.lifecycle(descriptor.name + " " + event.destination + " " + event.message);
     }
 }
 """
@@ -75,9 +75,9 @@ class VerboseOutputListener implements TestOutputListener {
         def failure = executer.withTasks('test').runWithFailure()
 
         //then
-        assert failure.output.contains('StdOut out passing')
-        assert failure.output.contains('StdOut out failing')
-        assert failure.output.contains('StdErr err passing')
-        assert failure.output.contains('StdErr err failing')
+        assert failure.output.contains('SomeTest StdOut out passing')
+        assert failure.output.contains('SomeTest StdOut out failing')
+        assert failure.output.contains('SomeTest StdErr err passing')
+        assert failure.output.contains('SomeTest StdErr err failing')
     }
 }

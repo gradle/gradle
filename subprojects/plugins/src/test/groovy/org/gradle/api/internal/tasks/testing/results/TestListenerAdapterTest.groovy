@@ -240,11 +240,13 @@ class TestListenerAdapterTest extends Specification {
     def "notifies output listener"() {
         given:
         def event = new TestOutputEventImpl(TestOutputEvent.Destination.StdOut, "hey!")
+        def test = new DefaultTestDescriptor("testid", "DogTest", "shouldBarkAtStrangers");
 
         when:
-        adapter.output("14", event)
+        adapter.started(test, new TestStartEvent(100L))
+        adapter.output("testid", event)
 
         then:
-        1 * outputListener.onOutput(event)
+        1 * outputListener.onOutput({it.descriptor == test}, event)
     }
 }

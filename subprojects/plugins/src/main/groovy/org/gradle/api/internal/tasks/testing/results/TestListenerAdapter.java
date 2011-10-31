@@ -17,10 +17,7 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.tasks.testing.TestOutputListener;
-import org.gradle.api.tasks.testing.TestListener;
-import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.*;
 
 public class TestListenerAdapter extends StateTrackingTestResultProcessor {
     private final TestListener testListener;
@@ -55,6 +52,8 @@ public class TestListenerAdapter extends StateTrackingTestResultProcessor {
     @Override
     public void output(Object testId, TestOutputEvent event) {
         super.output(testId, event);
-        testOutputListener.onOutput(event);
+
+        TestDescriptorInternal testDescriptorInternal = executing.get(testId).test;
+        testOutputListener.onOutput(testDescriptorInternal, event);
     }
 }

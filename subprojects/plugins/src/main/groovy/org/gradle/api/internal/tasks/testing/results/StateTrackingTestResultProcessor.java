@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class StateTrackingTestResultProcessor implements TestResultProcessor {
-    private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
+    protected final Map<Object, TestState> executing = new HashMap<Object, TestState>();
 
     public void started(TestDescriptorInternal test, TestStartEvent event) {
         TestDescriptorInternal parent = null;
