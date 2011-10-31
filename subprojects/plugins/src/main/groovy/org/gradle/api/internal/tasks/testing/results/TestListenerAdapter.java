@@ -53,7 +53,17 @@ public class TestListenerAdapter extends StateTrackingTestResultProcessor {
     public void output(Object testId, TestOutputEvent event) {
         super.output(testId, event);
 
-        TestDescriptorInternal testDescriptorInternal = executing.get(testId).test;
-        testOutputListener.onOutput(testDescriptorInternal, event);
+        TestState testState = getTestStateFor(testId);
+        if (testState == null) {
+            throw new UnableToFindTest("Unable to notify listener with output event: " + event + ". I couldn't find test with id: "
+                    + testId + ". This might be a bug, please report it.");
+        }
+        testOutputListener.onOutput(testState.test, event);
+    }
+
+    public static class UnableToFindTest extends RuntimeException {
+        public UnableToFindTest(String message) {
+            super(message);
+        }
     }
 }

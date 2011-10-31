@@ -24,6 +24,7 @@ import org.junit.Test
 import spock.lang.Specification
 import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.tasks.testing.TestOutputEvent
+import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter.UnableToFindTest
 
 class TestListenerAdapterTest extends Specification {
 
@@ -248,5 +249,16 @@ class TestListenerAdapterTest extends Specification {
 
         then:
         1 * outputListener.onOutput({it.descriptor == test}, event)
+    }
+
+    def "fails gracefully if the test that incurred the output event is unknown"() {
+        given:
+        def event = new TestOutputEventImpl(TestOutputEvent.Destination.StdOut, "hey!")
+
+        when:
+        adapter.output("testid", event)
+
+        then:
+        thrown(UnableToFindTest)
     }
 }
