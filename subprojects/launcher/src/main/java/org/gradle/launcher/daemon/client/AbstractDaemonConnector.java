@@ -18,8 +18,11 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.ConnectException;
 import org.gradle.messaging.remote.internal.Connection;
@@ -43,6 +46,8 @@ abstract public class AbstractDaemonConnector<T extends DaemonRegistry> implemen
 
     private final T daemonRegistry;
     private final long connectTimout;
+    private final Spec<DaemonContext> contextCompatibilitySpec;
+
     public final static int DEFAULT_CONNECT_TIMEOUT = 30000;
 
     protected AbstractDaemonConnector(T daemonRegistry) {
@@ -52,6 +57,7 @@ abstract public class AbstractDaemonConnector<T extends DaemonRegistry> implemen
     protected AbstractDaemonConnector(T daemonRegistry, int connectTimout) {
         this.daemonRegistry = daemonRegistry;
         this.connectTimout = connectTimout;
+        this.contextCompatibilitySpec = Specs.<DaemonContext>satisfyAll();
     }
 
     public Connection<Object> maybeConnect() {
@@ -60,6 +66,10 @@ abstract public class AbstractDaemonConnector<T extends DaemonRegistry> implemen
 
     private Connection<Object> findConnection(List<DaemonInfo> daemonInfos) {
         for (DaemonInfo daemonInfo : daemonInfos) {
+            if (!contextCompatibilitySpec.isSatisfiedBy(daemonInfo.getContext())) {
+                continue;
+            }
+
             Address address = daemonInfo.getAddress();
             try {
                 return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader())).connect(address);
