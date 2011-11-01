@@ -39,10 +39,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A repository which uses commons-httpclient to access resources using HTTP/HTTPS.
@@ -210,7 +207,12 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         }
 
         public long getLastModified() {
-            return 0;
+            String lastModifiedHeaderValue = method.getResponseHeader("last-modified").getValue();
+            try {
+                return Date.parse(lastModifiedHeaderValue);
+            } catch (Exception e) {
+                return 0;
+            }
         }
 
         public long getContentLength() {

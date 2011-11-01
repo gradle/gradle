@@ -255,7 +255,6 @@ task retrieve(type: Sync) {
         server.expectGet("/${module.organisation}/${module.module}/${module.revision}/${module.module}-${module.revision}.jar", module.jarFile)
     }
 
-    @Ignore // Not yet implemented
     def "detects changed module descriptor when flagged as changing"() {
         distribution.requireOwnUserHomeDir()
         server.start()
@@ -300,6 +299,8 @@ task retrieve(type: Copy) {
         module.artifact([name: 'other'])
         module.dependsOn("group", "projectB", "2.0")
         module.publish()
+        def moduleB = ivyRepo().module("group", "projectB", "2.0")
+        moduleB.publish();
 
         and: "Server handles requests"
         server.resetExpectations()
@@ -307,12 +308,14 @@ task retrieve(type: Copy) {
         server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
         server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
         server.expectGet('/repo/group/projectA/1.1/other-1.1.jar', module.moduleDir.file('other-1.1.jar'))
+        server.expectGet('/repo/group/projectB/2.0/ivy-2.0.xml', moduleB.ivyFile)
+        server.expectGet('/repo/group/projectB/2.0/projectB-2.0.jar', moduleB.jarFile)
 
         and: "We request 1.1 again"
         run 'retrieve'
 
         then: "We get all artifacts, including the new ones"
-        file('build').assertHasDescendants('projectA-1.1.jar', 'other-1.1.jar')
+        file('build').assertHasDescendants('projectA-1.1.jar', 'other-1.1.jar', 'projectB-2.0.jar')
     }
 
     @Ignore // Not yet implemented
