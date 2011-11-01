@@ -33,6 +33,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.DynamicVersionCachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DynamicVersionCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -209,9 +210,13 @@ public class UserResolverChain extends ChainResolver {
         }
 
         public void maybeSaveDynamicRevision(DependencyDescriptor original, ResolvedModuleRevision downloadedModule) {
+            if (downloadedModule == null) {
+                return;
+            }
+
             ModuleRevisionId originalId = original.getDependencyRevisionId();
             ModuleRevisionId resolvedId = downloadedModule.getId();
-            if (originalId.equals(resolvedId)) {
+            if (originalId.equals(resolvedId) && !original.isChanging()) {
                 return;
             }
 
@@ -230,6 +235,11 @@ public class UserResolverChain extends ChainResolver {
             if (dynamicVersionCachePolicy.mustCheckForUpdates(resolvedRevision.getModule(), resolvedRevision.getAgeMillis())) {
                 LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}'", originalId);
                 return original;
+            }
+            
+            if (originalId.equals(resolvedRevision.getRevision())) {
+                LOGGER.debug("Found cached version of changing module: Using cached metadata for '{}'", originalId);
+                return ForceChangeDependencyDescriptor.forceChangingFlag(original, false);
             }
 
             LOGGER.debug("Found resolved revision in dynamic revision cache: Using '{}' for '{}'", resolvedRevision.getRevision(), originalId);
