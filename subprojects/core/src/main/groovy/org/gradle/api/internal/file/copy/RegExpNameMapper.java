@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 /**
  * @author Steve Appling
  */
-public class RegExpNameMapper implements Transformer<String> {
+public class RegExpNameMapper implements Transformer<String, String> {
     private Matcher matcher;
     private String replacement;
 

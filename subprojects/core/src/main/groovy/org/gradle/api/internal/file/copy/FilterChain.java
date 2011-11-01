@@ -29,7 +29,7 @@ import java.io.*;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 
-public class FilterChain implements Transformer<InputStream> {
+public class FilterChain implements Transformer<InputStream, InputStream> {
     private final ChainingTransformer<Reader> transformers = new ChainingTransformer<Reader>(Reader.class);
 
     /**
@@ -55,7 +55,7 @@ public class FilterChain implements Transformer<InputStream> {
     }
 
     public void add(final Class<? extends FilterReader> filterType, final Map<String, ?> properties) {
-        transformers.add(new Transformer<Reader>() {
+        transformers.add(new Transformer<Reader, Reader>() {
             public Reader transform(Reader original) {
                 try {
                     Constructor<? extends FilterReader> constructor = filterType.getConstructor(Reader.class);
@@ -73,7 +73,7 @@ public class FilterChain implements Transformer<InputStream> {
     }
 
     public void add(final Closure closure) {
-        transformers.add(new Transformer<Reader>() {
+        transformers.add(new Transformer<Reader, Reader>() {
             public Reader transform(Reader original) {
                 return new LineFilter(original, closure);
             }
@@ -81,7 +81,7 @@ public class FilterChain implements Transformer<InputStream> {
     }
 
     public void expand(final Map<String, ?> properties) {
-        transformers.add(new Transformer<Reader>() {
+        transformers.add(new Transformer<Reader, Reader>() {
             public Reader transform(Reader original) {
                 try {
                     Template template;

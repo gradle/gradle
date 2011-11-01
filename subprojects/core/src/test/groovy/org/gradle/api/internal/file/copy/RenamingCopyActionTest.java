@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 public class RenamingCopyActionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     @SuppressWarnings("unchecked")
-    private final Transformer<String> transformer = context.mock(Transformer.class);
+    private final Transformer<String, String> transformer = context.mock(Transformer.class);
     private final FileCopyDetails details = context.mock(FileCopyDetails.class);
     private final RenamingCopyAction action = new RenamingCopyAction(transformer);
 
