@@ -25,9 +25,9 @@ import java.util.List;
  */
 public interface DaemonRegistry {
 
-    List<DaemonStatus> getAll();
-    List<DaemonStatus> getIdle();
-    List<DaemonStatus> getBusy();
+    List<DaemonInfo> getAll();
+    List<DaemonInfo> getIdle();
+    List<DaemonInfo> getBusy();
     
     void store(Address address);
     void remove(Address address);

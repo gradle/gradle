@@ -40,67 +40,67 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class EmbeddedDaemonRegistry implements DaemonRegistry {
 
-    private final Map<Address, DaemonStatus> statuses = new ConcurrentHashMap<Address, DaemonStatus>();
+    private final Map<Address, DaemonInfo> daemonInfos = new ConcurrentHashMap<Address, DaemonInfo>();
     private final List<Daemon> daemons = new ArrayList<Daemon>();
     private final Lock daemonsLock = new ReentrantLock();
 
-    private final Spec<DaemonStatus> allSpec = new Spec<DaemonStatus>() {
-        public boolean isSatisfiedBy(DaemonStatus entry) {
+    private final Spec<DaemonInfo> allSpec = new Spec<DaemonInfo>() {
+        public boolean isSatisfiedBy(DaemonInfo entry) {
             return true;
         }
     };
 
     @SuppressWarnings("unchecked")
-    private final Spec<DaemonStatus> idleSpec = Specs.<DaemonStatus>and(allSpec, new Spec<DaemonStatus>() {
-        public boolean isSatisfiedBy(DaemonStatus status) {
-            return status.isIdle();
+    private final Spec<DaemonInfo> idleSpec = Specs.<DaemonInfo>and(allSpec, new Spec<DaemonInfo>() {
+        public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
+            return daemonInfo.isIdle();
         }
     });
 
     @SuppressWarnings("unchecked")
-    private final Spec<DaemonStatus> busySpec = Specs.<DaemonStatus>and(allSpec, new Spec<DaemonStatus>() {
-        public boolean isSatisfiedBy(DaemonStatus status) {
-            return !status.isIdle();
+    private final Spec<DaemonInfo> busySpec = Specs.<DaemonInfo>and(allSpec, new Spec<DaemonInfo>() {
+        public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
+            return !daemonInfo.isIdle();
         }
     });
 
-    public List<DaemonStatus> getAll() {
-        return statusesOfEntriesMatching(allSpec);
+    public List<DaemonInfo> getAll() {
+        return daemonInfosOfEntriesMatching(allSpec);
     }
 
-    public List<DaemonStatus> getIdle() {
-        return statusesOfEntriesMatching(idleSpec);
+    public List<DaemonInfo> getIdle() {
+        return daemonInfosOfEntriesMatching(idleSpec);
     }
 
-    public List<DaemonStatus> getBusy() {
-        return statusesOfEntriesMatching(busySpec);
+    public List<DaemonInfo> getBusy() {
+        return daemonInfosOfEntriesMatching(busySpec);
     }
 
     public void store(Address address) {
-        statuses.put(address, new DaemonStatus(address));
+        daemonInfos.put(address, new DaemonInfo(address));
     }
 
     public void remove(Address address) {
-        statuses.remove(address);
+        daemonInfos.remove(address);
     }
 
     public void markBusy(Address address) {
-        synchronized (statuses) {
-            statuses.get(address).setIdle(false);
+        synchronized (daemonInfos) {
+            daemonInfos.get(address).setIdle(false);
         }
     }
 
     public void markIdle(Address address) {
-        synchronized (statuses) {
-            statuses.get(address).setIdle(true);
+        synchronized (daemonInfos) {
+            daemonInfos.get(address).setIdle(true);
         }
     }
 
-    private List<DaemonStatus> statusesOfEntriesMatching(Spec<DaemonStatus> spec) {
-        List<DaemonStatus> matches = new ArrayList<DaemonStatus>();
-        for (DaemonStatus status : statuses.values()) {
-            if (spec.isSatisfiedBy(status)) {
-                matches.add(status);
+    private List<DaemonInfo> daemonInfosOfEntriesMatching(Spec<DaemonInfo> spec) {
+        List<DaemonInfo> matches = new ArrayList<DaemonInfo>();
+        for (DaemonInfo daemonInfo : daemonInfos.values()) {
+            if (spec.isSatisfiedBy(daemonInfo)) {
+                matches.add(daemonInfo);
             }
         }
 

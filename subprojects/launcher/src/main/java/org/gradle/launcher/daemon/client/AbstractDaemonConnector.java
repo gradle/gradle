@@ -18,8 +18,8 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.registry.DaemonStatus;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.ConnectException;
 import org.gradle.messaging.remote.internal.Connection;
@@ -58,9 +58,9 @@ abstract public class AbstractDaemonConnector<T extends DaemonRegistry> implemen
         return findConnection(daemonRegistry.getAll());
     }
 
-    private Connection<Object> findConnection(List<DaemonStatus> statuses) {
-        for (DaemonStatus status : statuses) {
-            Address address = status.getAddress();
+    private Connection<Object> findConnection(List<DaemonInfo> daemonInfos) {
+        for (DaemonInfo daemonInfo : daemonInfos) {
+            Address address = daemonInfo.getAddress();
             try {
                 return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader())).connect(address);
             } catch (ConnectException e) {

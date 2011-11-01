@@ -21,18 +21,18 @@ import org.gradle.messaging.remote.Address;
 import java.io.Serializable;
 
 /**
- * @author: Szczepan Faber, created at: 8/19/11
+ * Provides information about a daemon that is potentially available to do some work.
  */
-public class DaemonStatus implements Serializable {
+public class DaemonInfo implements Serializable {
 
     private final Address address;
     private boolean idle = true;
 
-    public DaemonStatus(Address address) {
+    public DaemonInfo(Address address) {
         this.address = address;
     }
 
-    public DaemonStatus setIdle(boolean idle) {
+    public DaemonInfo setIdle(boolean idle) {
         this.idle = idle;
         return this;
     }
@@ -47,7 +47,7 @@ public class DaemonStatus implements Serializable {
 
     @Override
     public String toString() {
-        return "DaemonStatus{"
+        return "DaemonInfo{"
                 + "address=" + address
                 + ", idle=" + idle
                 + '}';

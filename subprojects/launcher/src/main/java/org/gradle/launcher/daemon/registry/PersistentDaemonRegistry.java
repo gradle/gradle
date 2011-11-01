@@ -51,19 +51,19 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         return String.format("PersistentDaemonRegistry[file=%s]", registryFile);
     }
 
-    public synchronized List<DaemonStatus> getAll() {
+    public synchronized List<DaemonInfo> getAll() {
         DaemonRegistryContent content = cache.get();
         if (content == null) {
             //when no daemon process has started yet
-            return new LinkedList<DaemonStatus>();
+            return new LinkedList<DaemonInfo>();
         }
-        return content.getStatuses();
+        return content.getInfos();
     }
 
-    public synchronized List<DaemonStatus> getIdle() {
-        List<DaemonStatus> out = new LinkedList<DaemonStatus>();
-        List<DaemonStatus> all = getAll();
-        for (DaemonStatus d : all) {
+    public synchronized List<DaemonInfo> getIdle() {
+        List<DaemonInfo> out = new LinkedList<DaemonInfo>();
+        List<DaemonInfo> all = getAll();
+        for (DaemonInfo d : all) {
             if (d.isIdle()) {
                 out.add(d);
             }
@@ -71,10 +71,10 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         return out;
     }
 
-    public synchronized List<DaemonStatus> getBusy() {
-        List<DaemonStatus> out = new LinkedList<DaemonStatus>();
-        List<DaemonStatus> all = getAll();
-        for (DaemonStatus d : all) {
+    public synchronized List<DaemonInfo> getBusy() {
+        List<DaemonInfo> out = new LinkedList<DaemonInfo>();
+        List<DaemonInfo> all = getAll();
+        for (DaemonInfo d : all) {
             if (!d.isIdle()) {
                 out.add(d);
             }
@@ -86,7 +86,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
                 assertCacheNotEmpty(oldValue);
-                oldValue.removeStatus(address);
+                oldValue.removeInfo(address);
                 return oldValue;
             }
         });
@@ -96,8 +96,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
                 assertCacheNotEmpty(oldValue);
-                DaemonStatus status = oldValue.getStatus(address);
-                status.setIdle(false);
+                DaemonInfo daemonInfo = oldValue.getInfo(address);
+                daemonInfo.setIdle(false);
                 return oldValue;
             }
         });
@@ -107,7 +107,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
                 assertCacheNotEmpty(oldValue);
-                oldValue.getStatus(address).setIdle(true);
+                oldValue.getInfo(address).setIdle(true);
                 return oldValue;
             }
         });
@@ -126,8 +126,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                     //it means the registry didn't exist yet
                     oldValue = new DaemonRegistryContent();
                 }
-                DaemonStatus status = new DaemonStatus(address).setIdle(true);
-                oldValue.setStatus(address, status);
+                DaemonInfo daemonInfo = new DaemonInfo(address).setIdle(true);
+                oldValue.setStatus(address, daemonInfo);
                 return oldValue;
             }
         });
