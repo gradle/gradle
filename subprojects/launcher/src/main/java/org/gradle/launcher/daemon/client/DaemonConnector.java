@@ -44,4 +44,14 @@ public interface DaemonConnector {
      */
     public DaemonRegistry getDaemonRegistry();
 
+    /**
+     * Sets the amount of time to wait for newly created daemons to become available.
+     */
+    void setConnectTimeout(long connectTimeout);
+
+    /**
+     * The amount of time the connector will wait for newly created daemons to become available.
+     */
+    long getConnectTimeout();
+
 }

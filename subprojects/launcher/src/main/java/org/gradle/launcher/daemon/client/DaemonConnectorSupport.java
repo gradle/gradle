@@ -41,23 +41,25 @@ import java.util.List;
 abstract public class DaemonConnectorSupport<T extends DaemonRegistry> implements DaemonConnector {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonConnectorSupport.class);
-
-    private final T daemonRegistry;
-    private final long connectTimout;
-    private final Spec<DaemonContext> contextCompatibilitySpec;
-
     public final static int DEFAULT_CONNECT_TIMEOUT = 30000;
+    
+    private final T daemonRegistry;
+    private final Spec<DaemonContext> contextCompatibilitySpec;
+    private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
     protected DaemonConnectorSupport(T daemonRegistry) {
-        this(daemonRegistry, DEFAULT_CONNECT_TIMEOUT);
-    }
-
-    protected DaemonConnectorSupport(T daemonRegistry, int connectTimout) {
         this.daemonRegistry = daemonRegistry;
-        this.connectTimout = connectTimout;
         this.contextCompatibilitySpec = getContextCompatibilitySpec();
     }
 
+    public void setConnectTimeout(long connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
+    
+    public long getConnectTimeout() {
+        return connectTimeout;
+    }
+    
     public Connection<Object> maybeConnect() {
         return findConnection(daemonRegistry.getAll());
     }
@@ -91,7 +93,7 @@ abstract public class DaemonConnectorSupport<T extends DaemonRegistry> implement
 
         LOGGER.info("Starting Gradle daemon");
         startDaemon();
-        Date expiry = new Date(System.currentTimeMillis() + connectTimout);
+        Date expiry = new Date(System.currentTimeMillis() + connectTimeout);
         do {
             connection = findConnection(daemonRegistry.getIdle());
             if (connection != null) {

@@ -22,15 +22,11 @@ import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 
 abstract public class TcpDaemonConnector<T extends DaemonRegistry> extends DaemonConnectorSupport<T> {
-    
+
     protected TcpDaemonConnector(T daemonRegistry) {
         super(daemonRegistry);
     }
 
-    protected TcpDaemonConnector(T daemonRegistry, int connectTimeout) {
-        super(daemonRegistry, connectTimeout);
-    }
-    
     protected OutgoingConnector<Object> getConnector() {
         return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader()));
     }

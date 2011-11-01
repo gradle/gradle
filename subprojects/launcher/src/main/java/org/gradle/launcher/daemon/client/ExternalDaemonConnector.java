@@ -41,11 +41,7 @@ public class ExternalDaemonConnector extends TcpDaemonConnector<DaemonRegistry> 
     private final int idleTimeout;
     
     public ExternalDaemonConnector(DaemonRegistry registry, File userHomeDir, int idleTimeout) {
-        this(registry, userHomeDir, idleTimeout, DEFAULT_CONNECT_TIMEOUT);
-    }
-
-    public ExternalDaemonConnector(DaemonRegistry registry, File userHomeDir, int idleTimeout, int connectTimeout) {
-        super(registry, connectTimeout);
+        super(registry);
         this.idleTimeout = idleTimeout;
         this.userHomeDir = userHomeDir;
     }

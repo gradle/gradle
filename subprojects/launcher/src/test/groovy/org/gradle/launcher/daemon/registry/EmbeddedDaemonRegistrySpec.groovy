@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.registry
 
+import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.messaging.remote.Address
 import spock.lang.Specification
 
@@ -22,6 +23,8 @@ class EmbeddedDaemonRegistrySpec extends Specification {
 
     @Delegate EmbeddedDaemonRegistry registry = new EmbeddedDaemonRegistry()
 
+    def context = [:] as DaemonContext
+    
     def address(value) {
         [key: value] as Address
     }
@@ -35,8 +38,8 @@ class EmbeddedDaemonRegistrySpec extends Specification {
 
     def "lifecycle"() {
         given:
-        store(address(10))
-        store(address(20))
+        store(address(10), context)
+        store(address(20), context)
 
         expect:
         all.size() == 2

@@ -56,7 +56,7 @@ class DaemonConnectorSupportTest extends Specification {
     }
 
     def createConnector() {
-        new DaemonConnectorSupport(new EmbeddedDaemonRegistry(), connectTimeoutSecs * 1000) {
+        def connector = new DaemonConnectorSupport(new EmbeddedDaemonRegistry()) {
             protected OutgoingConnector<Object> getConnector() {
                 createOutgoingConnector()
             }
@@ -71,6 +71,8 @@ class DaemonConnectorSupportTest extends Specification {
                 }
             }
         }
+        connector.connectTimeout = connectTimeoutSecs * 1000
+        connector
     }
 
     def startNewDaemon() {
@@ -80,13 +82,13 @@ class DaemonConnectorSupportTest extends Specification {
         registry.store(createAddress(daemonNum), context)
     }
 
-    def _connector
+    def theConnector
 
     def getConnector() {
-        if (_connector == null) {
-            _connector = createConnector()
+        if (theConnector == null) {
+            theConnector = createConnector()
         }
-        _connector
+        theConnector
     }
 
     def connect() {

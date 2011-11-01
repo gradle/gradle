@@ -19,7 +19,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 
