@@ -22,6 +22,7 @@ import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.OnDemandFileLock;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.messaging.remote.Address;
+import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -126,7 +127,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                     //it means the registry didn't exist yet
                     oldValue = new DaemonRegistryContent();
                 }
-                DaemonInfo daemonInfo = new DaemonInfo(address).setIdle(true);
+                DaemonInfo daemonInfo = new DaemonInfo(address, new DefaultDaemonContext()).setIdle(true);
                 oldValue.setStatus(address, daemonInfo);
                 return oldValue;
             }

@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.registry;
 
 import org.gradle.messaging.remote.Address;
+import org.gradle.launcher.daemon.context.DaemonContext;
 
 import java.io.Serializable;
 
@@ -26,10 +27,12 @@ import java.io.Serializable;
 public class DaemonInfo implements Serializable {
 
     private final Address address;
+    private final DaemonContext context;
     private boolean idle = true;
 
-    public DaemonInfo(Address address) {
+    public DaemonInfo(Address address, DaemonContext context) {
         this.address = address;
+        this.context = context;
     }
 
     public DaemonInfo setIdle(boolean idle) {
@@ -41,15 +44,17 @@ public class DaemonInfo implements Serializable {
         return address;
     }
 
+    public DaemonContext getContext() {
+        return context;
+    }
+
     public boolean isIdle() {
         return idle;
     }
 
     @Override
     public String toString() {
-        return "DaemonInfo{"
-                + "address=" + address
-                + ", idle=" + idle
-                + '}';
+        return String.format("DaemonInfo{address=%s, idle=%s, context=%s}", address, idle, context);
     }
+
 }
