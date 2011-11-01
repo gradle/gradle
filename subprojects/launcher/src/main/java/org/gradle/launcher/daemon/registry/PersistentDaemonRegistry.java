@@ -22,7 +22,7 @@ import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.OnDemandFileLock;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.messaging.remote.Address;
-import org.gradle.launcher.daemon.context.DefaultDaemonContext;
+import org.gradle.launcher.daemon.context.DaemonContext;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -120,14 +120,14 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         }
     }
 
-    public synchronized void store(final Address address) {
+    public synchronized void store(final Address address, final DaemonContext daemonContext) {
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
                 if (oldValue == null) {
                     //it means the registry didn't exist yet
                     oldValue = new DaemonRegistryContent();
                 }
-                DaemonInfo daemonInfo = new DaemonInfo(address, new DefaultDaemonContext()).setIdle(true);
+                DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext).setIdle(true);
                 oldValue.setStatus(address, daemonInfo);
                 return oldValue;
             }

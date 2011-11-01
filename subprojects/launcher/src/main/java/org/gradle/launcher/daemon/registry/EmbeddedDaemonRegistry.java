@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.registry;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.launcher.daemon.server.Daemon;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.concurrent.CompositeStoppable;
@@ -77,8 +78,8 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
         return daemonInfosOfEntriesMatching(busySpec);
     }
 
-    public void store(Address address) {
-        daemonInfos.put(address, new DaemonInfo(address, new DefaultDaemonContext()));
+    public void store(Address address, DaemonContext daemonContext) {
+        daemonInfos.put(address, new DaemonInfo(address, daemonContext));
     }
 
     public void remove(Address address) {

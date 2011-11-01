@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.context.DefaultDaemonContext;
 import org.gradle.messaging.remote.Address;
 
 /**
@@ -56,7 +57,7 @@ class DomainRegistryUpdater {
 
     public void onStart() {
         LOGGER.info("Advertising the daemon address to the clients: " + connectorAddress);
-        daemonRegistry.store(connectorAddress);
+        daemonRegistry.store(connectorAddress, new DefaultDaemonContext());
     }
 
     public void onStop() {
