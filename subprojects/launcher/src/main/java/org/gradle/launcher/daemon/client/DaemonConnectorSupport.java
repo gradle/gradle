@@ -38,9 +38,9 @@ import java.util.List;
  * Subclassing instead of delegation with regard to creating new daemons seems more appropriate
  * as the way that new daemons are launched is likely to be coupled to the DaemonRegistry implementation.
  */
-abstract public class AbstractDaemonConnector<T extends DaemonRegistry> implements DaemonConnector {
+abstract public class DaemonConnectorSupport<T extends DaemonRegistry> implements DaemonConnector {
 
-    private static final Logger LOGGER = Logging.getLogger(AbstractDaemonConnector.class);
+    private static final Logger LOGGER = Logging.getLogger(DaemonConnectorSupport.class);
 
     private final T daemonRegistry;
     private final long connectTimout;
@@ -48,11 +48,11 @@ abstract public class AbstractDaemonConnector<T extends DaemonRegistry> implemen
 
     public final static int DEFAULT_CONNECT_TIMEOUT = 30000;
 
-    protected AbstractDaemonConnector(T daemonRegistry) {
+    protected DaemonConnectorSupport(T daemonRegistry) {
         this(daemonRegistry, DEFAULT_CONNECT_TIMEOUT);
     }
 
-    protected AbstractDaemonConnector(T daemonRegistry, int connectTimout) {
+    protected DaemonConnectorSupport(T daemonRegistry, int connectTimout) {
         this.daemonRegistry = daemonRegistry;
         this.connectTimout = connectTimout;
         this.contextCompatibilitySpec = Specs.<DaemonContext>satisfyAll();

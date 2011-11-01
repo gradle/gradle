@@ -21,7 +21,7 @@ import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 
-abstract public class TcpDaemonConnector<T extends DaemonRegistry> extends AbstractDaemonConnector<T> {
+abstract public class TcpDaemonConnector<T extends DaemonRegistry> extends DaemonConnectorSupport<T> {
     
     protected TcpDaemonConnector(T daemonRegistry) {
         super(daemonRegistry);
