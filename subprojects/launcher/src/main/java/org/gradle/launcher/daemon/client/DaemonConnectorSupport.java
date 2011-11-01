@@ -55,7 +55,7 @@ abstract public class DaemonConnectorSupport<T extends DaemonRegistry> implement
     protected DaemonConnectorSupport(T daemonRegistry, int connectTimout) {
         this.daemonRegistry = daemonRegistry;
         this.connectTimout = connectTimout;
-        this.contextCompatibilitySpec = Specs.<DaemonContext>satisfyAll();
+        this.contextCompatibilitySpec = getContextCompatibilitySpec();
     }
 
     public Connection<Object> maybeConnect() {
@@ -109,6 +109,10 @@ abstract public class DaemonConnectorSupport<T extends DaemonRegistry> implement
 
     public T getDaemonRegistry() {
         return daemonRegistry;
+    }
+
+    protected Spec<DaemonContext> getContextCompatibilitySpec() {
+        return Specs.<DaemonContext>satisfyAll();
     }
 
     abstract protected OutgoingConnector<Object> getConnector();
