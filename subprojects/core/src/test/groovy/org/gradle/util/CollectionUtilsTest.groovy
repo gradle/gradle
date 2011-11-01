@@ -17,6 +17,7 @@ package org.gradle.util
 
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
+import org.gradle.api.Transformer
 
 import spock.lang.*
 
@@ -34,5 +35,13 @@ class CollectionUtilsTest extends Specification {
         filter(4,5,6) == [4]
     }
     
+    def "list collecting"() {
+        def transformer = new Transformer() { def transform(i) { i * 2 } }
+        def collect = { Integer[] nums -> CollectionUtils.collectList(nums as List, transformer) }
+        
+        expect:
+        collect(1,2,3) == [2,4,6]
+        collect() == []
+    }
 
 }

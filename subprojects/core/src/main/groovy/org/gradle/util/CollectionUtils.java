@@ -16,6 +16,7 @@
 package org.gradle.util;
 
 import org.gradle.api.specs.Spec;
+import org.gradle.api.Transformer;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -35,4 +36,16 @@ abstract public class CollectionUtils {
          }
          return destination;
     }
+
+    public static <R,I> List<R> collectList(List<I> list, Transformer<R,I> transformer) {
+        return doCollect(list, new LinkedList<R>(), transformer);
+    }
+
+    private static <R, I, C extends Collection<R>> C doCollect(Collection<I> source, C destination, Transformer<R,I> transformer) {
+        for (I item : source) {
+            destination.add(transformer.transform(item));
+        }
+        return destination;
+    }
+
 }
