@@ -26,10 +26,10 @@ import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
+import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.util.Message;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.DynamicVersionCachePolicy;
@@ -46,7 +46,7 @@ import java.util.Map;
 
 public class UserResolverChain extends ChainResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
-    
+
     private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
     private final DynamicRevisionDependencyConverter dynamicRevisions;
 
@@ -59,91 +59,90 @@ public class UserResolverChain extends ChainResolver {
     }
 
     @Override
-    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data)
-            throws ParseException {
+    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) {
 
-        // First attempt to locate the module in a resolver cache
-        for (DependencyResolver resolver : getResolvers()) {
-            DependencyDescriptor resolvedDynamicDependency = dynamicRevisions.maybeResolveDynamicRevision(resolver, dd);
+        List<ModuleResolution> resolutionList = createResolutionList(dd, data);
 
-            ResolvedModuleRevision cachedModule = findModuleInCache(resolver, resolvedDynamicDependency, data);
-            if (cachedModule != null) {
-                LOGGER.debug("Found module {} in resolver cache {}", cachedModule, resolver.getName());
-                artifactResolvers.put(cachedModule.getId(), resolver);
-                return cachedModule;
-            }
+        ModuleResolution latestCached = lookupAllInCacheAndGetLatest(resolutionList);
+        if (latestCached != null) {
+            LOGGER.debug("Found module {} in resolver cache {}", latestCached.getModule(), latestCached.resolver.getName());
+            rememberResolverToUseForArtifactDownload(latestCached.resolver, latestCached.getModule());
+            return latestCached.getModule();
         }
 
         // Otherwise delegate to each resolver in turn
-        ResolvedModuleRevision downloadedModule = getModuleRevisionFromAnyRepository(dd, data);
-        if (downloadedModule != null) {
+        ModuleResolution latestResolved = resolveAllAndGetLatest(resolutionList);
+        if (latestResolved != null) {
+            ResolvedModuleRevision downloadedModule = latestResolved.getModule();
             LOGGER.debug("Found module {} using resolver {}", downloadedModule, downloadedModule.getArtifactResolver());
-            artifactResolvers.put(downloadedModule.getId(), downloadedModule.getArtifactResolver());
-            dynamicRevisions.maybeSaveDynamicRevision(dd, downloadedModule);
+            rememberResolverToUseForArtifactDownload(downloadedModule.getArtifactResolver(), downloadedModule);
+            return downloadedModule;
         }
-        return downloadedModule;
+        return null;
     }
 
-    
-    private ResolvedModuleRevision findModuleInCache(DependencyResolver resolver, DependencyDescriptor dd, ResolveData resolveData) {
-        CacheMetadataOptions cacheOptions = getCacheMetadataOptions(resolver, resolveData);
-        return resolver.getRepositoryCacheManager().findModuleInCache(dd, dd.getDependencyRevisionId(), cacheOptions, resolver.getName());
-    }
-
-    private CacheMetadataOptions getCacheMetadataOptions(DependencyResolver resolver, ResolveData resolveData) {
-        if (resolver instanceof AbstractResolver) {
-            try {
-                Method method = AbstractResolver.class.getDeclaredMethod("getCacheOptions", ResolveData.class);
-                method.setAccessible(true);
-                return (CacheMetadataOptions) method.invoke(resolver, resolveData);
-            } catch (Exception e) {
-                throw new GradleException("Could not get cache options from AbstractResolver", e);
-            }
-        }
-        return new CacheMetadataOptions();
-    }
-
-    private ResolvedModuleRevision getModuleRevisionFromAnyRepository(DependencyDescriptor dd, ResolveData originalData)
-            throws ParseException {
-
-        List<Exception> errors = new ArrayList<Exception>();
-        ResolvedModuleRevision mr = null;
-
-        ResolveData data = new ResolveData(originalData, originalData.isValidate());
+    private List<ModuleResolution> createResolutionList(DependencyDescriptor dd, ResolveData data) {
+        List<ModuleResolution> resolutionList = new ArrayList<ModuleResolution>();
         for (DependencyResolver resolver : getResolvers()) {
-            try {
-                mr = resolver.getDependency(dd, data);
-                data.setCurrentResolvedModuleRevision(mr);
-            } catch (Exception ex) {
-                Message.verbose("problem occurred while resolving " + dd + " with " + resolver
-                        + ": " + StringUtils.getStackTrace(ex));
-                errors.add(ex);
-            }
+            resolutionList.add(new ModuleResolution(resolver, dd, data));
         }
+        return resolutionList;
+    }
+
+    private ModuleResolution lookupAllInCacheAndGetLatest(List<ModuleResolution> resolutionList) {
+        for (ModuleResolution moduleResolution : resolutionList) {
+            moduleResolution.lookupModuleInCache();
+
+            // TODO Short-circuit for static versions
+        }
+
+        return getLatest(resolutionList);
+    }
+
+    private ModuleResolution resolveAllAndGetLatest(List<ModuleResolution> resolutionList) {
+
+        List<RuntimeException> errors = new ArrayList<RuntimeException>();
+        for (ModuleResolution moduleResolution : resolutionList) {
+            try {
+                moduleResolution.resolveModule();
+            } catch (RuntimeException e) {
+                errors.add(e);
+            }
+            // TODO Short-circuit for static versions
+        }
+
+        ModuleResolution mr = getLatest(resolutionList);
         if (mr == null && !errors.isEmpty()) {
-            throwResolutionFailure(dd, errors);
+            throwResolutionFailure(errors);
         }
         return mr;
     }
 
-    private void throwResolutionFailure(DependencyDescriptor dd, List<Exception> errors) throws ParseException {
-        if (errors.size() == 1) {
-            Exception ex = errors.get(0);
-            if (ex instanceof RuntimeException) {
-                throw (RuntimeException) ex;
-            } else if (ex instanceof ParseException) {
-                throw (ParseException) ex;
-            } else {
-                throw new RuntimeException(ex.toString(), ex);
+    private ModuleResolution getLatest(List<ModuleResolution> resolutionList) {
+        ArrayList<ModuleResolution> cachedResolutions = new ArrayList<ModuleResolution>();
+        for (ModuleResolution moduleResolution : resolutionList) {
+            if (moduleResolution.getModule() != null) {
+                cachedResolutions.add(moduleResolution);
             }
+        }
+        ArtifactInfo[] artifactInfos = cachedResolutions.toArray(new ArtifactInfo[cachedResolutions.size()]);
+        return (ModuleResolution) getLatestStrategy().findLatest(artifactInfos, null);
+    }
+
+    private void rememberResolverToUseForArtifactDownload(DependencyResolver resolver, ResolvedModuleRevision cachedModule) {
+        artifactResolvers.put(cachedModule.getId(), resolver);
+    }
+
+    private void throwResolutionFailure(List<RuntimeException> errors) {
+        if (errors.size() == 1) {
+            throw errors.get(0);
         } else {
             StringBuilder err = new StringBuilder();
             for (Exception ex : errors) {
                 err.append("\t").append(StringUtils.getErrorMessage(ex)).append("\n");
             }
             err.setLength(err.length() - 1);
-            throw new RuntimeException("several problems occurred while resolving " + dd + ":\n"
-                    + err);
+            throw new RuntimeException("several problems occurred while resolving :\n" + err);
         }
     }
 
@@ -230,6 +229,64 @@ public class UserResolverChain extends ChainResolver {
 
             LOGGER.debug("Found resolved revision in dynamic revision cache: Using '{}' for '{}'", resolvedRevision.getRevision(), originalId);
             return original.clone(resolvedRevision.getRevision());
+        }
+    }
+
+    private class ModuleResolution implements ArtifactInfo {
+        private final DependencyResolver resolver;
+        private final DependencyDescriptor descriptor;
+        private final ResolveData resolveData;
+        private ResolvedModuleRevision resolvedModule;
+
+        public ModuleResolution(DependencyResolver resolver, DependencyDescriptor moduleDescriptor, ResolveData resolveData) {
+            this.resolver = resolver;
+            this.descriptor = moduleDescriptor;
+            this.resolveData = resolveData;
+        }
+
+        public void lookupModuleInCache() {
+            DependencyDescriptor resolvedDynamicDependency = dynamicRevisions.maybeResolveDynamicRevision(resolver, descriptor);
+
+            resolvedModule = findModuleInCache(resolver, resolvedDynamicDependency, resolveData);
+        }
+        
+        public void resolveModule() {
+            try {
+                resolvedModule = resolver.getDependency(descriptor, resolveData);
+                dynamicRevisions.maybeSaveDynamicRevision(descriptor, resolvedModule);
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public ResolvedModuleRevision getModule() {
+            return resolvedModule;
+        }
+
+        private ResolvedModuleRevision findModuleInCache(DependencyResolver resolver, DependencyDescriptor dd, ResolveData resolveData) {
+            CacheMetadataOptions cacheOptions = getCacheMetadataOptions(resolver, resolveData);
+            return resolver.getRepositoryCacheManager().findModuleInCache(dd, dd.getDependencyRevisionId(), cacheOptions, resolver.getName());
+        }
+
+        private CacheMetadataOptions getCacheMetadataOptions(DependencyResolver resolver, ResolveData resolveData) {
+            if (resolver instanceof AbstractResolver) {
+                try {
+                    Method method = AbstractResolver.class.getDeclaredMethod("getCacheOptions", ResolveData.class);
+                    method.setAccessible(true);
+                    return (CacheMetadataOptions) method.invoke(resolver, resolveData);
+                } catch (Exception e) {
+                    throw new GradleException("Could not get cache options from AbstractResolver", e);
+                }
+            }
+            return new CacheMetadataOptions();
+        }
+
+        public long getLastModified() {
+            return resolvedModule.getPublicationDate().getTime();
+        }
+
+        public String getRevision() {
+            return resolvedModule.getId().getRevision();
         }
     }
 }
