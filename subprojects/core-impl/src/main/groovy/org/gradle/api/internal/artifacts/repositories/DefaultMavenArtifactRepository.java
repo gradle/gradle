@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.file.FileResolver;
-import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver;
 import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
 import java.io.File;
@@ -82,17 +81,14 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
 
-        IBiblioResolver resolver;
-
+        MavenResolver resolver;
         if (rootUri.getScheme().equalsIgnoreCase("file")) {
-            resolver = new IBiblioResolver();
+            resolver = new MavenResolver();
             resolver.setRepository(new FileRepository());
             resolver.setRoot(new File(rootUri).getAbsolutePath());
             resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
         } else {
-            IBiblioWharfResolver wharfResolver = new IBiblioWharfResolver();
-            wharfResolver.setSnapshotTimeout(IBiblioWharfResolver.DAILY);
-            resolver = wharfResolver;
+            resolver = new MavenResolver();
             resolver.setRoot(rootUri.toString());
         }
 

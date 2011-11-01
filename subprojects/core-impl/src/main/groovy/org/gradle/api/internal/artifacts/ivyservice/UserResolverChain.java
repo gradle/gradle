@@ -33,8 +33,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.DynamicVersionCachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DynamicVersionCache;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -216,7 +216,7 @@ public class UserResolverChain extends ChainResolver {
 
             ModuleRevisionId originalId = original.getDependencyRevisionId();
             ModuleRevisionId resolvedId = downloadedModule.getId();
-            if (originalId.equals(resolvedId) && !original.isChanging()) {
+            if (originalId.equals(resolvedId) && !isChanging(original)) {
                 return;
             }
 
@@ -230,11 +230,11 @@ public class UserResolverChain extends ChainResolver {
             ModuleRevisionId originalId = original.getDependencyRevisionId();
             DynamicVersionCache.ResolvedDynamicVersion resolvedRevision = dynamicVersionCache.getResolvedDynamicVersion(resolver, originalId);
             if (resolvedRevision == null) {
-                return original;
+                return tweakSnapshot(original);
             }
             if (dynamicVersionCachePolicy.mustCheckForUpdates(resolvedRevision.getModule(), resolvedRevision.getAgeMillis())) {
                 LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}'", originalId);
-                return original;
+                return tweakSnapshot(original);
             }
             
             if (originalId.equals(resolvedRevision.getRevision())) {
@@ -245,6 +245,19 @@ public class UserResolverChain extends ChainResolver {
             LOGGER.debug("Found resolved revision in dynamic revision cache: Using '{}' for '{}'", resolvedRevision.getRevision(), originalId);
             return original.clone(resolvedRevision.getRevision());
         }
+
+        // TODO Use cache options for resolver to check if changing.
+        private boolean isChanging(DependencyDescriptor descriptor) {
+            return descriptor.isChanging() || descriptor.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT");
+        }
+
+        // TODO Use cache options for resolver to check if changing.
+        private DependencyDescriptor tweakSnapshot(DependencyDescriptor original) {
+            if (original.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT")) {
+                return ForceChangeDependencyDescriptor.forceChangingFlag(original, true);
+            }
+            return original;
+        }
     }
 
     private class ModuleResolution implements ArtifactInfo {
@@ -253,6 +266,7 @@ public class UserResolverChain extends ChainResolver {
         private final ResolveData resolveData;
         private final boolean staticVersion;
         private ResolvedModuleRevision resolvedModule;
+        private DependencyDescriptor resolvedDescriptor;
 
         public ModuleResolution(DependencyResolver resolver, DependencyDescriptor moduleDescriptor, ResolveData resolveData, boolean staticVersion) {
             this.resolver = resolver;
@@ -266,14 +280,13 @@ public class UserResolverChain extends ChainResolver {
         }
 
         public void lookupModuleInCache() {
-            DependencyDescriptor resolvedDynamicDependency = dynamicRevisions.maybeResolveDynamicRevision(resolver, descriptor);
-
-            resolvedModule = findModuleInCache(resolver, resolvedDynamicDependency, resolveData);
+            resolvedDescriptor = dynamicRevisions.maybeResolveDynamicRevision(resolver, descriptor);
+            resolvedModule = findModuleInCache(resolver, resolvedDescriptor, resolveData);
         }
         
         public void resolveModule() {
             try {
-                resolvedModule = resolver.getDependency(descriptor, resolveData);
+                resolvedModule = resolver.getDependency(resolvedDescriptor, resolveData);
                 dynamicRevisions.maybeSaveDynamicRevision(descriptor, resolvedModule);
             } catch (ParseException e) {
                 throw new RuntimeException(e);

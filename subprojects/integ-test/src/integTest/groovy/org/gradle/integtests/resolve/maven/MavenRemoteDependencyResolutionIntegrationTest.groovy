@@ -47,14 +47,16 @@ class MavenRemoteDependencyResolutionIntegrationTest {
 
         dist.testFile('build.gradle') << """
 repositories {
-    mavenRepo(url: "http://localhost:${server.port}/repo") {
-        if (project.hasProperty('noTimeout')) {
-            setSnapshotTimeout(0L)
-        }
-    }
+    mavenRepo(url: "http://localhost:${server.port}/repo")
 }
 
 configurations { compile }
+
+if (project.hasProperty('noTimeout')) {
+    configurations.all {
+        resolutionStrategy.expireDynamicVersionsAfter 0, 'seconds'
+    }
+}
 
 dependencies {
     compile "org.gradle:testproject:1.0-SNAPSHOT"
@@ -165,12 +167,16 @@ task retrieve(type: Sync) {
 
         dist.testFile('build.gradle') << """
 repositories {
-    mavenRepo(url: "http://localhost:${server.port}/repo") {
-        setSnapshotTimeout(0)
-    }
+    mavenRepo(url: "http://localhost:${server.port}/repo")
 }
 
 configurations { compile }
+
+if (project.hasProperty('noTimeout')) {
+    configurations.all {
+        resolutionStrategy.expireDynamicVersionsAfter 0, 'seconds'
+    }
+}
 
 dependencies {
     compile "org.gradle:testproject:1.0-SNAPSHOT"
