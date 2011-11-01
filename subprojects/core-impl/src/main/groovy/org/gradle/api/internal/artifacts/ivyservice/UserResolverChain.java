@@ -71,7 +71,7 @@ public class UserResolverChain extends ChainResolver {
         }
 
         // Otherwise delegate to each resolver in turn
-        ModuleResolution latestResolved = resolveAllAndGetLatest(resolutionList);
+        ModuleResolution latestResolved = resolveLatestModule(resolutionList);
         if (latestResolved != null) {
             ResolvedModuleRevision downloadedModule = latestResolved.getModule();
             LOGGER.debug("Found module {} using resolver {}", downloadedModule, downloadedModule.getArtifactResolver());
@@ -82,9 +82,10 @@ public class UserResolverChain extends ChainResolver {
     }
 
     private List<ModuleResolution> createResolutionList(DependencyDescriptor dd, ResolveData data) {
+        boolean staticVersion = !getSettings().getVersionMatcher().isDynamic(dd.getDependencyRevisionId());
         List<ModuleResolution> resolutionList = new ArrayList<ModuleResolution>();
         for (DependencyResolver resolver : getResolvers()) {
-            resolutionList.add(new ModuleResolution(resolver, dd, data));
+            resolutionList.add(new ModuleResolution(resolver, dd, data, staticVersion));
         }
         return resolutionList;
     }
@@ -92,23 +93,27 @@ public class UserResolverChain extends ChainResolver {
     private ModuleResolution lookupAllInCacheAndGetLatest(List<ModuleResolution> resolutionList) {
         for (ModuleResolution moduleResolution : resolutionList) {
             moduleResolution.lookupModuleInCache();
-
-            // TODO Short-circuit for static versions
+            if (moduleResolution.getModule() != null) {
+                return moduleResolution;
+            }
         }
 
         return getLatest(resolutionList);
     }
 
-    private ModuleResolution resolveAllAndGetLatest(List<ModuleResolution> resolutionList) {
+    private ModuleResolution resolveLatestModule(List<ModuleResolution> resolutionList) {
 
         List<RuntimeException> errors = new ArrayList<RuntimeException>();
         for (ModuleResolution moduleResolution : resolutionList) {
             try {
                 moduleResolution.resolveModule();
+                if (moduleResolution.getModule() != null && moduleResolution.isStaticVersion())
+                {
+                    return moduleResolution;
+                }
             } catch (RuntimeException e) {
                 errors.add(e);
             }
-            // TODO Short-circuit for static versions
         }
 
         ModuleResolution mr = getLatest(resolutionList);
@@ -236,12 +241,18 @@ public class UserResolverChain extends ChainResolver {
         private final DependencyResolver resolver;
         private final DependencyDescriptor descriptor;
         private final ResolveData resolveData;
+        private final boolean staticVersion;
         private ResolvedModuleRevision resolvedModule;
 
-        public ModuleResolution(DependencyResolver resolver, DependencyDescriptor moduleDescriptor, ResolveData resolveData) {
+        public ModuleResolution(DependencyResolver resolver, DependencyDescriptor moduleDescriptor, ResolveData resolveData, boolean staticVersion) {
             this.resolver = resolver;
             this.descriptor = moduleDescriptor;
             this.resolveData = resolveData;
+            this.staticVersion = staticVersion;
+        }
+
+        public boolean isStaticVersion() {
+            return staticVersion;
         }
 
         public void lookupModuleInCache() {
