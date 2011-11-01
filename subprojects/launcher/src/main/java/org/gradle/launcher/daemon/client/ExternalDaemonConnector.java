@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * A daemon connector that starts daemons by launching new processes.
  */
-public class ExternalDaemonConnector extends AbstractDaemonConnector<DaemonRegistry> {
+public class ExternalDaemonConnector extends TcpDaemonConnector<DaemonRegistry> {
     private static final Logger LOGGER = Logging.getLogger(ExternalDaemonConnector.class);
         
     private final File userHomeDir;

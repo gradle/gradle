@@ -23,11 +23,9 @@ import org.gradle.api.specs.Specs;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.ConnectException;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
-import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
+import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.util.UncheckedException;
 
 import java.util.Date;
@@ -70,13 +68,12 @@ abstract public class AbstractDaemonConnector<T extends DaemonRegistry> implemen
                 continue;
             }
 
-            Address address = daemonInfo.getAddress();
             try {
-                return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader())).connect(address);
+                return getConnector().connect(daemonInfo.getAddress());
             } catch (ConnectException e) {
                 //this means the daemon died without removing its address from the registry
                 //we can safely remove this address now
-                LOGGER.debug("We cannot connect to the daemon at " + address + " due to " + e + ". "
+                LOGGER.debug("We cannot connect to the daemon at " + daemonInfo.getAddress() + " due to " + e + ". "
                         + "We will not remove this daemon from the registry because the connection issue may have been temporary.");
                 //TODO it might be good to store in the registry the number of failed attempts to connect to the deamon
                 //if the number is high we may decide to remove the daemon from the registry
@@ -113,6 +110,8 @@ abstract public class AbstractDaemonConnector<T extends DaemonRegistry> implemen
     public T getDaemonRegistry() {
         return daemonRegistry;
     }
+
+    abstract protected OutgoingConnector<Object> getConnector();
 
     abstract protected void startDaemon();
 }

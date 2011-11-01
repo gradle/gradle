@@ -27,7 +27,7 @@ import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 /**
  * A daemon connector that starts daemons by launching new daemons in the same jvm.
  */
-public class EmbeddedDaemonConnector extends AbstractDaemonConnector<EmbeddedDaemonRegistry> {
+public class EmbeddedDaemonConnector extends TcpDaemonConnector<EmbeddedDaemonRegistry> {
 
     private final Factory<LoggingServiceRegistry> loggingServicesFactory;
 
