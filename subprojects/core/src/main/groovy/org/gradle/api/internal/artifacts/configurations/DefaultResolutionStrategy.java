@@ -67,7 +67,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return dynamicRevisionCachePolicy;
     }
 
-    public void expireDynamicVersionsAfter(int value, TimeUnit unit) {
-        this.dynamicRevisionCachePolicy.expireDynamicRevisionsAfter(value, unit);
+    public void expireDynamicVersionsAfter(Integer value, String units) {
+        TimeUnit unit = TimeUnit.valueOf(units.toUpperCase());
+        this.dynamicRevisionCachePolicy.expireDynamicVersionsAfter(value, unit);
     }
 }

@@ -1,5 +1,5 @@
 //START SNIPPET dynamic-version-cache-expiry
 configurations.all {
-    resolutionStrategy.expireDynamicRevisionsAfter 10, java.util.concurrent.TimeUnit.MINUTES
+    resolutionStrategy.expireDynamicVersionsAfter 10, 'minutes'
 }
 //END SNIPPET dynamic-version-cache-expiry

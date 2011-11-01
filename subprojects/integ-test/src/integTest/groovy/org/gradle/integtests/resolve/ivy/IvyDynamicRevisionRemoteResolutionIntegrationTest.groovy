@@ -47,7 +47,7 @@ dependencies {
 }
 
 configurations.all {
-    resolutionStrategy.expireDynamicRevisionsAfter 0, java.util.concurrent.TimeUnit.SECONDS
+    resolutionStrategy.expireDynamicVersionsAfter 0, 'seconds'
 }
 
 task retrieve(type: Sync) {
@@ -115,7 +115,7 @@ dependencies {
 
 if (project.hasProperty('noDynamicRevisionCache')) {
     configurations.all {
-        resolutionStrategy.expireDynamicRevisionsAfter 0, java.util.concurrent.TimeUnit.SECONDS
+        resolutionStrategy.expireDynamicVersionsAfter 0, 'seconds'
     }
 }
 
@@ -182,7 +182,7 @@ dependencies {
 
 if (project.hasProperty('noDynamicRevisionCache')) {
     configurations.all {
-        resolutionStrategy.expireDynamicRevisionsAfter 0, java.util.concurrent.TimeUnit.SECONDS
+        resolutionStrategy.expireDynamicVersionsAfter 0, 'seconds'
     }
 }
 
@@ -269,7 +269,7 @@ repositories {
 configurations { compile }
 
 configurations.all {
-    resolutionStrategy.expireDynamicRevisionsAfter 0, java.util.concurrent.TimeUnit.SECONDS
+    resolutionStrategy.expireDynamicVersionsAfter 0, 'seconds'
 }
 
 dependencies {
