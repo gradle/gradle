@@ -125,6 +125,23 @@ class DaemonLifecycleSpec extends Specification {
         daemonsStopped
     }
 
+    def "existing idle daemons are used"() {
+        given:
+        expectedDaemons = 1
+
+        when:
+        foregroundDaemon().start()
+
+        then:
+        daemonsIdle
+
+        when:
+        sleepyBuild().start()
+
+        then:
+        daemonsRunning && daemonsBusy
+    }
+
     def "sending stop to idle daemons causes them to terminate immediately"() {
         given:
         daemonIdleTimeout = 10 // long timeout so we know they don't stop from idle timeout
