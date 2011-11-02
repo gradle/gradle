@@ -21,6 +21,9 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextFactory;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpecFactory;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.messaging.remote.internal.OutgoingConnector;
+import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
+import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
@@ -65,7 +68,13 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new GradleLauncherMetaData();
     }
 
+    protected OutgoingConnector<Object> createOutgoingConnector() {
+        return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader()));
+    }
+
     abstract protected DaemonConnector createDaemonConnector();
 
     abstract protected DaemonRegistry createDaemonRegistry();
+    
+    
 }

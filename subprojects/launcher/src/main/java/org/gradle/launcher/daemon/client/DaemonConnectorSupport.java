@@ -44,11 +44,14 @@ abstract public class DaemonConnectorSupport<T extends DaemonRegistry> implement
     
     private final T daemonRegistry;
     private final Spec<DaemonContext> contextCompatibilitySpec;
+    private final OutgoingConnector<Object> connector;
+    
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-    protected DaemonConnectorSupport(T daemonRegistry, Spec<DaemonContext> contextCompatibilitySpec) {
+    protected DaemonConnectorSupport(T daemonRegistry, Spec<DaemonContext> contextCompatibilitySpec, OutgoingConnector<Object> connector) {
         this.daemonRegistry = daemonRegistry;
         this.contextCompatibilitySpec = contextCompatibilitySpec;
+        this.connector = connector;
     }
 
     public void setConnectTimeout(long connectTimeout) {
@@ -70,7 +73,7 @@ abstract public class DaemonConnectorSupport<T extends DaemonRegistry> implement
             }
 
             try {
-                return getConnector().connect(daemonInfo.getAddress());
+                return connector.connect(daemonInfo.getAddress());
             } catch (ConnectException e) {
                 //this means the daemon died without removing its address from the registry
                 //we can safely remove this address now
@@ -111,8 +114,6 @@ abstract public class DaemonConnectorSupport<T extends DaemonRegistry> implement
     public T getDaemonRegistry() {
         return daemonRegistry;
     }
-
-    abstract protected OutgoingConnector<Object> getConnector();
 
     abstract protected void startDaemon();
 }

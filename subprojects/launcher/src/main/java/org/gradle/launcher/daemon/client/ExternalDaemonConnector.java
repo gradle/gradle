@@ -24,6 +24,7 @@ import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
 
@@ -36,14 +37,14 @@ import java.util.Set;
 /**
  * A daemon connector that starts daemons by launching new processes.
  */
-public class ExternalDaemonConnector extends TcpDaemonConnector<DaemonRegistry> {
+public class ExternalDaemonConnector extends DaemonConnectorSupport<DaemonRegistry> {
     private static final Logger LOGGER = Logging.getLogger(ExternalDaemonConnector.class);
         
     private final File userHomeDir;
     private final int idleTimeout;
     
-    public ExternalDaemonConnector(DaemonRegistry registry, Spec<DaemonContext> contextCompatibilitySpec, File userHomeDir, int idleTimeout) {
-        super(registry, contextCompatibilitySpec);
+    public ExternalDaemonConnector(DaemonRegistry registry, Spec<DaemonContext> contextCompatibilitySpec, OutgoingConnector<Object> outgoingConnector, File userHomeDir, int idleTimeout) {
+        super(registry, contextCompatibilitySpec, outgoingConnector);
         this.idleTimeout = idleTimeout;
         this.userHomeDir = userHomeDir;
     }

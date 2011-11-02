@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.messaging.remote.internal.OutgoingConnector;
 
 /**
  * Wires together the embedded daemon.
@@ -39,7 +40,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     }
 
     protected DaemonConnector createDaemonConnector() {
-        return new EmbeddedDaemonConnector((EmbeddedDaemonRegistry)get(DaemonRegistry.class), makeDaemonCompatibilitySpec(), getLoggingServices());
+        return new EmbeddedDaemonConnector((EmbeddedDaemonRegistry)get(DaemonRegistry.class), makeDaemonCompatibilitySpec(), get(OutgoingConnector.class), getLoggingServices());
     }
 
     protected DaemonRegistry createDaemonRegistry() {

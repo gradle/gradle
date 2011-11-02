@@ -24,18 +24,19 @@ import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServerConnector;
 import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
+import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 
 /**
  * A daemon connector that starts daemons by launching new daemons in the same jvm.
  */
-public class EmbeddedDaemonConnector extends TcpDaemonConnector<EmbeddedDaemonRegistry> {
+public class EmbeddedDaemonConnector extends DaemonConnectorSupport<EmbeddedDaemonRegistry> {
 
     private final ServiceRegistry loggingServices;
     private final DaemonContext daemonContext = new DaemonContextFactory().create();
 
-    public EmbeddedDaemonConnector(EmbeddedDaemonRegistry daemonRegistry, Spec<DaemonContext> contextCompatibilitySpec, ServiceRegistry loggingServices) {
-        super(daemonRegistry, contextCompatibilitySpec);
+    public EmbeddedDaemonConnector(EmbeddedDaemonRegistry daemonRegistry, Spec<DaemonContext> contextCompatibilitySpec, OutgoingConnector<Object> outgoingConnector, ServiceRegistry loggingServices) {
+        super(daemonRegistry, contextCompatibilitySpec, outgoingConnector);
         this.loggingServices = loggingServices;
     }
 

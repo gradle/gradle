@@ -23,6 +23,7 @@ import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
+import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.os.*;
 import org.gradle.os.jna.NativeEnvironment;
 
@@ -62,7 +63,7 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
     }
 
     protected DaemonConnector createDaemonConnector() {
-        return new ExternalDaemonConnector(get(DaemonRegistry.class), makeDaemonCompatibilitySpec(), userHomeDir, idleTimeout);
+        return new ExternalDaemonConnector(get(DaemonRegistry.class), makeDaemonCompatibilitySpec(), (OutgoingConnector<Object>)get(OutgoingConnector.class), userHomeDir, idleTimeout);
     }
 
 }
