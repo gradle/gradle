@@ -390,4 +390,34 @@ task checkDeps << {
         //expect
         executer.withTasks("checkDeps").run()
     }
+
+    @Test
+    void "forcing transitive dependency does not add extra dependency"() {
+        TestFile repo = file("repo")
+        maven(repo).module("org", "foo", '1.3.3').publish()
+        maven(repo).module("hello", "world", '1.4.4').publish()
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+apply plugin: 'java'
+repositories {
+    maven { url "${repo.toURI()}" }
+}
+
+dependencies {
+    compile 'org:foo:1.3.3'
+}
+
+configurations.all {
+    resolutionStrategy.force 'hello:world:1.4.4'
+}
+
+task checkDeps << {
+    assert configurations.compile*.name == ['foo-1.3.3.jar']
+}
+"""
+
+        //expect
+        executer.withTasks("checkDeps").run()
+    }
 }
