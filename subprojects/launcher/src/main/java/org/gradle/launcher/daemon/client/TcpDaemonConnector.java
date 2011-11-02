@@ -15,6 +15,9 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.specs.Spec;
+
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 
 import org.gradle.messaging.remote.internal.OutgoingConnector;
@@ -23,8 +26,8 @@ import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 
 abstract public class TcpDaemonConnector<T extends DaemonRegistry> extends DaemonConnectorSupport<T> {
 
-    protected TcpDaemonConnector(T daemonRegistry) {
-        super(daemonRegistry);
+    protected TcpDaemonConnector(T daemonRegistry, Spec<DaemonContext> contextCompatibilitySpec) {
+        super(daemonRegistry, contextCompatibilitySpec);
     }
 
     protected OutgoingConnector<Object> getConnector() {

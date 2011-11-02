@@ -16,7 +16,10 @@
 package org.gradle.launcher.daemon.context;
 
 import java.io.Serializable;
+import java.io.File;
 
 public interface DaemonContext extends Serializable {
+
+    File getJavaHome();
 
 }

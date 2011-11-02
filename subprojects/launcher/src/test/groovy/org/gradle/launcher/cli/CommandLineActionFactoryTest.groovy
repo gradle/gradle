@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.cli.CommandLineConverter
 import org.gradle.logging.LoggingConfiguration
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.logging.internal.OutputEventListener
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.SetSystemProperties
@@ -61,10 +62,11 @@ class CommandLineActionFactoryTest extends Specification {
         }
     }
 
-    def setup() {
+    def setup() {        
         ProgressLoggerFactory progressLoggerFactory = Mock()
         _ * loggingServices.get(ProgressLoggerFactory) >> progressLoggerFactory
         _ * loggingServices.get(CommandLineConverter) >> loggingConfigurationConverter
+        _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
         _ * loggingConfigurationConverter.convert(!null) >> new LoggingConfiguration()
         Factory<LoggingManagerInternal> loggingManagerFactory = Mock()
         _ * loggingServices.getFactory(LoggingManagerInternal) >> loggingManagerFactory

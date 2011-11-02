@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.specs.Spec;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -22,6 +23,7 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
 
@@ -40,8 +42,8 @@ public class ExternalDaemonConnector extends TcpDaemonConnector<DaemonRegistry> 
     private final File userHomeDir;
     private final int idleTimeout;
     
-    public ExternalDaemonConnector(DaemonRegistry registry, File userHomeDir, int idleTimeout) {
-        super(registry);
+    public ExternalDaemonConnector(DaemonRegistry registry, Spec<DaemonContext> contextCompatibilitySpec, File userHomeDir, int idleTimeout) {
+        super(registry, contextCompatibilitySpec);
         this.idleTimeout = idleTimeout;
         this.userHomeDir = userHomeDir;
     }

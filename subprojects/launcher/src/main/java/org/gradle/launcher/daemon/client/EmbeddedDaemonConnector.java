@@ -15,13 +15,15 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.api.specs.Spec;
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
+import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.context.DaemonContextFactory;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServerConnector;
 import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
-import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 
 /**
@@ -29,31 +31,20 @@ import org.gradle.messaging.concurrent.DefaultExecutorFactory;
  */
 public class EmbeddedDaemonConnector extends TcpDaemonConnector<EmbeddedDaemonRegistry> {
 
-    private final Factory<LoggingServiceRegistry> loggingServicesFactory;
+    private final ServiceRegistry loggingServices;
+    private final DaemonContext daemonContext = new DaemonContextFactory().create();
 
-    public EmbeddedDaemonConnector() {
-        this(new EmbeddedDaemonRegistry());
+    public EmbeddedDaemonConnector(EmbeddedDaemonRegistry daemonRegistry, Spec<DaemonContext> contextCompatibilitySpec, ServiceRegistry loggingServices) {
+        super(daemonRegistry, contextCompatibilitySpec);
+        this.loggingServices = loggingServices;
     }
-
-    public EmbeddedDaemonConnector(EmbeddedDaemonRegistry daemonRegistry) {
-        this(daemonRegistry, new Factory<LoggingServiceRegistry>() { 
-            public LoggingServiceRegistry create() { return LoggingServiceRegistry.newCommandLineProcessLogging(); }
-        });
-    }
-
-    public EmbeddedDaemonConnector(EmbeddedDaemonRegistry daemonRegistry, Factory<LoggingServiceRegistry> loggingServicesFactory) {
-        super(daemonRegistry);
-        this.loggingServicesFactory = loggingServicesFactory;
-    }
-
 
     protected void startDaemon() {
         EmbeddedDaemonRegistry daemonRegistry = getDaemonRegistry();
 
-        LoggingServiceRegistry loggingServices = loggingServicesFactory.create();
         DaemonServerConnector server = new DaemonTcpServerConnector();
         DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
-        daemonRegistry.startDaemon(new Daemon(server, daemonRegistry, new DefaultDaemonCommandExecuter(loggingServices, executorFactory), executorFactory));
+        daemonRegistry.startDaemon(new Daemon(server, daemonRegistry, daemonContext, new DefaultDaemonCommandExecuter(loggingServices, executorFactory), executorFactory));
     }
 
 }

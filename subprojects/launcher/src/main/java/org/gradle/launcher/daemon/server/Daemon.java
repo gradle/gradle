@@ -19,6 +19,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
@@ -43,6 +44,7 @@ public class Daemon implements Runnable, Stoppable {
 
     private final DaemonServerConnector connector;
     private final DaemonRegistry daemonRegistry;
+    private final DaemonContext daemonContext;
     private final DaemonCommandExecuter commandExecuter;
 
     private DaemonStateCoordinator stateCoordinator;
@@ -60,9 +62,10 @@ public class Daemon implements Runnable, Stoppable {
      * @param connector The provider of server connections for this daemon
      * @param daemonRegistry The registry that this daemon should advertise itself in
      */
-    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory) {
+    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory) {
         this.connector = connector;
         this.daemonRegistry = daemonRegistry;
+        this.daemonContext = daemonContext;
         this.commandExecuter = commandExecuter;
         handlersExecutor = executorFactory.create("Daemon Connection Handler");
     }
@@ -108,7 +111,7 @@ public class Daemon implements Runnable, Stoppable {
                 }
             });
 
-            registryUpdater = new DomainRegistryUpdater(daemonRegistry, connectorAddress);
+            registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, connectorAddress);
             
             Runnable onStart = new Runnable() {
                 public void run() {

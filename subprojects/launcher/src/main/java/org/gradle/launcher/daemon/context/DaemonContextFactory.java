@@ -15,19 +15,16 @@
  */
 package org.gradle.launcher.daemon.context;
 
-import org.gradle.util.Jvm;
-import java.io.File;
+import org.gradle.api.internal.Factory;
 
-public class DefaultDaemonContext implements DaemonContext {
-
-    private final File javaHome;
-    
-    public DefaultDaemonContext() {
-        this.javaHome = Jvm.current().getJavaHome();
+/**
+ * Creates a daemon context, reflecting the current environment.
+ * <p>
+ * This means that it can be used to create the “desired” context on the client
+ * side, and used on the server side to create the “actual” context.
+ */
+public class DaemonContextFactory implements Factory<DaemonContext> {
+    public DaemonContext create() {
+        return new DefaultDaemonContext();
     }
-
-    public File getJavaHome() {
-        return javaHome;
-    }
-
 }

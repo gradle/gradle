@@ -17,30 +17,26 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.api.internal.Factory;
-import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
-import org.gradle.launcher.daemon.client.EmbeddedDaemonConnector;
-import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
+import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.logging.internal.OutputEvent;
-import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.StreamBackedStandardOutputListener;
 
 import java.lang.management.ManagementFactory;
 
 public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
-    private LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-    private EmbeddedDaemonRegistry daemonRegistry = new EmbeddedDaemonRegistry();
+    private final EmbeddedDaemonClientServices daemonClientServices = new EmbeddedDaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), false);
 
     public DaemonController getDaemonController() {
-        return new RegistryBackedDaemonController(daemonRegistry);
+        return new RegistryBackedDaemonController(daemonClientServices.get(DaemonRegistry.class));
     }
 
     protected ExecutionResult doRun() {
@@ -60,7 +56,7 @@ public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
         ExecuteBuildAction buildAction = createBuildAction();
         BuildActionParameters buildActionParameters = createBuildActionParameters();
-        DaemonClient daemonClient = createClient();
+        DaemonClient daemonClient = daemonClientServices.get(DaemonClient.class);
 
         Exception failure = null;
         try {
@@ -85,18 +81,8 @@ public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    private DaemonClient createClient() {
-        Factory<LoggingServiceRegistry> factory = new Factory<LoggingServiceRegistry>() {
-            public LoggingServiceRegistry create() {
-                return loggingServices;
-            }
-        };
-        
-        return new DaemonClient(new EmbeddedDaemonConnector(daemonRegistry, factory), clientMetaData(), new OutputEventListener() { public void onOutput(OutputEvent event) {} });
-    }
-
     private LoggingManagerInternal createLoggingManager(StringBuilder output, StringBuilder error) {
-        LoggingManagerInternal loggingManager = loggingServices.newInstance(LoggingManagerInternal.class);
+        LoggingManagerInternal loggingManager = daemonClientServices.getLoggingServices().newInstance(LoggingManagerInternal.class);
         loggingManager.disableStandardOutputCapture();
         loggingManager.addStandardOutputListener(new StreamBackedStandardOutputListener(output));
         loggingManager.addStandardErrorListener(new StreamBackedStandardOutputListener(error));
@@ -112,11 +98,7 @@ public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     private BuildActionParameters createBuildActionParameters() {
-        return new DefaultBuildActionParameters(clientMetaData(), getStartTime(), System.getProperties(), getEnvironmentVars(), getWorkingDir());
-    }
-
-    private static GradleLauncherMetaData clientMetaData() {
-        return new GradleLauncherMetaData();
+        return new DefaultBuildActionParameters(daemonClientServices.get(BuildClientMetaData.class), getStartTime(), System.getProperties(), getEnvironmentVars(), getWorkingDir());
     }
 
     private long getStartTime() {

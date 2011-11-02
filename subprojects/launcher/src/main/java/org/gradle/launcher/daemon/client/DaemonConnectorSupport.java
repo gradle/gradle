@@ -19,7 +19,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -47,9 +46,9 @@ abstract public class DaemonConnectorSupport<T extends DaemonRegistry> implement
     private final Spec<DaemonContext> contextCompatibilitySpec;
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-    protected DaemonConnectorSupport(T daemonRegistry) {
+    protected DaemonConnectorSupport(T daemonRegistry, Spec<DaemonContext> contextCompatibilitySpec) {
         this.daemonRegistry = daemonRegistry;
-        this.contextCompatibilitySpec = getContextCompatibilitySpec();
+        this.contextCompatibilitySpec = contextCompatibilitySpec;
     }
 
     public void setConnectTimeout(long connectTimeout) {
@@ -111,10 +110,6 @@ abstract public class DaemonConnectorSupport<T extends DaemonRegistry> implement
 
     public T getDaemonRegistry() {
         return daemonRegistry;
-    }
-
-    protected Spec<DaemonContext> getContextCompatibilitySpec() {
-        return Specs.<DaemonContext>satisfyAll();
     }
 
     abstract protected OutgoingConnector<Object> getConnector();

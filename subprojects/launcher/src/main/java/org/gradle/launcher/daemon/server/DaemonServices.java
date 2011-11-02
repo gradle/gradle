@@ -23,6 +23,8 @@ import org.gradle.cache.internal.FileLockManager;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
+import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.context.DaemonContextFactory;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
@@ -50,13 +52,13 @@ public class DaemonServices extends DefaultServiceRegistry {
     protected ProcessEnvironment createProcessEnvironment() {
         return NativeEnvironment.current();
     }
-    
+
     protected DaemonDir createDaemonDir() {
         return new DaemonDir(
                 userHomeDir,
                 get(ProcessEnvironment.class));
     }
-    
+
     protected FileLockManager createFileLockManager() {
         return new DefaultFileLockManager(
                 new DefaultProcessMetaDataProvider(
@@ -68,11 +70,16 @@ public class DaemonServices extends DefaultServiceRegistry {
                 get(DaemonDir.class).getRegistry(),
                 get(FileLockManager.class));
     }
-    
+
+    protected DaemonContext createDaemonContext() {
+        return new DaemonContextFactory().create();
+    }
+
     protected Daemon createDaemon() {
         return new Daemon(
                 new DaemonTcpServerConnector(),
                 get(DaemonRegistry.class),
+                get(DaemonContext.class),
                 new DefaultDaemonCommandExecuter(
                         loggingServices,
                         get(ExecutorFactory.class)),
