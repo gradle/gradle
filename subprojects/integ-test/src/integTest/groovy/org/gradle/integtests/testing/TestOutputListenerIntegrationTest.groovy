@@ -131,10 +131,11 @@ class VerboseOutputListener implements TestOutputListener {
     }
 
     @Test
-    public void "shows standard stream"() {
+    public void "shows standard stream also for test ng"() {
         def test = file("src/test/java/SomeTest.java")
         test << """
-import org.junit.*;
+import org.testng.*;
+import org.testng.annotations.*;
 
 public class SomeTest {
     @Test
@@ -144,6 +145,7 @@ public class SomeTest {
     }
 }
 """
+
         def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
@@ -153,10 +155,13 @@ repositories {
 }
 
 dependencies {
-    testCompile "junit:junit:4.8.2"
+    testCompile 'org.testng:testng:5.14'
 }
 
-test.verbosity.showStandardStream = true
+test {
+    useTestNG()
+    verbosity.showStandardStream = true
+}
 """
         //when run without '-i'
         def result = executer.withTasks('test').run()
