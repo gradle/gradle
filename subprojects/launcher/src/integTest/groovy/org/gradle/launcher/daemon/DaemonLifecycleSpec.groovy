@@ -142,6 +142,26 @@ class DaemonLifecycleSpec extends Specification {
         daemonsRunning && daemonsBusy
     }
 
+    def "a new daemon is started if all existing are busy"() {
+        given:
+        expectedDaemons = 1
+
+        when:
+        sleepyBuild().start()
+
+        then:
+        daemonsBusy
+
+        when:
+        sleepyBuild().start()
+
+        and:
+        expectedDaemons = 2
+
+        then:
+        daemonsBusy
+    }
+
     def "sending stop to idle daemons causes them to terminate immediately"() {
         given:
         daemonIdleTimeout = 10 // long timeout so we know they don't stop from idle timeout
