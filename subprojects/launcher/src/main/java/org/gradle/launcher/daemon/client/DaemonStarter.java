@@ -23,6 +23,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.Jvm;
 import org.gradle.util.GUtil;
+import org.gradle.api.GradleException;
+import org.gradle.os.OperatingSystem;
+import org.gradle.os.jna.WindowsProcessStarter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -71,12 +74,32 @@ public class DaemonStarter implements Runnable {
         DaemonIdleTimeout idleTimeout = new DaemonIdleTimeout(System.getenv("GRADLE_OPTS"), this.idleTimeout);
         daemonArgs.add(idleTimeout.toSysArg());
 
-        DaemonStartAction daemon = new DaemonStartAction();
-        daemon.args(daemonArgs);
-        daemon.workingDir(userHomeDir);
-
         LOGGER.info("starting daemon process: workingDir = {}, daemonArgs: {}", userHomeDir, daemonArgs);
-        daemon.start();
+        startProcess(daemonArgs, userHomeDir);
     }
 
+    private void startProcess(List<String> args, File workingDir) {
+        try {
+            workingDir.mkdirs();
+            if (OperatingSystem.current().isWindows()) {
+                StringBuilder commandLine = new StringBuilder();
+                for (String arg : args) {
+                    commandLine.append('"');
+                    commandLine.append(arg);
+                    commandLine.append("\" ");
+                }
+
+                new WindowsProcessStarter().start(workingDir, commandLine.toString());
+            } else {
+                ProcessBuilder builder = new ProcessBuilder(args);
+                builder.directory(workingDir);
+                Process process = builder.start();
+                process.getOutputStream().close();
+                process.getErrorStream().close();
+                process.getInputStream().close();
+            }
+        } catch (Exception e) {
+            throw new GradleException("Could not start Gradle daemon.", e);
+        }
+    }
 }
