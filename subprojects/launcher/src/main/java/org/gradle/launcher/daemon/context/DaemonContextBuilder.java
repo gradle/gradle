@@ -40,8 +40,6 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         // See DaemonLifecycleSpec fo where this is used - LD.
         String overriddenJavaHome = System.getProperty(FAKE_JAVA_HOME_OVERRIDE_PROPERTY);
         javaHome = overriddenJavaHome == null ? jvm.getJavaHome() : new File(overriddenJavaHome);
-        
-        System.out.println("using java home of: " + javaHome);
     }
 
     public File getJavaHome() {
