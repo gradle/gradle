@@ -72,9 +72,12 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader()));
     }
 
-    abstract protected DaemonConnector createDaemonConnector();
+    @SuppressWarnings("unchecked")
+    protected DaemonConnector createDaemonConnector() {
+        return new DefaultDaemonConnector(get(DaemonRegistry.class), makeDaemonCompatibilitySpec(), get(OutgoingConnector.class), makeDaemonStarter());
+    }
 
     abstract protected DaemonRegistry createDaemonRegistry();
     
-    
+    abstract Runnable makeDaemonStarter();
 }

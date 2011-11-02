@@ -30,7 +30,7 @@ class DaemonClientServicesTest extends Specification {
 
     def "makes a DaemonConnector available"() {
         expect:
-        services.get(DaemonConnector.class) instanceof ExternalDaemonConnector
+        services.get(DaemonConnector.class) instanceof DefaultDaemonConnector
     }
 
     def "makes a DaemonClient available"() {

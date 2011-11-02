@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,14 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.specs.Spec;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
+import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
-import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.messaging.remote.internal.OutgoingConnector;
-import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,22 +30,19 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * A daemon connector that starts daemons by launching new processes.
- */
-public class ExternalDaemonConnector extends DaemonConnectorSupport<DaemonRegistry> {
-    private static final Logger LOGGER = Logging.getLogger(ExternalDaemonConnector.class);
-        
+public class DaemonStarter implements Runnable {
+
+    private static final Logger LOGGER = Logging.getLogger(DaemonStarter.class);
+
     private final File userHomeDir;
     private final int idleTimeout;
-    
-    public ExternalDaemonConnector(DaemonRegistry registry, Spec<DaemonContext> contextCompatibilitySpec, OutgoingConnector<Object> outgoingConnector, File userHomeDir, int idleTimeout) {
-        super(registry, contextCompatibilitySpec, outgoingConnector);
-        this.idleTimeout = idleTimeout;
+
+    public DaemonStarter(File userHomeDir, int idleTimeout) {
         this.userHomeDir = userHomeDir;
+        this.idleTimeout = idleTimeout;
     }
 
-    protected void startDaemon() {
+    public void run() {
         DefaultModuleRegistry registry = new DefaultModuleRegistry();
         Set<File> bootstrapClasspath = new LinkedHashSet<File>();
         bootstrapClasspath.addAll(registry.getModule("gradle-launcher").getImplementationClasspath());
@@ -60,7 +53,7 @@ public class ExternalDaemonConnector extends DaemonConnectorSupport<DaemonRegist
         if (bootstrapClasspath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }
-        
+
         List<String> daemonArgs = new ArrayList<String>();
         daemonArgs.add(Jvm.current().getJavaExecutable().getAbsolutePath());
         daemonArgs.add("-Xmx1024m");
@@ -81,7 +74,7 @@ public class ExternalDaemonConnector extends DaemonConnectorSupport<DaemonRegist
         DaemonStartAction daemon = new DaemonStartAction();
         daemon.args(daemonArgs);
         daemon.workingDir(userHomeDir);
-        
+
         LOGGER.info("starting daemon process: workingDir = {}, daemonArgs: {}", userHomeDir, daemonArgs);
         daemon.start();
     }

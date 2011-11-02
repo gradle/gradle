@@ -56,15 +56,12 @@ class DaemonConnectorSupportTest extends Specification {
     }
 
     def createConnector() {
-        def connector = new DaemonConnectorSupport(
+        def connector = new DefaultDaemonConnector(
             new EmbeddedDaemonRegistry(), 
             Specs.convertClosureToSpec { getCompatibilitySpec()(it) },
-            createOutgoingConnector()
-        ) {
-            protected void startDaemon() {
-                startNewDaemon()
-            }
-        }
+            createOutgoingConnector(),
+            { startNewDaemon() }
+        )
         connector.connectTimeout = connectTimeoutSecs * 1000
         connector
     }

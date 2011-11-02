@@ -31,37 +31,35 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Provides the general connection mechanics of connecting to a daemon, leaving implementations
- * to define how new daemons should be created if needed.
- * 
- * Subclassing instead of delegation with regard to creating new daemons seems more appropriate
- * as the way that new daemons are launched is likely to be coupled to the DaemonRegistry implementation.
+ * Provides the mechanics of connecting to a daemon, starting one via a given runnable if no suitable daemons are already available.
  */
-abstract public class DaemonConnectorSupport<T extends DaemonRegistry> implements DaemonConnector {
+public class DefaultDaemonConnector implements DaemonConnector {
 
-    private static final Logger LOGGER = Logging.getLogger(DaemonConnectorSupport.class);
+    private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
     public final static int DEFAULT_CONNECT_TIMEOUT = 30000;
-    
-    private final T daemonRegistry;
+
+    private final DaemonRegistry daemonRegistry;
     private final Spec<DaemonContext> contextCompatibilitySpec;
     private final OutgoingConnector<Object> connector;
-    
+    private final Runnable daemonStarter;
+
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-    protected DaemonConnectorSupport(T daemonRegistry, Spec<DaemonContext> contextCompatibilitySpec, OutgoingConnector<Object> connector) {
+    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, Spec<DaemonContext> contextCompatibilitySpec, OutgoingConnector<Object> connector, Runnable daemonStarter) {
         this.daemonRegistry = daemonRegistry;
         this.contextCompatibilitySpec = contextCompatibilitySpec;
         this.connector = connector;
+        this.daemonStarter = daemonStarter;
     }
 
     public void setConnectTimeout(long connectTimeout) {
         this.connectTimeout = connectTimeout;
     }
-    
+
     public long getConnectTimeout() {
         return connectTimeout;
     }
-    
+
     public Connection<Object> maybeConnect() {
         return findConnection(daemonRegistry.getAll());
     }
@@ -94,7 +92,7 @@ abstract public class DaemonConnectorSupport<T extends DaemonRegistry> implement
         }
 
         LOGGER.info("Starting Gradle daemon");
-        startDaemon();
+        daemonStarter.run();
         Date expiry = new Date(System.currentTimeMillis() + connectTimeout);
         do {
             connection = findConnection(daemonRegistry.getIdle());
@@ -111,9 +109,7 @@ abstract public class DaemonConnectorSupport<T extends DaemonRegistry> implement
         throw new GradleException("Timeout waiting to connect to Gradle daemon.");
     }
 
-    public T getDaemonRegistry() {
+    public DaemonRegistry getDaemonRegistry() {
         return daemonRegistry;
     }
-
-    abstract protected void startDaemon();
 }

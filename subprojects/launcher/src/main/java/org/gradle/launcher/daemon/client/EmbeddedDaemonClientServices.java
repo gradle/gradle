@@ -15,13 +15,20 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.internal.Factory;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
+import org.gradle.launcher.daemon.server.Daemon;
+import org.gradle.launcher.daemon.server.DaemonServerConnector;
+import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
+import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
+import org.gradle.messaging.concurrent.ExecutorFactory;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.messaging.remote.internal.OutgoingConnector;
 
 /**
  * Wires together the embedded daemon.
@@ -32,15 +39,23 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
 
     public EmbeddedDaemonClientServices() {
         this(LoggingServiceRegistry.newCommandLineProcessLogging(), false);
+        add(EmbeddedDaemonFactory.class, new EmbeddedDaemonFactory());
+    }
+
+    private class EmbeddedDaemonFactory implements Factory<Daemon> {
+        public Daemon create() {
+            return new Daemon(
+                get(DaemonServerConnector.class),
+                get(DaemonRegistry.class),
+                get(DaemonContext.class),
+                new DefaultDaemonCommandExecuter(getLoggingServices(), get(ExecutorFactory.class)), get(ExecutorFactory.class)
+            );
+        }
     }
 
     public EmbeddedDaemonClientServices(ServiceRegistry loggingServices, boolean displayOutput) {
         super(loggingServices);
         this.displayOutput = displayOutput;
-    }
-
-    protected DaemonConnector createDaemonConnector() {
-        return new EmbeddedDaemonConnector((EmbeddedDaemonRegistry)get(DaemonRegistry.class), makeDaemonCompatibilitySpec(), get(OutgoingConnector.class), getLoggingServices());
     }
 
     protected DaemonRegistry createDaemonRegistry() {
@@ -53,5 +68,17 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
         } else {
             return new OutputEventListener() { public void onOutput(OutputEvent event) {} };
         }
+    }
+
+    protected ExecutorFactory createExecutorFactory() {
+        return new DefaultExecutorFactory();
+    }
+
+    protected DaemonServerConnector createDaemonServerConnector() {
+        return new DaemonTcpServerConnector();
+    }
+
+    protected Runnable makeDaemonStarter() {
+        return new EmbeddedDaemonStarter((EmbeddedDaemonRegistry)get(DaemonRegistry.class), getFactory(Daemon.class));
     }
 }
