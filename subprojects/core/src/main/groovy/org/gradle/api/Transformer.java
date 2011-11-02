@@ -23,7 +23,7 @@ package org.gradle.api;
  * @param <R> The type the value is transformed to.
  * @param <I> The type of the value to be transformed.
  */
-public interface Transformer<R,I> {
+public interface Transformer<R, I> {
     /**
      * Transforms the given object, and returns the transformed value.
      *

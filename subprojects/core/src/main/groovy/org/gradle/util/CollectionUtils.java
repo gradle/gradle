@@ -37,11 +37,11 @@ abstract public class CollectionUtils {
          return destination;
     }
 
-    public static <R,I> List<R> collectList(List<I> list, Transformer<R,I> transformer) {
+    public static <R, I> List<R> collectList(List<I> list, Transformer<R, I> transformer) {
         return doCollect(list, new LinkedList<R>(), transformer);
     }
 
-    private static <R, I, C extends Collection<R>> C doCollect(Collection<I> source, C destination, Transformer<R,I> transformer) {
+    private static <R, I, C extends Collection<R>> C doCollect(Collection<I> source, C destination, Transformer<R, I> transformer) {
         for (I item : source) {
             destination.add(transformer.transform(item));
         }
