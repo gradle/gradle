@@ -265,7 +265,7 @@ project(':tool') {
 		compile project(':impl')
 	}
     task checkDeps(dependsOn: configurations.compile) << {
-        assert configurations.compile.collect { it.name } == ['api-1.0.jar', 'impl-1.0.jar', 'foo-1.5.5.jar']
+        assert configurations.compile*.name == ['api-1.0.jar', 'impl-1.0.jar', 'foo-1.5.5.jar']
         def metaData = configurations.compile.resolvedConfiguration
         def api = metaData.firstLevelModuleDependencies.find { it.moduleName == 'api' }
         assert api.children.size() == 1
@@ -325,7 +325,7 @@ project(':tool') {
 		compile project(':impl')
 	}
     task checkDeps(dependsOn: configurations.compile) << {
-        assert configurations.compile.collect { it.name } == ['api.jar', 'impl.jar', 'foo-1.4.4.jar']
+        assert configurations.compile*.name == ['api.jar', 'impl.jar', 'foo-1.4.4.jar']
     }
 }
 """
@@ -356,7 +356,7 @@ configurations.all {
 }
 
 task checkDeps << {
-    assert configurations.compile.collect { it.name == '1.4.4.jar' }
+    assert configurations.compile*.name == ['foo-1.4.4.jar']
 }
 """
 
@@ -383,7 +383,7 @@ dependencies {
 }
 
 task checkDeps << {
-    assert configurations.compile.collect { it.name } == ['foo-1.3.3.jar']
+    assert configurations.compile*.name == ['foo-1.3.3.jar']
 }
 """
 
