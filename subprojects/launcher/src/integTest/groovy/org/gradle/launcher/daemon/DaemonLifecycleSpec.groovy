@@ -19,9 +19,10 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.GradleHandles
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout
+import org.gradle.launcher.daemon.context.DaemonContextBuilder
 import org.junit.Ignore
 import org.junit.Rule
-import spock.lang.Specification
+import spock.lang.*
 import static org.gradle.util.ConcurrentSpecification.poll
 
 /**
@@ -35,6 +36,10 @@ class DaemonLifecycleSpec extends Specification {
     def buildSleepsFor = 5
     def daemonIdleTimeout = 5
 
+    // individual tests can set this to a list of string args that will be added to the client invocation
+    def buildGradleOpts = []
+    def foregroundDaemonGradleOpts = []
+
     def daemons // have to set this in setup, after we have changed the user home location
 
     def buildDir(buildScript) {
@@ -46,7 +51,7 @@ class DaemonLifecycleSpec extends Specification {
     def sleepyBuild(sleepFor = buildSleepsFor) {
         handles.createHandle {
             withTasks("sleep")
-            withEnvironmentVars(GRADLE_OPTS: new DaemonIdleTimeout(daemonIdleTimeout * 1000).toSysArg())
+            addGradleOpts(new DaemonIdleTimeout(daemonIdleTimeout * 1000).toSysArg(), *buildGradleOpts)
             withArguments("--daemon", "--info")
             usingProjectDirectory buildDir("""
                 task('sleep') << {
@@ -65,6 +70,7 @@ class DaemonLifecycleSpec extends Specification {
 
     def foregroundDaemon() {
         handles.createHandle {
+            addGradleOpts(*foregroundDaemonGradleOpts)
             withArguments("--foreground")
         }.passthroughOutput()
     }
@@ -251,6 +257,27 @@ class DaemonLifecycleSpec extends Specification {
 
         and:
         failedWithDaemonDisappearedMessage build
+    }
+
+    def "if a daemon exists but has an incompatible context, a new compatible daemon will be created and used"() {
+        given:
+        // This forces the daemon to specify it's daemon context with a java home that is fake, hacked in for this test
+        foregroundDaemonGradleOpts << "-D${DaemonContextBuilder.FAKE_JAVA_HOME_OVERRIDE_PROPERTY}=/a/b/c"
+
+        when:
+        foregroundDaemon().start()
+
+        then:
+        isDaemonsRunning 1
+        isDaemonsIdle 1
+
+        when:
+        sleepyBuild().start()
+
+        then:
+        isDaemonsRunning 2
+        isDaemonsBusy 1
+        isDaemonsIdle 1
     }
 
     def cleanup() {

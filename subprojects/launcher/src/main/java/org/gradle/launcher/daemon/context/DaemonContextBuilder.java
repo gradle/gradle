@@ -28,12 +28,20 @@ import java.io.File;
  */
 public class DaemonContextBuilder implements Factory<DaemonContext> {
 
+    public static final String FAKE_JAVA_HOME_OVERRIDE_PROPERTY = "org.gradle.testing.override.daemon.context.javahome";
+    
     private final Jvm jvm = Jvm.current();
 
     private File javaHome;
 
-    public DaemonContextBuilder() {
-        javaHome = jvm.getJavaHome();
+    public DaemonContextBuilder() { 
+        // This nonsense is just so we can test that we spin a new daemon at the integration test level
+        // if the JDK versions are different. This is the best I could think of.
+        // See DaemonLifecycleSpec fo where this is used - LD.
+        String overriddenJavaHome = System.getProperty(FAKE_JAVA_HOME_OVERRIDE_PROPERTY);
+        javaHome = overriddenJavaHome == null ? jvm.getJavaHome() : new File(overriddenJavaHome);
+        
+        System.out.println("using java home of: " + javaHome);
     }
 
     public File getJavaHome() {
