@@ -17,13 +17,14 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.launcher.daemon.client.DaemonClientServices
 import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.logging.LoggingServiceRegistry
 import static org.gradle.util.ConcurrentSpecification.poll
 
 class RegistryBackedDaemonController implements DaemonController {
     private final DaemonRegistry daemons
 
     RegistryBackedDaemonController(File userHomeDir) {
-        daemons = new DaemonClientServices(userHomeDir).get(DaemonRegistry)
+        daemons = new DaemonClientServices(LoggingServiceRegistry.newCommandLineProcessLogging(), userHomeDir).get(DaemonRegistry)
     }
 
     RegistryBackedDaemonController(DaemonRegistry daemons) {
