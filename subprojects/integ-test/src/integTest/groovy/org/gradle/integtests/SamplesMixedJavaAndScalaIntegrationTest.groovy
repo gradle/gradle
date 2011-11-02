@@ -23,6 +23,7 @@ import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.util.JUnitTestExecutionResult
 
 class SamplesMixedJavaAndScalaIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()

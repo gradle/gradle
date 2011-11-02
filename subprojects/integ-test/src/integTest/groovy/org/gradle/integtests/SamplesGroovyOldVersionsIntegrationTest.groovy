@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
+import org.gradle.integtests.util.JUnitTestExecutionResult
 
 class SamplesGroovyOldVersionsIntegrationTest {
 

@@ -22,6 +22,7 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.util.JUnitTestExecutionResult
 
 class SamplesGroovyCustomizedLayoutIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()

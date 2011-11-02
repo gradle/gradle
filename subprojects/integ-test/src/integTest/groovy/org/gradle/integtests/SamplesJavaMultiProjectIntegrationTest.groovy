@@ -26,6 +26,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
+import org.gradle.integtests.util.JUnitTestExecutionResult
 
 /**
  * @author Hans Dockter

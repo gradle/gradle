@@ -21,6 +21,7 @@ import org.gradle.util.TestFile
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.util.JUnitTestExecutionResult
 
 class SamplesCustomPluginIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()

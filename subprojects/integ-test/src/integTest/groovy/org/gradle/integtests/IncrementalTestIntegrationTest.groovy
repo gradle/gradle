@@ -24,6 +24,7 @@ import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import org.gradle.integtests.testng.TestNGExecutionResult
+import org.gradle.integtests.util.JUnitTestExecutionResult
 
 class IncrementalTestIntegrationTest {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
