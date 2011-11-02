@@ -184,7 +184,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         public T getInstance() {
             if (instance == null) {
                 instance = create();
-                assert instance != null;
+                assert instance != null : String.format("create() of %s returned null", toString());
             }
             return instance;
         }
