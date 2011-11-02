@@ -27,7 +27,6 @@ import static org.gradle.util.ConcurrentSpecification.poll
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
  */
-@Ignore
 class DaemonLifecycleSpec extends Specification {
 
     @Rule public final GradleHandles handles = new GradleHandles()
