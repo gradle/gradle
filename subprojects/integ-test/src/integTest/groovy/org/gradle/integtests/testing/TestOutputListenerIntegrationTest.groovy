@@ -16,17 +16,18 @@
 package org.gradle.integtests.testing
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
 
-public class TestOutputListenerIntegrationTest extends AbstractIntegrationTest {
+public class TestOutputListenerIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final TestResources resources = new TestResources()
 
     @Test
     @Issue("GRADLE-1009")
-    public void "standard output is shown when tests are executed"() {
+    def "standard output is shown when tests are executed"() {
+        given:
         def test = file("src/test/java/SomeTest.java")
         test << """
 import org.junit.*;
@@ -71,18 +72,19 @@ class VerboseOutputListener implements TestOutputListener {
 }
 """
 
-        //when
+        when:
         def failure = executer.withTasks('test').runWithFailure()
 
-        //then
-        assert failure.output.contains('SomeTest StdOut out passing')
-        assert failure.output.contains('SomeTest StdOut out failing')
-        assert failure.output.contains('SomeTest StdErr err passing')
-        assert failure.output.contains('SomeTest StdErr err failing')
+        then:
+        failure.output.contains('SomeTest StdOut out passing')
+        failure.output.contains('SomeTest StdOut out failing')
+        failure.output.contains('SomeTest StdErr err passing')
+        failure.output.contains('SomeTest StdErr err failing')
     }
 
     @Test
-    public void "can register output listener at gradle level"() {
+    def "can register output listener at gradle level"() {
+        given:
         def test = file("src/test/java/SomeTest.java")
         test << """
 import org.junit.*;
@@ -122,16 +124,17 @@ class VerboseOutputListener implements TestOutputListener {
 }
 """
 
-        //when
+        when:
         def result = executer.withTasks('test').run()
 
-        //then
-        assert result.output.contains('first: message from foo')
-        assert result.output.contains('second: message from foo')
+        then:
+        result.output.contains('first: message from foo')
+        result.output.contains('second: message from foo')
     }
 
     @Test
-    public void "shows standard stream also for test ng"() {
+    def "shows standard stream also for test ng"() {
+        given:
         def test = file("src/test/java/SomeTest.java")
         test << """
 import org.testng.*;
@@ -163,16 +166,16 @@ test {
     verbosity.showStandardStream = true
 }
 """
-        //when run without '-i'
+        when: "run without '-i'"
         def result = executer.withTasks('test').run()
-        //then
-        assert !result.output.contains('output from foo')
+        then:
+        !result.output.contains('output from foo')
 
-        //when run with '-i'
+        when: "run with '-i'"
         result = executer.withTasks('cleanTest', 'test').withArguments('-i').run()
 
-        //then
-        assert result.output.contains('output from foo')
-        assert result.output.contains('error from foo')
+        then:
+        result.output.contains('output from foo')
+        result.output.contains('error from foo')
     }
 }
