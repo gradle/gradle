@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.registry
 import org.gradle.launcher.daemon.registry.DaemonRegistry.EmptyRegistryException
 import org.gradle.messaging.remote.Address
 import org.gradle.launcher.daemon.server.DomainRegistryUpdater
-import org.gradle.launcher.daemon.context.DefaultDaemonContext
+import org.gradle.launcher.daemon.context.DaemonContextBuilder
 
 import spock.lang.Specification
 
@@ -30,7 +30,7 @@ public class DomainRegistryUpdaterTest extends Specification {
 
     def registry = Mock(DaemonRegistry)
     def address = {} as Address
-    def updater = new DomainRegistryUpdater(registry, new DefaultDaemonContext(), address)
+    def updater = new DomainRegistryUpdater(registry, new DaemonContextBuilder().create(), address)
 
     def "marks idle"() {
         when:

@@ -24,7 +24,7 @@ import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.context.DaemonContextFactory;
+import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
@@ -72,7 +72,7 @@ public class DaemonServices extends DefaultServiceRegistry {
     }
 
     protected DaemonContext createDaemonContext() {
-        return new DaemonContextFactory().create();
+        return new DaemonContextBuilder().create();
     }
 
     protected Daemon createDaemon() {

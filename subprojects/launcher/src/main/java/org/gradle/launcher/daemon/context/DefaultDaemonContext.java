@@ -15,15 +15,19 @@
  */
 package org.gradle.launcher.daemon.context;
 
-import org.gradle.util.Jvm;
 import java.io.File;
 
+/**
+ * Keep in mind that this is a serialised value object.
+ * 
+ * @see DaemonContextBuilder
+ */
 public class DefaultDaemonContext implements DaemonContext {
 
     private final File javaHome;
     
-    public DefaultDaemonContext() {
-        this.javaHome = Jvm.current().getJavaHome();
+    public DefaultDaemonContext(File javaHome) {
+        this.javaHome = javaHome;
     }
 
     public File getJavaHome() {

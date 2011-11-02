@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.specs.Spec;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.context.DaemonContextFactory;
+import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpecFactory;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
@@ -48,9 +48,16 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
     }
 
     protected DaemonContext createDaemonContext() {
-        return new DaemonContextFactory().create();
+        DaemonContextBuilder builder = new DaemonContextBuilder();
+        configureDaemonContextBuilder(builder);
+        return builder.create();
     }
 
+    // subclass hook, allowing us to fake the context for testing
+    protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
+        
+    }
+    
     // not following convention because I don't want to name this method createSpec()
     public Spec<DaemonContext> makeDaemonCompatibilitySpec() {
         return new DaemonCompatibilitySpecFactory(get(DaemonContext.class)).create();

@@ -18,6 +18,19 @@ package org.gradle.launcher.daemon.context;
 import java.io.Serializable;
 import java.io.File;
 
+/**
+ * A value object that describes a daemons environment/context.
+ * <p>
+ * This is used by clients to determine whether or not a daemon meets its requirements
+ * such as JDK version, special system properties etc.
+ * <p>
+ * Instances must be serialisable because they are shared via the DaemonRegistry, which is permitted
+ * to use serialisation to communicate across VM boundaries. Implementations are not required to be,
+ * but should also be immutable.
+ * 
+ * @see DaemonContextBuilder
+ * @see DaemonCompatibilitySpecFactory
+ */
 public interface DaemonContext extends Serializable {
 
     File getJavaHome();
