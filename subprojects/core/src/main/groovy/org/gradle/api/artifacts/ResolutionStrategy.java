@@ -16,6 +16,8 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.internal.artifacts.configurations.DefaultResolutionStrategy;
+
 import java.util.Set;
 
 /**
@@ -43,24 +45,35 @@ public interface ResolutionStrategy {
     /**
      * configures conflict resolution
      *
+     *
      * @param conflictResolution to set
+     * @return this ResolutionStrategy instance
      */
-    void setConflictResolution(ConflictResolution conflictResolution);
-
+    DefaultResolutionStrategy setConflictResolution(ConflictResolution conflictResolution);
 
     /**
      * Configures forced versions in DSL friendly fashion
      *
+     *
      * @param forcedVersions gav notations
+     * @return this ResolutionStrategy instance
      */
-    void force(String ... forcedVersions);
+    DefaultResolutionStrategy force(String... forcedVersions);
+
+    /**
+     * Replaces existing forced versions with the passed ones.
+     *
+     * @param forcedVersions forced versions to set
+     * @return this ResolutionStrategy instance
+     */
+    ResolutionStrategy setForce(Iterable<ForcedVersion> forcedVersions);
 
     /**
      * returns currently configured forced versions
      *
      * @return forced versions
      */
-    Set<ForcedVersion> getForcedVersions();
+    Set<ForcedVersion> getForce();
 
     /**
      * use the latest of conflicting versions and move on

@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.ConflictResolution;
+import org.gradle.api.artifacts.ForcedVersion;
 import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.DefaultDynamicVersionCachePolicy;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.DynamicVersionCachePolicy;
+import org.gradle.util.GUtil;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -35,7 +37,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private ConflictResolution conflictResolution = new LatestConflictResolution();
     private final DefaultDynamicVersionCachePolicy dynamicRevisionCachePolicy = new DefaultDynamicVersionCachePolicy();
 
-    public Set<ForcedVersion> getForcedVersions() {
+    public Set<ForcedVersion> getForce() {
         return forcedVersions;
     }
 
@@ -51,16 +53,23 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this.conflictResolution;
     }
 
-    public void setConflictResolution(ConflictResolution conflictResolution) {
+    public DefaultResolutionStrategy setConflictResolution(ConflictResolution conflictResolution) {
         assert conflictResolution != null : "Cannot set null conflictResolution";
         this.conflictResolution = conflictResolution;
+        return this;
     }
 
-    public void force(String... forcedVersions) {
+    public DefaultResolutionStrategy force(String... forcedVersions) {
         assert forcedVersions != null : "forcedVersions cannot be null";
         for (String forcedVersion : forcedVersions) {
             this.forcedVersions.add(new DefaultForcedVersion(forcedVersion));
         }
+        return this;
+    }
+
+    public DefaultResolutionStrategy setForce(Iterable<ForcedVersion> forcedVersions) {
+        this.forcedVersions = GUtil.toSet(forcedVersions);
+        return this;
     }
 
     public DynamicVersionCachePolicy getDynamicRevisionCachePolicy() {

@@ -29,7 +29,7 @@ import java.util.Set;
  */
 public class EntryPointResolverConfigurer {
     public void configureResolver(EntryPointResolver resolver, ResolutionStrategy resolutionStrategy) {
-        Set<ForcedVersion> forcedVersions = resolutionStrategy.getForcedVersions();
+        Set<ForcedVersion> forcedVersions = resolutionStrategy.getForce();
         resolver.setIvyResolutionListener(new MaybeForceVersions(forcedVersions));
     }
 }
