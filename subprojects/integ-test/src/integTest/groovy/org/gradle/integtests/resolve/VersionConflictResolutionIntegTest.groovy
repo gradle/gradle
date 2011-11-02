@@ -173,7 +173,7 @@ project(':tool') {
     }
 
     @Test
-    void "strict conflict strategy with forced transitive dependency that is already resolved"() {
+    void "can force already resolved version of a module and avoid conflict"() {
         TestFile repo = file("repo")
         maven(repo).module("org", "foo", '1.3.3').publish()
         maven(repo).module("org", "foo", '1.4.4').publish()
@@ -223,11 +223,10 @@ allprojects {
         executer.withTasks("api:dependencies", "tool:dependencies").run()
 
         //then no exceptions are thrown because we forced a certain version of conflicting dependency
-        //TODO SF add coverage that checks if dependencies are not pushed to 1st level (write a functional test for it)
     }
 
     @Test
-    void "can force the version of a module and avoid conflict"() {
+    void "can force arbitrary version of a module and avoid conflict"() {
         TestFile repo = file("repo")
         maven(repo).module("org", "foo", '1.3.3').publish()
         maven(repo).module("org", "foobar", '1.3.3').publish()
