@@ -42,6 +42,7 @@ class ToolingApiCompatibilitySuiteRunner extends Runner {
     def dist = new GradleDistribution()
     def m3 = dist.previousVersion("1.0-milestone-3")
     def m4 = dist.previousVersion("1.0-milestone-4")
+    def m5 = dist.previousVersion("1.0-milestone-5")
 
     ToolingApiCompatibilitySuiteRunner(Class<ToolingApiCompatibilitySuite> target) {
         this.target = target
@@ -51,6 +52,8 @@ class ToolingApiCompatibilitySuiteRunner extends Runner {
         permutations << new Permutation(suite, description, m3, dist)
         permutations << new Permutation(suite, description, dist, m4)
         permutations << new Permutation(suite, description, m4, dist)
+        permutations << new Permutation(suite, description, dist, m5)
+        permutations << new Permutation(suite, description, m5, dist)
     }
 
     @Override

@@ -1,3 +1,0 @@
-usePlugin('java')
-
-task custom(type: org.gradle.CustomTask)
