@@ -20,12 +20,12 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.Serializable;
 
-public class TestOutputEventImpl implements Serializable, TestOutputEvent {
+public class DefaultTestOutputEvent implements Serializable, TestOutputEvent {
 
     private final Destination destination;
     private final String message;
 
-    public TestOutputEventImpl(Destination destination, String message) {
+    public DefaultTestOutputEvent(Destination destination, String message) {
         this.destination = destination;
         this.message = message;
     }

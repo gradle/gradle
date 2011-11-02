@@ -15,16 +15,12 @@
  */
 package org.gradle.api.internal.tasks.testing.results
 
-import org.gradle.api.tasks.testing.TestOutputListener
-import org.gradle.api.tasks.testing.TestDescriptor
-import org.gradle.api.tasks.testing.TestListener
-import org.gradle.api.tasks.testing.TestResult
+import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter.UnableToFindTest
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.junit.Test
 import spock.lang.Specification
 import org.gradle.api.internal.tasks.testing.*
-import org.gradle.api.tasks.testing.TestOutputEvent
-import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter.UnableToFindTest
+import org.gradle.api.tasks.testing.*
 
 class TestListenerAdapterTest extends Specification {
 
@@ -240,7 +236,7 @@ class TestListenerAdapterTest extends Specification {
 
     def "notifies output listener"() {
         given:
-        def event = new TestOutputEventImpl(TestOutputEvent.Destination.StdOut, "hey!")
+        def event = new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, "hey!")
         def test = new DefaultTestDescriptor("testid", "DogTest", "shouldBarkAtStrangers");
 
         when:
@@ -253,7 +249,7 @@ class TestListenerAdapterTest extends Specification {
 
     def "fails gracefully if the test that incurred the output event is unknown"() {
         given:
-        def event = new TestOutputEventImpl(TestOutputEvent.Destination.StdOut, "hey!")
+        def event = new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, "hey!")
 
         when:
         adapter.output("testid", event)

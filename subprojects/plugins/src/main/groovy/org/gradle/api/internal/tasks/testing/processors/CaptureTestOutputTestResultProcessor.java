@@ -43,12 +43,12 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
         suite = test.getId();
         outputRedirector.redirectStandardOutputTo(new StandardOutputListener() {
             public void onOutput(CharSequence output) {
-                processor.output(suite, new TestOutputEventImpl(TestOutputEvent.Destination.StdOut, output.toString()));
+                processor.output(suite, new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, output.toString()));
             }
         });
         outputRedirector.redirectStandardErrorTo(new StandardOutputListener() {
             public void onOutput(CharSequence output) {
-                processor.output(suite, new TestOutputEventImpl(TestOutputEvent.Destination.StdErr, output.toString()));
+                processor.output(suite, new DefaultTestOutputEvent(TestOutputEvent.Destination.StdErr, output.toString()));
             }
         });
         outputRedirector.start();
