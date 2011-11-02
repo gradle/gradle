@@ -335,6 +335,55 @@ project(':tool') {
     }
 
     @Test
+    void "latest strategy respects forced versions"() {
+        TestFile repo = file("repo")
+        maven(repo).module("org", "foo", '1.3.3').publish()
+        maven(repo).module("org", "foo", '1.4.4').publish()
+
+        def settingsFile = file("settings.gradle")
+        settingsFile << "include 'api', 'impl', 'tool'"
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+allprojects {
+	apply plugin: 'java'
+	repositories {
+		maven { url "${repo.toURI()}" }
+	}
+}
+
+project(':api') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.3.3')
+	}
+}
+
+project(':impl') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.4.4')
+	}
+}
+
+project(':tool') {
+	dependencies {
+		compile project(':api')
+		compile project(':impl')
+	}
+	configurations.all {
+	    resolutionStrategy.conflictResolution = resolutionStrategy.latest()
+	    resolutionStrategy.force 'org:foo:1.3.3'
+	}
+    task checkDeps(dependsOn: configurations.compile) << {
+        assert configurations.compile*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
+    }
+}
+"""
+
+        //expect
+        executer.withTasks("tool:checkDeps").run()
+    }
+
+    @Test
     void "can force the version of a particular module"() {
         TestFile repo = file("repo")
         maven(repo).module("org", "foo", '1.3.3').publish()
