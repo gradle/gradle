@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.GradleHandles
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout
 import org.gradle.launcher.daemon.context.DaemonContextBuilder
-import org.junit.Ignore
 import org.junit.Rule
 import spock.lang.*
 import static org.gradle.util.ConcurrentSpecification.poll
