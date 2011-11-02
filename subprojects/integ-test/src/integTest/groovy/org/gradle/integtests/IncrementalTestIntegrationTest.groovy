@@ -23,7 +23,7 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
-import org.gradle.integtests.testng.TestNGExecutionResult
+import org.gradle.integtests.testing.testng.TestNGExecutionResult
 import org.gradle.integtests.util.JUnitTestExecutionResult
 
 class IncrementalTestIntegrationTest {

@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.integtests.testng
+package org.gradle.integtests.testing.testng
 
 import groovy.util.slurpersupport.GPathResult
 import org.gradle.integtests.fixtures.TestClassExecutionResult

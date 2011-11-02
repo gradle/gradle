@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.integtests.testng
+package org.gradle.integtests.testing.testng
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter

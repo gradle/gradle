@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.integtests.testng
+package org.gradle.integtests.testing.testng
 
 /**
  * @author Tom Eyckmans
