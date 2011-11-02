@@ -112,6 +112,7 @@ task retrieve(type: Sync) {
 
         // Publish the second snapshot
         module.publishWithChangedContent()
+        waitOneSecondSoThatPublicationDateWillHaveChanged()
 
         server.resetExpectations()
         // TODO - these should not be here
@@ -158,6 +159,13 @@ task retrieve(type: Sync) {
 
         executer.withTasks('retrieve').withArguments("-PnoTimeout").run().assertTasksNotSkipped(':retrieve')
         jarFile.assertIsCopyOf(module.artifactFile)
+    }
+
+    private def waitOneSecondSoThatPublicationDateWillHaveChanged() {
+        // TODO:DAZ Remove this
+        // Ivy checks the publication date to see if it's _really_ changed, won't delete the artifacts if not.
+        // So wait a second to ensure the date will be different.
+        Thread.sleep(1000)
     }
 
     @Test

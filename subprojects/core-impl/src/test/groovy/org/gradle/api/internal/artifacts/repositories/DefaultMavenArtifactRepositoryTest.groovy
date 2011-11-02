@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
-import spock.lang.Specification
-import org.gradle.api.internal.file.FileResolver
-import org.apache.ivy.plugins.resolver.IBiblioResolver
-import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver
 import org.apache.ivy.plugins.resolver.DualResolver
+import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.apache.ivy.plugins.resolver.URLResolver
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.file.FileResolver
+import spock.lang.Specification
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
@@ -64,7 +63,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         then:
         result.size() == 1
         def repo = result[0]
-        repo instanceof IBiblioWharfResolver
+        repo instanceof MavenResolver
         repo.root == "${uri}/"
     }
 
@@ -90,7 +89,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         result.size() == 1
         def repo = result[0]
         repo instanceof DualResolver
-        repo.ivyResolver instanceof IBiblioWharfResolver
+        repo.ivyResolver instanceof MavenResolver
         repo.ivyResolver.root == "${uri}/"
         repo.artifactResolver instanceof URLResolver
         repo.artifactResolver.artifactPatterns.size() == 3

@@ -80,6 +80,11 @@ configurations {
     compile
 }
 
+// TODO:DAZ I don't think this should not be required - can we not cache dynamic versions for local-only resolution?
+configurations.all {
+    resolutionStrategy.expireDynamicVersionsAfter 0, 'seconds'
+}
+
 dependencies {
     compile group: "group", name: "projectA", version: "1.+"
     compile group: "group", name: "projectB", version: "latest.integration"

@@ -453,7 +453,8 @@ task retrieve(type: Copy) {
     }
 
     private def waitOneSecondSoThatPublicationDateWillHaveChanged() {
-        // Fucking Ivy checks the publication date to see if it's _really_ changed, won't delete the artifacts if not.
+        // TODO:DAZ Remove this
+        // Ivy checks the publication date to see if it's _really_ changed, won't delete the artifacts if not.
         // So wait a second to ensure the date will be different.
         Thread.sleep(1000)
     }

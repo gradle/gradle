@@ -27,6 +27,7 @@ import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
+import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
@@ -40,10 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class UserResolverChain extends ChainResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
@@ -94,12 +92,9 @@ public class UserResolverChain extends ChainResolver {
     private ModuleResolution lookupAllInCacheAndGetLatest(List<ModuleResolution> resolutionList) {
         for (ModuleResolution moduleResolution : resolutionList) {
             moduleResolution.lookupModuleInCache();
-            if (moduleResolution.getModule() != null) {
-                return moduleResolution;
-            }
         }
 
-        return getLatest(resolutionList);
+        return chooseBestResult(resolutionList);
     }
 
     private ModuleResolution resolveLatestModule(List<ModuleResolution> resolutionList) {
@@ -108,7 +103,7 @@ public class UserResolverChain extends ChainResolver {
         for (ModuleResolution moduleResolution : resolutionList) {
             try {
                 moduleResolution.resolveModule();
-                if (moduleResolution.getModule() != null && moduleResolution.isStaticVersion())
+                if (moduleResolution.getModule() != null && moduleResolution.isStaticVersion() && !moduleResolution.isGeneratedModuleDescriptor())
                 {
                     return moduleResolution;
                 }
@@ -117,22 +112,44 @@ public class UserResolverChain extends ChainResolver {
             }
         }
 
-        ModuleResolution mr = getLatest(resolutionList);
+        ModuleResolution mr = chooseBestResult(resolutionList);
         if (mr == null && !errors.isEmpty()) {
             throwResolutionFailure(errors);
         }
         return mr;
     }
 
-    private ModuleResolution getLatest(List<ModuleResolution> resolutionList) {
-        ArrayList<ModuleResolution> cachedResolutions = new ArrayList<ModuleResolution>();
+    private ModuleResolution chooseBestResult(List<ModuleResolution> resolutionList) {
+        ModuleResolution best = null;
         for (ModuleResolution moduleResolution : resolutionList) {
-            if (moduleResolution.getModule() != null) {
-                cachedResolutions.add(moduleResolution);
-            }
+            best = chooseBest(best, moduleResolution);
         }
-        ArtifactInfo[] artifactInfos = cachedResolutions.toArray(new ArtifactInfo[cachedResolutions.size()]);
-        return (ModuleResolution) getLatestStrategy().findLatest(artifactInfos, null);
+        if (best == null || best.getModule() == null) {
+            return null;
+        }
+        return best;
+    }
+    
+    private ModuleResolution chooseBest(ModuleResolution one, ModuleResolution two) {
+        if (one == null || two == null) {
+            return two == null ? one : two;
+        }
+        if (one.getModule() == null || two.getModule() == null) {
+            return two.getModule() == null ? one : two;
+        }
+
+        ComparatorLatestStrategy latestStrategy = (ComparatorLatestStrategy) getLatestStrategy();
+        Comparator<ArtifactInfo> comparator = latestStrategy.getComparator();
+        int comparison = comparator.compare(one, two);
+
+        if (comparison == 0) {
+            if (one.isGeneratedModuleDescriptor() && !two.isGeneratedModuleDescriptor()) {
+                return two;
+            }
+            return one;
+        }
+
+        return comparison < 0 ? one : two;
     }
 
     private void rememberResolverToUseForArtifactDownload(DependencyResolver resolver, ResolvedModuleRevision cachedModule) {
@@ -246,12 +263,12 @@ public class UserResolverChain extends ChainResolver {
             return original.clone(resolvedRevision.getRevision());
         }
 
-        // TODO Use cache options for resolver to check if changing.
+        // TODO:DAZ Check for SNAPSHOT should be done inside MavenRepositoryResolver, which can set the changing flag on descriptor if required
         private boolean isChanging(DependencyDescriptor descriptor) {
             return descriptor.isChanging() || descriptor.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT");
         }
 
-        // TODO Use cache options for resolver to check if changing.
+        // TODO:DAZ Setting changing flag for SNAPSHOT should be done inside MavenRepositoryResolver
         private DependencyDescriptor tweakSnapshot(DependencyDescriptor original) {
             if (original.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT")) {
                 return ForceChangeDependencyDescriptor.forceChangingFlag(original, true);
@@ -277,6 +294,13 @@ public class UserResolverChain extends ChainResolver {
 
         public boolean isStaticVersion() {
             return staticVersion;
+        }
+        
+        public boolean isGeneratedModuleDescriptor() {
+            if (getModule() == null) {
+                throw new IllegalStateException();
+            }
+            return getModule().getDescriptor().isDefault();
         }
 
         public void lookupModuleInCache() {
