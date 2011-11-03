@@ -163,7 +163,7 @@ dependencies {
 
 test {
     useTestNG()
-    verbosity.showStandardStream = true
+    testLogging.showStandardStreams = true
 }
 """
         when: "run without '-i'"
@@ -176,6 +176,6 @@ test {
 
         then:
         result.output.contains('output from foo')
-        result.output.contains('error from foo')
+        result.error.contains('error from foo')
     }
 }

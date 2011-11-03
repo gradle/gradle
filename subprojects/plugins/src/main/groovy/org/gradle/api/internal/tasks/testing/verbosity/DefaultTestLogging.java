@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing;
+package org.gradle.api.internal.tasks.testing.verbosity;
+
+import org.gradle.api.tasks.testing.TestLogging;
 
 /**
- * Configures the verbosity of test execution, e.g. whether the std err / out should be eagerly shown
+ * by Szczepan Faber, created at: 10/31/11
  */
-public interface TestVerbosity {
+public class DefaultTestLogging implements TestLogging {
 
-    /**
-     * Whether to show eagerly the standard output/error messages at INFO level.
-     *
-     * @param standardStream to configure
-     * @return this verbosity instance
-     */
-    TestVerbosity setShowStandardStream(boolean standardStream);
+    boolean showStandardStreams;
 
-    /**
-     * Whether to show eagerly the standard output/error messages at INFO level.
-     */
-    boolean getShowStandardStream();
+    public boolean getShowStandardStreams() {
+        return showStandardStreams;
+    }
 
+    public TestLogging setShowStandardStream(boolean showStandardStream) {
+        this.showStandardStreams = showStandardStream;
+        return this;
+    }
 }

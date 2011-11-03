@@ -16,26 +16,33 @@
 
 package org.gradle.api.internal.tasks.testing.verbosity;
 
-import org.gradle.api.tasks.testing.*;
+import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.TestLogging;
+import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.api.tasks.testing.TestOutputListener;
 import org.slf4j.Logger;
 
 /**
- * Test output listener that logs extra stuff based on the verbosity configuration
+ * Test output listener that logs extra stuff based on the logging configuration
  * <p>
  * by Szczepan Faber, created at: 10/31/11
  */
-public class VerbosityApplier implements TestOutputListener {
+public class StandardStreamsLogger implements TestOutputListener {
     private final Logger logger;
-    private final TestVerbosity verbosity;
+    private final TestLogging logging;
 
-    public VerbosityApplier(Logger logger, TestVerbosity verbosity) {
+    public StandardStreamsLogger(Logger logger, TestLogging logging) {
         this.logger = logger;
-        this.verbosity = verbosity;
+        this.logging = logging;
     }
 
     public void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {
-        if (verbosity.getShowStandardStream()) {
-            logger.info(outputEvent.getMessage());
+        if (logging.getShowStandardStreams()) {
+            if (outputEvent.getDestination() == TestOutputEvent.Destination.StdOut) {
+                logger.info(outputEvent.getMessage());
+            } else if (outputEvent.getDestination() == TestOutputEvent.Destination.StdErr) {
+                logger.error(outputEvent.getMessage());
+            }
         }
     }
 }
