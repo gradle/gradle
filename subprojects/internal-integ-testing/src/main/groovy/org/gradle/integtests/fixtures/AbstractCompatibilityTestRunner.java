@@ -17,43 +17,49 @@ package org.gradle.integtests.fixtures;
 
 import org.junit.internal.runners.ErrorReportingRunner;
 import org.junit.runner.Description;
+import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.Suite;
-import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
-import org.junit.runners.model.Statement;
 
 import java.util.*;
 
 /**
  * A base class for those test runners which execute a test multiple times against a set of Gradle versions.
  */
-abstract class AbstractCompatibilityTestRunner extends Runner {
-    private final Class<?> target;
+public abstract class AbstractCompatibilityTestRunner extends Runner {
+    protected final Class<?> target;
     private Description description;
-    private List<Execution> executions;
-    final GradleDistribution current = new GradleDistribution();
-    final List<BasicGradleDistribution> previous;
+    private List<? extends Execution> executions;
+    protected final GradleDistribution current = new GradleDistribution();
+    protected final List<BasicGradleDistribution> previous;
 
-    AbstractCompatibilityTestRunner(Class<?> target) {
+    protected AbstractCompatibilityTestRunner(Class<?> target) {
         this.target = target;
         previous = new ArrayList<BasicGradleDistribution>();
-        for (String version : Arrays.asList(
-                "0.8",
-                "0.9-rc-3",
-                "0.9",
-                "0.9.1",
-                "0.9.2",
-                "1.0-milestone-1",
-                "1.0-milestone-2",
-                "1.0-milestone-3",
-                "1.0-milestone-4",
-                "1.0-milestone-5")) {
+        String versionStr = System.getProperty("org.gradle.integtest.versions", "latest");
+        List<String> versions;
+        if (versionStr.equals("all")) {
+            versions = Arrays.asList(
+                    "0.8",
+                    "0.9-rc-3",
+                    "0.9",
+                    "0.9.1",
+                    "0.9.2",
+                    "1.0-milestone-1",
+                    "1.0-milestone-2",
+                    "1.0-milestone-3",
+                    "1.0-milestone-4",
+                    "1.0-milestone-5");
+        } else {
+            versions = Arrays.asList("1.0-milestone-5");
+        }
+        for (String version : versions) {
             previous.add(current.previousVersion(version));
         }
     }
@@ -87,7 +93,7 @@ abstract class AbstractCompatibilityTestRunner extends Runner {
         }
     }
 
-    protected abstract List<Execution> createExecutions();
+    protected abstract List<? extends Execution> createExecutions();
 
     protected static abstract class Execution {
         private Runner runner;
@@ -102,13 +108,17 @@ abstract class AbstractCompatibilityTestRunner extends Runner {
                     @Override
                     public Runner runnerForClass(Class<?> testClass) {
                         try {
-                            return new BlockJUnit4ClassRunner(testClass) {
-                                @Override
-                                protected Statement methodInvoker(FrameworkMethod method, Object test) {
-                                    Statement statement = super.methodInvoker(method, test);
-                                    return Execution.this.methodInvoker(statement, method, test);
+                            for (Class<?> candidate = testClass; candidate != null; candidate = candidate.getSuperclass()) {
+                                RunWith runWith = candidate.getAnnotation(RunWith.class);
+                                if (runWith != null && !AbstractCompatibilityTestRunner.class.isAssignableFrom(runWith.value())) {
+                                    try {
+                                        return (Runner)runWith.value().getConstructors()[0].newInstance(testClass);
+                                    } catch (Exception e) {
+                                        return new ErrorReportingRunner(testClass, e);
+                                    }
                                 }
-                            };
+                            }
+                            return new BlockJUnit4ClassRunner(testClass);
                         } catch (InitializationError initializationError) {
                             return new ErrorReportingRunner(testClass, initializationError);
                         }
@@ -168,7 +178,18 @@ abstract class AbstractCompatibilityTestRunner extends Runner {
                 }
             });
 
-            runner.run(nested);
+            before();
+            try {
+                runner.run(nested);
+            } finally {
+                after();
+            }
+        }
+
+        protected void before() {
+        }
+
+        protected void after() {
         }
 
         private void map(Description source, Description parent) {
@@ -188,26 +209,19 @@ abstract class AbstractCompatibilityTestRunner extends Runner {
         /**
          * Returns a display name for this execution. Used in the Junit descriptions for test execution.
          */
-        abstract String getDisplayName();
-
-        /**
-         * Can modify the execution of a given test. The returned statement is executed after the rules and befores of the test have been executed.
-         */
-        protected Statement methodInvoker(Statement statement, FrameworkMethod method, Object test) {
-            return statement;
-        }
+        protected abstract String getDisplayName();
 
         /**
          * Returns true if this execution should be executed, false if it should be ignored. Default is true.
          */
-        boolean isEnabled() {
+        protected boolean isEnabled() {
             return true;
         }
 
         /**
          * Loads the target classes for this execution. Default is the target class that this runner was constructed with.
          */
-        List<? extends Class<?>> loadTargetClasses() {
+        protected List<? extends Class<?>> loadTargetClasses() {
             return Arrays.asList(target);
         }
     }

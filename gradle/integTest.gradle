@@ -1,8 +1,6 @@
 /*
  * Adds an 'integTest' source set, which contains the integration tests for the project.
  */
-import org.gradle.os.OperatingSystem
-
 apply plugin: 'java'
 rootProject.apply plugin: IntegTestPlugin
 
@@ -58,6 +56,8 @@ integTestTasks.all {
 
     testResultsDir = file("${project.testResultsDir}/$name")
 
+    systemProperties['org.gradle.integtest.versions'] = 'all'
+
     doFirst {
         testReportDir = file("${project.reportsDir}/$name")
         systemProperties['integTest.gradleHomeDir'] = integTestImageDir.absolutePath
@@ -65,6 +65,9 @@ integTestTasks.all {
         systemProperties['integTest.samplesdir'] = project(":docs").samplesDir.absolutePath
         // TODO - remove this once wharf is behaving itself
         delete fileTree(dir: "$integTestUserDir/worker-1/caches/artifacts-2/", include: "**/*.kryo")
+        if (isDevBuild()) {
+            systemProperties['org.gradle.integtest.versions'] = 'latest'
+        }
     }
 }
 
@@ -80,25 +83,17 @@ integTestTasks.all {
 }
 
 daemonIntegTest {
-    exclude "**/org/gradle/integtests/tooling/**", //tooling integ tests use daemon anyway, don't rerun
-            "**/CrossVersionCompatibilityIntegrationTest.class", //ignored just in case to avoid old daemon implementation
-            "**/DistributionIntegrationTest.class" //fragile - heavily depends on external repos and does not contribute too much to the daemon suite anyway
-
-  doLast {
-      if (project.hasProperty("waitForDaemonsToDieMillis")) {
-         println "Property 'waitForDaemonsToDieMillis' passed so I'm waiting $project.waitForDaemonsToDieMillis millis so that deamons can die with honor..."
-         Thread.sleep(Integer.parseInt(project.waitForDaemonsToDieMillis));
-      }
-  }
+    doLast {
+        if (project.hasProperty("waitForDaemonsToDieMillis")) {
+            println "Property 'waitForDaemonsToDieMillis' passed so I'm waiting $project.waitForDaemonsToDieMillis millis so that deamons can die with honor..."
+            Thread.sleep(Integer.parseInt(project.waitForDaemonsToDieMillis));
+        }
+    }
 }
 
 task integTest(type: Test) {
     doFirst {
         systemProperties['org.gradle.integtest.executer'] = integTestMode
-    }
-    if (OperatingSystem.current().isWindows()) {
-        //Temporary hack to investigate windows build issues
-        exclude "**/org/gradle/integtests/tooling/**"
     }
 }
 

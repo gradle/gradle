@@ -15,27 +15,22 @@
  */
 package org.gradle.integtests
 
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.BasicGradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
 
-@RunWith(CrossVersionCompatibilityTestRunner)
-class WrapperCrossVersionCompatibilityIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    BasicGradleDistribution previousVersion
-
-    @Test
+class WrapperCrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSpec {
     public void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
-        checkWrapperWorksWith(previousVersion, dist)
+        expect:
+        checkWrapperWorksWith(previous, current)
     }
 
-    @Test
     public void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
-        checkWrapperWorksWith(dist, previousVersion)
+        expect:
+        checkWrapperWorksWith(current, previous)
     }
 
-    def checkWrapperWorksWith(BasicGradleDistribution wrapperGenVersion, BasicGradleDistribution executionVersion) {
+    void checkWrapperWorksWith(BasicGradleDistribution wrapperGenVersion, BasicGradleDistribution executionVersion) {
         if (!wrapperGenVersion.wrapperCanExecute(executionVersion.version)) {
             println "skipping $wrapperGenVersion as its wrapper cannot execute version ${executionVersion.version}"
             return
@@ -43,7 +38,7 @@ class WrapperCrossVersionCompatibilityIntegrationTest {
 
         println "use wrapper from $wrapperGenVersion to build using $executionVersion"
 
-        dist.file('build.gradle') << """
+        current.file('build.gradle') << """
 
 task wrapper(type: Wrapper) {
     gradleVersion = '$executionVersion.version'
@@ -65,7 +60,7 @@ task hello {
         if (executer instanceof GradleDistributionExecuter) {
             executer.withDeprecationChecksDisabled()
         }
-        executer.inDirectory(this.dist.testDir)
+        executer.inDirectory(current.testDir)
         return executer;
     }
 }

@@ -16,29 +16,24 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
-import org.gradle.integtests.fixtures.CrossVersionCompatibilityTestRunner
-import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.gradle.integtests.fixtures.TestResources
 
-@RunWith(CrossVersionCompatibilityTestRunner)
-class JavaProjectCrossVersionCompatibilityIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
+class JavaProjectCrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSpec {
     @Rule public final TestResources resources = new TestResources("JavaProjectCrossVersionCompatibilityIntegrationTest/canBuildJavaProject")
-    BasicGradleDistribution previousVersion
 
     @Test
     public void "can upgrade and downgrade Gradle version used to build Java project"() {
-        dist.testFile('buildSrc/src/main/groovy').assertIsDir()
+        given:
+        current.testFile('buildSrc/src/main/groovy').assertIsDir()
 
-        executer(previousVersion).withTasks('build').run()
-
-        executer(dist).withTasks('build').run()
-
-        executer(previousVersion).withTasks('build').run()
+        expect:
+        executer(previous).withTasks('build').run()
+        executer(current).withTasks('build').run()
+        executer(previous).withTasks('build').run()
     }
 
     def executer(BasicGradleDistribution dist) {
@@ -46,7 +41,7 @@ class JavaProjectCrossVersionCompatibilityIntegrationTest {
         if (executer instanceof GradleDistributionExecuter) {
             executer.withDeprecationChecksDisabled()
         }
-        executer.inDirectory(this.dist.testDir)
+        executer.inDirectory(current.testDir)
         return executer;
     }
 }

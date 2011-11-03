@@ -15,9 +15,6 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.junit.runners.model.Statement
-import org.junit.runners.model.FrameworkMethod
-
 /**
  * Executes the target test class against each previous Gradle version.
  */
@@ -44,14 +41,8 @@ class CrossVersionCompatibilityTestRunner extends AbstractCompatibilityTestRunne
         }
 
         @Override
-        protected Statement methodInvoker(Statement statement, FrameworkMethod method, Object test) {
-            return new Statement(){
-                @Override
-                void evaluate() {
-                    test.previousVersion = previousVersion
-                    statement.evaluate()
-                }
-            }
+        protected void before() {
+            loadTargetClasses().each { it.previous = previousVersion }
         }
     }
 }

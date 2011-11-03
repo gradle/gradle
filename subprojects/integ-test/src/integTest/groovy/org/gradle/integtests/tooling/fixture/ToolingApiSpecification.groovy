@@ -25,19 +25,19 @@ import spock.lang.Specification
 import org.gradle.util.GradleVersion
 
 abstract class ToolingApiSpecification extends Specification {
+    static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiSpecification)
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    public final ToolingApi toolingApi = new ToolingApi(dist)
+    final ToolingApi toolingApi = new ToolingApi(dist)
+    private static final ThreadLocal<BasicGradleDistribution> VERSION = new ThreadLocal<BasicGradleDistribution>()
 
-    static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiSpecification)
-
-    String optionalTargetDist = null
-
-    BasicGradleDistribution getTargetDist() {
-        optionalTargetDist? dist.previousVersion(optionalTargetDist) : dist
+    static void select(BasicGradleDistribution version) {
+        this.VERSION.set(version)
     }
 
-    @Rule public final targetDistSelector = new TargetDistSelector()
+    BasicGradleDistribution getTargetDist() {
+        VERSION.get() ?: dist
+    }
 
     void setup() {
         toolingApi.withConnector {
