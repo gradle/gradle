@@ -318,7 +318,9 @@ public class UserResolverChain extends ChainResolver {
         
         public void resolveModule() {
             try {
-                resolvedModule = resolver.getDependency(resolvedDescriptor, resolveData);
+                // TODO:DAZ This should take the resolved descriptor, but this means that local repositories use cached dynamic version resolution
+                // Need to ensure that no caching is performed for local repositories before we make the switch
+                resolvedModule = resolver.getDependency(descriptor, resolveData);
                 dynamicRevisions.maybeSaveDynamicRevision(descriptor, resolvedModule);
             } catch (ParseException e) {
                 throw new RuntimeException(e);

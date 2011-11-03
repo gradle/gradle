@@ -64,7 +64,7 @@ task retrieve(type: Sync) {
         file('libs/projectB-9-beta.jar').assertIsCopyOf(moduleB.jarFile)
     }
 
-    public void "uses latest version for version range and latest_integration"() {
+    public void "does not cache resolution of dynamic versions or changing modules"() {
         distribution.requireOwnUserHomeDir()
         def repo = ivyRepo()
 
@@ -80,14 +80,10 @@ configurations {
     compile
 }
 
-// TODO:DAZ This should not be required - we should not cache dynamic versions resolution for local repositories
-configurations.all {
-    resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
-}
-
 dependencies {
     compile group: "group", name: "projectA", version: "1.+"
     compile group: "group", name: "projectB", version: "latest.integration"
+    compile group: "group", name: "projectC", version: "1.0", changing: true
 }
 
 task retrieve(type: Sync) {
@@ -101,24 +97,34 @@ task retrieve(type: Sync) {
         projectA1.publish()
         def projectB1 = repo.module("group", "projectB", "1.0")
         projectB1.publish()
+        def projectC1 = repo.module("group", "projectC", "1.0")
+        projectC1.publish()
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.1.jar', 'projectB-1.0.jar')
+        file('libs').assertHasDescendants('projectA-1.1.jar', 'projectB-1.0.jar', 'projectC-1.0.jar')
         file('libs/projectA-1.1.jar').assertIsCopyOf(projectA1.jarFile)
         file('libs/projectB-1.0.jar').assertIsCopyOf(projectB1.jarFile)
+        def jarC = file('libs/projectC-1.0.jar')
+        jarC.assertIsCopyOf(projectC1.jarFile)
+        def jarCsnapshot = jarC.snapshot()
 
         when:
         def projectA2 = repo.module("group", "projectA", "1.2")
         projectA2.publish()
         def projectB2 = repo.module("group", "projectB", "2.0")
         projectB2.publish()
+        projectC1.publishWithChangedContent()
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-2.0.jar')
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-2.0.jar', 'projectC-1.0.jar')
         file('libs/projectA-1.2.jar').assertIsCopyOf(projectA2.jarFile)
         file('libs/projectB-2.0.jar').assertIsCopyOf(projectB2.jarFile)
+
+        def jarC1 = file('libs/projectC-1.0.jar')
+        jarC1.assertIsCopyOf(projectC1.jarFile)
+        jarC1.assertHasChangedSince(jarCsnapshot)
     }
 
     def "resolves only artifacts attached to 'default' configuration when ivy pattern used"() {

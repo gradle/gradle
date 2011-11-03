@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 
 class MavenLocalDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
-    public void "can resolve snapshots from local Maven repository"() {
+    public void "can resolve snapshots uncached from local Maven repository"() {
         distribution.requireOwnUserHomeDir()
 
         given:
