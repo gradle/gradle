@@ -20,12 +20,12 @@ import org.gradle.util.TimeProvider;
 
 import java.io.Serializable;
 
-class DynamicVersionCacheEntry implements Serializable {
+class ModuleResolutionCacheEntry implements Serializable {
     public String encodedRevisionId;
     public long createTimestamp;
 
-    DynamicVersionCacheEntry(ModuleRevisionId revisionId, TimeProvider timeProvider) {
-        this.encodedRevisionId = revisionId.encodeToString();
+    ModuleResolutionCacheEntry(ModuleRevisionId revisionId, TimeProvider timeProvider) {
+        this.encodedRevisionId = revisionId == null ? null : revisionId.encodeToString();
         this.createTimestamp = timeProvider.getCurrentTime();
     }
 }

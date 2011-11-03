@@ -16,14 +16,13 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ChangingModuleRevision;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 
 import java.text.ParseException;
-import java.util.Collections;
 
 public class MavenResolver extends IBiblioResolver {
     public MavenResolver() {
@@ -38,14 +37,8 @@ public class MavenResolver extends IBiblioResolver {
 
             ResolvedModuleRevision changingModule = super.getDependency(changingDescriptor, data);
 
-            // Add flag to module indicating that it is changing
-            ModuleRevisionId resolvedId = changingModule.getDescriptor().getResolvedModuleRevisionId();
-            ModuleRevisionId changingId =
-                    ModuleRevisionId.newInstance(resolvedId.getOrganisation(), resolvedId.getName(), resolvedId.getRevision(),
-                            Collections.singletonMap("CHANGING_MODULE", "TRUE"));
-            changingModule.getDescriptor().setResolvedModuleRevisionId(changingId);
-
-            return changingModule;
+            // Return a ChangingModuleRevision to indicate that this module is changing
+            return new ChangingModuleRevision(changingModule);
         }
         return super.getDependency(dd, data);
     }

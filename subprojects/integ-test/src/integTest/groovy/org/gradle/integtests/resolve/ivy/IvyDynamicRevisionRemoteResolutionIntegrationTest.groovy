@@ -329,7 +329,7 @@ repositories {
 configurations { compile }
 
 configurations.all {
-    resolutionStrategy.expireDynamicVersionsAfter 0, 'seconds'
+    resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
 }
 
 dependencies {
@@ -390,7 +390,7 @@ configurations { compile }
 
 if (project.hasProperty('noDynamicRevisionCache')) {
     configurations.all {
-        resolutionStrategy.expireDynamicVersionsAfter 0, 'seconds'
+        resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
     }
 }
 

@@ -27,7 +27,7 @@ import org.apache.ivy.plugins.resolver.*;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DynamicVersionCache;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -44,16 +44,16 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final Factory<IvySettings> settingsFactory;
     private final Map<String, DependencyResolver> resolversById = new HashMap<String, DependencyResolver>();
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
-    private final DynamicVersionCache dynamicVersionCache;
+    private final ModuleResolutionCache moduleResolutionCache;
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private UserResolverChain userResolverChain;
     public EntryPointResolver entryPointResolver;
 
-    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory, DynamicVersionCache dynamicVersionCache) {
+    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory, ModuleResolutionCache moduleResolutionCache) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.settingsFactory = settingsFactory;
-        this.dynamicVersionCache = dynamicVersionCache;
+        this.moduleResolutionCache = moduleResolutionCache;
         Message.setDefaultLogger(new IvyLoggingAdaper());
     }
 
@@ -109,7 +109,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     private UserResolverChain createUserResolverChain() {
-        UserResolverChain chainResolver = new UserResolverChain(dynamicVersionCache);
+        UserResolverChain chainResolver = new UserResolverChain(moduleResolutionCache);
         chainResolver.setName(CHAIN_RESOLVER_NAME);
         chainResolver.setReturnFirst(true);
         chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));

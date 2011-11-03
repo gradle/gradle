@@ -29,43 +29,54 @@ import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 import java.io.File;
 import java.io.Serializable;
 
-public class SingleFileBackedDynamicVersionCache implements DynamicVersionCache {
+public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCache {
     private final TimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
-    private PersistentIndexedCache<RevisionKey, DynamicVersionCacheEntry> cache;
+    private PersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry> cache;
 
-    public SingleFileBackedDynamicVersionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public SingleFileBackedModuleResolutionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
         this.cacheMetadata = cacheMetadata;
     }
     
-    private PersistentIndexedCache<RevisionKey, DynamicVersionCacheEntry> getCache() {
+    private PersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry> getCache() {
         if (cache == null) {
             cache = initCache();
         }
         return cache;
     }
 
-    private PersistentIndexedCache<RevisionKey, DynamicVersionCacheEntry> initCache() {
+    private PersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry> initCache() {
         File dynamicRevisionsFile = new File(cacheMetadata.getCacheDir(), "dynamic-revisions.bin");
         FileLock dynamicRevisionsLock = cacheLockingManager.getCacheMetadataFileLock(dynamicRevisionsFile);
-        return new BTreePersistentIndexedCache<RevisionKey, DynamicVersionCacheEntry>(dynamicRevisionsFile, dynamicRevisionsLock,
-                new DefaultSerializer<DynamicVersionCacheEntry>(DynamicVersionCacheEntry.class.getClassLoader()));
+        return new BTreePersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry>(dynamicRevisionsFile, dynamicRevisionsLock,
+                new DefaultSerializer<ModuleResolutionCacheEntry>(ModuleResolutionCacheEntry.class.getClassLoader()));
     }
 
-    public ResolvedDynamicVersion getResolvedDynamicVersion(DependencyResolver resolver, ModuleRevisionId dynamicVersion) {
-        DynamicVersionCacheEntry dynamicVersionCacheEntry = getCache().get(createKey(resolver, dynamicVersion));
-        return dynamicVersionCacheEntry == null ? null : new DefaultResolvedDynamicVersion(dynamicVersionCacheEntry, timeProvider);
+    public void recordResolvedDynamicVersion(DependencyResolver resolver, ModuleRevisionId requestedVersion, ModuleRevisionId resolvedVersion) {
+        getCache().put(createKey(resolver, requestedVersion), createEntry(resolvedVersion));
     }
 
-    public void saveResolvedDynamicVersion(DependencyResolver resolver, ModuleRevisionId dynamicVersion, ModuleRevisionId resolvedVersion) {
-        getCache().put(createKey(resolver, dynamicVersion), createEntry(resolvedVersion));
+    public void recordChangingModuleResolution(DependencyResolver resolver, ModuleRevisionId module) {
+        getCache().put(createKey(resolver, module), createEntry(null));
+    }
+
+    public CachedModuleResolution getCachedModuleResolution(DependencyResolver resolver, ModuleRevisionId moduleId) {
+        ModuleResolutionCacheEntry moduleResolutionCacheEntry = getCache().get(createKey(resolver, moduleId));
+        if (moduleResolutionCacheEntry == null) {
+            return null;
+        }
+        return new DefaultCachedModuleResolution(moduleId, moduleResolutionCacheEntry, timeProvider);
     }
 
     private RevisionKey createKey(DependencyResolver resolver, ModuleRevisionId revisionId) {
         return new RevisionKey(resolver, revisionId);
+    }
+
+    private ModuleResolutionCacheEntry createEntry(ModuleRevisionId revisionId) {
+        return new ModuleResolutionCacheEntry(revisionId, timeProvider);
     }
 
     private static class RevisionKey implements Serializable {
@@ -90,10 +101,6 @@ public class SingleFileBackedDynamicVersionCache implements DynamicVersionCache 
         public int hashCode() {
             return resolverId.hashCode() ^ revisionId.hashCode();
         }
-    }
-
-    private DynamicVersionCacheEntry createEntry(ModuleRevisionId revisionId) {
-        return new DynamicVersionCacheEntry(revisionId, timeProvider);
     }
 
 }

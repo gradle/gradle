@@ -34,7 +34,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.DynamicVersionCachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DynamicVersionCache;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ChangingModuleRevision;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,8 +50,8 @@ public class UserResolverChain extends ChainResolver {
     private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
     private final DynamicRevisionDependencyConverter dynamicRevisions;
 
-    public UserResolverChain(DynamicVersionCache dynamicVersionCache) {
-        dynamicRevisions = new DynamicRevisionDependencyConverter(dynamicVersionCache);
+    public UserResolverChain(ModuleResolutionCache moduleResolutionCache) {
+        dynamicRevisions = new DynamicRevisionDependencyConverter(moduleResolutionCache);
     }
 
     public void setDynamicRevisionCachePolicy(DynamicVersionCachePolicy dynamicVersionCachePolicy) {
@@ -215,11 +216,11 @@ public class UserResolverChain extends ChainResolver {
     }
 
     private static class DynamicRevisionDependencyConverter {
-        private final DynamicVersionCache dynamicVersionCache;
+        private final ModuleResolutionCache moduleResolutionCache;
         private DynamicVersionCachePolicy dynamicVersionCachePolicy;
 
-        private DynamicRevisionDependencyConverter(DynamicVersionCache dynamicVersionCache) {
-            this.dynamicVersionCache = dynamicVersionCache;
+        private DynamicRevisionDependencyConverter(ModuleResolutionCache moduleResolutionCache) {
+            this.moduleResolutionCache = moduleResolutionCache;
         }
 
         public void setDynamicRevisionCachePolicy(DynamicVersionCachePolicy dynamicVersionCachePolicy) {
@@ -233,49 +234,55 @@ public class UserResolverChain extends ChainResolver {
 
             ModuleRevisionId originalId = original.getDependencyRevisionId();
             ModuleRevisionId resolvedId = downloadedModule.getId();
-            if (sameVersion(originalId, resolvedId) && !isChanging(original, downloadedModule)) {
-                return;
-            }
 
-            LOGGER.debug("Caching resolved revision in dynamic revision cache: Will use '{}' for '{}'", resolvedId, originalId);
-            dynamicVersionCache.saveResolvedDynamicVersion(downloadedModule.getResolver(), originalId, resolvedId);
+            if (isChangingModule(original, downloadedModule)) {
+                LOGGER.debug("Recording changing module in module resolution cache: {}", resolvedId);
+                moduleResolutionCache.recordChangingModuleResolution(downloadedModule.getResolver(), resolvedId);
+            }
+            if (isDynamicVersion(original, downloadedModule)) {
+                LOGGER.debug("Caching resolved revision in dynamic revision cache: Will use '{}' for '{}'", resolvedId, originalId);
+                moduleResolutionCache.recordResolvedDynamicVersion(downloadedModule.getResolver(), originalId, resolvedId);
+            }
         }
 
         public DependencyDescriptor maybeResolveDynamicRevision(DependencyResolver resolver, DependencyDescriptor original) {
             assert dynamicVersionCachePolicy != null : "dynamicRevisionExpiryPolicy was not configured";
 
             ModuleRevisionId originalId = original.getDependencyRevisionId();
-            DynamicVersionCache.ResolvedDynamicVersion resolvedRevision = dynamicVersionCache.getResolvedDynamicVersion(resolver, originalId);
-            if (resolvedRevision == null) {
-                return original;
-            }
-            if (dynamicVersionCachePolicy.mustCheckForUpdates(resolvedRevision.getModule(), resolvedRevision.getAgeMillis())) {
-                LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}'", originalId);
-
-                // TODO Should not be using id equality to cache changing module status (use separate cache entry)
-                // Need to force update of changing modules
-                if (sameVersion(originalId, resolvedRevision.getRevision())) {
-                    return ForceChangeDependencyDescriptor.forceChangingFlag(original, true);
-                }
-
+            ModuleResolutionCache.CachedModuleResolution cachedModuleResolution = moduleResolutionCache.getCachedModuleResolution(resolver, originalId);
+            if (cachedModuleResolution == null) {
                 return original;
             }
             
-            if (sameVersion(originalId, resolvedRevision.getRevision())) {
-                LOGGER.debug("Found cached version of changing module: Using cached metadata for '{}'", originalId);
-                return ForceChangeDependencyDescriptor.forceChangingFlag(original, false);
+            DependencyDescriptor modified = original;
+            if (cachedModuleResolution.isDynamicVersion()) {
+                if (dynamicVersionCachePolicy.mustCheckForUpdates(cachedModuleResolution.getResolvedModule(), cachedModuleResolution.getAgeMillis())) {
+                    LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}'", originalId);                    
+                } else {
+                    LOGGER.debug("Found resolved revision in dynamic revision cache: Using '{}' for '{}'", cachedModuleResolution.getResolvedVersion(), originalId);
+                    modified = modified.clone(cachedModuleResolution.getResolvedVersion());
+                }
+            }
+            
+            if (cachedModuleResolution.isChangingModule()) {
+                if (dynamicVersionCachePolicy.mustCheckForUpdates(cachedModuleResolution.getResolvedModule(), cachedModuleResolution.getAgeMillis())) {
+                    LOGGER.debug("Resolved changing module in cache is expired: will perform fresh resolve of '{}'", originalId);
+                    modified = ForceChangeDependencyDescriptor.forceChangingFlag(modified, true);
+                } else {
+                    LOGGER.debug("Found cached version of changing module: Using cached metadata for '{}'", originalId);
+                    modified = ForceChangeDependencyDescriptor.forceChangingFlag(modified, false);
+                }
             }
 
-            LOGGER.debug("Found resolved revision in dynamic revision cache: Using '{}' for '{}'", resolvedRevision.getRevision(), originalId);
-            return original.clone(resolvedRevision.getRevision());
-        }
-        
-        private boolean sameVersion(ModuleRevisionId one, ModuleRevisionId two) {
-            return one.getModuleId().equals(two.getModuleId()) && one.getRevision().equals(two.getRevision());
+            return modified;
         }
 
-        private boolean isChanging(DependencyDescriptor descriptor, ResolvedModuleRevision downloadedModule) {
-            return descriptor.isChanging() || downloadedModule.getDescriptor().getExtraAttribute("CHANGING_MODULE") != null;
+        private boolean isChangingModule(DependencyDescriptor descriptor, ResolvedModuleRevision downloadedModule) {
+            return descriptor.isChanging() || downloadedModule instanceof ChangingModuleRevision;
+        }
+
+        private boolean isDynamicVersion(DependencyDescriptor descriptor, ResolvedModuleRevision downloadedModule) {
+            return !descriptor.getDependencyRevisionId().equals(downloadedModule.getId());
         }
     }
 

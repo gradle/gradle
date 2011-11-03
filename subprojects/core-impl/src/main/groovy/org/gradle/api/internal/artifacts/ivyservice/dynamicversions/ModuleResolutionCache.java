@@ -16,29 +16,24 @@
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ResolvedModule;
-import org.gradle.util.TimeProvider;
 
-import java.io.Serializable;
+public interface ModuleResolutionCache {
 
-class DefaultResolvedDynamicVersion implements DynamicVersionCache.ResolvedDynamicVersion, Serializable {
-    private final ModuleRevisionId revision;
-    private final long ageMillis;
+    void recordResolvedDynamicVersion(DependencyResolver resolver, ModuleRevisionId dynamicVersion, ModuleRevisionId resolvedVersion);
 
-    public DefaultResolvedDynamicVersion(DynamicVersionCacheEntry entry, TimeProvider timeProvider) {
-        revision = ModuleRevisionId.decode(entry.encodedRevisionId);
-        ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
-    }
+    void recordChangingModuleResolution(DependencyResolver resolver, ModuleRevisionId module);
 
-    public ResolvedModule getModule() {
-        return new DefaultResolvedModule(revision);
-    }
+    CachedModuleResolution getCachedModuleResolution(DependencyResolver resolver, ModuleRevisionId dynamicVersion);
 
-    public ModuleRevisionId getRevision() {
-        return revision;
-    }
+    interface CachedModuleResolution {
+        ModuleRevisionId getRequestedVersion();
+        ModuleRevisionId getResolvedVersion();
+        ResolvedModule getResolvedModule();
 
-    public long getAgeMillis() {
-        return ageMillis;
+        boolean isDynamicVersion();
+        boolean isChangingModule();
+        long getAgeMillis();
     }
 }
