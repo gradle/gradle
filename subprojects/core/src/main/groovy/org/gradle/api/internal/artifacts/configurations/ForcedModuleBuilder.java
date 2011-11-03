@@ -23,9 +23,13 @@ import org.gradle.api.artifacts.ModuleIdentifier;
  */
 public class ForcedModuleBuilder {
 
-    public ModuleIdentifier build(String notation) {
+    public ModuleIdentifier build(Object notation) {
         assert notation != null : "notation cannot be null";
-        String[] split = notation.split(":");
+        if (notation instanceof ModuleIdentifier) {
+            return (ModuleIdentifier) notation;
+        }
+
+        String[] split = notation.toString().split(":");
         if (split.length != 3) {
             throw new InvalidDependencyFormat(
                 "Invalid format: '" + notation + "'. Correct notation is a 3-part gav notation,"
@@ -34,6 +38,10 @@ public class ForcedModuleBuilder {
         final String group = split[0];
         final String name = split[1];
         final String version = split[2];
+        return identifier(group, name, version);
+    }
+
+    static ModuleIdentifier identifier(final String group, final String name, final String version) {
         return new ModuleIdentifier() {
             public String getGroup() {
                 return group;

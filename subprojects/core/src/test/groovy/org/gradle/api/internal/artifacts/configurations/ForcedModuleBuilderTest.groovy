@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.configurations.ForcedModuleBuilder.InvalidDependencyFormat
 import spock.lang.Specification
 
@@ -33,6 +34,18 @@ public class ForcedModuleBuilderTest extends Specification {
         v.group == 'org.foo'
         v.name  == 'bar'
         v.version  == '1.0'
+    }
+
+    def "allows exact type on input"() {
+        ModuleIdentifier id = ForcedModuleBuilder.identifier("org.foo", "bar", "2.0")
+
+        when:
+        def v = new ForcedModuleBuilder().build(id)
+
+        then:
+        v.group == 'org.foo'
+        v.name  == 'bar'
+        v.version  == '2.0'
     }
 
     def "reports invalid format"() {
