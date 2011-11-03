@@ -233,7 +233,7 @@ public class UserResolverChain extends ChainResolver {
 
             ModuleRevisionId originalId = original.getDependencyRevisionId();
             ModuleRevisionId resolvedId = downloadedModule.getId();
-            if (originalId.equals(resolvedId) && !isChanging(original)) {
+            if (sameVersion(originalId, resolvedId) && !isChanging(original, downloadedModule)) {
                 return;
             }
 
@@ -247,14 +247,21 @@ public class UserResolverChain extends ChainResolver {
             ModuleRevisionId originalId = original.getDependencyRevisionId();
             DynamicVersionCache.ResolvedDynamicVersion resolvedRevision = dynamicVersionCache.getResolvedDynamicVersion(resolver, originalId);
             if (resolvedRevision == null) {
-                return tweakSnapshot(original);
+                return original;
             }
             if (dynamicVersionCachePolicy.mustCheckForUpdates(resolvedRevision.getModule(), resolvedRevision.getAgeMillis())) {
                 LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}'", originalId);
-                return tweakSnapshot(original);
+
+                // TODO Should not be using id equality to cache changing module status (use separate cache entry)
+                // Need to force update of changing modules
+                if (sameVersion(originalId, resolvedRevision.getRevision())) {
+                    return ForceChangeDependencyDescriptor.forceChangingFlag(original, true);
+                }
+
+                return original;
             }
             
-            if (originalId.equals(resolvedRevision.getRevision())) {
+            if (sameVersion(originalId, resolvedRevision.getRevision())) {
                 LOGGER.debug("Found cached version of changing module: Using cached metadata for '{}'", originalId);
                 return ForceChangeDependencyDescriptor.forceChangingFlag(original, false);
             }
@@ -262,18 +269,13 @@ public class UserResolverChain extends ChainResolver {
             LOGGER.debug("Found resolved revision in dynamic revision cache: Using '{}' for '{}'", resolvedRevision.getRevision(), originalId);
             return original.clone(resolvedRevision.getRevision());
         }
-
-        // TODO:DAZ Check for SNAPSHOT should be done inside MavenRepositoryResolver, which can set the changing flag on descriptor if required
-        private boolean isChanging(DependencyDescriptor descriptor) {
-            return descriptor.isChanging() || descriptor.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT");
+        
+        private boolean sameVersion(ModuleRevisionId one, ModuleRevisionId two) {
+            return one.getModuleId().equals(two.getModuleId()) && one.getRevision().equals(two.getRevision());
         }
 
-        // TODO:DAZ Setting changing flag for SNAPSHOT should be done inside MavenRepositoryResolver
-        private DependencyDescriptor tweakSnapshot(DependencyDescriptor original) {
-            if (original.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT")) {
-                return ForceChangeDependencyDescriptor.forceChangingFlag(original, true);
-            }
-            return original;
+        private boolean isChanging(DependencyDescriptor descriptor, ResolvedModuleRevision downloadedModule) {
+            return descriptor.isChanging() || downloadedModule.getDescriptor().getExtraAttribute("CHANGING_MODULE") != null;
         }
     }
 
