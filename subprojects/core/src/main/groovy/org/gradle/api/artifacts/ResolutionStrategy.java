@@ -54,25 +54,25 @@ public interface ResolutionStrategy {
      * Configures forced versions in DSL friendly fashion
      *
      *
-     * @param forcedVersions gav notations
+     * @param forcedModules gav notations
      * @return this ResolutionStrategy instance
      */
-    ResolutionStrategy force(String... forcedVersions);
+    ResolutionStrategy force(String... forcedModules);
 
     /**
      * Replaces existing forced versions with the passed ones.
      *
-     * @param forcedVersions forced versions to set
+     * @param forcedModules forced modules to set
      * @return this ResolutionStrategy instance
      */
-    ResolutionStrategy setForce(Iterable<ForcedVersion> forcedVersions);
+    ResolutionStrategy setForce(Iterable<ModuleIdentifier> forcedModules);
 
     /**
      * returns currently configured forced versions
      *
      * @return forced versions
      */
-    Set<ForcedVersion> getForce();
+    Set<ModuleIdentifier> getForce();
 
     /**
      * use the latest of conflicting versions and move on

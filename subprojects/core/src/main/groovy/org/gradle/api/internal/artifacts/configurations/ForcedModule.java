@@ -16,22 +16,24 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.ForcedVersion;
+import org.gradle.api.artifacts.ModuleIdentifier;
 
 /**
  * by Szczepan Faber, created at: 10/11/11
  */
-public class DefaultForcedVersion implements ForcedVersion {
+public class ForcedModule implements ModuleIdentifier {
     private String group;
     private String name;
     private String version;
 
-    public DefaultForcedVersion(String forcedVersion) {
-        assert forcedVersion != null : "forcedVersion cannot be null";
-        String[] split = forcedVersion.split(":");
+    //TODO SF overlaps with DefaultResolvedModuleId
+
+    public ForcedModule(String notation) {
+        assert notation != null : "notation cannot be null";
+        String[] split = notation.split(":");
         if (split.length != 3) {
             throw new InvalidDependencyFormat(
-                "Invalid format: '" + forcedVersion + "'. Forced version only understands 3-part gav notation,"
+                "Invalid format: '" + notation + "'. Correct notation is a 3-part gav notation,"
                 + "e.g. group:artifact:version. Example: org.gradle:gradle-core:1.0-milestone-3");
         }
         group = split[0];

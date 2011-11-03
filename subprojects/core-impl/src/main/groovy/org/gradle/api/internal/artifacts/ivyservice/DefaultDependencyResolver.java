@@ -75,7 +75,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         } else {
             conflictResolver = new LatestModuleConflictResolver();
         }
-        conflictResolver = new ForcedVersionConflictResolver(conflictResolver);
+        conflictResolver = new ForcedModuleConflictResolver(conflictResolver);
         ResolvedConfigurationImpl result = new ResolvedConfigurationImpl(configuration, root.getResult());
         resolve(dependencyResolver, result, root, resolveState, resolveData, artifactResolver, conflictResolver);
 
@@ -548,10 +548,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         abstract ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root);
     }
 
-    private static class ForcedVersionConflictResolver extends ModuleConflictResolver {
+    private static class ForcedModuleConflictResolver extends ModuleConflictResolver {
         private final ModuleConflictResolver resolver;
 
-        private ForcedVersionConflictResolver(ModuleConflictResolver resolver) {
+        private ForcedModuleConflictResolver(ModuleConflictResolver resolver) {
             this.resolver = resolver;
         }
 

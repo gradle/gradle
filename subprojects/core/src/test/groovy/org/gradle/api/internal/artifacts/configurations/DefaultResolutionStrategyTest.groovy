@@ -51,7 +51,7 @@ public class DefaultResolutionStrategyTest extends Specification {
         strategy.force 'org.foo:bar:1.0'
 
         when:
-        strategy.force = [new DefaultForcedVersion('hello:world:1.0')]
+        strategy.force = [new ForcedModule('hello:world:1.0')]
 
         then:
         def versions = strategy.force as List

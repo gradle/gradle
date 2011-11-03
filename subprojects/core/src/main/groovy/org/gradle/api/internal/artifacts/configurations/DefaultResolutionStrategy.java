@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ConflictResolution;
-import org.gradle.api.artifacts.ForcedVersion;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.DefaultDynamicVersionCachePolicy;
@@ -33,12 +33,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
-    private Set<ForcedVersion> forcedVersions = new LinkedHashSet<ForcedVersion>();
+    private Set<ModuleIdentifier> forcedModules = new LinkedHashSet<ModuleIdentifier>();
     private ConflictResolution conflictResolution = new LatestConflictResolution();
     private final DefaultDynamicVersionCachePolicy dynamicVersionCachePolicy = new DefaultDynamicVersionCachePolicy();
 
-    public Set<ForcedVersion> getForce() {
-        return forcedVersions;
+    public Set<ModuleIdentifier> getForce() {
+        return forcedModules;
     }
 
     public ConflictResolution latest() {
@@ -59,16 +59,16 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
-    public DefaultResolutionStrategy force(String... forcedVersions) {
-        assert forcedVersions != null : "forcedVersions cannot be null";
-        for (String forcedVersion : forcedVersions) {
-            this.forcedVersions.add(new DefaultForcedVersion(forcedVersion));
+    public DefaultResolutionStrategy force(String... forcedModules) {
+        assert forcedModules != null : "forcedModules cannot be null";
+        for (String forced : forcedModules) {
+            this.forcedModules.add(new ForcedModule(forced));
         }
         return this;
     }
 
-    public DefaultResolutionStrategy setForce(Iterable<ForcedVersion> forcedVersions) {
-        this.forcedVersions = GUtil.toSet(forcedVersions);
+    public DefaultResolutionStrategy setForce(Iterable<ModuleIdentifier> forcedModules) {
+        this.forcedModules = GUtil.toSet(forcedModules);
         return this;
     }
 

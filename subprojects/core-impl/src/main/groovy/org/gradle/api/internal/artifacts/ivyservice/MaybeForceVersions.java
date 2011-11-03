@@ -21,7 +21,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.util.extendable.UnmodifiableExtendableItem;
-import org.gradle.api.artifacts.ForcedVersion;
+import org.gradle.api.artifacts.ModuleIdentifier;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -33,17 +33,17 @@ import java.util.Set;
  * by Szczepan Faber, created at: 10/14/11
  */
 class MaybeForceVersions implements IvyResolutionListener {
-    private final Set<ForcedVersion> forcedVersions;
+    private final Set<ModuleIdentifier> forcedModules;
 
-    public MaybeForceVersions(Set<ForcedVersion> forcedVersions) {
-        this.forcedVersions = forcedVersions;
+    public MaybeForceVersions(Set<ModuleIdentifier> forcedModules) {
+        this.forcedModules = forcedModules;
     }
 
     public void beforeMetadataResolved(DependencyDescriptor dd, ResolveData data) {
-        if (forcedVersions == null) {
+        if (forcedModules == null) {
             return;
         }
-        for (ForcedVersion forced : forcedVersions) {
+        for (ModuleIdentifier forced : forcedModules) {
             if (ModuleId.newInstance(forced.getGroup(), forced.getName()).equals(dd.getDependencyId())) {
                 updateFieldValue(dd.getDependencyRevisionId(), "revision", forced.getVersion());
                 ((Map) getFieldValue(UnmodifiableExtendableItem.class, dd.getDependencyRevisionId(), "attributes"))
