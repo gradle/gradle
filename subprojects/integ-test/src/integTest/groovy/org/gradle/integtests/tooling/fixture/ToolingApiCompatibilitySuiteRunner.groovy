@@ -35,7 +35,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         ToolingApiCompatibilitySuite suite = target.newInstance()
         List<Permutation> permutations = []
         previous.each {
-            if (version(it) < version('1.0-milestone-3')) {
+            if (version(it.version) < version('1.0-milestone-3')) {
                 return
             }
             permutations << new Permutation(suite, current, it)
