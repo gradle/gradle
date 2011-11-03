@@ -33,9 +33,9 @@ import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.DynamicVersionCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ChangingModuleRevision;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,8 +54,8 @@ public class UserResolverChain extends ChainResolver {
         dynamicRevisions = new DynamicRevisionDependencyConverter(moduleResolutionCache);
     }
 
-    public void setDynamicRevisionCachePolicy(DynamicVersionCachePolicy dynamicVersionCachePolicy) {
-        dynamicRevisions.setDynamicRevisionCachePolicy(dynamicVersionCachePolicy);
+    public void setCachePolicy(CachePolicy cachePolicy) {
+        dynamicRevisions.setCachePolicy(cachePolicy);
     }
 
     @Override
@@ -217,14 +217,14 @@ public class UserResolverChain extends ChainResolver {
 
     private static class DynamicRevisionDependencyConverter {
         private final ModuleResolutionCache moduleResolutionCache;
-        private DynamicVersionCachePolicy dynamicVersionCachePolicy;
+        private CachePolicy cachePolicy;
 
         private DynamicRevisionDependencyConverter(ModuleResolutionCache moduleResolutionCache) {
             this.moduleResolutionCache = moduleResolutionCache;
         }
 
-        public void setDynamicRevisionCachePolicy(DynamicVersionCachePolicy dynamicVersionCachePolicy) {
-            this.dynamicVersionCachePolicy = dynamicVersionCachePolicy;
+        public void setCachePolicy(CachePolicy cachePolicy) {
+            this.cachePolicy = cachePolicy;
         }
 
         public void maybeSaveDynamicRevision(DependencyDescriptor original, ResolvedModuleRevision downloadedModule) {
@@ -246,17 +246,16 @@ public class UserResolverChain extends ChainResolver {
         }
 
         public DependencyDescriptor maybeResolveDynamicRevision(DependencyResolver resolver, DependencyDescriptor original) {
-            assert dynamicVersionCachePolicy != null : "dynamicRevisionExpiryPolicy was not configured";
+            assert cachePolicy != null : "dynamicRevisionExpiryPolicy was not configured";
 
             ModuleRevisionId originalId = original.getDependencyRevisionId();
             ModuleResolutionCache.CachedModuleResolution cachedModuleResolution = moduleResolutionCache.getCachedModuleResolution(resolver, originalId);
             if (cachedModuleResolution == null) {
                 return original;
             }
-            
             DependencyDescriptor modified = original;
             if (cachedModuleResolution.isDynamicVersion()) {
-                if (dynamicVersionCachePolicy.mustCheckForUpdates(cachedModuleResolution.getResolvedModule(), cachedModuleResolution.getAgeMillis())) {
+                if (cachePolicy.mustRefreshDynamicVersion(cachedModuleResolution.getResolvedModule(), cachedModuleResolution.getAgeMillis())) {
                     LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}'", originalId);                    
                 } else {
                     LOGGER.debug("Found resolved revision in dynamic revision cache: Using '{}' for '{}'", cachedModuleResolution.getResolvedVersion(), originalId);
@@ -265,7 +264,7 @@ public class UserResolverChain extends ChainResolver {
             }
             
             if (cachedModuleResolution.isChangingModule()) {
-                if (dynamicVersionCachePolicy.mustCheckForUpdates(cachedModuleResolution.getResolvedModule(), cachedModuleResolution.getAgeMillis())) {
+                if (cachePolicy.mustRefreshChangingModule(cachedModuleResolution.getResolvedModule(), cachedModuleResolution.getAgeMillis())) {
                     LOGGER.debug("Resolved changing module in cache is expired: will perform fresh resolve of '{}'", originalId);
                     modified = ForceChangeDependencyDescriptor.forceChangingFlag(modified, true);
                 } else {

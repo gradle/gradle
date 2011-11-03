@@ -54,7 +54,7 @@ configurations { compile }
 
 if (project.hasProperty('noTimeout')) {
     configurations.all {
-        resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
     }
 }
 

@@ -17,15 +17,8 @@ package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
 import org.gradle.api.artifacts.ResolvedModule;
 
-/**
- * Specifies when we can use cached values for Dynamic Revisions.
- */
-public interface DynamicVersionCachePolicy {
-    /**
-     * Returns whether a cached resolution value for a dynamic revision can be used, or if the dynamic revision should be resolved again to get the latest version.
-     * @param module The resolved module
-     * @param ageMillis The age of the cache entry in milliseconds
-     * @return True if the revision must be resolved again
-     */
-    boolean mustCheckForUpdates(ResolvedModule module, long ageMillis);
+public interface CachePolicy {
+    boolean mustRefreshDynamicVersion(ResolvedModule module, long ageMillis);
+
+    boolean mustRefreshChangingModule(ResolvedModule module, long ageMillis);
 }

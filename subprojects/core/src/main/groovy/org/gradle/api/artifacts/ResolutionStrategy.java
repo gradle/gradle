@@ -100,4 +100,21 @@ public interface ResolutionStrategy {
      * @param units The units
      */
     void cacheDynamicVersionsFor(int value, TimeUnit units);
+
+    /**
+     * A convenience method for calling {@link #cacheChangingModulesFor(int, java.util.concurrent.TimeUnit)} with named units.
+     * Units are resolved using {@link java.util.concurrent.TimeUnit#valueOf(String)} on the upper-cased string value.
+     * @param value The number of time units
+     * @param units The units
+     */
+    void cacheChangingModulesFor(int value, String units);
+
+    /**
+     * Gradle caches the contents and artifacts of changing modules. By default, these cached values are kept for 24 hours,
+     * after which the cached entry is expired and the module is resolved again.
+     * Use this method to provide a custom expiry time after which the cached entries for any changing module will be expired.
+     * @param value The number of time units
+     * @param units The units
+     */
+    void cacheChangingModulesFor(int value, TimeUnit units);
 }

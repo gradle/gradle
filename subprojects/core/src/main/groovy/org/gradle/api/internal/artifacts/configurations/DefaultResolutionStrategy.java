@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.ConflictResolution;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.DefaultDynamicVersionCachePolicy;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.DynamicVersionCachePolicy;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.DefaultCachePolicy;
 import org.gradle.util.GUtil;
 
 import java.util.LinkedHashSet;
@@ -35,7 +35,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     private Set<ModuleIdentifier> forcedModules = new LinkedHashSet<ModuleIdentifier>();
     private ConflictResolution conflictResolution = new LatestConflictResolution();
-    private final DefaultDynamicVersionCachePolicy dynamicVersionCachePolicy = new DefaultDynamicVersionCachePolicy();
+    private final DefaultCachePolicy cachePolicy = new DefaultCachePolicy();
 
     public Set<ModuleIdentifier> getForcedModules() {
         return forcedModules;
@@ -72,8 +72,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
-    public DynamicVersionCachePolicy getDynamicVersionCachePolicy() {
-        return dynamicVersionCachePolicy;
+    public CachePolicy getCachePolicy() {
+        return cachePolicy;
     }
 
     public void cacheDynamicVersionsFor(int value, String units) {
@@ -82,6 +82,15 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public void cacheDynamicVersionsFor(int value, TimeUnit units) {
-        this.dynamicVersionCachePolicy.cacheDynamicVersionsFor(value, units);
+        this.cachePolicy.cacheDynamicVersionsFor(value, units);
+    }
+
+    public void cacheChangingModulesFor(int value, String units) {
+        TimeUnit timeUnit = TimeUnit.valueOf(units.toUpperCase());
+        cacheChangingModulesFor(value, timeUnit);
+    }
+
+    public void cacheChangingModulesFor(int value, TimeUnit units) {
+        this.cachePolicy.cacheChangingModulesFor(value, units);
     }
 }

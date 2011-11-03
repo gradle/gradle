@@ -80,9 +80,9 @@ configurations {
     compile
 }
 
-// TODO:DAZ I don't think this should not be required - can we not cache dynamic versions for local-only resolution?
+// TODO:DAZ This should not be required - we should not cache dynamic versions resolution for local repositories
 configurations.all {
-    resolutionStrategy.expireDynamicVersionsAfter 0, 'seconds'
+    resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
 }
 
 dependencies {

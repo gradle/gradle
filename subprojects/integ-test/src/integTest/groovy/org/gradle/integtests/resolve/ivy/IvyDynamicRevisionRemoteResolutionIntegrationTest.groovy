@@ -266,7 +266,7 @@ repositories {
 configurations { compile }
 
 configurations.all {
-    resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
 
 dependencies {
@@ -329,7 +329,7 @@ repositories {
 configurations { compile }
 
 configurations.all {
-    resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
 
 dependencies {
@@ -390,7 +390,7 @@ configurations { compile }
 
 if (project.hasProperty('noDynamicRevisionCache')) {
     configurations.all {
-        resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
     }
 }
 

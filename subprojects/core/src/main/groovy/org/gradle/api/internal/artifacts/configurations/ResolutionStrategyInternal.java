@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ResolutionStrategy;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.DynamicVersionCachePolicy;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {
     /**
@@ -24,5 +24,5 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      *
      * @return the expiry policy
      */
-    DynamicVersionCachePolicy getDynamicVersionCachePolicy();
+    CachePolicy getCachePolicy();
 }
