@@ -28,7 +28,7 @@ public class DefaultDynamicVersionCachePolicy implements DynamicVersionCachePoli
     private final List<Action<CachedDynamicVersion>> userActionList = new ArrayList<Action<CachedDynamicVersion>>();
     private final Action<CachedDynamicVersion> defaultAction = new FixedAgeDynamicVersionCheck(SECONDS_IN_DAY, TimeUnit.SECONDS);
 
-    public void expireDynamicVersionsAfter(int value, TimeUnit unit) {
+    public void cacheDynamicVersionsFor(int value, TimeUnit unit) {
         this.userActionList.clear();
         this.userActionList.add(new FixedAgeDynamicVersionCheck(value, unit));
     }

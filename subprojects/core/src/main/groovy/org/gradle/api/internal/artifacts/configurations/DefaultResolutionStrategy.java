@@ -35,7 +35,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     private Set<ForcedVersion> forcedVersions = new LinkedHashSet<ForcedVersion>();
     private ConflictResolution conflictResolution = new LatestConflictResolution();
-    private final DefaultDynamicVersionCachePolicy dynamicRevisionCachePolicy = new DefaultDynamicVersionCachePolicy();
+    private final DefaultDynamicVersionCachePolicy dynamicVersionCachePolicy = new DefaultDynamicVersionCachePolicy();
 
     public Set<ForcedVersion> getForce() {
         return forcedVersions;
@@ -72,12 +72,16 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
-    public DynamicVersionCachePolicy getDynamicRevisionCachePolicy() {
-        return dynamicRevisionCachePolicy;
+    public DynamicVersionCachePolicy getDynamicVersionCachePolicy() {
+        return dynamicVersionCachePolicy;
     }
 
-    public void expireDynamicVersionsAfter(Integer value, String units) {
-        TimeUnit unit = TimeUnit.valueOf(units.toUpperCase());
-        this.dynamicRevisionCachePolicy.expireDynamicVersionsAfter(value, unit);
+    public void cacheDynamicVersionsFor(int value, String units) {
+        TimeUnit timeUnit = TimeUnit.valueOf(units.toUpperCase());
+        cacheDynamicVersionsFor(value, timeUnit);
+    }
+
+    public void cacheDynamicVersionsFor(int value, TimeUnit units) {
+        this.dynamicVersionCachePolicy.cacheDynamicVersionsFor(value, units);
     }
 }

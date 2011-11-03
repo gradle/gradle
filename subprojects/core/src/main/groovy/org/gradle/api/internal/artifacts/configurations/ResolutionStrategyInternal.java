@@ -24,5 +24,5 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      *
      * @return the expiry policy
      */
-    DynamicVersionCachePolicy getDynamicRevisionCachePolicy();
+    DynamicVersionCachePolicy getDynamicVersionCachePolicy();
 }
