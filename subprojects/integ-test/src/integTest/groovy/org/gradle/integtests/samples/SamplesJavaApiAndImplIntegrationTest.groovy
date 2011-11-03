@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests
+package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.internal.*
-
+import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.junit.Rule
 
 class SamplesJavaApiAndImplIntegrationTest extends AbstractIntegrationSpec {

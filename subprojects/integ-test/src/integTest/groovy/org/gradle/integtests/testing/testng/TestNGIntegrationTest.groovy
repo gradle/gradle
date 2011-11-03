@@ -17,13 +17,10 @@
 
 package org.gradle.integtests.testing.testng
 
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
+import org.gradle.integtests.fixtures.*
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat

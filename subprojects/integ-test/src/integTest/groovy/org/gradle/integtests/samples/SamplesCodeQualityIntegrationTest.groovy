@@ -13,30 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests
+package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.util.JUnitTestExecutionResult
 
-class SamplesAntlrIntegrationTest {
+/**
+ * @author Hans Dockter
+ */
+class SamplesCodeQualityIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('antlr')
+    @Rule public final Sample sample = new Sample('codeQuality')
 
     @Test
-    public void canBuild() {
+    public void checkReportsGenerated() {
         TestFile projectDir = sample.dir
+        TestFile buildDir = projectDir.file('build')
 
-        // Build and test projects
-        executer.inDirectory(projectDir).withTasks('clean', 'build').withArguments("--no-opt").run()
+        executer.inDirectory(projectDir).withTasks('check').run()
 
-        // Check tests have run
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(projectDir)
-        result.assertTestClassesExecuted('org.gradle.GrammarTest')
+        buildDir.file('checkstyle/main.xml').assertIsFile()
+        buildDir.file('reports/codenarc/main.html').assertIsFile()
+        buildDir.file('reports/codenarc/test.html').assertIsFile()
     }
 }

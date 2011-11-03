@@ -17,6 +17,7 @@ package org.gradle.integtests.testing.junit
 
 import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.JUnitTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
@@ -25,7 +26,6 @@ import org.junit.Test
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
-import org.gradle.integtests.util.JUnitTestExecutionResult
 
 public class JUnitIntegrationTest extends AbstractIntegrationTest {
     @Rule public final TestResources resources = new TestResources()

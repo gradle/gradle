@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.util.JUnitTestExecutionResult
 
-class SamplesGroovyCustomizedLayoutIntegrationTest {
+class SamplesGroovyQuickstartIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('groovy/customizedLayout')
+    @Rule public final Sample sample = new Sample('groovy/quickstart')
 
     @Test
     public void groovyProjectQuickstartSample() {
@@ -40,10 +40,14 @@ class SamplesGroovyCustomizedLayoutIntegrationTest {
 
         // Check contents of jar
         TestFile tmpDir = dist.testDir.file('jarContents')
-        groovyProjectDir.file('build/libs/customizedLayout.jar').unzipTo(tmpDir)
+        groovyProjectDir.file('build/libs/quickstart.jar').unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
-                'org/gradle/Person.class'
+                'org/gradle/Person.class',
+                'org/gradle/Person$_closure1.class',
+                'org/gradle/Person$_closure2.class',
+                'resource.txt',
+                'script.groovy'
         )
     }
 }

@@ -17,6 +17,8 @@
 
 package org.gradle.integtests.testing.testng
 
+import org.gradle.integtests.fixtures.TestNGExecutionResult
+
 /**
  * @author Tom Eyckmans
  */

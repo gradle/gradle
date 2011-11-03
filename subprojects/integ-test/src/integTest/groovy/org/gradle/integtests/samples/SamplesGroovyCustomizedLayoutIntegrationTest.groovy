@@ -14,43 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.util.JUnitTestExecutionResult
 
-/**
- * @author Hans Dockter
- */
-
-class SamplesJavaCustomizedLayoutIntegrationTest {
+class SamplesGroovyCustomizedLayoutIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('java/customizedLayout')
+    @Rule public final Sample sample = new Sample('groovy/customizedLayout')
 
     @Test
-    public void canBuildAndUploadJar() {
-        TestFile javaprojectDir = sample.dir
-                                                      
-        // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'build', 'uploadArchives').run()
+    public void groovyProjectQuickstartSample() {
+        TestFile groovyProjectDir = sample.dir
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(javaprojectDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(groovyProjectDir)
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
-        // Check jar exists
-        javaprojectDir.file('build/libs/customizedLayout.jar').assertIsFile()
-
-        // Check contents of Jar
-        TestFile jarContents = dist.testDir.file('jar')
-        javaprojectDir.file('build/libs/customizedLayout.jar').unzipTo(jarContents)
-        jarContents.assertHasDescendants(
+        // Check contents of jar
+        TestFile tmpDir = dist.testDir.file('jarContents')
+        groovyProjectDir.file('build/libs/customizedLayout.jar').unzipTo(tmpDir)
+        tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/Person.class'
         )

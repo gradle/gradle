@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.util
+package org.gradle.integtests.fixtures
 
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
 import groovy.io.PlatformLineWriter
 import junit.framework.AssertionFailedError
 import org.apache.tools.ant.taskdefs.Delete
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.AntUtil
 import org.gradle.util.SystemProperties
 import org.junit.Assert

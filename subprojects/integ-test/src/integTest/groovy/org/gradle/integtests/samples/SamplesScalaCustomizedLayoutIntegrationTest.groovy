@@ -14,40 +14,39 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.util.JUnitTestExecutionResult
 
-class SamplesGroovyQuickstartIntegrationTest {
+class SamplesScalaCustomizedLayoutIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('groovy/quickstart')
+    @Rule public final Sample sample = new Sample('scala/customizedLayout')
 
     @Test
-    public void groovyProjectQuickstartSample() {
-        TestFile groovyProjectDir = sample.dir
-        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
+    public void canBuildJar() {
+        TestFile projectDir = sample.dir
+
+        // Build and test projects
+        executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(groovyProjectDir)
-        result.assertTestClassesExecuted('org.gradle.PersonTest')
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(projectDir)
+        result.assertTestClassesExecuted('org.gradle.sample.impl.PersonImplTest')
 
-        // Check contents of jar
-        TestFile tmpDir = dist.testDir.file('jarContents')
-        groovyProjectDir.file('build/libs/quickstart.jar').unzipTo(tmpDir)
-        tmpDir.assertHasDescendants(
+        // Check contents of Jar
+        TestFile jarContents = dist.testDir.file('jar')
+        projectDir.file("build/libs/customizedLayout.jar").unzipTo(jarContents)
+        jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
-                'org/gradle/Person.class',
-                'org/gradle/Person$_closure1.class',
-                'org/gradle/Person$_closure2.class',
-                'resource.txt',
-                'script.groovy'
+                'org/gradle/sample/api/Person.class',
+                'org/gradle/sample/impl/PersonImpl.class'
         )
     }
 }

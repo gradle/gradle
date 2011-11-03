@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.util
+package org.gradle.integtests.fixtures
 
 import groovy.util.slurpersupport.GPathResult
-import org.gradle.integtests.fixtures.TestClassExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.util.TestFile
 import org.hamcrest.Matcher
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.junit.Assert.assertThat
 
 class JUnitTestExecutionResult implements TestExecutionResult {
     private final TestFile buildDir

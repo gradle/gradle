@@ -14,45 +14,43 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.JUnitTestExecutionResult
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.util.JUnitTestExecutionResult
 
-/**
- * @author Hans Dockter
- */
+class SamplesGroovyOldVersionsIntegrationTest {
 
-class SamplesJavaBaseIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('java/base')
 
     @Test
-    public void canBuildAndUploadJar() {
-        TestFile javaprojectDir = sample.dir
-
-        // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'build').run()
+    public void groovy156() {
+        TestFile groovyProjectDir = dist.samplesDir.file('groovy/groovy-1.5.6')
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(javaprojectDir.file('test'))
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(groovyProjectDir)
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
         // Check jar exists
-        javaprojectDir.file("prod/build/libs/prod-1.0.jar").assertIsFile()
-        
-        // Check contents of Jar
-        TestFile jarContents = dist.testDir.file('jar')
-        javaprojectDir.file('prod/build/libs/prod-1.0.jar').unzipTo(jarContents)
-        jarContents.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'org/gradle/Person.class'
-        )
+        groovyProjectDir.file("build/libs/groovy-1.5.6.jar").assertIsFile()
+    }
+
+    @Test
+    public void groovy167() {
+        TestFile groovyProjectDir = dist.samplesDir.file('groovy/groovy-1.6.7')
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
+
+        // Check tests have run
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(groovyProjectDir)
+        result.assertTestClassesExecuted('org.gradle.PersonTest')
+
+        // Check jar exists
+        groovyProjectDir.file("build/libs/groovy-1.6.7.jar").assertIsFile()
     }
 }

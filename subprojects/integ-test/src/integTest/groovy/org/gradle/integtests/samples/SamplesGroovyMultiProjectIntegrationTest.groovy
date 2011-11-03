@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import static org.hamcrest.Matchers.*
-import org.gradle.integtests.fixtures.Sample
+import static org.hamcrest.Matchers.containsString
 
 /**
  * @author Hans Dockter

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.integtests.samples
 
+import org.gradle.integtests.fixtures.UserGuideSamplesRunner
 import org.junit.runner.RunWith
-import org.gradle.integtests.util.UserGuideSamplesRunner
 
 @RunWith(UserGuideSamplesRunner.class)
 class UserGuideSamplesIntegrationTest {

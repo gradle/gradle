@@ -14,25 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.JUnitTestExecutionResult
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.util.JUnitTestExecutionResult
+import static org.hamcrest.Matchers.containsString
 
-class SamplesScalaCustomizedLayoutIntegrationTest {
+class SamplesScalaQuickstartIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('scala/customizedLayout')
+    @Rule public final Sample sample = new Sample('scala/quickstart')
+
+    private TestFile projectDir
+
+    @Before
+    void setUp() {
+        projectDir = sample.dir
+    }
 
     @Test
     public void canBuildJar() {
-        TestFile projectDir = sample.dir
-
         // Build and test projects
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
@@ -42,11 +49,19 @@ class SamplesScalaCustomizedLayoutIntegrationTest {
 
         // Check contents of Jar
         TestFile jarContents = dist.testDir.file('jar')
-        projectDir.file("build/libs/customizedLayout.jar").unzipTo(jarContents)
+        projectDir.file("build/libs/quickstart.jar").unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/sample/api/Person.class',
                 'org/gradle/sample/impl/PersonImpl.class'
         )
+    }
+
+    @Test
+    public void canBuildScalaDoc() {
+        executer.inDirectory(projectDir).withTasks('clean', 'scaladoc').run()
+
+        projectDir.file('build/docs/scaladoc/index.html').assertExists()
+        projectDir.file('build/docs/scaladoc/org/gradle/sample/api/Person.html').assertContents(containsString("Defines the interface for a person."))
     }
 }

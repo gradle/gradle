@@ -15,14 +15,14 @@
  */
 
 
-package org.gradle.integtests
+package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.Sample
 
 public class SamplesJavaOnlyIfIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
