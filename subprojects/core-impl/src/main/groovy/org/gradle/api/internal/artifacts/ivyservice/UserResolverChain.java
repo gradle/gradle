@@ -93,6 +93,10 @@ public class UserResolverChain extends ChainResolver {
     private ModuleResolution lookupAllInCacheAndGetLatest(List<ModuleResolution> resolutionList) {
         for (ModuleResolution moduleResolution : resolutionList) {
             moduleResolution.lookupModuleInCache();
+
+            if (moduleResolution.getModule() != null && moduleResolution.isStaticVersion() && !moduleResolution.isGeneratedModuleDescriptor()) {
+                return moduleResolution;
+            }
         }
 
         return chooseBestResult(resolutionList);
@@ -104,8 +108,7 @@ public class UserResolverChain extends ChainResolver {
         for (ModuleResolution moduleResolution : resolutionList) {
             try {
                 moduleResolution.resolveModule();
-                if (moduleResolution.getModule() != null && moduleResolution.isStaticVersion() && !moduleResolution.isGeneratedModuleDescriptor())
-                {
+                if (moduleResolution.getModule() != null && moduleResolution.isStaticVersion() && !moduleResolution.isGeneratedModuleDescriptor()) {
                     return moduleResolution;
                 }
             } catch (RuntimeException e) {
@@ -305,10 +308,10 @@ public class UserResolverChain extends ChainResolver {
         }
         
         public boolean isGeneratedModuleDescriptor() {
-            if (getModule() == null) {
+            if (resolvedModule == null) {
                 throw new IllegalStateException();
             }
-            return getModule().getDescriptor().isDefault();
+            return resolvedModule.getDescriptor().isDefault();
         }
 
         public void lookupModuleInCache() {
