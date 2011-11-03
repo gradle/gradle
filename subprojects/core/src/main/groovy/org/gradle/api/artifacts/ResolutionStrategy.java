@@ -28,7 +28,9 @@ import java.util.concurrent.TimeUnit;
  *   //fail eagerly on conflict
  *   resolutionStrategy.conflictResolution = resolutionStrategy.strict()
  *   // cache dynamic versions for 10 minutes
- *   resolutionStrategy.cacheDynamicVersionsFor 10, "minutes"
+ *   resolutionStrategy.cacheDynamicVersionsFor 10, 'minutes'
+ *   // don't cache changing modules at all
+ *   resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
  * }
  * </pre>
  */

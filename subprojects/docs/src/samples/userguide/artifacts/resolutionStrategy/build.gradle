@@ -1,5 +1,11 @@
-//START SNIPPET dynamic-version-cache-expiry
+//START SNIPPET dynamic-version-cache-control
 configurations.all {
     resolutionStrategy.cacheDynamicVersionsFor 10, 'minutes'
 }
-//END SNIPPET dynamic-version-cache-expiry
+//END SNIPPET dynamic-version-cache-control
+
+//START SNIPPET changing-module-cache-control
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor 10, 'minutes'
+}
+//END SNIPPET changing-module-cache-control
