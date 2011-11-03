@@ -17,17 +17,17 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 
-import org.gradle.api.internal.artifacts.configurations.ForcedModule.InvalidDependencyFormat
+import org.gradle.api.internal.artifacts.configurations.ForcedModuleBuilder.InvalidDependencyFormat
 import spock.lang.Specification
 
 /**
  * by Szczepan Faber, created at: 10/14/11
  */
-public class ForcedModuleTest extends Specification {
+public class ForcedModuleBuilderTest extends Specification {
 
     def "understands gav notation"() {
         when:
-        def v = new ForcedModule("org.foo:bar:1.0")
+        def v = new ForcedModuleBuilder().build("org.foo:bar:1.0")
 
         then:
         v.group == 'org.foo'
@@ -37,7 +37,7 @@ public class ForcedModuleTest extends Specification {
 
     def "reports invalid format"() {
         when:
-        new ForcedModule("org.foo:bar1.0")
+        new ForcedModuleBuilder().build("org.foo:bar1.0")
 
         then:
         thrown(InvalidDependencyFormat)

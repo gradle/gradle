@@ -21,14 +21,9 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 /**
  * by Szczepan Faber, created at: 10/11/11
  */
-public class ForcedModule implements ModuleIdentifier {
-    private String group;
-    private String name;
-    private String version;
+public class ForcedModuleBuilder {
 
-    //TODO SF overlaps with DefaultResolvedModuleId
-
-    public ForcedModule(String notation) {
+    public ModuleIdentifier build(String notation) {
         assert notation != null : "notation cannot be null";
         String[] split = notation.split(":");
         if (split.length != 3) {
@@ -36,21 +31,22 @@ public class ForcedModule implements ModuleIdentifier {
                 "Invalid format: '" + notation + "'. Correct notation is a 3-part gav notation,"
                 + "e.g. group:artifact:version. Example: org.gradle:gradle-core:1.0-milestone-3");
         }
-        group = split[0];
-        name = split[1];
-        version = split[2];
-    }
+        final String group = split[0];
+        final String name = split[1];
+        final String version = split[2];
+        return new ModuleIdentifier() {
+            public String getGroup() {
+                return group;
+            }
 
-    public String getGroup() {
-        return group;
-    }
+            public String getName() {
+                return name;
+            }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getVersion() {
-        return version;
+            public String getVersion() {
+                return version;
+            }
+        };
     }
 
     public static class InvalidDependencyFormat extends RuntimeException {

@@ -62,7 +62,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     public DefaultResolutionStrategy force(String... forcedModules) {
         assert forcedModules != null : "forcedModules cannot be null";
         for (String forced : forcedModules) {
-            this.forcedModules.add(new ForcedModule(forced));
+            this.forcedModules.add(new ForcedModuleBuilder().build(forced));
         }
         return this;
     }
