@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.fixture
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.util.*
+import static org.gradle.util.GradleVersion.version
 
 /**
  * Executes instances of {@link ToolingApiCompatibilitySuite}.
@@ -34,6 +35,9 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         ToolingApiCompatibilitySuite suite = target.newInstance()
         List<Permutation> permutations = []
         previous.each {
+            if (version(it) < version('1.0-milestone-3')) {
+                return
+            }
             permutations << new Permutation(suite, current, it)
             permutations << new Permutation(suite, it, current)
         }
