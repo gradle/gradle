@@ -32,6 +32,7 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.os.ProcessEnvironment;
 import org.gradle.os.jna.NativeEnvironment;
 import org.hamcrest.Matcher;
@@ -123,7 +124,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    public DaemonController getDaemonController() {
+    public DaemonRegistry getDaemonRegistry() {
         throw new UnsupportedOperationException();
     }
 

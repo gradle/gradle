@@ -35,8 +35,8 @@ public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
     private final EmbeddedDaemonClientServices daemonClientServices = new EmbeddedDaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), false);
 
-    public DaemonController getDaemonController() {
-        return new RegistryBackedDaemonController(daemonClientServices.get(DaemonRegistry.class));
+    public DaemonRegistry getDaemonRegistry() {
+        return daemonClientServices.get(DaemonRegistry.class);
     }
 
     protected ExecutionResult doRun() {

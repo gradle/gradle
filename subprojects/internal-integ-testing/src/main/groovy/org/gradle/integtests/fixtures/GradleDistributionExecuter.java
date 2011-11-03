@@ -21,6 +21,8 @@ import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -102,8 +104,8 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         return base;
     }
 
-    public DaemonController getDaemonController() {
-        return configureExecuter().getDaemonController();
+    public DaemonRegistry getDaemonRegistry() {
+        return configureExecuter().getDaemonRegistry();
     }
 
     @Override

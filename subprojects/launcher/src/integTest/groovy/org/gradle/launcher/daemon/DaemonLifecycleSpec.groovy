@@ -22,12 +22,17 @@ import org.gradle.launcher.daemon.server.DaemonIdleTimeout
 import org.gradle.launcher.daemon.context.DaemonContextBuilder
 import org.junit.Rule
 import spock.lang.*
-import static org.gradle.util.ConcurrentSpecification.poll
+
+import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
+
 
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
+ * 
+ * These tests are a little different due to their async nature. We use the classes
+ * from the org.gradle.launcher.daemon.testing.* package to model a sequence of expected
+ * daemon registry state changes, executing actions at certain state changes.
  */
-@Ignore
 class DaemonLifecycleSpec extends Specification {
 
     @Rule public final GradleHandles handles = new GradleHandles()
@@ -40,7 +45,7 @@ class DaemonLifecycleSpec extends Specification {
     def buildGradleOpts = []
     def foregroundDaemonGradleOpts = []
 
-    def daemons // have to set this in setup, after we have changed the user home location
+    @Delegate DaemonEventSequenceBuilder sequenceBuilder = new DaemonEventSequenceBuilder()
 
     def buildDir(buildScript) {
         def buildDir = handles.distribution.file("builds/${buildCounter++}")
@@ -75,34 +80,8 @@ class DaemonLifecycleSpec extends Specification {
         }.passthroughOutput()
     }
 
-    def setup() {
-        handles.distribution.requireOwnUserHomeDir()
-        daemons = handles.daemonController
-    }
-
-    def expectedDaemons = 3
-
-    boolean isDaemonsStopped() {
-        isDaemonsRunning(0)
-    }
-
-    boolean isDaemonsRunning(num = expectedDaemons) {
-        daemons.isDaemonsRunning(num)
-        true
-    }
-
-    boolean isDaemonsIdle(num = expectedDaemons) {
-        daemons.isDaemonsIdle(num)
-        true
-    }
-
-    boolean isDaemonsBusy(num = expectedDaemons) {
-        daemons.isDaemonsBusy(num)
-        true
-    }
-
     boolean failed(handle) {
-        poll { assert handle.waitForFailure(); }
+        assert handle.waitForFailure()
         true
     }
 
@@ -111,189 +90,186 @@ class DaemonLifecycleSpec extends Specification {
         assert build.errorOutput.contains(DaemonDisappearedException.MESSAGE)
         true
     }
+    
+    def setup() {
+        handles.distribution.requireOwnUserHomeDir()
+    }
 
     def "daemons do some work - sit idle - then timeout and die"() {
         when:
-        expectedDaemons.times { sleepyBuild().start() }
+        run { sleepyBuild().start() }
 
         then:
-        daemonsBusy
+        busy()
 
         and:
-        daemonsIdle
+        idle()
 
         and:
-        daemonsStopped
+        stopped()
     }
 
     def "existing idle daemons are used"() {
-        given:
-        expectedDaemons = 1
-
         when:
-        foregroundDaemon().start()
+        run { foregroundDaemon().start() }
 
         then:
-        daemonsIdle
+        idle()
 
         when:
-        sleepyBuild().start()
+        run { sleepyBuild(2).start() }
 
         then:
-        daemonsRunning && daemonsBusy
+        busy()
     }
 
     def "a new daemon is started if all existing are busy"() {
-        given:
-        expectedDaemons = 1
-
         when:
-        sleepyBuild().start()
+        run { sleepyBuild().start() }
 
         then:
-        daemonsBusy
+        busy()
 
         when:
-        sleepyBuild().start()
-
-        and:
-        expectedDaemons = 2
+        run { sleepyBuild().start() }
 
         then:
-        daemonsBusy
+        busy(2)
     }
 
     def "sending stop to idle daemons causes them to terminate immediately"() {
         given:
-        daemonIdleTimeout = 10 // long timeout so we know they don't stop from idle timeout
+        numDaemons 2
 
         when:
-        expectedDaemons.times { sleepyBuild(1).start() }
+        run { 2.times { sleepyBuild(1).start() } }
 
         then:
-        daemonsIdle
+        busy()
+
+        and:
+        idle()
 
         when:
-        stopBuild().start()
+        run { stopBuild().start() }
 
         then:
-        daemonsStopped
+        stopped()
     }
 
     def "sending stop to busy daemons causes them to disappear from the registry"() {
         given:
-        daemonIdleTimeout = 10 // long timeout so we know they don't stop from idle timeout
+        numDaemons 3
 
         when:
-        expectedDaemons.times { sleepyBuild(5).start() }
+        run { 3.times { sleepyBuild(5).start() } }
 
         then:
-        daemonsBusy
+        busy()
 
         when:
-        stopBuild().start().waitForFinish()
+        run { stopBuild().start().waitForFinish() }
 
         then:
-        daemonsStopped
+        stopped()
     }
 
     def "sending stop to busy daemons cause them to disappear from the registry and disconnect from the client, and terminates the daemon process"() {
-        given:
-        expectedDaemons = 1
+        when:
+        def daemon
+        run { daemon = foregroundDaemon().start() }
+
+        then:
+        idle()
 
         when:
-        def daemon = foregroundDaemon().start()
+        def build
+        run { build = sleepyBuild(10).start() }
 
         then:
-        daemonsIdle
+        busy()
 
         when:
-        def build = sleepyBuild(10).start()
+        run { stopBuild().start().waitForFinish() }
 
         then:
-        daemonsBusy
-
-        when:
-        stopBuild().start().waitForFinish()
+        stopped() // just means the daemon has disappeared from the registry
 
         then:
-        daemonsStopped // just means the daemon has disappeared from the registry
-
-        then:
-        failedWithDaemonDisappearedMessage build
+        run { failedWithDaemonDisappearedMessage build }
         // should check we get a nice error message here
 
         and:
-        failed daemon
+        run { failed daemon }
     }
 
     def "tearing down client while daemon is building tears down daemon"() {
-        given:
-        expectedDaemons = 1
-
         when:
-        def build = sleepyBuild(20).start()
+        def build
+        run { build = sleepyBuild(20).start() }
 
         then:
-        daemonsBusy
+        busy()
 
         when:
-        build.abort().waitForFailure()
+        run { build.abort().waitForFailure() }
 
         then:
-        daemonsStopped
+        stopped()
     }
 
     def "tearing down client while daemon is building tears down daemon _process_"() {
-        given:
-        expectedDaemons = 1
-
         when:
-        def daemon = foregroundDaemon().start()
+        def daemon
+        run { daemon = foregroundDaemon().start() }
 
         then:
-        daemonsIdle
+        idle()
 
         when:
-        def build = sleepyBuild(20).start()
+        def build
+        run { build = sleepyBuild(20).start() }
 
         then:
-        daemonsBusy
+        busy()
 
         when:
-        build.abort().waitForFailure()
+        run { build.abort().waitForFailure() }
+
 
         then:
-        daemonsStopped // just means the daemon has disappeared from the registry
+        stopped() // just means the daemon has disappeared from the registry
 
         and:
-        failed daemon
+        run { failed daemon }
     }
 
     def "tearing down daemon process produces nice error message for client"() {
-        given:
-        expectedDaemons = 1
-
         when:
-        def daemon = foregroundDaemon().start()
+        def daemon
+        run { daemon = foregroundDaemon().start() }
 
         then:
-        daemonsIdle
+        idle()
 
         when:
-        def build = sleepyBuild(10).start()
+        def build
+        run { build = sleepyBuild(10).start() }
 
         then:
-        daemonsBusy
+        busy()
 
         when:
-        daemon.abort().waitForFailure()
+        run { daemon.abort().waitForFailure() }
 
         then:
-        daemonsBusy // daemon crashed, so is still in the registry
+        run { failedWithDaemonDisappearedMessage build }
 
         and:
-        failedWithDaemonDisappearedMessage build
+        // The daemon crashed so didn't remove itself from the registry.
+        // This doesn't produce a registry state change, so we have to test
+        // That we are still in the same state this way
+        run { assert handles.daemonRegistry.busy.size() == 1 }
     }
 
     def "if a daemon exists but has an incompatible context, a new compatible daemon will be created and used"() {
@@ -302,22 +278,21 @@ class DaemonLifecycleSpec extends Specification {
         foregroundDaemonGradleOpts << "-D${DaemonContextBuilder.FAKE_JAVA_HOME_OVERRIDE_PROPERTY}=/a/b/c"
 
         when:
-        foregroundDaemon().start()
+        run { foregroundDaemon().start() }
 
         then:
-        isDaemonsRunning 1
-        isDaemonsIdle 1
+        idle()
 
         when:
-        sleepyBuild().start()
+        run { sleepyBuild().start() }
+        numDaemons 2
 
         then:
-        isDaemonsRunning 2
-        isDaemonsBusy 1
-        isDaemonsIdle 1
+        busy 1
     }
 
     def cleanup() {
+        sequenceBuilder.build(handles.daemonRegistry).run()
         stopBuild().start().waitForFinish()
     }
 

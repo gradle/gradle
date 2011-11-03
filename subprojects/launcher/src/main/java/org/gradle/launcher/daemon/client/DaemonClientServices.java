@@ -16,15 +16,9 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.cache.internal.DefaultFileLockManager;
-import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
-import org.gradle.cache.internal.FileLockManager;
-import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
+import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
-import org.gradle.os.*;
-import org.gradle.os.jna.NativeEnvironment;
 
 import java.io.File;
 
@@ -32,8 +26,10 @@ import java.io.File;
  * Takes care of instantiating and wiring together the services required by the daemon client.
  */
 public class DaemonClientServices extends DaemonClientServicesSupport {
+
     private final File userHomeDir;
     private final int idleTimeout;
+    private final ServiceRegistry registryServices;
 
     public DaemonClientServices(ServiceRegistry loggingServices, File userHomeDir) {
         this(loggingServices, userHomeDir, DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT);
@@ -43,22 +39,13 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
         super(loggingServices);
         this.userHomeDir = userHomeDir;
         this.idleTimeout = idleTimeout;
+        this.registryServices = new DaemonRegistryServices(userHomeDir);
+        add(registryServices);
     }
 
-    protected ProcessEnvironment createProcessEnvironment() {
-        return NativeEnvironment.current();
-    }
-
-    protected DaemonDir createDaemonDir() {
-        return new DaemonDir(userHomeDir, get(ProcessEnvironment.class));
-    }
-
-    protected FileLockManager createFileLockManager() {
-        return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(get(ProcessEnvironment.class)));
-    }
-
+    // here to satisfy DaemonClientServicesSupport contract
     protected DaemonRegistry createDaemonRegistry() {
-        return new PersistentDaemonRegistry(get(DaemonDir.class).getRegistry(), get(FileLockManager.class));
+        return registryServices.get(DaemonRegistry.class);
     }
 
     public Runnable makeDaemonStarter() {

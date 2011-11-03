@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -61,8 +63,8 @@ public class GradleHandles implements MethodRule {
         return handle;
     }
 
-    public DaemonController getDaemonController() {
-        return getExecuter().getDaemonController();
+    public DaemonRegistry getDaemonRegistry() {
+        return getExecuter().getDaemonRegistry();
     }
 
     public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {

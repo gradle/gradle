@@ -17,19 +17,13 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.cache.internal.DefaultFileLockManager;
-import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
-import org.gradle.cache.internal.FileLockManager;
-import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry;
+import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.os.ProcessEnvironment;
-import org.gradle.os.jna.NativeEnvironment;
 
 import java.io.File;
 
@@ -37,38 +31,15 @@ import java.io.File;
  * Takes care of instantiating and wiring together the services required by the daemon server.
  */
 public class DaemonServices extends DefaultServiceRegistry {
-    private final File userHomeDir;
     private final ServiceRegistry loggingServices;
 
     public DaemonServices(File userHomeDir, ServiceRegistry loggingServices) {
-        this.userHomeDir = userHomeDir;
         this.loggingServices = loggingServices;
+        add(new DaemonRegistryServices(userHomeDir));
     }
 
     protected ExecutorFactory createExecutorFactory() {
         return new DefaultExecutorFactory();
-    }
-
-    protected ProcessEnvironment createProcessEnvironment() {
-        return NativeEnvironment.current();
-    }
-
-    protected DaemonDir createDaemonDir() {
-        return new DaemonDir(
-                userHomeDir,
-                get(ProcessEnvironment.class));
-    }
-
-    protected FileLockManager createFileLockManager() {
-        return new DefaultFileLockManager(
-                new DefaultProcessMetaDataProvider(
-                        get(ProcessEnvironment.class)));
-    }
-
-    protected DaemonRegistry createDaemonRegistry() {
-        return new PersistentDaemonRegistry(
-                get(DaemonDir.class).getRegistry(),
-                get(FileLockManager.class));
     }
 
     protected DaemonContext createDaemonContext() {
