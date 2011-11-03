@@ -123,7 +123,7 @@ project(':tool') {
     }
 
     @Test
-    void "strict conflict strategy can be used with forced versions"() {
+    void "strict conflict strategy can be used with forced modules"() {
         TestFile repo = file("repo")
         maven(repo).module("org", "foo", '1.3.3').publish()
         maven(repo).module("org", "foo", '1.4.4').publish()
@@ -335,7 +335,7 @@ project(':tool') {
     }
 
     @Test
-    void "latest strategy respects forced versions"() {
+    void "latest strategy respects forced modules"() {
         TestFile repo = file("repo")
         maven(repo).module("org", "foo", '1.3.3').publish()
         maven(repo).module("org", "foo", '1.4.4').publish()

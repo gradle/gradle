@@ -51,7 +51,7 @@ class DefaultSettingsConverterTest extends Specification {
 
         then:
         1 * ivySettingsFactory.create() >> ivySettings
-        1 * resolutionStrategy.getForce()
+        1 * resolutionStrategy.getForcedModules()
         1 * resolutionStrategy.getDynamicVersionCachePolicy()
         0 * _._
 
@@ -83,7 +83,7 @@ class DefaultSettingsConverterTest extends Specification {
 
         then:
         1 * ivySettingsFactory.create() >> ivySettings
-        1 * resolutionStrategy.getForce()
+        1 * resolutionStrategy.getForcedModules()
         1 * resolutionStrategy.getDynamicVersionCachePolicy()
         0 * _._
 

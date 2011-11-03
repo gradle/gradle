@@ -60,19 +60,19 @@ public interface ResolutionStrategy {
     ResolutionStrategy force(String... forcedModules);
 
     /**
-     * Replaces existing forced versions with the passed ones.
+     * Replaces existing forced modules with the passed ones.
      *
      * @param forcedModules forced modules to set
      * @return this ResolutionStrategy instance
      */
-    ResolutionStrategy setForce(Iterable<ModuleIdentifier> forcedModules);
+    ResolutionStrategy setForcedModules(Iterable<ModuleIdentifier> forcedModules);
 
     /**
-     * returns currently configured forced versions
+     * returns currently configured forced modules
      *
-     * @return forced versions
+     * @return forced modules
      */
-    Set<ModuleIdentifier> getForce();
+    Set<ModuleIdentifier> getForcedModules();
 
     /**
      * use the latest of conflicting versions and move on

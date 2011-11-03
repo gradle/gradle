@@ -37,7 +37,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private ConflictResolution conflictResolution = new LatestConflictResolution();
     private final DefaultDynamicVersionCachePolicy dynamicVersionCachePolicy = new DefaultDynamicVersionCachePolicy();
 
-    public Set<ModuleIdentifier> getForce() {
+    public Set<ModuleIdentifier> getForcedModules() {
         return forcedModules;
     }
 
@@ -67,7 +67,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
-    public DefaultResolutionStrategy setForce(Iterable<ModuleIdentifier> forcedModules) {
+    public DefaultResolutionStrategy setForcedModules(Iterable<ModuleIdentifier> forcedModules) {
         this.forcedModules = GUtil.toSet(forcedModules);
         return this;
     }

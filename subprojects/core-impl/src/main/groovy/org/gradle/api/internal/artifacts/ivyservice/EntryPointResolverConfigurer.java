@@ -29,7 +29,7 @@ import java.util.Set;
  */
 public class EntryPointResolverConfigurer {
     public void configureResolver(EntryPointResolver resolver, ResolutionStrategy resolutionStrategy) {
-        Set<ModuleIdentifier> forced = resolutionStrategy.getForce();
+        Set<ModuleIdentifier> forced = resolutionStrategy.getForcedModules();
         resolver.setIvyResolutionListener(new MaybeForceVersions(forced));
     }
 }

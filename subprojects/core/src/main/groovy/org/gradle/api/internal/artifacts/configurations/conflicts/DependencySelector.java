@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import java.util.Set;
 
 /**
- * Selects the dependency based on the strict strategy configuration (e.g. the forced versions) and
+ * Selects the dependency based on the strict strategy configuration (e.g. the forced modules) and
  *
  * by Szczepan Faber, created at: 10/5/11
  */

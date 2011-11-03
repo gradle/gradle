@@ -26,15 +26,15 @@ public class DefaultResolutionStrategyTest extends Specification {
 
     def strategy = new DefaultResolutionStrategy()
 
-    def "allows setting forced versions"() {
+    def "allows setting forced modules"() {
         expect:
-        strategy.force.empty
+        strategy.forcedModules.empty
 
         when:
         strategy.force 'org.foo:bar:1.0', 'org.foo:baz:2.0'
 
         then:
-        def versions = strategy.force as List
+        def versions = strategy.forcedModules as List
         versions.size() == 2
 
         versions[0].group == 'org.foo'
@@ -46,15 +46,15 @@ public class DefaultResolutionStrategyTest extends Specification {
         versions[1].version == '2.0'
     }
 
-    def "allows replacing forced versions"() {
+    def "allows replacing forced modules"() {
         given:
         strategy.force 'org.foo:bar:1.0'
 
         when:
-        strategy.force = [new ForcedModule('hello:world:1.0')]
+        strategy.forcedModules = [new ForcedModule('hello:world:1.0')]
 
         then:
-        def versions = strategy.force as List
+        def versions = strategy.forcedModules as List
         versions.size() == 1
         versions[0].group == 'hello'
     }
