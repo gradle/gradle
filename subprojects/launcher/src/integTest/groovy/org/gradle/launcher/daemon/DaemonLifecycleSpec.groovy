@@ -16,10 +16,13 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.util.GFileUtils
 import org.gradle.integtests.fixtures.GradleHandles
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout
-import org.gradle.launcher.daemon.context.DaemonContextBuilder
+import org.gradle.testing.AvailableJavaHomes
+import org.gradle.util.Jvm
+
 import org.junit.Rule
 import spock.lang.*
 
@@ -45,6 +48,9 @@ class DaemonLifecycleSpec extends Specification {
     def buildGradleOpts = []
     def foregroundDaemonGradleOpts = []
 
+    // set this to change the java home used to launch any gradle, set back to null to use current JVM
+    def javaHome = null
+    
     @Delegate DaemonEventSequenceBuilder sequenceBuilder = new DaemonEventSequenceBuilder()
 
     def buildDir(buildScript) {
@@ -58,6 +64,9 @@ class DaemonLifecycleSpec extends Specification {
             withTasks("sleep")
             addGradleOpts(new DaemonIdleTimeout(daemonIdleTimeout * 1000).toSysArg(), *buildGradleOpts)
             withArguments("--daemon", "--info")
+            if (javaHome) {
+                withJavaHome(javaHome)
+            }
             usingProjectDirectory buildDir("""
                 task('sleep') << {
                     println "about to sleep"
@@ -70,12 +79,18 @@ class DaemonLifecycleSpec extends Specification {
     def stopBuild() {
         handles.createHandle {
             withArguments("--stop", "--info")
+            if (javaHome) {
+                withJavaHome(javaHome)
+            }
         }.passthroughOutput()
     }
 
     def foregroundDaemon() {
         handles.createHandle {
             addGradleOpts(*foregroundDaemonGradleOpts)
+            if (javaHome) {
+                withJavaHome(javaHome)
+            }
             withArguments("--foreground")
         }.passthroughOutput()
     }
@@ -95,7 +110,8 @@ class DaemonLifecycleSpec extends Specification {
         handles.distribution.requireOwnUserHomeDir()
     }
 
-    def "daemons do some work - sit idle - then timeout and die"() {
+    def
+    "daemons do some work - sit idle - then timeout and die"() {
         when:
         run { sleepyBuild().start() }
 
@@ -272,13 +288,14 @@ class DaemonLifecycleSpec extends Specification {
         run { assert handles.daemonRegistry.busy.size() == 1 }
     }
 
-    def "if a daemon exists but has an incompatible context, a new compatible daemon will be created and used"() {
-        given:
-        // This forces the daemon to specify it's daemon context with a java home that is fake, hacked in for this test
-        foregroundDaemonGradleOpts << "-D${DaemonContextBuilder.FAKE_JAVA_HOME_OVERRIDE_PROPERTY}=/a/b/c"
-
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    def "if a daemon exists but is using a different java home, a new compatible daemon will be created and used"() {
         when:
-        run { foregroundDaemon().start() }
+        run {
+            javaHome = AvailableJavaHomes.bestAlternative
+            foregroundDaemon().start() 
+            javaHome = null
+        }
 
         then:
         idle()
