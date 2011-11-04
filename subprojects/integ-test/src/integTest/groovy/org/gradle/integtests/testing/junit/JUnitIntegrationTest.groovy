@@ -48,6 +48,11 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.OkTest').assertStdout(containsString('sys out from another test method'))
         result.testClass('org.gradle.OkTest').assertStderr(containsString('sys err from another test method'))
 
+        result.testClass('org.gradle.OkTest').assertStdout(containsString('before class out'))
+        result.testClass('org.gradle.OkTest').assertStderr(containsString('before class err'))
+        result.testClass('org.gradle.OkTest').assertStdout(containsString('after class out'))
+        result.testClass('org.gradle.OkTest').assertStderr(containsString('after class err'))
+
         result.testClass('org.gradle.OtherTest').assertTestPassed('ok')
         result.testClass('org.gradle.OtherTest').assertStdout(containsString('This is other stdout'))
         result.testClass('org.gradle.OtherTest').assertStdout(containsString('other class loaded'))
@@ -68,6 +73,10 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.ASuite').assertStdout(containsString('sys out from another test method'))
         result.testClass('org.gradle.ASuite').assertStderr(containsString('sys err from another test method'))
         result.testClass('org.gradle.ASuite').assertStdout(containsString('This is other stdout'))
+        result.testClass('org.gradle.ASuite').assertStdout(containsString('before suite class out'))
+        result.testClass('org.gradle.ASuite').assertStderr(containsString('before suite class err'))
+        result.testClass('org.gradle.ASuite').assertStdout(containsString('after suite class out'))
+        result.testClass('org.gradle.ASuite').assertStderr(containsString('after suite class err'))
     }
 
     @Test

@@ -25,4 +25,14 @@ public class ASuite {
     static {
         System.out.println("suite class loaded");
     }
+
+    @org.junit.BeforeClass public static void init() {
+        System.out.println("before suite class out");
+        System.err.println("before suite class err");
+    }
+
+    @org.junit.AfterClass public static void end() {
+        System.out.println("after suite class out");
+        System.err.println("after suite class err");
+    }
 }

@@ -14,6 +14,16 @@ public class OkTest {
         System.out.println("test constructed");
     }
 
+    @org.junit.BeforeClass public static void init() {
+        System.out.println("before class out");
+        System.err.println("before class err");
+    }
+
+    @org.junit.AfterClass public static void end() {
+        System.out.println("after class out");
+        System.err.println("after class err");
+    }
+
     @org.junit.Test
     public void ok() throws Exception {
         // check JUnit version
