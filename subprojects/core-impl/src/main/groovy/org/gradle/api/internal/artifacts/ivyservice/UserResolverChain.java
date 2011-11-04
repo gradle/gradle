@@ -65,7 +65,7 @@ public class UserResolverChain extends ChainResolver {
 
         ModuleResolution latestCached = lookupAllInCacheAndGetLatest(resolutionList);
         if (latestCached != null) {
-            LOGGER.debug("Found module {} in resolver cache {}", latestCached.getModule(), latestCached.resolver.getName());
+            LOGGER.debug("Found module '{}' in resolver cache '{}'", latestCached.getModule(), latestCached.resolver.getName());
             rememberResolverToUseForArtifactDownload(latestCached.resolver, latestCached.getModule());
             return latestCached.getModule();
         }
@@ -74,7 +74,7 @@ public class UserResolverChain extends ChainResolver {
         ModuleResolution latestResolved = resolveLatestModule(resolutionList);
         if (latestResolved != null) {
             ResolvedModuleRevision downloadedModule = latestResolved.getModule();
-            LOGGER.debug("Found module {} using resolver {}", downloadedModule, downloadedModule.getArtifactResolver());
+            LOGGER.debug("Found module '{}' using resolver '{}'", downloadedModule, downloadedModule.getArtifactResolver());
             rememberResolverToUseForArtifactDownload(downloadedModule.getArtifactResolver(), downloadedModule);
             return downloadedModule;
         }

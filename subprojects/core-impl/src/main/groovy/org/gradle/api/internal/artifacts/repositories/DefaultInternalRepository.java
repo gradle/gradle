@@ -27,31 +27,27 @@ import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.plugins.resolver.AbstractResolver;
-import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.ivyservice.AbstractLimitedDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.NoOpRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.ReflectionUtil;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.ParseException;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultInternalRepository extends AbstractResolver implements InternalRepository {
+public class DefaultInternalRepository extends AbstractLimitedDependencyResolver implements InternalRepository {
     private final ModuleDescriptorConverter moduleDescriptorConverter;
 
     public DefaultInternalRepository(ModuleDescriptorConverter moduleDescriptorConverter) {
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         setName(ArtifactRepositoryContainer.INTERNAL_REPOSITORY_NAME);
-        setRepositoryCacheManager(new NoOpRepositoryCacheManager(getName()));
     }
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
@@ -108,19 +104,7 @@ public class DefaultInternalRepository extends AbstractResolver implements Inter
         return dr;
     }
 
-    @Override
-    public void reportFailure() {
-    }
-
-    @Override
-    public void reportFailure(Artifact art) {
-    }
-
-    public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
-        throw new UnsupportedOperationException();
-    }
-
-    public void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
-        throw new UnsupportedOperationException();
+    public ArtifactOrigin locate(Artifact artifact) {
+        return null;
     }
 }

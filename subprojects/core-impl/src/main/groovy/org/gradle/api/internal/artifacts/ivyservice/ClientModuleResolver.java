@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
@@ -26,7 +27,6 @@ import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.artifacts.ClientModule;
@@ -37,7 +37,7 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class ClientModuleResolver extends AbstractResolver {
+public class ClientModuleResolver extends AbstractLimitedDependencyResolver {
     private Map<String, ModuleDescriptor> moduleRegistry;
     private DependencyResolver userResolver;
 
@@ -45,7 +45,6 @@ public class ClientModuleResolver extends AbstractResolver {
         setName(name);
         this.moduleRegistry = moduleRegistry;
         this.userResolver = userResolver;
-        setRepositoryCacheManager(new NoOpRepositoryCacheManager(name));
     }
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dde, ResolveData data) {
@@ -68,6 +67,11 @@ public class ClientModuleResolver extends AbstractResolver {
             dr.addArtifactReport(artifactDownloadReport);
         }
         return dr;
+    }
+
+    public ArtifactOrigin locate(Artifact artifact) {
+        // TODO: this should probably be implemented
+        return null;
     }
 
     @Override
