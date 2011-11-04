@@ -16,12 +16,13 @@
 package org.gradle.tooling.model.eclipse;
 
 import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.HierarchicalProject;
 
 /**
  * Represents the basic information about an Eclipse project.
  */
-public interface HierarchicalEclipseProject extends HierarchicalProject {
+public interface HierarchicalEclipseProject extends HierarchicalProject, HierarchicalElement {
     /**
      * {@inheritDoc}
      */
