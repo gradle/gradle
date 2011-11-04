@@ -33,7 +33,7 @@ class EclipseToolingApiIntegrationTest extends ToolingApiSpecification {
 apply plugin: "java"
 
 repositories {
-	flatDir { dirs "${repoDir.toURI()}" }
+	flatDir dirs: file("${repoDir.toURI()}")
 }
 
 dependencies {
@@ -47,6 +47,8 @@ dependencies {
         }
 
         then:
-        project != null
+        project.classpath[0].file != null
+        project.classpath[0].source == null
+        project.classpath[0].javadoc == null
     }
 }
