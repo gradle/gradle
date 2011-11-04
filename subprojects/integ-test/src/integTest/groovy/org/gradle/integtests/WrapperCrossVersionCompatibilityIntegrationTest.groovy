@@ -45,6 +45,8 @@ task wrapper(type: Wrapper) {
     urlRoot = '${executionVersion.binDistribution.parentFile.toURI()}'
 }
 
+println "using Java version \${System.getProperty('java.version')}"
+
 task hello {
     doLast { println "hello from \$gradle.gradleVersion" }
 }
