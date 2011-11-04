@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.integtests.tooling.fixture;
 
-package org.gradle.integtests.tooling.m3
+import java.lang.annotation.*;
 
-import org.gradle.integtests.tooling.fixture.ToolingApiCompatibilitySuite
-
-/**
- * @author: Szczepan Faber, created at: 6/29/11
- */
-class ToolingApiSuite extends ToolingApiCompatibilitySuite {
-    @Override
-    List<Class<?>> getClasses() {
-        return [ToolingApiHonorsProjectCustomizationsIntegrationTest,
-                ToolingApiEclipseModelIntegrationTest,
-                ToolingApiModelIntegrationTest,
-                ToolingApiBuildExecutionIntegrationTest]
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Inherited
+public @interface MinTargetGradleVersion {
+    String value();
 }

@@ -18,12 +18,16 @@ package org.gradle.integtests.tooling.m4
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import org.gradle.util.GradleVersion
+import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
+import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 
 /**
  * @author: Szczepan Faber, created at: 6/11/11
  */
+@MinToolingApiVersion('1.0-milestone-4')
+@MinTargetGradleVersion('1.0-milestone-4')
 class ToolingApiEclipseLinkedResourcesIntegrationTest extends ToolingApiSpecification {
-
     def "can build linked resources"() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = '''

@@ -140,7 +140,7 @@ public abstract class AbstractCompatibilityTestRunner extends Runner {
 
         final void run(final RunNotifier notifier) {
             if (runner == null) {
-                Description description = Description.createSuiteDescription("ignored [${displayName}](${target.name})");
+                Description description = Description.createSuiteDescription(String.format("%s(%s)", getDisplayName(), target.getName()));
                 notifier.fireTestIgnored(description);
                 return;
             }

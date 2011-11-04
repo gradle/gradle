@@ -23,7 +23,10 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
 import org.gradle.util.GradleVersion
+import org.junit.internal.AssumptionViolatedException
+import org.junit.runner.RunWith
 
+@RunWith(ToolingApiCompatibilitySuiteRunner)
 abstract class ToolingApiSpecification extends Specification {
     static final Logger LOGGER = LoggerFactory.getLogger(ToolingApiSpecification)
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
@@ -40,14 +43,27 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     void setup() {
-        toolingApi.withConnector {
-            LOGGER.info(" Using Tooling API consumer ${GradleVersion.current()}, provider ${targetDist}");
-            if (GradleVersion.current().version != targetDist.version) {
+        def toolingApi = GradleVersion.current()
+        def target = GradleVersion.version(VERSION.get().version)
+        LOGGER.info(" Using Tooling API consumer ${toolingApi}, provider ${target}")
+        boolean accept = accept(toolingApi, target)
+        if (!accept) {
+            throw new AssumptionViolatedException("Test class ${getClass().name} does not work with tooling API ${toolingApi} and Gradle ${target}.")
+        }
+        this.toolingApi.withConnector {
+            if (toolingApi.version != target.version) {
                 LOGGER.info("Overriding daemon tooling API provider to use installation: " + targetDist);
                 it.useInstallation(new File(targetDist.gradleHomeDir.absolutePath))
                 it.embedded = false
             }
         }
+    }
+
+    /**
+     * Returns true if this test class works with the given combination of tooling API consumer and provider.
+     */
+    protected boolean accept(GradleVersion toolingApi, GradleVersion targetGradle) {
+        return true
     }
 
     def withConnection(Closure cl) {

@@ -22,8 +22,14 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Project
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
+import spock.lang.Specification
+import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.junit.Rule
 
-class ToolingApiIntegrationTest extends ToolingApiSpecification {
+class ToolingApiIntegrationTest extends Specification {
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    final ToolingApi toolingApi = new ToolingApi(dist)
     final BasicGradleDistribution otherVersion = dist.previousVersion('1.0-milestone-3')
     TestFile projectDir = dist.testDir
 

@@ -19,9 +19,10 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.BuildableProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Issue
+import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 
+@MinTargetGradleVersion('1.0-milestone-4')
 class ToolingApiBuildableEclipseModelFixesIntegrationTest extends ToolingApiSpecification {
-
     @Issue("GRADLE-1529")
     //this is just one of the ways of fixing the problem. See the issue for details
     def "should not show not executable tasks"() {
@@ -34,7 +35,7 @@ task b
 
         then:
         def tasks = project.tasks.collect { it.name }
-        assert tasks == ['a', 'b'] : "temp tasks like 'cleanEclipse', 'eclipse', e.g. should not show on this list: " + tasks
+        assert tasks == ['a', 'b']: "temp tasks like 'cleanEclipse', 'eclipse', e.g. should not show on this list: " + tasks
     }
 
     @Issue("GRADLE-1529")

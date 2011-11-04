@@ -21,25 +21,29 @@ import org.gradle.util.*
 import static org.gradle.util.GradleVersion.version
 
 /**
- * Executes instances of {@link ToolingApiCompatibilitySuite}.
+ * Executes instances of {@link ToolingApiSpecification} against all compatible versions of tooling API consumer
+ * and provider, including the current Gradle version under test.
+ *
+ * <p>A test can be annotated with {@link MinToolingApiVersion} and {@link MinTargetGradleVersion} to indicate the
+ * minimum tooling API or Gradle versions required for the test.
  */
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
 
-    ToolingApiCompatibilitySuiteRunner(Class<ToolingApiCompatibilitySuite> target) {
+    ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
         super(target)
     }
 
     @Override
     protected List<Permutation> createExecutions() {
-        ToolingApiCompatibilitySuite suite = target.newInstance()
         List<Permutation> permutations = []
+        permutations << new Permutation(current, current)
         previous.each {
             if (version(it.version) < version('1.0-milestone-3')) {
                 return
             }
-            permutations << new Permutation(suite, current, it)
-            permutations << new Permutation(suite, it, current)
+            permutations << new Permutation(current, it)
+            permutations << new Permutation(it, current)
         }
         return permutations
     }
@@ -47,31 +51,47 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
     private class Permutation extends AbstractCompatibilityTestRunner.Execution {
         final BasicGradleDistribution toolingApi
         final BasicGradleDistribution gradle
-        final ToolingApiCompatibilitySuite suite
 
-        Permutation(ToolingApiCompatibilitySuite suite, BasicGradleDistribution toolingApi, BasicGradleDistribution gradle) {
+        Permutation(BasicGradleDistribution toolingApi, BasicGradleDistribution gradle) {
             this.toolingApi = toolingApi
             this.gradle = gradle
-            this.suite = suite
         }
 
         @Override
         protected String getDisplayName() {
-            return "${toolingApi} -> ${gradle}"
+            return "${displayName(toolingApi)} -> ${displayName(gradle)}"
+        }
+
+        private String displayName(BasicGradleDistribution dist) {
+            if (dist.version == GradleVersion.current().version) {
+                return "current"
+            }
+            return dist.version
         }
 
         @Override
         protected boolean isEnabled() {
-            return suite.accept(toolingApi, gradle)
+            MinToolingApiVersion minToolingApiVersion = target.getAnnotation(MinToolingApiVersion)
+            if (minToolingApiVersion && GradleVersion.version(toolingApi.version) < GradleVersion.version(minToolingApiVersion.value())) {
+                return false
+            }
+            MinTargetGradleVersion minTargetGradleVersion = target.getAnnotation(MinTargetGradleVersion)
+            if (minTargetGradleVersion && GradleVersion.version(gradle.version) < GradleVersion.version(minTargetGradleVersion.value())) {
+                return false
+            }
+            return true
         }
 
         @Override
         protected List<? extends Class<?>> loadTargetClasses() {
             def testClassLoader = getTestClassLoader()
-            return suite.classes.collect { testClassLoader.loadClass(it.name) }
+            return [testClassLoader.loadClass(target.name)]
         }
 
         private ClassLoader getTestClassLoader() {
+            if (toolingApi.version == GradleVersion.current().version) {
+                return getClass().classLoader
+            }
             def classLoader = TEST_CLASS_LOADERS.get(toolingApi.version)
             if (!classLoader) {
                 classLoader = createTestClassLoader()
@@ -107,7 +127,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             def parentClassLoader = new MultiParentClassLoader(toolingApiClassLoader, sharedClassLoader)
 
             def testClassPath = []
-            testClassPath << ClasspathUtil.getClasspathForClass(suite.class)
+            testClassPath << ClasspathUtil.getClasspathForClass(target)
 
             return new ObservableUrlClassLoader(parentClassLoader, testClassPath.collect { it.toURI().toURL() })
         }

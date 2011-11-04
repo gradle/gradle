@@ -15,11 +15,15 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
+
 /**
- * Executes the target test class against each previous Gradle version.
+ * <p>Executes instances of {@link CrossVersionIntegrationSpec} against each previous Gradle version.
+ *
+ * <p>Sets the {@link CrossVersionIntegrationSpec#previous} property of the test instance before executing it.
  */
 class CrossVersionCompatibilityTestRunner extends AbstractCompatibilityTestRunner {
-    CrossVersionCompatibilityTestRunner(Class<?> target) {
+    CrossVersionCompatibilityTestRunner(Class<? extends CrossVersionIntegrationSpec> target) {
         super(target)
     }
 
@@ -42,7 +46,7 @@ class CrossVersionCompatibilityTestRunner extends AbstractCompatibilityTestRunne
 
         @Override
         protected void before() {
-            loadTargetClasses().each { it.previous = previousVersion }
+            target.previous = previousVersion
         }
     }
 }
