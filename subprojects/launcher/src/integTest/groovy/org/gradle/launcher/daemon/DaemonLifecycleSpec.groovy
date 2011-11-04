@@ -16,18 +16,14 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.util.GFileUtils
 import org.gradle.integtests.fixtures.GradleHandles
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout
-import org.gradle.testing.AvailableJavaHomes
-import org.gradle.util.Jvm
-
-import org.junit.Rule
-import spock.lang.*
-
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
-
+import org.gradle.testing.AvailableJavaHomes
+import org.junit.Rule
+import spock.lang.IgnoreIf
+import spock.lang.Specification
 
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
