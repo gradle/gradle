@@ -97,7 +97,7 @@ public abstract class AbstractCompatibilityTestRunner extends Runner {
 
     protected static abstract class Execution {
         private Runner runner;
-        private Class<?> target;
+        protected Class<?> target;
         private final Map<Description, Description> descriptionTranslations = new HashMap<Description, Description>();
 
         final void init(Class<?> target) {
