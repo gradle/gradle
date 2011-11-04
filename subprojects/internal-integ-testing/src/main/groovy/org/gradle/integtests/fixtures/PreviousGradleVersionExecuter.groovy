@@ -75,6 +75,14 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         }
     }
 
+    boolean isOpenApiSupported() {
+        return version >= GradleVersion.version('0.9-rc-1')
+    }
+
+    boolean isToolingApiSupported() {
+        return version >= GradleVersion.version('1.0-milestone-3')
+    }
+
     boolean wrapperCanExecute(String version) {
         if (version == '0.8' || this.version == GradleVersion.version('0.8')) {
             return false

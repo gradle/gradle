@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.util.Jvm;
 import org.junit.internal.runners.ErrorReportingRunner;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
@@ -60,7 +61,12 @@ public abstract class AbstractCompatibilityTestRunner extends Runner {
             versions = Arrays.asList("1.0-milestone-5");
         }
         for (String version : versions) {
-            previous.add(current.previousVersion(version));
+            BasicGradleDistribution previous = current.previousVersion(version);
+            if (!previous.worksWith(Jvm.current())) {
+                System.out.println("Skipping " + previous + " as it does not work with JVM " + Jvm.current());
+                continue;
+            }
+            this.previous.add(previous);
         }
     }
 

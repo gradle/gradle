@@ -39,11 +39,10 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         List<Permutation> permutations = []
         permutations << new Permutation(current, current)
         previous.each {
-            if (version(it.version) < version('1.0-milestone-3')) {
-                return
+            if (it.toolingApiSupported) {
+                permutations << new Permutation(current, it)
+                permutations << new Permutation(it, current)
             }
-            permutations << new Permutation(current, it)
-            permutations << new Permutation(it, current)
         }
         return permutations
     }

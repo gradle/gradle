@@ -41,12 +41,12 @@ class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSp
     }
 
     void checkCanBuildUsing(BasicGradleDistribution openApiVersion, BasicGradleDistribution buildVersion) {
-        if (!buildVersion.worksWith(Jvm.current())) {
-            System.out.println("skipping $buildVersion as it does not work with ${Jvm.current()}.")
+        if (!buildVersion.openApiSupported) {
+            System.out.println("skipping $buildVersion as it does not support the open API.")
             return
         }
-        if (!openApiVersion.worksWith(Jvm.current())) {
-            System.out.println("skipping $openApiVersion as it does not work with ${Jvm.current()}.")
+        if (!openApiVersion.openApiSupported) {
+            System.out.println("skipping $openApiVersion as it does not support the open API.")
             return
         }
         def testClasses = ClasspathUtil.getClasspathForClass(CrossVersionBuilder.class)

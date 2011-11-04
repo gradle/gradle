@@ -50,6 +50,17 @@ public interface BasicGradleDistribution {
     boolean daemonSupported();
 
     /**
+     *
+     * Returns true if the tooling API is supported by this distribution.
+     */
+    boolean isToolingApiSupported();
+
+    /**
+     * Returns true if the open API is supported by this distribution.
+     */
+    boolean isOpenApiSupported();
+
+    /**
      * Returns true if the wrapper can execute a build using the given version.
      */
     boolean wrapperCanExecute(String version);

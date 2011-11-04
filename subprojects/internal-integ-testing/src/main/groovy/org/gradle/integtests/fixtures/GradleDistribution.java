@@ -63,7 +63,14 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     }
 
     public boolean daemonSupported() {
-        // More or less
+        return true;
+    }
+
+    public boolean isOpenApiSupported() {
+        return true;
+    }
+
+    public boolean isToolingApiSupported() {
         return true;
     }
 
