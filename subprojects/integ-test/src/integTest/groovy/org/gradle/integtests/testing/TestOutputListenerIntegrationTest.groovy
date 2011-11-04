@@ -33,15 +33,13 @@ public class TestOutputListenerIntegrationTest extends AbstractIntegrationSpec {
 import org.junit.*;
 
 public class SomeTest {
-    @Test
-    public void showsOutputWhenPassing() {
+    @Test public void showsOutputWhenPassing() {
         System.out.println("out passing");
         System.err.println("err passing");
         Assert.assertTrue(true);
     }
 
-    @Test
-    public void showsOutputWhenFailing() {
+    @Test public void showsOutputWhenFailing() {
         System.out.println("out failing");
         System.err.println("err failing");
         Assert.assertTrue(false);
@@ -51,14 +49,8 @@ public class SomeTest {
         def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    testCompile "junit:junit:4.8.2"
-}
+repositories { mavenCentral() }
+dependencies { testCompile "junit:junit:4.8.2" }
 
 test.addTestOutputListener(new VerboseOutputListener(logger: project.logger))
 
@@ -83,15 +75,14 @@ class VerboseOutputListener implements TestOutputListener {
     }
 
     @Test
-    def "can register output listener at gradle level"() {
+    def "can register output listener at gradle level and using onOutput method"() {
         given:
         def test = file("src/test/java/SomeTest.java")
         test << """
 import org.junit.*;
 
 public class SomeTest {
-    @Test
-    public void foo() {
+    @Test public void foo() {
         System.out.println("message from foo");
     }
 }
@@ -99,14 +90,8 @@ public class SomeTest {
         def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    testCompile "junit:junit:4.8.2"
-}
+repositories { mavenCentral() }
+dependencies { testCompile "junit:junit:4.8.2" }
 
 test.onOutput { descriptor, event ->
     logger.lifecycle("first: " + event.message)
@@ -133,6 +118,37 @@ class VerboseOutputListener implements TestOutputListener {
     }
 
     @Test
+    def "shows standard streams configured via closure"() {
+        given:
+        def test = file("src/test/java/SomeTest.java")
+        test << """
+import org.junit.*;
+
+public class SomeTest {
+    @Test public void foo() {
+        System.out.println("message from foo");
+    }
+}
+"""
+        def buildFile = file('build.gradle')
+        buildFile << """
+apply plugin: 'java'
+repositories { mavenCentral() }
+dependencies { testCompile "junit:junit:4.8.2" }
+
+test.testLogging {
+    showStandardStreams = true
+}
+"""
+
+        when:
+        def result = executer.withTasks('test').withArguments('-i').run()
+
+        then:
+        result.output.contains('message from foo')
+    }
+
+    @Test
     def "shows standard stream also for testNG"() {
         given:
         def test = file("src/test/java/SomeTest.java")
@@ -141,8 +157,7 @@ import org.testng.*;
 import org.testng.annotations.*;
 
 public class SomeTest {
-    @Test
-    public void foo() {
+    @Test public void foo() {
         System.out.println("output from foo");
         System.err.println("error from foo");
     }
@@ -152,14 +167,8 @@ public class SomeTest {
         def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    testCompile 'org.testng:testng:5.14'
-}
+repositories { mavenCentral() }
+dependencies { testCompile 'org.testng:testng:5.14' }
 
 test {
     useTestNG()

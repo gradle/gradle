@@ -168,6 +168,9 @@
             <tr>
                 <td>onOutput</td>
             </tr>
+            <tr>
+                <td>testLogging</td>
+            </tr>
         </table>
     </section>
 </section>

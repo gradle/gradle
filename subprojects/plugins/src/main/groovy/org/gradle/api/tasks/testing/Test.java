@@ -866,4 +866,20 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     public TestLogging getTestLogging() {
         return testLogging;
     }
+
+    /**
+     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     *
+     * //makes the standard streams (err and out) visible at console when running tests
+     * test.testLogging {
+     *   showStandardStreams = true
+     * }
+     * </pre>
+     * @param closure configure closure
+     */
+    public void testLogging(Closure closure) {
+        ConfigureUtil.configure(closure, testLogging);
+    }
 }
