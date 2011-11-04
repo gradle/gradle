@@ -33,6 +33,9 @@ import java.io.File;
  */
 public interface DaemonContext extends Serializable {
 
+    /**
+     * The JAVA_HOME in use, as the canonical file.
+     */
     File getJavaHome();
 
 }

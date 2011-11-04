@@ -33,7 +33,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     private File javaHome;
 
     public DaemonContextBuilder() {
-        javaHome = jvm.getJavaHome();
+        javaHome = jvm.getJavaHome().getCanonicalFile();
     }
 
     public File getJavaHome() {
