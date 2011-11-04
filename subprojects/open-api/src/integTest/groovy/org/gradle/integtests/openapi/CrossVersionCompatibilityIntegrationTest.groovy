@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.DefaultClassLoaderFactory
-import org.gradle.util.Jvm
 import org.junit.Assert
 import org.junit.Rule
 import org.slf4j.Logger
