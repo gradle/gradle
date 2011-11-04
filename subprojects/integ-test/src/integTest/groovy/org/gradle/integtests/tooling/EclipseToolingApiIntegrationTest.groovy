@@ -16,11 +16,13 @@
 
 package org.gradle.integtests.tooling
 
+import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.TestFile
 import spock.lang.Issue
 
+@MinTargetGradleVersion('1.0-milestone-5')
 class EclipseToolingApiIntegrationTest extends ToolingApiSpecification {
     TestFile projectDir = dist.testDir
 
