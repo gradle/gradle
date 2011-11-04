@@ -16,9 +16,11 @@
 package org.gradle.launcher.daemon.context;
 
 import org.gradle.util.Jvm;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.Factory;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Builds a daemon context, reflecting the current environment.
@@ -33,7 +35,11 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     private File javaHome;
 
     public DaemonContextBuilder() {
-        javaHome = jvm.getJavaHome().getCanonicalFile();
+        try {
+            javaHome = jvm.getJavaHome().getCanonicalFile();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Unable to canonicalise JAVA_HOME '" + jvm.getJavaHome(), e);
+        }
     }
 
     public File getJavaHome() {
