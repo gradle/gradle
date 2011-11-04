@@ -19,8 +19,9 @@ package org.gradle.util
 import org.apache.ivy.Ivy
 import org.apache.tools.ant.Main
 import org.codehaus.groovy.runtime.InvokerHelper
-import spock.lang.Specification
 import org.gradle.os.OperatingSystem
+
+import spock.lang.*
 
 /**
  * @author Hans Dockter
@@ -140,6 +141,13 @@ class GradleVersionTest extends Specification {
         '0.9'                     | '0.9-20101220100000+1000'
     }
 
+    @Issue("http://issues.gradle.org/browse/GRADLE-1892")
+    def "build time should always print in UTC"() {
+        expect:
+        version.buildTime.endsWith("UTC")
+    }
+    
+    
     def defaultValuesForGradleVersion() {
         expect:
         version.version != null

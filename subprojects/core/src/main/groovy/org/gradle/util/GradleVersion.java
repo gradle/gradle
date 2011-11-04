@@ -34,6 +34,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,7 +88,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
     private GradleVersion(String version, Date buildTime) {
         this.version = version;
-        this.buildTime = buildTime == null ? null : DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(buildTime);
+        this.buildTime = buildTime == null ? null : formatBuildTime(buildTime);
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
             throw new InvalidUserDataException(String.format("Unexpected Gradle version '%s'.", version));
@@ -118,6 +119,12 @@ public class GradleVersion implements Comparable<GradleVersion> {
         } else {
             snapshot = null;
         }
+    }
+
+    private String formatBuildTime(Date buildTime) {
+        DateFormat format = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL);
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return format.format(buildTime);
     }
 
     @Override
