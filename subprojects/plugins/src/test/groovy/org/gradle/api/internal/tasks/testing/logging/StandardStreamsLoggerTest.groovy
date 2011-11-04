@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.verbosity;
+package org.gradle.api.internal.tasks.testing.logging;
 
 
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
