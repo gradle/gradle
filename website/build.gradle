@@ -209,23 +209,40 @@ task testRemote(type: Test, dependsOn: uploadWebsite) {
     systemProperties 'test.ignore.docs': false
 }
 
-task install(type: Sync) {
+task install(type: Copy) {
     from htmlNoFileExtensions.outputs.files
     into "${System.getProperty('user.home')}/Sites/gradle"
 }
 
-// note, will fail if you don't have permissions for this repo
-task checkoutRoadmap(type: Exec, dependsOn: [install]) {
-    checkoutDir = file("$install.destinationDir/board")
-    executable "git"
-    args "clone", "git@github.com:gradleware/gradle-status-board.git", checkoutDir
-    onlyIf { !checkoutDir.exists() }
+class WebsiteGitRepoComponentsExtension {
+    Project project
+    
+    def methodMissing(String path, arguments) {
+        if (arguments.size() != 1) {
+            throw new IllegalArgumentException("WebsiteGitRepoComponentsExtension DSL only accepts methods with one arg")
+        }
+        
+        def repoUrl = arguments[0]
+        def friendlyName = path.capitalize()
+        def checkoutTask = project.tasks.add(name: "checkout$friendlyName", type: Exec, dependsOn: project.install) { task ->
+            task.checkoutDir = project.file("$project.install.destinationDir/$path")
+            task.executable "git"
+            task.args "clone", repoUrl, checkoutDir
+            task.onlyIf { !checkoutDir.exists() }
+        }
+        
+        project.tasks.add(name: "update$friendlyName", type: Exec, dependsOn: [checkoutTask]) { task ->
+            task.executable "git"
+            task.args "pull"
+            task.workingDir checkoutTask.checkoutDir
+        }
+    }
 }
+project.extensions.add("websiteGitRepoComponents", new WebsiteGitRepoComponentsExtension(project: project))
 
-task updateRoadmap(type: Exec, dependsOn: [checkoutRoadmap]) {
-    executable "git"
-    args "pull"
-    workingDir checkoutRoadmap.checkoutDir
+websiteGitRepoComponents {
+    board "git@github.com:gradleware/gradle-status-board.git"
+    trainings "git@github.com:gradleware/training-data.git"
 }
 
 task ciBuild(dependsOn: [clean, html, uploadWebsite, testRemote])
