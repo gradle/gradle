@@ -22,8 +22,8 @@ import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
  *
  * <p>Sets the {@link CrossVersionIntegrationSpec#previous} property of the test instance before executing it.
  */
-class CrossVersionCompatibilityTestRunner extends AbstractCompatibilityTestRunner {
-    CrossVersionCompatibilityTestRunner(Class<? extends CrossVersionIntegrationSpec> target) {
+class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
+    CrossVersionTestRunner(Class<? extends CrossVersionIntegrationSpec> target) {
         super(target)
     }
 

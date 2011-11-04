@@ -16,18 +16,42 @@
 package org.gradle.integtests.fixtures.internal
 
 import spock.lang.Specification
-import org.gradle.integtests.fixtures.CrossVersionCompatibilityTestRunner
+
 import org.junit.runner.RunWith
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.junit.Rule
+import org.gradle.integtests.fixtures.CrossVersionTestRunner
+import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 
-@RunWith(CrossVersionCompatibilityTestRunner)
+@RunWith(CrossVersionTestRunner)
 abstract class CrossVersionIntegrationSpec extends Specification {
     @Rule public final GradleDistribution current = new GradleDistribution()
     static BasicGradleDistribution previous
 
     BasicGradleDistribution getPrevious() {
         return previous
+    }
+
+    protected TestFile getBuildFile() {
+        testDir.file('build.gradle')
+    }
+
+    protected TestFile getTestDir() {
+        current.getTestDir();
+    }
+
+    protected TestFile file(Object... path) {
+        testDir.file(path);
+    }
+
+    def version(BasicGradleDistribution dist) {
+        def executer = dist.executer();
+        if (executer instanceof GradleDistributionExecuter) {
+            executer.withDeprecationChecksDisabled()
+        }
+        executer.inDirectory(testDir)
+        return executer;
     }
 }

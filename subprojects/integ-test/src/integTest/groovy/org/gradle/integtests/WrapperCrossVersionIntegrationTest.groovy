@@ -16,10 +16,9 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
 
-class WrapperCrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSpec {
+class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     public void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
         expect:
         checkWrapperWorksWith(previous, current)
@@ -38,7 +37,7 @@ class WrapperCrossVersionCompatibilityIntegrationTest extends CrossVersionIntegr
 
         println "use wrapper from $wrapperGenVersion to build using $executionVersion"
 
-        current.file('build.gradle') << """
+        buildFile << """
 
 task wrapper(type: Wrapper) {
     gradleVersion = '$executionVersion.version'
@@ -52,18 +51,9 @@ task hello {
 }
 """
 
-        executer(wrapperGenVersion).withTasks('wrapper').run()
-        def result = executer(wrapperGenVersion).usingExecutable('gradlew').withTasks('hello').run()
+        version(wrapperGenVersion).withTasks('wrapper').run()
+        def result = version(wrapperGenVersion).usingExecutable('gradlew').withTasks('hello').run()
         assert result.output.contains("hello from $executionVersion.version")
-    }
-
-    def executer(BasicGradleDistribution dist) {
-        def executer = dist.executer();
-        if (executer instanceof GradleDistributionExecuter) {
-            executer.withDeprecationChecksDisabled()
-        }
-        executer.inDirectory(current.testDir)
-        return executer;
     }
 }
 
