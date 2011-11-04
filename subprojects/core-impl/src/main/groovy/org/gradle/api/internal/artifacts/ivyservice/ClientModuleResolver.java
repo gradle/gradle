@@ -20,7 +20,6 @@ import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
@@ -28,10 +27,8 @@ import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.artifacts.ClientModule;
 
-import java.io.File;
 import java.util.Map;
 
 /**
@@ -60,34 +57,10 @@ public class ClientModuleResolver extends AbstractLimitedDependencyResolver {
     }
 
     public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
-        DownloadReport dr = new DownloadReport();
-        for (Artifact artifact : artifacts) {
-            ArtifactDownloadReport artifactDownloadReport = new ArtifactDownloadReport(artifact);
-            artifactDownloadReport.setDownloadStatus(DownloadStatus.FAILED);
-            dr.addArtifactReport(artifactDownloadReport);
-        }
-        return dr;
+        throw new UnsupportedOperationException();
     }
 
     public ArtifactOrigin locate(Artifact artifact) {
-        // TODO: this should probably be implemented
-        return null;
-    }
-
-    @Override
-    public void reportFailure() {
-    }
-
-    @Override
-    public void reportFailure(Artifact art) {
-    }
-
-    public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
         throw new UnsupportedOperationException();
     }
-
-    public void publish(Artifact artifact, File src, boolean overwrite) {
-        throw new UnsupportedOperationException();
-    }
-
 }

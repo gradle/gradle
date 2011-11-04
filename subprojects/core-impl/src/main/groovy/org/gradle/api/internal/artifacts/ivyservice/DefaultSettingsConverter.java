@@ -84,13 +84,13 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return publishSettings;
     }
 
-    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, Map<String, ModuleDescriptor> clientModuleRegistry, ResolutionStrategyInternal resolutionStrategy) {
+    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, DependencyResolver projectResolver, Map<String, ModuleDescriptor> clientModuleRegistry, ResolutionStrategyInternal resolutionStrategy) {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
             userResolverChain = createUserResolverChain();
             ClientModuleResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
-            DependencyResolver outerChain = new ClientModuleResolverChain(clientModuleResolver, userResolverChain);
-            outerChain.setName(CLIENT_MODULE_CHAIN_NAME);
+            DependencyResolver outerChain = new TopLeveResolverChain(clientModuleResolver, projectResolver, userResolverChain);
+            outerChain.setName(TOP_LEVEL_RESOLVER_CHAIN_NAME);
             entryPointResolver = new EntryPointResolver(outerChain);
             entryPointResolver.setName(ENTRY_POINT_RESOLVER);
             initializeResolvers(resolveSettings, WrapUtil.toList(userResolverChain, clientModuleResolver, outerChain, entryPointResolver));
@@ -105,12 +105,12 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     private ClientModuleResolver createClientModuleResolver(Map<String, ModuleDescriptor> clientModuleRegistry, DependencyResolver userResolverChain) {
-        return new ClientModuleResolver(CLIENT_MODULE_NAME, clientModuleRegistry, userResolverChain);
+        return new ClientModuleResolver(CLIENT_MODULE_RESOLVER_NAME, clientModuleRegistry, userResolverChain);
     }
 
     private UserResolverChain createUserResolverChain() {
         UserResolverChain chainResolver = new UserResolverChain(moduleResolutionCache);
-        chainResolver.setName(CHAIN_RESOLVER_NAME);
+        chainResolver.setName(USER_RESOLVER_CHAIN_NAME);
         chainResolver.setReturnFirst(true);
         chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));
         return chainResolver;

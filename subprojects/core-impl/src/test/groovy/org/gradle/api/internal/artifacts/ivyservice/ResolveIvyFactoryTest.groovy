@@ -44,7 +44,7 @@ class ResolveIvyFactoryTest extends Specification {
         then:
         result == ivy
         1 * resolverProvider.resolvers >> [resolver1, resolver2]
-        1 * settingsConverter.convertForResolve([internalRepo, resolver1, resolver2], clientModuleRegistry, resolutionStrategy) >> ivySettings
+        1 * settingsConverter.convertForResolve([resolver1, resolver2], internalRepo, clientModuleRegistry, resolutionStrategy) >> ivySettings
         1 * ivyFactory.createIvy(ivySettings) >> ivy
         0 * _._
     }

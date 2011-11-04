@@ -21,8 +21,6 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class ResolveIvyFactory {
@@ -41,9 +39,6 @@ public class ResolveIvyFactory {
     }
 
     public Ivy create(ResolutionStrategyInternal resolutionStrategy) {
-        List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
-        resolvers.add(internalRepository);
-        resolvers.addAll(resolverProvider.getResolvers());
-        return ivyFactory.createIvy(settingsConverter.convertForResolve(resolvers, clientModuleRegistry, resolutionStrategy));
+        return ivyFactory.createIvy(settingsConverter.convertForResolve(resolverProvider.getResolvers(), internalRepository, clientModuleRegistry, resolutionStrategy));
     }
 }
