@@ -67,7 +67,7 @@ class VerboseOutputListener implements TestOutputListener {
     def logger
 
     public void onOutput(TestDescriptor descriptor, TestOutputEvent event) {
-        logger.lifecycle(descriptor.name + " " + event.destination + " " + event.message);
+        logger.lifecycle(descriptor.toString() + " " + event.destination + " " + event.message);
     }
 }
 """
@@ -76,10 +76,10 @@ class VerboseOutputListener implements TestOutputListener {
         def failure = executer.withTasks('test').runWithFailure()
 
         then:
-        failure.output.contains('SomeTest StdOut out passing')
-        failure.output.contains('SomeTest StdOut out failing')
-        failure.output.contains('SomeTest StdErr err passing')
-        failure.output.contains('SomeTest StdErr err failing')
+        failure.output.contains('test showsOutputWhenPassing(SomeTest) StdOut out passing')
+        failure.output.contains('test showsOutputWhenFailing(SomeTest) StdOut out failing')
+        failure.output.contains('test showsOutputWhenPassing(SomeTest) StdErr err passing')
+        failure.output.contains('test showsOutputWhenFailing(SomeTest) StdErr err failing')
     }
 
     @Test
@@ -133,7 +133,7 @@ class VerboseOutputListener implements TestOutputListener {
     }
 
     @Test
-    def "shows standard stream also for test ng"() {
+    def "shows standard stream also for testNG"() {
         given:
         def test = file("src/test/java/SomeTest.java")
         test << """
