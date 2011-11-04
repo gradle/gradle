@@ -72,11 +72,11 @@ class GradleVersionTest extends Specification {
         GradleVersion.version(b) == GradleVersion.version(b)
 
         where:
-        a | b
-        '0.9' | '0.8'
-        '1.0' | '0.10'
+        a      | b
+        '0.9'  | '0.8'
+        '1.0'  | '0.10'
         '10.0' | '2.1'
-        '2.5' | '2.4'
+        '2.5'  | '2.4'
     }
 
     def canComparePointVersions() {
@@ -87,9 +87,12 @@ class GradleVersionTest extends Specification {
         GradleVersion.version(b) == GradleVersion.version(b)
 
         where:
-        a | b
-        '0.9.2' | '0.9.1'
-        '0.10.1' | '0.9.2'
+        a                   | b
+        '0.9.2'             | '0.9.1'
+        '0.10.1'            | '0.9.2'
+        '1.2.3.40'          | '1.2.3.8'
+        '1.2.3.1'           | '1.2.3'
+        '1.2.3.1.4.12.9023' | '1.2.3'
     }
 
     def canComparePointVersionAndMajorVersions() {
@@ -100,9 +103,9 @@ class GradleVersionTest extends Specification {
         GradleVersion.version(b) == GradleVersion.version(b)
 
         where:
-        a | b
+        a       | b
         '0.9.1' | '0.9'
-        '0.10' | '0.9.1'
+        '0.10'  | '0.9.1'
     }
 
     def canComparePreviewsMilestonesAndRCVersions() {
@@ -113,13 +116,13 @@ class GradleVersionTest extends Specification {
         GradleVersion.version(b) == GradleVersion.version(b)
 
         where:
-        a | b
+        a                 | b
         '1.0-milestone-2' | '1.0-milestone-1'
-        '1.0-preview-2' | '1.0-preview-1'
-        '1.0-rc-2' | '1.0-rc-1'
-        '1.0-preview-1' | '1.0-milestone-7'
-        '1.0-rc-7' | '1.0-rc-1'
-        '1.0' | '1.0-rc-7'
+        '1.0-preview-2'   | '1.0-preview-1'
+        '1.0-rc-2'        | '1.0-rc-1'
+        '1.0-preview-1'   | '1.0-milestone-7'
+        '1.0-rc-7'        | '1.0-rc-1'
+        '1.0'             | '1.0-rc-7'
     }
 
     def canCompareSnapshotVersions() {
@@ -130,11 +133,11 @@ class GradleVersionTest extends Specification {
         GradleVersion.version(b) == GradleVersion.version(b)
 
         where:
-        a | b
+        a                         | b
         '0.9-20101220110000+1100' | '0.9-20101220100000+1100'
         '0.9-20101220110000+1000' | '0.9-20101220100000+1100'
         '0.9-20101220110000-0100' | '0.9-20101220100000+0000'
-        '0.9' | '0.9-20101220100000+1000'
+        '0.9'                     | '0.9-20101220100000+1000'
     }
 
     def defaultValuesForGradleVersion() {

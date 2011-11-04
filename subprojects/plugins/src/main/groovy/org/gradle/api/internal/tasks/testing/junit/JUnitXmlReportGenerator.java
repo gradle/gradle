@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.junit;
 import org.apache.tools.ant.util.DOMElementWriter;
 import org.apache.tools.ant.util.DateUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestState;
@@ -44,7 +43,7 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
     private Document testSuiteReport;
     private TestState testSuite;
     private Element rootElement;
-    private Map<DefaultTestOutputEvent.Destination, StringBuilder> outputs
+    private Map<TestOutputEvent.Destination, StringBuilder> outputs
             = new EnumMap<TestOutputEvent.Destination, StringBuilder>(TestOutputEvent.Destination.class);
 
     public JUnitXmlReportGenerator(File testResultsDir) {
