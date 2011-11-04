@@ -36,6 +36,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.OtherTest')
+
         result.testClass('org.gradle.OkTest').assertTestPassed('ok')
         result.testClass('org.gradle.OkTest').assertStdout(containsString('This is test stdout'))
         result.testClass('org.gradle.OkTest').assertStdout(containsString('no EOL'))
@@ -44,12 +45,29 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.OkTest').assertStdout(containsString('stdout from another thread'))
         result.testClass('org.gradle.OkTest').assertStderr(containsString('This is test stderr'))
         result.testClass('org.gradle.OkTest').assertStderr(containsString('this is a warning'))
+        result.testClass('org.gradle.OkTest').assertStdout(containsString('sys out from another test method'))
+        result.testClass('org.gradle.OkTest').assertStderr(containsString('sys err from another test method'))
+
         result.testClass('org.gradle.OtherTest').assertTestPassed('ok')
         result.testClass('org.gradle.OtherTest').assertStdout(containsString('This is other stdout'))
         result.testClass('org.gradle.OtherTest').assertStdout(containsString('other class loaded'))
         result.testClass('org.gradle.OtherTest').assertStdout(containsString('other test constructed'))
         result.testClass('org.gradle.OtherTest').assertStderr(containsString('This is other stderr'))
         result.testClass('org.gradle.OtherTest').assertStderr(containsString('this is another warning'))
+    }
+
+    @Test
+    public void suitesOutputIsVisible() {
+        executer.withTasks('test').withArguments('-i').run();
+
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
+        result.assertTestClassesExecuted('org.gradle.ASuite')
+
+        result.testClass('org.gradle.ASuite').assertStdout(containsString('suite class loaded'))
+        result.testClass('org.gradle.ASuite').assertStderr(containsString('This is test stderr'))
+        result.testClass('org.gradle.ASuite').assertStdout(containsString('sys out from another test method'))
+        result.testClass('org.gradle.ASuite').assertStderr(containsString('sys err from another test method'))
+        result.testClass('org.gradle.ASuite').assertStdout(containsString('This is other stdout'))
     }
 
     @Test

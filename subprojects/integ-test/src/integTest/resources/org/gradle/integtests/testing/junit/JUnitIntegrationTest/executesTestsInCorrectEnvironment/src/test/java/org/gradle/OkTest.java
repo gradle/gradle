@@ -1,9 +1,9 @@
 package org.gradle;
 
-import static org.junit.Assert.*;
-
 import java.io.PrintStream;
 import java.util.logging.Logger;
+
+import static org.junit.Assert.*;
 
 public class OkTest {
     static {
@@ -68,5 +68,11 @@ public class OkTest {
         };
         thread.start();
         thread.join();
+    }
+
+    @org.junit.Test
+    public void anotherOk() {
+        System.out.println("sys out from another test method");
+        System.err.println("sys err from another test method");
     }
 }
