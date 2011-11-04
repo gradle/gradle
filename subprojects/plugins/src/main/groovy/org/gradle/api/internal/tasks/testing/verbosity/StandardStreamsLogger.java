@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.tasks.testing.verbosity;
 
 import org.gradle.api.tasks.testing.TestDescriptor;
@@ -30,6 +29,7 @@ import org.slf4j.Logger;
 public class StandardStreamsLogger implements TestOutputListener {
     private final Logger logger;
     private final TestLogging logging;
+    private TestDescriptor currentTestDescriptor;
 
     public StandardStreamsLogger(Logger logger, TestLogging logging) {
         this.logger = logger;
@@ -38,6 +38,10 @@ public class StandardStreamsLogger implements TestOutputListener {
 
     public void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {
         if (logging.getShowStandardStreams()) {
+            if (!testDescriptor.equals(currentTestDescriptor)) {
+                currentTestDescriptor = testDescriptor;
+                logger.info(testDescriptor.toString() + " output:");
+            }
             if (outputEvent.getDestination() == TestOutputEvent.Destination.StdOut) {
                 logger.info(outputEvent.getMessage());
             } else if (outputEvent.getDestination() == TestOutputEvent.Destination.StdErr) {
