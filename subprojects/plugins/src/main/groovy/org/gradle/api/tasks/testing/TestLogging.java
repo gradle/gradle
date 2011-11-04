@@ -17,20 +17,20 @@
 package org.gradle.api.tasks.testing;
 
 /**
- * Configures the verbosity of test execution, e.g. whether the std err / out should be eagerly shown
+ * Configures logging of the test execution, e.g. whether the std err / out should be eagerly shown
  */
 public interface TestLogging {
 
     /**
-     * Whether to show eagerly the standard output/error messages at INFO level.
+     * Whether to show eagerly the standard stream events. Standard output is printed at INFO level, standard error at ERROR level.
      *
      * @param standardStream to configure
-     * @return this verbosity instance
+     * @return this logging instance
      */
     TestLogging setShowStandardStream(boolean standardStream);
 
     /**
-     * Whether to show eagerly the standard output/error messages at INFO level.
+     * Whether to show eagerly the standard stream events. Standard output is printed at INFO level, standard error at ERROR level.
      */
     boolean getShowStandardStreams();
 

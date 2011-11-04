@@ -109,7 +109,7 @@ dependencies {
 }
 
 test.onOutput { descriptor, event ->
-    println "first: " + event.message
+    logger.lifecycle("first: " + event.message)
 }
 
 gradle.addListener(new VerboseOutputListener(logger: project.logger))

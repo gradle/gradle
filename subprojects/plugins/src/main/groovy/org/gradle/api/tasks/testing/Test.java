@@ -57,6 +57,26 @@ import java.util.Set;
 
 /**
  * Executes tests. Supports JUnit (3.8.x or 4.x) or TestNG tests.
+ * <p>
+ * An example with a blend of various settings
+ * <pre autoTested=''>
+ * apply plugin: 'java' //so that 'test' task is added
+ *
+ * test {
+ *   //configuring a system property for tests
+ *   systemProperty 'some.prop', 'value'
+ *
+ *   //tuning the included/excluded tests
+ *   include 'org/foo/**'
+ *   exclude 'org/boo/**'
+ *
+ *   //makes the standard streams (err and out) visible at console when running tests
+ *   testLogging.showStandardStreams = true
+ *
+ *   //tweaking memory settings for the forked vm that runs tests
+ *   jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m'
+ * }
+ * </pre>
  *
  * @author Hans Dockter
  */
@@ -434,6 +454,17 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Adds a closure to be notified when output from the test received.
      * A {@link org.gradle.api.tasks.testing.TestDescriptor}
      * and {@link org.gradle.api.tasks.testing.TestOutputEvent} instance are passed to the closure as a parameter.
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     *
+     * test {
+     *   onOutput { descriptor, event ->
+     *     if (event.destination == TestOutputEvent.Destination.StdErr) {
+     *       logger.error("Test: " + descriptor + ", error: " + event.message)
+     *     }
+     *   }
+     * }
+     * </pre>
      *
      * @param closure The closure to call.
      */
@@ -822,9 +853,15 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Allows configuring the logging of the test execution, e.g. whether to show eagerly the standard output, etc.
+     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
+     * <pre autoTested=''>
+     * apply plugin: 'java'
      *
-     * @return verbosity configuration
+     * //makes the standard streams (err and out) visible at console when running tests
+     * test.testLogging.showStandardStreams = true
+     * </pre>
+     *
+     * @return test logging configuration
      */
     public TestLogging getTestLogging() {
         return testLogging;
