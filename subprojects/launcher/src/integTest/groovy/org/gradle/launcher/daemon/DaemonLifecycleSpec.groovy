@@ -36,85 +36,109 @@ class DaemonLifecycleSpec extends Specification {
 
     @Rule public final GradleHandles handles = new GradleHandles()
 
-    def buildCounter = 0
-    def buildSleepsFor = 5
     def daemonIdleTimeout = 5
 
-    // individual tests can set this to a list of string args that will be added to the client invocation
-    def buildGradleOpts = []
-    def foregroundDaemonGradleOpts = []
+    def builds = []
+    def foregroundDaemons = []
 
     // set this to change the java home used to launch any gradle, set back to null to use current JVM
     def javaHome = null
     
     @Delegate DaemonEventSequenceBuilder sequenceBuilder = new DaemonEventSequenceBuilder()
 
-    def buildDir(buildScript) {
-        def buildDir = handles.distribution.file("builds/${buildCounter++}")
-        buildDir.file("build.gradle") << buildScript
-        buildDir
+    def buildDir(buildNum) {
+        handles.distribution.file("builds/$buildNum")
     }
 
-    def sleepyBuild(sleepFor = buildSleepsFor) {
-        handles.createHandle {
-            withTasks("sleep")
-            addGradleOpts(new DaemonIdleTimeout(daemonIdleTimeout * 1000).toSysArg(), *buildGradleOpts)
+    def buildDirWithScript(buildNum, buildScript) {
+        def dir = buildDir(buildNum)
+        dir.file("build.gradle") << buildScript
+        dir
+    }
+
+    void startBuild() {
+        builds << handles.createHandle {
+            withTasks("watch")
+            addGradleOpts(new DaemonIdleTimeout(daemonIdleTimeout * 1000).toSysArg())
             withArguments("--daemon", "--info")
             if (javaHome) {
                 withJavaHome(javaHome)
             }
-            usingProjectDirectory buildDir("""
-                task('sleep') << {
-                    println "about to sleep"
-                    sleep ${sleepFor * 1000}
+            usingProjectDirectory buildDirWithScript(builds.size(), """
+                task('watch') << {
+                    println "waiting for stop file"
+                    while(!file("stop").exists()) {
+                        sleep 100
+                    }
+                    println 'noticed stop file, finishing'
                 }
             """)
-        }.passthroughOutput()
+        }.passthroughOutput().start()
     }
 
-    def stopBuild() {
+    void completeBuild(buildNum = 0) {
+        buildDir(buildNum).file("stop") << "stop"
+    }
+
+    void stopDaemons() {
         handles.createHandle {
             withArguments("--stop", "--info")
             if (javaHome) {
                 withJavaHome(javaHome)
             }
-        }.passthroughOutput()
+        }.passthroughOutput().start().waitForFinish()
     }
 
-    def foregroundDaemon() {
-        handles.createHandle {
-            addGradleOpts(*foregroundDaemonGradleOpts)
+    void startForegroundDaemon() {
+        foregroundDaemons << handles.createHandle {
             if (javaHome) {
                 withJavaHome(javaHome)
             }
             withArguments("--foreground")
-        }.passthroughOutput()
+        }.passthroughOutput().start()
     }
 
-    boolean failed(handle) {
+    void killForegroundDaemon(int num = 0) {
+        foregroundDaemons[num].abort().waitForFailure()
+    }
+
+    void killBuild(int num = 0) {
+        builds[num].abort().waitForFailure()
+    }
+
+    void buildFailed(int num = 0) {
+        failed builds[num]
+    }
+
+    void foregroundDaemonFailed(int num = 0) {
+        failed foregroundDaemons[num]
+    }
+
+    void failed(handle) {
         assert handle.waitForFailure()
-        true
     }
 
-    boolean failedWithDaemonDisappearedMessage(build) {
+    boolean buildFailedWithDaemonDisappearedMessage(num = 0) {
+        def build = builds[num]
         failed build
         assert build.errorOutput.contains(DaemonDisappearedException.MESSAGE)
-        true
     }
-    
+
     def setup() {
         handles.distribution.requireOwnUserHomeDir()
     }
 
-    def
-    "daemons do some work - sit idle - then timeout and die"() {
+    def "daemons do some work - sit idle - then timeout and die"() {
         when:
-        run { sleepyBuild().start() }
+        run { startBuild() }
 
         then:
         busy()
 
-        and:
+        when:
+        run { completeBuild() }
+
+        then:
         idle()
 
         and:
@@ -123,13 +147,13 @@ class DaemonLifecycleSpec extends Specification {
 
     def "existing idle daemons are used"() {
         when:
-        run { foregroundDaemon().start() }
+        run { startForegroundDaemon() }
 
         then:
         idle()
 
         when:
-        run { sleepyBuild(2).start() }
+        run { startBuild() }
 
         then:
         busy()
@@ -137,50 +161,47 @@ class DaemonLifecycleSpec extends Specification {
 
     def "a new daemon is started if all existing are busy"() {
         when:
-        run { sleepyBuild().start() }
+        run { startBuild() }
 
         then:
         busy()
 
         when:
-        run { sleepyBuild().start() }
+        run { startBuild() }
 
         then:
         busy(2)
     }
 
     def "sending stop to idle daemons causes them to terminate immediately"() {
-        given:
-        numDaemons 2
-
         when:
-        run { 2.times { sleepyBuild(1).start() } }
+        run { startBuild() }
 
         then:
         busy()
 
-        and:
+        when:
+        run { completeBuild() }
+
+        then:
         idle()
 
         when:
-        run { stopBuild().start() }
+        run { stopDaemons() }
 
         then:
         stopped()
     }
 
     def "sending stop to busy daemons causes them to disappear from the registry"() {
-        given:
-        numDaemons 3
-
         when:
-        run { 3.times { sleepyBuild(5).start() } }
+        run { startBuild() }
 
         then:
         busy()
 
         when:
-        run { stopBuild().start().waitForFinish() }
+        run { stopDaemons() }
 
         then:
         stopped()
@@ -188,43 +209,39 @@ class DaemonLifecycleSpec extends Specification {
 
     def "sending stop to busy daemons cause them to disappear from the registry and disconnect from the client, and terminates the daemon process"() {
         when:
-        def daemon
-        run { daemon = foregroundDaemon().start() }
+        run { startForegroundDaemon() }
 
         then:
         idle()
 
         when:
-        def build
-        run { build = sleepyBuild(10).start() }
+        run { startBuild() }
 
         then:
         busy()
 
         when:
-        run { stopBuild().start().waitForFinish() }
+        run { stopDaemons() }
 
         then:
         stopped() // just means the daemon has disappeared from the registry
 
         then:
-        run { failedWithDaemonDisappearedMessage build }
-        // should check we get a nice error message here
+        run { buildFailedWithDaemonDisappearedMessage() }
 
         and:
-        run { failed daemon }
+        run { foregroundDaemonFailed() }
     }
 
     def "tearing down client while daemon is building tears down daemon"() {
         when:
-        def build
-        run { build = sleepyBuild(20).start() }
+        run { startBuild() }
 
         then:
         busy()
 
         when:
-        run { build.abort().waitForFailure() }
+        run { killBuild() }
 
         then:
         stopped()
@@ -232,56 +249,51 @@ class DaemonLifecycleSpec extends Specification {
 
     def "tearing down client while daemon is building tears down daemon _process_"() {
         when:
-        def daemon
-        run { daemon = foregroundDaemon().start() }
+        run { startForegroundDaemon() }
 
         then:
         idle()
 
         when:
-        def build
-        run { build = sleepyBuild(20).start() }
+        run { startBuild() }
 
         then:
         busy()
 
         when:
-        run { build.abort().waitForFailure() }
-
+        run { killBuild() }
 
         then:
         stopped() // just means the daemon has disappeared from the registry
 
         and:
-        run { failed daemon }
+        run { foregroundDaemonFailed() }
     }
 
     def "tearing down daemon process produces nice error message for client"() {
         when:
-        def daemon
-        run { daemon = foregroundDaemon().start() }
+        run { startForegroundDaemon() }
 
         then:
         idle()
 
         when:
-        def build
-        run { build = sleepyBuild(10).start() }
+        run { startBuild() }
 
         then:
         busy()
 
         when:
-        run { daemon.abort().waitForFailure() }
+        run { killForegroundDaemon() }
 
         then:
-        run { failedWithDaemonDisappearedMessage build }
+        run { buildFailedWithDaemonDisappearedMessage() }
 
         and:
         // The daemon crashed so didn't remove itself from the registry.
         // This doesn't produce a registry state change, so we have to test
         // That we are still in the same state this way
-        run { assert handles.daemonRegistry.busy.size() == 1 }
+        run { assert handles.daemonRegistry.busy.size() == 1; }
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
@@ -289,7 +301,7 @@ class DaemonLifecycleSpec extends Specification {
         when:
         run {
             javaHome = AvailableJavaHomes.bestAlternative
-            foregroundDaemon().start() 
+            startForegroundDaemon()
             javaHome = null
         }
 
@@ -297,16 +309,16 @@ class DaemonLifecycleSpec extends Specification {
         idle()
 
         when:
-        run { sleepyBuild().start() }
-        numDaemons 2
+        run { startBuild() }
 
         then:
+        numDaemons 2
         busy 1
     }
 
     def cleanup() {
         sequenceBuilder.build(handles.daemonRegistry).run()
-        stopBuild().start().waitForFinish()
+        stopDaemons()
     }
 
 }
