@@ -75,6 +75,14 @@ import java.util.Set;
  *
  *   //tweaking memory settings for the forked vm that runs tests
  *   jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m'
+ *
+ *   //listening to test execution events
+ *   beforeTest { descriptor ->
+ *      logger.lifecycle("Running test: " + descriptor)
+ *   }
+ *   onOutput { descriptor, event ->
+ *      logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+ *   }
  * }
  * </pre>
  *
@@ -96,13 +104,13 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private long forkEvery;
     private int maxParallelForks = 1;
     private ListenerBroadcast<TestListener> testListenerBroadcaster;
-    private final ListenerBroadcast<TestOutputListener> outputListenerBroadcaster;
+    private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
     private final TestLogging testLogging = new DefaultTestLogging();
 
     public Test() {
         testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(
                 TestListener.class);
-        outputListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(TestOutputListener.class);
+        testOutputListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(TestOutputListener.class);
         this.testExecuter = new DefaultTestExecuter(getServices().getFactory(WorkerProcessBuilder.class), getServices().get(
                 ActorFactory.class));
         options = new DefaultJavaForkOptions(getServices().get(FileResolver.class));
@@ -355,7 +363,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         addTestOutputListener(new StandardStreamsLogger(LoggerFactory.getLogger(Test.class), testLogging));
 
         TestResultProcessor resultProcessor = new TestListenerAdapter(
-                getTestListenerBroadcaster().getSource(), outputListenerBroadcaster.getSource());
+                getTestListenerBroadcaster().getSource(), testOutputListenerBroadcaster.getSource());
         testExecuter.execute(this, resultProcessor);
 
         testFramework.report();
@@ -374,7 +382,11 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Registers a test listener with this task.  This listener will NOT be notified of tests executed by other tasks.
+     * Registers a test listener with this task. Consider also the following handy methods for quicker hooking into test execution:
+     * {@link #beforeTest(groovy.lang.Closure)}, {@link #afterTest(groovy.lang.Closure)},
+     * {@link #beforeSuite(groovy.lang.Closure)}, {@link #afterSuite(groovy.lang.Closure)}
+     * <p>
+     * This listener will NOT be notified of tests executed by other tasks.
      * To get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.
      *
      * @param listener The listener to add.
@@ -384,12 +396,12 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Registers a output listener with this task.
+     * Registers a output listener with this task. Quicker way of hooking into output events is using the {@link #onOutput(groovy.lang.Closure)} method.
      *
      * @param listener The listener to add.
      */
     public void addTestOutputListener(TestOutputListener listener) {
-        outputListenerBroadcaster.add(listener);
+        testOutputListenerBroadcaster.add(listener);
     }
 
     /**
@@ -402,6 +414,18 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     public void removeTestListener(TestListener listener) {
         testListenerBroadcaster.remove(listener);
+    }
+
+    /**
+     * Unregisters a test output listener with this task.  This method will only remove listeners that were added by calling
+     * {@link #addTestOutputListener(org.gradle.api.tasks.testing.TestOutputListener)} on this task.  If the listener was registered
+     * with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything.
+     * Instead, use {@link org.gradle.api.invocation.Gradle#removeListener(Object)}.
+     *
+     * @param listener The listener to remove.
+     */
+    public void removeTestOutputListener(TestOutputListener listener) {
+        testOutputListenerBroadcaster.remove(listener);
     }
 
     /**
@@ -469,7 +493,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param closure The closure to call.
      */
     public void onOutput(Closure closure) {
-        outputListenerBroadcaster.add("onOutput", closure);
+        testOutputListenerBroadcaster.add("onOutput", closure);
     }
 
     /**

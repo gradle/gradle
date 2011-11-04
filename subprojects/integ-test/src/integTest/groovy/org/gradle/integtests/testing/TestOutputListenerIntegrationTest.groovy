@@ -21,12 +21,12 @@ import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
 
+@Issue("GRADLE-1009")
 public class TestOutputListenerIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final TestResources resources = new TestResources()
 
     @Test
-    @Issue("GRADLE-1009")
-    def "standard output is shown when tests are executed"() {
+    def "can use standard output listener for tests"() {
         given:
         def test = file("src/test/java/SomeTest.java")
         test << """
@@ -54,12 +54,22 @@ dependencies { testCompile "junit:junit:4.8.2" }
 
 test.addTestOutputListener(new VerboseOutputListener(logger: project.logger))
 
+def removeMe = new RemoveMeListener()
+test.addTestOutputListener(removeMe)
+test.removeTestOutputListener(removeMe)
+
 class VerboseOutputListener implements TestOutputListener {
 
     def logger
 
     public void onOutput(TestDescriptor descriptor, TestOutputEvent event) {
         logger.lifecycle(descriptor.toString() + " " + event.destination + " " + event.message);
+    }
+}
+
+class RemoveMeListener implements TestOutputListener {
+    public void onOutput(TestDescriptor descriptor, TestOutputEvent event) {
+        println "remove me!"
     }
 }
 """
@@ -72,6 +82,8 @@ class VerboseOutputListener implements TestOutputListener {
         failure.output.contains('test showsOutputWhenFailing(SomeTest) StdOut out failing')
         failure.output.contains('test showsOutputWhenPassing(SomeTest) StdErr err passing')
         failure.output.contains('test showsOutputWhenFailing(SomeTest) StdErr err failing')
+
+        !failure.output.contains("remove me!")
     }
 
     @Test
