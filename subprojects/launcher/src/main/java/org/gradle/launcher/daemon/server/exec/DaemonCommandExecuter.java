@@ -24,9 +24,6 @@ import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
  * <p>
  * Daemons use implementations of this interface to do the heavy lifting of
  * actual performing commands.
- * <p>
- * <b>Note:</b> implementations will never receive the {@link org.gradle.launcher.daemon.protocol.Stop} command as the
- * daemon handles that internally.
  */
 public interface DaemonCommandExecuter {
 
