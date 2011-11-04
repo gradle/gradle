@@ -102,6 +102,7 @@ task check << {
     }
 
     def "resolves dependencies on real projects"() {
+        distribution.requireOwnUserHomeDir()
         // Hibernate core brings in conflicts, exclusions and parent poms
         // Add a direct dependency on an earlier version of commons-collection than required by hibernate core
         // Logback classic depends on a later version of slf4j-api than required by hibernate core
