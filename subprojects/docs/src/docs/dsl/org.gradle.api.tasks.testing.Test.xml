@@ -100,6 +100,10 @@
                 <td>excludes</td>
                 <td>[]</td>
             </tr>
+            <tr>
+                <td>testLogging</td>
+                <td/>
+            </tr>
         </table>
     </section>
     <section>
@@ -160,6 +164,9 @@
             </tr>
             <tr>
                 <td>copyTo</td>
+            </tr>
+            <tr>
+                <td>onOutput</td>
             </tr>
         </table>
     </section>
