@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.verbosity;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestLogging;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -40,7 +41,7 @@ public class StandardStreamsLogger implements TestOutputListener {
         if (logging.getShowStandardStreams()) {
             if (!testDescriptor.equals(currentTestDescriptor)) {
                 currentTestDescriptor = testDescriptor;
-                logger.info(testDescriptor.toString() + " output:");
+                logger.info(StringUtils.capitalize(testDescriptor.toString() + " output:"));
             }
             if (outputEvent.getDestination() == TestOutputEvent.Destination.StdOut) {
                 logger.info(outputEvent.getMessage());
