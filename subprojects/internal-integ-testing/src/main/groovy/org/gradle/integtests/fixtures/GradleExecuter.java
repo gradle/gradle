@@ -88,6 +88,11 @@ public interface GradleExecuter {
     GradleExecuter withUserHomeDir(File userHomeDir);
 
     /**
+     * Sets the java home dir. Set to null to use the default java home dir.
+     */
+    GradleExecuter withJavaHome(File userHomeDir);
+
+    /**
      * Sets the executable to use. Set to null to use the default executable (if any)
      */
     GradleExecuter usingExecutable(String script);

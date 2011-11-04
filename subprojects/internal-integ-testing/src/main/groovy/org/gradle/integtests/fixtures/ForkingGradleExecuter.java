@@ -24,7 +24,6 @@ import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleState;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
-import org.gradle.util.Jvm;
 import org.gradle.util.TestFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +83,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             }
         };
         builder.environment("GRADLE_HOME", "");
-        builder.environment("JAVA_HOME", Jvm.current().getJavaHome());
+        builder.environment("JAVA_HOME", getJavaHome());
         builder.environment("GRADLE_OPTS", formatGradleOpts());
         builder.environment(getEnvironmentVars());
         builder.workingDir(getWorkingDir());

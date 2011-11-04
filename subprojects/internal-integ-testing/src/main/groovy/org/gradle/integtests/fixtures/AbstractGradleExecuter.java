@@ -19,6 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.*;
+import org.gradle.util.Jvm;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> args = new ArrayList<String>();
@@ -32,6 +33,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private List<File> initScripts = new ArrayList<File>();
     private String executable;
     private File userHomeDir;
+    private File javaHome;
     private File buildScript;
     private File projectDir;
     private String buildScriptText;
@@ -53,6 +55,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         searchUpwards = false;
         executable = null;
         userHomeDir = null;
+        javaHome = null;
         environmentVars.clear();
         stdin = null;
         return this;
@@ -144,6 +147,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public GradleExecuter withUserHomeDir(File userHomeDir) {
         this.userHomeDir = userHomeDir;
+        return this;
+    }
+
+    public File getJavaHome() {
+        return javaHome == null ? Jvm.current().getJavaHome() : javaHome;
+    }
+
+    public GradleExecuter withJavaHome(File javaHome) {
+        this.javaHome = javaHome;
         return this;
     }
 

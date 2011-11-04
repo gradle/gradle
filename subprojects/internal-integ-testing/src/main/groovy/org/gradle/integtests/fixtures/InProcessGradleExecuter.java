@@ -128,6 +128,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         throw new UnsupportedOperationException();
     }
 
+    public GradleExecuter withJavaHome(File javaHome) {
+        throw new UnsupportedOperationException();
+    }
+
     public void assertCanExecute() {
         assertNull(getExecutable());
     }
