@@ -153,7 +153,7 @@ public class UserResolverChain extends ChainResolver {
             return one;
         }
 
-        return comparison < 0 ? one : two;
+        return comparison < 0 ? two : one;
     }
 
     private void rememberResolverToUseForArtifactDownload(DependencyResolver resolver, ResolvedModuleRevision cachedModule) {

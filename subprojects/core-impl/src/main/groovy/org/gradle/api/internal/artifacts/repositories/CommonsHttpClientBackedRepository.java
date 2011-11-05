@@ -55,12 +55,20 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
     }
 
     public Resource getResource(final String source) throws IOException {
+        releasePriorResources();
         LOGGER.debug("Attempting to get resource {}.", source);
         GetMethod method = new GetMethod(source);
         configureMethod(method);
         Resource resource = createLazyResource(source, method);
         resources.put(source, resource);
         return resource;
+    }
+
+    private void releasePriorResources() {
+        for (Resource resource : resources.values()) {
+            LazyResourceInvocationHandler invocationHandler = (LazyResourceInvocationHandler) Proxy.getInvocationHandler(resource);
+            invocationHandler.release();
+        }
     }
 
     private Resource createLazyResource(String source, GetMethod method) {
@@ -182,6 +190,13 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
                 throw new IOException(String.format("Could not GET '%s'. Received status code %s from server: %s", source, result, method.getStatusText()));
             }
             return new HttpResource(source, method);
+        }
+
+        public void release() {
+            if (delegate != null && delegate.exists()) {
+                method.releaseConnection();
+                delegate = null;
+            }
         }
     }
 
