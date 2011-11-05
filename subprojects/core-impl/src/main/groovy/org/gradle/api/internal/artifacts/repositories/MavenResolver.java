@@ -32,7 +32,7 @@ import java.util.List;
 public class MavenResolver extends IBiblioResolver {
     public MavenResolver() {
         setChangingPattern(null);
-        setDescriptor(BasicResolver.DESCRIPTOR_REQUIRED);
+        setDescriptor(BasicResolver.DESCRIPTOR_OPTIONAL);
         setM2compatible(true);
     }
 
