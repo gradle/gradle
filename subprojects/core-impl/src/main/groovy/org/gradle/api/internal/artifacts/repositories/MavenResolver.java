@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
+import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ChangingModuleRevision;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
@@ -31,6 +32,8 @@ import java.util.List;
 public class MavenResolver extends IBiblioResolver {
     public MavenResolver() {
         setChangingPattern(null);
+        setDescriptor(BasicResolver.DESCRIPTOR_REQUIRED);
+        setM2compatible(true);
     }
 
     @Override

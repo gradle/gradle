@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.repository.file.FileRepository;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
@@ -79,8 +78,6 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
 
         MavenResolver resolver = new MavenResolver();
         resolver.setName(name);
-        resolver.setM2compatible(true);
-        resolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
 
         if (rootUri.getScheme().equalsIgnoreCase("file")) {
             resolver.setRepository(new FileRepository());
