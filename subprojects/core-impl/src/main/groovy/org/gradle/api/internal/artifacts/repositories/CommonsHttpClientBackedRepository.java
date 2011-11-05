@@ -15,10 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.HttpMethodRetryHandler;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
@@ -207,9 +204,12 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         }
 
         public long getLastModified() {
-            String lastModifiedHeaderValue = method.getResponseHeader("last-modified").getValue();
+            Header responseHeader = method.getResponseHeader("last-modified");
+            if (responseHeader == null) {
+                return 0;
+            }
             try {
-                return Date.parse(lastModifiedHeaderValue);
+                return Date.parse(responseHeader.getValue());
             } catch (Exception e) {
                 return 0;
             }

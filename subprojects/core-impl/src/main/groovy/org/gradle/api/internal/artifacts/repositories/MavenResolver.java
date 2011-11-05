@@ -42,7 +42,7 @@ public class MavenResolver extends IBiblioResolver {
             ResolvedModuleRevision changingModule = super.getDependency(changingDescriptor, data);
 
             // Return a ChangingModuleRevision to indicate that this module is changing
-            return new ChangingModuleRevision(changingModule);
+            return changingModule == null ? null : new ChangingModuleRevision(changingModule);
         }
         return super.getDependency(dd, data);
     }
