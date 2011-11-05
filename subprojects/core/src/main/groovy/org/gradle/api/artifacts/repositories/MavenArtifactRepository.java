@@ -21,7 +21,8 @@ import java.util.Set;
 /**
  * An artifact repository which uses a Maven format to store artifacts and meta-data.
  */
-public interface MavenArtifactRepository extends ArtifactRepository {
+public interface MavenArtifactRepository extends ArtifactRepository, AuthenticationSupported {
+
     /**
      * The base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
      * #setArtifactUrls(Iterable)}.

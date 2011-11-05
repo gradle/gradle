@@ -22,41 +22,13 @@ import java.net.URI;
 /**
  * An artifact repository which uses an Ivy format to store artifacts and meta-data.
  */
-public interface IvyArtifactRepository extends ArtifactRepository {
+public interface IvyArtifactRepository extends ArtifactRepository, AuthenticationSupported {
 
     String GRADLE_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])";
     String GRADLE_IVY_PATTERN = "[organisation]/[module]/[revision]/ivy-[revision].xml";
 
     String MAVEN_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])";
     String MAVEN_IVY_PATTERN = "[organisation]/[module]/[revision]/ivy-[revision].xml";
-
-    /**
-     * Returns the user name to use when authenticating to this repository.
-     *
-     * @return The user name. May be null.
-     */
-    String getUserName();
-
-    /**
-     * Sets the user name to use when authenticating to this repository.
-     *
-     * @param username The user name. May be null.
-     */
-    void setUserName(String username);
-
-    /**
-     * Returns the password to use when authenticating to this repository.
-     *
-     * @return The password. May be null.
-     */
-    String getPassword();
-
-    /**
-     * Sets the password to use when authenticating to this repository.
-     *
-     * @param password The password. May be null.
-     */
-    void setPassword(String password);
 
     /**
      * The base URL of this repository.

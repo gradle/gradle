@@ -30,6 +30,8 @@ import static org.gradle.util.GUtil.toList;
 
 public class DefaultMavenArtifactRepository implements MavenArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
+    private String username;
+    private String password;
     private String name;
     private Object url;
     private List<Object> additionalUrls = new ArrayList<Object>();
@@ -44,6 +46,22 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getUserName() {
+        return username;
+    }
+
+    public void setUserName(String username) {
+        this.username = username;
     }
 
     public URI getUrl() {
@@ -90,7 +108,7 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
                 resolver.addArtifactUrl(getFilePath(repoUrl));
             }
         } else {
-            resolver.setRepository(new CommonsHttpClientBackedRepository(null, null));
+            resolver.setRepository(new CommonsHttpClientBackedRepository(username, password));
             resolver.setRoot(getUriPath(rootUri));
 
             Collection<URI> artifactUrls = getArtifactUrls();

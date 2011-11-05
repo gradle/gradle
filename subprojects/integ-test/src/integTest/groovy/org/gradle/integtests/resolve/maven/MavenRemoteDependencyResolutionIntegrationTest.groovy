@@ -333,9 +333,35 @@ task listJars << {
 """
 
         executer.withTasks('listJars').run()
+    }
 
-        server.resetExpectations()
-        // No server requests when all jars cached
+    @Test
+    public void "can resolve dependencies from password protected HTTP Maven repository"() {
+        dist.requireOwnUserHomeDir()
+
+        def module = repo().module('group', 'projectA', '1.2')
+        module.publish()
+
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.pom', 'username', 'password', module.pomFile)
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.artifactFile)
+        server.start()
+
+        dist.testFile('build.gradle') << """
+repositories {
+    maven {
+        userName 'username'
+        password 'password'
+        url "http://localhost:${server.port}/repo"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+}
+"""
 
         executer.withTasks('listJars').run()
     }

@@ -4,10 +4,6 @@ repositories {
 }
 //END SNIPPET maven-central
 
-//START SNIPPET maven-password-protected-repo
-org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials("REALM", "HOST", "USER", "PASSWORD"); 
-//END SNIPPET maven-password-protected-repo
-
 //START SNIPPET maven-central-jar-repo
 repositories {
     mavenCentral name: 'single-jar-repo', artifactUrls: ["http://repo.mycompany.com/jars"]
@@ -40,6 +36,16 @@ repositories {
     }
 }
 //END SNIPPET maven-like-repo-with-jar-repo
+
+//START SNIPPET authenticated-maven-repo
+repositories {
+    maven {
+        userName 'user'
+        password 'password'
+        url "http://repo.mycompany.com/maven2"
+    }
+}
+//END SNIPPET authenticated-maven-repo
 
 //START SNIPPET flat-dir
 //START SNIPPET flat-dir-multi
