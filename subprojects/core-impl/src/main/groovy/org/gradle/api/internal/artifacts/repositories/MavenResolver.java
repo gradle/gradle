@@ -25,6 +25,8 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ChangingModu
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MavenResolver extends IBiblioResolver {
     public MavenResolver() {
@@ -53,5 +55,12 @@ public class MavenResolver extends IBiblioResolver {
         }
         // Any other call is an attempt to locate source/javadoc jars, which we don't care about
         return null;
+    }
+
+    public void addArtifactUrl(String url) {
+        String newArtifactPattern = url + getPattern();
+        List<String> artifactPatternList = new ArrayList<String>(getArtifactPatterns());
+        artifactPatternList.add(newArtifactPattern);
+        setArtifactPatterns(artifactPatternList);
     }
 }

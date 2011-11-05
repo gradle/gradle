@@ -97,6 +97,50 @@ task retrieve(type: Sync) {
         buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
     }
 
+    public void "uses artifactUrls to resolve artifacts"() {
+        distribution.requireOwnUserHomeDir()
+
+        given:
+        def moduleA = repo().module('group', 'projectA', '1.2')
+        def moduleB = repo().module('group', 'projectB', '9.1')
+        moduleA.publish()
+        moduleB.publish()
+
+        def artifactsRepo = new MavenRepository(distribution.testFile('artifactsRepo'));
+        // Create a module to get the correct module directory, but do not publish the module
+        def artifactsModuleA = artifactsRepo.module('group', 'projectA', '1.2')
+        moduleA.artifactFile.moveToDirectory(artifactsModuleA.moduleDir)
+
+        and:
+        buildFile << """
+repositories {
+    maven {
+        url "${repo().uri}"
+        artifactUrls "${artifactsRepo.uri}"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+    compile 'group:projectB:9.1'
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'build'
+}
+"""
+
+        when:
+        run 'retrieve'
+
+        then:
+        def buildDir = file('build')
+        buildDir.assertHasDescendants('projectA-1.2.jar', 'projectB-9.1.jar')
+        buildDir.file('projectA-1.2.jar').assertIsCopyOf(artifactsModuleA.artifactFile)
+        buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
+    }
+
     MavenRepository repo() {
         return new MavenRepository(distribution.testFile('repo'))
     }

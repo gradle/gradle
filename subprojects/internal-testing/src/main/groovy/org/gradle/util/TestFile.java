@@ -228,6 +228,17 @@ public class TestFile extends File implements TestFileContext {
             throw new UncheckedIOException(e);
         }
     }
+    
+    public void moveToDirectory(File target) {
+        if (target.exists() && !target.isDirectory()) {
+                throw new UncheckedIOException(String.format("Target '%s' is not a directory", target));
+        }
+        try {
+            FileUtils.moveFileToDirectory(this, target, true);
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Could not move test file '%s' to directory '%s'", this, target), e);
+        }
+    }
 
     public TestFile linkTo(File target) {
         return linkTo(target.getAbsolutePath());

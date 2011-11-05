@@ -82,17 +82,8 @@ task retrieve(type: Sync) {
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
 
-        // TODO - these should not be here
-        server.expectHead('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file('maven-metadata.xml'))
-        server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
-        server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
+        // TODO - should only ask for metadata once
         server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1")
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.md5")
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.sha1")
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5")
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}.sha1")
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}.md5")
 
         executer.withTasks('retrieve').run()
         def jarFile = dist.testFile('build/testproject-1.0-SNAPSHOT.jar')
@@ -120,17 +111,8 @@ task retrieve(type: Sync) {
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
 
-        // TODO - these should not be here
-        server.expectHead('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file('maven-metadata.xml'))
-        server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
-        server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
+        // TODO - should only ask for metadata once
         server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
-        server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1')
-        server.expectGetMissing('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.md5')
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.sha1")
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5")
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}.sha1")
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}.md5")
 
         executer.withTasks('retrieve').withArguments("-PnoTimeout").run().assertTasksNotSkipped(':retrieve')
         jarFile.assertIsCopyOf(module.artifactFile)
@@ -183,17 +165,8 @@ task retrieve(type: Sync) {
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
 
-        // TODO - these should not be here
-        server.expectHead('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file('maven-metadata.xml'))
-        server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
-        server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}", jar)
+        // TODO - should only ask for metadata once
         server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
-        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1', repoDir.file("maven-metadata.xml.sha1"))
-        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.md5', repoDir.file("maven-metadata.xml.md5"))
-        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.sha1", repoDir.file("${pom.name}.sha1"))
-        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5", repoDir.file("${pom.name}.md5"))
-        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}.sha1", repoDir.file("${jar.name}.sha1"))
-        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${jar.name}.md5", repoDir.file("${jar.name}.md5"))
 
         executer.withTasks('retrieve').run()
         def jarFile = dist.testFile('build/testproject-1.0-SNAPSHOT.jar')
@@ -204,13 +177,8 @@ task retrieve(type: Sync) {
         server.resetExpectations()
         server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file("maven-metadata.xml"))
 
-        // TODO - these should not be here
-        server.expectHead('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', repoDir.file('maven-metadata.xml'))
-        server.expectHead("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
-        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.sha1', repoDir.file("maven-metadata.xml.sha1"))
-        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml.md5', repoDir.file("maven-metadata.xml.md5"))
-        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.sha1", repoDir.file("${pom.name}.sha1"))
-        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}.md5", repoDir.file("${pom.name}.md5"))
+        // TODO - this should not be here?
+        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${pom.name}", pom)
 
         executer.withTasks('retrieve').run().assertTasksSkipped(':retrieve')
         jarFile.assertHasNotChangedSince(snapshot)
@@ -224,14 +192,6 @@ task retrieve(type: Sync) {
         projectA.publish()
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-
-        // TODO - these should not be here
-        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.pom.sha1')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.pom.md5')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.jar.sha1')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.jar.md5')
 
         server.start()
 
@@ -269,14 +229,6 @@ task listJars << {
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
 
-        // TODO - these should not be here
-        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.pom.sha1')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.pom.md5')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.jar.sha1')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.jar.md5')
-
         server.start()
 
         dist.testFile('build.gradle') << """
@@ -299,13 +251,6 @@ task listJars << {
         server.resetExpectations()
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0-sources.jar', sourceJar)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0-javadoc.jar', javadocJar)
-        // TODO - these should not be here
-        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0-sources.jar', sourceJar)
-        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0-javadoc.jar', javadocJar)
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0-sources.jar.sha1')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0-sources.jar.md5')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0-javadoc.jar.sha1')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0-javadoc.jar.md5')
 
         executer.withTasks('eclipseClasspath').run()
     }
@@ -318,28 +263,16 @@ task listJars << {
         def projectB = repo().module('group', 'projectB')
         projectA.publish()
         projectB.publish()
+
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
 
-        server.expectHeadMissing('/repo1/group/projectB/1.0/projectB-1.0.pom')
+        // Looks for POM and JAR in repo1 before looking in repo2 (jar is an attempt to handle publication without module descriptor)
+        server.expectGetMissing('/repo1/group/projectB/1.0/projectB-1.0.pom')
+        server.expectGetMissing('/repo1/group/projectB/1.0/projectB-1.0.jar')
         server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-        server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
-        // TODO - these should not be here
-        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
-        server.expectHead('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        server.expectHeadMissing('/repo1/group/projectB/1.0/projectB-1.0.pom')
-        server.expectHeadMissing('/repo1/group/projectB/1.0/projectB-1.0.jar')
-        server.expectHead('/repo2/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-        server.expectHead('/repo2/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.pom.sha1')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.pom.md5')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.jar.sha1')
-        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0.jar.md5')
-        server.expectGetMissing('/repo2/group/projectB/1.0/projectB-1.0.pom.sha1')
-        server.expectGetMissing('/repo2/group/projectB/1.0/projectB-1.0.pom.md5')
-        server.expectGetMissing('/repo2/group/projectB/1.0/projectB-1.0.jar.sha1')
-        server.expectGetMissing('/repo2/group/projectB/1.0/projectB-1.0.jar.md5')
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
         server.start()
 
@@ -347,6 +280,48 @@ task listJars << {
 repositories {
     maven { url 'http://localhost:${server.port}/repo1' }
     maven { url 'http://localhost:${server.port}/repo2' }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.0', 'group:projectB:1.0'
+}
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.0.jar', 'projectB-1.0.jar']
+}
+"""
+
+        executer.withTasks('listJars').run()
+
+        server.resetExpectations()
+        // No server requests when all jars cached
+
+        executer.withTasks('listJars').run()
+    }
+
+    @Test
+    public void "uses artifactsUrl to resolve artifacts"() {
+        dist.requireOwnUserHomeDir()
+
+        def projectA = repo().module('group', 'projectA')
+        def projectB = repo().module('group', 'projectB')
+        projectA.publish()
+        projectB.publish()
+
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        server.expectGetMissing('/repo1/group/projectB/1.0/projectB-1.0.jar')
+        server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+
+        server.start()
+
+        dist.testFile('build.gradle') << """
+repositories {
+    maven {
+        url 'http://localhost:${server.port}/repo1'
+        artifactUrls 'http://localhost:${server.port}/repo2'
+    }
 }
 configurations { compile }
 dependencies {
