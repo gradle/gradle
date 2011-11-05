@@ -26,6 +26,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import static org.junit.Assert.*
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData
 
 /**
  * @author Hans Dockter
@@ -57,7 +58,8 @@ class CacheProjectIntegrationTest {
         ScriptSource source = new UriScriptSource("build file", buildFile)
         propertiesFile = userHomeDir.file("caches/$version/scripts/$source.className/ProjectScript/no_buildscript/cache.properties")
         classFile = userHomeDir.file("caches/$version/scripts/$source.className/ProjectScript/no_buildscript/classes/${source.className}.class")
-        dependenciesCache = userHomeDir.file("caches/artifacts-3/commons-io/commons-io/")
+        def cacheVersion = ArtifactCacheMetaData.CACHE_LAYOUT_VERSION
+        dependenciesCache = userHomeDir.file("caches/artifacts-${cacheVersion}/commons-io/commons-io/")
         artifactsCache = projectDir.file(".gradle/$version/taskArtifacts/cache.bin")
     }
 

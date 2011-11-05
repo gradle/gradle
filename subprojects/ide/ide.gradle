@@ -24,6 +24,7 @@ dependencies {
     compile libraries.slf4j_api
 
     testCompile libraries.xmlunit
+    testCompile project(':coreImpl')
 }
 
 useTestFixtures()

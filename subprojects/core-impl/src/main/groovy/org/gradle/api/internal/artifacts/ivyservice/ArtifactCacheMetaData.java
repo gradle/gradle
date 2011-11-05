@@ -22,7 +22,7 @@ import org.gradle.cache.PersistentCache;
 import java.io.File;
 
 public class ArtifactCacheMetaData {
-    private static final int CACHE_LAYOUT_VERSION = 4;
+    public static final int CACHE_LAYOUT_VERSION = 4;
     private PersistentCache cache;
     private final CacheRepository cacheRepository;
 
