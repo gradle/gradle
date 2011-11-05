@@ -5,6 +5,7 @@ dependencies {
 
     integTestCompile project(':toolingApi')
     integTestCompile project(':launcher')
+    integTestCompile project(':coreImpl')
     integTestCompile libraries.ant
     integTestCompile libraries.xmlunit
 
