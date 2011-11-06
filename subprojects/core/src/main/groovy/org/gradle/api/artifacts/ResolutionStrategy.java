@@ -54,15 +54,18 @@ public interface ResolutionStrategy {
     ResolutionStrategy failOnVersionConflict();
 
     /**
-     * Configures forced versions in DSL friendly fashion
+     * <b>Experimental</b>. This part of the api is yet experimental - may change without notice.
+     * <p>
+     * Configures forced versions in DSL friendly fashion.
      *
-     *
-     * @param forcedModules gav notations
+     * @param forcedModules group:name:version notations
      * @return this ResolutionStrategy instance
      */
     ResolutionStrategy force(String... forcedModules);
 
     /**
+     * <b>Experimental</b>. This part of the api is yet experimental - may change without notice.
+     * <p>
      * Replaces existing forced modules with the passed ones.
      *
      * @param forcedModules forced modules to set
@@ -71,6 +74,8 @@ public interface ResolutionStrategy {
     ResolutionStrategy setForcedModules(Iterable<ModuleIdentifier> forcedModules);
 
     /**
+     * <b>Experimental</b>. This part of the api is yet experimental - may change without notice.
+     * <p>
      * returns currently configured forced modules
      *
      * @return forced modules
