@@ -42,27 +42,13 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return forcedModules;
     }
 
-    public ConflictResolution latest() {
-        return new LatestConflictResolution();
-    }
-
-    public ConflictResolution strict() {
-        return new StrictConflictResolution();
+    public ResolutionStrategy failOnVersionConflict() {
+        this.conflictResolution = new StrictConflictResolution();
+        return this;
     }
 
     public ConflictResolution getConflictResolution() {
         return this.conflictResolution;
-    }
-
-    public ResolutionStrategy failOnVersionConflict() {
-        this.conflictResolution = strict();
-        return this;
-    }
-
-    public DefaultResolutionStrategy setConflictResolution(ConflictResolution conflictResolution) {
-        assert conflictResolution != null : "Cannot set null conflictResolution";
-        this.conflictResolution = conflictResolution;
-        return this;
     }
 
     public DefaultResolutionStrategy force(String... forcedModules) {

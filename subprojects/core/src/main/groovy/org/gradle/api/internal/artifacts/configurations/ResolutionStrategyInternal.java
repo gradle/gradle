@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.artifacts.ConflictResolution;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 
@@ -25,4 +26,11 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * @return the expiry policy
      */
     CachePolicy getCachePolicy();
+
+    /**
+     * Until the feature 'settles' and we receive more feedback, it's internal
+     *
+     * @return conflict resolution
+     */
+    ConflictResolution getConflictResolution();
 }

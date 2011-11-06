@@ -40,13 +40,6 @@ import java.util.concurrent.TimeUnit;
 public interface ResolutionStrategy {
 
     /**
-     * gets current conflict resolution
-     *
-     * @return conflict resolution
-     */
-    ConflictResolution getConflictResolution();
-
-    /**
      * Configures the resolution to fail eagerly on any version conflict.
      * The version conflict means the same dependency but with a different version in the same {@link Configuration}.
      * <pre autoTested=''>
@@ -58,14 +51,6 @@ public interface ResolutionStrategy {
      * @return this resolution strategy instance
      */
     ResolutionStrategy failOnVersionConflict();
-
-    /**
-     * configures conflict resolution
-     *
-     * @param conflictResolution to set
-     * @return this ResolutionStrategy instance
-     */
-    ResolutionStrategy setConflictResolution(ConflictResolution conflictResolution);
 
     /**
      * Configures forced versions in DSL friendly fashion
@@ -90,16 +75,6 @@ public interface ResolutionStrategy {
      * @return forced modules
      */
     Set<ModuleIdentifier> getForcedModules();
-
-    /**
-     * use the latest of conflicting versions and move on
-     */
-    ConflictResolution latest();
-
-    /**
-     * fail eagerly on conflict
-     */
-    ConflictResolution strict();
 
     /**
      * A convenience method for calling {@link #cacheDynamicVersionsFor(int, java.util.concurrent.TimeUnit)} with named units.
