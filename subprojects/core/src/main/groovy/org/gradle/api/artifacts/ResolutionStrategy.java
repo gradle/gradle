@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit;
  * Examples:
  * <pre autoTested=''>
  * configurations.all {
- *   //fail eagerly on version conflict
- *   //e.g. same dependency but with different versions.
+ *   //fail eagerly on version conflict (includes transitive dependencies)
+ *   //e.g. multiple different versions of the same dependency (group and name are equal)
  *   resolutionStrategy.failOnVersionConflict()
  *
  *   // cache dynamic versions for 10 minutes
@@ -40,8 +40,9 @@ import java.util.concurrent.TimeUnit;
 public interface ResolutionStrategy {
 
     /**
-     * Configures the resolution to fail eagerly on any version conflict.
-     * The version conflict means the same dependency but with a different version in the same {@link Configuration}.
+     * Configures the resolution to fail eagerly on any version conflict, e.g.
+     * multiple different versions of the same dependency (group and name are equal) in the same {@link Configuration}.
+     * The check includes both first level and transitive dependencies.
      * <pre autoTested=''>
      * configurations.all {
      *   resolutionStrategy.failOnVersionConflict()
