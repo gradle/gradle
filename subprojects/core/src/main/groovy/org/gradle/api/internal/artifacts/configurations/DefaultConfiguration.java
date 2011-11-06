@@ -34,6 +34,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
 
@@ -441,6 +442,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public DefaultResolutionStrategy getResolutionStrategy() {
         return resolutionStrategy;
+    }
+
+    public Configuration resolutionStrategy(Closure closure) {
+        ConfigureUtil.configure(closure, resolutionStrategy);
+        return this;
     }
 
     private void throwExceptionIfNotInUnresolvedState() {

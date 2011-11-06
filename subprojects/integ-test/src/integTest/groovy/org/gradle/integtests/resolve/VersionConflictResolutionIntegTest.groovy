@@ -30,8 +30,6 @@ class VersionConflictResolutionIntegTest extends AbstractIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
 
-    //TODO SF - make one of the tests use the resolutionStrategy() configuration method
-
     @Test
     void "strict conflict resolution should fail due to conflict"() {
         TestFile repo = file("repo")
@@ -214,8 +212,10 @@ project(':tool') {
 
 allprojects {
     configurations.all {
-	    resolutionStrategy.force 'org:foo:1.3.3'
-	    resolutionStrategy.failOnVersionConflict()
+	    resolutionStrategy {
+	        force 'org:foo:1.3.3'
+	        failOnVersionConflict()
+	    }
 	}
 }
 
@@ -280,8 +280,10 @@ project(':tool') {
 
 allprojects {
     configurations.all {
-        resolutionStrategy.failOnVersionConflict()
-        resolutionStrategy.force 'org:foo:1.5.5'
+        resolutionStrategy {
+            failOnVersionConflict()
+            force 'org:foo:1.5.5'
+        }
     }
 }
 
@@ -372,8 +374,10 @@ project(':tool') {
 		compile project(':impl')
 	}
 	configurations.all {
-	    resolutionStrategy.failOnVersionConflict()
-	    resolutionStrategy.force 'org:foo:1.3.3'
+	    resolutionStrategy {
+	        failOnVersionConflict()
+	        force 'org:foo:1.3.3'
+	    }
 	}
     task checkDeps(dependsOn: configurations.compile) << {
         assert configurations.compile*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']

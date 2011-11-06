@@ -26,14 +26,16 @@ import java.util.concurrent.TimeUnit;
  * Examples:
  * <pre autoTested=''>
  * configurations.all {
- *   //fail eagerly on version conflict (includes transitive dependencies)
- *   //e.g. multiple different versions of the same dependency (group and name are equal)
- *   resolutionStrategy.failOnVersionConflict()
+ *   resolutionStrategy {
+ *     // fail eagerly on version conflict (includes transitive dependencies)
+ *     // e.g. multiple different versions of the same dependency (group and name are equal)
+ *     failOnVersionConflict()
  *
- *   // cache dynamic versions for 10 minutes
- *   resolutionStrategy.cacheDynamicVersionsFor 10, 'minutes'
- *   // don't cache changing modules at all
- *   resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+ *     // cache dynamic versions for 10 minutes
+ *     cacheDynamicVersionsFor 10, 'minutes'
+ *     // don't cache changing modules at all
+ *     cacheChangingModulesFor 0, 'seconds'
+ *   }
  * }
  * </pre>
  */
@@ -41,9 +43,9 @@ public interface ResolutionStrategy {
 
     /**
      * In case of conflict, Gradle by default uses the latest of conflicting versions.
-     * However, you change that behavior. Use this method to configure the resolution to fail eagerly on any version conflict, e.g.
+     * However, you can change this behavior. Use this method to configure the resolution to fail eagerly on any version conflict, e.g.
      * multiple different versions of the same dependency (group and name are equal) in the same {@link Configuration}.
-     * The check includes both first level and transitive dependencies.
+     * The check includes both first level and transitive dependencies. See example below:
      *
      * <pre autoTested=''>
      * configurations.all {

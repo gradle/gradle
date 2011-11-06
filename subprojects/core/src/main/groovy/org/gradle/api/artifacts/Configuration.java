@@ -31,12 +31,22 @@ import java.util.Set;
 public interface Configuration extends FileCollection {
 
     /**
-     * Returns the resolution strategy used by this configuration. The resolution strategy provides extra details on how to resolve this configuration.
-     * <p>Warning: the DSL is not yet defined for this part of the api. It may change!</p>
+     * Returns the resolution strategy used by this configuration.
+     * The resolution strategy provides extra details on how to resolve this configuration.
+     * See docs for {@link ResolutionStrategy} for more info and examples.
      *
-     * @return strategy
+     * @return resolution strategy
      */
     ResolutionStrategy getResolutionStrategy();
+
+    /**
+     * The resolution strategy provides extra details on how to resolve this configuration.
+     * See docs for {@link ResolutionStrategy} for more info and examples.
+     *
+     * @param closure closure applied to the {@link ResolutionStrategy}
+     * @return this configuration instance
+     */
+    Configuration resolutionStrategy(Closure closure);
 
     /**
      * The states a configuration can be into. A configuration is only mutable as long as it is
