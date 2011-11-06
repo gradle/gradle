@@ -30,6 +30,8 @@ class VersionConflictResolutionIntegTest extends AbstractIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
 
+    //TODO SF - make one of the tests use the resolutionStrategy() configuration method
+
     @Test
     void "strict conflict resolution should fail due to conflict"() {
         TestFile repo = file("repo")
@@ -66,7 +68,7 @@ project(':tool') {
 		compile project(':impl')
 	}
 
-	configurations.compile.resolutionStrategy.conflictResolution = configurations.compile.resolutionStrategy.strict()
+	configurations.compile.resolutionStrategy.failOnVersionConflict()
 }
 """
 
@@ -112,7 +114,7 @@ project(':tool') {
 		compile project(':impl')
 	}
 
-	configurations.all { resolutionStrategy.conflictResolution = resolutionStrategy.strict() }
+	configurations.all { resolutionStrategy.failOnVersionConflict() }
 }
 """
 
@@ -162,7 +164,7 @@ project(':tool') {
 		}
 	}
 
-	configurations.all { resolutionStrategy.conflictResolution = resolutionStrategy.strict() }
+	configurations.all { resolutionStrategy.failOnVersionConflict() }
 }
 """
 
@@ -213,7 +215,7 @@ project(':tool') {
 allprojects {
     configurations.all {
 	    resolutionStrategy.force 'org:foo:1.3.3'
-	    resolutionStrategy.conflictResolution = resolutionStrategy.strict()
+	    resolutionStrategy.failOnVersionConflict()
 	}
 }
 
@@ -278,7 +280,7 @@ project(':tool') {
 
 allprojects {
     configurations.all {
-        resolutionStrategy.conflictResolution = resolutionStrategy.strict()
+        resolutionStrategy.failOnVersionConflict()
         resolutionStrategy.force 'org:foo:1.5.5'
     }
 }
@@ -370,7 +372,7 @@ project(':tool') {
 		compile project(':impl')
 	}
 	configurations.all {
-	    resolutionStrategy.conflictResolution = resolutionStrategy.latest()
+	    resolutionStrategy.failOnVersionConflict()
 	    resolutionStrategy.force 'org:foo:1.3.3'
 	}
     task checkDeps(dependsOn: configurations.compile) << {

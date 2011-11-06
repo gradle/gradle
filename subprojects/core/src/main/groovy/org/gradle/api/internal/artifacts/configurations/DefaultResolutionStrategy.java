@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ConflictResolution;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
@@ -51,6 +52,11 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     public ConflictResolution getConflictResolution() {
         return this.conflictResolution;
+    }
+
+    public ResolutionStrategy failOnVersionConflict() {
+        this.conflictResolution = strict();
+        return this;
     }
 
     public DefaultResolutionStrategy setConflictResolution(ConflictResolution conflictResolution) {

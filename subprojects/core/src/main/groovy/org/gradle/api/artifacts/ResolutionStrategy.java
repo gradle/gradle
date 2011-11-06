@@ -20,13 +20,16 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Defines the strategies around forcing certain dependency versions or conflict resolutions.
- * Example:
- *
+ * Defines the strategies around dependency resolution.
+ * For example, forcing certain dependency versions, conflict resolutions or snapshot timeouts.
+ * <p>
+ * Examples:
  * <pre autoTested=''>
  * configurations.all {
- *   //fail eagerly on conflict
- *   resolutionStrategy.conflictResolution = resolutionStrategy.strict()
+ *   //fail eagerly on version conflict
+ *   //e.g. same dependency but with different versions.
+ *   resolutionStrategy.failOnVersionConflict()
+ *
  *   // cache dynamic versions for 10 minutes
  *   resolutionStrategy.cacheDynamicVersionsFor 10, 'minutes'
  *   // don't cache changing modules at all
@@ -44,8 +47,20 @@ public interface ResolutionStrategy {
     ConflictResolution getConflictResolution();
 
     /**
-     * configures conflict resolution
+     * Configures the resolution to fail eagerly on any version conflict.
+     * The version conflict means the same dependency but with a different version in the same {@link Configuration}.
+     * <pre autoTested=''>
+     * configurations.all {
+     *   resolutionStrategy.failOnVersionConflict()
+     * }
+     * </pre>
      *
+     * @return this resolution strategy instance
+     */
+    ResolutionStrategy failOnVersionConflict();
+
+    /**
+     * configures conflict resolution
      *
      * @param conflictResolution to set
      * @return this ResolutionStrategy instance
