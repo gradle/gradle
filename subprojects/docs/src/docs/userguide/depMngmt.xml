@@ -103,10 +103,16 @@
             <para>In your dependency description you tell Gradle which version of a dependency is needed by another
                 dependency. This frequently leads to conflicts. Different dependencies rely on different versions of
                 another dependency. The JVM unfortunately does not offer yet any easy way, to have different versions of
-                the same jar in the classpath (see <xref linkend='sub:dependency_management_and_java'/>). What Gradle
-                offers you is a resolution strategy, by default the newest version is used. To deal with problems due to
-                version conflicts, reports with dependency graphs are also very helpful. Such reports are another
-                feature of dependency management.
+                the same jar in the classpath (see <xref linkend='sub:dependency_management_and_java'/>).
+                Gradle offers following conflict resolution strategies:
+                <itemizedlist>
+                    <listitem><emphasis>Latest</emphasis> - used by default by Gradle - the newest version of the dependency is used.</listitem>
+                    <listitem><emphasis>Fail</emphasis> - fail eagerly on version conflict.
+                        Useful if you need extra control and manage the conflicts manually.</listitem>
+                </itemizedlist>
+                See <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/> for reference on managing the conflict resolution strategies.
+                To deal with problems due to version conflicts, reports with dependency graphs are also very helpful.
+                Such reports are another feature of dependency management.
             </para>
         </section>
         <section id='sub:dynamic_versions_and_changing_modules'>
