@@ -65,9 +65,9 @@
 
     <section>
         <title>Dependency configurations</title>
-        <para>Dependencies are grouped into <firstterm>configurations</firstterm>. A configuration is simply a set of dependencies
-            with a name. You can use them to declare the external dependencies of your project. As we will see later, they are also
-            used to declare the publications of your project.</para>
+        <para>In Gradle dependencies are grouped into <firstterm>configurations</firstterm>. A configuration is simply a named set of dependencies.
+            We will refer to them as <firstterm>dependency configurations</firstterm>. You can use them to declare the external dependencies of your project.
+            As we will see later, they are also used to declare the publications of your project.</para>
         <para>
             The Java plugin defines a number of standard configurations. These configurations represent the classpaths that the
             Java plugin uses. Some are listed below, and you can find more details in <xref linkend="tab:configurations"/>.
@@ -76,14 +76,14 @@
             <varlistentry>
                 <term>compile</term>
                 <listitem>
-                    <para>Defines the dependencies required to compile the production source of the project.</para>
+                    <para>The dependencies required to compile the production source of the project.</para>
                 </listitem>
             </varlistentry>
             <varlistentry>
                 <term>runtime</term>
                 <listitem>
                     <para>
-                        Defines the dependencies required by the production classes at runtime. By default, also includes the
+                        The dependencies required by the production classes at runtime. By default, also includes the
                         compile time dependencies.
                     </para>
                 </listitem>
@@ -92,7 +92,7 @@
                 <term>testCompile</term>
                 <listitem>
                     <para>
-                        Defines the dependencies required to compile the test source of the project. By default, also includes
+                        The dependencies required to compile the test source of the project. By default, also includes
                         the compiled production classes and the compile time dependencies.
                     </para>
                 </listitem>

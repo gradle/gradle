@@ -163,7 +163,7 @@
         </para>
         <section id='sub:configurations'>
             <title>Configurations</title>
-            <para>Dependencies are grouped in configurations. Configurations have a name, a number of other properties,
+            <para>In Gradle dependencies are grouped in configurations. Configurations have a name, a number of other properties,
                 and they can extend each other.
                 If you use the Java plugin, Gradle adds a number of pre-defined configurations to your build. The
                 plugin also assigns configurations to tasks. See <xref linkend='sec:java_plugin_and_dependency_management'/>
