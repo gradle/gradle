@@ -15,6 +15,8 @@
  */
 package org.gradle.api.specs;
 
+import org.gradle.util.DeprecationLogger;
+
 import groovy.lang.Closure;
 
 import java.util.LinkedHashSet;
@@ -57,6 +59,7 @@ public class Specs {
     }
 
     public static <T> Set<T> filterIterable(Iterable<? extends T> iterable, Spec<? super T> spec) {
+        DeprecationLogger.nagUserOfReplacedMethod("Specs.filterIterable", "CollectionUtils.filter");
         Set<T> result = new LinkedHashSet<T>();
         for (T t : iterable) {
             if (spec.isSatisfiedBy(t)) {

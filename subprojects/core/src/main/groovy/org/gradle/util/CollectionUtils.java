@@ -20,15 +20,21 @@ import org.gradle.api.Transformer;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Set;
+import java.util.LinkedHashSet;
 import java.util.Collection;
 
 abstract public class CollectionUtils {
 
-    public static <T> List<T> filterList(List<T> list, Spec<T> filter) {
-        return doFilter(list, new LinkedList<T>(), filter);
+    public static <T> Set<T> filter(Set<T> set, Spec<? super T> filter) {
+        return filter(set, new LinkedHashSet<T>(), filter);
     }
 
-    private static <T, C extends Collection<T>> C doFilter(Collection<T> source, C destination, Spec<T> filter) {
+    public static <T> List<T> filter(List<T> list, Spec<? super T> filter) {
+        return filter(list, new LinkedList<T>(), filter);
+    }
+
+    public static <T, C extends Collection<T>> C filter(Iterable<T> source, C destination, Spec<? super T> filter) {
         for (T item : source) {
              if (filter.isSatisfiedBy(item)) {
                  destination.add(item);
@@ -37,11 +43,11 @@ abstract public class CollectionUtils {
          return destination;
     }
 
-    public static <R, I> List<R> collectList(List<I> list, Transformer<R, I> transformer) {
-        return doCollect(list, new LinkedList<R>(), transformer);
+    public static <R, I> List<R> collect(List<? extends I> list, Transformer<R, I> transformer) {
+        return collect(list, new LinkedList<R>(), transformer);
     }
 
-    private static <R, I, C extends Collection<R>> C doCollect(Collection<I> source, C destination, Transformer<R, I> transformer) {
+    public static <R, I, C extends Collection<R>> C collect(Collection<? extends I> source, C destination, Transformer<R, I> transformer) {
         for (I item : source) {
             destination.add(transformer.transform(item));
         }

@@ -26,7 +26,7 @@ class CollectionUtilsTest extends Specification {
     def "list filtering"() {
         given:
         def spec = Specs.convertClosureToSpec { it < 5 }
-        def filter = { Integer[] nums -> CollectionUtils.filterList(nums as List, spec) }
+        def filter = { Integer[] nums -> CollectionUtils.filter(nums as List, spec) }
         
         expect:
         filter(1,2,3) == [1,2,3]
@@ -37,11 +37,23 @@ class CollectionUtilsTest extends Specification {
     
     def "list collecting"() {
         def transformer = new Transformer() { def transform(i) { i * 2 } }
-        def collect = { Integer[] nums -> CollectionUtils.collectList(nums as List, transformer) }
+        def collect = { Integer[] nums -> CollectionUtils.collect(nums as List, transformer) }
         
         expect:
         collect(1,2,3) == [2,4,6]
         collect() == []
     }
 
+    def "set filtering"() {
+        given:
+        def spec = Specs.convertClosureToSpec { it < 5 }
+        def filter = { Integer[] nums -> CollectionUtils.filter(nums as Set, spec) }
+        
+        expect:
+        filter(1,2,3) == [1,2,3] as Set
+        filter(7,8,9).empty
+        filter().empty
+        filter(4,5,6) == [4] as Set
+    }
+    
 }
