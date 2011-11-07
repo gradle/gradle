@@ -26,15 +26,17 @@ import org.slf4j.Logger;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.gradle.api.tasks.testing.TestResult.*;
+import static org.gradle.api.tasks.testing.TestResult.ResultType;
 
 public class TestSummaryListener implements TestListener {
     private final Logger logger;
+    private final boolean displayViolations;
     private boolean hadFailures;
     private final Set<String> failedClasses = new HashSet<String>();
 
-    public TestSummaryListener(Logger logger) {
+    public TestSummaryListener(Logger logger, boolean displayViolations) {
         this.logger = logger;
+        this.displayViolations = displayViolations;
     }
 
     public boolean hadFailures() {
@@ -85,7 +87,7 @@ public class TestSummaryListener implements TestListener {
             logger.error("{} FAILED: {}", testDescription, result.getException());
         } else {
             logger.info("{} FAILED: {}", testDescription, result.getException());
-            if (failedClasses.add(testClass)) {
+            if (failedClasses.add(testClass) && displayViolations) {
                 logger.error("Test {} FAILED", testClass);
             }
         }

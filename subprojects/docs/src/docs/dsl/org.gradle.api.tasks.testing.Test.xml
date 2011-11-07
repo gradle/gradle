@@ -85,6 +85,10 @@
                 <td>environment of the current process</td>
             </tr>
             <tr>
+                <td>displayViolations</td>
+                <td><literal>true</literal></td>
+            </tr>
+            <tr>
                 <td>ignoreFailures</td>
                 <td><literal>false</literal></td>
             </tr>

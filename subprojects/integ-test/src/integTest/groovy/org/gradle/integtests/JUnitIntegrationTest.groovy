@@ -137,6 +137,51 @@ public class JUnitIntegrationTest {
     }
 
     @Test
+    public void displaysFailuresWhenDisplayViolationsIsDefault() {
+        TestFile testDir = dist.getTestDir();
+        ExecutionFailure failure = executer.withTasks('build').runWithFailure();
+
+        failure.assertHasDescription("Execution failed for task ':test'.");
+        failure.assertThatCause(startsWith('There were failing tests.'));
+
+        assertThat(failure.getError(), containsLine('Test org.gradle.FailingWithDefaultDisplayViolationsTest FAILED'));
+
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
+        result.assertTestClassesExecuted('org.gradle.FailingWithDefaultDisplayViolationsTest')
+        result.testClass('org.gradle.FailingWithDefaultDisplayViolationsTest').assertTestFailed('failure', equalTo('java.lang.AssertionError: failed'))
+    }
+
+    @Test
+    public void displaysFailuresWhenDisplayViolationsIsTrue() {
+        TestFile testDir = dist.getTestDir();
+        ExecutionFailure failure = executer.withTasks('build').runWithFailure();
+
+        failure.assertHasDescription("Execution failed for task ':test'.");
+        failure.assertThatCause(startsWith('There were failing tests.'));
+
+        assertThat(failure.getError(), containsLine('Test org.gradle.FailingWithDisplayViolationsIsTrueTest FAILED'));
+
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
+        result.assertTestClassesExecuted('org.gradle.FailingWithDisplayViolationsIsTrueTest')
+        result.testClass('org.gradle.FailingWithDisplayViolationsIsTrueTest').assertTestFailed('failure', equalTo('java.lang.AssertionError: failed'))
+    }
+
+    @Test
+    public void displaysFailuresWhenDisplayViolationsIsFalse() {
+        TestFile testDir = dist.getTestDir();
+        ExecutionFailure failure = executer.withTasks('build').runWithFailure();
+
+        failure.assertHasDescription("Execution failed for task ':test'.");
+        failure.assertThatCause(startsWith('There were failing tests.'));
+
+        assertThat(failure.getError(), not(containsLine('Test org.gradle.FailingWithDisplayViolationsIsFalseTest FAILED')));
+
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
+        result.assertTestClassesExecuted('org.gradle.FailingWithDisplayViolationsIsFalseTest')
+        result.testClass('org.gradle.FailingWithDisplayViolationsIsFalseTest').assertTestFailed('failure', equalTo('java.lang.AssertionError: failed'))
+    }
+
+    @Test
     public void canRunSingleTests() {
         executer.withTasks('test').withArguments('-Dtest.single=Ok2').run()
         def result = new JUnitTestExecutionResult(dist.testDir)

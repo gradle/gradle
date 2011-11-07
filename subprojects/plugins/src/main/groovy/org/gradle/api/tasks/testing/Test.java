@@ -74,6 +74,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private long forkEvery;
     private int maxParallelForks = 1;
     private ListenerBroadcast<TestListener> testListenerBroadcaster;
+    private boolean displayViolations = true;
 
     public Test() {
         testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(
@@ -324,7 +325,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     @TaskAction
     public void executeTests() {
-        TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(Test.class));
+        TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(Test.class), displayViolations);
         addTestListener(listener);
         addTestListener(new TestLogger(getServices().get(ProgressLoggerFactory.class)));
 
@@ -596,6 +597,22 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     public Test setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
         return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public VerificationTask setDisplayViolations(boolean displayViolations) {
+        this.displayViolations = displayViolations;
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Input
+    public boolean isDisplayViolations() {
+        return displayViolations;
     }
 
     public TestFramework getTestFramework() {

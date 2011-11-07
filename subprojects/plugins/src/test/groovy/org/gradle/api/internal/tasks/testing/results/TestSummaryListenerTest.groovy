@@ -19,23 +19,23 @@
 
 package org.gradle.api.internal.tasks.testing.results
 
+import org.gradle.api.internal.tasks.testing.TestSuiteExecutionException
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
+import org.junit.Before
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.slf4j.Logger
-import org.junit.Test
-import org.junit.Before
-import static org.junit.Assert.*
-import org.gradle.api.internal.tasks.testing.TestSuiteExecutionException
+import static org.junit.Assert.assertTrue
 
 @RunWith(JMock.class)
 public class TestSummaryListenerTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Logger logger = context.mock(Logger.class)
     private final RuntimeException failure = new RuntimeException()
-    private final TestSummaryListener listener = new TestSummaryListener(logger)
+    private final TestSummaryListener listener = new TestSummaryListener(logger, displayViolations)
 
     @Before
     public void setup() {

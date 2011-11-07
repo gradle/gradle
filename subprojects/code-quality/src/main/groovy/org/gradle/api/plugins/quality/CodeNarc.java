@@ -31,11 +31,12 @@ public class CodeNarc extends SourceTask implements VerificationTask {
     private String reportFormat;
     private File reportFile;
     private boolean ignoreFailures;
+    private boolean displayViolations = true;
 
     @TaskAction
     public void check() {
         getLogging().captureStandardOutput(LogLevel.INFO);
-        antCodeNarc.execute(getAnt(), getSource(), getConfigFile(), getReportFormat(), getReportFile(), isIgnoreFailures());
+        antCodeNarc.execute(getAnt(), getSource(), getConfigFile(), getReportFormat(), getReportFile(), isDisplayViolations(), isIgnoreFailures());
     }
 
     /**
@@ -103,5 +104,20 @@ public class CodeNarc extends SourceTask implements VerificationTask {
     public CodeNarc setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
         return this;
+    }
+
+    /**
+      * {@inheritDoc}
+      */
+    public VerificationTask setDisplayViolations(boolean displayViolations) {
+        this.displayViolations = displayViolations;
+        return this;
+    }
+
+    /**
+      * {@inheritDoc}
+      */
+    public boolean isDisplayViolations() {
+        return displayViolations;
     }
 }

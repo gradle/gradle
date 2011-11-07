@@ -33,4 +33,20 @@ public interface VerificationTask {
      * @return false, when the build should break on failure, true when the failures should be ignored.
      */
     boolean isIgnoreFailures();
+
+    /**
+     * Specifies whether the build should display violations on the console or not.
+     *
+     * @param displayViolations false to suppress console output, true to display violations on the console. The default is true.
+     * @return this
+     */
+    VerificationTask setDisplayViolations(boolean displayViolations);
+
+    /**
+     * Specifies whether the build should display violations on the console or not.
+     *
+     * @return false, to suppress console output, true, to display violations on the console. The default is true.
+     */
+    boolean isDisplayViolations();
+
 }
