@@ -57,18 +57,20 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     }
 
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) throws ResolveException {
-        Ivy ivy = ivyFactory.create(configuration.getResolutionStrategy());
+        LOGGER.debug("Resolving {}", configuration);
 
+        Ivy ivy = ivyFactory.create(configuration.getResolutionStrategy());
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule());
         DependencyResolver resolver = ivy.getSettings().getDefaultResolver();
+
         ResolveOptions options = new ResolveOptions();
         options.setDownload(false);
         options.setConfs(WrapUtil.toArray(configuration.getName()));
         ResolveData resolveData = new ResolveData(ivy.getResolveEngine(), options);
+
         DependencyToModuleResolver dependencyResolver = new IvyResolverBackedDependencyToModuleResolver(ivy, resolveData, resolver);
         IvyResolverBackedArtifactToFileResolver artifactResolver = new IvyResolverBackedArtifactToFileResolver(resolver);
-        ResolveState resolveState = new ResolveState();
-        ConfigurationResolveState root = resolveState.getConfiguration(moduleDescriptor, configuration.getName());
+
         ModuleConflictResolver conflictResolver;
         if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
             conflictResolver = new StrictConflictResolver();
@@ -76,62 +78,67 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             conflictResolver = new LatestModuleConflictResolver();
         }
         conflictResolver = new ForcedModuleConflictResolver(conflictResolver);
-        ResolvedConfigurationImpl result = new ResolvedConfigurationImpl(configuration, root.getResult());
-        resolve(dependencyResolver, result, root, resolveState, resolveData, artifactResolver, conflictResolver);
+
+        ResolveState resolveState = new ResolveState(moduleDescriptor, configuration.getName());
+        BuildableResolvedConfiguration result = new BuildableResolvedConfiguration(configuration, resolveState.root.getResult());
+
+        GraphBuilder builder = new GraphBuilder();
+        builder.resolve(dependencyResolver, result, resolveState, resolveData, artifactResolver, conflictResolver, resolvedArtifactFactory);
 
         return result;
     }
 
-    private void resolve(DependencyToModuleResolver resolver, ResolvedConfigurationImpl result, ConfigurationResolveState root, ResolveState resolveState, ResolveData resolveData, ArtifactToFileResolver artifactResolver, ModuleConflictResolver conflictResolver) {
-        LOGGER.debug("Resolving {}", root);
+    private static class GraphBuilder {
+        void resolve(DependencyToModuleResolver dependencyResolver, BuildableResolvedConfiguration result, ResolveState resolveState, ResolveData resolveData, ArtifactToFileResolver artifactResolver, ModuleConflictResolver conflictResolver, ResolvedArtifactFactory resolvedArtifactFactory) {
 
-        SetMultimap<ModuleId, DependencyResolvePath> conflicts = LinkedHashMultimap.create();
+            SetMultimap<ModuleId, DependencyResolvePath> conflicts = LinkedHashMultimap.create();
 
-        List<DependencyResolvePath> queue = new ArrayList<DependencyResolvePath>();
-        root.addOutgoingDependencies(new RootPath(), queue);
+            List<DependencyResolvePath> queue = new ArrayList<DependencyResolvePath>();
+            resolveState.root.addOutgoingDependencies(new RootPath(), queue);
 
-        while (!queue.isEmpty() || !conflicts.isEmpty()) {
-            if (queue.isEmpty()) {
-                ModuleId moduleId = conflicts.keySet().iterator().next();
-                Set<ModuleRevisionResolveState> candidates = resolveState.getRevisions(moduleId);
-                ModuleRevisionResolveState selected = conflictResolver.select(candidates, root.moduleRevision);
-                LOGGER.debug("Selected {} from conflicting modules {}.", selected, candidates);
-                selected.status = Status.Include;
-                for (ModuleRevisionResolveState candidate : candidates) {
-                    if (candidate != selected) {
-                        candidate.status = Status.Evict;
-                        for (DependencyResolvePath path : new LinkedHashSet<DependencyResolvePath>(candidate.incomingPaths)) {
-                            path.restart(selected, queue);
+            while (!queue.isEmpty() || !conflicts.isEmpty()) {
+                if (queue.isEmpty()) {
+                    ModuleId moduleId = conflicts.keySet().iterator().next();
+                    Set<ModuleRevisionResolveState> candidates = resolveState.getRevisions(moduleId);
+                    ModuleRevisionResolveState selected = conflictResolver.select(candidates, resolveState.root.moduleRevision);
+                    LOGGER.debug("Selected {} from conflicting modules {}.", selected, candidates);
+                    selected.status = Status.Include;
+                    for (ModuleRevisionResolveState candidate : candidates) {
+                        if (candidate != selected) {
+                            candidate.status = Status.Evict;
+                            for (DependencyResolvePath path : new LinkedHashSet<DependencyResolvePath>(candidate.incomingPaths)) {
+                                path.restart(selected, queue);
+                            }
                         }
                     }
+                    Set<DependencyResolvePath> paths = conflicts.removeAll(moduleId);
+                    for (DependencyResolvePath path : paths) {
+                        path.restart(selected, queue);
+                    }
+                    continue;
                 }
-                Set<DependencyResolvePath> paths = conflicts.removeAll(moduleId);
-                for (DependencyResolvePath path : paths) {
-                    path.restart(selected, queue);
+
+                DependencyResolvePath path = queue.remove(0);
+                LOGGER.debug("Visiting path {}.", path);
+
+                try {
+                    path.resolve(dependencyResolver, resolveState);
+                } catch (Throwable t) {
+                    result.addUnresolvedDependency(path.dependency.descriptor, t);
+                    continue;
                 }
-                continue;
+
+                if (path.targetModuleRevision.status == Status.Conflict) {
+                    LOGGER.debug("Found a conflict. Park this path.");
+                    conflicts.put(path.targetModuleRevision.id.getModuleId(), path);
+                } else {
+                    path.addOutgoingDependencies(resolveData, resolveState, queue);
+                }
             }
 
-            DependencyResolvePath path = queue.remove(0);
-            LOGGER.debug("Visiting path {}.", path);
-
-            try {
-                path.resolve(resolver, resolveState);
-            } catch (Throwable t) {
-                result.addUnresolvedDependency(path.dependency.descriptor, t);
-                continue;
+            for (ConfigurationResolveState resolvedConfiguration : resolveState.getConfigurations()) {
+                resolvedConfiguration.attachToParents(resolvedArtifactFactory, artifactResolver, result);
             }
-
-            if (path.targetModuleRevision.status == Status.Conflict) {
-                LOGGER.debug("Found a conflict. Park this path.");
-                conflicts.put(path.targetModuleRevision.id.getModuleId(), path);
-            } else {
-                path.addOutgoingDependencies(resolveData, resolveState, queue);
-            }
-        }
-
-        for (ConfigurationResolveState resolvedConfiguration : resolveState.getConfigurations()) {
-            resolvedConfiguration.attachToParents(resolvedArtifactFactory, artifactResolver, result);
         }
     }
 
@@ -139,6 +146,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         final SetMultimap<ModuleId, ModuleRevisionResolveState> modules = LinkedHashMultimap.create();
         final Map<ModuleRevisionId, ModuleRevisionResolveState> revisions = new LinkedHashMap<ModuleRevisionId, ModuleRevisionResolveState>();
         final Map<ResolvedConfigurationIdentifier, ConfigurationResolveState> configurations = new LinkedHashMap<ResolvedConfigurationIdentifier, ConfigurationResolveState>();
+        final ConfigurationResolveState root;
+
+        public ResolveState(ModuleDescriptor rootModule, String rootConfigurationName) {
+            root = getConfiguration(rootModule, rootConfigurationName);
+        }
 
         ModuleRevisionResolveState getRevision(ModuleDescriptor descriptor) {
             ModuleRevisionId original = descriptor.getModuleRevisionId();
@@ -297,7 +309,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             return result;
         }
 
-        public void attachToParents(ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationImpl result) {
+        public void attachToParents(ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, BuildableResolvedConfiguration result) {
             switch (getStatus()) {
                 case Include:
                     LOGGER.debug("Attaching {} to its parents.", this);
@@ -319,7 +331,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     }
 
     private static abstract class ResolvePath {
-        public abstract void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationImpl result);
+        public abstract void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, BuildableResolvedConfiguration result);
 
         public abstract boolean excludes(ModuleRevisionResolveState moduleRevision);
 
@@ -349,7 +361,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         @Override
-        public void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationImpl result) {
+        public void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, BuildableResolvedConfiguration result) {
             // Don't need to do anything
         }
     }
@@ -520,7 +532,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         @Override
-        public void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationImpl result) {
+        public void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, BuildableResolvedConfiguration result) {
             DefaultResolvedDependency parent = from.getResult();
             DefaultResolvedDependency child = childConfiguration.getResult();
             parent.addChild(child);
@@ -591,14 +603,14 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
     }
 
-    private static class ResolvedConfigurationImpl extends AbstractResolvedConfiguration {
+    private static class BuildableResolvedConfiguration extends AbstractResolvedConfiguration {
         private final ResolvedDependency root;
         private final Configuration configuration;
         private final Map<ModuleDependency, ResolvedDependency> firstLevelDependencies = new LinkedHashMap<ModuleDependency, ResolvedDependency>();
         private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
         private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
 
-        private ResolvedConfigurationImpl(Configuration configuration, ResolvedDependency root) {
+        private BuildableResolvedConfiguration(Configuration configuration, ResolvedDependency root) {
             this.configuration = configuration;
             this.root = root;
         }
