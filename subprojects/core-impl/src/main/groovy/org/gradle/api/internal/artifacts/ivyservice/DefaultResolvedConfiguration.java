@@ -18,68 +18,45 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.specs.Spec;
 
-import java.util.*;
+import java.io.File;
+import java.util.Set;
 
-public class DefaultResolvedConfiguration extends AbstractResolvedConfiguration implements ResolvedConfigurationBuilder {
-    private final ResolvedDependency root;
-    private final Configuration configuration;
-    private final Map<ModuleDependency, ResolvedDependency> firstLevelDependencies = new LinkedHashMap<ModuleDependency, ResolvedDependency>();
-    private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-    private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
+public class DefaultResolvedConfiguration implements ResolvedConfiguration {
+    private final DefaultLenientConfiguration configuration;
 
-    public DefaultResolvedConfiguration(Configuration configuration, ResolvedDependency root) {
+    public DefaultResolvedConfiguration(DefaultLenientConfiguration configuration) {
         this.configuration = configuration;
-        this.root = root;
     }
 
     public boolean hasError() {
-        return !unresolvedDependencies.isEmpty();
+        return configuration.hasError();
     }
 
     public void rethrowFailure() throws ResolveException {
-        if (!unresolvedDependencies.isEmpty()) {
-            List<Throwable> failures = new ArrayList<Throwable>();
-            for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                failures.add(unresolvedDependency.getProblem());
-            }
-            throw new ResolveException(configuration, Collections.<String>emptyList(), failures);
-        }
+        configuration.rethrowFailure();
     }
 
-    @Override
-    protected Set<UnresolvedDependency> getUnresolvedDependencies() {
-        return unresolvedDependencies;
+    public LenientConfiguration getLenientConfiguration() {
+        return configuration;
     }
 
-    @Override
-    protected Set<ResolvedDependency> doGetFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
-        Set<ResolvedDependency> matches = new LinkedHashSet<ResolvedDependency>();
-        for (Map.Entry<ModuleDependency, ResolvedDependency> entry : firstLevelDependencies.entrySet()) {
-            if (dependencySpec.isSatisfiedBy(entry.getKey())) {
-                matches.add(entry.getValue());
-            }
-        }
-        return matches;
+    public Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException {
+        rethrowFailure();
+        return configuration.getFiles(dependencySpec);
     }
 
-    @Override
-    public ResolvedDependency getRoot() {
-        return root;
+    public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
+        rethrowFailure();
+        return configuration.getFirstLevelModuleDependencies();
+    }
+
+    public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
+        rethrowFailure();
+        return configuration.getFirstLevelModuleDependencies(dependencySpec);
     }
 
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
-        return artifacts;
-    }
-
-    public void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedDependency refersTo) {
-        firstLevelDependencies.put(moduleDependency, refersTo);
-    }
-
-    public void addArtifact(ResolvedArtifact artifact) {
-        artifacts.add(artifact);
-    }
-
-    public void addUnresolvedDependency(UnresolvedDependency unresolvedDependency) {
-        unresolvedDependencies.add(unresolvedDependency);
+        rethrowFailure();
+        return configuration.getResolvedArtifacts();
     }
 }

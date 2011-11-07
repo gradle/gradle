@@ -29,7 +29,9 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -79,12 +81,12 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         conflictResolver = new ForcedModuleConflictResolver(conflictResolver);
 
         ResolveState resolveState = new ResolveState(moduleDescriptor, configuration.getName());
-        DefaultResolvedConfiguration result = new DefaultResolvedConfiguration(configuration, resolveState.root.getResult());
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult());
 
         GraphBuilder builder = new GraphBuilder();
         builder.resolve(dependencyResolver, result, resolveState, resolveData, artifactResolver, conflictResolver, resolvedArtifactFactory);
 
-        return result;
+        return new DefaultResolvedConfiguration(result);
     }
 
     private static class GraphBuilder {

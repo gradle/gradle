@@ -32,7 +32,7 @@ public interface LenientConfiguration {
      * @param dependencySpec dependency spec
      * @return only resolved dependencies
      */
-    public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec);
+    public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec);
 
     /**
      * returns dependencies that were attempted to resolve but failed.
@@ -48,6 +48,6 @@ public interface LenientConfiguration {
      * @param dependencySpec dependency spec
      * @return resolved dependencies files
      */
-    public Set<File> getFiles(Spec<Dependency> dependencySpec);
+    public Set<File> getFiles(Spec<? super Dependency> dependencySpec);
 
 }
