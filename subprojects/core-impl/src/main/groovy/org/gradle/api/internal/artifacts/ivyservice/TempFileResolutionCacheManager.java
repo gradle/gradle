@@ -25,15 +25,14 @@ import java.io.IOException;
 class TempFileResolutionCacheManager implements ResolutionCacheManager {
     private static final String FILE_PATTERN = "resolved-[organisation]-[module]-[revision]";
 
-    private File cacheTempDir;
+    private final File cacheDir;
 
     TempFileResolutionCacheManager(File cacheDir) {
-        cacheTempDir = new File(cacheDir, "tmp");
-        cacheTempDir.mkdirs();
+        this.cacheDir = cacheDir;
     }
 
     public File getResolutionCacheRoot() {
-        return cacheTempDir;
+        return getCacheTempDir();
     }
 
     public File getResolvedIvyFileInCache(ModuleRevisionId mrid) {
@@ -57,10 +56,20 @@ class TempFileResolutionCacheManager implements ResolutionCacheManager {
     public void clean() {
         throw new UnsupportedOperationException();
     }
+    
+    private File getCacheTempDir() {
+        File cacheTempDir = new File(cacheDir, "tmp");
+        if (!cacheTempDir.exists()) {
+            if (!cacheTempDir.mkdirs()) {
+                throw new RuntimeException("Could not create cacheTempDir");
+            }
+        }
+        return cacheTempDir;
+    }
 
     private File tmpFile(String prefix, String suffix) {
         try {
-            File xml = File.createTempFile(prefix, suffix, cacheTempDir);
+            File xml = File.createTempFile(prefix, suffix, getCacheTempDir());
             xml.deleteOnExit();
             return xml;
         } catch (IOException e) {
