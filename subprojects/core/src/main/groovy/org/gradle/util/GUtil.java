@@ -44,16 +44,21 @@ public class GUtil {
         return flatten(elements, addTo, true);
     }
 
-    public static <T extends Collection> T flatten(Collection elements, T addTo, boolean flattenMaps) {
+    public static <T extends Collection> T flatten(Collection elements, T addTo, boolean flattenMapsAndArrays) {
+        //TODO SF - for some reason, flattening of arrays is controlled by flattenMaps. Consider some refactorings.
+        return flatten(elements, addTo, flattenMapsAndArrays, flattenMapsAndArrays);
+    }
+
+    public static <T extends Collection> T flatten(Collection elements, T addTo, boolean flattenMaps, boolean flattenArrays) {
         Iterator iter = elements.iterator();
         while (iter.hasNext()) {
             Object element = iter.next();
             if (element instanceof Collection) {
-                flatten((Collection) element, addTo, flattenMaps);
+                flatten((Collection) element, addTo, flattenMaps, flattenArrays);
             } else if ((element instanceof Map) && flattenMaps) {
-                flatten(((Map) element).values(), addTo, flattenMaps);
-            } else if ((element.getClass().isArray()) && flattenMaps) {
-                flatten(asList((Object[]) element), addTo, flattenMaps);
+                flatten(((Map) element).values(), addTo, flattenMaps, flattenArrays);
+            } else if ((element.getClass().isArray()) && flattenArrays) {
+                flatten(asList((Object[]) element), addTo, flattenMaps, flattenArrays);
             } else {
                 addTo.add(element);
             }
@@ -62,7 +67,7 @@ public class GUtil {
     }
 
     /**
-     * Flattens input collections (including arrays).
+     * Flattens input collections (including arrays *but* not maps).
      * If input is not a collection wraps it in a collection and returns it.
      * @param input any object
      * @return collection of flattened input or single input wrapped in a collection.
@@ -72,9 +77,13 @@ public class GUtil {
         if (input == null) {
             return emptyList();
         } else if (input instanceof Collection) {
-            return flatten((Collection) input);
+            Collection out = new LinkedList();
+            flatten((Collection) input, out, false, true);
+            return out;
         } else if (input.getClass().isArray()) {
-            return flatten(asList((Object[]) input));
+            Collection out = new LinkedList();
+            flatten(asList((Object[]) input), out, false, true);
+            return out;
         } else {
             return asList(input);
         }

@@ -90,6 +90,29 @@ public class GUtilTest extends spock.lang.Specification {
         toWords("_") == ""
     }
 
+    def "flattens maps and arrays"() {
+        expect:
+        flatten([[1], [foo: 'bar']]) == [1, 'bar']
+
+        Object[] array = [1]
+        flatten([array, [foo: 'bar']]) == [1, 'bar']
+    }
+
+    def "flattening of maps controls flatting of arrays"() {
+        //documenting current functionality, not sure if the functionality is a good one
+        when:
+        def out = []
+        Object[] array = [1]
+        then:
+        flatten([array, [foo: 'bar']], out, true) == [1, 'bar']
+
+        when:
+        out = []
+        array = [1]
+        then:
+        flatten([array, [foo: 'bar']], out, false) == [[1], [foo:'bar']]
+    }
+
     def "normalizes to collection"() {
         expect:
         normalize(null) == []
@@ -103,5 +126,7 @@ public class GUtilTest extends spock.lang.Specification {
         normalize(array) == [1, 1, "three"]
 
         normalize([list, array]) == [2, 2, "three", 1, 1, "three"]
+
+        normalize([[1], [hey: 'man']]) == [1, [hey: 'man']]
     }
 }
