@@ -15,7 +15,7 @@
  */
 package org.gradle.cli
 
-import spock.lang.Specification
+import spock.lang.*
 
 class CommandLineParserTest extends Specification {
     private final CommandLineParser parser = new CommandLineParser()
@@ -583,4 +583,23 @@ class CommandLineParserTest extends Specification {
         result.extraArguments.contains("-b")
     }
     
+    @Issue("http://issues.gradle.org/browse/GRADLE-1871")
+    def "unknown options containing known arguments in their value are allowed"() {
+        given:
+        parser.option("a")
+
+        and:
+        parser.allowUnknownOptions()
+
+        when:
+        def result = parser.parse(['-a', '-ba', '-ba=c'])
+
+        then:
+        result.option("a") != null
+        
+        and:
+        "-ba" in result.extraArguments
+        "-ba=c" in result.extraArguments
+    }
+
 }
