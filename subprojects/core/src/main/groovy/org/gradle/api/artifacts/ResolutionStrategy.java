@@ -75,7 +75,7 @@ public interface ResolutionStrategy {
      * @param forcedModules forced modules to set
      * @return this ResolutionStrategy instance
      */
-    ResolutionStrategy setForcedModules(Iterable<ModuleIdentifier> forcedModules);
+    ResolutionStrategy setForcedModules(Object... forcedModules);
 
     /**
      * <b>Experimental</b>. This part of the api is yet experimental - may change without notice.

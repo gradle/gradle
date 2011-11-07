@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflict
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.DefaultCachePolicy;
-import org.gradle.util.GUtil;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -57,8 +56,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
-    public DefaultResolutionStrategy setForcedModules(Iterable<ModuleIdentifier> forcedModules) {
-        this.forcedModules = GUtil.toSet(forcedModules);
+    public DefaultResolutionStrategy setForcedModules(Object ... forcedModules) {
+        this.forcedModules = new ForcedModuleBuilder().build(forcedModules);
         return this;
     }
 
