@@ -17,18 +17,37 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.util.GUtil;
+
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * by Szczepan Faber, created at: 10/11/11
  */
 public class ForcedModuleBuilder {
 
-    public ModuleIdentifier build(Object notation) {
+    public Set<ModuleIdentifier> build(Object notation) {
         assert notation != null : "notation cannot be null";
-        if (notation instanceof ModuleIdentifier) {
-            return (ModuleIdentifier) notation;
+        Set<ModuleIdentifier> out = new LinkedHashSet<ModuleIdentifier>();
+        Collection notations = GUtil.normalize(notation);
+        for (Object n : notations) {
+            out.add(parseSingleNotation(n));
         }
 
+        return out;
+    }
+
+    private ModuleIdentifier parseSingleNotation(Object notation) {
+        if (notation instanceof ModuleIdentifier) {
+            return (ModuleIdentifier) notation;
+        } else {
+            return parseString(notation.toString());
+        }
+    }
+
+    private ModuleIdentifier parseString(Object notation) {
         String[] split = notation.toString().split(":");
         if (split.length != 3) {
             throw new InvalidDependencyFormat(

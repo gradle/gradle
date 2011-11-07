@@ -28,29 +28,43 @@ public class ForcedModuleBuilderTest extends Specification {
 
     def "understands gav notation"() {
         when:
-        def v = new ForcedModuleBuilder().build("org.foo:bar:1.0")
+        def v = new ForcedModuleBuilder().build("org.foo:bar:1.0") as List
 
         then:
-        v.group == 'org.foo'
-        v.name  == 'bar'
-        v.version  == '1.0'
+        v.size() == 1
+        v[0].group == 'org.foo'
+        v[0].name  == 'bar'
+        v[0].version  == '1.0'
     }
 
     def "allows exact type on input"() {
         ModuleIdentifier id = ForcedModuleBuilder.identifier("org.foo", "bar", "2.0")
 
         when:
-        def v = new ForcedModuleBuilder().build(id)
+        def v = new ForcedModuleBuilder().build(id) as List
 
         then:
-        v.group == 'org.foo'
-        v.name  == 'bar'
-        v.version  == '2.0'
+        v.size() == 1
+        v[0].group == 'org.foo'
+        v[0].name  == 'bar'
+        v[0].version  == '2.0'
+    }
+
+    def "allows list of objects on input"() {
+        ModuleIdentifier id = ForcedModuleBuilder.identifier("org.foo", "bar", "2.0")
+
+        when:
+        def v = new ForcedModuleBuilder().build([id, "hey:man:1.0"]) as List
+
+        then:
+        v.size() == 2
+        v[0].name == 'bar'
+        v[1].name == 'man'
     }
 
     def "reports invalid format"() {
         when:
-        new ForcedModuleBuilder().build("org.foo:bar1.0")
+        new ForcedModuleBuilder().build(["org.foo:bar1.0"])
 
         then:
         thrown(InvalidDependencyFormat)

@@ -25,16 +25,19 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+
 /**
  * @author Hans Dockter
  */
 public class GUtil {
     public static <T extends Collection> T flatten(Object[] elements, T addTo, boolean flattenMaps) {
-        return flatten(Arrays.asList(elements), addTo, flattenMaps);
+        return flatten(asList(elements), addTo, flattenMaps);
     }
 
     public static <T extends Collection> T flatten(Object[] elements, T addTo) {
-        return flatten(Arrays.asList(elements), addTo);
+        return flatten(asList(elements), addTo);
     }
 
     public static <T extends Collection> T flatten(Collection elements, T addTo) {
@@ -50,12 +53,31 @@ public class GUtil {
             } else if ((element instanceof Map) && flattenMaps) {
                 flatten(((Map) element).values(), addTo, flattenMaps);
             } else if ((element.getClass().isArray()) && flattenMaps) {
-                flatten(Arrays.asList((Object[]) element), addTo, flattenMaps);
+                flatten(asList((Object[]) element), addTo, flattenMaps);
             } else {
                 addTo.add(element);
             }
         }
         return addTo;
+    }
+
+    /**
+     * Flattens input collections (including arrays).
+     * If input is not a collection wraps it in a collection and returns it.
+     * @param input any object
+     * @return collection of flattened input or single input wrapped in a collection.
+     */
+    public static Collection normalize(Object input) {
+        //TODO SF - do we even need it given there's a flatten() method in groovy?
+        if (input == null) {
+            return emptyList();
+        } else if (input instanceof Collection) {
+            return flatten((Collection) input);
+        } else if (input.getClass().isArray()) {
+            return flatten(asList((Object[]) input));
+        } else {
+            return asList(input);
+        }
     }
 
     public static List flatten(Collection elements, boolean flattenMaps) {
@@ -86,7 +108,7 @@ public class GUtil {
     }
 
     public static String join(Object[] self, String separator) {
-        return join(Arrays.asList(self), separator);
+        return join(asList(self), separator);
     }
 
     public static List<String> prefix(String prefix, Collection<String> strings) {
