@@ -47,8 +47,15 @@ public class ForcedModuleBuilder {
             return (ModuleIdentifier) notation;
         } else if (notation instanceof Map) {
             return parseMap((Map) notation);
-        } else {
+        } else if (notation instanceof CharSequence) {
             return parseString(notation.toString());
+        } else {
+            throw new InvalidNotationType("Invalid notation type - it cannot be used to form the forced module.\n"
+                    + "Invalid type: " + notation.getClass().getName() + ". Notation only supports following types/formats:\n"
+                    + "  1. instances of ModuleIdentifier\n"
+                    + "  2. Strings (actually CharSequences), e.g. 'org.gradle:gradle-core:1.0-milestone-3'\n"
+                    + "  3. Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0-milestone-3]\n"
+                    + "  4. A Collection or array of above (nested collections/arrays will be flattened)\n");
         }
     }
 
@@ -61,7 +68,7 @@ public class ForcedModuleBuilder {
     private ModuleIdentifier parseString(Object notation) {
         String[] split = notation.toString().split(":");
         if (split.length != 3) {
-            throw new InvalidDependencyFormat(
+            throw new InvalidNotationFormat(
                 "Invalid format: '" + notation + "'. Correct notation is a 3-part group:name:version notation,"
                 + "e.g: org.gradle:gradle-core:1.0-milestone-3");
         }
@@ -75,8 +82,14 @@ public class ForcedModuleBuilder {
         return new DefaultResolvedModuleId(group, name, version);
     }
 
-    public static class InvalidDependencyFormat extends RuntimeException {
-        public InvalidDependencyFormat(String message) {
+    public static class InvalidNotationFormat extends RuntimeException {
+        public InvalidNotationFormat(String message) {
+            super(message);
+        }
+    }
+
+    public static class InvalidNotationType extends RuntimeException {
+        public InvalidNotationType(String message) {
             super(message);
         }
     }

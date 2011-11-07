@@ -18,7 +18,8 @@ package org.gradle.api.internal.artifacts.configurations;
 
 
 import org.gradle.api.artifacts.ModuleIdentifier
-import org.gradle.api.internal.artifacts.configurations.ForcedModuleBuilder.InvalidDependencyFormat
+import org.gradle.api.internal.artifacts.configurations.ForcedModuleBuilder.InvalidNotationFormat
+import org.gradle.api.internal.artifacts.configurations.ForcedModuleBuilder.InvalidNotationType
 import spock.lang.Specification
 
 /**
@@ -26,7 +27,7 @@ import spock.lang.Specification
  */
 public class ForcedModuleBuilderTest extends Specification {
 
-    def "understands gav notation"() {
+    def "understands group:name:version notation"() {
         when:
         def v = new ForcedModuleBuilder().build("org.foo:bar:1.0") as List
 
@@ -35,6 +36,16 @@ public class ForcedModuleBuilderTest extends Specification {
         v[0].group == 'org.foo'
         v[0].name  == 'bar'
         v[0].version  == '1.0'
+    }
+
+    def "works with CharSequences"() {
+        when:
+        def sb = new StringBuilder().append("org.foo:charsequence:1.0")
+        def v = new ForcedModuleBuilder().build(sb) as List
+
+        then:
+        v.size() == 1
+        v[0].name  == 'charsequence'
     }
 
     def "allows exact type on input"() {
@@ -75,7 +86,11 @@ public class ForcedModuleBuilderTest extends Specification {
     }
 
     def "fails for unknown types"() {
-        //TODO SF
+        when:
+        new ForcedModuleBuilder().build(new Object())
+
+        then:
+        thrown(InvalidNotationType)
     }
 
     def "reports missing keys for map notation"() {
@@ -87,6 +102,6 @@ public class ForcedModuleBuilderTest extends Specification {
         new ForcedModuleBuilder().build(["org.foo:bar1.0"])
 
         then:
-        thrown(InvalidDependencyFormat)
+        thrown(InvalidNotationFormat)
     }
 }
