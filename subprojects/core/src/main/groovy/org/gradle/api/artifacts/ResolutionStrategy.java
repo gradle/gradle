@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 public interface ResolutionStrategy {
 
     /**
-     * In case of conflict, Gradle by default uses the latest of conflicting versions.
+     * In case of conflict, Gradle by default uses the newest of conflicting versions.
      * However, you can change this behavior. Use this method to configure the resolution to fail eagerly on any version conflict, e.g.
      * multiple different versions of the same dependency (group and name are equal) in the same {@link Configuration}.
      * The check includes both first level and transitive dependencies. See example below:
