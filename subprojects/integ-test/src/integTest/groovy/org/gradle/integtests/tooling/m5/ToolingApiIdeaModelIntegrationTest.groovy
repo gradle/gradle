@@ -16,10 +16,10 @@
 package org.gradle.integtests.tooling.m5
 
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.idea.*
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.tooling.model.idea.*
 
 @MinToolingApiVersion('1.0-milestone-5')
 @MinTargetGradleVersion('1.0-milestone-5')
@@ -280,7 +280,7 @@ project(':impl') {
         !impl.gradleProject.tasks.find { it.name == 'rootTask' }
     }
 
-    def "offline model should not resolve GAV dependencies"() {
+    def "offline model should not resolve external dependencies"() {
         def projectDir = dist.testDir
 
         projectDir.file('build.gradle').text = """

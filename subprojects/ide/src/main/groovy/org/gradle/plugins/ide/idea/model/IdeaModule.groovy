@@ -312,7 +312,7 @@ class IdeaModule {
     PathFactory pathFactory
 
     /**
-     * If true then GAV-configured artifacts will not be included in the resulting classpath
+     * If true then external artifacts (e.g. those found in repositories) will not be included in the resulting classpath
      * (only project and local file dependencies will be included).
      */
     boolean offline

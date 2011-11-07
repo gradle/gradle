@@ -38,8 +38,8 @@ import java.util.Map;
  * //so that we can use 'compile', 'testCompile' for dependencies
  *
  * dependencies {
- *   //for dependencies found in artifact repositories use
- *   //the gav notation, e.g. group:artifactName:version
+ *   //for dependencies found in artifact repositories you can use
+ *   //the group:name:version notation
  *   compile 'commons-lang:commons-lang:2.6'
  *   testCompile 'org.mockito:mockito:1.9.0-rc1'
  *
@@ -106,7 +106,7 @@ import java.util.Map;
  * <h3>External dependencies</h3>
  *
  * <p>There are 2 notations supported for declaring a dependency on an external module.
- * One is a String notation, sometimes referred as gav notation (group:artifactName:version)</p>
+ * One is a String notation formatted this way: group:name:version</p>
  *
  * <code><i>configurationName</i> "<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>"</code>
  *
@@ -126,7 +126,7 @@ import java.util.Map;
  *
  * dependencies {
  *   //for dependencies found in artifact repositories you can use
- *   //the string notation, e.g. group:artifactName:version (gav)
+ *   //the string notation, e.g. group:name:version
  *   compile 'commons-lang:commons-lang:2.6'
  *   testCompile 'org.mockito:mockito:1.9.0-rc1'
  *
