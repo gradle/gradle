@@ -256,6 +256,47 @@ project('c') {
         succeeds "listJars"
     }
 
+    // this test is largely covered by other tests, but does ensure that there is nothing special about
+    // project dependencies that are “built” by built in plugins like the Java plugin's created jars
+    def "can use zip files as project dependencies"() {
+        given:
+        file("settings.gradle") << "include 'a'; include 'b'"
+        file("a/some.txt") << "foo"
+        file("a/build.gradle") << """
+            group = "g"
+            version = 1.0
+            
+            apply plugin: 'base'
+            task zip(type: Zip) {
+                from "some.txt"
+            }
+
+            artifacts {
+                delegate.default zip
+            }
+        """
+        file("b/build.gradle") << """
+            configurations { conf }
+            dependencies {
+                conf project(":a")
+            }
+            
+            task copyZip(type: Copy) {
+                from configurations.conf
+                into "\$buildDir/copied"
+            }
+        """
+        
+        when:
+        succeeds ":b:copyZip"
+        
+        then:
+        ":b:copyZip" in  nonSkippedTasks 
+        
+        and:
+        file("b/build/copied/a-1.0.zip").exists()
+    }
+    
     def getRepo() {
         return new MavenRepository(file('repo'))
     }
