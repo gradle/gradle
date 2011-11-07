@@ -20,7 +20,10 @@ import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 
+import java.util.Collection;
 import java.util.Map;
+
+import static org.apache.commons.collections.CollectionUtils.subtract;
 
 /**
  * @author Hans Dockter
@@ -42,6 +45,27 @@ public class ConfigureUtil {
             }
         }
         return delegate;
+    }
+
+    public static <T> T configureByMap(Map<String, ?> properties, T delegate, Collection<String> mandatoryKeys) {
+        Collection missingKeys = subtract(mandatoryKeys, properties.keySet());
+        if(!missingKeys.isEmpty()) {
+            throw new IncompleteInputException("Input configuration map does not contain following mandatory keys: " + missingKeys, missingKeys);
+        }
+        return configureByMap(properties, delegate);
+    }
+
+    public static class IncompleteInputException extends RuntimeException {
+        private final Collection missingKeys;
+
+        public IncompleteInputException(String message, Collection missingKeys) {
+            super(message);
+            this.missingKeys = missingKeys;
+        }
+
+        public Collection getMissingKeys() {
+            return missingKeys;
+        }
     }
 
     /**

@@ -94,7 +94,20 @@ public class ForcedModuleBuilderTest extends Specification {
     }
 
     def "reports missing keys for map notation"() {
-        //TODO SF
+        when:
+        new ForcedModuleBuilder().build([name: "bar", version: "1.0"])
+
+        then:
+        thrown(InvalidNotationFormat)
+    }
+
+    def "reports wrong keys for map notation"() {
+        when:
+        //TODO SF - consider allowing extra keys on input - ask Adam if it's a good idea.
+        new ForcedModuleBuilder().build([groop: 'groop', name: "bar", version: "1.0"])
+
+        then:
+        thrown(InvalidNotationFormat)
     }
 
     def "reports invalid format for string notation"() {

@@ -15,9 +15,12 @@
  */
 package org.gradle.util
 
+import org.gradle.util.ConfigureUtil.IncompleteInputException
 import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.sameInstance
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 class ConfigureUtilTest {
     @Test
@@ -58,6 +61,25 @@ class ConfigureUtilTest {
 
         ConfigureUtil.configureByMap(obj, method: 'value2')
         assertThat(obj.prop, equalTo('value2'))
+    }
+
+    @Test
+    public void canConfigureAndValidateObjectUsingMap() {
+        Bean obj = new Bean()
+
+        try {
+            //when
+            ConfigureUtil.configureByMap([prop: 'value'], obj, ['foo'])
+            //then
+            fail();
+        } catch (IncompleteInputException e) {
+            assert e.missingKeys.contains('foo')
+        }
+
+        //when
+        ConfigureUtil.configureByMap([prop: 'value'], obj, ['prop'])
+        //then
+        assert obj.prop == 'value'
     }
 
     @Test
