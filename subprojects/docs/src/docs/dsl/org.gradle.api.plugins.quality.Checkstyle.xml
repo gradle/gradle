@@ -11,6 +11,7 @@
             <tr><td>classpath</td><td><literal><replaceable>sourceSet</replaceable>.compileClasspath</literal></td></tr>
             <tr><td>configFile</td><td><literal>project.checkstyleConfigFile</literal></td></tr>
             <tr><td>ignoreFailures</td><td><literal>false</literal></td></tr>
+            <tr><td>displayViolations</td><td><literal>true</literal></td></tr>
             <tr><td>properties</td><td><literal>project.checkstyleProperties</literal></td></tr>
             <tr>
                 <td>resultFile</td>

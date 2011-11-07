@@ -21,6 +21,7 @@ import org.hamcrest.Matcher
 import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 
 class CodeQualityIntegrationTest extends AbstractIntegrationTest {
@@ -107,6 +108,71 @@ apply plugin: 'code-quality'
 
         testFile('build/checkstyle/main.xml').assertExists()
     }
+
+    @Test
+    public void checkstyleViolationWithDisplayViolationsDefaultShouldOutputViolationsToError() {
+        testFile('build.gradle') << '''
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
+'''
+        writeCheckstyleConfig()
+
+        testFile('src/main/java/org/gradle/class1.java') << 'package org.gradle; class class1 { }'
+        testFile('src/main/groovy/org/gradle/class2.java') << 'package org.gradle; class class2 { }'
+
+        ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
+        failure.assertHasDescription('Execution failed for task \':checkstyleMain\'')
+        failure.assertThatCause(startsWith('Checkstyle check violations were found in main Java source. See the report at'))
+
+        testFile('build/checkstyle/main.xml').assertExists()
+        assertThat(failure.error, containsString("Name 'class1' must match pattern '^[A-Z][a-zA-Z0-9]*\$'."));
+    }
+
+    @Test
+    public void checkstyleViolationWithDisplayViolationsTrueShouldOutputViolationsToError() {
+        testFile('build.gradle') << '''
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
+
+checkstyleMain {
+    displayViolations = true
+}
+'''
+        writeCheckstyleConfig()
+
+        testFile('src/main/java/org/gradle/class1.java') << 'package org.gradle; class class1 { }'
+        testFile('src/main/groovy/org/gradle/class2.java') << 'package org.gradle; class class2 { }'
+
+        ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
+        failure.assertHasDescription('Execution failed for task \':checkstyleMain\'')
+        failure.assertThatCause(startsWith('Checkstyle check violations were found in main Java source. See the report at'))
+
+        testFile('build/checkstyle/main.xml').assertExists()
+        assertThat(failure.error, containsString("Name 'class1' must match pattern '^[A-Z][a-zA-Z0-9]*\$'."));
+    }
+    @Test
+    public void checkstyleViolationWithDisplayViolationsFalseShouldNotOutputViolationsToError() {
+        testFile('build.gradle') << '''
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
+
+checkstyleMain {
+    displayViolations = false
+}
+'''
+        writeCheckstyleConfig()
+
+        testFile('src/main/java/org/gradle/class1.java') << 'package org.gradle; class class1 { }'
+        testFile('src/main/groovy/org/gradle/class2.java') << 'package org.gradle; class class2 { }'
+
+        ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
+        failure.assertHasDescription('Execution failed for task \':checkstyleMain\'')
+        failure.assertThatCause(startsWith('Checkstyle check violations were found in main Java source. See the report at'))
+
+        testFile('build/checkstyle/main.xml').assertExists()
+        assertThat(failure.error, not(containsString("Name 'class1' must match pattern '^[A-Z][a-zA-Z0-9]*\$'.")));
+    }
+
 
     @Test
     public void generatesReportForGroovySource() {
