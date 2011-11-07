@@ -96,10 +96,12 @@ public class GUtilTest extends spock.lang.Specification {
         normalize(10) == [10]
         normalize("a") == ["a"]
 
-        List list = [1, 2, 2, "three"] as List
-        normalize(list) == [1, 2, 2, "three"]
+        List list = [2, 2, "three"] as List
+        normalize(list) == [2, 2, "three"]
 
-        Object[] array = [1, 2, 2, "three"]
-        normalize(array) == [1, 2, 2, "three"]
+        Object[] array = [1, 1, "three"]
+        normalize(array) == [1, 1, "three"]
+
+        normalize([list, array]) == [2, 2, "three", 1, 1, "three"]
     }
 }

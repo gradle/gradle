@@ -54,7 +54,7 @@ public class ForcedModuleBuilderTest extends Specification {
         ModuleIdentifier id = ForcedModuleBuilder.identifier("org.foo", "bar", "2.0")
 
         when:
-        def v = new ForcedModuleBuilder().build([id, "hey:man:1.0"]) as List
+        def v = new ForcedModuleBuilder().build([id, ["hey:man:1.0"]]) as List
 
         then:
         v.size() == 2
