@@ -45,6 +45,12 @@ class MaybeForceVersions implements IvyResolutionListener {
         }
         for (ModuleIdentifier forced : forcedModules) {
             if (ModuleId.newInstance(forced.getGroup(), forced.getName()).equals(dd.getDependencyId())) {
+                //(SF) I didn't find a way to implement this functionality cleaner. I've tried several different avenues.
+                //I was not able to create/clone a new instance of DependencyDescriptor because ivy keeps references to the passed in 'dd' instance
+                //in other places in the algorithm (for example in the ResolveData).
+                //Basically if I used a different dd instance I was hitting version conflict exceptions.
+                //That's the reason why the incoming dd instance is directly modified :(
+                //If you know a better way... let me know
                 updateFieldValue(dd.getDependencyRevisionId(), "revision", forced.getVersion());
                 ((Map) getFieldValue(UnmodifiableExtendableItem.class, dd.getDependencyRevisionId(), "attributes"))
                         .put(IvyPatternHelper.REVISION_KEY, forced.getVersion());
