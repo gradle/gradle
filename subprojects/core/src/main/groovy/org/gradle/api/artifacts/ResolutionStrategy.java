@@ -88,7 +88,7 @@ public interface ResolutionStrategy {
 
     /**
      * A convenience method for calling {@link #cacheDynamicVersionsFor(int, java.util.concurrent.TimeUnit)} with named units.
-     * Units are resolved using {@link java.util.concurrent.TimeUnit#valueOf(String)} on the upper-cased string value.
+     * Units are resolved using {@code java.util.concurrent.TimeUnit#valueOf(String)} on the upper-cased string value.
      * @param value The number of time units
      * @param units The units
      */
@@ -105,7 +105,7 @@ public interface ResolutionStrategy {
 
     /**
      * A convenience method for calling {@link #cacheChangingModulesFor(int, java.util.concurrent.TimeUnit)} with named units.
-     * Units are resolved using {@link java.util.concurrent.TimeUnit#valueOf(String)} on the upper-cased string value.
+     * Units are resolved using {@code java.util.concurrent.TimeUnit#valueOf(String)} on the upper-cased string value.
      * @param value The number of time units
      * @param units The units
      */
