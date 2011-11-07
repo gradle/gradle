@@ -26,8 +26,6 @@ import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.plugins.latest.ArtifactInfo;
-import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -78,19 +76,19 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         } else {
             conflictResolver = new LatestModuleConflictResolver();
         }
-        conflictResolver = new ForcedModuleConflictResolver(conflictResolver);
+        ForcedModuleConflictResolver outerConflictResolver = new ForcedModuleConflictResolver(conflictResolver);
 
         ResolveState resolveState = new ResolveState(moduleDescriptor, configuration.getName());
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult());
 
         GraphBuilder builder = new GraphBuilder();
-        builder.resolve(dependencyResolver, result, resolveState, resolveData, artifactResolver, conflictResolver, resolvedArtifactFactory);
+        builder.resolve(dependencyResolver, result, resolveState, resolveData, artifactResolver, outerConflictResolver, resolvedArtifactFactory);
 
         return new DefaultResolvedConfiguration(result);
     }
 
     private static class GraphBuilder {
-        void resolve(DependencyToModuleResolver dependencyResolver, ResolvedConfigurationBuilder result, ResolveState resolveState, ResolveData resolveData, ArtifactToFileResolver artifactResolver, ModuleConflictResolver conflictResolver, ResolvedArtifactFactory resolvedArtifactFactory) {
+        void resolve(DependencyToModuleResolver dependencyResolver, ResolvedConfigurationBuilder result, ResolveState resolveState, ResolveData resolveData, ArtifactToFileResolver artifactResolver, ForcedModuleConflictResolver conflictResolver, ResolvedArtifactFactory resolvedArtifactFactory) {
 
             SetMultimap<ModuleId, DependencyResolvePath> conflicts = LinkedHashMultimap.create();
 
@@ -196,7 +194,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
     enum Status {Include, Conflict, Evict}
 
-    private static class ModuleRevisionResolveState {
+    private static class ModuleRevisionResolveState implements ModuleRevisionState {
         final ModuleRevisionId id;
         final ModuleDescriptor descriptor;
         Status status = Status.Include;
@@ -211,6 +209,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         @Override
         public String toString() {
             return id.toString();
+        }
+
+        public String getRevision() {
+            return descriptor.getRevision();
         }
 
         public Status getStatus() {
@@ -557,18 +559,13 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
     }
 
-    private static abstract class ModuleConflictResolver {
-        abstract ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root);
-    }
-
-    private static class ForcedModuleConflictResolver extends ModuleConflictResolver {
+    private static class ForcedModuleConflictResolver {
         private final ModuleConflictResolver resolver;
 
         private ForcedModuleConflictResolver(ModuleConflictResolver resolver) {
             this.resolver = resolver;
         }
 
-        @Override
         ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root) {
             for (ModuleRevisionResolveState candidate : candidates) {
                 for (DependencyResolvePath incomingPath : candidate.incomingPaths) {
@@ -577,46 +574,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                     }
                 }
             }
-            return resolver.select(candidates, root);
-        }
-    }
-
-    private static class StrictConflictResolver extends ModuleConflictResolver {
-        @Override
-        ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root) {
-            Formatter formatter = new Formatter();
-            formatter.format("A conflict was found between the following modules:");
-            for (ModuleRevisionResolveState candidate : candidates) {
-                formatter.format("%n - %s", candidate.getId());
-            }
-            throw new RuntimeException(formatter.toString());
-        }
-    }
-
-    private static class LatestModuleConflictResolver extends ModuleConflictResolver {
-        ModuleRevisionResolveState select(Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root) {
-            List<ModuleResolveStateBackedArtifactInfo> artifactInfos = new ArrayList<ModuleResolveStateBackedArtifactInfo>();
-            for (final ModuleRevisionResolveState moduleRevision : candidates) {
-                artifactInfos.add(new ModuleResolveStateBackedArtifactInfo(moduleRevision));
-            }
-            List<ModuleResolveStateBackedArtifactInfo> sorted = new LatestRevisionStrategy().sort(artifactInfos.toArray(new ArtifactInfo[artifactInfos.size()]));
-            return sorted.get(sorted.size() - 1).moduleRevision;
-        }
-    }
-
-    private static class ModuleResolveStateBackedArtifactInfo implements ArtifactInfo {
-        final ModuleRevisionResolveState moduleRevision;
-
-        public ModuleResolveStateBackedArtifactInfo(ModuleRevisionResolveState moduleRevision) {
-            this.moduleRevision = moduleRevision;
-        }
-
-        public String getRevision() {
-            return moduleRevision.descriptor.getRevision();
-        }
-
-        public long getLastModified() {
-            throw new UnsupportedOperationException();
+            return (ModuleRevisionResolveState) resolver.select(candidates, root);
         }
     }
 }
