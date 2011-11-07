@@ -23,13 +23,13 @@ import org.gradle.api.internal.project.TestPlugin2;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.util.GUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +41,8 @@ import java.net.URL;
 import java.util.Properties;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * @author Hans Dockter
@@ -50,9 +51,7 @@ import static org.junit.Assert.*;
 public class DefaultPluginRegistryTest {
     private String pluginId = "test";
     private DefaultPluginRegistry pluginRegistry;
-    private JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
     @Rule
     public TemporaryFolder testDir = new TemporaryFolder();
     private ClassLoader classLoader;
@@ -140,6 +139,19 @@ public class DefaultPluginRegistryTest {
         } catch (PluginInstantiationException e) {
             assertThat(e.getMessage(), equalTo("Could not create plugin of type 'BrokenPlugin'."));
             assertThat(e.getCause(), Matchers.<Object>nullValue());
+        }
+    }
+
+    @Test
+    public void wrapsFailureToLoadImplementationClass() throws ClassNotFoundException {
+        expectClassesNotFound(classLoader);
+
+        try {
+            pluginRegistry.getTypeForId(pluginId);
+            fail();
+        } catch (PluginInstantiationException e) {
+            assertThat(e.getMessage(), startsWith("Could not find implementation class '" + TestPlugin1.class.getName() + "' for plugin 'test' specified in "));
+            assertThat(e.getCause(), instanceOf(ClassNotFoundException.class));
         }
     }
 

@@ -100,7 +100,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
             implClass = classLoader.loadClass(implClassName).asSubclass(Plugin.class);
         } catch (ClassNotFoundException e) {
             throw new PluginInstantiationException(String.format(
-                    "Could not find implementation class '%s' for plugin '%s' specified in %s.", implClass, pluginId,
+                    "Could not find implementation class '%s' for plugin '%s' specified in %s.", implClassName, pluginId,
                     resource), e);
         }
 
