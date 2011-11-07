@@ -17,10 +17,13 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.DefaultResolvedModuleId;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -42,17 +45,25 @@ public class ForcedModuleBuilder {
     private ModuleIdentifier parseSingleNotation(Object notation) {
         if (notation instanceof ModuleIdentifier) {
             return (ModuleIdentifier) notation;
+        } else if (notation instanceof Map) {
+            return parseMap((Map) notation);
         } else {
             return parseString(notation.toString());
         }
+    }
+
+    private ModuleIdentifier parseMap(Map notation) {
+        ModuleIdentifier out = new DefaultResolvedModuleId(null, null, null);
+        ConfigureUtil.configureByMap(notation, out);
+        return out;
     }
 
     private ModuleIdentifier parseString(Object notation) {
         String[] split = notation.toString().split(":");
         if (split.length != 3) {
             throw new InvalidDependencyFormat(
-                "Invalid format: '" + notation + "'. Correct notation is a 3-part gav notation,"
-                + "e.g. group:artifact:version. Example: org.gradle:gradle-core:1.0-milestone-3");
+                "Invalid format: '" + notation + "'. Correct notation is a 3-part group:name:version notation,"
+                + "e.g: org.gradle:gradle-core:1.0-milestone-3");
         }
         final String group = split[0];
         final String name = split[1];
@@ -61,19 +72,7 @@ public class ForcedModuleBuilder {
     }
 
     static ModuleIdentifier identifier(final String group, final String name, final String version) {
-        return new ModuleIdentifier() {
-            public String getGroup() {
-                return group;
-            }
-
-            public String getName() {
-                return name;
-            }
-
-            public String getVersion() {
-                return version;
-            }
-        };
+        return new DefaultResolvedModuleId(group, name, version);
     }
 
     public static class InvalidDependencyFormat extends RuntimeException {

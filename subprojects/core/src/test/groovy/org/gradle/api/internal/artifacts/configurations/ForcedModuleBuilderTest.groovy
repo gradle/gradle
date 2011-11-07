@@ -54,15 +54,35 @@ public class ForcedModuleBuilderTest extends Specification {
         ModuleIdentifier id = ForcedModuleBuilder.identifier("org.foo", "bar", "2.0")
 
         when:
-        def v = new ForcedModuleBuilder().build([id, ["hey:man:1.0"]]) as List
+        def v = new ForcedModuleBuilder().build([id, ["hey:man:1.0"], [group:'i', name:'like', version:'maps']]) as List
 
         then:
-        v.size() == 2
+        v.size() == 3
         v[0].name == 'bar'
         v[1].name == 'man'
+        v[2].name == 'like'
     }
 
-    def "reports invalid format"() {
+    def "allows map on input"() {
+        when:
+        def v = new ForcedModuleBuilder().build([group: 'org.foo', name: 'bar', version:'1.0']) as List
+
+        then:
+        v.size() == 1
+        v[0].group == 'org.foo'
+        v[0].name  == 'bar'
+        v[0].version  == '1.0'
+    }
+
+    def "fails for unknown types"() {
+        //TODO SF
+    }
+
+    def "reports missing keys for map notation"() {
+        //TODO SF
+    }
+
+    def "reports invalid format for string notation"() {
         when:
         new ForcedModuleBuilder().build(["org.foo:bar1.0"])
 

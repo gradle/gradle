@@ -58,4 +58,8 @@ public class DefaultResolutionStrategyTest extends Specification {
         versions.size() == 1
         versions[0].group == 'hello'
     }
+
+    def "allows replacing forced modules with notations"() {
+        //TODO SF
+    }
 }
