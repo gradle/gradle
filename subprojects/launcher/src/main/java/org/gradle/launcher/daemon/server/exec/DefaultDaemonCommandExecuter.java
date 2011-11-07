@@ -53,6 +53,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new CatchAndForwardDaemonFailure(),
             new HandleStop(),
             new UpdateDaemonStateAndHandleBusyDaemon(),
+            new ForwardClientInput(executorFactory),
             new ReturnResult(),
             new ForwardOutput(loggingOutput),
             new ResetDeprecationLogger(),
@@ -60,7 +61,6 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new HandleSleep(),
             new EstablishBuildEnvironment(),
             new WatchForDisconnection(),
-            new ForwardClientInput(executorFactory),
             new ExecuteBuild(loggingServices, launcherFactory)
         ).proceed();
     }

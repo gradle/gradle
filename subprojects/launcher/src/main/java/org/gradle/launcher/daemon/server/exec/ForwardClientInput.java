@@ -89,7 +89,10 @@ public class ForwardClientInput implements DaemonCommandAction {
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
         } finally {
-            inputReceiver.requestStop();
+            // means we are going to sit here until the client disconnects, which we are expecting it to 
+            // very soon because we are assuming we've just sent back the build result. We do this here
+            // in case the client tries to send input in between us sending back the result and it closing the connection.
+            inputReceiver.stop(); 
         }
     }
 
