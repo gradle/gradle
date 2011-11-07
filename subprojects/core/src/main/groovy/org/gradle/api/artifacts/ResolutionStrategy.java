@@ -87,34 +87,42 @@ public interface ResolutionStrategy {
     Set<ModuleIdentifier> getForcedModules();
 
     /**
-     * A convenience method for calling {@link #cacheDynamicVersionsFor(int, java.util.concurrent.TimeUnit)} with named units.
-     * Units are resolved using {@code java.util.concurrent.TimeUnit#valueOf(String)} on the upper-cased string value.
+     * Sets the length of time that dynamic versions will be cached, with units expressed as a String.
+     *
+     * <p>A convenience method for {@link #cacheDynamicVersionsFor(int, java.util.concurrent.TimeUnit)} with units expressed as a String.
+     * Units are resolved by calling the {@code valueOf(String)} method of {@link java.util.concurrent.TimeUnit} with the upper-cased string value.</p>
      * @param value The number of time units
      * @param units The units
      */
     void cacheDynamicVersionsFor(int value, String units);
 
     /**
-     * Gradle keeps a cache of dynamic version => resolved version (ie 2.+ => 2.3). By default, these cached values are kept for 24 hours, after which the cached entry is expired
-     * and the dynamic version is resolved again.
-     * Use this method to provide a custom expiry time after which the cached value for any dynamic version will be expired.
+     * Sets the length of time that dynamic versions will be cached.
+     *
+     * <p>Gradle keeps a cache of dynamic version => resolved version (ie 2.+ => 2.3). By default, these cached values are kept for 24 hours, after which the cached entry is expired
+     * and the dynamic version is resolved again.</p>
+     * <p>Use this method to provide a custom expiry time after which the cached value for any dynamic version will be expired.</p>
      * @param value The number of time units
      * @param units The units
      */
     void cacheDynamicVersionsFor(int value, TimeUnit units);
 
     /**
-     * A convenience method for calling {@link #cacheChangingModulesFor(int, java.util.concurrent.TimeUnit)} with named units.
-     * Units are resolved using {@code java.util.concurrent.TimeUnit#valueOf(String)} on the upper-cased string value.
+     * Sets the length of time that changing modules will be cached, with units expressed as a String.
+     *
+     * <p>A convenience method for {@link #cacheChangingModulesFor(int, java.util.concurrent.TimeUnit)} with units expressed as a String.
+     * Units are resolved by calling the {@code valueOf(String)} method of {@link java.util.concurrent.TimeUnit} with the upper-cased string value.</p>
      * @param value The number of time units
      * @param units The units
      */
     void cacheChangingModulesFor(int value, String units);
 
     /**
-     * Gradle caches the contents and artifacts of changing modules. By default, these cached values are kept for 24 hours,
-     * after which the cached entry is expired and the module is resolved again.
-     * Use this method to provide a custom expiry time after which the cached entries for any changing module will be expired.
+     * Sets the length of time that changing modules will be cached.
+     *
+     * <p>Gradle caches the contents and artifacts of changing modules. By default, these cached values are kept for 24 hours,
+     * after which the cached entry is expired and the module is resolved again.</p>
+     * <p>Use this method to provide a custom expiry time after which the cached entries for any changing module will be expired.</p>
      * @param value The number of time units
      * @param units The units
      */
