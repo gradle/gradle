@@ -25,15 +25,15 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-abstract class AbstractResolvedConfiguration implements ResolvedConfiguration {
+public abstract class AbstractResolvedConfiguration implements ResolvedConfiguration {
     private final CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker
             = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph());
 
     protected abstract ResolvedDependency getRoot();
 
-    abstract Set<ResolvedDependency> doGetFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec);
+    protected abstract Set<ResolvedDependency> doGetFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec);
 
-    abstract Set<UnresolvedDependency> getUnresolvedDependencies();
+    protected abstract Set<UnresolvedDependency> getUnresolvedDependencies();
 
     public LenientConfiguration getLenientConfiguration() {
         return new LenientConfigurationImpl(this);

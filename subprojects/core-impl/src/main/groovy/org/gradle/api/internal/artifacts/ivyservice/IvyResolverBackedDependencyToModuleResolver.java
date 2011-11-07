@@ -25,12 +25,12 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 /**
  * A {@link DependencyToModuleResolver} implementation which uses an Ivy {@link DependencyResolver} to resolve a dependency descriptor.
  */
-class IvyResolverBackedDependencyToModuleResolver implements DependencyToModuleResolver {
+public class IvyResolverBackedDependencyToModuleResolver implements DependencyToModuleResolver {
     private final Ivy ivy;
     private final ResolveData resolveData;
     private final DependencyResolver resolver;
 
-    IvyResolverBackedDependencyToModuleResolver(Ivy ivy, ResolveData resolveData, DependencyResolver resolver) {
+    public IvyResolverBackedDependencyToModuleResolver(Ivy ivy, ResolveData resolveData, DependencyResolver resolver) {
         this.ivy = ivy;
         this.resolveData = resolveData;
         this.resolver = resolver;

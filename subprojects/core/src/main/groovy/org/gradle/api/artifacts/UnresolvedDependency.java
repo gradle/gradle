@@ -26,11 +26,6 @@ public interface UnresolvedDependency {
     String getId();
 
     /**
-     * Returns the configuration
-     */
-    Configuration getGradleConfiguration();
-
-    /**
      * the exception that is the cause of unresolved state
      */
     Throwable getProblem();

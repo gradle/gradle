@@ -15,23 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.UnresolvedDependency;
 
-class DefaultUnresolvedDependency implements UnresolvedDependency {
-
+public class DefaultUnresolvedDependency implements UnresolvedDependency {
     private final String id;
-    private final Configuration configuration;
     private final Throwable problem;
 
-    public DefaultUnresolvedDependency(String id, Configuration configuration, Throwable problem) {
+    public DefaultUnresolvedDependency(String id, Throwable problem) {
         this.id = id;
-        this.configuration = configuration;
         this.problem = problem;
-    }
-
-    public Configuration getGradleConfiguration() {
-        return configuration;
     }
 
     public String getId() {

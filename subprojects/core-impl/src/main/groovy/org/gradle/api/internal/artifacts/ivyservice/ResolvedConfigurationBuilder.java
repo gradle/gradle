@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.UnresolvedDependency;
 
-import java.util.Map;
-import java.util.Set;
+public interface ResolvedConfigurationBuilder {
+    void addArtifact(ResolvedArtifact artifact);
 
-/**
- * @author Hans Dockter
- */
-public interface IvyConversionResult {
-    Map<Dependency, Set<ResolvedDependency>> getFirstLevelResolvedDependencies();
+    void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedDependency dependency);
 
-    Set<ResolvedArtifact> getResolvedArtifacts();
+    void addUnresolvedDependency(UnresolvedDependency unresolvedDependency);
 
     ResolvedDependency getRoot();
 }

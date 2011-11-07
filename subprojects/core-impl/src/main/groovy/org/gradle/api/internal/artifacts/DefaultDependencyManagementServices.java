@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolu
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDependencyResolver;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenCacheLocator;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
@@ -232,30 +233,17 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(CacheLockingManager.class)
             );
 
-            ArtifactDependencyResolver actualResolver;
-            String resolverName = System.getProperty("org.gradle.resolver", "gradle");
-            if (resolverName.equalsIgnoreCase("ivy")) {
-                actualResolver = new DefaultIvyDependencyResolver(
-                        new DefaultIvyReportConverter(
-                                get(DependencyDescriptorFactory.class),
-                                resolvedArtifactFactory),
-                        get(PublishModuleDescriptorConverter.class),
-                        ivyFactory);
-            } else if (resolverName.equalsIgnoreCase("gradle")) {
-                actualResolver = new DefaultDependencyResolver(
-                        ivyFactory,
-                        get(PublishModuleDescriptorConverter.class),
-                        resolvedArtifactFactory);
-            } else {
-                throw new IllegalArgumentException(String.format("Unknown resolver implementation '%s' specified.", resolverName));
-            }
+            ArtifactDependencyResolver resolver = new DefaultDependencyResolver(
+                    ivyFactory,
+                    get(PublishModuleDescriptorConverter.class),
+                    resolvedArtifactFactory);
             return new ErrorHandlingArtifactDependencyResolver(
                     new EventBroadcastingArtifactDependencyResolver(
                             new ShortcircuitEmptyConfigsArtifactDependencyResolver(
                                     new SelfResolvingDependencyResolver(
                                             new CacheLockingArtifactDependencyResolver(
                                                     get(CacheLockingManager.class),
-                                                    actualResolver)))));
+                                                    resolver)))));
         }
 
         ArtifactPublisher createArtifactPublisher(DefaultRepositoryHandler resolverProvider) {

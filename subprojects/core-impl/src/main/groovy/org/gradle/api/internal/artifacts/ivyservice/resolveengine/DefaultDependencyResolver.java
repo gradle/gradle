@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
@@ -29,15 +29,14 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
-import org.gradle.api.specs.Spec;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +79,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         conflictResolver = new ForcedModuleConflictResolver(conflictResolver);
 
         ResolveState resolveState = new ResolveState(moduleDescriptor, configuration.getName());
-        BuildableResolvedConfiguration result = new BuildableResolvedConfiguration(configuration, resolveState.root.getResult());
+        DefaultResolvedConfiguration result = new DefaultResolvedConfiguration(configuration, resolveState.root.getResult());
 
         GraphBuilder builder = new GraphBuilder();
         builder.resolve(dependencyResolver, result, resolveState, resolveData, artifactResolver, conflictResolver, resolvedArtifactFactory);
@@ -89,7 +88,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     }
 
     private static class GraphBuilder {
-        void resolve(DependencyToModuleResolver dependencyResolver, BuildableResolvedConfiguration result, ResolveState resolveState, ResolveData resolveData, ArtifactToFileResolver artifactResolver, ModuleConflictResolver conflictResolver, ResolvedArtifactFactory resolvedArtifactFactory) {
+        void resolve(DependencyToModuleResolver dependencyResolver, ResolvedConfigurationBuilder result, ResolveState resolveState, ResolveData resolveData, ArtifactToFileResolver artifactResolver, ModuleConflictResolver conflictResolver, ResolvedArtifactFactory resolvedArtifactFactory) {
 
             SetMultimap<ModuleId, DependencyResolvePath> conflicts = LinkedHashMultimap.create();
 
@@ -124,7 +123,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 try {
                     path.resolve(dependencyResolver, resolveState);
                 } catch (Throwable t) {
-                    result.addUnresolvedDependency(path.dependency.descriptor, t);
+                    result.addUnresolvedDependency(new DefaultUnresolvedDependency(path.dependency.descriptor.getDependencyRevisionId().toString(), t));
                     continue;
                 }
 
@@ -309,7 +308,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             return result;
         }
 
-        public void attachToParents(ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, BuildableResolvedConfiguration result) {
+        public void attachToParents(ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationBuilder result) {
             switch (getStatus()) {
                 case Include:
                     LOGGER.debug("Attaching {} to its parents.", this);
@@ -331,7 +330,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     }
 
     private static abstract class ResolvePath {
-        public abstract void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, BuildableResolvedConfiguration result);
+        public abstract void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationBuilder result);
 
         public abstract boolean excludes(ModuleRevisionResolveState moduleRevision);
 
@@ -361,7 +360,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         @Override
-        public void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, BuildableResolvedConfiguration result) {
+        public void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationBuilder result) {
             // Don't need to do anything
         }
     }
@@ -532,7 +531,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         @Override
-        public void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, BuildableResolvedConfiguration result) {
+        public void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationBuilder result) {
             DefaultResolvedDependency parent = from.getResult();
             DefaultResolvedDependency child = childConfiguration.getResult();
             parent.addChild(child);
@@ -600,70 +599,6 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             }
             List<ModuleResolveStateBackedArtifactInfo> sorted = new LatestRevisionStrategy().sort(artifactInfos.toArray(new ArtifactInfo[artifactInfos.size()]));
             return sorted.get(sorted.size() - 1).moduleRevision;
-        }
-    }
-
-    private static class BuildableResolvedConfiguration extends AbstractResolvedConfiguration {
-        private final ResolvedDependency root;
-        private final Configuration configuration;
-        private final Map<ModuleDependency, ResolvedDependency> firstLevelDependencies = new LinkedHashMap<ModuleDependency, ResolvedDependency>();
-        private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-        private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
-
-        private BuildableResolvedConfiguration(Configuration configuration, ResolvedDependency root) {
-            this.configuration = configuration;
-            this.root = root;
-        }
-
-        public boolean hasError() {
-            return !unresolvedDependencies.isEmpty();
-        }
-
-        public void rethrowFailure() throws ResolveException {
-            if (!unresolvedDependencies.isEmpty()) {
-                List<Throwable> failures = new ArrayList<Throwable>();
-                for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                    failures.add(unresolvedDependency.getProblem());
-                }
-                throw new ResolveException(configuration, Collections.<String>emptyList(), failures);
-            }
-        }
-
-        @Override
-        Set<UnresolvedDependency> getUnresolvedDependencies() {
-            return unresolvedDependencies;
-        }
-
-        @Override
-        Set<ResolvedDependency> doGetFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
-            Set<ResolvedDependency> matches = new LinkedHashSet<ResolvedDependency>();
-            for (Map.Entry<ModuleDependency, ResolvedDependency> entry : firstLevelDependencies.entrySet()) {
-                if (dependencySpec.isSatisfiedBy(entry.getKey())) {
-                    matches.add(entry.getValue());
-                }
-            }
-            return matches;
-        }
-
-        @Override
-        protected ResolvedDependency getRoot() {
-            return root;
-        }
-
-        public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
-            return artifacts;
-        }
-
-        public void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedDependency refersTo) {
-            firstLevelDependencies.put(moduleDependency, refersTo);
-        }
-
-        public void addArtifact(ResolvedArtifact artifact) {
-            artifacts.add(artifact);
-        }
-
-        public void addUnresolvedDependency(final DependencyDescriptor descriptor, final Throwable failure) {
-            unresolvedDependencies.add(new DefaultUnresolvedDependency(descriptor.getDependencyRevisionId().toString(), configuration, failure));
         }
     }
 
