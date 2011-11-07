@@ -17,10 +17,11 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 
+//TODO SF - can we call it DefaultModuleIdentifier or something similar?
 public class DefaultResolvedModuleId implements ModuleIdentifier {
-    private final String group;
-    private final String name;
-    private final String version;
+    private String group;
+    private String name;
+    private String version;
 
     public DefaultResolvedModuleId(String group, String name, String version) {
         this.group = group;
@@ -28,20 +29,38 @@ public class DefaultResolvedModuleId implements ModuleIdentifier {
         this.version = version;
     }
 
+    public DefaultResolvedModuleId() {}
+
     public String getGroup() {
         return group;
+    }
+
+    public DefaultResolvedModuleId setGroup(String group) {
+        this.group = group;
+        return this;
     }
 
     public String getName() {
         return name;
     }
 
+    public DefaultResolvedModuleId setName(String name) {
+        this.name = name;
+        return this;
+    }
+
     public String getVersion() {
         return version;
     }
 
+    public DefaultResolvedModuleId setVersion(String version) {
+        this.version = version;
+        return this;
+    }
+
     @Override
     public String toString() {
+        //TODO SF - can we slightly change the format because it clashes with Map
         return String.format("[group: %s, module: %s, version: %s]", group, name, version);
     }
 
