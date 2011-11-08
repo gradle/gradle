@@ -62,8 +62,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             conflictResolver = new LatestModuleConflictResolver();
         }
 
-        DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory);
-        DefaultLenientConfiguration result = builder.resolve(configuration, resolveData, dependencyResolver, artifactResolver, conflictResolver);
+        DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, artifactResolver, dependencyResolver, conflictResolver);
+        DefaultLenientConfiguration result = builder.resolve(configuration, resolveData);
         return new DefaultResolvedConfiguration(result);
     }
 }

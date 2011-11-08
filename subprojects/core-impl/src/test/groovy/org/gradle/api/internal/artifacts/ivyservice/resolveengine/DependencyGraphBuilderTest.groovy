@@ -38,6 +38,11 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
+import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
+import org.apache.ivy.plugins.matcher.ExactPatternMatcher
+import org.apache.ivy.plugins.matcher.PatternMatcher
+import org.apache.ivy.core.module.id.ArtifactId
+
 class DependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
     final ResolvedArtifactFactory resolvedArtifactFactory = Mock()
@@ -48,7 +53,7 @@ class DependencyGraphBuilderTest extends Specification {
     final DependencyToModuleResolver dependencyResolver = Mock()
     final ArtifactToFileResolver artifactResolver = Mock()
     final DefaultModuleDescriptor root = revision('root')
-    final DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory)
+    final DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, artifactResolver, dependencyResolver, conflictResolver)
 
     def setup() {
         config(root, 'root', 'default')
@@ -64,15 +69,15 @@ class DependencyGraphBuilderTest extends Specification {
         def c = revision('c')
         def d = revision('d')
         def e = revision('e')
-        dependsOn root, a1
-        dependsOn a1, c
-        dependsOn root, b
-        dependsOn b, d
-        dependsOn d, a2 // Conflict is deeper than all dependencies of other module
-        dependsOn a2, e
+        traverses root, a1
+        traverses a1, c
+        traverses root, b
+        traverses b, d
+        traverses d, a2 // Conflict is deeper than all dependencies of other module
+        doesNotTraverse a2, e
 
         when:
-        def result = builder.resolve(configuration, resolveData, dependencyResolver, artifactResolver, conflictResolver)
+        def result = builder.resolve(configuration, resolveData)
 
         then:
         1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionState> candidates, ModuleRevisionState root ->
@@ -93,15 +98,15 @@ class DependencyGraphBuilderTest extends Specification {
         def c = revision('c')
         def d = revision('d')
         def e = revision('e')
-        dependsOn root, a2
-        dependsOn a2, c
-        dependsOn root, b
-        dependsOn b, d
-        dependsOn d, a1 // Conflict is deeper than all dependencies of other module
-        dependsOn a1, e
+        traverses root, a2
+        traverses a2, c
+        traverses root, b
+        traverses b, d
+        traverses d, a1 // Conflict is deeper than all dependencies of other module
+        traverses a1, e
 
         when:
-        def result = builder.resolve(configuration, resolveData, dependencyResolver, artifactResolver, conflictResolver)
+        def result = builder.resolve(configuration, resolveData)
 
         then:
         1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionState> candidates, ModuleRevisionState root ->
@@ -121,14 +126,14 @@ class DependencyGraphBuilderTest extends Specification {
         def b = revision('b')
         def c = revision('c')
         def d = revision('d')
-        dependsOn root, b
-        dependsOn b, a2
-        dependsOn a2, c
-        dependsOn root, a1
-        dependsOn a1, d
+        traverses root, b
+        traverses b, a2
+        doesNotTraverse a2, c
+        traverses root, a1
+        traverses a1, d
 
         when:
-        def result = builder.resolve(configuration, resolveData, dependencyResolver, artifactResolver, conflictResolver)
+        def result = builder.resolve(configuration, resolveData)
 
         then:
         1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionState> candidates, ModuleRevisionState root ->
@@ -149,15 +154,15 @@ class DependencyGraphBuilderTest extends Specification {
         def b1 = revision('b', '2.2')
         def b2 = revision('b', '2.1')
         def c = revision('c')
-        dependsOn root, a2
-        dependsOn root, a1
-        dependsOn a1, c
-        dependsOn root, b2
-        dependsOn root, b1
-        dependsOn b1, a3
+        traverses root, a2
+        traverses root, a1
+        traverses a1, c
+        traverses root, b2
+        traverses root, b1
+        traverses b1, a3
 
         when:
-        def result = builder.resolve(configuration, resolveData, dependencyResolver, artifactResolver, conflictResolver)
+        def result = builder.resolve(configuration, resolveData)
 
         then:
         1 * conflictResolver.select({it*.revision == ['1.1', '1.2']}, !null) >> { Set<ModuleRevisionState> candidates, ModuleRevisionState root ->
@@ -176,6 +181,22 @@ class DependencyGraphBuilderTest extends Specification {
 
     }
 
+    def "does not attempt to resolve a dependency whose target module is excluded earlier in the path"() {
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def c = revision('c')
+        traverses root, a
+        traverses a, b, exclude: c
+        doesNotTraverse b, c
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        modules(result) == ids(a, b)
+    }
+
     def revision(String name, String revision = '1.0') {
         DefaultModuleDescriptor descriptor = new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("group", name), revision), "release", new Date())
         config(descriptor, 'default')
@@ -188,12 +209,29 @@ class DependencyGraphBuilderTest extends Specification {
         return configuration
     }
 
-    def dependsOn(DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
+    def traverses(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
+        def descriptor = dependsOn(args, from, to)
+        1 * dependencyResolver.resolve(descriptor) >> new ResolvedModuleRevision(null, null, to, null)
+    }
+
+    def doesNotTraverse(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
+        def descriptor = dependsOn(args, from, to)
+        0 * dependencyResolver.resolve(descriptor)
+    }
+
+    def dependsOn(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
         ModuleDependency moduleDependency = Mock()
         def descriptor = new EnhancedDependencyDescriptor(moduleDependency, from, to.moduleRevisionId, false, false, true)
         descriptor.addDependencyConfiguration("default", "default")
-        _ * dependencyResolver.resolve(descriptor) >> new ResolvedModuleRevision(null, null, to, null)
+        if (args.exclude) {
+            descriptor.addExcludeRule("default", new DefaultExcludeRule(new ArtifactId(
+                    args.exclude.moduleRevisionId.moduleId, PatternMatcher.ANY_EXPRESSION,
+                    PatternMatcher.ANY_EXPRESSION,
+                    PatternMatcher.ANY_EXPRESSION),
+                    ExactPatternMatcher.INSTANCE, null))
+        }
         from.addDependency(descriptor)
+        return descriptor
     }
 
     def ids(ModuleDescriptor... descriptors) {
@@ -205,7 +243,7 @@ class DependencyGraphBuilderTest extends Specification {
         Set<ModuleIdentifier> result = new LinkedHashSet<ModuleIdentifier>()
         List<ResolvedDependency> queue = []
         queue.addAll(config.getFirstLevelModuleDependencies({true} as Spec))
-        while(!queue.empty) {
+        while (!queue.empty) {
             def node = queue.remove(0)
             result.add(node.module.id)
             queue.addAll(0, node.children)

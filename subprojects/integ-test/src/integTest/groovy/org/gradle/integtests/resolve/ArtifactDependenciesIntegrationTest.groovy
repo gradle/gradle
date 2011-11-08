@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.ExecutionFailure
-import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
@@ -366,7 +365,7 @@ task test << {
     }
 
     @Test
-    public void excludedDependenciesAreNotRetrieved() {
+    public void "dependencies that are excluded by a dependency are not retrieved"() {
         def repo = repo()
         repo.module('org.gradle.test', 'one', '1.0').publish()
         repo.module('org.gradle.test', 'two', '1.0').publish()
@@ -394,7 +393,7 @@ dependencies {
 }
 
 def checkDeps(config, expectedDependencies) {
-    assert config.collect({ it.name }) as Set == expectedDependencies as Set
+    assert config*.name as Set == expectedDependencies as Set
 }
 
 task test << {
@@ -402,6 +401,76 @@ task test << {
     checkDeps configurations.excluded, ['external1-1.0.jar']
     checkDeps configurations.extendedExcluded, ['external1-1.0.jar', 'two-1.0.jar']
     checkDeps configurations.excludedWithClassifier, ['external1-1.0.jar', 'external1-1.0-classifier.jar']
+}
+"""
+        inTestDirectory().withTasks('test').run()
+    }
+
+    @Test
+    public void "dependencies that are globally excluded are not retrieved"() {
+        def repo = repo()
+        repo.module('org.gradle.test', 'direct', '1.0').publish()
+        repo.module('org.gradle.test', 'transitive', '1.0').publish()
+        def module = repo.module('org.gradle.test', 'external', '1.0')
+        module.dependsOn('org.gradle.test', 'transitive', '1.0')
+        module.publish()
+
+        testFile('build.gradle') << """
+repositories {
+    maven { url '${repo.uri}' }
+}
+configurations {
+    excluded {
+        exclude module: 'direct'
+        exclude module: 'transitive'
+    }
+    extendedExcluded.extendsFrom excluded
+}
+dependencies {
+    excluded 'org.gradle.test:external:1.0'
+    excluded 'org.gradle.test:direct:1.0'
+}
+
+def checkDeps(config, expectedDependencies) {
+    assert config*.name as Set == expectedDependencies as Set
+}
+
+task test << {
+    checkDeps configurations.excluded, ['external-1.0.jar']
+    checkDeps configurations.extendedExcluded, ['external-1.0.jar']
+}
+"""
+        inTestDirectory().withTasks('test').run()
+    }
+
+    @Test
+    public void "does not attempt to resolve an excluded dependency"() {
+        def repo = repo()
+        def module = repo.module('org.gradle.test', 'external', '1.0')
+        module.dependsOn('org.gradle.test', 'unknown1', '1.0')
+        module.dependsOn('org.gradle.test', 'unknown2', '1.0')
+        module.publish()
+
+        testFile('build.gradle') << """
+repositories {
+    maven { url '${repo.uri}' }
+}
+configurations {
+    excluded {
+        exclude module: 'unknown2'
+    }
+}
+dependencies {
+    excluded 'org.gradle.test:external:1.0', { exclude module: 'unknown1' }
+    excluded 'org.gradle.test:unknown2:1.0'
+}
+
+def checkDeps(config, expectedDependencies) {
+    assert config*.name as Set == expectedDependencies as Set
+}
+
+task test << {
+    checkDeps configurations.excluded, ['external-1.0.jar']
 }
 """
         inTestDirectory().withTasks('test').run()
@@ -562,10 +631,6 @@ task test << {
 
     MavenRepository repo() {
         return maven(testFile('repo'))
-    }
-
-    IvyRepository ivyRepo() {
-        return new IvyRepository(testFile('ivy-repo'))
     }
 }
 

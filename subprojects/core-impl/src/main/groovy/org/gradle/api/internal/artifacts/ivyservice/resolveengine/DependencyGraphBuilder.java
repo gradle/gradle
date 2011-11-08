@@ -40,32 +40,58 @@ public class DependencyGraphBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final ResolvedArtifactFactory resolvedArtifactFactory;
+    private final DependencyToModuleResolver dependencyResolver;
+    private final ArtifactToFileResolver artifactResolver;
+    private final ForcedModuleConflictResolver conflictResolver;
 
-    public DependencyGraphBuilder(ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory) {
+    public DependencyGraphBuilder(ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver artifactResolver, DependencyToModuleResolver dependencyResolver, ModuleConflictResolver conflictResolver) {
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.resolvedArtifactFactory = resolvedArtifactFactory;
+        this.artifactResolver = artifactResolver;
+        this.dependencyResolver = dependencyResolver;
+        this.conflictResolver = new ForcedModuleConflictResolver(conflictResolver);
     }
 
-    public DefaultLenientConfiguration resolve(ConfigurationInternal configuration, ResolveData resolveData, DependencyToModuleResolver dependencyResolver, ArtifactToFileResolver artifactResolver, ModuleConflictResolver conflictResolver) throws ResolveException {
-        ForcedModuleConflictResolver outerConflictResolver = new ForcedModuleConflictResolver(conflictResolver);
-
+    public DefaultLenientConfiguration resolve(ConfigurationInternal configuration, ResolveData resolveData) throws ResolveException {
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convert(configuration.getAll(), configuration.getModule());
         ResolveState resolveState = new ResolveState(moduleDescriptor, configuration.getName());
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, resolveState.root.getResult());
 
-        resolve(dependencyResolver, result, resolveState, resolveData, artifactResolver, outerConflictResolver, resolvedArtifactFactory);
+        traverseGraph(result, resolveState, resolveData);
+        assembleResult(resolveState, result);
 
         return result;
     }
 
-    private void resolve(DependencyToModuleResolver dependencyResolver, ResolvedConfigurationBuilder result, ResolveState resolveState, ResolveData resolveData, ArtifactToFileResolver artifactResolver, ForcedModuleConflictResolver conflictResolver, ResolvedArtifactFactory resolvedArtifactFactory) {
+    /**
+     * Traverses the dependency graph, resolving conflicts and building the paths from the root configuration.
+     */
+    private void traverseGraph(ResolvedConfigurationBuilder result, ResolveState resolveState, ResolveData resolveData) {
         SetMultimap<ModuleId, DependencyResolvePath> conflicts = LinkedHashMultimap.create();
 
         List<DependencyResolvePath> queue = new ArrayList<DependencyResolvePath>();
         resolveState.root.addOutgoingDependencies(new RootPath(), queue);
 
         while (!queue.isEmpty() || !conflicts.isEmpty()) {
-            if (queue.isEmpty()) {
+            if (!queue.isEmpty()) {
+                DependencyResolvePath path = queue.remove(0);
+                LOGGER.debug("Visiting path {}.", path);
+
+                try {
+                    path.resolve(dependencyResolver, resolveState);
+                } catch (Throwable t) {
+                    result.addUnresolvedDependency(new DefaultUnresolvedDependency(path.dependency.descriptor.getDependencyRevisionId().toString(), t));
+                    continue;
+                }
+
+                if (path.targetModuleRevision.status == Status.Conflict) {
+                    LOGGER.debug("Found a conflict. Park this path.");
+                    conflicts.put(path.targetModuleRevision.id.getModuleId(), path);
+                } else {
+                    path.addOutgoingDependencies(resolveData, resolveState, queue);
+                }
+            } else {
+                // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 ModuleId moduleId = conflicts.keySet().iterator().next();
                 Set<ModuleRevisionResolveState> candidates = resolveState.getRevisions(moduleId);
                 ModuleRevisionResolveState selected = conflictResolver.select(candidates, resolveState.root.moduleRevision);
@@ -83,27 +109,14 @@ public class DependencyGraphBuilder {
                 for (DependencyResolvePath path : paths) {
                     path.restart(selected, queue);
                 }
-                continue;
-            }
-
-            DependencyResolvePath path = queue.remove(0);
-            LOGGER.debug("Visiting path {}.", path);
-
-            try {
-                path.resolve(dependencyResolver, resolveState);
-            } catch (Throwable t) {
-                result.addUnresolvedDependency(new DefaultUnresolvedDependency(path.dependency.descriptor.getDependencyRevisionId().toString(), t));
-                continue;
-            }
-
-            if (path.targetModuleRevision.status == Status.Conflict) {
-                LOGGER.debug("Found a conflict. Park this path.");
-                conflicts.put(path.targetModuleRevision.id.getModuleId(), path);
-            } else {
-                path.addOutgoingDependencies(resolveData, resolveState, queue);
             }
         }
+    }
 
+    /**
+     * Populates the result from the graph traversal state.
+     */
+    private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder result) {
         for (ConfigurationResolveState resolvedConfiguration : resolveState.getConfigurations()) {
             resolvedConfiguration.attachToParents(resolvedArtifactFactory, artifactResolver, result);
         }
@@ -244,7 +257,8 @@ public class DependencyGraphBuilder {
             }
             for (DependencyResolveState dependency : moduleRevision.getDependencies()) {
                 Set<String> targetConfigurations = dependency.getTargetConfigurations(this);
-                if (!targetConfigurations.isEmpty()) {
+                ModuleId targetModuleId = dependency.descriptor.getDependencyRevisionId().getModuleId();
+                if (!targetConfigurations.isEmpty() && !excludes(targetModuleId) && !incomingPath.excludes(targetModuleId)) {
                     DependencyResolvePath dependencyResolvePath = new DependencyResolvePath(incomingPath, this, dependency, targetConfigurations);
                     dependencies.add(dependencyResolvePath);
                 }
@@ -254,6 +268,17 @@ public class DependencyGraphBuilder {
         @Override
         public String toString() {
             return String.format("%s(%s)", moduleRevision, configurationName);
+        }
+
+        public boolean excludes(ModuleId moduleId) {
+            String[] configurations = heirarchy.toArray(new String[heirarchy.size()]);
+            ArtifactId placeholderArtifact = new ArtifactId(moduleId, "ivy", "ivy", "ivy");
+            boolean excluded = descriptor.doesExclude(configurations, placeholderArtifact);
+            if (excluded) {
+                LOGGER.debug("{} is excluded by {}.", moduleId, this);
+                return true;
+            }
+            return false;
         }
 
         public Set<ResolvedArtifact> getArtifacts(ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver) {
@@ -304,7 +329,7 @@ public class DependencyGraphBuilder {
     private static abstract class ResolvePath {
         public abstract void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationBuilder result);
 
-        public abstract boolean excludes(ModuleRevisionResolveState moduleRevision);
+        public abstract boolean excludes(ModuleId moduleId);
 
         public abstract boolean canReach(ConfigurationResolveState configuration);
 
@@ -318,7 +343,7 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public boolean excludes(ModuleRevisionResolveState moduleRevision) {
+        public boolean excludes(ModuleId moduleId) {
             return false;
         }
 
@@ -424,16 +449,10 @@ public class DependencyGraphBuilder {
 
         private void referTo(ModuleRevisionResolveState targetModuleRevision) {
             this.targetModuleRevision = targetModuleRevision;
-            if (!excludes(targetModuleRevision)) {
-                targetModuleRevision.addIncomingPath(this);
-            }
+            targetModuleRevision.addIncomingPath(this);
         }
 
         public void addOutgoingDependencies(ResolveData resolveData, ResolveState resolveState, Collection<DependencyResolvePath> queue) {
-            if (excludes(targetModuleRevision)) {
-                return;
-            }
-
             ModuleDescriptor targetDescriptor = targetModuleRevision.descriptor;
 
             IvyNode node = new IvyNode(resolveData, targetDescriptor);
@@ -453,20 +472,21 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public boolean excludes(ModuleRevisionResolveState moduleRevision) {
+        public boolean excludes(ModuleId moduleId) {
             String[] configurations = from.heirarchy.toArray(new String[from.heirarchy.size()]);
-            ArtifactId placeholderArtifact = new ArtifactId(moduleRevision.id.getModuleId(), "ivy", "ivy", "ivy");
+            ArtifactId placeholderArtifact = new ArtifactId(moduleId, "ivy", "ivy", "ivy");
             boolean excluded = dependency.descriptor.doesExclude(configurations, placeholderArtifact);
             if (excluded) {
-                LOGGER.debug("{} is excluded by {}.", moduleRevision, this);
+                LOGGER.debug("{} is excluded by {}.", moduleId, this);
                 return true;
             }
-            excluded = from.descriptor.doesExclude(configurations, placeholderArtifact);
+
+            excluded = from.excludes(moduleId);
             if (excluded) {
-                LOGGER.debug("{} is excluded by {}.", moduleRevision, from);
                 return true;
             }
-            return path.excludes(moduleRevision);
+
+            return path.excludes(moduleId);
         }
 
         @Override
