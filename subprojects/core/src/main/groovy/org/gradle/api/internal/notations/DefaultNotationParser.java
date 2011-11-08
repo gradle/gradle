@@ -31,11 +31,11 @@ import static org.codehaus.groovy.runtime.InvokerHelper.asList;
  *
  * by Szczepan Faber, created at: 11/8/11
  */
-public class DefaultNotationParser<T> implements NotationParser<Collection<T>> {
+public class DefaultNotationParser<T> {
 
-    private final Collection<ExplicitNotationParser<T>> delegates;
+    private final Collection<NotationParser<T>> delegates;
 
-    public DefaultNotationParser(ExplicitNotationParser<T>... delegates) {
+    public DefaultNotationParser(NotationParser<T>... delegates) {
         this.delegates = asList(delegates);
     }
 
@@ -48,8 +48,8 @@ public class DefaultNotationParser<T> implements NotationParser<Collection<T>> {
         return out;
     }
 
-    private T parseSingleNotation(Object notation) {
-        for (ExplicitNotationParser<T> delegate : delegates) {
+    public T parseSingleNotation(Object notation) {
+        for (NotationParser<T> delegate : delegates) {
             if (delegate.canParse(notation)) {
                 return delegate.parseNotation(notation);
             }

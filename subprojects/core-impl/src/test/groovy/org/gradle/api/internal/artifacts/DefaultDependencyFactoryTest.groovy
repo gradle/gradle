@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.artifacts;
 
 
 import java.awt.Point
@@ -24,6 +24,9 @@ import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectDependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.util.HelperUtil
 import org.gradle.util.WrapUtil
 import org.jmock.Expectations
@@ -37,7 +40,7 @@ import static org.junit.Assert.assertThat
  * @author Hans Dockter
  */
 @Ignore
-//TODO SF - fix
+//TODO SF - when I finish the refactoring this test will become very small
 public class DefaultDependencyFactoryTest {
 
     private DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(

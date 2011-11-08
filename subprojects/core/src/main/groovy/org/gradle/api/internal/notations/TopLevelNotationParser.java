@@ -17,9 +17,8 @@
 package org.gradle.api.internal.notations;
 
 /**
- * Marker interface to group all top-level dsl notation parsers.
+ * Marker interface to group all top-level notation parsers.
  *
  * by Szczepan Faber, created at: 11/8/11
  */
-public interface DslNotationParser {
-}
+public interface TopLevelNotationParser {}

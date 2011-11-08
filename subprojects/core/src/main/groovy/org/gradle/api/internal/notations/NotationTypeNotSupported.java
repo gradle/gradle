@@ -19,8 +19,5 @@ package org.gradle.api.internal.notations;
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public interface ExplicitNotationParser<T> extends NotationParser<T> {
-
-    boolean canParse(Object notation);
-
+public class NotationTypeNotSupported extends Exception {
 }

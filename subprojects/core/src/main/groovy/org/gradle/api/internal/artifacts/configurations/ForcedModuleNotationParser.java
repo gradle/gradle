@@ -28,7 +28,7 @@ import static java.util.Arrays.asList;
 /**
  * by Szczepan Faber, created at: 10/11/11
  */
-public class ForcedModuleNotationParser implements NotationParser<Set<ModuleIdentifier>>, DslNotationParser {
+public class ForcedModuleNotationParser implements TopLevelNotationParser {
 
     private DefaultNotationParser delegate = new NotationParserBuilder()
             .resultingType(ModuleIdentifier.class)
