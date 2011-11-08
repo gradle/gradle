@@ -79,7 +79,7 @@ subprojects {
 }
 project(':a') {
     repositories {
-        maven { url '${repo().uri}' }
+        maven { url '${repo.uri}' }
     }
     dependencies {
         compile 'org.gradle.test:external1:1.0'
@@ -91,7 +91,7 @@ project(':b') {
     }
 }
 """
-        repo().module('org.gradle.test', 'external1', '1.0').publish()
+        repo.module('org.gradle.test', 'external1', '1.0').publish()
 
         inTestDirectory().withTasks('a:listDeps').run()
         def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
@@ -138,7 +138,6 @@ project(':b') {
 
     @Test
     public void exposesMetaDataAboutResolvedArtifactsInAFixedOrder() {
-        def repo = repo()
         def module = repo.module('org.gradle.test', 'lib', '1.0')
         module.artifact(type: 'zip')
         module.artifact(classifier: 'classifier')
@@ -187,7 +186,6 @@ task test << {
     @Test
     @Issue("GRADLE-1567")
     public void resolutionDifferentiatesBetweenArtifactsThatDifferOnlyInClassifier() {
-        def repo = repo()
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(classifier: 'classifier1')
         module.artifact(classifier: 'classifier2')
@@ -230,7 +228,6 @@ project(':b') {
     @Test
     @Issue("GRADLE-739")
     public void singleConfigurationCanContainMultipleArtifactsThatOnlyDifferByClassifier() {
-        def repo = repo()
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(classifier: 'baseClassifier')
         module.artifact(classifier: 'extendedClassifier')
@@ -284,7 +281,6 @@ task test << {
     @Test
     @Issue("GRADLE-739")
     public void canUseClassifiersCombinedWithArtifactWithNonStandardPackaging() {
-        def repo = repo()
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(type: 'txt')
         module.artifact(classifier: 'baseClassifier', type: 'jar')
@@ -328,7 +324,6 @@ task test << {
     @Test
     @Issue("GRADLE-739")
     public void configurationCanContainMultipleArtifactsThatOnlyDifferByType() {
-        def repo = repo()
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(type: 'zip')
         module.artifact(classifier: 'classifier')
@@ -366,7 +361,6 @@ task test << {
 
     @Test
     public void "dependencies that are excluded by a dependency are not retrieved"() {
-        def repo = repo()
         repo.module('org.gradle.test', 'one', '1.0').publish()
         repo.module('org.gradle.test', 'two', '1.0').publish()
         def module = repo.module('org.gradle.test', 'external1', '1.0')
@@ -408,7 +402,6 @@ task test << {
 
     @Test
     public void "dependencies that are globally excluded are not retrieved"() {
-        def repo = repo()
         repo.module('org.gradle.test', 'direct', '1.0').publish()
         repo.module('org.gradle.test', 'transitive', '1.0').publish()
         def module = repo.module('org.gradle.test', 'external', '1.0')
@@ -445,7 +438,6 @@ task test << {
 
     @Test
     public void "does not attempt to resolve an excluded dependency"() {
-        def repo = repo()
         def module = repo.module('org.gradle.test', 'external', '1.0')
         module.dependsOn('org.gradle.test', 'unknown1', '1.0')
         module.dependsOn('org.gradle.test', 'unknown2', '1.0')
@@ -478,7 +470,6 @@ task test << {
 
     @Test
     public void nonTransitiveDependenciesAreNotRetrieved() {
-        def repo = repo()
         repo.module('org.gradle.test', 'one', '1.0').publish()
         repo.module('org.gradle.test', 'two', '1.0').publish()
         def module = repo.module('org.gradle.test', 'external1', '1.0')
@@ -522,7 +513,6 @@ task test << {
 
     @Test
     public void "configuration transitive = false overrides dependency transitive flag"() {
-        def repo = repo()
         repo.module('org.gradle.test', 'one', '1.0').publish()
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.dependsOn('org.gradle.test', 'one', '1.0')
@@ -550,9 +540,9 @@ task test << {
     /*
      * Originally, we were aliasing dependency descriptors that were identical. This caused alias errors when we subsequently modified one of these descriptors.
      */
+
     @Test
     public void addingClassifierToDuplicateDependencyDoesNotAffectOriginal() {
-        def repo = repo()
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(classifier: 'withClassifier')
         module.publish()
@@ -629,7 +619,7 @@ task test << {
         inTestDirectory().withTasks("test").run().assertTasksExecuted(":sub:jar", ":test");
     }
 
-    MavenRepository repo() {
+    def getRepo() {
         return maven(testFile('repo'))
     }
 }
