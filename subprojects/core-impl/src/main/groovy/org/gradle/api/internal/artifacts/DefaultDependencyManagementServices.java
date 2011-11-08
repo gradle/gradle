@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDependencyResolver;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenCacheLocator;
+import org.gradle.api.internal.artifacts.notations.DependencyNotationParser;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -50,6 +51,7 @@ import org.jfrog.wharf.ivy.lock.LockHolderFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultDependencyManagementServices extends DefaultServiceRegistry implements DependencyManagementServices {
     private final Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
@@ -113,19 +115,19 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         DefaultProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(
                 get(StartParameter.class).getProjectDependenciesBuildInstruction(),
                 instantiator);
-        return new DefaultDependencyFactory(
-                WrapUtil.<IDependencyImplementationFactory>toSet(
-                        new ModuleDependencyFactory(
-                                instantiator),
-                        new SelfResolvingDependencyFactory(
-                                instantiator),
-                        new ClassPathDependencyFactory(
-                                instantiator,
-                                get(ClassPathRegistry.class),
-                                new IdentityFileResolver()),
-                        projectDependencyFactory),
-                new DefaultClientModuleFactory(
+        Set<IDependencyImplementationFactory> dependencyFactories = WrapUtil.toSet(
+                new ModuleDependencyFactory(
                         instantiator),
+                new SelfResolvingDependencyFactory(
+                        instantiator),
+                new ClassPathDependencyFactory(
+                        instantiator,
+                        get(ClassPathRegistry.class),
+                        new IdentityFileResolver()),
+                projectDependencyFactory);
+        return new DefaultDependencyFactory(
+                new DependencyNotationParser(dependencyFactories),
+                new DefaultClientModuleFactory(instantiator),
                 projectDependencyFactory);
     }
 
