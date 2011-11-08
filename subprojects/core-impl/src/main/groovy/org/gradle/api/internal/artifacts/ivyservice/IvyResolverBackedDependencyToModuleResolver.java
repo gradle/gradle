@@ -18,9 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.version.VersionMatcher;
 
 /**
  * A {@link DependencyToModuleResolver} implementation which uses an Ivy {@link DependencyResolver} to resolve a dependency descriptor.
@@ -29,31 +32,75 @@ public class IvyResolverBackedDependencyToModuleResolver implements DependencyTo
     private final Ivy ivy;
     private final ResolveData resolveData;
     private final DependencyResolver resolver;
+    private final VersionMatcher versionMatcher;
 
-    public IvyResolverBackedDependencyToModuleResolver(Ivy ivy, ResolveData resolveData, DependencyResolver resolver) {
+    public IvyResolverBackedDependencyToModuleResolver(Ivy ivy, ResolveData resolveData, DependencyResolver resolver, VersionMatcher versionMatcher) {
         this.ivy = ivy;
         this.resolveData = resolveData;
         this.resolver = resolver;
+        this.versionMatcher = versionMatcher;
     }
 
-    public ResolvedModuleRevision resolve(DependencyDescriptor dependencyDescriptor) {
-        IvyContext context = IvyContext.pushNewCopyContext();
-        try {
-            context.setIvy(ivy);
-            context.setResolveData(resolveData);
-            context.setDependencyDescriptor(dependencyDescriptor);
-            ResolvedModuleRevision resolvedRevision;
-            try {
-                resolvedRevision = resolver.getDependency(dependencyDescriptor, resolveData);
-            } catch (Throwable t) {
-                throw new ModuleResolveException(String.format("Could not resolve %s", dependencyDescriptor.getDependencyRevisionId()), t);
+    public ModuleRevisionResolver create(DependencyDescriptor dependencyDescriptor) {
+        if (versionMatcher.isDynamic(dependencyDescriptor.getDependencyRevisionId())) {
+            return new DynamicModuleRevisionResolver(dependencyDescriptor);
+        }
+        return new DefaultModuleRevisionResolver(dependencyDescriptor);
+    }
+
+    private class DefaultModuleRevisionResolver implements ModuleRevisionResolver {
+        private final DependencyDescriptor dependencyDescriptor;
+        private ModuleDescriptor moduleDescriptor;
+        ModuleResolveException failure;
+
+        public DefaultModuleRevisionResolver(DependencyDescriptor dependencyDescriptor) {
+            this.dependencyDescriptor = dependencyDescriptor;
+        }
+
+        public ModuleRevisionId getId() throws ModuleResolveException {
+            return dependencyDescriptor.getDependencyRevisionId();
+        }
+
+        public ModuleDescriptor getDescriptor() throws ModuleResolveException {
+            if (failure != null) {
+                throw failure;
             }
-            if (resolvedRevision == null) {
-                throw new ModuleNotFoundException(String.format("%s not found.", dependencyDescriptor.getDependencyRevisionId()));
+
+            if (moduleDescriptor == null) {
+                IvyContext context = IvyContext.pushNewCopyContext();
+                try {
+                    context.setIvy(ivy);
+                    context.setResolveData(resolveData);
+                    context.setDependencyDescriptor(dependencyDescriptor);
+                    ResolvedModuleRevision resolvedRevision;
+                    try {
+                        resolvedRevision = resolver.getDependency(dependencyDescriptor, resolveData);
+                    } catch (Throwable t) {
+                        throw new ModuleResolveException(String.format("Could not resolve %s", dependencyDescriptor.getDependencyRevisionId()), t);
+                    }
+                    if (resolvedRevision == null) {
+                        throw new ModuleNotFoundException(String.format("%s not found.", dependencyDescriptor.getDependencyRevisionId()));
+                    }
+                    moduleDescriptor = resolvedRevision.getDescriptor();
+                } catch (ModuleResolveException e) {
+                    failure = e;
+                    throw failure;
+                } finally {
+                    IvyContext.popContext();
+                }
             }
-            return resolvedRevision;
-        } finally {
-            IvyContext.popContext();
+            return moduleDescriptor;
+        }
+    }
+
+    private class DynamicModuleRevisionResolver extends DefaultModuleRevisionResolver {
+        public DynamicModuleRevisionResolver(DependencyDescriptor dependencyDescriptor) {
+            super(dependencyDescriptor);
+        }
+
+        @Override
+        public ModuleRevisionId getId() throws ModuleResolveException {
+            return getDescriptor().getModuleRevisionId();
         }
     }
 }

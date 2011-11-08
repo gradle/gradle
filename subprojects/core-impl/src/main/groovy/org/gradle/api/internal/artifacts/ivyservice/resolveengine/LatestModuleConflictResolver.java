@@ -23,9 +23,9 @@ import java.util.Collection;
 import java.util.List;
 
 class LatestModuleConflictResolver implements ModuleConflictResolver {
-    public ModuleRevisionState select(Collection<? extends ModuleRevisionState> candidates, ModuleRevisionState root) {
+    public ModuleRevisionResolveState select(Collection<? extends ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root) {
         List<ModuleResolveStateBackedArtifactInfo> artifactInfos = new ArrayList<ModuleResolveStateBackedArtifactInfo>();
-        for (ModuleRevisionState moduleRevision : candidates) {
+        for (ModuleRevisionResolveState moduleRevision : candidates) {
             artifactInfos.add(new ModuleResolveStateBackedArtifactInfo(moduleRevision));
         }
         List<ModuleResolveStateBackedArtifactInfo> sorted = new LatestRevisionStrategy().sort(artifactInfos.toArray(new ArtifactInfo[artifactInfos.size()]));
@@ -33,9 +33,9 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
     }
 
     private static class ModuleResolveStateBackedArtifactInfo implements ArtifactInfo {
-        final ModuleRevisionState moduleRevision;
+        final ModuleRevisionResolveState moduleRevision;
 
-        public ModuleResolveStateBackedArtifactInfo(ModuleRevisionState moduleRevision) {
+        public ModuleResolveStateBackedArtifactInfo(ModuleRevisionResolveState moduleRevision) {
             this.moduleRevision = moduleRevision;
         }
 

@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import java.util.Collection;
+interface ModuleRevisionResolveState {
+    String getId();
 
-interface ModuleConflictResolver {
-    ModuleRevisionResolveState select(Collection<? extends ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root);
+    String getRevision();
 }

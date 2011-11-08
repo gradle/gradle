@@ -13,10 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
+package org.gradle.api.internal.artifacts.ivyservice;
 
-interface ModuleRevisionState {
-    String getId();
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 
-    String getRevision();
+public interface ModuleRevisionResolver {
+    /**
+     * Returns the id of this module revision, resolving it if required.
+     */
+    ModuleRevisionId getId() throws ModuleResolveException;
+
+    /**
+     * Returns the descriptor for this module revision, resolving it if required.
+     */
+    ModuleDescriptor getDescriptor() throws ModuleResolveException;
 }

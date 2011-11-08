@@ -19,6 +19,7 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
@@ -51,8 +52,9 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         options.setDownload(false);
         options.setConfs(WrapUtil.toArray(configuration.getName()));
         ResolveData resolveData = new ResolveData(ivy.getResolveEngine(), options);
+        VersionMatcher versionMatcher = ivy.getSettings().getVersionMatcher();
 
-        DependencyToModuleResolver dependencyResolver = new IvyResolverBackedDependencyToModuleResolver(ivy, resolveData, resolver);
+        DependencyToModuleResolver dependencyResolver = new IvyResolverBackedDependencyToModuleResolver(ivy, resolveData, resolver, versionMatcher);
         IvyResolverBackedArtifactToFileResolver artifactResolver = new IvyResolverBackedArtifactToFileResolver(resolver);
 
         ModuleConflictResolver conflictResolver;
@@ -62,7 +64,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
             conflictResolver = new LatestModuleConflictResolver();
         }
 
-        DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, artifactResolver, dependencyResolver, conflictResolver, ivy.getSettings().getVersionMatcher());
+        DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, artifactResolver, dependencyResolver, conflictResolver);
         DefaultLenientConfiguration result = builder.resolve(configuration, resolveData);
         return new DefaultResolvedConfiguration(result);
     }

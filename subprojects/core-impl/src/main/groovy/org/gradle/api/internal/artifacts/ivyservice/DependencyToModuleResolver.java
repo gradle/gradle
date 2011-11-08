@@ -22,5 +22,5 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
  * Resolves a dependency to the meta-data for a module.
  */
 public interface DependencyToModuleResolver {
-    ResolvedModuleRevision resolve(DependencyDescriptor dependencyDescriptor) throws ModuleResolveException;
+    ModuleRevisionResolver create(DependencyDescriptor dependencyDescriptor);
 }
