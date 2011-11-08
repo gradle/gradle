@@ -21,10 +21,12 @@ import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.internal.file.FileResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.repositories.PasswordCredentials
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
-    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver)
+    final PasswordCredentials credentials = Mock()
+    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, credentials)
 
     def "creates a resolver for URL patterns"() {
         repository.name = 'name'

@@ -35,7 +35,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private Object url;
     private List<Object> additionalUrls = new ArrayList<Object>();
 
-    public DefaultMavenArtifactRepository(FileResolver fileResolver) {
+    public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials) {
+        super(credentials);
         this.fileResolver = fileResolver;
     }
 

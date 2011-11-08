@@ -40,8 +40,10 @@ repositories {
 //START SNIPPET authenticated-maven-repo
 repositories {
     maven {
-        userName 'user'
-        password 'password'
+        credentials {
+            username 'user'
+            password 'password'
+        }
         url "http://repo.mycompany.com/maven2"
     }
 }
@@ -113,8 +115,10 @@ repositories {
 //START SNIPPET authenticated-ivy-repo
 repositories {
     ivy {
-        userName 'user'
-        password 'password'
+        credentials {
+            username 'user'
+            password 'password'
+        }
         artifactPattern "http://repo.mycompany.com/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
 }

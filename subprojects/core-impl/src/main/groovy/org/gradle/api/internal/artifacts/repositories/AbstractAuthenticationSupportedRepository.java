@@ -23,8 +23,8 @@ import org.gradle.util.ConfigureUtil;
 class AbstractAuthenticationSupportedRepository implements AuthenticationSupported {
     private final PasswordCredentials passwordCredentials;
 
-    AbstractAuthenticationSupportedRepository() {
-        this.passwordCredentials = new DefaultPasswordCredentials();
+    AbstractAuthenticationSupportedRepository(PasswordCredentials credentials) {
+        this.passwordCredentials = credentials;
     }
 
     public PasswordCredentials getCredentials() {

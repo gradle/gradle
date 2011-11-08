@@ -129,8 +129,10 @@ group = 'org.gradle'
 uploadArchives {
     repositories {
         ivy {
-            userName 'user'
-            password 'password'
+            credentials {
+                username 'user'
+                password 'password'
+            }
             url "http://localhost:${server.port}"
         }
     }

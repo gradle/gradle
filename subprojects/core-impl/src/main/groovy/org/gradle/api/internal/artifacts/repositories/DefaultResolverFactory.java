@@ -18,14 +18,15 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.Instantiator;
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator;
 import org.gradle.api.internal.artifacts.ResolverFactory;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
 
@@ -87,11 +88,15 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     public IvyArtifactRepository createIvyRepository() {
-        return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver);
+        return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials());
     }
 
     public MavenArtifactRepository createMavenRepository() {
-        return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver);
+        return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials());
+    }
+
+    private PasswordCredentials createPasswordCredentials() {
+        return instantiator.newInstance(DefaultPasswordCredentials.class);
     }
 
 }

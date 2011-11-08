@@ -40,34 +40,35 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
     private final FileResolver fileResolver;
 
-    public DefaultIvyArtifactRepository(FileResolver fileResolver) {
+    public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials) {
+        super(credentials);
         this.fileResolver = fileResolver;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
         this.layout = new GradleRepositoryLayout();
     }
 
     public String getUserName() {
-        nagUser("userName");
+        nagUser("userName", "username");
         return getCredentials().getUsername();
     }
 
     public void setUserName(String username) {
-        nagUser("userName");
+        nagUser("userName", "username");
         getCredentials().setUsername(username);
     }
 
     public String getPassword() {
-        nagUser("password");
+        nagUser("password", "password");
         return getCredentials().getPassword();
     }
 
     public void setPassword(String password) {
-        nagUser("password");
+        nagUser("password", "password");
         getCredentials().setPassword(password);
     }
 
-    private void nagUser(String propertyName) {
-        DeprecationLogger.nagUserWith(String.format("The %1$s property has been deprecated. Please credentials { %1$s = 'value' } instead.", propertyName));
+    private void nagUser(String propertyName, String replacementName) {
+        DeprecationLogger.nagUserWith(String.format("The %s property has been deprecated. Please credentials { %s = 'value' } instead.", propertyName, replacementName));
     }
 
     public void createResolvers(Collection<DependencyResolver> resolvers) {

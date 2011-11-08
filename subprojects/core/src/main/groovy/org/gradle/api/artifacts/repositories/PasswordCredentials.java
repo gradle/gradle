@@ -15,6 +15,9 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+/**
+ * A username/password credentials that can be used to login to password-protected remote repository.
+ */
 public interface PasswordCredentials {
     /**
      * Returns the user name to use when authenticating to this repository.

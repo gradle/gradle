@@ -20,8 +20,10 @@ uploadArchives {
     repositories {
         add project.repositories.fileRepo
         ivy {
-            userName "username"
-            password "pw"
+            credentials {
+                username "username"
+                password "pw"
+            }
             url "http://repo.mycompany.com"
         }
     }
@@ -32,8 +34,10 @@ uploadArchives {
 uploadArchives {
     repositories {
         ivy {
-            userName "username"
-            password "pw"
+            credentials {
+                username "username"
+                password "pw"
+            }
             url "http://repo.mycompany.com"
         }
     }

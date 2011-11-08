@@ -17,12 +17,14 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
-    final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(resolver)
+    final PasswordCredentials credentials = Mock()
+    final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(resolver, credentials)
 
     def "creates local repository"() {
         given:
@@ -49,6 +51,9 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("http://localhost:9090/repo")
         _ * resolver.resolveUri('repo-dir') >> uri
+        1 * credentials.getUsername() >> 'username'
+        1 * credentials.getPassword() >> 'password'
+        0 * _._
 
         and:
         repository.name = 'repo'

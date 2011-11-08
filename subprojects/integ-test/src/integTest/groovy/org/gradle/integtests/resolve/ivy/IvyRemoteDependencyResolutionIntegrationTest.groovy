@@ -138,8 +138,8 @@ repositories {
         url "http://localhost:${server.port}/repo"
 
         credentials {
-            password = 'password'
-            username = 'username'
+            password 'password'
+            username 'username'
         }
     }
 }
