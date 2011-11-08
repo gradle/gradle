@@ -18,18 +18,18 @@ package org.gradle.api.internal.artifacts.configurations;
 
 
 import org.gradle.api.artifacts.ModuleIdentifier
-import org.gradle.api.internal.artifacts.configurations.ForcedModuleBuilder.InvalidNotationFormat
-import org.gradle.api.internal.artifacts.configurations.ForcedModuleBuilder.InvalidNotationType
+import org.gradle.api.internal.artifacts.configurations.ForcedModuleParser.InvalidNotationFormat
+import org.gradle.api.internal.artifacts.configurations.ForcedModuleParser.InvalidNotationType
 import spock.lang.Specification
 
 /**
  * by Szczepan Faber, created at: 10/14/11
  */
-public class ForcedModuleBuilderTest extends Specification {
+public class ForcedModuleParserTest extends Specification {
 
     def "understands group:name:version notation"() {
         when:
-        def v = new ForcedModuleBuilder().build("org.foo:bar:1.0") as List
+        def v = new ForcedModuleParser().parseNotation("org.foo:bar:1.0") as List
 
         then:
         v.size() == 1
@@ -41,7 +41,7 @@ public class ForcedModuleBuilderTest extends Specification {
     def "works with CharSequences"() {
         when:
         def sb = new StringBuilder().append("org.foo:charsequence:1.0")
-        def v = new ForcedModuleBuilder().build(sb) as List
+        def v = new ForcedModuleParser().parseNotation(sb) as List
 
         then:
         v.size() == 1
@@ -49,10 +49,10 @@ public class ForcedModuleBuilderTest extends Specification {
     }
 
     def "allows exact type on input"() {
-        ModuleIdentifier id = ForcedModuleBuilder.identifier("org.foo", "bar", "2.0")
+        ModuleIdentifier id = ForcedModuleParser.identifier("org.foo", "bar", "2.0")
 
         when:
-        def v = new ForcedModuleBuilder().build(id) as List
+        def v = new ForcedModuleParser().parseNotation(id) as List
 
         then:
         v.size() == 1
@@ -62,10 +62,10 @@ public class ForcedModuleBuilderTest extends Specification {
     }
 
     def "allows list of objects on input"() {
-        ModuleIdentifier id = ForcedModuleBuilder.identifier("org.foo", "bar", "2.0")
+        ModuleIdentifier id = ForcedModuleParser.identifier("org.foo", "bar", "2.0")
 
         when:
-        def v = new ForcedModuleBuilder().build([id, ["hey:man:1.0"], [group:'i', name:'like', version:'maps']]) as List
+        def v = new ForcedModuleParser().parseNotation([id, ["hey:man:1.0"], [group:'i', name:'like', version:'maps']]) as List
 
         then:
         v.size() == 3
@@ -76,7 +76,7 @@ public class ForcedModuleBuilderTest extends Specification {
 
     def "allows map on input"() {
         when:
-        def v = new ForcedModuleBuilder().build([group: 'org.foo', name: 'bar', version:'1.0']) as List
+        def v = new ForcedModuleParser().parseNotation([group: 'org.foo', name: 'bar', version:'1.0']) as List
 
         then:
         v.size() == 1
@@ -87,7 +87,7 @@ public class ForcedModuleBuilderTest extends Specification {
 
     def "fails for unknown types"() {
         when:
-        new ForcedModuleBuilder().build(new Object())
+        new ForcedModuleParser().parseNotation(new Object())
 
         then:
         thrown(InvalidNotationType)
@@ -95,7 +95,7 @@ public class ForcedModuleBuilderTest extends Specification {
 
     def "reports missing keys for map notation"() {
         when:
-        new ForcedModuleBuilder().build([name: "bar", version: "1.0"])
+        new ForcedModuleParser().parseNotation([name: "bar", version: "1.0"])
 
         then:
         thrown(InvalidNotationFormat)
@@ -104,7 +104,7 @@ public class ForcedModuleBuilderTest extends Specification {
     def "reports wrong keys for map notation"() {
         when:
         //TODO SF - consider allowing extra keys on input - ask Adam if it's a good idea.
-        new ForcedModuleBuilder().build([groop: 'groop', name: "bar", version: "1.0"])
+        new ForcedModuleParser().parseNotation([groop: 'groop', name: "bar", version: "1.0"])
 
         then:
         thrown(InvalidNotationFormat)
@@ -112,7 +112,7 @@ public class ForcedModuleBuilderTest extends Specification {
 
     def "reports invalid format for string notation"() {
         when:
-        new ForcedModuleBuilder().build(["org.foo:bar1.0"])
+        new ForcedModuleParser().parseNotation(["org.foo:bar1.0"])
 
         then:
         thrown(InvalidNotationFormat)

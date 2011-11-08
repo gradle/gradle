@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvedModuleId;
+import org.gradle.api.internal.notations.NotationParser;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
@@ -28,9 +29,9 @@ import static java.util.Arrays.asList;
 /**
  * by Szczepan Faber, created at: 10/11/11
  */
-public class ForcedModuleBuilder {
+public class ForcedModuleParser implements NotationParser<Set<ModuleIdentifier>> {
 
-    public Set<ModuleIdentifier> build(Object notation) {
+    public Set<ModuleIdentifier> parseNotation(Object notation) {
         assert notation != null : "notation cannot be null";
         Set<ModuleIdentifier> out = new LinkedHashSet<ModuleIdentifier>();
         Collection notations = GUtil.normalize(notation);
