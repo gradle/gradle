@@ -20,7 +20,11 @@ import groovy.lang.Closure;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.artifacts.dsl.dependencies.*;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultClientModuleFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.notations.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 
 import java.util.Map;

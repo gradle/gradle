@@ -24,9 +24,9 @@ import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.api.internal.notations.DefaultProjectDependencyFactory
 import org.gradle.util.HelperUtil
 import org.gradle.util.WrapUtil
 import org.jmock.Expectations

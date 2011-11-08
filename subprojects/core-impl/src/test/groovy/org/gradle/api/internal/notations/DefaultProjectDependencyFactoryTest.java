@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.notations;
 
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.Project;
@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.DirectInstantiator;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
