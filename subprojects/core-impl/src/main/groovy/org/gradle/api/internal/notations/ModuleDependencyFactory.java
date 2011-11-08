@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.notations;
 
 import groovy.lang.GString;
 import org.gradle.api.IllegalDependencyNotation;
@@ -21,6 +21,10 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.MapModuleNotationParser;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
 
 import java.util.Map;
 import java.util.regex.Matcher;

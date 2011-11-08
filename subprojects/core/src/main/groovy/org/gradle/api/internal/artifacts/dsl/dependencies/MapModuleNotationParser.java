@@ -27,10 +27,10 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-class MapModuleNotationParser implements IDependencyImplementationFactory {
+public class MapModuleNotationParser implements IDependencyImplementationFactory {
     private final Instantiator instantiator;
 
-    MapModuleNotationParser(Instantiator instantiator) {
+    public MapModuleNotationParser(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
 

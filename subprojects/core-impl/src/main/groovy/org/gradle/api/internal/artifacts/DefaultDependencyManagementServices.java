@@ -41,6 +41,7 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.notations.ClassPathDependencyFactory;
 import org.gradle.api.internal.notations.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
+import org.gradle.api.internal.notations.ModuleDependencyFactory;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.cache.CacheRepository;

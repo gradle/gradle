@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.internal.DirectInstantiator;
+import org.gradle.api.internal.artifacts.dsl.dependencies.AbstractModuleFactoryTest;
 import org.gradle.util.GUtil;
 import org.junit.Test;
 

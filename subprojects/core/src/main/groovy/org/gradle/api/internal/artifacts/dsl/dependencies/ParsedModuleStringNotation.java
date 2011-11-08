@@ -21,14 +21,14 @@ import org.gradle.util.GUtil;
 /**
  * @author Hans Dockter
  */
-class ParsedModuleStringNotation {
+public class ParsedModuleStringNotation {
     private String group;
     private String name;
     private String version;
     private String classifier;
     private String artifactType;
 
-    ParsedModuleStringNotation(String moduleNotation, String artifactType) {
+    public ParsedModuleStringNotation(String moduleNotation, String artifactType) {
         assignValuesFromModuleNotation(moduleNotation);
         this.artifactType = artifactType;
     }
