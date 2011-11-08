@@ -135,9 +135,12 @@ task listJars << {
         buildFile << """
 repositories {
     ivy {
-        userName 'username'
-        password 'password'
         url "http://localhost:${server.port}/repo"
+
+        credentials {
+            password = 'password'
+            username = 'username'
+        }
     }
 }
 configurations { compile }

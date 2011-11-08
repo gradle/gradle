@@ -20,9 +20,11 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
@@ -31,10 +33,8 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultIvyArtifactRepository implements IvyArtifactRepository, ArtifactRepositoryInternal {
+public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ArtifactRepositoryInternal {
     private String name;
-    private String username;
-    private String password;
     private Object baseUrl;
     private RepositoryLayout layout;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
@@ -44,6 +44,30 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
         this.fileResolver = fileResolver;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
         this.layout = new GradleRepositoryLayout();
+    }
+
+    public String getUserName() {
+        nagUser("userName");
+        return getCredentials().getUsername();
+    }
+
+    public void setUserName(String username) {
+        nagUser("userName");
+        getCredentials().setUsername(username);
+    }
+
+    public String getPassword() {
+        nagUser("password");
+        return getCredentials().getPassword();
+    }
+
+    public void setPassword(String password) {
+        nagUser("password");
+        getCredentials().setPassword(password);
+    }
+
+    private void nagUser(String propertyName) {
+        DeprecationLogger.nagUserWith(String.format("The %1$s property has been deprecated. Please credentials { %1$s = 'value' } instead.", propertyName));
     }
 
     public void createResolvers(Collection<DependencyResolver> resolvers) {
@@ -84,7 +108,8 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
     }
 
     private RepositoryResolver http() {
-        return new CommonsHttpClientResolver(username, password);
+        PasswordCredentials credentials = getCredentials();
+        return new CommonsHttpClientResolver(credentials.getUsername(), credentials.getPassword());
     }
 
     public String getName() {
@@ -93,22 +118,6 @@ public class DefaultIvyArtifactRepository implements IvyArtifactRepository, Arti
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getUserName() {
-        return username;
-    }
-
-    public void setUserName(String username) {
-        this.username = username;
     }
 
     public URI getUrl() {

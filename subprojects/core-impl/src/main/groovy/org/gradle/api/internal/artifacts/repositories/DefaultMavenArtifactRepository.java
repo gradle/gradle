@@ -19,6 +19,7 @@ import org.apache.ivy.plugins.repository.file.FileRepository;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.file.FileResolver;
 
@@ -28,10 +29,8 @@ import java.util.*;
 
 import static org.gradle.util.GUtil.toList;
 
-public class DefaultMavenArtifactRepository implements MavenArtifactRepository, ArtifactRepositoryInternal {
+public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
-    private String username;
-    private String password;
     private String name;
     private Object url;
     private List<Object> additionalUrls = new ArrayList<Object>();
@@ -46,22 +45,6 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getUserName() {
-        return username;
-    }
-
-    public void setUserName(String username) {
-        this.username = username;
     }
 
     public URI getUrl() {
@@ -108,7 +91,8 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
                 resolver.addArtifactUrl(getFilePath(repoUrl));
             }
         } else {
-            resolver.setRepository(new CommonsHttpClientBackedRepository(username, password));
+            PasswordCredentials credentials = getCredentials();
+            resolver.setRepository(new CommonsHttpClientBackedRepository(credentials.getUsername(), credentials.getPassword()));
             resolver.setRoot(getUriPath(rootUri));
 
             Collection<URI> artifactUrls = getArtifactUrls();
