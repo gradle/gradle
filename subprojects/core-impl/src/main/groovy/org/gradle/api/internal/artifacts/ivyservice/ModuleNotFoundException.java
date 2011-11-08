@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.GradleException;
-
-public class ModuleNotFoundException extends GradleException {
+public class ModuleNotFoundException extends ModuleResolveException {
     public ModuleNotFoundException(String message) {
         super(message);
     }

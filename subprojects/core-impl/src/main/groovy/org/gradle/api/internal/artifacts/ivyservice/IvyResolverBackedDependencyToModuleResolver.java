@@ -42,11 +42,11 @@ public class IvyResolverBackedDependencyToModuleResolver implements DependencyTo
             context.setIvy(ivy);
             context.setResolveData(resolveData);
             context.setDependencyDescriptor(dependencyDescriptor);
-            ResolvedModuleRevision resolvedRevision = null;
+            ResolvedModuleRevision resolvedRevision;
             try {
                 resolvedRevision = resolver.getDependency(dependencyDescriptor, resolveData);
             } catch (Throwable t) {
-                throw new RuntimeException(String.format("Could not resolve %s", dependencyDescriptor.getDependencyRevisionId()), t);
+                throw new ModuleResolveException(String.format("Could not resolve %s", dependencyDescriptor.getDependencyRevisionId()), t);
             }
             if (resolvedRevision == null) {
                 throw new ModuleNotFoundException(String.format("%s not found.", dependencyDescriptor.getDependencyRevisionId()));

@@ -16,14 +16,19 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import org.apache.ivy.core.module.descriptor.Configuration
+import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.resolve.ResolveData
 import org.apache.ivy.core.resolve.ResolveEngine
 import org.apache.ivy.core.resolve.ResolveOptions
 import org.apache.ivy.core.resolve.ResolvedModuleRevision
+import org.apache.ivy.plugins.matcher.ExactPatternMatcher
+import org.apache.ivy.plugins.matcher.PatternMatcher
+import org.apache.ivy.plugins.version.VersionMatcher
 import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleIdentifier
@@ -38,11 +43,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher
-import org.apache.ivy.plugins.matcher.PatternMatcher
-import org.apache.ivy.core.module.id.ArtifactId
-
 class DependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
     final ResolvedArtifactFactory resolvedArtifactFactory = Mock()
@@ -52,8 +52,9 @@ class DependencyGraphBuilderTest extends Specification {
     final ModuleConflictResolver conflictResolver = Mock()
     final DependencyToModuleResolver dependencyResolver = Mock()
     final ArtifactToFileResolver artifactResolver = Mock()
+    final VersionMatcher versionMatcher = Mock()
     final DefaultModuleDescriptor root = revision('root')
-    final DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, artifactResolver, dependencyResolver, conflictResolver)
+    final DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, artifactResolver, dependencyResolver, conflictResolver, versionMatcher)
 
     def setup() {
         config(root, 'root', 'default')
@@ -73,7 +74,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses a1, c
         traverses root, b
         traverses b, d
-        traverses d, a2 // Conflict is deeper than all dependencies of other module
+        doesNotTraverse d, a2 // Conflict is deeper than all dependencies of other module
         doesNotTraverse a2, e
 
         when:
@@ -119,7 +120,7 @@ class DependencyGraphBuilderTest extends Specification {
         modules(result) == ids(a1, b, d, e)
     }
 
-    def "includes dependencies of selected module on conflict when path through other module queued for traversal"() {
+    def "includes dependencies of selected module on conflict when path through other module is queued for traversal"() {
         given:
         def a1 = revision('a', '1.2')
         def a2 = revision('a', '1.1')
@@ -127,7 +128,7 @@ class DependencyGraphBuilderTest extends Specification {
         def c = revision('c')
         def d = revision('d')
         traverses root, b
-        traverses b, a2
+        doesNotTraverse b, a2
         doesNotTraverse a2, c
         traverses root, a1
         traverses a1, d
@@ -159,7 +160,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses a1, c
         traverses root, b2
         traverses root, b1
-        traverses b1, a3
+        doesNotTraverse b1, a3
 
         when:
         def result = builder.resolve(configuration, resolveData)
@@ -179,6 +180,34 @@ class DependencyGraphBuilderTest extends Specification {
         and:
         modules(result) == ids(a1, c, b1)
 
+    }
+
+    def "resolves dynamic dependency before attempting to resolve conflict"() {
+        given:
+        def a1 = revision('a', '1.2')
+        def a2 = revision('a', '1.1')
+        def b = revision('b')
+        def c = revision('c')
+        traverses root, a1, revision: 'dynamic'
+        traverses a1, b
+        traverses root, a2, revision: 'dynamic'
+        doesNotTraverse a2, c
+
+        and:
+        _ * versionMatcher.isDynamic(_) >> { ModuleRevisionId id -> return id.revision == 'dynamic' }
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionState> candidates, ModuleRevisionState root ->
+            assert candidates*.revision == ['1.2', '1.1']
+            return candidates.find { it.revision == '1.2' }
+        }
+        0 * conflictResolver._
+
+        and:
+        modules(result) == ids(a1, b)
     }
 
     def "does not attempt to resolve a dependency whose target module is excluded earlier in the path"() {
@@ -221,7 +250,8 @@ class DependencyGraphBuilderTest extends Specification {
 
     def dependsOn(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
         ModuleDependency moduleDependency = Mock()
-        def descriptor = new EnhancedDependencyDescriptor(moduleDependency, from, to.moduleRevisionId, false, false, true)
+        def dependencyId = args.revision ? new ModuleRevisionId(to.moduleRevisionId.moduleId, args.revision) : to.moduleRevisionId
+        def descriptor = new EnhancedDependencyDescriptor(moduleDependency, from, dependencyId, false, false, true)
         descriptor.addDependencyConfiguration("default", "default")
         if (args.exclude) {
             descriptor.addExcludeRule("default", new DefaultExcludeRule(new ArtifactId(
