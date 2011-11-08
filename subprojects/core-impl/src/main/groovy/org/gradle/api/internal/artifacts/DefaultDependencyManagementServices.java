@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.StartParameter;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DomainObjectContext;
@@ -26,7 +27,10 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
-import org.gradle.api.internal.artifacts.dsl.dependencies.*;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultClientModuleFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
@@ -115,18 +119,18 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         DefaultProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(
                 get(StartParameter.class).getProjectDependenciesBuildInstruction(),
                 instantiator);
-        IDependencyImplementationFactory selfResolvingDependencyFactory = new SelfResolvingDependencyFactory(instantiator);
-        Set<IDependencyImplementationFactory> dependencyFactories = WrapUtil.toSet(
-                new ModuleDependencyFactory(
-                        instantiator),
+
+        NotationParser<? extends Dependency> selfResolvingDependencyFactory = new SelfResolvingDependencyFactory(instantiator);
+        Set<NotationParser<? extends Dependency>> notationParsers = WrapUtil.toSet(
+                new ModuleDependencyFactory(instantiator),
                 selfResolvingDependencyFactory,
-                new ClassPathDependencyFactory(
-                        instantiator,
-                        get(ClassPathRegistry.class),
-                        new IdentityFileResolver()),
+                new ClassPathDependencyFactory(instantiator, get(ClassPathRegistry.class), new IdentityFileResolver()),
                 projectDependencyFactory);
+
+        DependencyNotationParser dependencyNotationParser = new DependencyNotationParser(notationParsers);
+
         return new DefaultDependencyFactory(
-                new DependencyNotationParser(dependencyFactories),
+                dependencyNotationParser,
                 new DefaultClientModuleFactory(instantiator),
                 projectDependencyFactory);
     }

@@ -17,10 +17,8 @@
 package org.gradle.api.internal.notations;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory;
 
 import java.util.Set;
 
@@ -29,11 +27,11 @@ import java.util.Set;
  */
 public class DependencyNotationParser implements TopLevelNotationParser {
 
-    private final Set<IDependencyImplementationFactory> dependencyFactories;
+    private final Set<NotationParser<? extends Dependency>> notationParsers;
 
-    //TODO SF - relax the constructor, unit test
-    public DependencyNotationParser(Set<IDependencyImplementationFactory> dependencyFactories) {
-        this.dependencyFactories = dependencyFactories;
+    //TODO SF - add some coverage when finished refactoring, also add integration coverage for unhappy path
+    public DependencyNotationParser(Set<NotationParser<? extends Dependency>> notationParsers) {
+        this.notationParsers = notationParsers;
     }
 
     public Dependency parseNotation(Object dependencyNotation) {
@@ -42,13 +40,14 @@ public class DependencyNotationParser implements TopLevelNotationParser {
         }
 
         Dependency dependency = null;
-        for (IDependencyImplementationFactory factory : dependencyFactories) {
+        for (NotationParser<? extends Dependency> notationParser : notationParsers) {
             try {
-                dependency = factory.createDependency(Dependency.class, dependencyNotation);
-                break;
-            } catch (IllegalDependencyNotation e) {
-                // ignore
+                if (notationParser.canParse(dependencyNotation)) {
+                    dependency = notationParser.parseNotation(dependencyNotation);
+                    break;
+                }
             } catch (Exception e) {
+                //TODO SF feels like this exception does not belong here
                 throw new GradleException(String.format("Could not create a dependency using notation: %s", dependencyNotation), e);
             }
         }
