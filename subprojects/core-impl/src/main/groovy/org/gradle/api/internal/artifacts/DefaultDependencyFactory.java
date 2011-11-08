@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.*;
-import org.gradle.api.internal.artifacts.notations.DependencyNotationParser;
+import org.gradle.api.internal.notations.DependencyNotationParser;
 
 import java.util.Map;
 
