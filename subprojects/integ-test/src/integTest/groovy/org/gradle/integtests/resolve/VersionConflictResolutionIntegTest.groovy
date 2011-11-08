@@ -15,10 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
-import org.gradle.util.TestFile
-import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.containsString
 
@@ -26,15 +23,10 @@ import static org.hamcrest.Matchers.containsString
  * @author Szczepan Faber, @date 03.03.11
  */
 class VersionConflictResolutionIntegTest extends AbstractIntegrationTest {
-
-    @Rule
-    public final TestResources testResources = new TestResources()
-
     @Test
     void "strict conflict resolution should fail due to conflict"() {
-        TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publish()
-        maven(repo).module("org", "foo", '1.4.4').publish()
+        repo.module("org", "foo", '1.3.3').publish()
+        repo.module("org", "foo", '1.4.4').publish()
 
         def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -44,7 +36,7 @@ class VersionConflictResolutionIntegTest extends AbstractIntegrationTest {
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${repo.toURI()}" }
+		maven { url "${repo.uri}" }
 	}
 }
 
@@ -79,8 +71,7 @@ project(':tool') {
 
     @Test
     void "strict conflict resolution should pass when no conflicts"() {
-        TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publish()
+        repo.module("org", "foo", '1.3.3').publish()
 
         def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -90,7 +81,7 @@ project(':tool') {
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${repo.toURI()}" }
+		maven { url "${repo.uri}" }
 	}
 }
 
@@ -124,10 +115,9 @@ project(':tool') {
 
     @Test
     void "strict conflict strategy can be used with forced modules"() {
-        TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publish()
-        maven(repo).module("org", "foo", '1.4.4').publish()
-        maven(repo).module("org", "foo", '1.5.5').publish()
+        repo.module("org", "foo", '1.3.3').publish()
+        repo.module("org", "foo", '1.4.4').publish()
+        repo.module("org", "foo", '1.5.5').publish()
 
         def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -137,7 +127,7 @@ project(':tool') {
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${repo.toURI()}" }
+		maven { url "${repo.uri}" }
 	}
 }
 
@@ -174,9 +164,8 @@ project(':tool') {
 
     @Test
     void "can force already resolved version of a module and avoid conflict"() {
-        TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publish()
-        maven(repo).module("org", "foo", '1.4.4').publish()
+        repo.module("org", "foo", '1.3.3').publish()
+        repo.module("org", "foo", '1.4.4').publish()
 
         def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -186,7 +175,7 @@ project(':tool') {
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${repo.toURI()}" }
+		maven { url "${repo.uri}" }
 	}
 }
 
@@ -229,11 +218,10 @@ allprojects {
 
     @Test
     void "can force arbitrary version of a module and avoid conflict"() {
-        TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publish()
-        maven(repo).module("org", "foobar", '1.3.3').publish()
-        maven(repo).module("org", "foo", '1.4.4').publish()
-        maven(repo).module("org", "foo", '1.5.5').publish()
+        repo.module("org", "foo", '1.3.3').publish()
+        repo.module("org", "foobar", '1.3.3').publish()
+        repo.module("org", "foo", '1.4.4').publish()
+        repo.module("org", "foo", '1.5.5').publish()
 
         def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -243,7 +231,7 @@ allprojects {
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${repo.toURI()}" }
+		maven { url "${repo.uri}" }
 	}
 	group = 'org.foo.unittests'
 	version = '1.0'
@@ -295,9 +283,8 @@ allprojects {
 
     @Test
     void "resolves to the latest version by default"() {
-        TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publish()
-        maven(repo).module("org", "foo", '1.4.4').publish()
+        repo.module("org", "foo", '1.3.3').publish()
+        repo.module("org", "foo", '1.4.4').publish()
 
         def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -307,7 +294,7 @@ allprojects {
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${repo.toURI()}" }
+		maven { url "${repo.uri}" }
 	}
 }
 
@@ -340,9 +327,8 @@ project(':tool') {
 
     @Test
     void "latest strategy respects forced modules"() {
-        TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publish()
-        maven(repo).module("org", "foo", '1.4.4').publish()
+        repo.module("org", "foo", '1.3.3').publish()
+        repo.module("org", "foo", '1.4.4').publish()
 
         def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -352,7 +338,7 @@ project(':tool') {
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${repo.toURI()}" }
+		maven { url "${repo.uri}" }
 	}
 }
 
@@ -391,15 +377,14 @@ project(':tool') {
 
     @Test
     void "can force the version of a particular module"() {
-        TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publish()
-        maven(repo).module("org", "foo", '1.4.4').publish()
+        repo.module("org", "foo", '1.3.3').publish()
+        repo.module("org", "foo", '1.4.4').publish()
 
         def buildFile = file("build.gradle")
         buildFile << """
 apply plugin: 'java'
 repositories {
-    maven { url "${repo.toURI()}" }
+    maven { url "${repo.uri}" }
 }
 
 dependencies {
@@ -421,15 +406,14 @@ task checkDeps << {
 
     @Test
     void "can force the version of a direct dependency"() {
-        TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publish()
-        maven(repo).module("org", "foo", '1.4.4').publish()
+        repo.module("org", "foo", '1.3.3').publish()
+        repo.module("org", "foo", '1.4.4').publish()
 
         def buildFile = file("build.gradle")
         buildFile << """
 apply plugin: 'java'
 repositories {
-    maven { url "${repo.toURI()}" }
+    maven { url "${repo.uri}" }
 }
 
 dependencies {
@@ -448,15 +432,14 @@ task checkDeps << {
 
     @Test
     void "forcing transitive dependency does not add extra dependency"() {
-        TestFile repo = file("repo")
-        maven(repo).module("org", "foo", '1.3.3').publish()
-        maven(repo).module("hello", "world", '1.4.4').publish()
+        repo.module("org", "foo", '1.3.3').publish()
+        repo.module("hello", "world", '1.4.4').publish()
 
         def buildFile = file("build.gradle")
         buildFile << """
 apply plugin: 'java'
 repositories {
-    maven { url "${repo.toURI()}" }
+    maven { url "${repo.uri}" }
 }
 
 dependencies {
@@ -474,5 +457,9 @@ task checkDeps << {
 
         //expect
         executer.withTasks("checkDeps").run()
+    }
+
+    def getRepo() {
+        return maven(file("repo"))
     }
 }
