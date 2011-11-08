@@ -31,11 +31,11 @@ import java.util.Map;
 public class DefaultDependencyFactory implements DependencyFactory {
     private final DependencyNotationParser dependencyNotationParser;
     private DefaultClientModuleFactory clientModuleFactory;
-    private ProjectDependencyFactory projectDependencyFactory;
+    private DefaultProjectDependencyFactory projectDependencyFactory;
 
     public DefaultDependencyFactory(DependencyNotationParser dependencyNotationParser,
                                     DefaultClientModuleFactory clientModuleFactory,
-                                    ProjectDependencyFactory projectDependencyFactory) {
+                                    DefaultProjectDependencyFactory projectDependencyFactory) {
         this.dependencyNotationParser = dependencyNotationParser;
         this.clientModuleFactory = clientModuleFactory;
         this.projectDependencyFactory = projectDependencyFactory;

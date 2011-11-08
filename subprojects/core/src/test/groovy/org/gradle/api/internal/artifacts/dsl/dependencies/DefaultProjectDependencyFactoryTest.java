@@ -37,11 +37,11 @@ import static org.junit.Assert.assertThat;
 /**
  * @author Hans Dockter
  */
-public class DefaultProjectDependencyFactoryTest {
+public class DefaultProjectDependencyFactoryTest { //TODO SF spock it or rid it after the refactoring
     private JUnit4Mockery context = new JUnit4Mockery();
 
     private final ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(false);
-    private ProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(projectDependenciesBuildInstruction, new DirectInstantiator());
+    private DefaultProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(projectDependenciesBuildInstruction, new DirectInstantiator());
     private ProjectFinder projectFinder = context.mock(ProjectFinder.class);
 
     @Test

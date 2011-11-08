@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class DefaultProjectDependencyFactory implements ProjectDependencyFactory {
+public class DefaultProjectDependencyFactory implements IDependencyImplementationFactory {
     private final ProjectDependenciesBuildInstruction instruction;
     private final Instantiator instantiator;
 
