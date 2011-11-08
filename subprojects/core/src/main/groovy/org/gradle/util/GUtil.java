@@ -89,8 +89,8 @@ public class GUtil {
         }
     }
 
-    public static List flatten(Collection elements, boolean flattenMaps) {
-        return flatten(elements, new ArrayList(), flattenMaps);
+    public static List flatten(Collection elements, boolean flattenMapsAndArrays) {
+        return flatten(elements, new ArrayList(), flattenMapsAndArrays);
     }
 
     public static List flatten(Collection elements) {
