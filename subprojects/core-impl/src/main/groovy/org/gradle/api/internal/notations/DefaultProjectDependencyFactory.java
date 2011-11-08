@@ -32,7 +32,7 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class DefaultProjectDependencyFactory implements IDependencyImplementationFactory {
+public class DefaultProjectDependencyFactory implements IDependencyImplementationFactory, NotationParser<ProjectDependency> {
     private final ProjectDependenciesBuildInstruction instruction;
     private final Instantiator instantiator;
 
@@ -42,14 +42,24 @@ public class DefaultProjectDependencyFactory implements IDependencyImplementatio
     }
 
     public <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription) throws IllegalDependencyNotation {
-        if (userDependencyDescription instanceof Project) {
-            return type.cast(instantiator.newInstance(DefaultProjectDependency.class, userDependencyDescription, instruction));
+        if (!canParse(userDependencyDescription)) {
+            throw new IllegalDependencyNotation();
         }
-        throw new IllegalDependencyNotation();
+        return type.cast(parseNotation(userDependencyDescription));
     }
     
+    public boolean canParse(Object notation) {
+        return notation instanceof Project;
+    }
+
+    public ProjectDependency parseNotation(Object notation) {
+        assert canParse(notation) : "Parser accepts only Projects";
+        return instantiator.newInstance(DefaultProjectDependency.class, notation, instruction);
+    }
+
+    //TODO SF - separate this to a different object
     public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder,
-                                                   Map<? extends String, ? extends Object> map) {
+                                                            Map<? extends String, ? extends Object> map) {
         Map<String, Object> args = new HashMap<String, Object>(map);
         String path = getAndRemove(args, "path");
         String configuration = getAndRemove(args, "configuration");
