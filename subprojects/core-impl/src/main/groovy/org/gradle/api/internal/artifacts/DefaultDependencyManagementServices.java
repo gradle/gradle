@@ -115,11 +115,11 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         DefaultProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(
                 get(StartParameter.class).getProjectDependenciesBuildInstruction(),
                 instantiator);
+        IDependencyImplementationFactory selfResolvingDependencyFactory = new SelfResolvingDependencyFactory(instantiator);
         Set<IDependencyImplementationFactory> dependencyFactories = WrapUtil.toSet(
                 new ModuleDependencyFactory(
                         instantiator),
-                new SelfResolvingDependencyFactory(
-                        instantiator),
+                selfResolvingDependencyFactory,
                 new ClassPathDependencyFactory(
                         instantiator,
                         get(ClassPathRegistry.class),
