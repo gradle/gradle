@@ -13,15 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.notations;
 
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public interface NotationParser<T> {
+public class JustReturningParser implements NotationParser {
 
-    boolean canParse(Object notation);
+    private final Class passThroughType;
 
-    T parseNotation(Object notation);
+    public JustReturningParser(Class passThroughType) {
+        this.passThroughType = passThroughType;
+    }
+
+    public boolean canParse(Object notation) {
+        return passThroughType.isInstance(notation);
+    }
+
+    public Object parseNotation(Object notation) {
+        return passThroughType.cast(notation);
+    }
 }

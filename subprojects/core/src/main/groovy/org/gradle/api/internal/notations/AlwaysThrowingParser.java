@@ -19,9 +19,21 @@ package org.gradle.api.internal.notations;
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public interface NotationParser<T> {
+public class AlwaysThrowingParser implements NotationParser {
+    private final String invalidNotationMessage;
 
-    boolean canParse(Object notation);
+    public AlwaysThrowingParser(String invalidNotationMessage) {
+        this.invalidNotationMessage = invalidNotationMessage;
+    }
 
-    T parseNotation(Object notation);
+    public boolean canParse(Object notation) {
+        return true;
+    }
+
+    public Object parseNotation(Object notation) {
+        String message = "Invalid notation type: " + notation.getClass().getName()
+                + ", toString(): " + notation.toString() + "\n"
+                + invalidNotationMessage;
+        throw new DefaultNotationParser.InvalidNotationType(message);
+    }
 }

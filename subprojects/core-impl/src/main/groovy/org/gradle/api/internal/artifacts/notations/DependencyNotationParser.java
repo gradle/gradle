@@ -32,9 +32,13 @@ public class DependencyNotationParser implements NotationParser<Dependency> {
 
     private final Set<IDependencyImplementationFactory> dependencyFactories;
 
-    //TODO SF - relax the constructor
+    //TODO SF - relax the constructor, unit test
     public DependencyNotationParser(Set<IDependencyImplementationFactory> dependencyFactories) {
         this.dependencyFactories = dependencyFactories;
+    }
+
+    public boolean canParse(Object notation) {
+        return true; //TODO SF
     }
 
     public Dependency parseNotation(Object dependencyNotation) {

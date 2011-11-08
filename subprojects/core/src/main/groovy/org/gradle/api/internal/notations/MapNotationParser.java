@@ -16,12 +16,23 @@
 
 package org.gradle.api.internal.notations;
 
+import java.util.Map;
+
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public interface NotationParser<T> {
+public abstract class MapNotationParser<T> implements NotationParser<T> {
 
-    boolean canParse(Object notation);
+    public boolean canParse(Object notation) {
+        return notation instanceof Map;
+    }
 
-    T parseNotation(Object notation);
+    public T parseNotation(Object notation) {
+        if (!(notation instanceof Map)) {
+            throw new IllegalArgumentException("This notation parser only accepts instances of Maps"); //TODO SF test
+        }
+        return parseMap((Map) notation);
+    }
+
+    protected abstract T parseMap(Map notation);
 }

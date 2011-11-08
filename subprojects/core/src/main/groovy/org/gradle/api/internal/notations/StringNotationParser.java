@@ -19,9 +19,15 @@ package org.gradle.api.internal.notations;
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public interface NotationParser<T> {
+public abstract class StringNotationParser<T> implements NotationParser<T> {
 
-    boolean canParse(Object notation);
+    public boolean canParse(Object notation) {
+        return notation instanceof CharSequence;
+    }
 
-    T parseNotation(Object notation);
+    public T parseNotation(Object notation) {
+        return parseString(notation.toString());
+    }
+
+    public abstract T parseString(String notation);
 }
