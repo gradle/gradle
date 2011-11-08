@@ -55,6 +55,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         VersionMatcher versionMatcher = ivy.getSettings().getVersionMatcher();
 
         DependencyToModuleResolver dependencyResolver = new IvyResolverBackedDependencyToModuleResolver(ivy, resolveData, resolver, versionMatcher);
+        dependencyResolver = new VersionForcingDependencyToModuleResolver(dependencyResolver, configuration.getResolutionStrategy().getForcedModules());
         IvyResolverBackedArtifactToFileResolver artifactResolver = new IvyResolverBackedArtifactToFileResolver(resolver);
 
         ModuleConflictResolver conflictResolver;

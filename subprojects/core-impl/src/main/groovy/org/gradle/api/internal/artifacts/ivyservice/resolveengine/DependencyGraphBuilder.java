@@ -373,7 +373,7 @@ public class DependencyGraphBuilder {
     private static class DependencyResolveState {
         final DependencyDescriptor descriptor;
         DefaultModuleRevisionResolveState targetModuleRevision;
-        ModuleRevisionResolver resolver;
+        ModuleVersionResolver resolver;
         boolean resolved;
 
         private DependencyResolveState(DependencyDescriptor descriptor) {

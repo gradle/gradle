@@ -230,7 +230,7 @@ class DependencyGraphBuilderTest extends Specification {
         }
         from.addDependency(descriptor)
 
-        ModuleRevisionResolver resolver = Mock()
+        ModuleVersionResolver resolver = Mock()
         (0..1) * dependencyResolver.create(descriptor) >> resolver
         _ * resolver.id >> to.moduleRevisionId
         return resolver

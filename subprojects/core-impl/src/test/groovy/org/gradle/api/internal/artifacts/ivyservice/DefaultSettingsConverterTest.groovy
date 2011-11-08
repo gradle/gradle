@@ -53,7 +53,6 @@ class DefaultSettingsConverterTest extends Specification {
 
         then:
         1 * ivySettingsFactory.create() >> ivySettings
-        1 * resolutionStrategy.getForcedModules()
         1 * resolutionStrategy.getCachePolicy()
         0 * _._
 
@@ -66,14 +65,14 @@ class DefaultSettingsConverterTest extends Specification {
         assert settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_RESOLVER_NAME) instanceof ClientModuleResolver
         assert settings.getResolver(DefaultSettingsConverter.TOP_LEVEL_RESOLVER_CHAIN_NAME) instanceof TopLeveResolverChain
 
-        EntryPointResolver entryPointResolver = settings.getResolver(DefaultSettingsConverter.ENTRY_POINT_RESOLVER)
-        assert settings.defaultResolver.is(entryPointResolver)
+        DependencyResolver topLevelResolver = settings.getResolver(DefaultSettingsConverter.TOP_LEVEL_RESOLVER_CHAIN_NAME)
+        assert settings.defaultResolver.is(topLevelResolver)
 
         [testResolver.name, testResolver2.name].each {
             assert settings.getResolver(it)
             assert settings.getResolver(it).repositoryCacheManager.settings == settings
         }
-        [DefaultSettingsConverter.ENTRY_POINT_RESOLVER, DefaultSettingsConverter.CLIENT_MODULE_RESOLVER_NAME, DefaultSettingsConverter.TOP_LEVEL_RESOLVER_CHAIN_NAME, DefaultSettingsConverter.USER_RESOLVER_CHAIN_NAME].each {
+        [DefaultSettingsConverter.CLIENT_MODULE_RESOLVER_NAME, DefaultSettingsConverter.TOP_LEVEL_RESOLVER_CHAIN_NAME, DefaultSettingsConverter.USER_RESOLVER_CHAIN_NAME].each {
             assert settings.getResolver(it)
             assert settings.getResolver(it).repositoryCacheManager instanceof NoOpRepositoryCacheManager
         }
@@ -85,7 +84,6 @@ class DefaultSettingsConverterTest extends Specification {
 
         then:
         1 * ivySettingsFactory.create() >> ivySettings
-        1 * resolutionStrategy.getForcedModules()
         1 * resolutionStrategy.getCachePolicy()
         0 * _._
 

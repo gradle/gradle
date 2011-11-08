@@ -48,7 +48,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private UserResolverChain userResolverChain;
-    public EntryPointResolver entryPointResolver;
+    private DependencyResolver outerChain;
 
     public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory, ModuleResolutionCache moduleResolutionCache) {
         this.progressLoggerFactory = progressLoggerFactory;
@@ -89,18 +89,15 @@ public class DefaultSettingsConverter implements SettingsConverter {
             resolveSettings = settingsFactory.create();
             userResolverChain = createUserResolverChain();
             ClientModuleResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
-            DependencyResolver outerChain = new TopLeveResolverChain(clientModuleResolver, projectResolver, userResolverChain);
+            outerChain = new TopLeveResolverChain(clientModuleResolver, projectResolver, userResolverChain);
             outerChain.setName(TOP_LEVEL_RESOLVER_CHAIN_NAME);
-            entryPointResolver = new EntryPointResolver(outerChain);
-            entryPointResolver.setName(ENTRY_POINT_RESOLVER);
-            initializeResolvers(resolveSettings, WrapUtil.toList(userResolverChain, clientModuleResolver, outerChain, entryPointResolver));
+            initializeResolvers(resolveSettings, WrapUtil.toList(userResolverChain, clientModuleResolver, outerChain));
         }
         
-        new EntryPointResolverConfigurer().configureResolver(entryPointResolver, resolutionStrategy);
         userResolverChain.setCachePolicy(resolutionStrategy.getCachePolicy());
 
         replaceResolvers(dependencyResolvers, userResolverChain);
-        resolveSettings.setDefaultResolver(entryPointResolver.getName());
+        resolveSettings.setDefaultResolver(outerChain.getName());
         return resolveSettings;
     }
 

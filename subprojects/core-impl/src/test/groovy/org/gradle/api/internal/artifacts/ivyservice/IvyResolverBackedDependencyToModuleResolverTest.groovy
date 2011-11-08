@@ -25,6 +25,7 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.resolve.ResolvedModuleRevision
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.module.id.ModuleId
+import org.apache.ivy.core.settings.IvySettings
 
 class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
     final DependencyResolver ivyResolver = Mock()
@@ -32,6 +33,11 @@ class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
     final ResolveData resolveData = Mock()
     final VersionMatcher versionMatcher = Mock()
     final IvyResolverBackedDependencyToModuleResolver resolver = new IvyResolverBackedDependencyToModuleResolver(ivy, resolveData, ivyResolver, versionMatcher)
+
+    def setup() {
+        IvySettings settings = Mock()
+        _ * ivy.settings >> settings
+    }
 
     def "resolves id for dependency with static version without resolving dependency"() {
         def dep = dependency()
@@ -49,7 +55,7 @@ class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
 
     def "resolves id for dependency with dynamic version by resolving dependency"() {
         def dep = dependency()
-        def descriptor = module()
+        def descriptor = module("2011")
 
         given:
         _ * versionMatcher.isDynamic(dep.dependencyRevisionId) >> true
@@ -177,9 +183,9 @@ class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
         return descriptor
     }
 
-    def module() {
+    def module(String version = "1.2") {
         ModuleDescriptor descriptor = Mock()
-        _ * descriptor.moduleRevisionId >> new ModuleRevisionId(new ModuleId("group", "module"), "2011")
+        _ * descriptor.moduleRevisionId >> new ModuleRevisionId(new ModuleId("group", "module"), version)
         return descriptor
     }
 

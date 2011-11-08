@@ -18,14 +18,14 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 
-public interface ModuleRevisionResolver {
+public interface ModuleVersionResolver {
     /**
-     * Returns the id of this module revision, resolving it if required.
+     * Returns the id of this module version, resolving it if required.
      */
     ModuleRevisionId getId() throws ModuleResolveException;
 
     /**
-     * Returns the descriptor for this module revision, resolving it if required.
+     * Returns the descriptor for this module version, resolving it if required.
      */
     ModuleDescriptor getDescriptor() throws ModuleResolveException;
 }

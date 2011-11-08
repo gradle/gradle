@@ -16,11 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 
 /**
  * Resolves a dependency to the meta-data for a module.
  */
 public interface DependencyToModuleResolver {
-    ModuleRevisionResolver create(DependencyDescriptor dependencyDescriptor);
+    ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor);
 }
