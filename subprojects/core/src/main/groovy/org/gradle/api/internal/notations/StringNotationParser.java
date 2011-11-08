@@ -26,6 +26,7 @@ public abstract class StringNotationParser<T> implements NotationParser<T> {
     }
 
     public T parseNotation(Object notation) {
+        assert notation instanceof CharSequence : "This notation parser only accepts instances of CharSequence.";
         return parseString(notation.toString());
     }
 

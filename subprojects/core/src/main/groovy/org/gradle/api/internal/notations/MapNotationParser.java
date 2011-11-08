@@ -28,9 +28,7 @@ public abstract class MapNotationParser<T> implements NotationParser<T> {
     }
 
     public T parseNotation(Object notation) {
-        if (!(notation instanceof Map)) {
-            throw new IllegalArgumentException("This notation parser only accepts instances of Maps"); //TODO SF test
-        }
+        assert notation instanceof Map : "This notation parser only accepts instances of Maps";
         return parseMap((Map) notation);
     }
 
