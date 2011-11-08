@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.notations;
 
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.Dependency;
@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
-@RunWith(JMock.class)
+@RunWith(JMock.class) //TODO SF spock it or rid it
 public class SelfResolvingDependencyFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final SelfResolvingDependencyFactory factory = new SelfResolvingDependencyFactory(new DirectInstantiator());
