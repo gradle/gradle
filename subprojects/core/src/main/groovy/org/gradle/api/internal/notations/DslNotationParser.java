@@ -17,17 +17,9 @@
 package org.gradle.api.internal.notations;
 
 /**
+ * Marker interface to group all top-level dsl notation parsers.
+ *
  * by Szczepan Faber, created at: 11/8/11
  */
-public abstract class StringNotationParser<T> implements ExplicitNotationParser<T> {
-
-    public boolean canParse(Object notation) {
-        return notation instanceof CharSequence;
-    }
-
-    public T parseNotation(Object notation) {
-        return parseString(notation.toString());
-    }
-
-    public abstract T parseString(String notation);
+public interface DslNotationParser {
 }

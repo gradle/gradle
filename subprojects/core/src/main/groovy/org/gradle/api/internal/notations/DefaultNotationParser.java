@@ -33,23 +33,10 @@ import static org.codehaus.groovy.runtime.InvokerHelper.asList;
  */
 public class DefaultNotationParser<T> implements NotationParser<Collection<T>> {
 
-    private final Collection<NotationParser<T>> delegates;
+    private final Collection<ExplicitNotationParser<T>> delegates;
 
-    public DefaultNotationParser(NotationParser<T>... delegates) {
+    public DefaultNotationParser(ExplicitNotationParser<T>... delegates) {
         this.delegates = asList(delegates);
-    }
-
-    public boolean canParse(Object notation) {
-        Collection notations = GUtil.normalize(notation);
-        for (Object n : notations) {
-            for (NotationParser<T> delegate : delegates) {
-                if (delegate.canParse(n)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     public Collection<T> parseNotation(Object notation) {
@@ -62,7 +49,7 @@ public class DefaultNotationParser<T> implements NotationParser<Collection<T>> {
     }
 
     private T parseSingleNotation(Object notation) {
-        for (NotationParser<T> delegate : delegates) {
+        for (ExplicitNotationParser<T> delegate : delegates) {
             if (delegate.canParse(notation)) {
                 return delegate.parseNotation(notation);
             }

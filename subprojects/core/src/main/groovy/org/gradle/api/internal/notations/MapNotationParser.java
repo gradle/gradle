@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public abstract class MapNotationParser<T> implements NotationParser<T> {
+public abstract class MapNotationParser<T> implements ExplicitNotationParser<T> {
 
     public boolean canParse(Object notation) {
         return notation instanceof Map;

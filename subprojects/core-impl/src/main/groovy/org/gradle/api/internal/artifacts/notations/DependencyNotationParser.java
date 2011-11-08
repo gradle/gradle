@@ -21,6 +21,7 @@ import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory;
+import org.gradle.api.internal.notations.DslNotationParser;
 import org.gradle.api.internal.notations.NotationParser;
 
 import java.util.Set;
@@ -28,17 +29,13 @@ import java.util.Set;
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public class DependencyNotationParser implements NotationParser<Dependency> {
+public class DependencyNotationParser implements NotationParser<Dependency>, DslNotationParser {
 
     private final Set<IDependencyImplementationFactory> dependencyFactories;
 
     //TODO SF - relax the constructor, unit test
     public DependencyNotationParser(Set<IDependencyImplementationFactory> dependencyFactories) {
         this.dependencyFactories = dependencyFactories;
-    }
-
-    public boolean canParse(Object notation) {
-        return true; //TODO SF
     }
 
     public Dependency parseNotation(Object dependencyNotation) {

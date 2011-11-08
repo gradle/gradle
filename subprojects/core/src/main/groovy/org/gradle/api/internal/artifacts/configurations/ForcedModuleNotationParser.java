@@ -28,7 +28,7 @@ import static java.util.Arrays.asList;
 /**
  * by Szczepan Faber, created at: 10/11/11
  */
-public class ForcedModuleParser implements NotationParser<Set<ModuleIdentifier>> {
+public class ForcedModuleNotationParser implements NotationParser<Set<ModuleIdentifier>>, DslNotationParser {
 
     private DefaultNotationParser delegate = new NotationParserBuilder()
             .resultingType(ModuleIdentifier.class)
@@ -43,10 +43,6 @@ public class ForcedModuleParser implements NotationParser<Set<ModuleIdentifier>>
                             + "  4. A Collection or array of above (nested collections/arrays will be flattened)\n"
             )
             .build();
-
-    public boolean canParse(Object notation) {
-        return delegate.canParse(notation); //TODO SF - add coverage or segregate interfaces
-    }
 
     public Set<ModuleIdentifier> parseNotation(Object notation) {
         assert notation != null : "notation cannot be null";

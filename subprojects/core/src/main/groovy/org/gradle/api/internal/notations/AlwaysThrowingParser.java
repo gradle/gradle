@@ -19,7 +19,7 @@ package org.gradle.api.internal.notations;
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public class AlwaysThrowingParser implements NotationParser {
+public class AlwaysThrowingParser implements ExplicitNotationParser {
     private final String invalidNotationMessage;
 
     public AlwaysThrowingParser(String invalidNotationMessage) {

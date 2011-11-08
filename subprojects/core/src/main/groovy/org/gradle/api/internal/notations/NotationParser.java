@@ -21,7 +21,5 @@ package org.gradle.api.internal.notations;
  */
 public interface NotationParser<T> {
 
-    boolean canParse(Object notation);
-
     T parseNotation(Object notation);
 }

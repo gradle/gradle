@@ -18,7 +18,7 @@ package org.gradle.api.internal.notations;
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public class JustReturningParser implements NotationParser {
+public class JustReturningParser implements ExplicitNotationParser {
 
     private final Class passThroughType;
 
