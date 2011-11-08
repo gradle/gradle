@@ -30,7 +30,7 @@ public class DomainRegistryUpdaterTest extends Specification {
 
     def registry = Mock(DaemonRegistry)
     def address = {} as Address
-    def updater = new DomainRegistryUpdater(registry, new DaemonContextBuilder().create(), address)
+    def updater = new DomainRegistryUpdater(registry, new DaemonContextBuilder().create(), "password", address)
 
     def "marks idle"() {
         when:

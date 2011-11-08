@@ -23,7 +23,6 @@ import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.messaging.remote.internal.ConnectException;
-import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.util.UncheckedException;
 
@@ -60,18 +59,18 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return connectTimeout;
     }
 
-    public Connection<Object> maybeConnect() {
+    public DaemonConnection maybeConnect() {
         return findConnection(daemonRegistry.getAll());
     }
 
-    private Connection<Object> findConnection(List<DaemonInfo> daemonInfos) {
+    private DaemonConnection findConnection(List<DaemonInfo> daemonInfos) {
         for (DaemonInfo daemonInfo : daemonInfos) {
             if (!contextCompatibilitySpec.isSatisfiedBy(daemonInfo.getContext())) {
                 continue;
             }
 
             try {
-                return connector.connect(daemonInfo.getAddress());
+                return new DaemonConnection(connector.connect(daemonInfo.getAddress()), daemonInfo.getPassword());
             } catch (ConnectException e) {
                 //this means the daemon died without removing its address from the registry
                 //we can safely remove this address now
@@ -85,8 +84,8 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
-    public Connection<Object> connect() {
-        Connection<Object> connection = findConnection(daemonRegistry.getIdle());
+    public DaemonConnection connect() {
+        DaemonConnection connection = findConnection(daemonRegistry.getIdle());
         if (connection != null) {
             return connection;
         }

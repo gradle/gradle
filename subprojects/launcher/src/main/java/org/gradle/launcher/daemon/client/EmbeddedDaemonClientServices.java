@@ -48,6 +48,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
                 get(DaemonServerConnector.class),
                 get(DaemonRegistry.class),
                 get(DaemonContext.class),
+                "password",
                 new DefaultDaemonCommandExecuter(getLoggingServices(), get(ExecutorFactory.class)), get(ExecutorFactory.class)
             );
         }

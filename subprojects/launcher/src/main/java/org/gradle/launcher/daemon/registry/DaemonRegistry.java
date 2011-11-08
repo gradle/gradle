@@ -30,7 +30,7 @@ public interface DaemonRegistry {
     List<DaemonInfo> getIdle();
     List<DaemonInfo> getBusy();
     
-    void store(Address address, DaemonContext daemonContext);
+    void store(Address address, DaemonContext daemonContext, String password);
     void remove(Address address);
     void markBusy(Address address);
     void markIdle(Address address);

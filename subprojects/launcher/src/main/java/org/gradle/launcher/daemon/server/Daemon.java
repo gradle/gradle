@@ -46,6 +46,7 @@ public class Daemon implements Runnable, Stoppable {
     private final DaemonRegistry daemonRegistry;
     private final DaemonContext daemonContext;
     private final DaemonCommandExecuter commandExecuter;
+    private final String password;
 
     private DaemonStateCoordinator stateCoordinator;
 
@@ -62,10 +63,11 @@ public class Daemon implements Runnable, Stoppable {
      * @param connector The provider of server connections for this daemon
      * @param daemonRegistry The registry that this daemon should advertise itself in
      */
-    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory) {
+    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, String password, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory) {
         this.connector = connector;
         this.daemonRegistry = daemonRegistry;
         this.daemonContext = daemonContext;
+        this.password = password;
         this.commandExecuter = commandExecuter;
         handlersExecutor = executorFactory.create("Daemon Connection Handler");
     }
@@ -111,7 +113,7 @@ public class Daemon implements Runnable, Stoppable {
                 }
             });
 
-            registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, connectorAddress);
+            registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, password, connectorAddress);
             
             Runnable onStart = new Runnable() {
                 public void run() {

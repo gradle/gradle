@@ -120,14 +120,14 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         }
     }
 
-    public synchronized void store(final Address address, final DaemonContext daemonContext) {
+    public synchronized void store(final Address address, final DaemonContext daemonContext, final String password) {
         cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
             public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
                 if (oldValue == null) {
                     //it means the registry didn't exist yet
                     oldValue = new DaemonRegistryContent();
                 }
-                DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext).setIdle(true);
+                DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, password).setIdle(true);
                 oldValue.setStatus(address, daemonInfo);
                 return oldValue;
             }

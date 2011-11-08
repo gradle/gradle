@@ -51,6 +51,7 @@ public class DaemonServices extends DefaultServiceRegistry {
                 new DaemonTcpServerConnector(),
                 get(DaemonRegistry.class),
                 get(DaemonContext.class),
+                "password",
                 new DefaultDaemonCommandExecuter(
                         loggingServices,
                         get(ExecutorFactory.class)),

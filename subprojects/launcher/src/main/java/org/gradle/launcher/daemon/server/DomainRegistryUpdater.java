@@ -31,11 +31,13 @@ class DomainRegistryUpdater {
 
     private final DaemonRegistry daemonRegistry;
     private final DaemonContext daemonContext;
+    private final String password;
     private final Address connectorAddress;
 
-    public DomainRegistryUpdater(DaemonRegistry daemonRegistry, DaemonContext daemonContext, Address connectorAddress) {
+    public DomainRegistryUpdater(DaemonRegistry daemonRegistry, DaemonContext daemonContext, String password, Address connectorAddress) {
         this.daemonRegistry = daemonRegistry;
         this.daemonContext = daemonContext;
+        this.password = password;
         this.connectorAddress = connectorAddress;
     }
 
@@ -59,7 +61,7 @@ class DomainRegistryUpdater {
 
     public void onStart() {
         LOGGER.info("Advertising the daemon address to the clients: " + connectorAddress);
-        daemonRegistry.store(connectorAddress, daemonContext);
+        daemonRegistry.store(connectorAddress, daemonContext, password);
     }
 
     public void onStop() {

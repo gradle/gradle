@@ -28,11 +28,13 @@ public class DaemonInfo implements Serializable {
 
     private final Address address;
     private final DaemonContext context;
+    private final String password;
     private boolean idle = true;
 
-    public DaemonInfo(Address address, DaemonContext context) {
+    public DaemonInfo(Address address, DaemonContext context, String password) {
         this.address = address;
         this.context = context;
+        this.password = password;
     }
 
     public DaemonInfo setIdle(boolean idle) {
@@ -50,6 +52,10 @@ public class DaemonInfo implements Serializable {
 
     public boolean isIdle() {
         return idle;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     @Override

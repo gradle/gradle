@@ -62,7 +62,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
      * Stops all daemons, if any is running.
      */
     public void stop() {
-        Connection<Object> connection = connector.maybeConnect();
+        DaemonConnection connection = connector.maybeConnect();
         if (connection == null) {
             LOGGER.lifecycle("No Gradle daemons are running.");
             return;
@@ -71,7 +71,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         LOGGER.lifecycle("At least one daemon is running. Sending stop command...");
         //iterate and stop all daemons
         while (connection != null) {
-            new StopDispatcher().dispatch(clientMetaData, connection);
+            new StopDispatcher().dispatch(clientMetaData, connection.getConnection());
             LOGGER.lifecycle("Gradle daemon stopped.");
             connection = connector.maybeConnect();
         }
@@ -87,9 +87,9 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         LOGGER.warn("Note: the Gradle build daemon is an experimental feature.");
         LOGGER.warn("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.");
         while(true) {
-            Connection<Object> connection = connector.connect();
+            DaemonConnection daemonConnection = connector.connect();
 
-            Result<T> result = runBuild(new Build(action, parameters), connection);
+            Result<T> result = runBuild(new Build(action, parameters), daemonConnection.getConnection());
             if (result instanceof DaemonBusy) {
                 continue; // try a different daemon
             } else if (result instanceof Failure) {

@@ -28,20 +28,26 @@ import spock.lang.Specification
 
 class DaemonClientTest extends Specification {
     final DaemonConnector connector = Mock()
+    final DaemonConnection daemonConnection = Mock()
     final Connection<Object> connection = Mock()
     final BuildClientMetaData metaData = Mock()
     final OutputEventListener outputEventListener = Mock()
     final DaemonClient client = new DaemonClient(connector, metaData, outputEventListener)
+
+    def setup() {
+        _ * daemonConnection.getConnection() >> connection
+    }
 
     def stopsTheDaemonWhenRunning() {
         when:
         client.stop()
 
         then:
-        2 * connector.maybeConnect() >>> [connection, null]
+        2 * connector.maybeConnect() >>> [daemonConnection, null]
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new Success(null)
         1 * connection.stop()
+        _ * daemonConnection.getConnection() >> connection // why do I need this? Why doesn't the interaction specified in setup cover me?
         0 * _._
     }
 
@@ -50,7 +56,7 @@ class DaemonClientTest extends Specification {
         client.stop()
 
         then:
-        3 * connector.maybeConnect() >>> [connection, connection, null]
+        3 * connector.maybeConnect() >>> [daemonConnection, daemonConnection, null]
         2 * connection.dispatch({it instanceof Stop})
         2 * connection.receive() >> new Success(null)
     }
@@ -73,7 +79,7 @@ class DaemonClientTest extends Specification {
 
         then:
         result == '[result]'
-        1 * connector.connect() >> connection
+        1 * connector.connect() >> daemonConnection
         1 * connection.dispatch({it instanceof Build})
         1 * connection.receive() >> new Success('[result]')
         1 * connection.stop()
@@ -90,7 +96,7 @@ class DaemonClientTest extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * connector.connect() >> connection
+        1 * connector.connect() >> daemonConnection
         1 * connection.dispatch({it instanceof Build})
         1 * connection.receive() >> new CommandFailure(failure)
         1 * connection.stop()
