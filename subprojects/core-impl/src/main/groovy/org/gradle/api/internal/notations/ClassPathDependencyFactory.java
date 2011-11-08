@@ -52,7 +52,7 @@ public class ClassPathDependencyFactory implements IDependencyImplementationFact
     }
 
     public SelfResolvingDependency parseNotation(Object notation) {
-        assert notation instanceof DependencyFactory.ClassPathNotation : "Parser only accepts DependencyFactory.ClassPathNotation instances";
+        assert canParse(notation) : "Parser only accepts DependencyFactory.ClassPathNotation instances";
 
         DependencyFactory.ClassPathNotation classPathNotation = (DependencyFactory.ClassPathNotation) notation;
         FileCollection files = fileResolver.resolveFiles(classPathRegistry.getClassPathFiles(classPathNotation.name()));
