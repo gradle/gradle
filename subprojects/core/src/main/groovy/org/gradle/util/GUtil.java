@@ -44,6 +44,12 @@ public class GUtil {
         return flatten(elements, addTo, true);
     }
 
+    public static <T extends Collection> T flatten(Object ... elements) {
+        Collection<T> out = new LinkedList<T>();
+        flatten(elements, out, true);
+        return (T) out;
+    }
+
     public static <T extends Collection> T flatten(Collection elements, T addTo, boolean flattenMapsAndArrays) {
         //TODO SF - for some reason, flattening of arrays is controlled by flattenMaps. Consider some refactorings.
         return flatten(elements, addTo, flattenMapsAndArrays, flattenMapsAndArrays);

@@ -129,4 +129,9 @@ public class GUtilTest extends spock.lang.Specification {
 
         normalize([[1], [hey: 'man']]) == [1, [hey: 'man']]
     }
+
+    def "flattens"() {
+        expect:
+        flatten(1, [2,3]) == [1,2,3]
+    }
 }
