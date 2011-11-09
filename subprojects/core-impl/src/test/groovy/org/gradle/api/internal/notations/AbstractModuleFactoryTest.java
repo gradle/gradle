@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.notations;
 
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
-import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.util.HelperUtil;
 import org.gradle.util.GUtil;
+import org.gradle.util.HelperUtil;
 import org.junit.Test;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.*;
 
 import java.awt.*;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter

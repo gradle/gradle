@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.internal.DirectInstantiator;
-import org.gradle.api.internal.artifacts.dsl.dependencies.AbstractModuleFactoryTest;
 import org.gradle.util.GUtil;
 import org.junit.Test;
 
