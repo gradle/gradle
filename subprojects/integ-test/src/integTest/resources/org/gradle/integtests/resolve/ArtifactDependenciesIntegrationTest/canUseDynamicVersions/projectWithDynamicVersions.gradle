@@ -22,7 +22,7 @@ task listJars << {
     def jars = compile.collect { it.name }
     assert ['projectA-1.2.jar', 'projectB-1.5.jar'] == jars
 
-    def artifacts = compile.resolvedConfiguration.resolvedArtifacts.collect { "$it.name-$it.module.id.version.$it.extension" }
+    def artifacts = compile.resolvedConfiguration.resolvedArtifacts.collect { "$it.name-$it.moduleVersion.id.version.$it.extension" }
     assert ['projectA-1.2.jar', 'projectB-1.5.jar'] == artifacts
 
     def projectA = compile.resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleName == 'projectA' }

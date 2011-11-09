@@ -327,6 +327,6 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def artifacts(LenientConfiguration config) {
-        return config.resolvedArtifacts.collect { it.module.id } as Set
+        return config.resolvedArtifacts.collect { it.moduleVersion.id } as Set
     }
 }

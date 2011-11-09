@@ -45,7 +45,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
         return resolvedDependency;
     }
 
-    public ResolvedModuleVersion getModule() {
+    public ResolvedModuleVersion getModuleVersion() {
         return resolvedDependency.getModule();
     }
 

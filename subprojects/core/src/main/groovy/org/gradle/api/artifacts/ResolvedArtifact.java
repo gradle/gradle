@@ -30,13 +30,13 @@ public interface ResolvedArtifact {
      *
      * @return The module.
      */
-    ResolvedModuleVersion getModule();
+    ResolvedModuleVersion getModuleVersion();
 
     /**
      * Returns one of the dependencies which this artifact belongs to.
      *
      * @return One of the dependencies which this artifact belongs to.
-     * @deprecated An artifact can belong to multiple dependencies. Use {@link #getModule()} instead.
+     * @deprecated An artifact can belong to multiple dependencies. Use {@link #getModuleVersion()} instead.
      */
     @Deprecated
     ResolvedDependency getResolvedDependency();
