@@ -17,7 +17,6 @@
 package org.gradle.api.internal.notations;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 
 import java.util.Set;
@@ -27,35 +26,23 @@ import java.util.Set;
  */
 public class DependencyNotationParser implements TopLevelNotationParser {
 
-    private final Set<NotationParser<? extends Dependency>> notationParsers;
+    private final DefaultNotationParser<Dependency> parser;
 
     //TODO SF - add some coverage when finished refactoring, also add integration coverage for unhappy path
     public DependencyNotationParser(Set<NotationParser<? extends Dependency>> notationParsers) {
-        this.notationParsers = notationParsers;
+        parser = new NotationParserBuilder()
+                .resultingType(Dependency.class)
+                .parsers((Set) notationParsers)
+                //TODO SF - definitely improve the error message, provide examples or link to docs
+                .invalidNotationMessage("Provided dependency notation is invalid.")
+                .build();
     }
 
     public Dependency parseNotation(Object dependencyNotation) {
-        if (dependencyNotation instanceof Dependency) {
-            return (Dependency) dependencyNotation;
+        try {
+            return parser.parseSingleNotation(dependencyNotation);
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not create a dependency using notation: %s", dependencyNotation), e);
         }
-
-        Dependency dependency = null;
-        for (NotationParser<? extends Dependency> notationParser : notationParsers) {
-            try {
-                if (notationParser.canParse(dependencyNotation)) {
-                    dependency = notationParser.parseNotation(dependencyNotation);
-                    break;
-                }
-            } catch (Exception e) {
-                //TODO SF feels like this exception does not belong here
-                throw new GradleException(String.format("Could not create a dependency using notation: %s", dependencyNotation), e);
-            }
-        }
-
-        if (dependency == null) {
-            throw new InvalidUserDataException(String.format("The dependency notation: %s is invalid.",
-                    dependencyNotation));
-        }
-        return dependency;
     }
 }

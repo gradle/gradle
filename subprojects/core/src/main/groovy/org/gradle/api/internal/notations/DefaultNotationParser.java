@@ -21,13 +21,12 @@ import org.gradle.util.GUtil;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import static org.codehaus.groovy.runtime.InvokerHelper.asList;
-
 /**
  * To drive consistency in our approach to notations.
  * Deals with:
  * 1. short-circuiting if notation is instance of the resulting type
  * 2. flattening collections and arrays
+ * See also NotationParserBuilder
  *
  * by Szczepan Faber, created at: 11/8/11
  */
@@ -35,8 +34,8 @@ public class DefaultNotationParser<T> {
 
     private final Collection<NotationParser<T>> delegates;
 
-    public DefaultNotationParser(NotationParser<T>... delegates) {
-        this.delegates = asList(delegates);
+    public DefaultNotationParser(Collection<NotationParser<T>> delegates) {
+        this.delegates = delegates;
     }
 
     public Collection<T> parseNotation(Object notation) {

@@ -16,14 +16,19 @@
 
 package org.gradle.api.internal.notations;
 
+import org.gradle.util.GUtil;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Set;
+
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
 public class NotationParserBuilder {
     private Class resultingType;
-    private StringNotationParser stringNotationParser;
-    private MapNotationParser mapNotationParser;
     private String invalidNotationMessage;
+    private Collection<NotationParser> notationParsers = new LinkedList<NotationParser>();
 
     public NotationParserBuilder resultingType(Class resultingType) {
         this.resultingType = resultingType;
@@ -31,12 +36,12 @@ public class NotationParserBuilder {
     }
 
     public NotationParserBuilder stringParser(StringNotationParser stringNotationParser) {
-        this.stringNotationParser = stringNotationParser;
+        this.notationParsers.add(stringNotationParser);
         return this;
     }
 
     public NotationParserBuilder mapParser(MapNotationParser mapNotationParser) {
-        this.mapNotationParser = mapNotationParser;
+        this.notationParsers.add(mapNotationParser);
         return this;
     }
 
@@ -45,10 +50,16 @@ public class NotationParserBuilder {
         return this;
     }
 
-    public DefaultNotationParser build() {
-        return new DefaultNotationParser(new JustReturningParser(resultingType),
-                stringNotationParser,
-                mapNotationParser,
+    public NotationParserBuilder parsers(Set<NotationParser> notationParsers) {
+        this.notationParsers.addAll(notationParsers);
+        return this;
+    }
+
+    public <T> DefaultNotationParser<T> build() {
+        Collection parsers = GUtil.flattenElements(
+                new JustReturningParser(resultingType),
+                this.notationParsers,
                 new AlwaysThrowingParser(invalidNotationMessage));
+        return new DefaultNotationParser<T>(parsers);
     }
 }
