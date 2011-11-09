@@ -20,7 +20,8 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.internal.file.FileSource
 import org.gradle.util.Matchers
 import spock.lang.Specification
-import org.gradle.api.artifacts.ResolvedModule
+
+import org.gradle.api.artifacts.ResolvedModuleVersion
 
 class DefaultResolvedArtifactTest extends Specification {
     final FileSource artifactSource = Mock()
@@ -74,9 +75,9 @@ class DefaultResolvedArtifactTest extends Specification {
 
     def dep(String group, String moduleName, String version) {
         ResolvedDependency dependency = Mock()
-        ResolvedModule module = Mock()
+        ResolvedModuleVersion module = Mock()
         _ * dependency.module >> module
-        _ * module.id >> new DefaultResolvedModuleId(group, moduleName, version)
+        _ * module.id >> new DefaultModuleVersionIdentifier(group, moduleName, version)
         return dependency
     }
 }

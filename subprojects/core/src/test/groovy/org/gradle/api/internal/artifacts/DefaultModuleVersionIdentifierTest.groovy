@@ -18,20 +18,20 @@ package org.gradle.api.internal.artifacts
 import spock.lang.Specification
 import static org.gradle.util.Matchers.strictlyEqual
 
-class DefaultResolvedModuleIdTest extends Specification {
+class DefaultModuleVersionIdentifierTest extends Specification {
     def "has useful toString()"() {
-        def module = new DefaultResolvedModuleId("group", "module", "version")
+        def module = new DefaultModuleVersionIdentifier("group", "module", "version")
 
         expect:
         module.toString() == "[group: group, module: module, version: version]"
     }
 
     def "ids are equal when group, module and version are equal"() {
-        def module = new DefaultResolvedModuleId("group", "module", "version")
-        def same = new DefaultResolvedModuleId("group", "module", "version")
-        def differentGroup = new DefaultResolvedModuleId("other", "module", "version")
-        def differentModule = new DefaultResolvedModuleId("group", "other", "version")
-        def differentVersion = new DefaultResolvedModuleId("group", "module", "other")
+        def module = new DefaultModuleVersionIdentifier("group", "module", "version")
+        def same = new DefaultModuleVersionIdentifier("group", "module", "version")
+        def differentGroup = new DefaultModuleVersionIdentifier("other", "module", "version")
+        def differentModule = new DefaultModuleVersionIdentifier("group", "other", "version")
+        def differentVersion = new DefaultModuleVersionIdentifier("group", "module", "other")
 
         expect:
         module strictlyEqual(same)

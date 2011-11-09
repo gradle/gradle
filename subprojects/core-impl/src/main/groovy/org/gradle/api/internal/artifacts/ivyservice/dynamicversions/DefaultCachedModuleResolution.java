@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.ResolvedModule;
+import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.util.TimeProvider;
 
 import java.io.Serializable;
@@ -44,8 +44,8 @@ class DefaultCachedModuleResolution implements ModuleResolutionCache.CachedModul
         return resolvedVersion;
     }
 
-    public ResolvedModule getResolvedModule() {
-        return new DefaultResolvedModule(resolvedVersion);
+    public ResolvedModuleVersion getResolvedModule() {
+        return new DefaultResolvedModuleVersion(resolvedVersion);
     }
 
     public long getAgeMillis() {

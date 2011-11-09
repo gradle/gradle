@@ -19,12 +19,13 @@ import spock.lang.Specification
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.module.id.ModuleId
-import org.gradle.api.internal.artifacts.DefaultResolvedModuleId
+
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 
 class VersionForcingDependencyToModuleResolverTest extends Specification {
     final DependencyToModuleResolver target = Mock()
     final ModuleRevisionId forced = new ModuleRevisionId(new ModuleId('group', 'module'), 'forced')
-    final VersionForcingDependencyToModuleResolver resolver = new VersionForcingDependencyToModuleResolver(target, [new DefaultResolvedModuleId('group', 'module', 'forced')])
+    final VersionForcingDependencyToModuleResolver resolver = new VersionForcingDependencyToModuleResolver(target, [new DefaultModuleVersionIdentifier('group', 'module', 'forced')])
 
     def "passes through dependency when it does not match any forced group and module"() {
         ModuleVersionResolver version = Mock()

@@ -84,7 +84,7 @@ public interface ResolutionStrategy {
      *
      * @return forced modules
      */
-    Set<ModuleIdentifier> getForcedModules();
+    Set<ModuleVersionIdentifier> getForcedModules();
 
     /**
      * Sets the length of time that dynamic versions will be cached, with units expressed as a String.

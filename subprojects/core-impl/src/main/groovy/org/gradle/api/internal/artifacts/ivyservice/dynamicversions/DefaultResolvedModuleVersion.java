@@ -16,18 +16,18 @@
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ResolvedModule;
-import org.gradle.api.internal.artifacts.DefaultResolvedModuleId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
-public class DefaultResolvedModule implements ResolvedModule {
+public class DefaultResolvedModuleVersion implements ResolvedModuleVersion {
     private final ModuleRevisionId moduleRevisionId;
 
-    public DefaultResolvedModule(ModuleRevisionId moduleRevisionId) {
+    public DefaultResolvedModuleVersion(ModuleRevisionId moduleRevisionId) {
         this.moduleRevisionId = moduleRevisionId;
     }
 
-    public ModuleIdentifier getId() {
-        return new DefaultResolvedModuleId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+    public ModuleVersionIdentifier getId() {
+        return new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
     }
 }

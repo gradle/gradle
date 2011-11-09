@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.ResolvedModule;
+import org.gradle.api.artifacts.ResolvedModuleVersion;
 
 public interface ModuleResolutionCache {
 
@@ -30,7 +30,7 @@ public interface ModuleResolutionCache {
     interface CachedModuleResolution {
         ModuleRevisionId getRequestedVersion();
         ModuleRevisionId getResolvedVersion();
-        ResolvedModule getResolvedModule();
+        ResolvedModuleVersion getResolvedModule();
 
         boolean isDynamicVersion();
         boolean isChangingModule();

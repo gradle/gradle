@@ -30,7 +30,7 @@ public interface ResolvedArtifact {
      *
      * @return The module.
      */
-    ResolvedModule getModule();
+    ResolvedModuleVersion getModule();
 
     /**
      * Returns one of the dependencies which this artifact belongs to.

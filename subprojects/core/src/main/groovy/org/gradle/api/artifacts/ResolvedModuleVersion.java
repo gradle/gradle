@@ -16,27 +16,12 @@
 package org.gradle.api.artifacts;
 
 /**
- * The identifier of a module.
+ * Represents meta-data about a resolved module version.
  */
-public interface ModuleIdentifier {
+public interface ResolvedModuleVersion {
     /**
-     * The group of the module.
-     *
-     * @return module group
+     * The identifier of this resolved module version.
+     * @return the identifier
      */
-    String getGroup();
-
-    /**
-     * The name of the module.
-     *
-     * @return module name
-     */
-    String getName();
-
-    /**
-     * The version of the module
-     *
-     * @return module version
-     */
-    String getVersion();
+    ModuleVersionIdentifier getId();
 }

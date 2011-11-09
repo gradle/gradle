@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 
-import org.gradle.api.artifacts.ModuleIdentifier
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ForcedModuleBuilder.InvalidNotationFormat
 import org.gradle.api.internal.artifacts.configurations.ForcedModuleBuilder.InvalidNotationType
 import spock.lang.Specification
@@ -49,7 +49,7 @@ public class ForcedModuleBuilderTest extends Specification {
     }
 
     def "allows exact type on input"() {
-        ModuleIdentifier id = ForcedModuleBuilder.identifier("org.foo", "bar", "2.0")
+        ModuleVersionIdentifier id = ForcedModuleBuilder.identifier("org.foo", "bar", "2.0")
 
         when:
         def v = new ForcedModuleBuilder().build(id) as List
@@ -62,7 +62,7 @@ public class ForcedModuleBuilderTest extends Specification {
     }
 
     def "allows list of objects on input"() {
-        ModuleIdentifier id = ForcedModuleBuilder.identifier("org.foo", "bar", "2.0")
+        ModuleVersionIdentifier id = ForcedModuleBuilder.identifier("org.foo", "bar", "2.0")
 
         when:
         def v = new ForcedModuleBuilder().build([id, ["hey:man:1.0"], [group:'i', name:'like', version:'maps']]) as List

@@ -15,27 +15,24 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
-//TODO SF - can we call it DefaultModuleIdentifier or something similar?
-public class DefaultResolvedModuleId implements ModuleIdentifier {
+public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
     private String group;
     private String name;
     private String version;
 
-    public DefaultResolvedModuleId(String group, String name, String version) {
+    public DefaultModuleVersionIdentifier(String group, String name, String version) {
         this.group = group;
         this.name = name;
         this.version = version;
     }
 
-    public DefaultResolvedModuleId() {}
-
     public String getGroup() {
         return group;
     }
 
-    public DefaultResolvedModuleId setGroup(String group) {
+    public DefaultModuleVersionIdentifier setGroup(String group) {
         this.group = group;
         return this;
     }
@@ -44,7 +41,7 @@ public class DefaultResolvedModuleId implements ModuleIdentifier {
         return name;
     }
 
-    public DefaultResolvedModuleId setName(String name) {
+    public DefaultModuleVersionIdentifier setName(String name) {
         this.name = name;
         return this;
     }
@@ -53,7 +50,7 @@ public class DefaultResolvedModuleId implements ModuleIdentifier {
         return version;
     }
 
-    public DefaultResolvedModuleId setVersion(String version) {
+    public DefaultModuleVersionIdentifier setVersion(String version) {
         this.version = version;
         return this;
     }
@@ -72,7 +69,7 @@ public class DefaultResolvedModuleId implements ModuleIdentifier {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        DefaultResolvedModuleId other = (DefaultResolvedModuleId) obj;
+        DefaultModuleVersionIdentifier other = (DefaultModuleVersionIdentifier) obj;
         if (!group.equals(other.group)) {
             return false;
         }

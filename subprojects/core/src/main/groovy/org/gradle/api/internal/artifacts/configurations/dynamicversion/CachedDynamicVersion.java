@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
-import org.gradle.api.artifacts.ResolvedModule;
+import org.gradle.api.artifacts.ResolvedModuleVersion;
 
 public interface CachedDynamicVersion {
     /**
      * @return The module resolved for the dynamic version.
      */
-    ResolvedModule getModule();
+    ResolvedModuleVersion getModule();
 
     /**
      * @return The age of the cached entry, in milliseconds.

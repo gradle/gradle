@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.DefaultResolvedModuleId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
@@ -30,9 +30,9 @@ import static java.util.Arrays.asList;
  */
 public class ForcedModuleBuilder {
 
-    public Set<ModuleIdentifier> build(Object notation) {
+    public Set<ModuleVersionIdentifier> build(Object notation) {
         assert notation != null : "notation cannot be null";
-        Set<ModuleIdentifier> out = new LinkedHashSet<ModuleIdentifier>();
+        Set<ModuleVersionIdentifier> out = new LinkedHashSet<ModuleVersionIdentifier>();
         Collection notations = GUtil.normalize(notation);
         for (Object n : notations) {
             out.add(parseSingleNotation(n));
@@ -41,9 +41,9 @@ public class ForcedModuleBuilder {
         return out;
     }
 
-    private ModuleIdentifier parseSingleNotation(Object notation) {
-        if (notation instanceof ModuleIdentifier) {
-            return (ModuleIdentifier) notation;
+    private ModuleVersionIdentifier parseSingleNotation(Object notation) {
+        if (notation instanceof ModuleVersionIdentifier) {
+            return (ModuleVersionIdentifier) notation;
         } else if (notation instanceof Map) {
             return parseMap((Map) notation);
         } else if (notation instanceof CharSequence) {
@@ -51,15 +51,15 @@ public class ForcedModuleBuilder {
         } else {
             throw new InvalidNotationType("Invalid notation type - it cannot be used to form the forced module.\n"
                     + "Invalid type: " + notation.getClass().getName() + ". Notation only supports following types/formats:\n"
-                    + "  1. instances of ModuleIdentifier\n"
+                    + "  1. instances of ModuleVersionIdentifier\n"
                     + "  2. Strings (actually CharSequences), e.g. 'org.gradle:gradle-core:1.0'\n"
                     + "  3. Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0']\n"
                     + "  4. A Collection or array of above (nested collections/arrays will be flattened)\n");
         }
     }
 
-    private ModuleIdentifier parseMap(Map notation) {
-        ModuleIdentifier out = new DefaultResolvedModuleId(null, null, null);
+    private ModuleVersionIdentifier parseMap(Map notation) {
+        ModuleVersionIdentifier out = new DefaultModuleVersionIdentifier(null, null, null);
         List<String> mandatoryKeys = asList("group", "name", "version");
         try {
             ConfigureUtil.configureByMap(notation, out, mandatoryKeys);
@@ -70,7 +70,7 @@ public class ForcedModuleBuilder {
         return out;
     }
 
-    private ModuleIdentifier parseString(Object notation) {
+    private ModuleVersionIdentifier parseString(Object notation) {
         String[] split = notation.toString().split(":");
         if (split.length != 3) {
             throw new InvalidNotationFormat(
@@ -83,8 +83,8 @@ public class ForcedModuleBuilder {
         return identifier(group, name, version);
     }
 
-    static ModuleIdentifier identifier(final String group, final String name, final String version) {
-        return new DefaultResolvedModuleId(group, name, version);
+    static ModuleVersionIdentifier identifier(final String group, final String name, final String version) {
+        return new DefaultModuleVersionIdentifier(group, name, version);
     }
 
     public static class InvalidNotationFormat extends RuntimeException {

@@ -17,7 +17,7 @@ package org.gradle.api.artifacts;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
-import org.gradle.api.internal.artifacts.DefaultResolvedModuleId;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.file.FileSource;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -47,12 +47,12 @@ public class ArtifactsTestUtils {
             will(returnValue(file));
         }});
         final ResolvedDependency resolvedDependency = context.mock(ResolvedDependency.class);
-        final ResolvedModule resolvedModule = context.mock(ResolvedModule.class);
+        final ResolvedModuleVersion version = context.mock(ResolvedModuleVersion.class);
         context.checking(new Expectations() {{
             allowing(resolvedDependency).getModule();
-            will(returnValue(resolvedModule));
-            allowing(resolvedModule).getId();
-            will(returnValue(new DefaultResolvedModuleId("group", name, "1.2")));
+            will(returnValue(version));
+            allowing(version).getId();
+            will(returnValue(new DefaultModuleVersionIdentifier("group", name, "1.2")));
         }});
         return new DefaultResolvedArtifact(resolvedDependency, artifactStub, artifactSource);
     }

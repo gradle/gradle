@@ -53,7 +53,7 @@ public interface ResolvedDependency {
      *
      * @return The module.
      */
-    ResolvedModule getModule();
+    ResolvedModuleVersion getModule();
 
     /**
      * Returns the transitive ResolvedDependency instances of this resolved dependency. Returns never null.

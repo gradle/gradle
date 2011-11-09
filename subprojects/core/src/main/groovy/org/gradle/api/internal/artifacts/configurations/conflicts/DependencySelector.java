@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.configurations.conflicts;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.IvyNode;
-import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.Set;
 
@@ -28,9 +28,9 @@ import java.util.Set;
  * by Szczepan Faber, created at: 10/5/11
  */
 public class DependencySelector {
-    private final Set<ModuleIdentifier> forcedModules;
+    private final Set<ModuleVersionIdentifier> forcedModules;
 
-    public DependencySelector(Set<ModuleIdentifier> forcedModules) {
+    public DependencySelector(Set<ModuleVersionIdentifier> forcedModules) {
         this.forcedModules = forcedModules;
     }
 
@@ -38,7 +38,7 @@ public class DependencySelector {
         if (forcedModules == null) {
             return null;
         }
-        for (ModuleIdentifier f : forcedModules) {
+        for (ModuleVersionIdentifier f : forcedModules) {
             ModuleRevisionId forcedId = ModuleRevisionId.newInstance(f.getGroup(), f.getName(), f.getVersion());
             if (forcedId.equals(lhs.getId())) {
                 return lhs;

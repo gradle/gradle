@@ -19,7 +19,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
-import org.gradle.api.artifacts.ResolvedModule;
+import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.file.FileSource;
 import org.gradle.util.DeprecationLogger;
 
@@ -45,7 +45,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
         return resolvedDependency;
     }
 
-    public ResolvedModule getModule() {
+    public ResolvedModuleVersion getModule() {
         return resolvedDependency.getModule();
     }
 

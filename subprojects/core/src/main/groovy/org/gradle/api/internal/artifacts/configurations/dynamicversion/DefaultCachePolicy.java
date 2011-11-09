@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
-import org.gradle.api.artifacts.ResolvedModule;
+import org.gradle.api.artifacts.ResolvedModuleVersion;
 
 import java.util.concurrent.TimeUnit;
 
@@ -33,11 +33,11 @@ public class DefaultCachePolicy implements CachePolicy {
         changingModuleExpiry = new Duration(value, units);
     }
 
-    public boolean mustRefreshDynamicVersion(final ResolvedModule module, final long ageMillis) {
+    public boolean mustRefreshDynamicVersion(final ResolvedModuleVersion version, final long ageMillis) {
         return ageMillis >= dynamicVersionExpiry.getMillis();
     }
 
-    public boolean mustRefreshChangingModule(final ResolvedModule module, final long ageMillis) {
+    public boolean mustRefreshChangingModule(final ResolvedModuleVersion version, final long ageMillis) {
         return ageMillis >= changingModuleExpiry.getMillis();
     }
 

@@ -30,9 +30,9 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.apache.ivy.plugins.version.VersionMatcher
 import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ModuleIdentifier
+
 import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.api.internal.artifacts.DefaultResolvedModuleId
+
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor
 import org.gradle.api.specs.Spec
@@ -40,6 +40,8 @@ import spock.lang.Specification
 import org.gradle.api.internal.artifacts.ivyservice.*
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 
 class DependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
@@ -308,12 +310,12 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def ids(ModuleDescriptor... descriptors) {
-        return descriptors.collect { new DefaultResolvedModuleId(it.moduleRevisionId.organisation, it.moduleRevisionId.name, it.moduleRevisionId.revision)} as Set
+        return descriptors.collect { new DefaultModuleVersionIdentifier(it.moduleRevisionId.organisation, it.moduleRevisionId.name, it.moduleRevisionId.revision)} as Set
     }
 
     def modules(LenientConfiguration config) {
         config.rethrowFailure()
-        Set<ModuleIdentifier> result = new LinkedHashSet<ModuleIdentifier>()
+        Set<ModuleVersionIdentifier> result = new LinkedHashSet<ModuleVersionIdentifier>()
         List<ResolvedDependency> queue = []
         queue.addAll(config.getFirstLevelModuleDependencies({true} as Spec))
         while (!queue.empty) {
