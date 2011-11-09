@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
-import org.gradle.api.internal.artifacts.dsl.dependencies.MapModuleNotationParser;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
 
