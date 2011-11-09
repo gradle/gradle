@@ -132,6 +132,6 @@ public class GUtilTest extends spock.lang.Specification {
 
     def "flattens"() {
         expect:
-        flatten(1, [2,3]) == [1,2,3]
+        flattenElements(1, [2,3]) == [1,2,3]
     }
 }

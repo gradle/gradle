@@ -44,7 +44,7 @@ public class GUtil {
         return flatten(elements, addTo, true);
     }
 
-    public static <T extends Collection> T flatten(Object ... elements) {
+    public static <T extends Collection> T flattenElements(Object... elements) {
         Collection<T> out = new LinkedList<T>();
         flatten(elements, out, true);
         return (T) out;
