@@ -18,32 +18,206 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import java.awt.Point
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.Module
+import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import org.hamcrest.Matchers
 import spock.lang.Specification
-import static org.junit.Assert.assertThat
 
 /**
  * @author Hans Dockter
  */
 public class DefaultPublishArtifactFactoryTest extends Specification {
-    private DefaultPublishArtifactFactory publishArtifactFactory = new DefaultPublishArtifactFactory();
+    final DependencyMetaDataProvider provider = Mock()
+    private DefaultPublishArtifactFactory publishArtifactFactory = new DefaultPublishArtifactFactory(provider)
 
-    def createArtifact() {
-        AbstractArchiveTask archiveTaskMock = Mock()
-        archiveTaskMock.getArchivePath() >> new File("")
+    def setup() {
+        Module module = Mock()
+        _ * provider.module >> module
+        _ * module.version >> '1.2'
+    }
+
+    def createArtifactFromPublishArtifactInstance() {
+        PublishArtifact original = Mock()
 
         when:
-        ArchivePublishArtifact publishArtifact = (ArchivePublishArtifact) publishArtifactFactory.createArtifact(archiveTaskMock);
+        def publishArtifact = publishArtifactFactory.createArtifact(original)
 
         then:
-        assertThat(publishArtifact.getArchiveTask(), Matchers.sameInstance(archiveTaskMock));
+        publishArtifact == original
+    }
+
+    def createArtifactFromArchiveTask() {
+        AbstractArchiveTask archiveTask = Mock()
+        archiveTask.getArchivePath() >> new File("")
+
+        when:
+        def publishArtifact = publishArtifactFactory.createArtifact(archiveTask)
+
+        then:
+        publishArtifact instanceof ArchivePublishArtifact
+        publishArtifact.archiveTask == archiveTask
+    }
+
+    def createArtifactFromFile() {
+        def file = new File("some.zip")
+
+        when:
+        def publishArtifact = publishArtifactFactory.createArtifact(file)
+
+        then:
+        publishArtifact instanceof DefaultPublishArtifact
+        publishArtifact.file == file
+    }
+
+    def determinesArtifactPropertiesFromFileName() {
+        def file1 = new File("some.zip")
+        def file2 = new File("some.zip.zip")
+        def file3 = new File(".zip")
+
+        when:
+        def publishArtifact = publishArtifactFactory.createArtifact(file1)
+
+        then:
+        publishArtifact.name == 'some'
+        publishArtifact.type == 'zip'
+        publishArtifact.extension == 'zip'
+        publishArtifact.classifier == null
+
+        when:
+        publishArtifact = publishArtifactFactory.createArtifact(file2)
+
+        then:
+        publishArtifact.name == 'some.zip'
+        publishArtifact.type == 'zip'
+        publishArtifact.extension == 'zip'
+        publishArtifact.classifier == null
+
+        when:
+        publishArtifact = publishArtifactFactory.createArtifact(file3)
+
+        then:
+        publishArtifact.name == ''
+        publishArtifact.type == 'zip'
+        publishArtifact.extension == 'zip'
+        publishArtifact.classifier == null
+    }
+
+    def handlesFileWithNoExtension() {
+        def file = new File("some-file")
+
+        when:
+        def publishArtifact = publishArtifactFactory.createArtifact(file)
+
+        then:
+        publishArtifact.file == file
+        publishArtifact.name == 'some-file'
+        publishArtifact.type == null
+        publishArtifact.extension == null
+        publishArtifact.classifier == null
+    }
+
+    def removesProjectVersionFromFileName() {
+        def file1 = new File("some-file-1.2.jar")
+        def file2 = new File("some-file-1.2-1.2.jar")
+        def file3 = new File("some-file-1.22.jar")
+        def file4 = new File("some-file-1.2.jar.jar")
+
+        when:
+        def publishArtifact = publishArtifactFactory.createArtifact(file1)
+
+        then:
+        publishArtifact.name == 'some-file'
+        publishArtifact.type == 'jar'
+        publishArtifact.extension == 'jar'
+        publishArtifact.classifier == null
+
+        when:
+        publishArtifact = publishArtifactFactory.createArtifact(file2)
+
+        then:
+        publishArtifact.name == 'some-file-1.2'
+        publishArtifact.type == 'jar'
+        publishArtifact.extension == 'jar'
+        publishArtifact.classifier == null
+
+        when:
+        publishArtifact = publishArtifactFactory.createArtifact(file3)
+
+        then:
+        publishArtifact.name == 'some-file-1.22'
+        publishArtifact.type == 'jar'
+        publishArtifact.extension == 'jar'
+        publishArtifact.classifier == null
+
+        when:
+        publishArtifact = publishArtifactFactory.createArtifact(file4)
+
+        then:
+        publishArtifact.name == 'some-file-1.2.jar'
+        publishArtifact.type == 'jar'
+        publishArtifact.extension == 'jar'
+        publishArtifact.classifier == null
+    }
+
+    def determinesClassifierFromFileName() {
+        def file1 = new File("some-file-1.2-classifier.jar")
+        def file2 = new File("some-file-1.2-classifier-1.2.jar")
+        def file3 = new File("-1.2-classifier.jar")
+        def file4 = new File("some-file-1.2-classifier")
+        def file5 = new File("some-file-1.2-.jar")
+
+        when:
+        def publishArtifact = publishArtifactFactory.createArtifact(file1)
+
+        then:
+        publishArtifact.name == 'some-file'
+        publishArtifact.type == 'jar'
+        publishArtifact.extension == 'jar'
+        publishArtifact.classifier == 'classifier'
+
+        when:
+        publishArtifact = publishArtifactFactory.createArtifact(file2)
+
+        then:
+        publishArtifact.name == 'some-file-1.2-classifier'
+        publishArtifact.type == 'jar'
+        publishArtifact.extension == 'jar'
+        publishArtifact.classifier == null
+
+        when:
+        publishArtifact = publishArtifactFactory.createArtifact(file3)
+
+        then:
+        publishArtifact.name == ''
+        publishArtifact.type == 'jar'
+        publishArtifact.extension == 'jar'
+        publishArtifact.classifier == 'classifier'
+
+        when:
+        publishArtifact = publishArtifactFactory.createArtifact(file4)
+
+        then:
+        publishArtifact.name == 'some-file'
+        publishArtifact.type == null
+        publishArtifact.extension == null
+        publishArtifact.classifier == 'classifier'
+
+        when:
+        publishArtifact = publishArtifactFactory.createArtifact(file5)
+
+        then:
+        publishArtifact.name == 'some-file'
+        publishArtifact.type == 'jar'
+        publishArtifact.extension == 'jar'
+        publishArtifact.classifier == null
     }
 
     public void createArtifactWithNullNotationShouldThrowInvalidUserDataEx() {
         when:
-        publishArtifactFactory.createArtifact(null);
+        publishArtifactFactory.createArtifact(null)
 
         then:
         thrown(InvalidUserDataException)
@@ -51,7 +225,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
 
     public void createArtifactWithUnknownNotationShouldThrowInvalidUserDataEx() {
         when:
-        publishArtifactFactory.createArtifact(new Point(1,2));
+        publishArtifactFactory.createArtifact(new Point(1, 2))
 
         then:
         thrown(InvalidUserDataException)

@@ -16,19 +16,75 @@
  
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+
+import java.io.File;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultPublishArtifactFactory implements PublishArtifactFactory {
+    private final DependencyMetaDataProvider metaDataProvider;
+
+    public DefaultPublishArtifactFactory(DependencyMetaDataProvider metaDataProvider) {
+        this.metaDataProvider = metaDataProvider;
+    }
+
     public PublishArtifact createArtifact(Object notation) {
+        if (notation instanceof PublishArtifact) {
+            return (PublishArtifact) notation;
+        }
         if (notation instanceof AbstractArchiveTask) {
             return new ArchivePublishArtifact((AbstractArchiveTask) notation);
         }
+        if (notation instanceof File) {
+            File file = (File) notation;
+            Module module = metaDataProvider.getModule();
+
+            String name = file.getName();
+            String extension = "";
+            String classifier = "";
+            boolean done = false;
+
+            int startVersion = StringUtils.lastIndexOf(name, "-" + module.getVersion());
+            if (startVersion >= 0) {
+                int endVersion = startVersion + module.getVersion().length() + 1;
+                if (endVersion == name.length()) {
+                    name = name.substring(0, startVersion);
+                    done = true;
+                } else if (endVersion < name.length() && name.charAt(endVersion) == '-') {
+                    String tail = name.substring(endVersion + 1);
+                    name = name.substring(0, startVersion);
+                    classifier = StringUtils.substringBeforeLast(tail, ".");
+                    extension = StringUtils.substringAfterLast(tail, ".");
+                    done = true;
+                } else if (endVersion < name.length() && StringUtils.lastIndexOf(name, ".") == endVersion) {
+                    extension = name.substring(endVersion + 1);
+                    name = name.substring(0, startVersion);
+                    done = true;
+                }
+            }
+            if (!done) {
+                extension = StringUtils.substringAfterLast(name, ".");
+                name = StringUtils.substringBeforeLast(name, ".");
+            }
+            if (extension.length() == 0) {
+                extension = null;
+            }
+            if (classifier.length() == 0) {
+                classifier = null;
+            }
+
+            return new DefaultPublishArtifact(name, extension, extension, classifier, null, file);
+        }
+
         throw new InvalidUserDataException("Notation is invalid for an artifact! Passed notation=" + notation);
-    }                            
+    }
 }

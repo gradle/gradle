@@ -29,34 +29,40 @@ import java.util.Date;
 public interface PublishArtifact extends Buildable {
     /**
      * Returns the name of the artifact.
+     *
+     * @return The name. Never null.
      */
     String getName();
 
     /**
-     * Returns the extension of this published artifact. Often the extendsion is the same as the type,
-     * but sometimes this is not the case. For example for an ivy xml module decsriptor, the type is
+     * Returns the extension of this published artifact. Often the extension is the same as the type,
+     * but sometimes this is not the case. For example for an ivy xml module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
-     * @see #getType()
+     * @return The extension. Never null.
      */
     String getExtension();
 
     /**
      * Returns the type of the published artifact. Often the type is the same as the extension,
-     * but sometimes this is not the case. For example for an ivy xml module decsriptor, the type is
+     * but sometimes this is not the case. For example for an ivy xml module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
-     * @see #getExtension()
+     * @return The type. Never null.
      */
     String getType();
 
     /**
-     * Returns the classifier of this published artifact. 
+     * Returns the classifier of this published artifact, if any.
+     *
+     * @return The classifier. May be null.
      */
     String getClassifier();
 
     /**
      * Returns the file of this artifact.
+     *
+     * @return The file. Never null.
      */
     File getFile();
 
@@ -64,7 +70,9 @@ public interface PublishArtifact extends Buildable {
      * Returns the date that should be used when publishing this artifact. This is used
      * in the module descriptor accompanying this artifact (the ivy.xml). If the date is
      * not specified, the current date is used. If this artifact
-     * is published without an module descriptor, this property has no relevance. 
+     * is published without an module descriptor, this property has no relevance.
+     *
+     * @return The date. May be null.
      */
     Date getDate();
 }

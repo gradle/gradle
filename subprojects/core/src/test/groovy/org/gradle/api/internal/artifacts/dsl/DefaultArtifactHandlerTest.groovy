@@ -42,57 +42,83 @@ class DefaultArtifactHandlerTest extends Specification {
 
     void setup() {
         configurationContainerStub.findByName(TEST_CONF_NAME) >> configurationMock
+        configurationContainerStub.getByName(TEST_CONF_NAME) >> configurationMock
         configurationMock.artifacts >> artifactsMock
     }
 
     void pushOneDependency() {
-        String someNotation = "someNotation"
         PublishArtifact artifactDummy = Mock()
 
         when:
-        artifactFactoryStub.createArtifact(someNotation) >> artifactDummy
-        artifactHandler."$TEST_CONF_NAME"(someNotation)
+        artifactHandler.someConf("someNotation")
 
         then:
+        1 * artifactFactoryStub.createArtifact("someNotation") >> artifactDummy
         1 * artifactsMock.add(artifactDummy)
     }
 
     void pushOneDependencyWithClosure() {
-        String someNotation = "someNotation"
-        DefaultPublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
+        PublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
 
         when:
-        artifactFactoryStub.createArtifact(someNotation) >> artifact
-        artifactHandler."$TEST_CONF_NAME"(someNotation) { type = 'source' }
+        artifactHandler.someConf("someNotation") { type = 'source' }
 
         then:
         artifact.type == 'source'
+
+        and:
+        1 * artifactFactoryStub.createArtifact("someNotation") >> artifact
         1 * artifactsMock.add(artifact)
     }
 
     void pushMultipleDependencies() {
-        String someNotation1 = "someNotation"
-        String someNotation2 = "someNotation2"
         PublishArtifact artifactDummy1 = Mock()
         PublishArtifact artifactDummy2 = Mock()
 
         when:
-        artifactFactoryStub.createArtifact(someNotation1) >> artifactDummy1
-        artifactFactoryStub.createArtifact(someNotation2) >> artifactDummy2
-        artifactHandler."$TEST_CONF_NAME"(someNotation1, someNotation2)
+        artifactHandler.someConf("someNotation", "someNotation2")
 
         then:
+        1 * artifactFactoryStub.createArtifact("someNotation") >> artifactDummy1
+        1 * artifactFactoryStub.createArtifact("someNotation2") >> artifactDummy2
         1 * artifactsMock.add(artifactDummy1)
         1 * artifactsMock.add(artifactDummy2)
 
     }
 
+    void addOneDependency() {
+        PublishArtifact artifactDummy = Mock()
+
+        when:
+        artifactHandler.add('someConf', "someNotation")
+
+        then:
+        1 * artifactFactoryStub.createArtifact("someNotation") >> artifactDummy
+        1 * artifactsMock.add(artifactDummy)
+    }
+
+    void addOneDependencyWithClosure() {
+        PublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
+
+        when:
+        artifactHandler.add('someConf', "someNotation") { type = 'source' }
+
+        then:
+        artifact.type == 'source'
+
+        and:
+        1 * artifactFactoryStub.createArtifact("someNotation") >> artifact
+        1 * artifactsMock.add(artifact)
+    }
+
     void pushToUnknownConfiguration() {
         String unknownConf = TEST_CONF_NAME + "delta"
 
+        given:
+        configurationContainerStub.findByName(unknownConf) >> null
+
         when:
         artifactHandler."$unknownConf"("someNotation")
-        configurationContainerStub.findByName(unknownConf) >> null
 
         then:
         thrown(MissingMethodException)

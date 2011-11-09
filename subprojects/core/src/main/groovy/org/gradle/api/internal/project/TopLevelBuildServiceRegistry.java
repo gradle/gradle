@@ -23,8 +23,6 @@ import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
@@ -58,7 +56,7 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.util.*;
 
-import static java.util.Arrays.*;
+import static java.util.Arrays.asList;
 
 /**
  * Contains the singleton services which are shared by all builds executed by a single {@link org.gradle.GradleLauncher}
@@ -71,10 +69,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         super(parent);
         this.startParameter = startParameter;
         add(StartParameter.class, startParameter);
-    }
-
-    protected PublishArtifactFactory createPublishArtifactFactory() {
-        return new DefaultPublishArtifactFactory();
     }
 
     protected ImportsReader createImportsReader() {

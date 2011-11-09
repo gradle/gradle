@@ -360,11 +360,10 @@ public class DefaultConfigurationTest {
         final Task artifactTaskMock = context.mock(Task.class, "artifactTask");
         final Configuration otherConfiguration = context.mock(Configuration.class);
         final TaskDependency otherArtifactTaskDependencyMock = context.mock(TaskDependency.class, "otherConfTaskDep");
-        final TaskDependency artifactTaskDependencyMock = context.mock(TaskDependency.class, "artifactTaskDep");
         final PublishArtifact otherArtifact = context.mock(PublishArtifact.class, "otherArtifact");
         final PublishArtifactSet inheritedArtifacts = new DefaultPublishArtifactSet("artifacts", toDomainObjectSet(PublishArtifact.class, otherArtifact));
         DefaultPublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
-        artifact.setTaskDependency(artifactTaskDependencyMock);
+        artifact.builtBy(artifactTaskMock);
         configuration.addArtifact(artifact);
 
         context.checking(new Expectations() {{
@@ -381,9 +380,6 @@ public class DefaultConfigurationTest {
             
             allowing(otherArtifactTaskDependencyMock).getDependencies(with(any(Task.class)));
             will(returnValue(toSet(otherConfTaskMock)));
-
-            allowing(artifactTaskDependencyMock).getDependencies(with(any(Task.class)));
-            will(returnValue(toSet(artifactTaskMock)));
         }});
         configuration.setExtendsFrom(toSet(otherConfiguration));
         assertThat((Set<Task>) configuration.getBuildArtifacts().getDependencies(context.mock(Task.class, "caller")),

@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.dsl.ArtifactHandler
-import org.gradle.util.GUtil
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.GUtil
 
 /**
  * @author Hans Dockter
@@ -37,15 +37,18 @@ class DefaultArtifactHandler implements ArtifactHandler {
     }
 
     private PublishArtifact pushArtifact(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
-        PublishArtifact publishArtifact
-        if (notation instanceof PublishArtifact) {
-            publishArtifact = notation
-        } else {
-            publishArtifact = publishArtifactFactory.createArtifact(notation)
-        }
+        PublishArtifact publishArtifact = publishArtifactFactory.createArtifact(notation)
         configuration.artifacts.add(publishArtifact)
         ConfigureUtil.configure(configureClosure, publishArtifact)
         return publishArtifact
+    }
+
+    PublishArtifact add(String configurationName, Object artifactNotation) {
+        return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, null)
+    }
+
+    PublishArtifact add(String configurationName, Object artifactNotation, Closure configureClosure) {
+        return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, configureClosure)
     }
 
     public def methodMissing(String name, args) {

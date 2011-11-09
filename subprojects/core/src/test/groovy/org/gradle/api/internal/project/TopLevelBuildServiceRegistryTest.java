@@ -18,8 +18,6 @@ package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.*;
-import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
@@ -121,12 +119,6 @@ public class TopLevelBuildServiceRegistryTest {
     public void providesAListenerManager() {
         ListenerManager listenerManager = expectListenerManagerCreated();
         assertThat(registry.get(ListenerManager.class), sameInstance(listenerManager));
-    }
-
-    @Test
-    public void providesAPublishArtifactFactory() {
-        assertThat(registry.get(PublishArtifactFactory.class), instanceOf(DefaultPublishArtifactFactory.class));
-        assertThat(registry.get(PublishArtifactFactory.class), sameInstance(registry.get(PublishArtifactFactory.class)));
     }
 
     @Test

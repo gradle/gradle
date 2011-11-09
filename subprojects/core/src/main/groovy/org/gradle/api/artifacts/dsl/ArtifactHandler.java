@@ -15,6 +15,9 @@
  */
 package org.gradle.api.artifacts.dsl;
 
+import groovy.lang.Closure;
+import org.gradle.api.artifacts.PublishArtifact;
+
 /**
  * This class is for creating publish artifacts and adding them to configurations. Creating publish artifacts
  * does not mean to create an archive. What is created is a domain object which represents a file to be published
@@ -23,9 +26,24 @@ package org.gradle.api.artifacts.dsl;
  *
  * <p>To create an publish artifact and assign it to a configuration you can use the following syntax:</p>
  *
- * <code>&lt;ArtifactHandler>.&lt;configurationName> &lt;archive1>, &lt;archive2>, ...</code>
+ * <code>&lt;ArtifactHandler>.&lt;configurationName> &lt;artifact-notation>, &lt;artifact-notation> ...</code>
  *
- * <p>The information for publishing the artifact is extracted from the archive (e.g. name, extension, ...).</p>
+ * or
+ *
+ * <code>&lt;ArtifactHandler>.&lt;configurationName> &lt;artifact-notation> { ... some code to configure the artifact }</code>
+ *
+ * <p>The notation can be one of the following types:</p>
+ *
+ * <ul>
+ *
+ * <li>{@link org.gradle.api.tasks.bundling.AbstractArchiveTask}. The information for publishing the artifact is extracted from the archive task (e.g. name, extension, ...).
+ * An archive artifact is represented using an instance of {@link PublishArtifact}.</li>
+ *
+ * <li>{@link java.io.File}. The information for publishing the artifact is extracted from the file name. You can tweak the resulting values by using
+ * a closure to configure the properties of the artifact instance. A file artifact is represented using an instance of {@link org.gradle.api.artifacts.ConfigurablePublishArtifact}
+ * </li>
+ *
+ * </ul>
  *
  * <h2>Examples</h2>
  * <p>An example showing how to associate an archive task with a configuration via the artifact handler.
@@ -50,4 +68,22 @@ package org.gradle.api.artifacts.dsl;
  * @author Hans Dockter
  */
 public interface ArtifactHandler {
+    /**
+     * Adds an artifact to the given configuration.
+     *
+     * @param configurationName The name of the configuration.
+     * @param artifactNotation The artifact notation, in one of the notations described above.
+     * @return The artifact.
+     */
+    PublishArtifact add(String configurationName, Object artifactNotation);
+
+    /**
+     * Adds an artifact to the given configuration.
+     *
+     * @param configurationName The name of the configuration.
+     * @param artifactNotation The artifact notation, in one of the notations described above.
+     * @param configureClosure The closure to execute to configure the artifact.
+     * @return The artifact.
+     */
+    PublishArtifact add(String configurationName, Object artifactNotation, Closure configureClosure);
 }

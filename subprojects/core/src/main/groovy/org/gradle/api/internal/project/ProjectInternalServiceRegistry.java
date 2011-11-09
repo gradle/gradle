@@ -32,7 +32,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
+import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
@@ -124,7 +124,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected ArtifactHandler createArtifactHandler() {
-        return new DefaultArtifactHandler(get(ConfigurationContainer.class), get(PublishArtifactFactory.class));
+        return new DefaultArtifactHandler(get(ConfigurationContainer.class), new DefaultPublishArtifactFactory(get(DependencyMetaDataProvider.class)));
     }
 
     protected ProjectFinder createProjectFinder() {
