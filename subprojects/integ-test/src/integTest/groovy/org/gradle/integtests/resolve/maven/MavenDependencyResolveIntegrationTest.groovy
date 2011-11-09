@@ -19,6 +19,10 @@ import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.MavenRepository
 
 class MavenDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
+    def "setup"() {
+        requireOwnUserHomeDir()
+    }
+
     def "dependency includes main artifact and runtime dependencies of referenced module"() {
         given:
         def module = repo.module("org.gradle", "test", "1.45")
@@ -102,7 +106,6 @@ task check << {
     }
 
     def "resolves dependencies on real projects"() {
-        distribution.requireOwnUserHomeDir()
         // Hibernate core brings in conflicts, exclusions and parent poms
         // Add a direct dependency on an earlier version of commons-collection than required by hibernate core
         // Logback classic depends on a later version of slf4j-api than required by hibernate core

@@ -19,9 +19,11 @@ import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 
 class IvyLocalDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
-    public void "does not cache local artifacts or metadata"() {
-        distribution.requireOwnUserHomeDir()
+    def "setup"() {
+        requireOwnUserHomeDir()
+    }
 
+    public void "does not cache local artifacts or metadata"() {
         given:
         def repo = ivyRepo()
         def moduleA = repo.module('group', 'projectA', '1.2')
@@ -65,7 +67,6 @@ task retrieve(type: Sync) {
     }
 
     public void "does not cache resolution of dynamic versions or changing modules"() {
-        distribution.requireOwnUserHomeDir()
         def repo = ivyRepo()
 
         given:

@@ -19,9 +19,11 @@ import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 
 class MavenLocalDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
-    public void "can resolve snapshots uncached from local Maven repository"() {
-        distribution.requireOwnUserHomeDir()
+    def "setup"() {
+        requireOwnUserHomeDir()
+    }
 
+    public void "can resolve snapshots uncached from local Maven repository"() {
         given:
         def moduleA = repo().module('group', 'projectA', '1.2-SNAPSHOT')
         def moduleB = repo().module('group', 'projectB', '9.1')
@@ -59,8 +61,6 @@ task retrieve(type: Sync) {
     }
 
     public void "does not cache artifacts and metadata from local Maven repository"() {
-        distribution.requireOwnUserHomeDir()
-
         given:
         def moduleA = repo().module('group', 'projectA', '1.2')
         def moduleB = repo().module('group', 'projectB', '9.1')
@@ -98,8 +98,6 @@ task retrieve(type: Sync) {
     }
 
     public void "uses artifactUrls to resolve artifacts"() {
-        distribution.requireOwnUserHomeDir()
-
         given:
         def moduleA = repo().module('group', 'projectA', '1.2')
         def moduleB = repo().module('group', 'projectB', '9.1')

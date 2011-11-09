@@ -26,6 +26,10 @@ class MavenRemoteDependencyResolutionIntegrationTest extends AbstractIntegration
     @Rule public final HttpServer server = new HttpServer()
     @Rule public final TestResources resources = new TestResources();
 
+    def "setup"() {
+        requireOwnUserHomeDir()
+    }
+
     def canResolveDependenciesFromMultipleMavenRepositories() {
         given:
         List expectedFiles = ['sillyexceptions-1.0.1.jar', 'repotest-1.0.jar', 'testdep-1.0.jar', 'testdep2-1.0.jar',
@@ -40,7 +44,6 @@ class MavenRemoteDependencyResolutionIntegrationTest extends AbstractIntegration
 
     def "can resolve and cache dependencies from HTTP Maven repository"() {
         given:
-        requireOwnUserHomeDir()
         server.start()
 
         def projectA = repo().module('group', 'projectA')
@@ -83,7 +86,6 @@ task retrieve(type: Sync) {
 
     def "does not download source and javadoc artifacts from HTTP Maven repository until required"() {
         given:
-        requireOwnUserHomeDir()
         server.start()
 
         def projectA = repo().module('group', 'projectA', '1.0')
@@ -122,7 +124,6 @@ task listJars << {
 
     def "can resolve and cache dependencies from multiple HTTP Maven repositories"() {
         given:
-        requireOwnUserHomeDir()
         server.start()
 
         buildFile << """
@@ -164,7 +165,6 @@ task listJars << {
 
     def "uses artifactsUrl to resolve artifacts"() {
         given:
-        requireOwnUserHomeDir()
         server.start()
 
         buildFile << """
@@ -200,7 +200,6 @@ task listJars << {
 
     def "can resolve dependencies from password protected HTTP Maven repository"() {
         given:
-        requireOwnUserHomeDir()
         server.start()
         
         buildFile << """

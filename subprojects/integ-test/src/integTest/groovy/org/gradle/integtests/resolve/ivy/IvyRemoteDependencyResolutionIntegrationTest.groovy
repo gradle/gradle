@@ -25,9 +25,11 @@ class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSp
     @Rule
     public final HttpServer server = new HttpServer()
 
-    public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
-        distribution.requireOwnUserHomeDir()
+    def "setup"() {
+        requireOwnUserHomeDir()
+    }
 
+    public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         given:
         def repo = ivyRepo()
         def module = repo.module('group', 'projectA', '1.2')
@@ -66,8 +68,6 @@ task listJars << {
     }
 
     public void "can resolve and cache dependencies from multiple HTTP Ivy repositories"() {
-        distribution.requireOwnUserHomeDir()
-
         given:
         def repo = ivyRepo()
         def module1 = repo.module('group', 'projectA', '1.2')
@@ -116,8 +116,6 @@ task listJars << {
     }
 
     public void "can resolve dependencies from password protected HTTP Ivy repository"() {
-        distribution.requireOwnUserHomeDir()
-
         given:
         def repo = ivyRepo()
         def module = repo.module('group', 'projectA', '1.2')

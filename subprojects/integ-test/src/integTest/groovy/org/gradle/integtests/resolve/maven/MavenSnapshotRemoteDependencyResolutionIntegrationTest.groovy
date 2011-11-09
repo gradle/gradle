@@ -23,8 +23,11 @@ import org.junit.Rule
 class MavenSnapshotRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
     
-    def "can search for snapshot in multiple Maven HTTP repositories"() {
+    def "setup"() {
         requireOwnUserHomeDir()
+    }
+
+    def "can search for snapshot in multiple Maven HTTP repositories"() {
         server.start()
 
         given:
@@ -71,7 +74,6 @@ task retrieve(type: Sync) {
     }
 
     def "uses cached snapshots from a Maven HTTP repository until the snapshot timeout is reached"() {
-        requireOwnUserHomeDir()
         server.start()
 
         given:
@@ -172,7 +174,6 @@ task retrieve(type: Sync) {
     }
 
     def "does not download snapshot artifacts after expiry when snapshot has not changed"() {
-        requireOwnUserHomeDir()
         server.start()
 
         buildFile << """

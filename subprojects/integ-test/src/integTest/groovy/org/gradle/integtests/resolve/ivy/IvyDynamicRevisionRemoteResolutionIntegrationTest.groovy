@@ -24,8 +24,11 @@ import org.junit.Rule
 class IvyDynamicRevisionRemoteResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
+    def "setup"() {
+        requireOwnUserHomeDir()
+    }
+
     def "uses latest version from version range and latest status"() {
-        distribution.requireOwnUserHomeDir()
         server.start()
         def repo = ivyRepo()
 
@@ -93,7 +96,6 @@ task retrieve(type: Sync) {
     }
 
     def "uses latest of versions obtained from multiple HTTP repositories"() {
-        requireOwnUserHomeDir()
         server.start()
 
         given:
@@ -141,7 +143,6 @@ task retrieve(type: Sync) {
     }
 
     def "caches resolved revisions until cache expiry"() {
-        distribution.requireOwnUserHomeDir()
         server.start()
         def repo = ivyRepo()
 
@@ -208,7 +209,6 @@ task retrieve(type: Sync) {
     }
 
     def "uses and caches dynamic revisions for transitive dependencies"() {
-        distribution.requireOwnUserHomeDir()
         server.start()
         def repo = ivyRepo()
 
@@ -302,7 +302,6 @@ task retrieve(type: Sync) {
     }
 
     def "detects changed module descriptor when flagged as changing"() {
-        distribution.requireOwnUserHomeDir()
         server.start()
 
         given:
@@ -365,7 +364,6 @@ task retrieve(type: Copy) {
     }
 
     def "detects changed artifact when flagged as changing"() {
-        distribution.requireOwnUserHomeDir()
         server.start()
 
         given:
@@ -424,7 +422,6 @@ task retrieve(type: Copy) {
     }
 
     def "caches changing module descriptor and artifacts until cache expiry"() {
-        distribution.requireOwnUserHomeDir()
         server.start()
 
         given:

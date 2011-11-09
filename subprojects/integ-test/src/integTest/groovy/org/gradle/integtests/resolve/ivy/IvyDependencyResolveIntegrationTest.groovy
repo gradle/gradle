@@ -19,6 +19,10 @@ import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 
 class IvyDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
+    def "setup"() {
+        requireOwnUserHomeDir()
+    }
+
     def "dependency includes all artifacts and transitive dependencies of referenced configuration"() {
         given:
         def module = repo.module("org.gradle", "test", "1.45")
