@@ -29,23 +29,38 @@ class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
 
         buildFile <<  """
 import org.gradle.api.internal.artifacts.dependencies.*
-configurations { foo }
+configurations {
+    conf
+    gradleStuff
+    allowsCollections
+}
 
 def someDependency = new DefaultSelfResolvingDependency(files('foo.txt'))
 dependencies {
-    foo someDependency
-    foo "org.mockito:mockito-core:1.8"
-    foo group: 'org.spockframework', name: 'spock-core', version: '1.0'
-    foo project(':otherProject')
-    foo gradleApi()
+    conf someDependency
+    conf "org.mockito:mockito-core:1.8"
+    conf group: 'org.spockframework', name: 'spock-core', version: '1.0'
+    conf project(':otherProject')
+
+    gradleStuff gradleApi()
+
+    allowsCollections "org.mockito:mockito-core:1.8", project(':otherProject')
 }
 
 task checkDeps << {
-    def deps = configurations.foo.incoming.dependencies
+    def deps = configurations.conf.incoming.dependencies
     assert deps.contains(someDependency)
-    assert deps.find { it.group == 'org.mockito' && it.name == 'mockito-core' && it.version == '1.8'  }
-    assert deps.find { it.group == 'org.spockframework' && it.name == 'spock-core' && it.version == '1.0'  }
-    assert deps.findAll { it instanceof SelfResolvingDependency }.size() > 1 : "should include gradle api jars"
+    assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' && it.name == 'mockito-core' && it.version == '1.8'  }
+    assert deps.find { it instanceof ExternalDependency && it.group == 'org.spockframework' && it.name == 'spock-core' && it.version == '1.0'  }
+    assert deps.find { it instanceof ProjectDependency && it.dependencyProject.path == ':otherProject' }
+
+    deps = configurations.gradleStuff.dependencies
+    assert deps.findAll { it instanceof SelfResolvingDependency }.size() > 0 : "should include gradle api jars"
+
+    deps = configurations.allowsCollections.dependencies
+    assert deps.size() == 2
+    assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' }
+    assert deps.find { it instanceof ProjectDependency && it.dependencyProject.path == ':otherProject' }
 }
 """
         then:
