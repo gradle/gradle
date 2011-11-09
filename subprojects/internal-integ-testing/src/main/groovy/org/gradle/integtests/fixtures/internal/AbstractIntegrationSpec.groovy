@@ -53,6 +53,11 @@ class AbstractIntegrationSpec extends Specification {
         executer.inDirectory(directory);
     }
 
+    protected GradleDistribution requireOwnUserHomeDir() {
+        distribution.requireOwnUserHomeDir()
+        distribution
+    }
+
     /**
      * Synonym for succeeds()
      */

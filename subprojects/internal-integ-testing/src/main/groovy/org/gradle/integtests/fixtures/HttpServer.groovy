@@ -69,6 +69,9 @@ class HttpServer implements MethodRule {
     }
 
     void resetExpectations() {
+        if (failure != null) {
+            throw failure
+        }
         collection.setHandlers()
     }
 
