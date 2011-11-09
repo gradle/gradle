@@ -28,7 +28,6 @@ public class DependencyNotationParser implements TopLevelNotationParser {
 
     private final DefaultNotationParser<Dependency> parser;
 
-    //TODO SF - add some coverage when finished refactoring, also add integration coverage for unhappy path
     public DependencyNotationParser(Set<NotationParser<? extends Dependency>> notationParsers) {
         parser = new NotationParserBuilder()
                 .resultingType(Dependency.class)
@@ -43,6 +42,10 @@ public class DependencyNotationParser implements TopLevelNotationParser {
                             + "  - A Collection of above (nested collections/arrays will be flattened)\n"
                             + "Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
                 .build();
+    }
+
+    DependencyNotationParser(DefaultNotationParser<Dependency> parser) {
+        this.parser = parser;
     }
 
     public Dependency parseNotation(Object dependencyNotation) {
