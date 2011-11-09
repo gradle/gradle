@@ -72,6 +72,7 @@ public class GUtil {
         return addTo;
     }
 
+    //TODO SF - consider moving all flatteing and collectionzizing methods to the CollectionUtil
     /**
      * Flattens input collections (including arrays *but* not maps).
      * If input is not a collection wraps it in a collection and returns it.

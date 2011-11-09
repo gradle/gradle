@@ -102,7 +102,6 @@ public class ForcedModuleNotationParserTest extends Specification {
 
     def "reports wrong keys for map notation"() {
         when:
-        //TODO SF - consider allowing extra keys on input - ask Adam if it's a good idea.
         new ForcedModuleNotationParser().parseNotation([groop: 'groop', name: "bar", version: "1.0"])
 
         then:
