@@ -38,6 +38,8 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 import org.gradle.api.internal.artifacts.ivyservice.*
+import org.apache.ivy.core.module.descriptor.DefaultArtifact
+import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 
 class DependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
@@ -56,22 +58,25 @@ class DependencyGraphBuilderTest extends Specification {
         config(root, 'root', 'default')
         _ * configuration.name >> 'root'
         _ * moduleDescriptorConverter.convert(_, _) >> root
+        _ * resolvedArtifactFactory.create(_, _, _) >> { owner, artifact, resolver ->
+            return new DefaultResolvedArtifact(owner, artifact, null)
+        }
     }
 
-    def "includes dependencies of selected module on conflict when module already traversed"() {
+    def "does not include evicted module when selected module already traversed before conflict detected"() {
         given:
-        def a1 = revision('a', '1.2')
-        def a2 = revision('a', '1.1')
+        def selected = revision('a', '1.2')
+        def evicted = revision('a', '1.1')
         def b = revision('b')
         def c = revision('c')
         def d = revision('d')
         def e = revision('e')
-        traverses root, a1
-        traverses a1, c
+        traverses root, selected
+        traverses selected, c
         traverses root, b
         traverses b, d
-        doesNotTraverse d, a2 // Conflict is deeper than all dependencies of other module
-        doesNotTraverse a2, e
+        doesNotTraverse d, evicted // Conflict is deeper than all dependencies of selected module
+        doesNotTraverse evicted, e
 
         when:
         def result = builder.resolve(configuration, resolveData)
@@ -84,23 +89,23 @@ class DependencyGraphBuilderTest extends Specification {
         0 * conflictResolver._
 
         and:
-        modules(result) == ids(a1, b, c, d)
+        modules(result) == ids(selected, b, c, d)
     }
 
-    def "includes dependencies of selected module on conflict when other module already traversed"() {
+    def "does not include evicted module when evicted module already traversed before conflict detected"() {
         given:
-        def a1 = revision('a', '1.2')
-        def a2 = revision('a', '1.1')
+        def selected = revision('a', '1.2')
+        def evicted = revision('a', '1.1')
         def b = revision('b')
         def c = revision('c')
         def d = revision('d')
         def e = revision('e')
-        traverses root, a2
-        traverses a2, c
+        traverses root, evicted
+        traverses evicted, c
         traverses root, b
         traverses b, d
-        traverses d, a1 // Conflict is deeper than all dependencies of other module
-        traverses a1, e
+        traverses d, selected // Conflict is deeper than all dependencies of other module
+        traverses selected, e
 
         when:
         def result = builder.resolve(configuration, resolveData)
@@ -113,50 +118,80 @@ class DependencyGraphBuilderTest extends Specification {
         0 * conflictResolver._
 
         and:
-        modules(result) == ids(a1, b, d, e)
+        modules(result) == ids(selected, b, d, e)
     }
 
-    def "includes dependencies of selected module on conflict when path through other module is queued for traversal"() {
+    def "does not include evicted module when path through evicted module is queued for traversal when conflict detected"() {
         given:
-        def a1 = revision('a', '1.2')
-        def a2 = revision('a', '1.1')
+        def selected = revision('a', '1.2')
+        def evicted = revision('a', '1.1')
         def b = revision('b')
         def c = revision('c')
         def d = revision('d')
+        def e = revision('e')
+        traverses root, evicted
+        traverses evicted, c
+        doesNotTraverse c, d
         traverses root, b
-        doesNotTraverse b, a2
-        doesNotTraverse a2, c
-        traverses root, a1
-        traverses a1, d
+        traverses b, selected
+        traverses selected, e
 
         when:
         def result = builder.resolve(configuration, resolveData)
 
         then:
         1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
-            assert candidates*.revision == ['1.2', '1.1']
+            assert candidates*.revision == ['1.1', '1.2']
             return candidates.find { it.revision == '1.2' }
         }
         0 * conflictResolver._
 
         and:
-        modules(result) == ids(a1, b, d)
+        modules(result) == ids(selected, b, e)
     }
 
-    def "restarts conflict resolution when later conflict discovered"() {
+    def "does not include evicted module when another path through evicted module traversed after conflict detected"() {
         given:
-        def a1 = revision('a', '1.2')
-        def a2 = revision('a', '1.1')
-        def a3 = revision('a', '1.0')
-        def b1 = revision('b', '2.2')
-        def b2 = revision('b', '2.1')
+        def selected = revision('a', '1.2')
+        def evicted = revision('a', '1.1')
+        def b = revision('b')
         def c = revision('c')
-        traverses root, a2
-        traverses root, a1
-        traverses a1, c
-        traverses root, b2
-        traverses root, b1
-        doesNotTraverse b1, a3
+        def d = revision('d')
+        traverses root, evicted
+        doesNotTraverse evicted, d
+        traverses root, selected
+        traverses selected, c
+        traverses root, b
+        doesNotTraverse b, evicted
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+            assert candidates*.revision == ['1.1', '1.2']
+            return candidates.find { it.revision == '1.2' }
+        }
+        0 * conflictResolver._
+
+        and:
+        modules(result) == ids(selected, b, c)
+    }
+
+    def "restarts conflict resolution when later conflict on same module discovered"() {
+        given:
+        def selectedA = revision('a', '1.2')
+        def evictedA1 = revision('a', '1.1')
+        def evictedA2 = revision('a', '1.0')
+        def selectedB = revision('b', '2.2')
+        def evictedB = revision('b', '2.1')
+        def c = revision('c')
+        traverses root, evictedA1
+        traverses root, selectedA
+        traverses selectedA, c
+        traverses root, evictedB
+        traverses root, selectedB
+        doesNotTraverse selectedB, evictedA2
 
         when:
         def result = builder.resolve(configuration, resolveData)
@@ -174,7 +209,7 @@ class DependencyGraphBuilderTest extends Specification {
         0 * conflictResolver._
 
         and:
-        modules(result) == ids(a1, c, b1)
+        modules(result) == ids(selectedA, c, selectedB)
 
     }
 
@@ -194,9 +229,45 @@ class DependencyGraphBuilderTest extends Specification {
         modules(result) == ids(a, b)
     }
 
+    def "does not include the artifacts of evicted modules"() {
+        given:
+        def selected = revision('a', '1.2')
+        def evicted = revision('a', '1.1')
+        traverses root, selected
+        doesNotTraverse root, evicted
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+            return candidates.find { it.revision == '1.2' }
+        }
+
+        and:
+        artifacts(result) == ids(selected)
+    }
+
+    def "does not include the artifacts of excluded modules"() {
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def c = revision('c')
+        traverses root, a
+        traverses a, b, exclude: c
+        doesNotTraverse b, c
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        artifacts(result) == ids(a, b)
+    }
+
     def revision(String name, String revision = '1.0') {
         DefaultModuleDescriptor descriptor = new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("group", name), revision), "release", new Date())
         config(descriptor, 'default')
+        descriptor.addArtifact('default', new DefaultArtifact(descriptor.moduleRevisionId, new Date(), "art1", "art", "zip"))
         return descriptor
     }
 
@@ -251,5 +322,9 @@ class DependencyGraphBuilderTest extends Specification {
             queue.addAll(0, node.children)
         }
         return result
+    }
+
+    def artifacts(LenientConfiguration config) {
+        return config.resolvedArtifacts.collect { it.module.id } as Set
     }
 }
