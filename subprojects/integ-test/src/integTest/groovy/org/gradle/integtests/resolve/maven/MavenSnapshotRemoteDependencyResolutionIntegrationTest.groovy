@@ -22,6 +22,53 @@ import org.junit.Rule
 
 class MavenSnapshotRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
+    
+    def "can search for snapshot in multiple Maven HTTP repositories"() {
+        requireOwnUserHomeDir()
+        server.start()
+
+        given:
+        buildFile << """
+repositories {
+    mavenRepo(url: "http://localhost:${server.port}/repo1")
+    mavenRepo(url: "http://localhost:${server.port}/repo2")
+}
+
+configurations { compile }
+
+dependencies {
+    compile "org.gradle:projectA:1.0-SNAPSHOT"
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        and: "snapshot modules are published"
+        def projectA = repo().module("org.gradle", "projectA", "1.0-SNAPSHOT")
+        projectA.publish()
+
+        when: "Server handles requests"
+        server.expectGetMissing('/repo1/org/gradle/projectA/1.0-SNAPSHOT/maven-metadata.xml')
+        server.expectGetMissing('/repo1/org/gradle/projectA/1.0-SNAPSHOT/projectA-1.0-SNAPSHOT.pom')
+        // TODO Should not look for jar in repo1
+        server.expectGetMissing('/repo1/org/gradle/projectA/1.0-SNAPSHOT/maven-metadata.xml')
+        server.expectGetMissing("/repo1/org/gradle/projectA/1.0-SNAPSHOT/projectA-1.0-SNAPSHOT.jar")
+
+        server.expectGet('/repo2/org/gradle/projectA/1.0-SNAPSHOT/maven-metadata.xml', projectA.moduleDir.file("maven-metadata.xml"))
+        server.expectGet("/repo2/org/gradle/projectA/1.0-SNAPSHOT/${projectA.pomFile.name}", projectA.pomFile)
+        // TODO - should only ask for metadata once
+        server.expectGet('/repo2/org/gradle/projectA/1.0-SNAPSHOT/maven-metadata.xml', projectA.moduleDir.file("maven-metadata.xml"))
+        server.expectGet("/repo2/org/gradle/projectA/1.0-SNAPSHOT/${projectA.artifactFile.name}", projectA.artifactFile)
+
+        and: "We resolve dependencies"
+        run 'retrieve'
+
+        then: "Snapshots is downloaded"
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
+    }
 
     def "uses cached snapshots from a Maven HTTP repository until the snapshot timeout is reached"() {
         requireOwnUserHomeDir()

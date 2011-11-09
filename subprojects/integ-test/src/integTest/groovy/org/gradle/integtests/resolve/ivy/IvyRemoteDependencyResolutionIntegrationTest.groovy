@@ -78,24 +78,21 @@ task listJars << {
         and:
         server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module1.ivyFile)
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module1.jarFile)
+
         server.expectGetMissing('/repo/group/projectB/1.3/ivy-1.3.xml')
+        // TODO - this shouldn't happen - resolver is trying to generate metadata based on presence of jar
+        server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
+
         server.expectGet('/repo2/group/projectB/1.3/ivy-1.3.xml', module2.ivyFile)
         server.expectGet('/repo2/group/projectB/1.3/projectB-1.3.jar', module2.jarFile)
-
-        // TODO - this shouldn't happen - it's already found B's ivy.xml on repo2
-        server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
 
         server.start()
 
         and:
         buildFile << """
 repositories {
-    ivy {
-        url "http://localhost:${server.port}/repo"
-    }
-    ivy {
-        url "http://localhost:${server.port}/repo2"
-    }
+    ivy { url "http://localhost:${server.port}/repo" }
+    ivy { url "http://localhost:${server.port}/repo2" }
 }
 configurations { compile }
 dependencies {
