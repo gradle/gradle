@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.notations;
 
+import org.gradle.api.GradleException;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;
@@ -57,7 +58,7 @@ public class DefaultNotationParser<T> {
         throw new RuntimeException("Don't know how to parse: " + notation);
     }
 
-    public static class InvalidNotationFormat extends RuntimeException {
+    public static class InvalidNotationFormat extends GradleException {
         public InvalidNotationFormat(String message) {
             super(message);
         }
@@ -67,7 +68,7 @@ public class DefaultNotationParser<T> {
         }
     }
 
-    public static class InvalidNotationType extends RuntimeException {
+    public static class InvalidNotationType extends GradleException {
         public InvalidNotationType(String message) {
             super(message);
         }

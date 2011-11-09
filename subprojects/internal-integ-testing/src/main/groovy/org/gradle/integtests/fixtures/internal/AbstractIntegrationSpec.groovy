@@ -113,6 +113,10 @@ class AbstractIntegrationSpec extends Specification {
         result.output
     }
 
+    String getErrorOutput() {
+        result.error
+    }
+
     ArtifactBuilder artifactBuilder() {
         def executer = new InProcessGradleExecuter()
         executer.withUserHomeDir(distribution.getUserHomeDir())

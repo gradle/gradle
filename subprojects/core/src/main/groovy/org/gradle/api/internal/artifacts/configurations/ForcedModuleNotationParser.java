@@ -35,8 +35,8 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser {
             .stringParser(new ForcedModuleStringParser())
             .mapParser(new ForcedModuleMapParser())
             .invalidNotationMessage(
-                            "Input notation cannot be used to form the forced module.\n"
-                            + "Notation only supports following types/formats:\n"
+                            "The forced module notation cannot be used to form the forced module.\n"
+                            + "Forced module notation only supports following types/formats:\n"
                             + "  1. instances of ModuleIdentifier\n"
                             + "  2. Strings (actually CharSequences), e.g. 'org.gradle:gradle-core:1.0'\n"
                             + "  3. Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0']\n"

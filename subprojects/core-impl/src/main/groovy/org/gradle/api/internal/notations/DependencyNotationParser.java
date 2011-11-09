@@ -33,14 +33,23 @@ public class DependencyNotationParser implements TopLevelNotationParser {
         parser = new NotationParserBuilder()
                 .resultingType(Dependency.class)
                 .parsers((Set) notationParsers)
-                //TODO SF - definitely improve the error message, provide examples or link to docs
-                .invalidNotationMessage("Provided dependency notation is invalid.")
+                .invalidNotationMessage("The dependency notation cannot be used to form the dependency.\n"
+                            + "The most typical dependency notation types/formats:\n"
+                            + "  - Strings, e.g. 'org.gradle:gradle-core:1.0'\n"
+                            + "  - Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0']\n"
+                            + "  - Projects, e.g. project(':some:project:path')\n"
+                            + "  - instances of FileCollection, e.g. files('some.jar', 'someOther.jar')\n"
+                            + "  - instances of Dependency type\n"
+                            + "  - A Collection of above (nested collections/arrays will be flattened)\n"
+                            + "Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
                 .build();
     }
 
     public Dependency parseNotation(Object dependencyNotation) {
         try {
             return parser.parseSingleNotation(dependencyNotation);
+        } catch (GradleException e) {
+            throw e;
         } catch (Exception e) {
             throw new GradleException(String.format("Could not create a dependency using notation: %s", dependencyNotation), e);
         }

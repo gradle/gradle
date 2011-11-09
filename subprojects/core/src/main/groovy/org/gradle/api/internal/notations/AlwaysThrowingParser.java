@@ -31,8 +31,8 @@ public class AlwaysThrowingParser implements NotationParser {
     }
 
     public Object parseNotation(Object notation) {
-        String message = "Invalid notation type: " + notation.getClass().getName()
-                + ", toString(): " + notation.toString() + "\n"
+        String message = "Provided notation is invalid: " + notation + ".\n"
+                + "Specifically, the type of the notation is invalid: " + notation.getClass().getName() + ".\n"
                 + invalidNotationMessage;
         throw new DefaultNotationParser.InvalidNotationType(message);
     }

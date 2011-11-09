@@ -66,4 +66,22 @@ task checkDeps << {
         then:
         succeeds 'checkDeps'
     }
+
+    def "fails gracefully for invalid notations"() {
+        when:
+        buildFile <<  """
+configurations {
+    conf
+}
+
+dependencies {
+    conf 100
+}
+
+task checkDeps
+"""
+        then:
+        fails 'checkDeps'
+        errorOutput.contains 'notation is invalid'
+    }
 }
