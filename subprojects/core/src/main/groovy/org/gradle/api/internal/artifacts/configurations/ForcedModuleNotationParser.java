@@ -18,7 +18,10 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvedModuleId;
-import org.gradle.api.internal.notations.*;
+import org.gradle.api.internal.notations.FlatteningCompositeNotationParser;
+import org.gradle.api.internal.notations.NotationParserBuilder;
+import org.gradle.api.internal.notations.TopLevelNotationParser;
+import org.gradle.api.internal.notations.TypedNotationParser;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.*;
@@ -30,10 +33,10 @@ import static java.util.Arrays.asList;
  */
 public class ForcedModuleNotationParser implements TopLevelNotationParser {
 
-    private DefaultNotationParser delegate = new NotationParserBuilder()
+    private FlatteningCompositeNotationParser delegate = new NotationParserBuilder()
             .resultingType(ModuleIdentifier.class)
-            .stringParser(new ForcedModuleStringParser())
-            .mapParser(new ForcedModuleMapParser())
+            .parser(new ForcedModuleStringParser())
+            .parser(new ForcedModuleMapParser())
             .invalidNotationMessage(
                             "The forced module notation cannot be used to form the forced module.\n"
                             + "Forced module notation only supports following types/formats:\n"
@@ -50,14 +53,19 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser {
         return new LinkedHashSet<ModuleIdentifier>(parsed);
     }
 
-    static class ForcedModuleMapParser extends MapNotationParser<ModuleIdentifier> {
-        protected ModuleIdentifier parseMap(Map notation) {
+    static class ForcedModuleMapParser extends TypedNotationParser<Map, ModuleIdentifier> {
+
+        public ForcedModuleMapParser() {
+            super(Map.class);
+        }
+
+        public ModuleIdentifier parseType(Map notation) {
             ModuleIdentifier out = new DefaultResolvedModuleId(null, null, null);
             List<String> mandatoryKeys = asList("group", "name", "version");
             try {
                 ConfigureUtil.configureByMap(notation, out, mandatoryKeys);
             } catch (ConfigureUtil.IncompleteInputException e) {
-                throw new DefaultNotationParser.InvalidNotationFormat(
+                throw new FlatteningCompositeNotationParser.InvalidNotationFormat(
                           "Invalid format: " + notation + ". Missing mandatory key(s): " + e.getMissingKeys() + "\n"
                         + "The correct notation is a map with keys: " + mandatoryKeys + ", for example: [group: 'org.gradle', name:'gradle-core', version: '1.0']", e);
             }
@@ -65,11 +73,16 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser {
         }
     }
 
-    static class ForcedModuleStringParser extends StringNotationParser<ModuleIdentifier> {
-        public ModuleIdentifier parseString(String notation) {
-            String[] split = notation.split(":");
+    static class ForcedModuleStringParser extends TypedNotationParser<CharSequence, ModuleIdentifier> {
+
+        public ForcedModuleStringParser() {
+            super(CharSequence.class);
+        }
+
+        public ModuleIdentifier parseType(CharSequence notation) {
+            String[] split = notation.toString().split(":");
             if (split.length != 3) {
-                throw new DefaultNotationParser.InvalidNotationFormat(
+                throw new FlatteningCompositeNotationParser.InvalidNotationFormat(
                     "Invalid format: '" + notation + "'. The Correct notation is a 3-part group:name:version notation,"
                     + "e.g: org.gradle:gradle-core:1.0");
             }

@@ -17,18 +17,25 @@
 package org.gradle.api.internal.notations;
 
 /**
- * by Szczepan Faber, created at: 11/8/11
+ * by Szczepan Faber, created at: 11/9/11
  */
-public abstract class StringNotationParser<T> implements NotationParser<T> {
+public abstract class TypedNotationParser<Input, Output> implements NotationParser<Output> {
+
+    private final Class<Input> typeToken;
+
+    public TypedNotationParser(Class<Input> typeToken) {
+        assert typeToken != null : "typeToken cannot be null";
+        this.typeToken = typeToken;
+    }
 
     public boolean canParse(Object notation) {
-        return notation instanceof CharSequence;
+        return typeToken.isAssignableFrom(notation.getClass());
     }
 
-    public T parseNotation(Object notation) {
-        assert notation instanceof CharSequence : "This notation parser only accepts instances of CharSequence.";
-        return parseString(notation.toString());
+    public Output parseNotation(Object notation) {
+        assert canParse(notation) : "This parser only parses instances of " + typeToken.getName();
+        return parseType(typeToken.cast(notation));
     }
 
-    public abstract T parseString(String notation);
+    abstract public Output parseType(Input notation);
 }

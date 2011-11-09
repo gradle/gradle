@@ -35,13 +35,8 @@ public class NotationParserBuilder {
         return this;
     }
 
-    public NotationParserBuilder stringParser(StringNotationParser stringNotationParser) {
-        this.notationParsers.add(stringNotationParser);
-        return this;
-    }
-
-    public NotationParserBuilder mapParser(MapNotationParser mapNotationParser) {
-        this.notationParsers.add(mapNotationParser);
+    public NotationParserBuilder parser(NotationParser parser) {
+        this.notationParsers.add(parser);
         return this;
     }
 
@@ -55,11 +50,14 @@ public class NotationParserBuilder {
         return this;
     }
 
-    public <T> DefaultNotationParser<T> build() {
+    public <T> FlatteningCompositeNotationParser<T> build() {
+        assert resultingType != null : "resultingType cannot be null";
+        assert invalidNotationMessage != null : "invalidNotationMessage cannot be null";
+
         Collection parsers = GUtil.flattenElements(
                 new JustReturningParser(resultingType),
                 this.notationParsers,
                 new AlwaysThrowingParser(invalidNotationMessage));
-        return new DefaultNotationParser<T>(parsers);
+        return new FlatteningCompositeNotationParser<T>(parsers);
     }
 }

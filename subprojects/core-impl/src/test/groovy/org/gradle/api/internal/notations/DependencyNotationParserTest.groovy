@@ -25,7 +25,7 @@ import spock.lang.Specification
  */
 public class DependencyNotationParserTest extends Specification {
 
-    def notationParser = Mock(DefaultNotationParser)
+    def notationParser = Mock(FlatteningCompositeNotationParser)
     def parser = new DependencyNotationParser(notationParser);
 
     def "consumes notation and forwards gradle exception"() {

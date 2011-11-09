@@ -26,7 +26,7 @@ import java.util.Set;
  */
 public class DependencyNotationParser implements TopLevelNotationParser {
 
-    private final DefaultNotationParser<Dependency> parser;
+    private final FlatteningCompositeNotationParser<Dependency> parser;
 
     public DependencyNotationParser(Set<NotationParser<? extends Dependency>> notationParsers) {
         parser = new NotationParserBuilder()
@@ -44,7 +44,7 @@ public class DependencyNotationParser implements TopLevelNotationParser {
                 .build();
     }
 
-    DependencyNotationParser(DefaultNotationParser<Dependency> parser) {
+    DependencyNotationParser(FlatteningCompositeNotationParser<Dependency> parser) {
         this.parser = parser;
     }
 

@@ -31,11 +31,12 @@ import java.util.LinkedList;
  *
  * by Szczepan Faber, created at: 11/8/11
  */
-public class DefaultNotationParser<T> {
+public class FlatteningCompositeNotationParser<T> {
+    //TODO SF - after completing the DependencyHandler make this class a proper notation parser and separate composite from flattener
 
     private final Collection<NotationParser<T>> delegates;
 
-    public DefaultNotationParser(Collection<NotationParser<T>> delegates) {
+    public FlatteningCompositeNotationParser(Collection<NotationParser<T>> delegates) {
         this.delegates = delegates;
     }
 
