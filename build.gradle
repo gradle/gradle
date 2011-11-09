@@ -94,7 +94,7 @@ libraries += [
         commons_cli: 'commons-cli:commons-cli:1.2@jar',
         dom4j: 'dom4j:dom4j:1.6.1@jar',
         guava: 'com.google.guava:guava:r09@jar',
-        groovy: 'org.codehaus.groovy:groovy-all:1.8.4-SNAPSHOT',
+        groovy: 'org.codehaus.groovy:groovy-all:1.8.4@jar',
         jaxen: 'jaxen:jaxen:1.1@jar',
         jcip: "net.jcip:jcip-annotations:1.0",
         jna: 'net.java.dev.jna:jna:3.2.2@jar',
@@ -124,11 +124,11 @@ allprojects {
 
     repositories {
         mavenRepo(url: 'http://repo.gradle.org/gradle/libs')
-        mavenRepo(url: 'http://snapshots.repository.codehaus.org/')
+        mavenRepo(url: 'http://repository.codehaus.org/')
         mavenRepo(url: 'http://m2repo.spockframework.org/snapshots/')
         ivy {
-            artifactPattern('http://repo.jfrog.org/artifactory/gradle-plugins-snapshots/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]')
-//        artifactPattern('http://repo.jfrog.org/artifactory/gradle-ivy-local/[organisation]/[module]/ivy-[revision].xml')
+            artifactPattern 'http://repo.jfrog.org/artifactory/gradle-plugins-snapshots/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
+            ivyPattern 'http://repo.jfrog.org/artifactory/gradle-ivy-local/[organisation]/[module]/ivy-[revision].xml'
         }
     }
 
