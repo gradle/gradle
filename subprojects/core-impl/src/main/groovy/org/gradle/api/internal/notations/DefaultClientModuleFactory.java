@@ -17,10 +17,10 @@ package org.gradle.api.internal.notations;
 
 import groovy.lang.GString;
 import org.gradle.api.IllegalDependencyNotation;
+import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
-import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.MapModuleNotationParser;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class DefaultClientModuleFactory implements IDependencyImplementationFactory {
+public class DefaultClientModuleFactory implements NotationParser<ClientModule> {
     private final MapModuleNotationParser mapNotationParser;
     private final Instantiator instantiator;
 
@@ -40,11 +40,23 @@ public class DefaultClientModuleFactory implements IDependencyImplementationFact
     }
 
     public <T extends Dependency> T createDependency(Class<T> type, Object notation) throws IllegalDependencyNotation {
+        if (!canParse(notation)) {
+            throw new IllegalDependencyNotation();
+        }
+        return type.cast(parseNotation(notation));
+    }
+
+    public boolean canParse(Object notation) {
+        //TODO SF - CharSequence
+        return notation instanceof String || notation instanceof GString || notation instanceof Map;
+    }
+
+    public ClientModule parseNotation(Object notation) {
         assert notation != null;
         if (notation instanceof String || notation instanceof GString) {
-            return type.cast(createDependencyFromString(notation.toString()));
+            return createDependencyFromString(notation.toString());
         } else if (notation instanceof Map) {
-            return type.cast(mapNotationParser.createDependency(DefaultClientModule.class, notation));
+            return mapNotationParser.createDependency(DefaultClientModule.class, notation);
         }
         throw new IllegalDependencyNotation();
     }
