@@ -115,19 +115,19 @@ public class GUtilTest extends spock.lang.Specification {
 
     def "normalizes to collection"() {
         expect:
-        normalize(null) == []
-        normalize(10) == [10]
-        normalize("a") == ["a"]
+        collectionize(null) == []
+        collectionize(10) == [10]
+        collectionize("a") == ["a"]
 
         List list = [2, 2, "three"] as List
-        normalize(list) == [2, 2, "three"]
+        collectionize(list) == [2, 2, "three"]
 
         Object[] array = [1, 1, "three"]
-        normalize(array) == [1, 1, "three"]
+        collectionize(array) == [1, 1, "three"]
 
-        normalize([list, array]) == [2, 2, "three", 1, 1, "three"]
+        collectionize([list, array]) == [2, 2, "three", 1, 1, "three"]
 
-        normalize([[1], [hey: 'man']]) == [1, [hey: 'man']]
+        collectionize([[1], [hey: 'man']]) == [1, [hey: 'man']]
     }
 
     def "flattens"() {

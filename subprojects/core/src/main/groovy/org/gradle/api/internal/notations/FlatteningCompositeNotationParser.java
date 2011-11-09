@@ -42,7 +42,7 @@ public class FlatteningCompositeNotationParser<T> {
 
     public Collection<T> parseNotation(Object notation) {
         Collection<T> out = new LinkedList<T>();
-        Collection notations = GUtil.normalize(notation);
+        Collection notations = GUtil.collectionize(notation);
         for (Object n : notations) {
             out.add(parseSingleNotation(n));
         }

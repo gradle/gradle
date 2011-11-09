@@ -78,8 +78,7 @@ public class GUtil {
      * @param input any object
      * @return collection of flattened input or single input wrapped in a collection.
      */
-    public static Collection normalize(Object input) {
-        //TODO SF - do we even need it given there's a flatten() method in groovy?
+    public static Collection collectionize(Object input) {
         if (input == null) {
             return emptyList();
         } else if (input instanceof Collection) {
