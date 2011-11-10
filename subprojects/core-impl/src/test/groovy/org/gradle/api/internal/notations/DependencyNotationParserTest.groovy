@@ -25,13 +25,13 @@ import spock.lang.Specification
  */
 public class DependencyNotationParserTest extends Specification {
 
-    def notationParser = Mock(FlatteningCompositeNotationParser)
+    def notationParser = Mock(NotationParser)
     def parser = new DependencyNotationParser(notationParser);
 
     def "consumes notation and forwards gradle exception"() {
         given:
         def exc = new GradleException("Hey!")
-        notationParser.parseSingleNotation("foo") >> { throw exc }
+        notationParser.parseNotation("foo") >> { throw exc }
 
         when:
         parser.parseNotation("foo")
@@ -44,7 +44,7 @@ public class DependencyNotationParserTest extends Specification {
     def "wraps programmer error with higher level exception"() {
         given:
         def exc = new RuntimeException("ka-boom!")
-        notationParser.parseSingleNotation("foo") >> { throw exc }
+        notationParser.parseNotation("foo") >> { throw exc }
 
         when:
         parser.parseNotation("foo")

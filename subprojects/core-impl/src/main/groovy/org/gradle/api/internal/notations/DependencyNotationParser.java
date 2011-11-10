@@ -24,14 +24,14 @@ import java.util.Set;
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public class DependencyNotationParser implements TopLevelNotationParser {
+public class DependencyNotationParser implements TopLevelNotationParser, NotationParser<Dependency> {
 
-    private final FlatteningCompositeNotationParser<Dependency> parser;
+    private final NotationParser<Set<Dependency>> delegate;
 
-    public DependencyNotationParser(Set<NotationParser<? extends Dependency>> notationParsers) {
-        parser = new NotationParserBuilder()
+    public DependencyNotationParser(Set<NotationParser<? extends Dependency>> compositeParsers) {
+        delegate = new NotationParserBuilder()
                 .resultingType(Dependency.class)
-                .parsers((Set) notationParsers)
+                .parsers((Set) compositeParsers)
                 .invalidNotationMessage("The dependency notation cannot be used to form the dependency.\n"
                             + "The most typical dependency notation types/formats:\n"
                             + "  - Strings, e.g. 'org.gradle:gradle-core:1.0'\n"
@@ -44,17 +44,23 @@ public class DependencyNotationParser implements TopLevelNotationParser {
                 .build();
     }
 
-    DependencyNotationParser(FlatteningCompositeNotationParser<Dependency> parser) {
-        this.parser = parser;
+    DependencyNotationParser(NotationParser<Set<Dependency>> delegate) {
+        this.delegate = delegate;
     }
 
     public Dependency parseNotation(Object dependencyNotation) {
         try {
-            return parser.parseSingleNotation(dependencyNotation);
+            Set<Dependency> parsed = delegate.parseNotation(dependencyNotation);
+            //TODO SF - until some more refactorings are done in the DependencyHandler, we just get first element from the set:
+            return parsed.iterator().next();
         } catch (GradleException e) {
             throw e;
         } catch (Exception e) {
             throw new GradleException(String.format("Could not create a dependency using notation: %s", dependencyNotation), e);
         }
+    }
+
+    public boolean canParse(Object notation) {
+        return delegate.canParse(notation);
     }
 }

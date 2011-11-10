@@ -18,7 +18,8 @@ package org.gradle.api.internal.artifacts.configurations;
 
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.internal.notations.FlatteningCompositeNotationParser
+import org.gradle.api.internal.notations.InvalidNotationFormat
+import org.gradle.api.internal.notations.InvalidNotationType
 import spock.lang.Specification
 
 /**
@@ -89,7 +90,7 @@ public class ForcedModuleNotationParserTest extends Specification {
         new ForcedModuleNotationParser().parseNotation(new Object())
 
         then:
-        thrown(FlatteningCompositeNotationParser.InvalidNotationType)
+        thrown(InvalidNotationType)
     }
 
     def "reports missing keys for map notation"() {
@@ -97,7 +98,7 @@ public class ForcedModuleNotationParserTest extends Specification {
         new ForcedModuleNotationParser().parseNotation([name: "bar", version: "1.0"])
 
         then:
-        thrown(FlatteningCompositeNotationParser.InvalidNotationFormat)
+        thrown(InvalidNotationFormat)
     }
 
     def "reports wrong keys for map notation"() {
@@ -105,7 +106,7 @@ public class ForcedModuleNotationParserTest extends Specification {
         new ForcedModuleNotationParser().parseNotation([groop: 'groop', name: "bar", version: "1.0"])
 
         then:
-        thrown(FlatteningCompositeNotationParser.InvalidNotationFormat)
+        thrown(InvalidNotationFormat)
     }
 
     def "reports invalid format for string notation"() {
@@ -113,6 +114,6 @@ public class ForcedModuleNotationParserTest extends Specification {
         new ForcedModuleNotationParser().parseNotation(["org.foo:bar1.0"])
 
         then:
-        thrown(FlatteningCompositeNotationParser.InvalidNotationFormat)
+        thrown(InvalidNotationFormat)
     }
 }

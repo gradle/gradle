@@ -18,22 +18,21 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.notations.FlatteningCompositeNotationParser;
-import org.gradle.api.internal.notations.NotationParserBuilder;
-import org.gradle.api.internal.notations.TopLevelNotationParser;
-import org.gradle.api.internal.notations.TypedNotationParser;
+import org.gradle.api.internal.notations.*;
 import org.gradle.util.ConfigureUtil;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 
 /**
  * by Szczepan Faber, created at: 10/11/11
  */
-public class ForcedModuleNotationParser implements TopLevelNotationParser {
+public class ForcedModuleNotationParser implements TopLevelNotationParser, NotationParser<Set<ModuleVersionIdentifier>> {
 
-    private FlatteningCompositeNotationParser delegate = new NotationParserBuilder()
+    private NotationParser<Set<ModuleVersionIdentifier>> delegate = new NotationParserBuilder()
             .resultingType(ModuleVersionIdentifier.class)
             .parser(new ForcedModuleStringParser())
             .parser(new ForcedModuleMapParser())
@@ -49,8 +48,11 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser {
 
     public Set<ModuleVersionIdentifier> parseNotation(Object notation) {
         assert notation != null : "notation cannot be null";
-        Collection<ModuleVersionIdentifier> parsed = delegate.parseNotation(notation);
-        return new LinkedHashSet<ModuleVersionIdentifier>(parsed);
+        return delegate.parseNotation(notation);
+    }
+
+    public boolean canParse(Object notation) {
+        return delegate.canParse(notation);
     }
 
     static class ForcedModuleMapParser extends TypedNotationParser<Map, ModuleVersionIdentifier> {
@@ -65,7 +67,7 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser {
             try {
                 ConfigureUtil.configureByMap(notation, out, mandatoryKeys);
             } catch (ConfigureUtil.IncompleteInputException e) {
-                throw new FlatteningCompositeNotationParser.InvalidNotationFormat(
+                throw new InvalidNotationFormat(
                           "Invalid format: " + notation + ". Missing mandatory key(s): " + e.getMissingKeys() + "\n"
                         + "The correct notation is a map with keys: " + mandatoryKeys + ", for example: [group: 'org.gradle', name:'gradle-core', version: '1.0']", e);
             }
@@ -82,7 +84,7 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser {
         public ModuleVersionIdentifier parseType(CharSequence notation) {
             String[] split = notation.toString().split(":");
             if (split.length != 3) {
-                throw new FlatteningCompositeNotationParser.InvalidNotationFormat(
+                throw new InvalidNotationFormat(
                     "Invalid format: '" + notation + "'. The Correct notation is a 3-part group:name:version notation,"
                     + "e.g: org.gradle:gradle-core:1.0");
             }

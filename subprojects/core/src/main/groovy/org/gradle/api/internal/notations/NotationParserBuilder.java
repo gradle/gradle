@@ -50,14 +50,16 @@ public class NotationParserBuilder {
         return this;
     }
 
-    public <T> FlatteningCompositeNotationParser<T> build() {
+    public <T> NotationParser<Set<T>> build() {
         assert resultingType != null : "resultingType cannot be null";
         assert invalidNotationMessage != null : "invalidNotationMessage cannot be null";
 
-        Collection parsers = GUtil.flattenElements(
+        Collection composites = GUtil.flattenElements(
                 new JustReturningParser(resultingType),
                 this.notationParsers,
                 new AlwaysThrowingParser(invalidNotationMessage));
-        return new FlatteningCompositeNotationParser<T>(parsers);
+
+        NotationParser<T> delegate = new CompositeNotationParser<T>(composites);
+        return new FlatteningNotationParser<T>(delegate);
     }
 }
