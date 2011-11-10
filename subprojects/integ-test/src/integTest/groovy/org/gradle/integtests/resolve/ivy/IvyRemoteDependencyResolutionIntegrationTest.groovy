@@ -261,6 +261,43 @@ task show << { println configurations.compile.files }
         succeeds('show')
     }
 
+    public void "replaces org.name with org/name when using maven layout"() {
+        server.start()
+
+        given:
+        def repo = ivyRepo()
+        def module = repo.module('org.name.here', 'projectA', '1.2')
+        module.publish()
+
+        buildFile << """
+repositories {
+    ivy {
+        url "http://localhost:${server.port}"
+        layout "maven"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'org.name.here:projectA:1.2'
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        when:
+        server.expectGet('/org/name/here/projectA/1.2/ivy-1.2.xml', module.ivyFile)
+        server.expectGet('/org/name/here/projectA/1.2/projectA-1.2.jar', module.jarFile)
+
+        and:
+        succeeds('retrieve')
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+    }
+
     IvyRepository ivyRepo() {
         return new IvyRepository(file('ivy-repo'))
     }
