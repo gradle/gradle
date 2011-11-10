@@ -41,6 +41,7 @@ dependencies {
     conf "org.mockito:mockito-core:1.8"
     conf group: 'org.spockframework', name: 'spock-core', version: '1.0'
     conf project(':otherProject')
+    conf module('org.foo:moduleOne:1.0'), module('org.foo:moduleTwo:1.0')
 
     gradleStuff gradleApi()
 
@@ -53,6 +54,8 @@ task checkDeps << {
     assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' && it.name == 'mockito-core' && it.version == '1.8'  }
     assert deps.find { it instanceof ExternalDependency && it.group == 'org.spockframework' && it.name == 'spock-core' && it.version == '1.0'  }
     assert deps.find { it instanceof ProjectDependency && it.dependencyProject.path == ':otherProject' }
+    assert deps.find { it instanceof ClientModule && it.name == 'moduleOne' && it.group == 'org.foo' }
+    assert deps.find { it instanceof ClientModule && it.name == 'moduleTwo' && it.version == '1.0' }
 
     deps = configurations.gradleStuff.dependencies
     assert deps.findAll { it instanceof SelfResolvingDependency }.size() > 0 : "should include gradle api jars"

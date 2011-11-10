@@ -18,6 +18,7 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.internal.notations.api.InvalidNotationType;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.junit.Test;
@@ -48,7 +49,7 @@ public abstract class AbstractModuleFactoryTest {
         createDependency("singlestring");
     }
 
-    @Test(expected = IllegalDependencyNotation.class)
+    @Test(expected = InvalidNotationType.class)
     public void testUnknownTypeShouldThrowInvalidUserDataEx() {
         createDependency(new Point(3, 4));
     }

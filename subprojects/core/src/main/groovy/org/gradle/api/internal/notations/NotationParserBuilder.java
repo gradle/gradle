@@ -21,10 +21,10 @@ import org.gradle.api.internal.notations.parsers.AlwaysThrowingParser;
 import org.gradle.api.internal.notations.parsers.CompositeNotationParser;
 import org.gradle.api.internal.notations.parsers.FlatteningNotationParser;
 import org.gradle.api.internal.notations.parsers.JustReturningParser;
-import org.gradle.util.GUtil;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -56,13 +56,14 @@ public class NotationParserBuilder {
     }
 
     public <T> NotationParser<Set<T>> build() {
-        assert resultingType != null : "resultingType cannot be null";
         assert invalidNotationMessage != null : "invalidNotationMessage cannot be null";
 
-        Collection composites = GUtil.flattenElements(
-                new JustReturningParser(resultingType),
-                this.notationParsers,
-                new AlwaysThrowingParser(invalidNotationMessage));
+        List composites = new LinkedList();
+        if (resultingType != null) {
+            composites.add(new JustReturningParser(resultingType));
+        }
+        composites.addAll(this.notationParsers);
+        composites.add(new AlwaysThrowingParser(invalidNotationMessage));
 
         NotationParser<T> delegate = new CompositeNotationParser<T>(composites);
         return new FlatteningNotationParser<T>(delegate);

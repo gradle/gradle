@@ -15,28 +15,27 @@
  */
 package org.gradle.api.internal.notations;
 
-import groovy.lang.GString;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
 import org.gradle.api.internal.notations.api.NotationParser;
 
-import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultClientModuleFactory implements NotationParser<ClientModule> {
-    private final DependencyMapNotationParser<DefaultClientModule> dependencyMapNotationParser;
-    private final Instantiator instantiator;
+    private final NotationParser<Set<ClientModule>> delegate;
 
     public DefaultClientModuleFactory(Instantiator instantiator) {
-        this.instantiator = instantiator;
-        dependencyMapNotationParser = new DependencyMapNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class);
+        delegate = new NotationParserBuilder()
+            .parser(new ClientDependencyStringNotationParser(instantiator))
+            .parser(new DependencyMapNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
+            .invalidNotationMessage("Client module dependency notation cannot be used to form a client module.")
+            .build(); //TODO SF - to multi
     }
 
     public <T extends Dependency> T createDependency(Class<T> type, Object notation) throws IllegalDependencyNotation {
@@ -47,25 +46,10 @@ public class DefaultClientModuleFactory implements NotationParser<ClientModule> 
     }
 
     public boolean canParse(Object notation) {
-        //TODO SF - CharSequence
-        return notation instanceof String || notation instanceof GString || notation instanceof Map;
+        return delegate.canParse(notation);
     }
 
     public ClientModule parseNotation(Object notation) {
-        assert notation != null;
-        if (notation instanceof String || notation instanceof GString) {
-            return createDependencyFromString(notation.toString());
-        } else if (notation instanceof Map) {
-            return dependencyMapNotationParser.parseNotation(notation);
-        }
-        throw new IllegalDependencyNotation();
-    }
-
-    private DefaultClientModule createDependencyFromString(String notation) {
-        ParsedModuleStringNotation parsedNotation = new ParsedModuleStringNotation(notation, null);
-        DefaultClientModule clientModule = instantiator.newInstance(DefaultClientModule.class,
-                parsedNotation.getGroup(), parsedNotation.getName(), parsedNotation.getVersion());
-        ModuleFactoryHelper.addExplicitArtifactsIfDefined(clientModule, null, parsedNotation.getClassifier());
-        return clientModule;
+        return delegate.parseNotation(notation).iterator().next();
     }
 }

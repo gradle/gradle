@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.notations.IDependencyImplementationFactory
+import org.gradle.api.internal.notations.DefaultClientModuleFactory
 import org.gradle.api.internal.notations.ProjectDependencyFactory
 import org.gradle.util.HelperUtil
 import org.gradle.util.WrapUtil
@@ -80,7 +80,7 @@ public class DefaultDependencyFactoryTest {
 
     @Test(expected = InvalidUserDataException.class)
     public void testCreateDependencyWithInvalidDescriptionShouldThrowInvalidUserDataEx() {
-        final IDependencyImplementationFactory testImplStringFactoryStub = context.mock(IDependencyImplementationFactory.class, "String");
+        final DefaultClientModuleFactory testImplStringFactoryStub = context.mock(DefaultClientModuleFactory.class, "String");
         context.checking(new Expectations() {{
             allowing(testImplPointFactoryStub).createDependency(with(equalTo(Dependency.class)), with(not(instanceOf(Point.class))));
             will(throwException(new IllegalDependencyNotation()));
@@ -110,8 +110,8 @@ public class DefaultDependencyFactoryTest {
 
     @Test
     public void createModule() {
-        final IDependencyImplementationFactory testImplStringFactoryStub = context.mock(IDependencyImplementationFactory.class, "String");
-        final IDependencyImplementationFactory clientModuleFactoryStub = context.mock(IDependencyImplementationFactory.class);
+        final DefaultClientModuleFactory testImplStringFactoryStub = context.mock(DefaultClientModuleFactory.class, "String");
+        final DefaultClientModuleFactory clientModuleFactoryStub = context.mock(DefaultClientModuleFactory.class);
         final ClientModule clientModuleMock = context.mock(ClientModule.class);
         DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(WrapUtil.toSet(testImplStringFactoryStub), clientModuleFactoryStub, null);
         final String someNotation1 = "someNotation1";
@@ -148,8 +148,8 @@ public class DefaultDependencyFactoryTest {
 
     @Test
     public void createModuleWithNullClosure() {
-        final IDependencyImplementationFactory testImplStringFactoryStub = context.mock(IDependencyImplementationFactory.class, "String");
-        final IDependencyImplementationFactory clientModuleFactoryStub = context.mock(IDependencyImplementationFactory.class);
+        final DefaultClientModuleFactory testImplStringFactoryStub = context.mock(DefaultClientModuleFactory.class, "String");
+        final DefaultClientModuleFactory clientModuleFactoryStub = context.mock(DefaultClientModuleFactory.class);
         final ClientModule clientModuleMock = context.mock(ClientModule.class);
         DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(WrapUtil.toSet(testImplStringFactoryStub), clientModuleFactoryStub, null);
 

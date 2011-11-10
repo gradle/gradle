@@ -24,7 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Flattens input and passes the input notations to the delegates. Returns a set.
+ * Flattens or collectionizes input and passes the input notations to the delegates. Returns a set.
  */
 public class FlatteningNotationParser<T> implements NotationParser<Set<T>> {
 
@@ -44,7 +44,6 @@ public class FlatteningNotationParser<T> implements NotationParser<Set<T>> {
         Collection notations = GUtil.collectionize(notation);
         for (Object n : notations) {
             out.add(delegate.parseNotation(n));
-
         }
         return out;
     }
