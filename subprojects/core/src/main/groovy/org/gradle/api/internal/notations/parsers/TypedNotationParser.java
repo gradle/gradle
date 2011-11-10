@@ -42,5 +42,5 @@ public abstract class TypedNotationParser<N, T> implements NotationParser<T> {
         return parseType(typeToken.cast(notation));
     }
 
-    abstract public T parseType(N notation);
+    abstract protected T parseType(N notation);
 }
