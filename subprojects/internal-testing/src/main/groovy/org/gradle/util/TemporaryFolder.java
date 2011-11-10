@@ -54,7 +54,7 @@ public class TemporaryFolder implements MethodRule, TestFileContext {
     private String determinePrefix() {
         StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
         for (StackTraceElement element : stackTrace) {
-            if (element.getClassName().endsWith("Test")) {
+            if (element.getClassName().endsWith("Test") || element.getClassName().endsWith("Spec")) {
                 return StringUtils.substringAfterLast(element.getClassName(), ".") + "/unknown-test";
             }
         }
