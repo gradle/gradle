@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.notations.parsers;
 
+import org.gradle.api.internal.notations.api.InvalidNotationType;
 import org.gradle.api.internal.notations.api.NotationParser;
 
 /**
@@ -35,7 +36,9 @@ public abstract class TypedNotationParser<N, T> implements NotationParser<T> {
     }
 
     public T parseNotation(Object notation) {
-        assert canParse(notation) : "This parser only parses instances of " + typeToken.getName();
+        if (!canParse(notation)) {
+            throw new InvalidNotationType(this.getClass().getSimpleName() + " only parses instances of " + typeToken.getName());
+        }
         return parseType(typeToken.cast(notation));
     }
 
