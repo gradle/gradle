@@ -178,6 +178,25 @@ import java.util.Map;
  *
  * <p>When the configuration is from a different project, a project dependency is added.</p>
  *
+ * <h3>Gradle distribution specific dependencies</h3>
+ *
+ * <p>It is possible to depend on certain Gradle APIs or libraries that Gradle ships with.
+ * It is particularly useful for Gradle plugin development. Example:</p>
+ *
+ * <pre autoTested=''>
+ * //Our Gradle plugin is written in groovy
+ * apply plugin: 'groovy'
+ * //now we can use 'groovy' and 'compile' configuration for declaring dependencies
+ *
+ * dependencies {
+ *   //we will use groovy that ships with Gradle:
+ *   groovy localGroovy()
+ *
+ *   //our plugin requires Gradle API interfaces and classes to compile:
+ *   compile gradleApi()
+ * }
+ * </pre>
+ *
  * <h3>Client module dependencies</h3>
  *
  * <p>To add a client module to a configuration you can use the notation:</p>
