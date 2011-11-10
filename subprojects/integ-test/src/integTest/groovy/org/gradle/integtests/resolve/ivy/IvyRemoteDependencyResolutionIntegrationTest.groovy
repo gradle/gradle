@@ -30,63 +30,82 @@ class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSp
     }
 
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
+        server.start()
         given:
         def repo = ivyRepo()
         def module = repo.module('group', 'projectA', '1.2')
         module.publish()
 
         and:
+        buildFile << """
+repositories {
+    ivy { url "http://localhost:${server.port}/repo" }
+}
+configurations { compile }
+dependencies { compile 'group:projectA:1.2' }
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+}
+"""
+        when:
         server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
+
+        then:
+        succeeds 'listJars'
+
+        when:
+        server.resetExpectations()
+        // No extra calls for cached dependencies
+
+        then:
+        succeeds 'listJars'
+    }
+
+    public void "can resolve and cache artifact-only dependencies from an HTTP Ivy repository"() {
         server.start()
+        given:
+        def repo = ivyRepo()
+        def module = repo.module('group', 'projectA', '1.2')
+        module.publish()
 
         and:
         buildFile << """
 repositories {
-    ivy {
-        url "http://localhost:${server.port}/repo"
-    }
+    ivy { url "http://localhost:${server.port}/repo" }
 }
 configurations { compile }
-dependencies {
-    compile 'group:projectA:1.2'
-}
+dependencies { compile 'group:projectA:1.2@jar' }
 task listJars << {
     assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
 }
 """
 
-        expect:
+
+        when:
+        // TODO: Should meta-data be fetched for an artifact-only dependency?
+        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
+
+        then:
         succeeds('listJars')
 
-//        given:
+        when:
         server.resetExpectations()
         // No extra calls for cached dependencies
 
-//        expect:
+        then:
         succeeds('listJars')
     }
 
     public void "can resolve and cache dependencies from multiple HTTP Ivy repositories"() {
+        server.start()
         given:
         def repo = ivyRepo()
         def module1 = repo.module('group', 'projectA', '1.2')
         module1.publish()
         def module2 = repo.module('group', 'projectB', '1.3')
         module2.publish()
-
-        and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module1.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module1.jarFile)
-
-        server.expectGetMissing('/repo/group/projectB/1.3/ivy-1.3.xml')
-        // TODO - this shouldn't happen - resolver is trying to generate metadata based on presence of jar
-        server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
-
-        server.expectGet('/repo2/group/projectB/1.3/ivy-1.3.xml', module2.ivyFile)
-        server.expectGet('/repo2/group/projectB/1.3/projectB-1.3.jar', module2.jarFile)
-
-        server.start()
 
         and:
         buildFile << """
@@ -103,28 +122,34 @@ task listJars << {
 }
 """
 
-        expect:
+        when:
+        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module1.ivyFile)
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module1.jarFile)
+
+        server.expectGetMissing('/repo/group/projectB/1.3/ivy-1.3.xml')
+        // TODO - this shouldn't happen - resolver is trying to generate metadata based on presence of jar
+        server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
+
+        server.expectGet('/repo2/group/projectB/1.3/ivy-1.3.xml', module2.ivyFile)
+        server.expectGet('/repo2/group/projectB/1.3/projectB-1.3.jar', module2.jarFile)
+
+        then:
         succeeds('listJars')
 
-
-//        given:
+        when:
         server.resetExpectations()
         // No extra calls for cached dependencies
 
-//        expect:
+        then:
         succeeds('listJars')
     }
 
     public void "can resolve dependencies from password protected HTTP Ivy repository"() {
+        server.start()
         given:
         def repo = ivyRepo()
         def module = repo.module('group', 'projectA', '1.2')
         module.publish()
-
-        and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.jarFile)
-        server.start()
 
         and:
         buildFile << """
@@ -147,7 +172,11 @@ task listJars << {
 }
 """
 
-        expect:
+        when:
+        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.jarFile)
+
+        then:
         succeeds('listJars')
     }
 
@@ -214,6 +243,7 @@ dependencies {
 task show << { println configurations.compile.files }
 """
 
+        when:
         server.expectGetMissing('/first/group/projectA/1.2/ivy-1.2.xml')
         server.expectGetMissing('/first/group/projectA/1.2/projectA-1.2.jar')
         server.expectGetMissing('/second/projectA/1.2/ivy.xml')
@@ -221,13 +251,13 @@ task show << { println configurations.compile.files }
         server.expectGet('/third/projectA/1.2/ivy.xml', module.ivyFile)
         server.expectGet('/third/projectA/1.2/projectA-1.2.jar', module.jarFile)
 
-        expect:
+        then:
         succeeds('show')
 
-//        given:
+        when:
         server.resetExpectations()
 
-//        expect:
+        then:
         succeeds('show')
     }
 

@@ -84,6 +84,44 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
     }
 
+    def "can resolve and cache artifact-only dependencies from an HTTP Maven repository"() {
+        server.start()
+        given:
+        def module = repo().module('group', 'projectA', '1.2')
+        module.publish()
+
+        and:
+        buildFile << """
+repositories {
+    maven { url "http://localhost:${server.port}/repo1" }
+    maven { url "http://localhost:${server.port}/repo2" }
+}
+configurations { compile }
+dependencies { compile 'group:projectA:1.2@jar' }
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+}
+"""
+
+        when:
+        // TODO: Should meta-data be fetched for an artifact-only dependency?
+        server.expectGetMissing('/repo1/group/projectA/1.2/projectA-1.2.pom')
+        server.expectGetMissing('/repo1/group/projectA/1.2/projectA-1.2.jar')
+
+        server.expectGet('/repo2/group/projectA/1.2/projectA-1.2.pom', module.pomFile)
+        server.expectGet('/repo2/group/projectA/1.2/projectA-1.2.jar', module.artifactFile)
+
+        then:
+        succeeds('listJars')
+
+        when:
+        server.resetExpectations()
+        // No extra calls for cached dependencies
+
+        then:
+        succeeds('listJars')
+    }
+
     def "does not download source and javadoc artifacts from HTTP Maven repository until required"() {
         given:
         server.start()
@@ -109,17 +147,21 @@ task listJars << {
     assert configurations.compile.collect { it.name } == ['projectA-1.0.jar']
 }
 """
-        
+
+        when:
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
 
-        run 'listJars'
+        then:
+        succeeds 'listJars'
 
+        when:
         server.resetExpectations()
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0-sources.jar', sourceJar)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0-javadoc.jar', javadocJar)
 
-        run 'eclipseClasspath'
+        then:
+        succeeds 'eclipseClasspath'
     }
 
     def "can resolve and cache dependencies from multiple HTTP Maven repositories"() {
@@ -145,6 +187,7 @@ task listJars << {
         projectA.publish()
         projectB.publish()
 
+        when:
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
 
         // Looks for POM and JAR in repo1 before looking in repo2 (jar is an attempt to handle publication without module descriptor)
@@ -155,12 +198,15 @@ task listJars << {
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
         server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
-        run 'listJars'
+        then:
+        succeeds 'listJars'
 
+        when:
         server.resetExpectations()
         // No server requests when all jars cached
 
-        run 'listJars'
+        then:
+        succeeds 'listJars'
     }
 
     def "uses artifactsUrl to resolve artifacts"() {
@@ -188,6 +234,7 @@ task listJars << {
         projectA.publish()
         projectB.publish()
 
+        when:
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
         server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
 
@@ -195,7 +242,8 @@ task listJars << {
         server.expectGetMissing('/repo1/group/projectB/1.0/projectB-1.0.jar')
         server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
-        run 'listJars'
+        then:
+        succeeds 'listJars'
     }
 
     def "can resolve dependencies from password protected HTTP Maven repository"() {
