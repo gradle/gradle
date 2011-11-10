@@ -48,7 +48,7 @@ public class ForcedModuleNotationParserTest extends Specification {
     }
 
     def "allows exact type on input"() {
-        ModuleVersionIdentifier id = ForcedModuleBuilder.identifier("org.foo", "bar", "2.0")
+        ModuleVersionIdentifier id = ForcedModuleNotationParser.identifier("org.foo", "bar", "2.0")
 
         when:
         def v = new ForcedModuleNotationParser().parseNotation(id) as List
@@ -61,7 +61,7 @@ public class ForcedModuleNotationParserTest extends Specification {
     }
 
     def "allows list of objects on input"() {
-        ModuleVersionIdentifier id = ForcedModuleBuilder.identifier("org.foo", "bar", "2.0")
+        ModuleVersionIdentifier id = ForcedModuleNotationParser.identifier("org.foo", "bar", "2.0")
 
         when:
         def v = new ForcedModuleNotationParser().parseNotation([id, ["hey:man:1.0"], [group:'i', name:'like', version:'maps']]) as List
