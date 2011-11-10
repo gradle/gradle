@@ -125,11 +125,11 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 get(StartParameter.class).getProjectDependenciesBuildInstruction(),
                 instantiator);
 
-        NotationParser<? extends Dependency> selfResolvingDependencyFactory = new FilesDependencyNotationParser(instantiator);
+        NotationParser<? extends Dependency> selfResolvingDependencyFactory = new DependencyFilesNotationParser(instantiator);
         Set<NotationParser<? extends Dependency>> notationParsers = WrapUtil.toSet(
                 new ModuleDependencyFactory(instantiator),
                 selfResolvingDependencyFactory,
-                new ClassPathDependencyNotationParser(instantiator, get(ClassPathRegistry.class), new IdentityFileResolver()),
+                new DependencyClassPathNotationParser(instantiator, get(ClassPathRegistry.class), new IdentityFileResolver()),
                 projParser);
 
         DependencyNotationParser dependencyNotationParser = new DependencyNotationParser(notationParsers);

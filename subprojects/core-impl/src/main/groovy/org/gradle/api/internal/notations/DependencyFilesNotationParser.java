@@ -22,13 +22,13 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDepend
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 
-public class FilesDependencyNotationParser
+public class DependencyFilesNotationParser
         extends TypedNotationParser<FileCollection, SelfResolvingDependency>
         implements NotationParser<SelfResolvingDependency> {
 
     private final Instantiator instantiator;
 
-    public FilesDependencyNotationParser(Instantiator instantiator) {
+    public DependencyFilesNotationParser(Instantiator instantiator) {
         super(FileCollection.class);
         this.instantiator = instantiator;
     }

@@ -34,12 +34,12 @@ import java.util.regex.Pattern;
  * @author Hans Dockter
  */
 public class ModuleDependencyFactory implements IDependencyImplementationFactory, NotationParser<ModuleDependency> {
-    private final MapModuleNotationParser<DefaultExternalModuleDependency> mapNotationParser;
+    private final ModuleMapNotationParser<DefaultExternalModuleDependency> mapNotationParser;
     private final Instantiator instantiator;
 
     public ModuleDependencyFactory(Instantiator instantiator) {
         this.instantiator = instantiator;
-        mapNotationParser = new MapModuleNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class);
+        mapNotationParser = new ModuleMapNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class);
     }
 
     public <T extends Dependency> T createDependency(Class<T> type, Object notation) throws IllegalDependencyNotation {

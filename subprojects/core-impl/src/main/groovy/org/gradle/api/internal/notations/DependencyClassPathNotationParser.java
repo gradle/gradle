@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import java.io.File;
 import java.util.Set;
 
-public class ClassPathDependencyNotationParser
+public class DependencyClassPathNotationParser
         extends TypedNotationParser<DependencyFactory.ClassPathNotation, SelfResolvingDependency>
         implements NotationParser<SelfResolvingDependency> {
 
@@ -36,7 +36,7 @@ public class ClassPathDependencyNotationParser
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
 
-    public ClassPathDependencyNotationParser(Instantiator instantiator, ClassPathRegistry classPathRegistry,
+    public DependencyClassPathNotationParser(Instantiator instantiator, ClassPathRegistry classPathRegistry,
                                              FileResolver fileResolver) {
         super(DependencyFactory.ClassPathNotation.class);
 
