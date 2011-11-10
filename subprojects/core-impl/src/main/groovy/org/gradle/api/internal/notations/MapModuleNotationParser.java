@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.notations;
 
-import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
+import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;
@@ -28,25 +27,29 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class MapModuleNotationParser implements IDependencyImplementationFactory {
-    private final Instantiator instantiator;
+public class MapModuleNotationParser<T extends ExternalDependency> extends TypedNotationParser<Map, T> {
 
-    public MapModuleNotationParser(Instantiator instantiator) {
+    private final Instantiator instantiator;
+    private final Class<T> resultingType;
+
+    public MapModuleNotationParser(Instantiator instantiator, Class<T> resultingType) {
+        super(Map.class);
         this.instantiator = instantiator;
+        this.resultingType = resultingType;
     }
 
-    public <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription)
-            throws IllegalDependencyNotation {
-        Map<String, Object> args = new HashMap<String, Object>((Map<String, ?>) userDependencyDescription);
+    @Override
+    public T parseType(Map notation) {
+        Map<String, Object> args = new HashMap<String, Object>(notation);
         String group = getAndRemove(args, "group");
         String name = getAndRemove(args, "name");
         String version = getAndRemove(args, "version");
         String configuration = getAndRemove(args, "configuration");
-        ExternalDependency dependency = (ExternalDependency) instantiator.newInstance(type, group, name, version, configuration);
+        ExternalDependency dependency = instantiator.newInstance(resultingType, group, name, version, configuration);
         ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, getAndRemove(args, "ext"), getAndRemove(args,
                 "classifier"));
         ConfigureUtil.configureByMap(args, dependency);
-        return type.cast(dependency);
+        return (T) dependency;
     }
 
     private String getAndRemove(Map<String, Object> args, String key) {

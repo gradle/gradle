@@ -31,12 +31,12 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultClientModuleFactory implements NotationParser<ClientModule> {
-    private final MapModuleNotationParser mapNotationParser;
+    private final MapModuleNotationParser<DefaultClientModule> mapNotationParser;
     private final Instantiator instantiator;
 
     public DefaultClientModuleFactory(Instantiator instantiator) {
         this.instantiator = instantiator;
-        mapNotationParser = new MapModuleNotationParser(instantiator);
+        mapNotationParser = new MapModuleNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class);
     }
 
     public <T extends Dependency> T createDependency(Class<T> type, Object notation) throws IllegalDependencyNotation {
@@ -56,7 +56,7 @@ public class DefaultClientModuleFactory implements NotationParser<ClientModule> 
         if (notation instanceof String || notation instanceof GString) {
             return createDependencyFromString(notation.toString());
         } else if (notation instanceof Map) {
-            return mapNotationParser.createDependency(DefaultClientModule.class, notation);
+            return mapNotationParser.parseNotation(notation);
         }
         throw new IllegalDependencyNotation();
     }
