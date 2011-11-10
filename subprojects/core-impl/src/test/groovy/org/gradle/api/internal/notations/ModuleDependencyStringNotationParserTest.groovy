@@ -29,9 +29,6 @@ public class ModuleDependencyStringNotationParserTest extends Specification {
 
     def parser = new ModuleDependencyStringNotationParser(new DirectInstantiator());
 
-    def artifact = "org.gradle:gradle-core:4.4-beta2@mytype";
-    def classifiedArtifact = "org.gradle:gradle-core:4.4-beta2:jdk-1.4@mytype"
-
     def "with artifact"() {
         when:
         def d = parser.parseNotation('org.gradle:gradle-core:4.4-beta2@mytype');

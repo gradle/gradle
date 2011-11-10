@@ -27,20 +27,7 @@ import spock.lang.Specification
  */
 public class ModuleDependencyMapNotationParserTest extends Specification {
 
-    def parser = new ModuleMapNotationParser<DefaultExternalModuleDependency>(new DirectInstantiator(), DefaultExternalModuleDependency.class);
-
-    //    @Test
-//    public void testMapNotationWithArtifact() {
-//        ExternalDependency moduleDependency = createDependency(GUtil.map("group", TEST_GROUP, "name", TEST_NAME, "version", TEST_VERSION, "ext", TEST_TYPE));
-//        assertIsArtifactOnly(moduleDependency);
-//    }
-//
-//    @Test
-//    public void testMapNotationWithArtifactAndClassifier() {
-//        ExternalDependency moduleDependency = createDependency(GUtil.map("group", TEST_GROUP, "name", TEST_NAME, "version",
-//                TEST_VERSION, "ext", TEST_TYPE, "classifier", TEST_CLASSIFIER));
-//        assertIsArtifactOnlyWithClassifier(moduleDependency);
-//    }
+    def parser = new ModuleDependencyMapNotationParser<DefaultExternalModuleDependency>(new DirectInstantiator(), DefaultExternalModuleDependency.class);
 
     def "with artifact"() {
         when:
