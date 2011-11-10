@@ -30,11 +30,11 @@ import java.util.regex.Pattern;
 /**
  * by Szczepan Faber, created at: 11/10/11
  */
-public class ModuleDependencyStringNotationParser extends TypedNotationParser<CharSequence, ExternalModuleDependency> {
+public class DependencyStringNotationParser extends TypedNotationParser<CharSequence, ExternalModuleDependency> {
 
     private final Instantiator instantiator;
 
-    public ModuleDependencyStringNotationParser(Instantiator instantiator) {
+    public DependencyStringNotationParser(Instantiator instantiator) {
         super(CharSequence.class);
         this.instantiator = instantiator;
     }

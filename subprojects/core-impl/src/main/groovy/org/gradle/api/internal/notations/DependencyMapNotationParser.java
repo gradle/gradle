@@ -27,12 +27,12 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class ModuleDependencyMapNotationParser<T extends ExternalDependency> extends TypedNotationParser<Map, T> {
+public class DependencyMapNotationParser<T extends ExternalDependency> extends TypedNotationParser<Map, T> {
 
     private final Instantiator instantiator;
     private final Class<T> resultingType;
 
-    public ModuleDependencyMapNotationParser(Instantiator instantiator, Class<T> resultingType) {
+    public DependencyMapNotationParser(Instantiator instantiator, Class<T> resultingType) {
         super(Map.class);
         this.instantiator = instantiator;
         this.resultingType = resultingType;

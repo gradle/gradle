@@ -26,12 +26,12 @@ import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 /**
  * by Szczepan Faber, created at: 11/10/11
  */
-public class ProjectDependencyNotationParser extends TypedNotationParser<Project, ProjectDependency> {
+public class DependencyProjectNotationParser extends TypedNotationParser<Project, ProjectDependency> {
 
     private final ProjectDependenciesBuildInstruction instruction;
     private final Instantiator instantiator;
 
-    public ProjectDependencyNotationParser(ProjectDependenciesBuildInstruction instruction, Instantiator instantiator) {
+    public DependencyProjectNotationParser(ProjectDependenciesBuildInstruction instruction, Instantiator instantiator) {
         super(Project.class);
         this.instruction = instruction;
         this.instantiator = instantiator;

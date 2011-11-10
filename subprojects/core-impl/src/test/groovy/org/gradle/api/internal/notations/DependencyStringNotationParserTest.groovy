@@ -25,9 +25,9 @@ import spock.lang.Specification
 /**
  * by Szczepan Faber, created at: 11/10/11
  */
-public class ModuleDependencyStringNotationParserTest extends Specification {
+public class DependencyStringNotationParserTest extends Specification {
 
-    def parser = new ModuleDependencyStringNotationParser(new DirectInstantiator());
+    def parser = new DependencyStringNotationParser(new DirectInstantiator());
 
     def "with artifact"() {
         when:
