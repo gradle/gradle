@@ -15,37 +15,25 @@
  */
 package org.gradle.api.internal.notations;
 
-import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 
-public class SelfResolvingDependencyFactory implements IDependencyImplementationFactory, NotationParser<SelfResolvingDependency> {
+public class FilesDependencyNotationParser
+        extends TypedNotationParser<FileCollection, SelfResolvingDependency>
+        implements NotationParser<SelfResolvingDependency> {
+
     private final Instantiator instantiator;
 
-    public SelfResolvingDependencyFactory(Instantiator instantiator) {
+    public FilesDependencyNotationParser(Instantiator instantiator) {
+        super(FileCollection.class);
         this.instantiator = instantiator;
     }
 
-    public <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription)
-            throws IllegalDependencyNotation {
-        if (!canParse(userDependencyDescription)) {
-            throw new IllegalDependencyNotation();
-        }
-
-        return type.cast(parseNotation(userDependencyDescription));
-    }
-
-    public boolean canParse(Object notation) {
-        return notation instanceof FileCollection;
-    }
-
-    public SelfResolvingDependency parseNotation(Object notation) {
-        assert canParse(notation) : "This parser only accepts FileCollection.";
-        FileCollection fileCollection = (FileCollection) notation;
-        return instantiator.newInstance(DefaultSelfResolvingDependency.class, fileCollection);
+    public SelfResolvingDependency parseType(FileCollection notation) {
+        return instantiator.newInstance(DefaultSelfResolvingDependency.class, notation);
     }
 }
