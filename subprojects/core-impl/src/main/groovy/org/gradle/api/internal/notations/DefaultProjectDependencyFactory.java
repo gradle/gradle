@@ -15,15 +15,13 @@
  */
 package org.gradle.api.internal.notations;
 
-import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;
@@ -32,28 +30,17 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class DefaultProjectDependencyFactory implements IDependencyImplementationFactory, NotationParser<ProjectDependency> {
+public class DefaultProjectDependencyFactory extends TypedNotationParser<Project, ProjectDependency> {
     private final ProjectDependenciesBuildInstruction instruction;
     private final Instantiator instantiator;
 
     public DefaultProjectDependencyFactory(ProjectDependenciesBuildInstruction instruction, Instantiator instantiator) {
+        super(Project.class);
         this.instruction = instruction;
         this.instantiator = instantiator;
     }
 
-    public <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription) throws IllegalDependencyNotation {
-        if (!canParse(userDependencyDescription)) {
-            throw new IllegalDependencyNotation();
-        }
-        return type.cast(parseNotation(userDependencyDescription));
-    }
-    
-    public boolean canParse(Object notation) {
-        return notation instanceof Project;
-    }
-
-    public ProjectDependency parseNotation(Object notation) {
-        assert canParse(notation) : "Parser accepts only Projects";
+    public ProjectDependency parseType(Project notation) {
         return instantiator.newInstance(DefaultProjectDependency.class, notation, instruction);
     }
 

@@ -15,21 +15,16 @@
  */
 package org.gradle.api.internal.notations;
 
-import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.DirectInstantiator;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 
-import java.awt.*;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -46,14 +41,6 @@ public class DefaultProjectDependencyFactoryTest { //TODO SF spock it or rid it 
     private ProjectFinder projectFinder = context.mock(ProjectFinder.class);
 
     @Test
-    public void testCreateProjectDependencyWithProject() {
-        Project dependencyProject = HelperUtil.createRootProject();
-        DefaultProjectDependency projectDependency = (DefaultProjectDependency)
-                projectDependencyFactory.createDependency(Dependency.class, dependencyProject);
-        assertThat(projectDependency.getDependencyProject(), equalTo(dependencyProject));
-    }
-
-    @Test
     public void testCreateProjectDependencyWithMapNotation() {
         boolean expectedTransitive = false;
         final Map<String, Object> mapNotation = GUtil.map("path", ":path", "configuration", "conf", "transitive", expectedTransitive);
@@ -67,10 +54,5 @@ public class DefaultProjectDependencyFactoryTest { //TODO SF spock it or rid it 
         assertThat((ProjectInternal) projectDependency.getDependencyProject(), equalTo(projectDummy));
         assertThat(projectDependency.getConfiguration(), equalTo(mapNotation.get("configuration")));
         assertThat(projectDependency.isTransitive(), equalTo(expectedTransitive));
-    }
-
-    @Test (expected = IllegalDependencyNotation.class)
-    public void testWithUnknownTypeShouldThrowUnknownDependencyNotationEx() {
-        projectDependencyFactory.createDependency(Dependency.class, new Point(3, 4));
     }
 }
