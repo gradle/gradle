@@ -116,7 +116,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     protected DependencyFactory createDependencyFactory() {
         Instantiator instantiator = get(Instantiator.class);
-        DefaultProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(
+
+        ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(
+                get(StartParameter.class).getProjectDependenciesBuildInstruction(),
+                instantiator);
+
+        ProjectDependencyNotationParser projParser = new ProjectDependencyNotationParser(
                 get(StartParameter.class).getProjectDependenciesBuildInstruction(),
                 instantiator);
 
@@ -125,7 +130,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 new ModuleDependencyFactory(instantiator),
                 selfResolvingDependencyFactory,
                 new ClassPathDependencyNotationParser(instantiator, get(ClassPathRegistry.class), new IdentityFileResolver()),
-                projectDependencyFactory);
+                projParser);
 
         DependencyNotationParser dependencyNotationParser = new DependencyNotationParser(notationParsers);
 

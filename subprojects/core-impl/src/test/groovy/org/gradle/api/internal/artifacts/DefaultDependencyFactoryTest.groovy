@@ -25,8 +25,8 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.notations.DefaultProjectDependencyFactory
 import org.gradle.api.internal.notations.IDependencyImplementationFactory
+import org.gradle.api.internal.notations.ProjectDependencyFactory
 import org.gradle.util.HelperUtil
 import org.gradle.util.WrapUtil
 import org.jmock.Expectations
@@ -96,7 +96,7 @@ public class DefaultDependencyFactoryTest {
 
     @Test
     public void createProject() {
-        final DefaultProjectDependencyFactory projectDependencyFactoryStub = context.mock(DefaultProjectDependencyFactory.class);
+        final ProjectDependencyFactory projectDependencyFactoryStub = context.mock(ProjectDependencyFactory.class);
         final ProjectDependency projectDependency = context.mock(ProjectDependency.class);
         final ProjectFinder projectFinderDummy = context.mock(ProjectFinder.class);
         DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(null, null, projectDependencyFactoryStub);

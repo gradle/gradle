@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.notations;
 
 import org.gradle.api.Project;
@@ -20,21 +21,17 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
-import org.gradle.util.ConfigureUtil;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
- * @author Hans Dockter
+ * by Szczepan Faber, created at: 11/10/11
  */
-public class DefaultProjectDependencyFactory extends TypedNotationParser<Project, ProjectDependency> {
+public class ProjectDependencyNotationParser extends TypedNotationParser<Project, ProjectDependency> {
+
     private final ProjectDependenciesBuildInstruction instruction;
     private final Instantiator instantiator;
 
-    public DefaultProjectDependencyFactory(ProjectDependenciesBuildInstruction instruction, Instantiator instantiator) {
+    public ProjectDependencyNotationParser(ProjectDependenciesBuildInstruction instruction, Instantiator instantiator) {
         super(Project.class);
         this.instruction = instruction;
         this.instantiator = instantiator;
@@ -42,22 +39,5 @@ public class DefaultProjectDependencyFactory extends TypedNotationParser<Project
 
     public ProjectDependency parseType(Project notation) {
         return instantiator.newInstance(DefaultProjectDependency.class, notation, instruction);
-    }
-
-    //TODO SF - separate this to a different object
-    public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder,
-                                                            Map<? extends String, ? extends Object> map) {
-        Map<String, Object> args = new HashMap<String, Object>(map);
-        String path = getAndRemove(args, "path");
-        String configuration = getAndRemove(args, "configuration");
-        ProjectDependency dependency = instantiator.newInstance(DefaultProjectDependency.class, projectFinder.getProject(path), configuration, instruction);
-        ConfigureUtil.configureByMap(args, dependency);
-        return dependency;
-    }
-
-    private String getAndRemove(Map<String, Object> args, String key) {
-        Object value = args.get(key);
-        args.remove(key);
-        return value != null ? value.toString() : null;
     }
 }
