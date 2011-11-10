@@ -26,6 +26,7 @@ import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -125,9 +126,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 get(StartParameter.class).getProjectDependenciesBuildInstruction(),
                 instantiator);
 
+        NotationParser<? extends Dependency> moduleMapParser = new ModuleMapNotationParser(instantiator, DefaultExternalModuleDependency.class);
         NotationParser<? extends Dependency> selfResolvingDependencyFactory = new DependencyFilesNotationParser(instantiator);
+
         Set<NotationParser<? extends Dependency>> notationParsers = WrapUtil.toSet(
-                new ModuleDependencyFactory(instantiator),
+                new ModuleDependencyStringNotationParser(instantiator),
+                moduleMapParser,
                 selfResolvingDependencyFactory,
                 new DependencyClassPathNotationParser(instantiator, get(ClassPathRegistry.class), new IdentityFileResolver()),
                 projParser);

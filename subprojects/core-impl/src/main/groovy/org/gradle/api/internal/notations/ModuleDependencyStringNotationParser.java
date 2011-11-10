@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,56 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.notations;
 
-import groovy.lang.GString;
-import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @author Hans Dockter
+ * by Szczepan Faber, created at: 11/10/11
  */
-public class ModuleDependencyFactory implements IDependencyImplementationFactory, NotationParser<ModuleDependency> {
-    private final ModuleMapNotationParser<DefaultExternalModuleDependency> mapNotationParser;
+public class ModuleDependencyStringNotationParser extends TypedNotationParser<CharSequence, ExternalModuleDependency> {
+
     private final Instantiator instantiator;
 
-    public ModuleDependencyFactory(Instantiator instantiator) {
+    public ModuleDependencyStringNotationParser(Instantiator instantiator) {
+        super(CharSequence.class);
         this.instantiator = instantiator;
-        mapNotationParser = new ModuleMapNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class);
     }
 
-    public <T extends Dependency> T createDependency(Class<T> type, Object notation) throws IllegalDependencyNotation {
-        assert notation != null;
-        if (!canParse(notation)) {
-            throw new IllegalDependencyNotation();
-        }
-
-        return type.cast(parseNotation(notation));
-    }
-
-    public boolean canParse(Object notation) {
-        return notation instanceof String || notation instanceof GString || notation instanceof Map;
-    }
-
-    public ModuleDependency parseNotation(Object notation) {
-        //TODO SF - separate
-        if (notation instanceof String || notation instanceof GString) {
-            return createDependencyFromString(notation.toString());
-        } else if (notation instanceof Map) {
-            return mapNotationParser.parseNotation(notation);
-        }
-        throw new IllegalDependencyNotation();
+    protected ExternalModuleDependency parseType(CharSequence notation) {
+        return createDependencyFromString(notation.toString());
     }
 
     private static final Pattern EXTENSION_SPLITTER = Pattern.compile("^(.+)\\@([^:]+$)");
