@@ -60,6 +60,6 @@ public class DefaultDependencyFactory implements DependencyFactory {
     }
 
     public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map) {
-        return projectDependencyFactory.createProjectDependencyFromMap(projectFinder, map);
+        return projectDependencyFactory.createFromMap(projectFinder, map);
     }
 }

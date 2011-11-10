@@ -102,7 +102,7 @@ public class DefaultDependencyFactoryTest {
         DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(null, null, projectDependencyFactoryStub);
         final Map<String, String> map = WrapUtil.toMap("key", "value");
         context.checking(new Expectations() {{
-            allowing(projectDependencyFactoryStub).createProjectDependencyFromMap(projectFinderDummy, map);
+            allowing(projectDependencyFactoryStub).createFromMap(projectFinderDummy, map);
             will(returnValue(projectDependency));
         }});
         assertThat(dependencyFactory.createProjectDependencyFromMap(projectFinderDummy, map), sameInstance(projectDependency));

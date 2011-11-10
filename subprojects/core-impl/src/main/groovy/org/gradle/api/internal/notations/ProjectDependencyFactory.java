@@ -37,8 +37,8 @@ public class ProjectDependencyFactory {
         this.instantiator = instantiator;
     }
 
-    public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder,
-                                                            Map<? extends String, ? extends Object> map) {
+    public ProjectDependency createFromMap(ProjectFinder projectFinder,
+                                           Map<? extends String, ? extends Object> map) {
         Map<String, Object> args = new HashMap<String, Object>(map);
         String path = getAndRemove(args, "path");
         String configuration = getAndRemove(args, "configuration");
