@@ -124,7 +124,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         Set<NotationParser<? extends Dependency>> notationParsers = WrapUtil.toSet(
                 new ModuleDependencyFactory(instantiator),
                 selfResolvingDependencyFactory,
-                new ClassPathDependencyFactory(instantiator, get(ClassPathRegistry.class), new IdentityFileResolver()),
+                new ClassPathDependencyNotationParser(instantiator, get(ClassPathRegistry.class), new IdentityFileResolver()),
                 projectDependencyFactory);
 
         DependencyNotationParser dependencyNotationParser = new DependencyNotationParser(notationParsers);
