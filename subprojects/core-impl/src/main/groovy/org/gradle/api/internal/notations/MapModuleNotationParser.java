@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.notations;
 
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.Instantiator;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;
@@ -27,10 +28,10 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-class MapModuleNotationParser implements IDependencyImplementationFactory {
+public class MapModuleNotationParser implements IDependencyImplementationFactory {
     private final Instantiator instantiator;
 
-    MapModuleNotationParser(Instantiator instantiator) {
+    public MapModuleNotationParser(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
 

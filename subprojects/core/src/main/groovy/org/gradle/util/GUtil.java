@@ -44,6 +44,12 @@ public class GUtil {
         return flatten(elements, addTo, true);
     }
 
+    public static <T extends Collection> T flattenElements(Object... elements) {
+        Collection<T> out = new LinkedList<T>();
+        flatten(elements, out, true);
+        return (T) out;
+    }
+
     public static <T extends Collection> T flatten(Collection elements, T addTo, boolean flattenMapsAndArrays) {
         //TODO SF - for some reason, flattening of arrays is controlled by flattenMaps. Consider some refactorings.
         return flatten(elements, addTo, flattenMapsAndArrays, flattenMapsAndArrays);
@@ -66,14 +72,14 @@ public class GUtil {
         return addTo;
     }
 
+    //TODO SF - consider moving all flatteing and collectionzizing methods to the CollectionUtil
     /**
      * Flattens input collections (including arrays *but* not maps).
      * If input is not a collection wraps it in a collection and returns it.
      * @param input any object
      * @return collection of flattened input or single input wrapped in a collection.
      */
-    public static Collection normalize(Object input) {
-        //TODO SF - do we even need it given there's a flatten() method in groovy?
+    public static Collection collectionize(Object input) {
         if (input == null) {
             return emptyList();
         } else if (input instanceof Collection) {
@@ -89,8 +95,8 @@ public class GUtil {
         }
     }
 
-    public static List flatten(Collection elements, boolean flattenMaps) {
-        return flatten(elements, new ArrayList(), flattenMaps);
+    public static List flatten(Collection elements, boolean flattenMapsAndArrays) {
+        return flatten(elements, new ArrayList(), flattenMapsAndArrays);
     }
 
     public static List flatten(Collection elements) {

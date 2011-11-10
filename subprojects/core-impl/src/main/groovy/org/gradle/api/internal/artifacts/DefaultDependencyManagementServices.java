@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.StartParameter;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DomainObjectContext;
@@ -26,7 +27,9 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
-import org.gradle.api.internal.artifacts.dsl.dependencies.*;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
@@ -38,6 +41,7 @@ import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.cache.CacheRepository;
@@ -50,6 +54,7 @@ import org.jfrog.wharf.ivy.lock.LockHolderFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultDependencyManagementServices extends DefaultServiceRegistry implements DependencyManagementServices {
     private final Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
@@ -113,19 +118,19 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         DefaultProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(
                 get(StartParameter.class).getProjectDependenciesBuildInstruction(),
                 instantiator);
+
+        NotationParser<? extends Dependency> selfResolvingDependencyFactory = new SelfResolvingDependencyFactory(instantiator);
+        Set<NotationParser<? extends Dependency>> notationParsers = WrapUtil.toSet(
+                new ModuleDependencyFactory(instantiator),
+                selfResolvingDependencyFactory,
+                new ClassPathDependencyFactory(instantiator, get(ClassPathRegistry.class), new IdentityFileResolver()),
+                projectDependencyFactory);
+
+        DependencyNotationParser dependencyNotationParser = new DependencyNotationParser(notationParsers);
+
         return new DefaultDependencyFactory(
-                WrapUtil.<IDependencyImplementationFactory>toSet(
-                        new ModuleDependencyFactory(
-                                instantiator),
-                        new SelfResolvingDependencyFactory(
-                                instantiator),
-                        new ClassPathDependencyFactory(
-                                instantiator,
-                                get(ClassPathRegistry.class),
-                                new IdentityFileResolver()),
-                        projectDependencyFactory),
-                new DefaultClientModuleFactory(
-                        instantiator),
+                dependencyNotationParser,
+                new DefaultClientModuleFactory(instantiator),
                 projectDependencyFactory);
     }
 

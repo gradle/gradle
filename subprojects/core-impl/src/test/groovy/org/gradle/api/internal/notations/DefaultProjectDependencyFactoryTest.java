@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.notations;
 
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.Project;
@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.DirectInstantiator;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
@@ -37,11 +38,11 @@ import static org.junit.Assert.assertThat;
 /**
  * @author Hans Dockter
  */
-public class DefaultProjectDependencyFactoryTest {
+public class DefaultProjectDependencyFactoryTest { //TODO SF spock it or rid it after the refactoring
     private JUnit4Mockery context = new JUnit4Mockery();
 
     private final ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(false);
-    private ProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(projectDependenciesBuildInstruction, new DirectInstantiator());
+    private DefaultProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(projectDependenciesBuildInstruction, new DirectInstantiator());
     private ProjectFinder projectFinder = context.mock(ProjectFinder.class);
 
     @Test

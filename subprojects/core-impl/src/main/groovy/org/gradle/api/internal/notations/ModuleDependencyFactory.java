@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.notations;
 
 import groovy.lang.GString;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
 
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -29,7 +32,7 @@ import java.util.regex.Pattern;
 /**
  * @author Hans Dockter
  */
-public class ModuleDependencyFactory implements IDependencyImplementationFactory {
+public class ModuleDependencyFactory implements IDependencyImplementationFactory, NotationParser<ModuleDependency> {
     private final MapModuleNotationParser mapNotationParser;
     private final Instantiator instantiator;
 
@@ -40,10 +43,23 @@ public class ModuleDependencyFactory implements IDependencyImplementationFactory
 
     public <T extends Dependency> T createDependency(Class<T> type, Object notation) throws IllegalDependencyNotation {
         assert notation != null;
+        if (!canParse(notation)) {
+            throw new IllegalDependencyNotation();
+        }
+
+        return type.cast(parseNotation(notation));
+    }
+
+    public boolean canParse(Object notation) {
+        return notation instanceof String || notation instanceof GString || notation instanceof Map;
+    }
+
+    public ModuleDependency parseNotation(Object notation) {
+        //TODO SF - separate
         if (notation instanceof String || notation instanceof GString) {
-            return type.cast(createDependencyFromString(notation.toString()));
+            return createDependencyFromString(notation.toString());
         } else if (notation instanceof Map) {
-            return type.cast(mapNotationParser.createDependency(DefaultExternalModuleDependency.class, notation));
+            return mapNotationParser.createDependency(DefaultExternalModuleDependency.class, notation);
         }
         throw new IllegalDependencyNotation();
     }

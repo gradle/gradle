@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.notations;
 
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileResolver;
 
-public class ClassPathDependencyFactory implements IDependencyImplementationFactory {
+public class ClassPathDependencyFactory implements IDependencyImplementationFactory, NotationParser<SelfResolvingDependency> {
     private final ClassPathRegistry classPathRegistry;
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
@@ -37,13 +39,22 @@ public class ClassPathDependencyFactory implements IDependencyImplementationFact
 
     public <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription)
             throws IllegalDependencyNotation {
-        if (userDependencyDescription instanceof DependencyFactory.ClassPathNotation) {
-            DependencyFactory.ClassPathNotation classPathNotation
-                    = (DependencyFactory.ClassPathNotation) userDependencyDescription;
-            FileCollection files = fileResolver.resolveFiles(classPathRegistry.getClassPathFiles(classPathNotation.name()));
-            return type.cast(instantiator.newInstance(DefaultSelfResolvingDependency.class, files));
+        if (!canParse(userDependencyDescription)) {
+            throw new IllegalDependencyNotation();
         }
-        
-        throw new IllegalDependencyNotation();
+
+        return type.cast(parseNotation(userDependencyDescription));
+    }
+
+    public boolean canParse(Object notation) {
+        return notation instanceof DependencyFactory.ClassPathNotation;
+    }
+
+    public SelfResolvingDependency parseNotation(Object notation) {
+        assert canParse(notation) : "Parser only accepts DependencyFactory.ClassPathNotation instances";
+
+        DependencyFactory.ClassPathNotation classPathNotation = (DependencyFactory.ClassPathNotation) notation;
+        FileCollection files = fileResolver.resolveFiles(classPathRegistry.getClassPathFiles(classPathNotation.name()));
+        return instantiator.newInstance(DefaultSelfResolvingDependency.class, files);
     }
 }

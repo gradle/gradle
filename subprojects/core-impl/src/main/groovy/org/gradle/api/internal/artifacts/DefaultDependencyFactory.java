@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,57 +14,39 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.artifacts;
 
 import groovy.lang.Closure;
-import org.gradle.api.GradleException;
-import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.notations.DefaultClientModuleFactory;
+import org.gradle.api.internal.notations.DefaultProjectDependencyFactory;
+import org.gradle.api.internal.notations.DependencyNotationParser;
 
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultDependencyFactory implements DependencyFactory {
-    private Set<IDependencyImplementationFactory> dependencyFactories;
-    private IDependencyImplementationFactory clientModuleFactory;
-    private ProjectDependencyFactory projectDependencyFactory;
+    private final DependencyNotationParser dependencyNotationParser;
+    private DefaultClientModuleFactory clientModuleFactory;
+    private DefaultProjectDependencyFactory projectDependencyFactory;
 
-    public DefaultDependencyFactory(Set<IDependencyImplementationFactory> dependencyFactories,
-                                    IDependencyImplementationFactory clientModuleFactory,
-                                    ProjectDependencyFactory projectDependencyFactory) {
-        this.dependencyFactories = dependencyFactories;
+    public DefaultDependencyFactory(DependencyNotationParser dependencyNotationParser,
+                                    DefaultClientModuleFactory clientModuleFactory,
+                                    DefaultProjectDependencyFactory projectDependencyFactory) {
+        this.dependencyNotationParser = dependencyNotationParser;
         this.clientModuleFactory = clientModuleFactory;
         this.projectDependencyFactory = projectDependencyFactory;
     }
 
     public Dependency createDependency(Object dependencyNotation) {
-        if (dependencyNotation instanceof Dependency) {
-            return (Dependency) dependencyNotation;
-        }
-        
-        Dependency dependency = null;
-        for (IDependencyImplementationFactory factory : dependencyFactories) {
-            try {
-                dependency = factory.createDependency(Dependency.class, dependencyNotation);
-                break;
-            } catch (IllegalDependencyNotation e) {
-                // ignore
-            } catch (Exception e) {
-                throw new GradleException(String.format("Could not create a dependency using notation: %s", dependencyNotation), e);
-            }
-        }
-
-        if (dependency == null) {
-            throw new InvalidUserDataException(String.format("The dependency notation: %s is invalid.",
-                    dependencyNotation));
-        }
-        return dependency;
+        return dependencyNotationParser.parseNotation(dependencyNotation);
     }
 
     public ClientModule createModule(Object dependencyNotation, Closure configureClosure) {

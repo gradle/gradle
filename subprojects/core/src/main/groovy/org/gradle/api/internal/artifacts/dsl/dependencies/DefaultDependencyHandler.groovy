@@ -95,6 +95,7 @@ class DefaultDependencyHandler implements DependencyHandler {
             }
         }
 
+        //TODO SF - move down to the notation parsers
         Object[] normalizedArgs = GUtil.flatten(args as List, false)
         if (normalizedArgs.length == 2 && normalizedArgs[1] instanceof Closure) {
             return doAdd(configuration, normalizedArgs[0], (Closure) normalizedArgs[1])

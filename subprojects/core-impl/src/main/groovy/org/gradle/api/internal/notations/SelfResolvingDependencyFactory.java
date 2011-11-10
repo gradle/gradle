@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.notations;
 
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 
-public class SelfResolvingDependencyFactory implements IDependencyImplementationFactory {
+public class SelfResolvingDependencyFactory implements IDependencyImplementationFactory, NotationParser<SelfResolvingDependency> {
     private final Instantiator instantiator;
 
     public SelfResolvingDependencyFactory(Instantiator instantiator) {
@@ -30,11 +31,20 @@ public class SelfResolvingDependencyFactory implements IDependencyImplementation
 
     public <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription)
             throws IllegalDependencyNotation {
-        if (!(userDependencyDescription instanceof FileCollection)) {
+        if (!canParse(userDependencyDescription)) {
             throw new IllegalDependencyNotation();
         }
 
-        FileCollection fileCollection = (FileCollection) userDependencyDescription;
-        return type.cast(instantiator.newInstance(DefaultSelfResolvingDependency.class, fileCollection));
+        return type.cast(parseNotation(userDependencyDescription));
+    }
+
+    public boolean canParse(Object notation) {
+        return notation instanceof FileCollection;
+    }
+
+    public SelfResolvingDependency parseNotation(Object notation) {
+        assert canParse(notation) : "This parser only accepts FileCollection.";
+        FileCollection fileCollection = (FileCollection) notation;
+        return instantiator.newInstance(DefaultSelfResolvingDependency.class, fileCollection);
     }
 }

@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies
+package org.gradle.api.internal.notations
 
-import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
@@ -29,7 +30,7 @@ import static org.hamcrest.Matchers.hasItemInArray
 import static org.hamcrest.Matchers.sameInstance
 import static org.junit.Assert.assertThat
 
-@RunWith(JMock.class)
+@RunWith(JMock.class) //TODO SF spock or get rid of
 public class ClassPathDependencyFactoryTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Instantiator instantiator = context.mock(Instantiator.class)
@@ -39,7 +40,7 @@ public class ClassPathDependencyFactoryTest {
 
     @Test
     void createsDependencyForAClassPathNotation() {
-        Dependency dependency = context.mock(Dependency.class)
+        SelfResolvingDependency dependency = context.mock(SelfResolvingDependency.class)
 
         context.checking {
             Set files = []
@@ -55,7 +56,7 @@ public class ClassPathDependencyFactoryTest {
             will(returnValue(dependency))
         }
 
-        assertThat(factory.createDependency(Dependency.class, DependencyFactory.ClassPathNotation.GRADLE_API), sameInstance(dependency))
+        assertThat(factory.createDependency(SelfResolvingDependency.class, DependencyFactory.ClassPathNotation.GRADLE_API), sameInstance(dependency))
     }
 }
 

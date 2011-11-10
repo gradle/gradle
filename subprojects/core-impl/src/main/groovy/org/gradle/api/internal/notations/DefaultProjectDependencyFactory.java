@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
+package org.gradle.api.internal.notations;
 
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.Project;
@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;
@@ -30,7 +31,7 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class DefaultProjectDependencyFactory implements ProjectDependencyFactory {
+public class DefaultProjectDependencyFactory implements IDependencyImplementationFactory, NotationParser<ProjectDependency> {
     private final ProjectDependenciesBuildInstruction instruction;
     private final Instantiator instantiator;
 
@@ -40,14 +41,24 @@ public class DefaultProjectDependencyFactory implements ProjectDependencyFactory
     }
 
     public <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription) throws IllegalDependencyNotation {
-        if (userDependencyDescription instanceof Project) {
-            return type.cast(instantiator.newInstance(DefaultProjectDependency.class, userDependencyDescription, instruction));
+        if (!canParse(userDependencyDescription)) {
+            throw new IllegalDependencyNotation();
         }
-        throw new IllegalDependencyNotation();
+        return type.cast(parseNotation(userDependencyDescription));
     }
     
+    public boolean canParse(Object notation) {
+        return notation instanceof Project;
+    }
+
+    public ProjectDependency parseNotation(Object notation) {
+        assert canParse(notation) : "Parser accepts only Projects";
+        return instantiator.newInstance(DefaultProjectDependency.class, notation, instruction);
+    }
+
+    //TODO SF - separate this to a different object
     public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder,
-                                                   Map<? extends String, ? extends Object> map) {
+                                                            Map<? extends String, ? extends Object> map) {
         Map<String, Object> args = new HashMap<String, Object>(map);
         String path = getAndRemove(args, "path");
         String configuration = getAndRemove(args, "configuration");

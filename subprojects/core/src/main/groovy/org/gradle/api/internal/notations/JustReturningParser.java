@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl.dependencies;
-
-import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.artifacts.Dependency;
+package org.gradle.api.internal.notations;
 
 /**
- * @author Hans Dockter
+ * by Szczepan Faber, created at: 11/8/11
  */
-public interface IDependencyImplementationFactory {
-    <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription) throws IllegalDependencyNotation;
+public class JustReturningParser implements NotationParser {
+
+    private final Class passThroughType;
+
+    public JustReturningParser(Class passThroughType) {
+        this.passThroughType = passThroughType;
+    }
+
+    public boolean canParse(Object notation) {
+        return passThroughType.isInstance(notation);
+    }
+
+    public Object parseNotation(Object notation) {
+        return passThroughType.cast(notation);
+    }
 }

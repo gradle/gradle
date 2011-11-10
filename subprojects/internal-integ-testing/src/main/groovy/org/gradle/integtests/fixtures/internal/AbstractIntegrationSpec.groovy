@@ -37,6 +37,10 @@ class AbstractIntegrationSpec extends Specification {
         testDir.file('build.gradle')
     }
 
+    protected TestFile getSettingsFile() {
+        testDir.file('settings.gradle')
+    }
+
     protected TestFile getTestDir() {
         distribution.getTestDir();
     }
@@ -66,6 +70,9 @@ class AbstractIntegrationSpec extends Specification {
     }
     
     protected ExecutionResult succeeds(String... tasks) {
+        if (settingsFile.exists()) {
+            executer.usingSettingsFile(settingsFile)
+        }
         result = executer.withTasks(*tasks).run()
     }
 
@@ -109,6 +116,10 @@ class AbstractIntegrationSpec extends Specification {
 
     String getOutput() {
         result.output
+    }
+
+    String getErrorOutput() {
+        result.error
     }
 
     ArtifactBuilder artifactBuilder() {
