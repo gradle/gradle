@@ -24,6 +24,7 @@ import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.notations.api.NotationParser;
 
 public class ClassPathDependencyFactory implements IDependencyImplementationFactory, NotationParser<SelfResolvingDependency> {
     private final ClassPathRegistry classPathRegistry;

@@ -18,7 +18,11 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.notations.*;
+import org.gradle.api.internal.notations.NotationParserBuilder;
+import org.gradle.api.internal.notations.api.InvalidNotationFormat;
+import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.internal.notations.api.TopLevelNotationParser;
+import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.List;

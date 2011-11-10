@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations;
+package org.gradle.api.internal.notations.parsers;
 
+import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;

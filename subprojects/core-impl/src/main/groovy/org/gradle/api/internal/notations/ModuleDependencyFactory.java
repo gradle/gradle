@@ -24,6 +24,7 @@ import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
+import org.gradle.api.internal.notations.api.NotationParser;
 
 import java.util.Map;
 import java.util.regex.Matcher;

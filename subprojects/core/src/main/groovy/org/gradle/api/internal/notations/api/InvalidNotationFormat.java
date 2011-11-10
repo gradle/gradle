@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations;
+package org.gradle.api.internal.notations.api;
 
 import org.gradle.api.GradleException;
 
 /**
 * by Szczepan Faber, created at: 11/10/11
 */
-public class InvalidNotationType extends GradleException {
-    public InvalidNotationType(String message) {
+public class InvalidNotationFormat extends GradleException {
+    public InvalidNotationFormat(String message) {
         super(message);
+    }
+
+    public InvalidNotationFormat(String message, Throwable cause) {
+        super(message, cause);
     }
 }

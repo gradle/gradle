@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations;
-
-import org.gradle.api.GradleException;
+package org.gradle.api.internal.notations.api;
 
 /**
-* by Szczepan Faber, created at: 11/10/11
-*/
-public class InvalidNotationFormat extends GradleException {
-    public InvalidNotationFormat(String message) {
-        super(message);
-    }
-
-    public InvalidNotationFormat(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
+ * Marker interface to group all top-level notation parsers.
+ *
+ * by Szczepan Faber, created at: 11/8/11
+ */
+public interface TopLevelNotationParser {}

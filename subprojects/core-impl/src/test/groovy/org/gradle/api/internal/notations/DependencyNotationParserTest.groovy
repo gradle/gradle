@@ -18,6 +18,7 @@ package org.gradle.api.internal.notations;
 
 
 import org.gradle.api.GradleException
+import org.gradle.api.internal.notations.api.NotationParser
 import spock.lang.Specification
 
 /**

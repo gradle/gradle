@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations;
+package org.gradle.api.internal.notations.parsers;
+
+import org.gradle.api.internal.notations.api.NotationParser;
 
 /**
  * by Szczepan Faber, created at: 11/9/11

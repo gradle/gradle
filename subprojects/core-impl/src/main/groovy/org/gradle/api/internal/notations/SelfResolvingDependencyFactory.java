@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
+import org.gradle.api.internal.notations.api.NotationParser;
 
 public class SelfResolvingDependencyFactory implements IDependencyImplementationFactory, NotationParser<SelfResolvingDependency> {
     private final Instantiator instantiator;

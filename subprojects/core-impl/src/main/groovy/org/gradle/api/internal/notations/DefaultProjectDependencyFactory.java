@@ -23,6 +23,7 @@ import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;

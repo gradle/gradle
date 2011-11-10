@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.configurations;
 
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.internal.notations.InvalidNotationFormat
-import org.gradle.api.internal.notations.InvalidNotationType
+import org.gradle.api.internal.notations.api.InvalidNotationFormat
+import org.gradle.api.internal.notations.api.InvalidNotationType
 import spock.lang.Specification
 
 /**
