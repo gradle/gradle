@@ -19,10 +19,6 @@ package org.gradle.api.artifacts;
 import org.gradle.api.internal.AbstractMultiCauseException;
 import org.gradle.api.internal.Contextual;
 
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.List;
-
 /**
  * <p>A <code>ResolveException</code> is thrown when a dependency configuration cannot be resolved for some reason.</p>
  *
@@ -31,23 +27,14 @@ import java.util.List;
 @Contextual
 public class ResolveException extends AbstractMultiCauseException {
     public ResolveException(Configuration configuration, Throwable cause) {
-        super(buildMessage(configuration, Collections.<String>emptyList()), cause);
+        super(buildMessage(configuration), cause);
     }
 
-    public ResolveException(Configuration configuration, List<String> messages, Iterable<? extends Throwable> causes) {
-        super(buildMessage(configuration, messages), causes);
+    public ResolveException(Configuration configuration, Iterable<? extends Throwable> causes) {
+        super(buildMessage(configuration), causes);
     }
 
-    private static String buildMessage(Configuration configuration, List<String> messages) {
-        Formatter formatter = new Formatter();
-        if (messages.isEmpty()) {
-            formatter.format("Could not resolve all dependencies for %s.", configuration);
-        } else {
-            formatter.format("Could not resolve all dependencies for %s:", configuration);
-        }
-        for (String msg : messages) {
-            formatter.format("%n    - %s", msg);
-        }
-        return formatter.toString();
+    private static String buildMessage(Configuration configuration) {
+        return String.format("Could not resolve all dependencies for %s.", configuration);
     }
 }

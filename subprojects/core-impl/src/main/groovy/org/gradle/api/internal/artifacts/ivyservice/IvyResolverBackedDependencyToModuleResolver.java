@@ -52,17 +52,17 @@ public class IvyResolverBackedDependencyToModuleResolver implements DependencyTo
     private class DefaultModuleVersionResolver implements ModuleVersionResolver {
         private final DependencyDescriptor dependencyDescriptor;
         private ModuleDescriptor moduleDescriptor;
-        ModuleResolveException failure;
+        ModuleRevisionResolveException failure;
 
         public DefaultModuleVersionResolver(DependencyDescriptor dependencyDescriptor) {
             this.dependencyDescriptor = dependencyDescriptor;
         }
 
-        public ModuleRevisionId getId() throws ModuleResolveException {
+        public ModuleRevisionId getId() throws ModuleRevisionResolveException {
             return dependencyDescriptor.getDependencyRevisionId();
         }
 
-        public ModuleDescriptor getDescriptor() throws ModuleResolveException {
+        public ModuleDescriptor getDescriptor() throws ModuleRevisionResolveException {
             if (failure != null) {
                 throw failure;
             }
@@ -77,14 +77,14 @@ public class IvyResolverBackedDependencyToModuleResolver implements DependencyTo
                     try {
                         resolvedRevision = resolver.getDependency(dependencyDescriptor, resolveData);
                     } catch (Throwable t) {
-                        throw new ModuleResolveException(String.format("Could not resolve %s", dependencyDescriptor.getDependencyRevisionId()), t);
+                        throw new ModuleRevisionResolveException(String.format("Could not resolve %s", dependencyDescriptor.getDependencyRevisionId()), t);
                     }
                     if (resolvedRevision == null) {
-                        throw new ModuleNotFoundException(String.format("%s not found.", dependencyDescriptor.getDependencyRevisionId()));
+                        throw new ModuleRevisionNotFoundException(String.format("%s not found.", dependencyDescriptor.getDependencyRevisionId()));
                     }
                     checkDescriptor(resolvedRevision.getDescriptor());
                     moduleDescriptor = resolvedRevision.getDescriptor();
-                } catch (ModuleResolveException e) {
+                } catch (ModuleRevisionResolveException e) {
                     failure = e;
                     throw failure;
                 } finally {
@@ -106,7 +106,7 @@ public class IvyResolverBackedDependencyToModuleResolver implements DependencyTo
         }
 
         protected void onUnexpectedModuleRevisionId(ModuleDescriptor descriptor) {
-            throw new ModuleResolveException(String.format("Received unexpected module descriptor %s for dependency %s.", descriptor.getModuleRevisionId(), dependencyDescriptor.getDependencyRevisionId()));
+            throw new ModuleRevisionResolveException(String.format("Received unexpected module descriptor %s for dependency %s.", descriptor.getModuleRevisionId(), dependencyDescriptor.getDependencyRevisionId()));
         }
     }
 
@@ -116,7 +116,7 @@ public class IvyResolverBackedDependencyToModuleResolver implements DependencyTo
         }
 
         @Override
-        public ModuleRevisionId getId() throws ModuleResolveException {
+        public ModuleRevisionId getId() throws ModuleRevisionResolveException {
             return getDescriptor().getModuleRevisionId();
         }
 

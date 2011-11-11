@@ -22,10 +22,10 @@ public interface ModuleVersionResolver {
     /**
      * Returns the id of this module version, resolving it if required.
      */
-    ModuleRevisionId getId() throws ModuleResolveException;
+    ModuleRevisionId getId() throws ModuleRevisionResolveException;
 
     /**
      * Returns the descriptor for this module version, resolving it if required.
      */
-    ModuleDescriptor getDescriptor() throws ModuleResolveException;
+    ModuleDescriptor getDescriptor() throws ModuleRevisionResolveException;
 }

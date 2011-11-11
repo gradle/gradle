@@ -128,7 +128,7 @@ public class DependencyGraphBuilder {
 
                     // This path refers to a selected version - resolve the meta-data for the target version
                     path.resolveMetaData(resolveState);
-                } catch (ModuleResolveException t) {
+                } catch (ModuleRevisionResolveException t) {
                     result.addUnresolvedDependency(path.asUnresolvedDependency(t));
                     continue;
                 }
@@ -399,7 +399,7 @@ public class DependencyGraphBuilder {
 
         public abstract void resolveMetaData(ResolveState resolveState);
 
-        public abstract UnresolvedDependency asUnresolvedDependency(ModuleResolveException t);
+        public abstract UnresolvedDependency asUnresolvedDependency(ModuleRevisionResolveException t);
 
         public abstract void addOutgoingDependencies(ResolveData resolveData, ResolveState resolveState, List<ResolvePath> queue);
     }
@@ -426,7 +426,7 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public UnresolvedDependency asUnresolvedDependency(ModuleResolveException t) {
+        public UnresolvedDependency asUnresolvedDependency(ModuleRevisionResolveException t) {
             throw new UnsupportedOperationException();
         }
 
@@ -565,7 +565,7 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public UnresolvedDependency asUnresolvedDependency(ModuleResolveException t) {
+        public UnresolvedDependency asUnresolvedDependency(ModuleRevisionResolveException t) {
             return new DefaultUnresolvedDependency(dependency.descriptor.getDependencyRevisionId().toString(), t);
         }
 
@@ -576,7 +576,7 @@ public class DependencyGraphBuilder {
             if (targetModuleRevision == null) {
                 try {
                     dependency.resolveModuleRevisionId(resolver, resolveState);
-                } catch (ModuleResolveException e) {
+                } catch (ModuleRevisionResolveException e) {
                     throw wrap(e);
                 }
                 referTo(dependency.targetModuleRevision);
@@ -592,13 +592,13 @@ public class DependencyGraphBuilder {
             }
             try {
                 dependency.resolve(resolveState);
-            } catch (ModuleResolveException e) {
+            } catch (ModuleRevisionResolveException e) {
                 throw wrap(e);
             }
         }
 
-        private ModuleResolveException wrap(ModuleResolveException e) {
-            if (e instanceof ModuleNotFoundException) {
+        private ModuleRevisionResolveException wrap(ModuleRevisionResolveException e) {
+            if (e instanceof ModuleRevisionNotFoundException) {
                 Formatter formatter = new Formatter();
                 formatter.format("Module %s not found. It is required by:", dependency.getDependencyId());
                 Set<DefaultModuleRevisionResolveState> modules = new LinkedHashSet<DefaultModuleRevisionResolveState>();
@@ -606,7 +606,7 @@ public class DependencyGraphBuilder {
                 for (DefaultModuleRevisionResolveState module : modules) {
                     formatter.format("%n    %s", module.getId());
                 }
-                return new ModuleNotFoundException(formatter.toString(), e);
+                return new ModuleRevisionNotFoundException(formatter.toString());
             }
             return e;
         }
@@ -619,7 +619,9 @@ public class DependencyGraphBuilder {
         @Override
         public void addOutgoingDependencies(ResolveData resolveData, ResolveState resolveState, List<ResolvePath> queue) {
             ModuleDescriptor targetDescriptor = targetModuleRevision.descriptor;
-            assert targetDescriptor != null : String.format("No descriptor for %s", targetModuleRevision);
+            if (targetDescriptor == null) {
+                throw new IllegalStateException(String.format("No descriptor for %s.", targetModuleRevision));
+            }
 
             IvyNode node = new IvyNode(resolveData, targetDescriptor);
             Set<String> targets = new LinkedHashSet<String>();

@@ -514,6 +514,34 @@ task checkDeps << {
         executer.withTasks("checkDeps").run()
     }
 
+    @Test
+    void "fails when selected conflicting version does not exist"() {
+        repo.module("org", "external", "1.2").publish()
+        repo.module("org", "dep", "2.2").dependsOn("org", "external", "1.4").publish()
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+repositories {
+    maven { url "${repo.uri}" }
+}
+
+configurations { compile }
+
+dependencies {
+    compile 'org:external:1.2'
+    compile 'org:dep:2.2'
+}
+
+task checkDeps << {
+    assert configurations.compile*.name == ['external-1.2.jar', 'dep-2.2.jar']
+}
+"""
+
+        //expect
+        def failure = executer.withTasks("checkDeps").runWithFailure()
+        failure.assertHasCause("??")
+    }
+
     def getRepo() {
         return maven(file("repo"))
     }
