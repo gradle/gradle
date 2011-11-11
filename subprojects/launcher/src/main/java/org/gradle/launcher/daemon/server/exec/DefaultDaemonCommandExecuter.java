@@ -58,7 +58,6 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new ForwardOutput(loggingOutput),
             new ResetDeprecationLogger(),
             new ReportExceptions(loggingServices.get(StyledTextOutputFactory.class)),
-            new HandleSleep(),
             new EstablishBuildEnvironment(),
             new WatchForDisconnection(),
             new ExecuteBuild(loggingServices, launcherFactory)

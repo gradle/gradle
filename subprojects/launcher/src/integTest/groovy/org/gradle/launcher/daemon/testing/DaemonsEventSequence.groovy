@@ -31,7 +31,7 @@ import java.util.concurrent.LinkedBlockingQueue
  *
  * If there is no state change detected in a specified interval, an assertion error will be thrown.
  *
- * @see DaemonLifecycleSpec
+ * @see org.gradle.launcher.daemon.DaemonLifecycleSpec
  */
 class DaemonsEventSequence implements Stoppable, Runnable {
 
