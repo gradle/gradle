@@ -61,6 +61,14 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         return version == GradleVersion.version('0.9-rc-1') ? jvm.isJava6Compatible() : jvm.isJava5Compatible()
     }
 
+    boolean worksWith(OperatingSystem os) {
+        // 1.0-milestone-5 was broken where jna was not available
+        if (version == GradleVersion.version("1.0-milestone-5")) {
+            return os.windows || os.macOsX || os.linux
+        }
+        return true
+    }
+
     DaemonRegistry getDaemonRegistry() {
         throw new UnsupportedOperationException()
     }

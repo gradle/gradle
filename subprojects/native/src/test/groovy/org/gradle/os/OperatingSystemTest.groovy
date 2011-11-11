@@ -84,6 +84,13 @@ class OperatingSystemTest extends Specification {
         OperatingSystem.current() instanceof OperatingSystem.Solaris
     }
 
+    def "uses os.name property to determine if linux"() {
+        System.properties['os.name'] = 'Linux'
+
+        expect:
+        OperatingSystem.current() instanceof OperatingSystem.Linux
+    }
+
     def "uses default implementation for other os"() {
         System.properties['os.name'] = 'unknown'
 

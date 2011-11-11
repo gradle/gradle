@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.os.OperatingSystem;
 import org.gradle.util.Jvm;
 import org.junit.internal.runners.ErrorReportingRunner;
 import org.junit.runner.Description;
@@ -36,7 +37,7 @@ import java.util.*;
 public abstract class AbstractCompatibilityTestRunner extends Runner {
     protected final Class<?> target;
     private Description description;
-    private List<? extends Execution> executions;
+    private final List<Execution> executions = new ArrayList<Execution>();
     protected final GradleDistribution current = new GradleDistribution();
     protected final List<BasicGradleDistribution> previous;
 
@@ -63,7 +64,11 @@ public abstract class AbstractCompatibilityTestRunner extends Runner {
         for (String version : versions) {
             BasicGradleDistribution previous = current.previousVersion(version);
             if (!previous.worksWith(Jvm.current())) {
-                System.out.println("Skipping " + previous + " as it does not work with JVM " + Jvm.current());
+                executions.add(new IgnoredVersion(previous, "does not work with current JVM"));
+                continue;
+            }
+            if (!previous.worksWith(OperatingSystem.current())) {
+                executions.add(new IgnoredVersion(previous, "does not work with current OS"));
                 continue;
             }
             this.previous.add(previous);
@@ -90,7 +95,7 @@ public abstract class AbstractCompatibilityTestRunner extends Runner {
 
     private void init() {
         if (description == null) {
-            executions = createExecutions();
+            executions.addAll(createExecutions());
             description = Description.createSuiteDescription(target);
             for (Execution execution : executions) {
                 execution.init(target);
@@ -229,6 +234,26 @@ public abstract class AbstractCompatibilityTestRunner extends Runner {
          */
         protected List<? extends Class<?>> loadTargetClasses() {
             return Arrays.asList(target);
+        }
+    }
+
+    private static class IgnoredVersion extends Execution {
+        private final BasicGradleDistribution distribution;
+        private final String why;
+
+        private IgnoredVersion(BasicGradleDistribution distribution, String why) {
+            this.distribution = distribution;
+            this.why = why;
+        }
+
+        @Override
+        protected boolean isEnabled() {
+            return false;
+        }
+
+        @Override
+        protected String getDisplayName() {
+            return String.format("%s %s", distribution.getVersion(), why);
         }
     }
 }

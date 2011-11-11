@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.os.OperatingSystem;
 import org.gradle.util.Jvm;
 import org.gradle.util.TestFile;
 
@@ -43,6 +44,11 @@ public interface BasicGradleDistribution {
      * Returns true if this distribution supports the given JVM.
      */
     boolean worksWith(Jvm jvm);
+
+    /**
+     * Returns true if this distribution supports the given Operating system.
+     */
+    boolean worksWith(OperatingSystem os);
 
     /**
      * Returns true if the daemon is supported by this distribution.

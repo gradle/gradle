@@ -19,6 +19,7 @@ public abstract class OperatingSystem {
     private static final Windows WINDOWS = new Windows();
     private static final MacOs MAC_OS = new MacOs();
     private static final Solaris SOLARIS = new Solaris();
+    private static final Linux LINUX = new Linux();
     private static final Unix UNIX = new Unix();
 
     public static OperatingSystem current() {
@@ -29,6 +30,8 @@ public abstract class OperatingSystem {
             return MAC_OS;
         } else if (osName.contains("sunos")) {
             return SOLARIS;
+        } else if (osName.contains("linux")) {
+            return LINUX;
         } else {
             // Not strictly true
             return UNIX;
@@ -40,11 +43,21 @@ public abstract class OperatingSystem {
         return String.format("%s %s %s", System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"));
     }
 
-    public abstract boolean isWindows();
+    public boolean isWindows() {
+        return false;
+    }
 
-    public abstract boolean isUnix();
+    public boolean isUnix() {
+        return false;
+    }
 
-    public abstract boolean isMacOsX();
+    public boolean isMacOsX() {
+        return false;
+    }
+
+    public boolean isLinux() {
+        return false;
+    }
 
     public abstract FileSystem getFileSystem();
 
@@ -63,16 +76,6 @@ public abstract class OperatingSystem {
         @Override
         public boolean isWindows() {
             return true;
-        }
-
-        @Override
-        public boolean isUnix() {
-            return false;
-        }
-
-        @Override
-        public boolean isMacOsX() {
-            return false;
         }
 
         @Override
@@ -106,18 +109,8 @@ public abstract class OperatingSystem {
         }
 
         @Override
-        public boolean isWindows() {
-            return false;
-        }
-
-        @Override
         public boolean isUnix() {
             return true;
-        }
-
-        @Override
-        public boolean isMacOsX() {
-            return false;
         }
 
         public String getNativePrefix() {
@@ -169,6 +162,13 @@ public abstract class OperatingSystem {
         @Override
         public String getNativePrefix() {
             return "darwin";
+        }
+    }
+
+    static class Linux extends Unix {
+        @Override
+        public boolean isLinux() {
+            return true;
         }
     }
 
