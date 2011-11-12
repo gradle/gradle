@@ -42,6 +42,7 @@ import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.artifacts.ResolveException
 
 class DependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
@@ -65,6 +66,43 @@ class DependencyGraphBuilderTest extends Specification {
         }
     }
 
+    def "does not resolve a given module selector more than once"() {
+        given:
+        def a = revision("a")
+        def b = revision("b")
+        def c = revision("c")
+        traverses root, a
+        traverses root, b
+        traverses a, c
+        doesNotResolve b, c
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        modules(result) == ids(a, b, c)
+    }
+
+    def "does not resolve a given dynamic module selector more than once"() {
+        given:
+        def a = revision("a")
+        def b = revision("b")
+        def c = revision("c")
+        def d = revision("d")
+        traverses root, a
+        traverses root, b
+        traverses root, c
+        traverses a, d, revision: 'latest'
+        doesNotResolve b, d, revision: 'latest'
+        traverses c, d
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        modules(result) == ids(a, b, c, d)
+    }
+
     def "does not include evicted module when selected module already traversed before conflict detected"() {
         given:
         def selected = revision('a', '1.2')
@@ -77,8 +115,8 @@ class DependencyGraphBuilderTest extends Specification {
         traverses selected, c
         traverses root, b
         traverses b, d
-        doesNotTraverse d, evicted // Conflict is deeper than all dependencies of selected module
-        doesNotTraverse evicted, e
+        doesNotResolve d, evicted // Conflict is deeper than all dependencies of selected module
+        doesNotResolve evicted, e
 
         when:
         def result = builder.resolve(configuration, resolveData)
@@ -133,7 +171,7 @@ class DependencyGraphBuilderTest extends Specification {
         def e = revision('e')
         traverses root, evicted
         traverses evicted, c
-        doesNotTraverse c, d
+        doesNotResolve c, d
         traverses root, b
         traverses b, selected
         traverses selected, e
@@ -160,11 +198,11 @@ class DependencyGraphBuilderTest extends Specification {
         def c = revision('c')
         def d = revision('d')
         traverses root, evicted
-        doesNotTraverse evicted, d
+        doesNotResolve evicted, d
         traverses root, selected
         traverses selected, c
         traverses root, b
-        doesNotTraverse b, evicted
+        doesNotResolve b, evicted
 
         when:
         def result = builder.resolve(configuration, resolveData)
@@ -193,7 +231,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses selectedA, c
         traverses root, evictedB
         traverses root, selectedB
-        doesNotTraverse selectedB, evictedA2
+        doesNotResolve selectedB, evictedA2
 
         when:
         def result = builder.resolve(configuration, resolveData)
@@ -222,7 +260,7 @@ class DependencyGraphBuilderTest extends Specification {
         def c = revision('c')
         traverses root, a
         traverses a, b, exclude: c
-        doesNotTraverse b, c
+        doesNotResolve b, c
 
         when:
         def result = builder.resolve(configuration, resolveData)
@@ -236,7 +274,7 @@ class DependencyGraphBuilderTest extends Specification {
         def selected = revision('a', '1.2')
         def evicted = revision('a', '1.1')
         traverses root, selected
-        doesNotTraverse root, evicted
+        doesNotResolve root, evicted
 
         when:
         def result = builder.resolve(configuration, resolveData)
@@ -250,20 +288,192 @@ class DependencyGraphBuilderTest extends Specification {
         artifacts(result) == ids(selected)
     }
 
-    def "does not include the artifacts of excluded modules"() {
+    def "does not include the artifacts of excluded modules when excluded by all paths"() {
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def c = revision('c')
+        def d = revision('d')
+        traverses root, a
+        traverses a, b, exclude: c
+        doesNotResolve b, c
+        traverses root, d, exclude: c
+        doesNotResolve d, c
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        artifacts(result) == ids(a, b, d)
+    }
+
+    def "includes union of included artifacts of all paths to a given module version"() {
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def c = revision('c')
+        def d = revision('d')
+        traverses root, a
+        traverses a, b, exclude: c
+        doesNotResolve b, c
+        traverses root, d
+        traverses d, c
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        artifacts(result) == ids(a, b, c, d)
+    }
+
+    def "does not traverse outgoing paths of a non-transitive dependency"() {
         given:
         def a = revision('a')
         def b = revision('b')
         def c = revision('c')
         traverses root, a
-        traverses a, b, exclude: c
-        doesNotTraverse b, c
+        traverses a, b, transitive: false
+        doesNotResolve b, c
 
         when:
         def result = builder.resolve(configuration, resolveData)
 
         then:
         artifacts(result) == ids(a, b)
+    }
+
+    def "reports all incoming paths for a failed dependency"() {
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def c = revision('c')
+        traverses root, a
+        traverses root, b
+        doesNotResolve b, a
+        traversesBroken a, c
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        result.unresolvedModuleDependencies.size() == 1
+        def unresolved = result.unresolvedModuleDependencies.iterator().next()
+        unresolved.id == 'group#c;1.0'
+        unresolved.problem instanceof ModuleVersionResolveException
+
+        when:
+        result.rethrowFailure()
+
+        then:
+        ResolveException e = thrown()
+        e.cause instanceof ModuleVersionResolveException
+        e.cause.message.contains "group:root:1.0 > group:a:1.0"
+        e.cause.message.contains "group:root:1.0 > group:b:1.0 > group:a:1.0"
+    }
+
+    def "merges all failures for all dependencies with a given module version selector"() {
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def c = revision('c')
+        traverses root, a
+        traverses root, b
+        traversesBroken a, c
+        doesNotResolve b, c
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        result.unresolvedModuleDependencies.size() == 1
+        def unresolved = result.unresolvedModuleDependencies.iterator().next()
+        unresolved.id == 'group#c;1.0'
+        unresolved.problem instanceof ModuleVersionResolveException
+
+        when:
+        result.rethrowFailure()
+
+        then:
+        ResolveException e = thrown()
+        e.cause instanceof ModuleVersionResolveException
+        e.cause.message.contains "group:root:1.0 > group:a:1.0"
+        e.cause.message.contains "group:root:1.0 > group:b:1.0"
+    }
+
+    def "reports all incoming paths for a missing module version"() {
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def c = revision('c')
+        traverses root, a
+        traverses root, b
+        doesNotResolve b, a
+        traversesMissing a, c
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        result.unresolvedModuleDependencies.size() == 1
+        def unresolved = result.unresolvedModuleDependencies.iterator().next()
+        unresolved.id == 'group#c;1.0'
+        unresolved.problem instanceof ModuleVersionNotFoundException
+
+        when:
+        result.rethrowFailure()
+
+        then:
+        ResolveException e = thrown()
+        e.cause instanceof ModuleVersionNotFoundException
+        e.cause.message.contains "group:root:1.0 > group:a:1.0"
+        e.cause.message.contains "group:root:1.0 > group:b:1.0 > group:a:1.0"
+    }
+
+    def "merges all dependencies with a given module version selector when reporting missing version"() {
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def c = revision('c')
+        traverses root, a
+        traverses root, b
+        traversesMissing a, c
+        doesNotResolve b, c
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        result.unresolvedModuleDependencies.size() == 1
+        def unresolved = result.unresolvedModuleDependencies.iterator().next()
+        unresolved.id == 'group#c;1.0'
+        unresolved.problem instanceof ModuleVersionResolveException
+
+        when:
+        result.rethrowFailure()
+
+        then:
+        ResolveException e = thrown()
+        e.cause instanceof ModuleVersionNotFoundException
+        e.cause.message.contains "group:root:1.0 > group:a:1.0"
+        e.cause.message.contains "group:root:1.0 > group:b:1.0"
+    }
+
+    def "fails when conflict resolution selects a version that does not exist"() {
+        given:
+        def selected = revision('a', '1.2')
+        def evicted = revision('a', '1.1')
+        def b = revision('b')
+        traverses root, evicted
+        traverses root, b
+        traversesMissing b, selected
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+        result.rethrowFailure()
+
+        then:
+        ModuleVersionNotFoundException e = thrown()
+        e.message == '??'
     }
 
     def revision(String name, String revision = '1.0') {
@@ -284,15 +494,26 @@ class DependencyGraphBuilderTest extends Specification {
         1 * resolver.descriptor >> to
     }
 
-    def doesNotTraverse(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
+    def doesNotResolve(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
         def resolver = dependsOn(args, from, to)
         0 * resolver.descriptor
+    }
+
+    def traversesMissing(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
+        def resolver = dependsOn(args, from, to)
+        1 * resolver.descriptor >> { throw new ModuleVersionNotFoundException("missing") }
+    }
+
+    def traversesBroken(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
+        def resolver = dependsOn(args, from, to)
+        1 * resolver.descriptor >> { throw new ModuleVersionResolveException("broken") }
     }
 
     def dependsOn(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
         ModuleDependency moduleDependency = Mock()
         def dependencyId = args.revision ? new ModuleRevisionId(to.moduleRevisionId.moduleId, args.revision) : to.moduleRevisionId
-        def descriptor = new EnhancedDependencyDescriptor(moduleDependency, from, dependencyId, false, false, true)
+        def transitive = args.transitive == null || args.transitive
+        def descriptor = new EnhancedDependencyDescriptor(moduleDependency, from, dependencyId, false, false, transitive)
         descriptor.addDependencyConfiguration("default", "default")
         if (args.exclude) {
             descriptor.addExcludeRule("default", new DefaultExcludeRule(new ArtifactId(

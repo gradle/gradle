@@ -127,7 +127,7 @@ class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
         state.descriptor
 
         then:
-        ModuleRevisionNotFoundException e1 = thrown()
+        ModuleVersionNotFoundException e1 = thrown()
 
         and:
         1 * ivyResolver.getDependency(dep, resolveData) >> null
@@ -143,7 +143,7 @@ class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
         state.descriptor
 
         then:
-        ModuleRevisionResolveException e1 = thrown()
+        ModuleVersionResolveException e1 = thrown()
         e1.cause == failure
 
         and:
@@ -160,7 +160,7 @@ class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
         state.descriptor
 
         then:
-        ModuleRevisionResolveException e1 = thrown()
+        ModuleVersionResolveException e1 = thrown()
 
         and:
         1 * ivyResolver.getDependency(dep, resolveData) >> {throw failure}
@@ -170,7 +170,7 @@ class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
         state.descriptor
 
         then:
-        ModuleRevisionResolveException e2 = thrown()
+        ModuleVersionResolveException e2 = thrown()
         e2 == e1
 
         and:

@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-public class ModuleRevisionNotFoundException extends ModuleRevisionResolveException {
-    public ModuleRevisionNotFoundException(String message) {
+public class ModuleVersionNotFoundException extends ModuleVersionResolveException {
+    public ModuleVersionNotFoundException(String message) {
         super(message);
     }
 }
