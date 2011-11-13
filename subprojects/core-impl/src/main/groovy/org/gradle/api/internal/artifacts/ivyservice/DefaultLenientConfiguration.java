@@ -47,7 +47,7 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
             for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
                 failures.add(unresolvedDependency.getProblem());
             }
-            throw new ResolveException(configuration, Collections.<String>emptyList(), failures);
+            throw new ResolveException(configuration, failures);
         }
     }
 

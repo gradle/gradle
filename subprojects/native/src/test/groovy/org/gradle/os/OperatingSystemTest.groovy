@@ -18,9 +18,11 @@ package org.gradle.os
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.util.TemporaryFolder
 
 class OperatingSystemTest extends Specification {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
+    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
 
     def "uses os.name property to determine if windows"() {
         System.properties['os.name'] = 'Windows 7'
@@ -44,6 +46,40 @@ class OperatingSystemTest extends Specification {
         expect:
         !os.fileSystem.caseSensitive
         !os.fileSystem.symlinkAware
+    }
+
+    def "windows transforms script names"() {
+        def os = new OperatingSystem.Windows()
+
+        expect:
+        os.getScriptName("a.bat") == "a.bat"
+        os.getScriptName("a.BAT") == "a.BAT"
+        os.getScriptName("a") == "a.bat"
+    }
+
+    def "windows transforms executable names"() {
+        def os = new OperatingSystem.Windows()
+
+        expect:
+        os.getExecutableName("a.exe") == "a.exe"
+        os.getExecutableName("a.EXE") == "a.EXE"
+        os.getExecutableName("a") == "a.exe"
+    }
+
+    def "windows searches for executable in path"() {
+        def exe = tmpDir.createFile("bin/a.exe")
+        tmpDir.createFile("bin2/a.exe")
+        def os = new OperatingSystem.Windows() {
+            @Override
+            List<File> getPath() {
+                return [tmpDir.file("bin"), tmpDir.file("bin2")]
+            }
+        }
+
+        expect:
+        os.findInPath("a.exe") == exe
+        os.findInPath("a") == exe
+        os.findInPath("unknown") == null
     }
 
     def "uses os.name property to determine if Mac OS X"() {
@@ -107,6 +143,37 @@ class OperatingSystemTest extends Specification {
         !os.macOsX
     }
 
+    def "UNIX does not transform script names"() {
+        def os = new OperatingSystem.Unix()
+
+        expect:
+        os.getScriptName("a.sh") == "a.sh"
+        os.getScriptName("a") == "a"
+    }
+
+    def "UNIX does not transforms executable names"() {
+        def os = new OperatingSystem.Unix()
+
+        expect:
+        os.getExecutableName("a.sh") == "a.sh"
+        os.getExecutableName("a") == "a"
+    }
+
+    def "UNIX searches for executable in path"() {
+        def exe = tmpDir.createFile("bin/a")
+        tmpDir.createFile("bin2/a")
+        def os = new OperatingSystem.Unix() {
+            @Override
+            List<File> getPath() {
+                return [tmpDir.file("bin"), tmpDir.file("bin2")]
+            }
+        }
+
+        expect:
+        os.findInPath("a") == exe
+        os.findInPath("unknown") == null
+    }
+
     def "UNIX has case sensitive file system"() {
         def os = new OperatingSystem.Unix()
 
@@ -147,7 +214,7 @@ class OperatingSystemTest extends Specification {
         then:
         unix.nativePrefix == 'unknown-i386'
     }
-    
+
     def "os x uses same prefix for all architectures"() {
         def osx = new OperatingSystem.MacOs()
 

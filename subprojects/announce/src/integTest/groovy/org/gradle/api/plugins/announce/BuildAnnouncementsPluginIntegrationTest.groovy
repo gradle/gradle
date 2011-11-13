@@ -16,10 +16,8 @@
 package org.gradle.api.plugins.announce
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class BuildAnnouncementsPluginIntegrationTest extends AbstractIntegrationSpec {
-    @Ignore
     def "does not blow up when a local notification mechanism is not available"() {
         buildFile << """
 apply plugin: 'java'

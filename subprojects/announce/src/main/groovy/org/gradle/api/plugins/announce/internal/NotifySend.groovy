@@ -20,6 +20,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.plugins.announce.Announcer
 import org.gradle.api.Project
+import org.gradle.os.OperatingSystem
 
 /**
  * This class wraps the Ubuntu Notify Send functionality.
@@ -37,8 +38,12 @@ class NotifySend implements Announcer {
     }
 
     void send(String title, String message) {
+        File exe = OperatingSystem.current().findInPath("notify-send")
+        if (exe == null) {
+            throw new AnnouncerUnavailableException("Could not find 'notify-send' in the path.")
+        }
         project.exec {
-            executable 'notify-send'
+            executable exe
             args title, message
         }
     }

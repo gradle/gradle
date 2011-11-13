@@ -334,8 +334,14 @@ class DaemonLifecycleSpec extends Specification {
     }
 
     def cleanup() {
-        sequenceBuilder.build(handles.daemonRegistry).run()
-        stopDaemons()
+        try {
+            sequenceBuilder.build(handles.daemonRegistry).run()
+        } finally {
+            new DaemonEventSequenceBuilder().with {
+                stopDaemons()
+                build(handles.daemonRegistry)
+            }.run()
+        }
     }
 
 }

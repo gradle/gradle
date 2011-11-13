@@ -95,7 +95,7 @@ project(':b') {
 
         inTestDirectory().withTasks('a:listDeps').run()
         def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
-        result.assertThatCause(containsString('Module org.gradle.test:external1:1.0 not found.'))
+        result.assertThatCause(containsString('Could not find group:org.gradle.test, module:external1, version:1.0.'))
     }
 
     @Test
@@ -133,7 +133,7 @@ project(':b') {
 
         inTestDirectory().withTasks('a:listDeps').run()
         def result = inTestDirectory().withTasks('b:listDeps').runWithFailure()
-        result.assertThatCause(containsString('Module org.gradle.test:external1:1.0 not found.'))
+        result.assertThatCause(containsString('Could not find group:org.gradle.test, module:external1, version:1.0.'))
     }
 
     @Test
@@ -579,8 +579,8 @@ task test << {
         failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
         failure.assertHasDescription("Execution failed for task ':listJars'");
         failure.assertThatCause(startsWith("Could not resolve all dependencies for configuration ':compile'"));
-        failure.assertThatCause(containsString("Module test:unknownProjectA:1.2 not found."));
-        failure.assertThatCause(containsString("Module test:unknownProjectB:2.1.5 not found."));
+        failure.assertThatCause(containsString("Could not find group:test, module:unknownProjectA, version:1.2."));
+        failure.assertThatCause(containsString("Could not find group:test, module:unknownProjectB, version:2.1.5."));
     }
 
     @Test

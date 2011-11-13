@@ -25,6 +25,7 @@ import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.ivy.plugins.repository.*;
 import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.url.ApacheURLLister;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.UncheckedException;
@@ -187,7 +188,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
                 return new MissingResource(source);
             }
             if (!wasSuccessful(result)) {
-                throw new IOException(String.format("Could not GET '%s'. Received status code %s from server: %s", source, result, method.getStatusText()));
+                throw new UncheckedIOException(String.format("Could not GET '%s'. Received status code %s from server: %s", source, result, method.getStatusText()));
             }
             return new HttpResource(source, method);
         }
