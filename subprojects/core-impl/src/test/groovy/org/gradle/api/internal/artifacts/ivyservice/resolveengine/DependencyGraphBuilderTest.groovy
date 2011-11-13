@@ -195,6 +195,32 @@ class DependencyGraphBuilderTest extends Specification {
         modules(result) == ids(selected, b, e)
     }
 
+    def "resolves when path through selected module is queued for traversal when conflict detected"() {
+        given:
+        def selected = revision('a', '1.2')
+        def evicted = revision('a', '1.1')
+        def b = revision('b')
+        def c = revision('c')
+        traverses root, selected
+        traverses selected, b
+        doesNotResolve root, evicted
+        doesNotResolve evicted, c
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+        result.rethrowFailure()
+
+        then:
+        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+            assert candidates*.revision == ['1.2', '1.1']
+            return candidates.find { it.revision == '1.2' }
+        }
+        0 * conflictResolver._
+
+        and:
+        modules(result) == ids(selected, b)
+    }
+
     def "does not include evicted module when another path through evicted module traversed after conflict detected"() {
         given:
         def selected = revision('a', '1.2')

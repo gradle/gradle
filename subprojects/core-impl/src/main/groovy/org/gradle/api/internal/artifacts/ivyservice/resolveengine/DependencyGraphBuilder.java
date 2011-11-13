@@ -729,8 +729,8 @@ public class DependencyGraphBuilder {
                 return newParent;
             }
             if (targetModuleRevision == null) {
-                // Need to substitute this path for a new one
-                return restart(resolveState, moduleRevision);
+                // This has not been resolved yet - return this
+                return this;
             }
 
             if (targetModuleRevision == moduleRevision || !candidates.contains(targetModuleRevision)) {
