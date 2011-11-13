@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.announce.internal
 
 import org.gradle.api.Project
+import org.gradle.os.OperatingSystem
 
 class GrowlNotifyBackedAnnouncer extends Growl {
     private final Project project
@@ -25,8 +26,12 @@ class GrowlNotifyBackedAnnouncer extends Growl {
     }
 
     void send(String title, String message) {
+        def exe = OperatingSystem.current().findInPath('growlnotify')
+        if (exe == null) {
+            throw new AnnouncerUnavailableException("Could not find 'growlnotify' in path.")
+        }
         project.exec {
-            executable 'growlnotify'
+            executable exe
             args '-m', message, title
         }
     }

@@ -15,6 +15,12 @@
  */
 package org.gradle.os;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
+
 public abstract class OperatingSystem {
     private static final Windows WINDOWS = new Windows();
     private static final MacOs MAC_OS = new MacOs();
@@ -52,6 +58,39 @@ public abstract class OperatingSystem {
 
     public abstract String getScriptName(String scriptPath);
 
+    public abstract String getExecutableName(String executablePath);
+
+    public File findInPath(String name) {
+        String exeName = getExecutableName(name);
+        if (exeName.contains(File.separator)) {
+            File candidate = new File(exeName);
+            if (candidate.isFile()) {
+                return candidate;
+            }
+            return null;
+        }
+        for (File dir : getPath()) {
+            File candidate = new File(dir, exeName);
+            if (candidate.isFile()) {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    List<File> getPath() {
+        String path = System.getenv("PATH");
+        if (path == null) {
+            return Collections.emptyList();
+        }
+        List<File> entries = new ArrayList<File>();
+        for (String entry : path.split(Pattern.quote(File.pathSeparator))) {
+            entries.add(new File(entry));
+        }
+        return entries;
+    }
+
     static class Windows extends OperatingSystem {
         private static final FileSystem FILE_SYSTEM = new WindowsFileSystem();
 
@@ -84,6 +123,14 @@ public abstract class OperatingSystem {
         }
 
         @Override
+        public String getExecutableName(String executablePath) {
+            if (executablePath.toLowerCase().endsWith(".exe")) {
+                return executablePath;
+            }
+            return executablePath + ".exe";
+        }
+
+        @Override
         public String getNativePrefix() {
             String arch = System.getProperty("os.arch");
             if ("i386".equals(arch)) {
@@ -96,8 +143,14 @@ public abstract class OperatingSystem {
     static class Unix extends OperatingSystem {
         private static final FileSystem FILE_SYSTEM = new UnixFileSystem();
 
+        @Override
         public String getScriptName(String scriptPath) {
             return scriptPath;
+        }
+
+        @Override
+        public String getExecutableName(String executablePath) {
+            return executablePath;
         }
 
         @Override
