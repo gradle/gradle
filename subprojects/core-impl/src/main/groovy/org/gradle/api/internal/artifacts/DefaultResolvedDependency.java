@@ -165,6 +165,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
             this.parentArtifacts.put(parent, parentArtifacts);
         }
         parentArtifacts.addAll(artifacts);
+        moduleArtifacts.addAll(artifacts);
     }
 
     public void addModuleArtifact(ResolvedArtifact artifact) {
