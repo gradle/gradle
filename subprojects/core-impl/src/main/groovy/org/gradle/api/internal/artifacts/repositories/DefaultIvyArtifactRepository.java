@@ -68,7 +68,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     private void nagUser(String propertyName, String replacementName) {
-        DeprecationLogger.nagUserWith(String.format("The %s property has been deprecated. Please credentials { %s = 'value' } instead.", propertyName, replacementName));
+        DeprecationLogger.nagUserWith(String.format("The IvyArtifactRepository.%s property has been deprecated. Please credentials { %s = 'value' } instead.", propertyName, replacementName));
     }
 
     public void createResolvers(Collection<DependencyResolver> resolvers) {
