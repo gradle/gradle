@@ -45,11 +45,11 @@ public class DependencyMapNotationParser<T extends ExternalDependency> extends T
         String name = getAndRemove(args, "name");
         String version = getAndRemove(args, "version");
         String configuration = getAndRemove(args, "configuration");
-        ExternalDependency dependency = instantiator.newInstance(resultingType, group, name, version, configuration);
+        T dependency = instantiator.newInstance(resultingType, group, name, version, configuration);
         ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, getAndRemove(args, "ext"), getAndRemove(args,
                 "classifier"));
         ConfigureUtil.configureByMap(args, dependency);
-        return (T) dependency;
+        return dependency;
     }
 
     private String getAndRemove(Map<String, Object> args, String key) {
