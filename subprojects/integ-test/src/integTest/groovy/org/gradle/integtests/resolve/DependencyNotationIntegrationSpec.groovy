@@ -147,6 +147,7 @@ task checkDeps
 """
         then:
         fails 'checkDeps'
+        //TODO SF check how the system reacts to other invalid notations and tweak the messages
         errorOutput.contains 'notation is invalid'
     }
 }
