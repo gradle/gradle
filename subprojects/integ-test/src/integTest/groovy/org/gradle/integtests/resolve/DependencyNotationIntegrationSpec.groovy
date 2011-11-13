@@ -25,8 +25,6 @@ class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
 
     def "understands dependency notations"() {
         when:
-        settingsFile << "include 'otherProject'"
-
         buildFile <<  """
 import org.gradle.api.internal.artifacts.dependencies.*
 configurations {
@@ -40,12 +38,11 @@ dependencies {
     conf someDependency
     conf "org.mockito:mockito-core:1.8"
     conf group: 'org.spockframework', name: 'spock-core', version: '1.0'
-    conf project(':otherProject')
     conf module('org.foo:moduleOne:1.0'), module('org.foo:moduleTwo:1.0')
 
     gradleStuff gradleApi()
 
-    allowsCollections "org.mockito:mockito-core:1.8", project(':otherProject')
+    allowsCollections "org.mockito:mockito-core:1.8", someDependency
 }
 
 task checkDeps << {
@@ -53,7 +50,6 @@ task checkDeps << {
     assert deps.contains(someDependency)
     assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' && it.name == 'mockito-core' && it.version == '1.8'  }
     assert deps.find { it instanceof ExternalDependency && it.group == 'org.spockframework' && it.name == 'spock-core' && it.version == '1.0'  }
-    assert deps.find { it instanceof ProjectDependency && it.dependencyProject.path == ':otherProject' }
     assert deps.find { it instanceof ClientModule && it.name == 'moduleOne' && it.group == 'org.foo' }
     assert deps.find { it instanceof ClientModule && it.name == 'moduleTwo' && it.version == '1.0' }
 
@@ -63,14 +59,49 @@ task checkDeps << {
     deps = configurations.allowsCollections.dependencies
     assert deps.size() == 2
     assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' }
-    assert deps.find { it instanceof ProjectDependency && it.dependencyProject.path == ':otherProject' }
+    assert deps.contains(someDependency)
 }
 """
         then:
         succeeds 'checkDeps'
     }
 
-      def "understands client module dependency notations with dependencies"() {
+    def "understands project notations"() {
+        when:
+        settingsFile << "include 'otherProject'"
+
+        buildFile <<  """
+configurations {
+    conf
+    confTwo
+}
+
+project(':otherProject') {
+    configurations {
+        otherConf
+    }
+}
+
+dependencies {
+    conf project(':otherProject')
+    confTwo project(path: ':otherProject', configuration: 'otherConf')
+}
+
+task checkDeps << {
+    def deps = configurations.conf.incoming.dependencies
+    assert deps.size() == 1
+    assert deps.find { it.dependencyProject.path == ':otherProject' }
+
+    deps = configurations.confTwo.incoming.dependencies
+    assert deps.size() == 1
+    assert deps.find { it.dependencyProject.path == ':otherProject' && it.projectConfiguration.name == 'otherConf' }
+}
+"""
+        then:
+        succeeds 'checkDeps'
+    }
+
+    def "understands client module notation with dependencies"() {
         when:
         buildFile <<  """
 configurations {
@@ -80,6 +111,8 @@ configurations {
 dependencies {
     conf module('org.foo:moduleOne:1.0') {
         dependency 'org.foo:bar:1.0'
+        dependencies ('org.foo:one:1', 'org.foo:two:1')
+        dependency ('high:five:5') { transitive = false }
     }
 }
 
@@ -88,8 +121,11 @@ task checkDeps << {
     assert deps.size() == 1
     def dep = deps.find { it instanceof ClientModule && it.name == 'moduleOne' }
     assert dep
-    assert dep.dependencies.size() == 1
-    assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'bar' && it.version == '1.0' }
+    assert dep.dependencies.size() == 4
+    assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'bar' && it.version == '1.0' && it.transitive == true }
+    assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'one' && it.version == '1' }
+    assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'two' && it.version == '1' }
+    assert dep.dependencies.find { it.group == 'high' && it.name == 'five' && it.version == '5' && it.transitive == false }
 }
 """
         then:
