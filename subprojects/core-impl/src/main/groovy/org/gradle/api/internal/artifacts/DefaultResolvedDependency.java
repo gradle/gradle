@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
-import org.gradle.util.GUtil;
 
 import java.util.*;
 
@@ -110,7 +109,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     public Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent) {
-        return GUtil.addSets(getParentArtifacts(parent), getModuleArtifacts());
+        return getParentArtifacts(parent);
     }
 
     public Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent) {

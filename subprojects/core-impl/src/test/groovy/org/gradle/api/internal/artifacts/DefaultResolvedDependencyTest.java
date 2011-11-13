@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.WrapUtil;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 
@@ -30,6 +29,7 @@ import java.util.Set;
 
 import static org.gradle.api.artifacts.ArtifactsTestUtils.createResolvedArtifact;
 import static org.gradle.util.Matchers.strictlyEqual;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
@@ -66,18 +66,18 @@ public class DefaultResolvedDependencyTest {
         DefaultResolvedDependency childDependency = new DefaultResolvedDependency("someGroup", "someChild", "someVersion", "someChildConfiguration");
         childDependency.addModuleArtifact(childModuleArtifact);
         resolvedDependency.getChildren().add(childDependency);
-        assertThat(resolvedDependency.getAllModuleArtifacts(), equalTo(WrapUtil.toSet(moduleArtifact, childModuleArtifact)));
+        assertThat(resolvedDependency.getAllModuleArtifacts(), equalTo(toSet(moduleArtifact, childModuleArtifact)));
     }
 
     @Test
     public void getParentArtifacts() {
-        Set<ResolvedArtifact> someModuleArtifacts = WrapUtil.toSet(createArtifact("someResolvedArtifact"));
-        DefaultResolvedDependency resolvedDependency = createResolvedDependency(someModuleArtifacts);
+        Set<ResolvedArtifact> someModuleArtifacts = toSet(createArtifact("someResolvedArtifact"));
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency();
 
-        Set<ResolvedArtifact> parent1SpecificArtifacts = WrapUtil.toSet(createArtifact("parent1Specific"));
+        Set<ResolvedArtifact> parent1SpecificArtifacts = toSet(createArtifact("parent1Specific"));
         DefaultResolvedDependency parentResolvedDependency1 = createAndAddParent("parent1", resolvedDependency, parent1SpecificArtifacts);
 
-        Set<ResolvedArtifact> parent2SpecificArtifacts = WrapUtil.toSet(createArtifact("parent2Specific"));
+        Set<ResolvedArtifact> parent2SpecificArtifacts = toSet(createArtifact("parent2Specific"));
         DefaultResolvedDependency parentResolvedDependency2 = createAndAddParent("parent2", resolvedDependency, parent2SpecificArtifacts);
 
         assertThat(resolvedDependency.getParentArtifacts(parentResolvedDependency1), equalTo(parent1SpecificArtifacts));
@@ -88,39 +88,32 @@ public class DefaultResolvedDependencyTest {
         return createResolvedArtifact(context, name, "someType", "someExt", new File("pathTo" + name));
     }
 
-    private DefaultResolvedDependency createResolvedDependency(Set<ResolvedArtifact> moduleArtifacts) {
-        DefaultResolvedDependency dependency = new DefaultResolvedDependency("someGroup", "someName", "someVersion", "someConfiguration");
-        for (ResolvedArtifact moduleArtifact : moduleArtifacts) {
-            dependency.addModuleArtifact(moduleArtifact);
-        }
-        return dependency;
+    private DefaultResolvedDependency createResolvedDependency() {
+        return new DefaultResolvedDependency("someGroup", "someName", "someVersion", "someConfiguration");
     }
 
     @Test
     public void getArtifacts() {
-        Set<ResolvedArtifact> someModuleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
-        DefaultResolvedDependency resolvedDependency = createResolvedDependency(someModuleArtifacts);
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency();
 
-        Set<ResolvedArtifact> parent1SpecificArtifacts = WrapUtil.toSet(createArtifact("parent1Specific"));
+        Set<ResolvedArtifact> parent1SpecificArtifacts = toSet(createArtifact("parent1Specific"));
         DefaultResolvedDependency parentResolvedDependency1 = createAndAddParent("parent1", resolvedDependency, parent1SpecificArtifacts);
 
-        assertThat(resolvedDependency.getArtifacts(parentResolvedDependency1), equalTo(GUtil.addSets(someModuleArtifacts, parent1SpecificArtifacts)));
+        assertThat(resolvedDependency.getArtifacts(parentResolvedDependency1), equalTo(parent1SpecificArtifacts));
     }
 
     @Test
     public void getArtifactsWithParentWithoutParentArtifacts() {
-        Set<ResolvedArtifact> moduleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
-        DefaultResolvedDependency resolvedDependency = createResolvedDependency(moduleArtifacts);
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency();
 
         DefaultResolvedDependency parent = new DefaultResolvedDependency("someGroup", "parent", "someVersion", "someConfiguration");
         resolvedDependency.getParents().add(parent);
-        assertThat(resolvedDependency.getArtifacts(parent), equalTo(moduleArtifacts));
+        assertThat(resolvedDependency.getArtifacts(parent), equalTo(Collections.<ResolvedArtifact>emptySet()));
     }
 
     @Test
     public void getParentArtifactsWithParentWithoutParentArtifacts() {
-        Set<ResolvedArtifact> moduleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
-        DefaultResolvedDependency resolvedDependency = createResolvedDependency(moduleArtifacts);
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency();
 
         DefaultResolvedDependency parent = new DefaultResolvedDependency("someGroup", "parent", "someVersion", "someConfiguration");
         resolvedDependency.getParents().add(parent);
@@ -129,7 +122,7 @@ public class DefaultResolvedDependencyTest {
 
     @Test(expected = InvalidUserDataException.class)
     public void getParentArtifactsWithUnknownParent() {
-        DefaultResolvedDependency resolvedDependency = createResolvedDependency(Collections.<ResolvedArtifact>emptySet());
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency();
         DefaultResolvedDependency unknownParent = new DefaultResolvedDependency("someGroup", "parent2", "someVersion", "someConfiguration");
         assertThat(resolvedDependency.getParentArtifacts(unknownParent),
                 equalTo(Collections.<ResolvedArtifact>emptySet()));
@@ -137,8 +130,8 @@ public class DefaultResolvedDependencyTest {
 
     @Test(expected = InvalidUserDataException.class)
     public void getArtifactsWithUnknownParent() {
-        Set<ResolvedArtifact> someModuleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
-        DefaultResolvedDependency resolvedDependency = createResolvedDependency(Collections.<ResolvedArtifact>emptySet());
+        Set<ResolvedArtifact> someModuleArtifacts = toSet(createArtifact("someModuleResolvedArtifact"));
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency();
 
         DefaultResolvedDependency unknownParent = new DefaultResolvedDependency("someGroup", "parent2", "someVersion", "someConfiguration");
         assertThat(resolvedDependency.getParentArtifacts(unknownParent),
@@ -147,27 +140,24 @@ public class DefaultResolvedDependencyTest {
 
     @Test
     public void getAllArtifacts() {
-        Set<ResolvedArtifact> someModuleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
-        ResolvedArtifact childModuleResolvedArtifact = createArtifact("someChildModuleResolvedArtifact");
-        DefaultResolvedDependency resolvedDependency = createResolvedDependency(someModuleArtifacts);
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency();
 
-        Set<ResolvedArtifact> parent1SpecificArtifacts = WrapUtil.toSet(createArtifact("parent1Specific"));
+        Set<ResolvedArtifact> parent1SpecificArtifacts = toSet(createArtifact("parent1Specific"));
         DefaultResolvedDependency parentResolvedDependency1 = createAndAddParent("parent1", resolvedDependency, parent1SpecificArtifacts);
 
-        createAndAddParent("parent2", resolvedDependency, WrapUtil.toSet(createArtifact("parent2Specific")));
+        createAndAddParent("parent2", resolvedDependency, toSet(createArtifact("parent2Specific")));
 
         DefaultResolvedDependency child = new DefaultResolvedDependency("someGroup", "someChild", "someVersion", "someChildConfiguration");
-        child.addModuleArtifact(childModuleResolvedArtifact);
         resolvedDependency.getChildren().add(child);
 
-        Set<ResolvedArtifact> childParent1SpecificArtifacts = WrapUtil.toSet(createArtifact("childParent1Specific"));
+        Set<ResolvedArtifact> childParent1SpecificArtifacts = toSet(createArtifact("childParent1Specific"));
         createAndAddParent("childParent1", child, childParent1SpecificArtifacts);
 
-        Set<ResolvedArtifact> childParent2SpecificArtifacts = WrapUtil.toSet(createArtifact("childParent2Specific"));
+        Set<ResolvedArtifact> childParent2SpecificArtifacts = toSet(createArtifact("childParent2Specific"));
         createAndAddParent("childParent2", child, childParent2SpecificArtifacts);
 
         assertThat(resolvedDependency.getAllArtifacts(parentResolvedDependency1),
-                equalTo(GUtil.addSets(someModuleArtifacts, parent1SpecificArtifacts, WrapUtil.toSet(childModuleResolvedArtifact), childParent1SpecificArtifacts, childParent2SpecificArtifacts)));
+                equalTo(GUtil.addSets(parent1SpecificArtifacts, childParent1SpecificArtifacts, childParent2SpecificArtifacts)));
     }
 
     @Test
