@@ -181,7 +181,7 @@ task show << { println configurations.compile.files }
         then:
         failure.assertHasDescription('Execution failed for task \':show\'.')
         failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertThatCause(Matchers.containsString('Module group:projectA:1.2 not found.'))
+        failure.assertThatCause(Matchers.containsString('Could not find group:group, module:projectA, version:1.2.'))
 
         when:
         server.addBroken('/')
@@ -190,7 +190,8 @@ task show << { println configurations.compile.files }
         then:
         failure.assertHasDescription('Execution failed for task \':show\'.')
         failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertThatCause(Matchers.containsString('Could not resolve group#projectA;1.2'))
+        failure.assertHasCause('Could not resolve group:group, module:projectA, version:1.2')
+        failure.assertHasCause("Could not GET 'http://localhost:${server.port}/group/projectA/1.2/ivy-1.2.xml'. Received status code 500 from server: broken")
     }
 
     public void "uses all configured patterns to resolve artifacts and caches result"() {
