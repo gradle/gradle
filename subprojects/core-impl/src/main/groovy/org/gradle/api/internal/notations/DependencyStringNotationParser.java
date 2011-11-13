@@ -17,9 +17,9 @@
 package org.gradle.api.internal.notations;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.ClientModule;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.Instantiator;
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
@@ -30,37 +30,39 @@ import java.util.regex.Pattern;
 /**
  * by Szczepan Faber, created at: 11/10/11
  */
-public class DependencyStringNotationParser extends TypedNotationParser<CharSequence, ExternalModuleDependency> {
+public class DependencyStringNotationParser<T extends ExternalDependency> extends TypedNotationParser<CharSequence, ExternalDependency> {
 
     private final Instantiator instantiator;
+    private final Class<T> wantedType;
 
-    public DependencyStringNotationParser(Instantiator instantiator) {
+    public DependencyStringNotationParser(Instantiator instantiator, Class<T> wantedType) {
         super(CharSequence.class);
         this.instantiator = instantiator;
+        this.wantedType = wantedType;
     }
 
-    protected ExternalModuleDependency parseType(CharSequence notation) {
+    protected T parseType(CharSequence notation) {
         return createDependencyFromString(notation.toString());
     }
 
-    private static final Pattern EXTENSION_SPLITTER = Pattern.compile("^(.+)\\@([^:]+$)");
+    public static final Pattern EXTENSION_SPLITTER = Pattern.compile("^(.+)\\@([^:]+$)");
 
-    private DefaultExternalModuleDependency createDependencyFromString(String notation) {
-        ParsedModuleStringNotation parsedNotation = splitDescriptionIntoModuleNotationAndArtifactType(notation);
-        DefaultExternalModuleDependency moduleDependency = instantiator.newInstance(
-                DefaultExternalModuleDependency.class, parsedNotation.getGroup(), parsedNotation.getName(),
-                parsedNotation.getVersion());
-        ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, parsedNotation.getArtifactType(),
-                parsedNotation.getClassifier());
+    private T createDependencyFromString(String notation) {
+
+        ParsedModuleStringNotation parsedNotation = splitModuleFromExtension(notation);
+        T moduleDependency = instantiator.newInstance(wantedType,
+                parsedNotation.getGroup(), parsedNotation.getName(), parsedNotation.getVersion());
+        ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, parsedNotation.getArtifactType(),parsedNotation.getClassifier());
+
         return moduleDependency;
     }
 
-    private ParsedModuleStringNotation splitDescriptionIntoModuleNotationAndArtifactType(String notation) {
+    private ParsedModuleStringNotation splitModuleFromExtension(String notation) {
         Matcher matcher = EXTENSION_SPLITTER.matcher(notation);
         boolean hasArtifactType = matcher.matches();
-        if (hasArtifactType) {
+        if (hasArtifactType && !ClientModule.class.isAssignableFrom(wantedType)) {
             if (matcher.groupCount() != 2) {
-                throw new InvalidUserDataException("The description " + notation + " is invalid");
+                throw new InvalidUserDataException("The dependency notation " + notation + " is invalid");
             }
             return new ParsedModuleStringNotation(matcher.group(1), matcher.group(2));
         }

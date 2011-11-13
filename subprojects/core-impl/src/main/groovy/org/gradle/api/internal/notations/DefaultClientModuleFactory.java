@@ -32,7 +32,7 @@ public class DefaultClientModuleFactory implements NotationParser<ClientModule> 
 
     public DefaultClientModuleFactory(Instantiator instantiator) {
         delegate = new NotationParserBuilder()
-            .parser(new ClientDependencyStringNotationParser(instantiator))
+            .parser(new DependencyStringNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
             .parser(new DependencyMapNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
             .invalidNotationMessage("Client module dependency notation cannot be used to form a client module.")
             .build(); //TODO SF - to multi

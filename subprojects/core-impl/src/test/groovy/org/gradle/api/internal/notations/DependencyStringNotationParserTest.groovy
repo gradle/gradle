@@ -19,6 +19,8 @@ package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.internal.DirectInstantiator
+import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
@@ -27,7 +29,7 @@ import spock.lang.Specification
  */
 public class DependencyStringNotationParserTest extends Specification {
 
-    def parser = new DependencyStringNotationParser(new DirectInstantiator());
+    def parser = new DependencyStringNotationParser(new DirectInstantiator(), DefaultExternalModuleDependency.class);
 
     def "with artifact"() {
         when:
@@ -136,5 +138,38 @@ public class DependencyStringNotationParserTest extends Specification {
 
         !d.force
         !d.changing
+    }
+
+    def "can create client module"() {
+        parser = new DependencyStringNotationParser(new DirectInstantiator(), DefaultClientModule);
+
+        when:
+        def d = parser.parseNotation('org.gradle:gradle-core:10')
+
+        then:
+        d instanceof DefaultClientModule
+        d.name == 'gradle-core'
+        d.group == 'org.gradle'
+        d.version == '10'
+        d.transitive
+
+        !d.force
+    }
+
+    def "client module ignores the artifact only notation"() {
+        parser = new DependencyStringNotationParser(new DirectInstantiator(), DefaultClientModule);
+
+        when:
+        def d = parser.parseNotation('org.gradle:gradle-core:10@jar')
+
+        then:
+        d instanceof DefaultClientModule
+        d.name == 'gradle-core'
+        d.group == 'org.gradle'
+        d.version == '10@jar'
+        d.transitive
+
+        !d.force
+        d.artifacts.size() == 0
     }
 }
