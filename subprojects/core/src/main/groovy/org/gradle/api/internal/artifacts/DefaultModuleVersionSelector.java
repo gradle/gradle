@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 
-public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
+/**
+ * by Szczepan Faber, created at: 11/13/11
+ */
+public class DefaultModuleVersionSelector implements ModuleVersionSelector {
+
     private String group;
     private String name;
     private String version;
 
-    public DefaultModuleVersionIdentifier(String group, String name, String version) {
+    public DefaultModuleVersionSelector(String group, String name, String version) {
         this.group = group;
         this.name = name;
         this.version = version;
@@ -32,7 +37,7 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
         return group;
     }
 
-    public DefaultModuleVersionIdentifier setGroup(String group) {
+    public DefaultModuleVersionSelector setGroup(String group) {
         this.group = group;
         return this;
     }
@@ -41,7 +46,7 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
         return name;
     }
 
-    public DefaultModuleVersionIdentifier setName(String name) {
+    public DefaultModuleVersionSelector setName(String name) {
         this.name = name;
         return this;
     }
@@ -50,41 +55,40 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
         return version;
     }
 
-    public DefaultModuleVersionIdentifier setVersion(String version) {
+    public DefaultModuleVersionSelector setVersion(String version) {
         this.version = version;
         return this;
     }
 
     @Override
-    public String toString() {
-        //TODO SF - can we slightly change the format because it clashes with Map
-        return String.format("[group: %s, module: %s, version: %s]", group, name, version);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
         }
-        if (obj == null || obj.getClass() != getClass()) {
+        if (!(o instanceof DefaultModuleVersionSelector)) {
             return false;
         }
-        DefaultModuleVersionIdentifier other = (DefaultModuleVersionIdentifier) obj;
-        if (!group.equals(other.group)) {
+
+        DefaultModuleVersionSelector that = (DefaultModuleVersionSelector) o;
+
+        if (group != null ? !group.equals(that.group) : that.group != null) {
             return false;
         }
-        if (!name.equals(other.name)) {
+        if (name != null ? !name.equals(that.name) : that.name != null) {
             return false;
         }
-        if (!version.equals(other.version)) {
+        if (version != null ? !version.equals(that.version) : that.version != null) {
             return false;
         }
+
         return true;
     }
 
     @Override
     public int hashCode() {
-        //TODO SF - what about nulls?
-        return group.hashCode() ^ name.hashCode() ^ version.hashCode();
+        int result = group != null ? group.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (version != null ? version.hashCode() : 0);
+        return result;
     }
 }

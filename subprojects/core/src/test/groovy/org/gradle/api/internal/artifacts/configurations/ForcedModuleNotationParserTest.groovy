@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.notations.api.InvalidNotationFormat
 import org.gradle.api.internal.notations.api.InvalidNotationType
 import spock.lang.Specification
@@ -49,7 +48,7 @@ public class ForcedModuleNotationParserTest extends Specification {
     }
 
     def "allows exact type on input"() {
-        ModuleVersionIdentifier id = ForcedModuleNotationParser.identifier("org.foo", "bar", "2.0")
+        def id = ForcedModuleNotationParser.selector("org.foo", "bar", "2.0")
 
         when:
         def v = new ForcedModuleNotationParser().parseNotation(id) as List
@@ -62,7 +61,7 @@ public class ForcedModuleNotationParserTest extends Specification {
     }
 
     def "allows list of objects on input"() {
-        ModuleVersionIdentifier id = ForcedModuleNotationParser.identifier("org.foo", "bar", "2.0")
+        def id = ForcedModuleNotationParser.selector("org.foo", "bar", "2.0")
 
         when:
         def v = new ForcedModuleNotationParser().parseNotation([id, ["hey:man:1.0"], [group:'i', name:'like', version:'maps']]) as List
@@ -111,9 +110,18 @@ public class ForcedModuleNotationParserTest extends Specification {
 
     def "reports invalid format for string notation"() {
         when:
-        new ForcedModuleNotationParser().parseNotation(["org.foo:bar1.0"])
+        new ForcedModuleNotationParser().parseNotation(["blahblah"])
 
         then:
         thrown(InvalidNotationFormat)
+    }
+
+    def "reports invalid missing data for string notation"() {
+        when:
+        new ForcedModuleNotationParser().parseNotation([":foo:"])
+
+        then:
+        def ex = thrown(InvalidNotationFormat)
+        ex.message.contains 'cannot be empty'
     }
 }

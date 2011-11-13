@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ConflictResolution;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.configurations.conflicts.LatestConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
@@ -33,11 +33,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
-    private Set<ModuleVersionIdentifier> forcedModules = new LinkedHashSet<ModuleVersionIdentifier>();
+    private Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();
     private ConflictResolution conflictResolution = new LatestConflictResolution();
     private final DefaultCachePolicy cachePolicy = new DefaultCachePolicy();
 
-    public Set<ModuleVersionIdentifier> getForcedModules() {
+    public Set<ModuleVersionSelector> getForcedModules() {
         return forcedModules;
     }
 

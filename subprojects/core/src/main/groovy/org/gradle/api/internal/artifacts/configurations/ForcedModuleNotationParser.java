@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.InvalidNotationFormat;
@@ -36,10 +36,10 @@ import static java.util.Arrays.asList;
 /**
  * by Szczepan Faber, created at: 10/11/11
  */
-public class ForcedModuleNotationParser implements TopLevelNotationParser, NotationParser<Set<ModuleVersionIdentifier>> {
+public class ForcedModuleNotationParser implements TopLevelNotationParser, NotationParser<Set<ModuleVersionSelector>> {
 
-    private NotationParser<Set<ModuleVersionIdentifier>> delegate = new NotationParserBuilder()
-            .resultingType(ModuleVersionIdentifier.class)
+    private NotationParser<Set<ModuleVersionSelector>> delegate = new NotationParserBuilder()
+            .resultingType(ModuleVersionSelector.class)
             .parser(new ForcedModuleStringParser())
             .parser(new ForcedModuleMapParser())
             .invalidNotationMessage(
@@ -52,7 +52,7 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser, Notat
             )
             .toFlatteningComposite();
 
-    public Set<ModuleVersionIdentifier> parseNotation(Object notation) {
+    public Set<ModuleVersionSelector> parseNotation(Object notation) {
         assert notation != null : "notation cannot be null";
         return delegate.parseNotation(notation);
     }
@@ -61,14 +61,14 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser, Notat
         return delegate.canParse(notation);
     }
 
-    static class ForcedModuleMapParser extends TypedNotationParser<Map, ModuleVersionIdentifier> {
+    static class ForcedModuleMapParser extends TypedNotationParser<Map, ModuleVersionSelector> {
 
         public ForcedModuleMapParser() {
             super(Map.class);
         }
 
-        public ModuleVersionIdentifier parseType(Map notation) {
-            ModuleVersionIdentifier out = identifier(null, null, null);
+        public ModuleVersionSelector parseType(Map notation) {
+            ModuleVersionSelector out = selector(null, null, null);
             List<String> mandatoryKeys = asList("group", "name", "version");
             try {
                 ConfigureUtil.configureByMap(notation, out, mandatoryKeys);
@@ -81,30 +81,32 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser, Notat
         }
     }
 
-    static class ForcedModuleStringParser extends TypedNotationParser<CharSequence, ModuleVersionIdentifier> {
+    static class ForcedModuleStringParser extends TypedNotationParser<CharSequence, ModuleVersionSelector> {
 
         public ForcedModuleStringParser() {
             super(CharSequence.class);
         }
 
-        public ModuleVersionIdentifier parseType(CharSequence notation) {
+        public ModuleVersionSelector parseType(CharSequence notation) {
+            ParsedModuleStringNotation parsed;
             try {
-                ParsedModuleStringNotation parsed = new ParsedModuleStringNotation(notation.toString(), null);
-                if (parsed.getGroup() == null || parsed.getName() == null || parsed.getVersion() == null) {
-                    throw new InvalidNotationFormat(
-                        "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
-                    + "'org.gradle:gradle-core:1.0'");
-                }
-                return identifier(parsed.getGroup(), parsed.getName(), parsed.getVersion());
+                parsed = new ParsedModuleStringNotation(notation.toString(), null);
             } catch (IllegalDependencyNotation e) {
                 throw new InvalidNotationFormat(
                     "Invalid format: '" + notation + "'. The Correct notation is a 3-part group:name:version notation,"
                     + "e.g: 'org.gradle:gradle-core:1.0'");
             }
+
+            if (parsed.getGroup() == null || parsed.getName() == null || parsed.getVersion() == null) {
+                throw new InvalidNotationFormat(
+                    "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
+                    + "'org.gradle:gradle-core:1.0'");
+            }
+            return selector(parsed.getGroup(), parsed.getName(), parsed.getVersion());
         }
     }
 
-    static ModuleVersionIdentifier identifier(final String group, final String name, final String version) {
-        return new DefaultModuleVersionIdentifier(group, name, version);
+    static ModuleVersionSelector selector(final String group, final String name, final String version) {
+        return new DefaultModuleVersionSelector(group, name, version);
     }
 }

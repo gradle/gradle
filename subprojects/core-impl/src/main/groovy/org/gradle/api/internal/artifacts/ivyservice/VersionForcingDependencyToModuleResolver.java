@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,9 +27,9 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
     private final DependencyToModuleResolver resolver;
     private final Map<ModuleId, ModuleRevisionId> forcedModules = new HashMap<ModuleId, ModuleRevisionId>();
 
-    public VersionForcingDependencyToModuleResolver(DependencyToModuleResolver resolver, Iterable<? extends ModuleVersionIdentifier> forcedModules) {
+    public VersionForcingDependencyToModuleResolver(DependencyToModuleResolver resolver, Iterable<? extends ModuleVersionSelector> forcedModules) {
         this.resolver = resolver;
-        for (ModuleVersionIdentifier forcedModule : forcedModules) {
+        for (ModuleVersionSelector forcedModule : forcedModules) {
             ModuleId moduleId = new ModuleId(forcedModule.getGroup(), forcedModule.getName());
             this.forcedModules.put(moduleId, new ModuleRevisionId(moduleId, forcedModule.getVersion()));
         }
