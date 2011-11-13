@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.InvalidNotationFormat;
 import org.gradle.api.internal.notations.api.NotationParser;
@@ -86,16 +88,19 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser, Notat
         }
 
         public ModuleVersionIdentifier parseType(CharSequence notation) {
-            String[] split = notation.toString().split(":");
-            if (split.length != 3) {
+            try {
+                ParsedModuleStringNotation parsed = new ParsedModuleStringNotation(notation.toString(), null);
+                if (parsed.getGroup() == null || parsed.getName() == null || parsed.getVersion() == null) {
+                    throw new InvalidNotationFormat(
+                        "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
+                    + "'org.gradle:gradle-core:1.0'");
+                }
+                return identifier(parsed.getGroup(), parsed.getName(), parsed.getVersion());
+            } catch (IllegalDependencyNotation e) {
                 throw new InvalidNotationFormat(
                     "Invalid format: '" + notation + "'. The Correct notation is a 3-part group:name:version notation,"
-                    + "e.g: org.gradle:gradle-core:1.0");
+                    + "e.g: 'org.gradle:gradle-core:1.0'");
             }
-            final String group = split[0];
-            final String name = split[1];
-            final String version = split[2];
-            return identifier(group, name, version);
         }
     }
 
