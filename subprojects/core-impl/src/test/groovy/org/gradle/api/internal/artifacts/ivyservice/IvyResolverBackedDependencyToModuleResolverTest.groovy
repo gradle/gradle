@@ -119,7 +119,7 @@ class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
         0 * ivyResolver._
     }
 
-    def "fails when dependency cannot be resolved"() {
+    def "fails when static dependency cannot be resolved"() {
         def dep = dependency()
 
         when:
@@ -128,6 +128,26 @@ class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
 
         then:
         ModuleVersionNotFoundException e1 = thrown()
+        e1.message == 'Could not find group:group, module:module, version:1.2.'
+
+        and:
+        1 * ivyResolver.getDependency(dep, resolveData) >> null
+        0 * ivyResolver._
+    }
+
+    def "fails when dynamic dependency cannot be resolved"() {
+        def dep = dependency()
+
+        given:
+        _ * versionMatcher.isDynamic(dep.dependencyRevisionId) >> true
+
+        when:
+        def state = resolver.create(dep)
+        state.descriptor
+
+        then:
+        ModuleVersionNotFoundException e1 = thrown()
+        e1.message == 'Could not find any version that matches group:group, module:module, version:1.2.'
 
         and:
         1 * ivyResolver.getDependency(dep, resolveData) >> null
@@ -144,6 +164,7 @@ class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
 
         then:
         ModuleVersionResolveException e1 = thrown()
+        e1.message == 'Could not resolve group:group, module:module, version:1.2.'
         e1.cause == failure
 
         and:

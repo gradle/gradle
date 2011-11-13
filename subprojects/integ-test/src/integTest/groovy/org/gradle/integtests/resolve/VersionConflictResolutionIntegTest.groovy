@@ -515,7 +515,7 @@ task checkDeps << {
     }
 
     @Test
-    void "fails when selected conflicting version does not exist"() {
+    void "fails when version selected by conflict resolution does not exist"() {
         repo.module("org", "external", "1.2").publish()
         repo.module("org", "dep", "2.2").dependsOn("org", "external", "1.4").publish()
 
@@ -539,7 +539,34 @@ task checkDeps << {
 
         //expect
         def failure = executer.withTasks("checkDeps").runWithFailure()
-        failure.assertHasCause("??")
+        failure.assertHasCause("Could not find group:org, module:external, version:1.4.")
+    }
+
+    @Test
+    void "does not fail when evicted version does not exist"() {
+        repo.module("org", "external", "1.4").publish()
+        repo.module("org", "dep", "2.2").dependsOn("org", "external", "1.4").publish()
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+repositories {
+    maven { url "${repo.uri}" }
+}
+
+configurations { compile }
+
+dependencies {
+    compile 'org:external:1.2'
+    compile 'org:dep:2.2'
+}
+
+task checkDeps << {
+    assert configurations.compile*.name == ['dep-2.2.jar', 'external-1.4.jar']
+}
+"""
+
+        //expect
+        executer.withTasks("checkDeps").run()
     }
 
     def getRepo() {

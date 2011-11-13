@@ -77,10 +77,12 @@ public class IvyResolverBackedDependencyToModuleResolver implements DependencyTo
                     try {
                         resolvedRevision = resolver.getDependency(dependencyDescriptor, resolveData);
                     } catch (Throwable t) {
-                        throw new ModuleVersionResolveException(String.format("Could not resolve %s", dependencyDescriptor.getDependencyRevisionId()), t);
+                        ModuleRevisionId id = dependencyDescriptor.getDependencyRevisionId();
+                        throw new ModuleVersionResolveException(String.format("Could not resolve group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()), t);
                     }
                     if (resolvedRevision == null) {
-                        throw new ModuleVersionNotFoundException(String.format("%s not found.", dependencyDescriptor.getDependencyRevisionId()));
+                        ModuleRevisionId id = dependencyDescriptor.getDependencyRevisionId();
+                        throw notFound(id);
                     }
                     checkDescriptor(resolvedRevision.getDescriptor());
                     moduleDescriptor = resolvedRevision.getDescriptor();
@@ -105,6 +107,10 @@ public class IvyResolverBackedDependencyToModuleResolver implements DependencyTo
             return new ModuleRevisionId(new ModuleId(id.getOrganisation(), id.getName()), id.getRevision());
         }
 
+        protected ModuleVersionNotFoundException notFound(ModuleRevisionId id) {
+            return new ModuleVersionNotFoundException(String.format("Could not find group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()));
+        }
+
         protected void onUnexpectedModuleRevisionId(ModuleDescriptor descriptor) {
             throw new ModuleVersionResolveException(String.format("Received unexpected module descriptor %s for dependency %s.", descriptor.getModuleRevisionId(), dependencyDescriptor.getDependencyRevisionId()));
         }
@@ -118,6 +124,11 @@ public class IvyResolverBackedDependencyToModuleResolver implements DependencyTo
         @Override
         public ModuleRevisionId getId() throws ModuleVersionResolveException {
             return getDescriptor().getModuleRevisionId();
+        }
+
+        @Override
+        protected ModuleVersionNotFoundException notFound(ModuleRevisionId id) {
+            return new ModuleVersionNotFoundException(String.format("Could not find any version that matches group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()));
         }
 
         @Override
