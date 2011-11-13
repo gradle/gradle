@@ -48,7 +48,7 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser, Notat
                             + "  3. Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0']\n"
                             + "  4. A Collection or array of above (nested collections/arrays will be flattened)\n"
             )
-            .build();
+            .toMultiParser();
 
     public Set<ModuleVersionIdentifier> parseNotation(Object notation) {
         assert notation != null : "notation cannot be null";

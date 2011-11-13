@@ -26,11 +26,11 @@ import java.util.Set;
 /**
  * Flattens or collectionizes input and passes the input notations to the delegates. Returns a set.
  */
-public class FlatteningNotationParser<T> implements NotationParser<Set<T>> {
+public class MultiNotationParser<T> implements NotationParser<Set<T>> {
 
     private final NotationParser<T> delegate;
 
-    public FlatteningNotationParser(NotationParser<T> delegate) {
+    public MultiNotationParser(NotationParser<T> delegate) {
         assert delegate != null : "delegate cannot be null";
         this.delegate = delegate;
     }

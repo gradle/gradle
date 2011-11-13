@@ -21,21 +21,19 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.TopLevelNotationParser;
 
-import java.util.Set;
-
 /**
  * @author Hans Dockter
  */
 public class CliendModuleNotationParser implements TopLevelNotationParser, NotationParser<ClientModule> {
 
-    private final NotationParser<Set<ClientModule>> delegate;
+    private final NotationParser<ClientModule> delegate;
 
     public CliendModuleNotationParser(Instantiator instantiator) {
         delegate = new NotationParserBuilder()
             .parser(new DependencyStringNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
             .parser(new DependencyMapNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
             .invalidNotationMessage("Client module dependency notation cannot be used to form a client module.")
-            .build(); //TODO SF - to multi
+            .toParser();
     }
 
     public boolean canParse(Object notation) {
@@ -43,6 +41,6 @@ public class CliendModuleNotationParser implements TopLevelNotationParser, Notat
     }
 
     public ClientModule parseNotation(Object notation) {
-        return delegate.parseNotation(notation).iterator().next();
+        return delegate.parseNotation(notation);
     }
 }

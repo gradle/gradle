@@ -28,7 +28,7 @@ import java.util.Set;
  */
 public class DependencyNotationParser implements TopLevelNotationParser, NotationParser<Dependency> {
 
-    private final NotationParser<Set<Dependency>> delegate;
+    private final NotationParser<Dependency> delegate;
 
     public DependencyNotationParser(Set<NotationParser<? extends Dependency>> compositeParsers) {
         delegate = new NotationParserBuilder()
@@ -43,18 +43,16 @@ public class DependencyNotationParser implements TopLevelNotationParser, Notatio
                             + "  - instances of Dependency type\n"
                             + "  - A Collection of above (nested collections/arrays will be flattened)\n"
                             + "Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
-                .build();
+                .toParser();
     }
 
-    DependencyNotationParser(NotationParser<Set<Dependency>> delegate) {
+    DependencyNotationParser(NotationParser<Dependency> delegate) {
         this.delegate = delegate;
     }
 
     public Dependency parseNotation(Object dependencyNotation) {
         try {
-            Set<Dependency> parsed = delegate.parseNotation(dependencyNotation);
-            //TODO SF - until some more refactorings are done in the DependencyHandler, we just get first element from the set:
-            return parsed.iterator().next();
+            return delegate.parseNotation(dependencyNotation);
         } catch (GradleException e) {
             throw e;
         } catch (Exception e) {
