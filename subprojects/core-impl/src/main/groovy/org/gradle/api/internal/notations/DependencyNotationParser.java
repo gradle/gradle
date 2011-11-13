@@ -43,7 +43,7 @@ public class DependencyNotationParser implements TopLevelNotationParser, Notatio
                             + "  - instances of Dependency type\n"
                             + "  - A Collection of above (nested collections/arrays will be flattened)\n"
                             + "Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
-                .toParser();
+                .toComposite();
     }
 
     DependencyNotationParser(NotationParser<Dependency> delegate) {

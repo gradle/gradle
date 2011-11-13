@@ -19,8 +19,8 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.parsers.AlwaysThrowingParser;
 import org.gradle.api.internal.notations.parsers.CompositeNotationParser;
+import org.gradle.api.internal.notations.parsers.FlatteningNotationParser;
 import org.gradle.api.internal.notations.parsers.JustReturningParser;
-import org.gradle.api.internal.notations.parsers.MultiNotationParser;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -55,12 +55,12 @@ public class NotationParserBuilder {
         return this;
     }
 
-    public <T> NotationParser<Set<T>> toMultiParser() {
-        NotationParser<T> delegate = toParser();
-        return new MultiNotationParser<T>(delegate);
+    public <T> NotationParser<Set<T>> toFlatteningComposite() {
+        NotationParser<T> delegate = toComposite();
+        return new FlatteningNotationParser<T>(delegate);
     }
 
-    public <T> NotationParser<T> toParser() {
+    public <T> NotationParser<T> toComposite() {
         assert invalidNotationMessage != null : "invalidNotationMessage cannot be null";
 
         List composites = new LinkedList();
