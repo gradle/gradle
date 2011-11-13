@@ -70,6 +70,32 @@ task checkDeps << {
         succeeds 'checkDeps'
     }
 
+      def "understands client module dependency notations with dependencies"() {
+        when:
+        buildFile <<  """
+configurations {
+    conf
+}
+
+dependencies {
+    conf module('org.foo:moduleOne:1.0') {
+        dependency 'org.foo:bar:1.0'
+    }
+}
+
+task checkDeps << {
+    def deps = configurations.conf.incoming.dependencies
+    assert deps.size() == 1
+    def dep = deps.find { it instanceof ClientModule && it.name == 'moduleOne' }
+    assert dep
+    assert dep.dependencies.size() == 1
+    assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'bar' && it.version == '1.0' }
+}
+"""
+        then:
+        succeeds 'checkDeps'
+    }
+
     def "fails gracefully for invalid notations"() {
         when:
         buildFile <<  """
