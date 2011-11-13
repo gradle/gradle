@@ -141,7 +141,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         return new DefaultDependencyFactory(
                 dependencyNotationParser,
-                new DefaultClientModuleFactory(instantiator),
+                new CliendModuleNotationParser(instantiator),
                 projectDependencyFactory);
     }
 

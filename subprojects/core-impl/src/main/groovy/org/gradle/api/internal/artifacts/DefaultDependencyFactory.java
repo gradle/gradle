@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.notations.DefaultClientModuleFactory;
+import org.gradle.api.internal.notations.CliendModuleNotationParser;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 
@@ -34,14 +34,14 @@ import java.util.Map;
  */
 public class DefaultDependencyFactory implements DependencyFactory {
     private final DependencyNotationParser dependencyNotationParser;
-    private DefaultClientModuleFactory clientModuleFactory;
+    private final CliendModuleNotationParser clientModuleNotationParser;
     private ProjectDependencyFactory projectDependencyFactory;
 
     public DefaultDependencyFactory(DependencyNotationParser dependencyNotationParser,
-                                    DefaultClientModuleFactory clientModuleFactory,
+                                    CliendModuleNotationParser clientModuleNotationParser,
                                     ProjectDependencyFactory projectDependencyFactory) {
         this.dependencyNotationParser = dependencyNotationParser;
-        this.clientModuleFactory = clientModuleFactory;
+        this.clientModuleNotationParser = clientModuleNotationParser;
         this.projectDependencyFactory = projectDependencyFactory;
     }
 
@@ -50,7 +50,7 @@ public class DefaultDependencyFactory implements DependencyFactory {
     }
 
     public ClientModule createModule(Object dependencyNotation, Closure configureClosure) {
-        ClientModule clientModule = clientModuleFactory.createDependency(ClientModule.class, dependencyNotation);
+        ClientModule clientModule = clientModuleNotationParser.parseNotation(dependencyNotation);
         ModuleFactoryDelegate moduleFactoryDelegate = new ModuleFactoryDelegate(clientModule, this);
         moduleFactoryDelegate.prepareDelegation(configureClosure);
         if (configureClosure != null) {

@@ -15,34 +15,27 @@
  */
 package org.gradle.api.internal.notations;
 
-import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.ClientModule;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.internal.notations.api.TopLevelNotationParser;
 
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultClientModuleFactory implements NotationParser<ClientModule> {
+public class CliendModuleNotationParser implements TopLevelNotationParser, NotationParser<ClientModule> {
+
     private final NotationParser<Set<ClientModule>> delegate;
 
-    public DefaultClientModuleFactory(Instantiator instantiator) {
+    public CliendModuleNotationParser(Instantiator instantiator) {
         delegate = new NotationParserBuilder()
             .parser(new DependencyStringNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
             .parser(new DependencyMapNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
             .invalidNotationMessage("Client module dependency notation cannot be used to form a client module.")
             .build(); //TODO SF - to multi
-    }
-
-    public <T extends Dependency> T createDependency(Class<T> type, Object notation) throws IllegalDependencyNotation {
-        if (!canParse(notation)) {
-            throw new IllegalDependencyNotation();
-        }
-        return type.cast(parseNotation(notation));
     }
 
     public boolean canParse(Object notation) {
