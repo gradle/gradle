@@ -33,8 +33,12 @@ public class CompositeNotationParser<T> implements NotationParser<T> {
     }
 
     public boolean canParse(Object notation) {
-        //TODO SF complete this part of the infrastructure
-        throw new RuntimeException("Not implemented, yet. Wasn't needed so far...");
+        for (NotationParser<T> delegate : delegates) {
+            if (delegate.canParse(notation)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public T parseNotation(Object notation) {
