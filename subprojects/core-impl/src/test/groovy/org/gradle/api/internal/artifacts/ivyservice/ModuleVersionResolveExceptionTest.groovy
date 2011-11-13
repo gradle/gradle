@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import spock.lang.Specification
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import static org.gradle.util.TextUtil.*
 
 class ModuleVersionResolveExceptionTest extends Specification {
     def "can add incoming paths to exception"() {
@@ -31,14 +32,14 @@ class ModuleVersionResolveExceptionTest extends Specification {
         expect:
         exception.message == 'broken'
 
-        onePath.message == '''broken
+        onePath.message == toPlatformLineSeparators('''broken
 Required by:
-    org:a:1.2 > org:b:5 > org:c:1.0'''
+    org:a:1.2 > org:b:5 > org:c:1.0''')
         onePath.stackTrace == exception.stackTrace
 
-        twoPaths.message == '''broken
+        twoPaths.message == toPlatformLineSeparators('''broken
 Required by:
     org:a:1.2 > org:b:5 > org:c:1.0
-    org:a:1.2 > org:c:1.0'''
+    org:a:1.2 > org:c:1.0''')
     }
 }
