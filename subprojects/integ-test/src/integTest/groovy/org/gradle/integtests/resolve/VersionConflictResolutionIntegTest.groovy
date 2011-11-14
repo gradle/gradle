@@ -569,6 +569,63 @@ task checkDeps << {
         executer.withTasks("checkDeps").run()
     }
 
+    //TODO SF turn into IntegSpec
+
+    @Test
+    void "can use dynamic versions to force and avoid conflict"() {
+        //given
+        repo.module("org", "foo", '1.3.3').publish()
+        repo.module("org", "foo", '1.4.4').publish()
+
+        def settingsFile = file("settings.gradle")
+        settingsFile << "include 'api', 'impl', 'tool'"
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+allprojects {
+	apply plugin: 'java'
+	repositories {
+		maven { url "${repo.uri}" }
+	}
+}
+
+project(':api') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.4.4')
+	}
+}
+
+project(':impl') {
+	dependencies {
+		compile (group: 'org', name: 'foo', version:'1.3.3')
+	}
+}
+
+project(':tool') {
+
+	dependencies {
+		compile project(':api')
+		compile project(':impl')
+	}
+
+	configurations.all {
+	    resolutionStrategy {
+	        force 'org:foo:1.4+'
+	        failOnVersionConflict()
+	    }
+	}
+
+	task checkDeps << {
+        assert configurations.compile*.name.contains('foo-1.4.4.jar')
+    }
+}
+
+"""
+
+        //expect
+        executer.withTasks("tool:checkDeps").run()
+    }
+
     def getRepo() {
         return maven(file("repo"))
     }
