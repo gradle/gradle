@@ -62,20 +62,20 @@ public interface ResolutionStrategy {
      * <p>
      * Configures forced versions in DSL friendly fashion.
      *
-     * @param forcedModules group:name:version notations
+     * @param forcedModuleNotations group:name:version notations
      * @return this ResolutionStrategy instance
      */
-    ResolutionStrategy force(String... forcedModules);
+    ResolutionStrategy force(Object... forcedModuleNotations);
 
     /**
      * <b>Experimental</b>. This part of the api is yet experimental - may change without notice.
      * <p>
      * Replaces existing forced modules with the passed ones.
      *
-     * @param forcedModules forced modules to set
+     * @param forcedModuleNotations forced modules to set
      * @return this ResolutionStrategy instance
      */
-    ResolutionStrategy setForcedModules(Object... forcedModules);
+    ResolutionStrategy setForcedModules(Object... forcedModuleNotations);
 
     /**
      * <b>Experimental</b>. This part of the api is yet experimental - may change without notice.

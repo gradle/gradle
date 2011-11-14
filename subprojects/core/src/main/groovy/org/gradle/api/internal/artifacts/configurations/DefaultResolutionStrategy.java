@@ -50,14 +50,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this.conflictResolution;
     }
 
-    public DefaultResolutionStrategy force(String... forcedModules) {
-        assert forcedModules != null : "forcedModules cannot be null";
-        this.forcedModules.addAll(new ForcedModuleNotationParser().parseNotation(forcedModules));
+    public DefaultResolutionStrategy force(Object... forcedModuleNotations) {
+        assert forcedModuleNotations != null : "forcedModuleNotations cannot be null";
+        this.forcedModules.addAll(new ForcedModuleNotationParser().parseNotation(forcedModuleNotations));
         return this;
     }
 
-    public DefaultResolutionStrategy setForcedModules(Object ... forcedModules) {
-        this.forcedModules = new ForcedModuleNotationParser().parseNotation(forcedModules);
+    public DefaultResolutionStrategy setForcedModules(Object ... forcedModuleNotations) {
+        this.forcedModules = new ForcedModuleNotationParser().parseNotation(forcedModuleNotations);
         return this;
     }
 
