@@ -572,10 +572,15 @@ task checkDeps << {
     //TODO SF turn into IntegSpec
 
     @Test
-    void "can use dynamic versions to force and avoid conflict"() {
+    void "takes newest dynamic version when dynamic version forced"() {
         //given
-        repo.module("org", "foo", '1.3.3').publish()
+        repo.module("org", "foo", '1.3.0').publish()
+
+        repo.module("org", "foo", '1.4.1').publish()
         repo.module("org", "foo", '1.4.4').publish()
+        repo.module("org", "foo", '1.4.9').publish()
+
+        repo.module("org", "foo", '1.6.0').publish()
 
         def settingsFile = file("settings.gradle")
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -591,21 +596,20 @@ allprojects {
 
 project(':api') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.4.4')
+		compile 'org:foo:1.4.4'
 	}
 }
 
 project(':impl') {
 	dependencies {
-		compile (group: 'org', name: 'foo', version:'1.3.3')
+		compile 'org:foo:1.4.1'
 	}
 }
 
 project(':tool') {
 
 	dependencies {
-		compile project(':api')
-		compile project(':impl')
+		compile project(':api'), project(':impl'), 'org:foo:1.3.0'
 	}
 
 	configurations.all {
@@ -616,7 +620,7 @@ project(':tool') {
 	}
 
 	task checkDeps << {
-        assert configurations.compile*.name.contains('foo-1.4.4.jar')
+        assert configurations.compile*.name.contains('foo-1.4.9.jar')
     }
 }
 
