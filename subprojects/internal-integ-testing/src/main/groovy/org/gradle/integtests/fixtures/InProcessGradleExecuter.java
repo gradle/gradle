@@ -29,13 +29,13 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.util.Jvm;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.os.ProcessEnvironment;
 import org.gradle.os.jna.NativeEnvironment;
+import org.gradle.util.Jvm;
 import org.hamcrest.Matcher;
 
 import java.io.File;
@@ -131,7 +131,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     public void assertCanExecute() {
         assertNull(getExecutable());
-		assertEquals(getJavaHome(), Jvm.current().getJavaHome());
+        assertEquals(getJavaHome(), Jvm.current().getJavaHome());
     }
 
     public boolean canExecute() {
