@@ -52,7 +52,7 @@ public class DependencyStringNotationParser<T extends ExternalDependency> extend
         ParsedModuleStringNotation parsedNotation = splitModuleFromExtension(notation);
         T moduleDependency = instantiator.newInstance(wantedType,
                 parsedNotation.getGroup(), parsedNotation.getName(), parsedNotation.getVersion());
-        ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, parsedNotation.getArtifactType(),parsedNotation.getClassifier());
+        ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, parsedNotation.getArtifactType(), parsedNotation.getClassifier());
 
         return moduleDependency;
     }
