@@ -17,8 +17,8 @@ package org.gradle.integtests.fixtures
 
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
-import org.gradle.util.TestFile
 import junit.framework.AssertionFailedError
+import org.gradle.util.TestFile
 
 /**
  * A fixture for dealing with Maven repositories.
@@ -45,7 +45,8 @@ class MavenModule {
     final String groupId
     final String artifactId
     final String version
-    private String type = 'jar'
+    String parentPomSection
+    String type = 'jar'
     private final List dependencies = []
     int publishCount = 1
     final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
@@ -188,6 +189,10 @@ class MavenModule {
   <packaging>$type</packaging>
   <version>$version</version>"""
 
+        if (parentPomSection) {
+           pomFile << "\n$parentPomSection\n"
+        }
+
         dependencies.each { dependency ->
             pomFile << """
   <dependencies>
@@ -212,7 +217,9 @@ class MavenModule {
 
     private File publishArtifact(Map<String, ?> artifact) {
         def artifactFile = artifactFile(artifact)
-        artifactFile << "add some content so that file size isn't zero: $publishCount"
+        if (type != 'pom') {
+            artifactFile << "add some content so that file size isn't zero: $publishCount"
+        }
         createHashFiles(artifactFile)
         return artifactFile
     }

@@ -630,6 +630,63 @@ project(':tool') {
         executer.withTasks("tool:checkDeps").run()
     }
 
+    @Test
+    void "parent pom does not participate in forcing mechanism"() {
+        //given
+        repo.module("org", "foo", '1.3.0').publish()
+        repo.module("org", "foo", '2.4.0').publish()
+
+        //TODO SF generalize
+        def parent = repo.module("org", "someParent", "1.0")
+        parent.type = 'pom'
+        parent.dependsOn("org", "foo", "1.3.0")
+        parent.publish()
+
+        def otherParent = repo.module("org", "someParent", "2.0")
+        otherParent.type = 'pom'
+        otherParent.dependsOn("org", "foo", "2.4.0")
+        otherParent.publish()
+
+        def module = repo.module("org", "someArtifact", '1.0')
+        module.parentPomSection = """
+<parent>
+  <groupId>org</groupId>
+  <artifactId>someParent</artifactId>
+  <version>1.0</version>
+</parent>
+"""
+        module.publish()
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+apply plugin: 'java'
+repositories {
+    maven { url "${repo.uri}" }
+}
+
+dependencies {
+    compile 'org:someArtifact:1.0'
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'org:someParent:2.0'
+        failOnVersionConflict()
+    }
+}
+
+task checkDeps << {
+    def deps = configurations.compile*.name
+    assert deps.contains('someArtifact-1.0.jar')
+    assert deps.contains('foo-1.3.0.jar')
+    assert deps.size() == 2
+}
+"""
+
+        //expect
+        executer.withTasks("checkDeps").withArguments('-s').run()
+    }
+
     def getRepo() {
         return maven(file("repo"))
     }
