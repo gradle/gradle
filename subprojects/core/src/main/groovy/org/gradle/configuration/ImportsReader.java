@@ -27,25 +27,32 @@ import java.io.IOException;
  * @author Hans Dockter
  */
 public class ImportsReader {
+	
+	private String importsText;
+	
     public String getImports() {
-		try {
-			URL url = getClass().getResource("default-imports.txt");
-			InputStreamReader reader = new InputStreamReader(url.openStream(), "UTF8");
+		if (importsText == null) {
+			try {
+				URL url = getClass().getResource("default-imports.txt");
+				InputStreamReader reader = new InputStreamReader(url.openStream(), "UTF8");
 			
-			int bufferSize = 2048; // at time of writing, the file was about 1k so this should cover in one read
-			StringBuilder imports = new StringBuilder(bufferSize);
-			char[] chars = new char[bufferSize];
+				int bufferSize = 2048; // at time of writing, the file was about 1k so this should cover in one read
+				StringBuilder imports = new StringBuilder(bufferSize);
+				char[] chars = new char[bufferSize];
 			
-			int numRead = reader.read(chars, 0, bufferSize);
-			while (numRead != -1) {
-				imports.append(chars, 0, numRead);
-				numRead = reader.read(chars, 0, bufferSize);
+				int numRead = reader.read(chars, 0, bufferSize);
+				while (numRead != -1) {
+					imports.append(chars, 0, numRead);
+					numRead = reader.read(chars, 0, bufferSize);
+				}
+			
+				importsText = imports.toString();
+			} catch (IOException e) {
+				throw UncheckedException.asUncheckedException(e);
 			}
-			
-			return imports.toString();
-		} catch (IOException e) {
-			throw UncheckedException.asUncheckedException(e);
-		}        
+		}
+		
+		return importsText;
     }
 
     public ScriptSource withImports(ScriptSource source) {
