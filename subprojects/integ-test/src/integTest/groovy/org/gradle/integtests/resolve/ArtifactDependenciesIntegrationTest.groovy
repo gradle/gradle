@@ -479,7 +479,7 @@ task test << {
 
         testFile('build.gradle') << """
 repositories {
-    mavenRepo url: '${repo.uri}'
+    maven { url '${repo.uri}' }
 }
 configurations {
     transitive
@@ -520,7 +520,7 @@ task test << {
 
         testFile('build.gradle') << """
 repositories {
-    mavenRepo url: '${repo.uri}'
+    maven { url '${repo.uri}' }
 }
 configurations {
     override { transitive = false }

@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.junit.Rule
@@ -27,20 +28,22 @@ class MavenSnapshotRemoteDependencyResolutionIntegrationTest extends AbstractInt
         requireOwnUserHomeDir()
     }
 
-    def "can search for snapshot in multiple Maven HTTP repositories"() {
+    def "can find and cache snapshots in multiple Maven HTTP repositories"() {
         server.start()
 
         given:
         buildFile << """
 repositories {
-    mavenRepo(url: "http://localhost:${server.port}/repo1")
-    mavenRepo(url: "http://localhost:${server.port}/repo2")
+    maven { url "http://localhost:${server.port}/repo1" }
+    maven { url "http://localhost:${server.port}/repo2" }
 }
 
 configurations { compile }
 
 dependencies {
     compile "org.gradle:projectA:1.0-SNAPSHOT"
+    compile "org.gradle:projectB:1.0-SNAPSHOT"
+    compile "org.gradle:nonunique:1.0-SNAPSHOT"
 }
 
 task retrieve(type: Sync) {
@@ -50,27 +53,88 @@ task retrieve(type: Sync) {
 """
 
         and: "snapshot modules are published"
-        def projectA = repo().module("org.gradle", "projectA", "1.0-SNAPSHOT")
-        projectA.publish()
+        def projectA = repo().module("org.gradle", "projectA", "1.0-SNAPSHOT").publish()
+        def projectB = repo().module("org.gradle", "projectB", "1.0-SNAPSHOT").publish()
+        def nonUnique = repo().module("org.gradle", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
 
-        when: "Server handles requests"
-        server.expectGetMissing('/repo1/org/gradle/projectA/1.0-SNAPSHOT/maven-metadata.xml')
-        server.expectGetMissing('/repo1/org/gradle/projectA/1.0-SNAPSHOT/projectA-1.0-SNAPSHOT.pom')
-        // TODO Should not look for jar in repo1
-        server.expectGetMissing('/repo1/org/gradle/projectA/1.0-SNAPSHOT/maven-metadata.xml')
-        server.expectGetMissing("/repo1/org/gradle/projectA/1.0-SNAPSHOT/projectA-1.0-SNAPSHOT.jar")
+        when: "Server provides projectA from repo1"
+        expectModuleServed(projectA, '/repo1')
 
-        server.expectGet('/repo2/org/gradle/projectA/1.0-SNAPSHOT/maven-metadata.xml', projectA.moduleDir.file("maven-metadata.xml"))
-        server.expectGet("/repo2/org/gradle/projectA/1.0-SNAPSHOT/${projectA.pomFile.name}", projectA.pomFile)
-        // TODO - should only ask for metadata once
-        server.expectGet('/repo2/org/gradle/projectA/1.0-SNAPSHOT/maven-metadata.xml', projectA.moduleDir.file("maven-metadata.xml"))
-        server.expectGet("/repo2/org/gradle/projectA/1.0-SNAPSHOT/${projectA.artifactFile.name}", projectA.artifactFile)
+        and: "Server provides projectB from repo2"
+        expectModuleMissing(projectB, '/repo1')
+        expectModuleServed(projectB, '/repo2')
+
+        and: "Server provides nonunique snapshot from repo2"
+        expectModuleMissing(nonUnique, '/repo1')
+        expectModuleServed(nonUnique, '/repo2')
 
         and: "We resolve dependencies"
         run 'retrieve'
 
-        then: "Snapshots is downloaded"
-        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
+        then: "Snapshots are downloaded"
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0-SNAPSHOT.jar', 'nonunique-1.0-SNAPSHOT.jar')
+
+        when: "We resolve with snapshots cached: no server requests"
+        def result = run('retrieve')
+
+        then: "Everything is up to date"
+        result.assertTaskSkipped(':retrieve')
+    }
+
+    def "can find and cache snapshots in Maven HTTP repository with additional artifact urls"() {
+        server.start()
+
+        given:
+        buildFile << """
+repositories {
+    maven {
+        url "http://localhost:${server.port}/repo1"
+        artifactUrls "http://localhost:${server.port}/repo2"
+    }
+}
+
+configurations { compile }
+
+dependencies {
+    compile "org.gradle:projectA:1.0-SNAPSHOT"
+    compile "org.gradle:projectB:1.0-SNAPSHOT"
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        and: "snapshot modules are published"
+        def projectA = repo().module("org.gradle", "projectA", "1.0-SNAPSHOT").publish()
+        def projectB = repo().module("org.gradle", "projectB", "1.0-SNAPSHOT").publish()
+
+        when: "Server provides projectA from repo1"
+        expectModuleServed(projectA, '/repo1')
+
+        and: "Server provides projectB with artifact in repo2"
+        server.expectGet("/repo1/org/gradle/projectB/1.0-SNAPSHOT/maven-metadata.xml", projectB.moduleDir.file("maven-metadata.xml"))
+        server.expectGet("/repo1/org/gradle/projectB/1.0-SNAPSHOT/${projectB.pomFile.name}", projectB.pomFile)
+        server.expectGet("/repo1/org/gradle/projectB/1.0-SNAPSHOT/maven-metadata.xml", projectB.moduleDir.file("maven-metadata.xml"))
+        server.expectGetMissing("/repo1/org/gradle/projectB/1.0-SNAPSHOT/${projectB.artifactFile.name}")
+        server.expectGetMissing("/repo1/org/gradle/projectB/1.0-SNAPSHOT/projectB-1.0-SNAPSHOT.jar")
+
+        // TODO: This is not correct - should be looking for jar with unique version to fetch snapshot
+        server.expectGet("/repo2/org/gradle/projectB/1.0-SNAPSHOT/projectB-1.0-SNAPSHOT.jar", projectB.artifactFile)
+//        server.expectGet("/repo2/org/gradle/projectB/1.0-SNAPSHOT/${projectB.artifactFile.name}",  projectB.artifactFile)
+
+        and: "We resolve dependencies"
+        run 'retrieve'
+
+        then: "Snapshots are downloaded"
+        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0-SNAPSHOT.jar')
+
+        when: "We resolve with snapshots cached: no server requests"
+        def result = run('retrieve')
+
+        then: "Everything is up to date"
+        result.assertTaskSkipped(':retrieve')
     }
 
     def "uses cached snapshots from a Maven HTTP repository until the snapshot timeout is reached"() {
@@ -79,7 +143,7 @@ task retrieve(type: Sync) {
         given:
         buildFile << """
 repositories {
-    mavenRepo(url: "http://localhost:${server.port}/repo")
+    maven { url "http://localhost:${server.port}/repo" }
 }
 
 configurations { compile }
@@ -108,17 +172,8 @@ task retrieve(type: Sync) {
         nonUniqueVersionModule.publish()
 
         and: "Server handles requests"
-        server.expectGet('/repo/org/gradle/unique/1.0-SNAPSHOT/maven-metadata.xml', uniqueVersionModule.moduleDir.file("maven-metadata.xml"))
-        server.expectGet("/repo/org/gradle/unique/1.0-SNAPSHOT/${uniqueVersionModule.pomFile.name}", uniqueVersionModule.pomFile)
-        server.expectGetMissing('/repo/org/gradle/nonunique/1.0-SNAPSHOT/maven-metadata.xml')
-        server.expectGet("/repo/org/gradle/nonunique/1.0-SNAPSHOT/nonunique-1.0-SNAPSHOT.pom", nonUniqueVersionModule.pomFile)
-        
-        // TODO - should only ask for metadata once
-        server.expectGet('/repo/org/gradle/unique/1.0-SNAPSHOT/maven-metadata.xml', uniqueVersionModule.moduleDir.file("maven-metadata.xml"))
-        server.expectGet("/repo/org/gradle/unique/1.0-SNAPSHOT/${uniqueVersionModule.artifactFile.name}", uniqueVersionModule.artifactFile)
-        // TODO - should only ask for metadata once
-        server.expectGetMissing('/repo/org/gradle/nonunique/1.0-SNAPSHOT/maven-metadata.xml')
-        server.expectGet("/repo/org/gradle/nonunique/1.0-SNAPSHOT/nonunique-1.0-SNAPSHOT.jar", nonUniqueVersionModule.artifactFile)
+        expectModuleServed(uniqueVersionModule, '/repo')
+        expectModuleServed(nonUniqueVersionModule, '/repo')
 
         and: "We resolve dependencies"
         run 'retrieve'
@@ -144,17 +199,8 @@ task retrieve(type: Sync) {
         file('libs/nonunique-1.0-SNAPSHOT.jar').assertHasNotChangedSince(nonUniqueJarSnapshot)
         
         when: "Server handles requests"
-        server.expectGet('/repo/org/gradle/unique/1.0-SNAPSHOT/maven-metadata.xml', uniqueVersionModule.moduleDir.file("maven-metadata.xml"))
-        server.expectGet("/repo/org/gradle/unique/1.0-SNAPSHOT/${uniqueVersionModule.pomFile.name}", uniqueVersionModule.pomFile)
-        server.expectGetMissing('/repo/org/gradle/nonunique/1.0-SNAPSHOT/maven-metadata.xml')
-        server.expectGet("/repo/org/gradle/nonunique/1.0-SNAPSHOT/nonunique-1.0-SNAPSHOT.pom", nonUniqueVersionModule.pomFile)
-        
-        // TODO - should only ask for metadata once
-        server.expectGet('/repo/org/gradle/unique/1.0-SNAPSHOT/maven-metadata.xml', uniqueVersionModule.moduleDir.file("maven-metadata.xml"))
-        server.expectGet("/repo/org/gradle/unique/1.0-SNAPSHOT/${uniqueVersionModule.artifactFile.name}", uniqueVersionModule.artifactFile)
-        // TODO - should only ask for metadata once
-        server.expectGetMissing('/repo/org/gradle/nonunique/1.0-SNAPSHOT/maven-metadata.xml')
-        server.expectGet("/repo/org/gradle/nonunique/1.0-SNAPSHOT/nonunique-1.0-SNAPSHOT.jar", nonUniqueVersionModule.artifactFile)
+        expectModuleServed(uniqueVersionModule, '/repo')
+        expectModuleServed(nonUniqueVersionModule, '/repo')
         
         and: "Resolve dependencies with cache expired"
         executer.withArguments("-PnoTimeout")
@@ -178,7 +224,7 @@ task retrieve(type: Sync) {
 
         buildFile << """
 repositories {
-    mavenRepo(url: "http://localhost:${server.port}/repo")
+    maven { url "http://localhost:${server.port}/repo" }
 }
 
 configurations { compile }
@@ -202,12 +248,7 @@ task retrieve(type: Sync) {
         module.publish()
 
         and: "Server handles requests"
-        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', module.moduleDir.file("maven-metadata.xml"))
-        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${module.pomFile.name}", module.pomFile)
-        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${module.artifactFile.name}", module.artifactFile)
-
-        // TODO - should only ask for metadata once
-        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', module.moduleDir.file("maven-metadata.xml"))
+        expectModuleServed(module, '/repo')
 
         and:
         run 'retrieve'
@@ -230,6 +271,24 @@ task retrieve(type: Sync) {
         then:
         result.assertTaskSkipped(':retrieve')
         file('build/testproject-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshot);
+    }
+
+    private expectModuleServed(MavenModule module, def prefix) {
+        def moduleName = module.artifactId;
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}", module.pomFile)
+        // TODO - should only ask for metadata once
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}", module.artifactFile)
+    }
+
+    private expectModuleMissing(MavenModule module, def prefix) {
+        def moduleName = module.artifactId;
+        server.expectGetMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml")
+        server.expectGetMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${moduleName}-1.0-SNAPSHOT.pom")
+        // TODO - should only ask for metadata once
+        server.expectGetMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml")
+        server.expectGetMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${moduleName}-1.0-SNAPSHOT.jar")
     }
 
     MavenRepository repo() {
