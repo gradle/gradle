@@ -18,11 +18,14 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
-    private String group;
-    private String name;
-    private String version;
+    private final String group;
+    private final String name;
+    private final String version;
 
     public DefaultModuleVersionIdentifier(String group, String name, String version) {
+        assert group != null : "group cannot be null";
+        assert name != null : "name cannot be null";
+        assert version != null : "version cannot be null";
         this.group = group;
         this.name = name;
         this.version = version;
@@ -32,33 +35,17 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
         return group;
     }
 
-    public DefaultModuleVersionIdentifier setGroup(String group) {
-        this.group = group;
-        return this;
-    }
-
     public String getName() {
         return name;
-    }
-
-    public DefaultModuleVersionIdentifier setName(String name) {
-        this.name = name;
-        return this;
     }
 
     public String getVersion() {
         return version;
     }
 
-    public DefaultModuleVersionIdentifier setVersion(String version) {
-        this.version = version;
-        return this;
-    }
-
     @Override
     public String toString() {
-        //TODO SF - can we slightly change the format because it clashes with Map
-        return String.format("[group: %s, module: %s, version: %s]", group, name, version);
+        return String.format("{group: %s, module: %s, version: %s}", group, name, version);
     }
 
     @Override
@@ -84,7 +71,6 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
 
     @Override
     public int hashCode() {
-        //TODO SF - what about nulls?
         return group.hashCode() ^ name.hashCode() ^ version.hashCode();
     }
 }

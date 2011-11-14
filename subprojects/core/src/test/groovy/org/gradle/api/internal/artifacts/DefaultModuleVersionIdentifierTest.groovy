@@ -23,7 +23,7 @@ class DefaultModuleVersionIdentifierTest extends Specification {
         def module = new DefaultModuleVersionIdentifier("group", "module", "version")
 
         expect:
-        module.toString() == "[group: group, module: module, version: version]"
+        module.toString().contains("group: group, module: module, version: version")
     }
 
     def "ids are equal when group, module and version are equal"() {
