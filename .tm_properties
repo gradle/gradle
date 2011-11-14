@@ -1,0 +1,5 @@
+projectDirectory = "$CWD"
+exclude = "{**/build/{classes,distributions,repo,integ test,timestamp.txt,libs,tmp,*resources,checkstyle,distDocs,samples,snippets,src,stylesheets},gradlew,*.{iml,ipr,iws,bat},intTestHomeDir,out}"
+
+[ "**/build/reports/tests" ]
+include = "index.html"
