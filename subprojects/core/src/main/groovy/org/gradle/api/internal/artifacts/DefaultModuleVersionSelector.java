@@ -61,6 +61,11 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
     }
 
     @Override
+    public String toString() {
+        return String.format("ModuleVersionSelector{group: %s, module: %s, version: %s}", group, name, version);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
