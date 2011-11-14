@@ -29,6 +29,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.util.Jvm;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
@@ -128,12 +129,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         throw new UnsupportedOperationException();
     }
 
-    public GradleExecuter withJavaHome(File javaHome) {
-        throw new UnsupportedOperationException();
-    }
-
     public void assertCanExecute() {
         assertNull(getExecutable());
+		assertEquals(getJavaHome(), Jvm.current().getJavaHome());
     }
 
     public boolean canExecute() {
