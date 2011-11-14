@@ -86,6 +86,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (settingsFile != null) {
             executer.usingSettingsFile(settingsFile);
         }
+        if (javaHome != null) {
+            executer.withJavaHome(javaHome);
+        }
         for (File initScript : initScripts) {
             executer.usingInitScript(initScript);
         }

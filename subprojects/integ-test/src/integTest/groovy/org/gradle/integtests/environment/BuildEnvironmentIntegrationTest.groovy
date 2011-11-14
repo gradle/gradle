@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.junit.Test
 import spock.lang.Issue
 import org.gradle.os.OperatingSystem
+import org.gradle.testing.AvailableJavaHomes
 
 /**
  * @author: Szczepan Faber, created at: 8/11/11
@@ -95,5 +96,20 @@ assert classesDir.directory
     assert System.properties['foo'] == 'bar'
 """
         executer.withArguments("-Dfoo=bar").run()
+    }
+
+    @Test
+    void "specified java home should be used"() {
+        def alternateJavaHome = AvailableJavaHomes.bestAlternative
+        if (alternateJavaHome == null) {
+            return
+        }
+
+        file('build.gradle') << """
+            println "javaHome=" + org.gradle.util.Jvm.current().javaHome.canonicalPath
+        """
+
+        def out = executer.withJavaHome(alternateJavaHome).run().output
+        assert out.contains("javaHome=" + alternateJavaHome.canonicalPath)
     }
 }
