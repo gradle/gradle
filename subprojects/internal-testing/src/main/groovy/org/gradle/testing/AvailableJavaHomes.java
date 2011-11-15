@@ -15,6 +15,7 @@
  */
 package org.gradle.testing;
 
+import org.gradle.util.GFileUtils;
 import org.gradle.util.Jvm;
 import java.io.File;
 
@@ -27,7 +28,7 @@ abstract public class AvailableJavaHomes {
 
     public static File getJavaHome(String label) {
         String value = System.getenv().get(getEnvVarName(label));
-        return value == null ? null : new File(value);
+        return value == null ? null : GFileUtils.canonicalise(new File(value));
     }
 
     public static String getEnvVarName(String label) {
