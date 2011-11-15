@@ -21,6 +21,7 @@ import org.junit.Test
 import spock.lang.Issue
 import org.gradle.os.OperatingSystem
 import org.gradle.testing.AvailableJavaHomes
+import org.gradle.util.Jvm
 
 /**
  * @author: Szczepan Faber, created at: 8/11/11
@@ -99,7 +100,7 @@ assert classesDir.directory
     }
 
     @Test
-    void "specified java home should be used"() {
+    void "specified java home should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.bestAlternative
         if (alternateJavaHome == null) {
             return
@@ -109,7 +110,10 @@ assert classesDir.directory
             println "javaHome=" + org.gradle.util.Jvm.current().javaHome.canonicalPath
         """
 
-        def out = executer.withJavaHome(alternateJavaHome).run().output
+        def out = executer.run().output
+        assert out.contains("javaHome=" + Jvm.current().javaHome.canonicalPath)
+
+        out = executer.withJavaHome(alternateJavaHome).run().output
         assert out.contains("javaHome=" + alternateJavaHome.canonicalPath)
     }
 }
