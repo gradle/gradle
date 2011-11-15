@@ -668,6 +668,12 @@ public class DependencyGraphBuilder {
             }
 
             for (String targetConfigurationName : targets) {
+                // TODO - this is the wrong spot for this check
+                if (targetDescriptor.getConfiguration(targetConfigurationName) == null) {
+                    throw new RuntimeException(String.format("Module version group:%s, module:%s, version:%s, configuration:%s declares a dependency on configuration '%s' which is not declared in the module descriptor for group:%s, module:%s, version:%s",
+                            from.moduleRevision.id.getOrganisation(), from.moduleRevision.id.getName(), from.moduleRevision.id.getRevision(), from.configurationName,
+                            targetConfigurationName, targetModuleRevision.id.getOrganisation(), targetModuleRevision.id.getName(), targetModuleRevision.id.getRevision()));
+                }
                 ConfigurationResolveState targetConfiguration = resolveState.getConfiguration(targetDescriptor, targetConfigurationName);
                 LOGGER.debug("{} is outgoing to {}.", this, targetConfiguration);
                 targetConfiguration.addIncomingPath(this);

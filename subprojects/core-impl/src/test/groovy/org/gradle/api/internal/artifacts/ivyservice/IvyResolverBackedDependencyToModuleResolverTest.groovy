@@ -26,6 +26,8 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.settings.IvySettings
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import org.apache.ivy.core.module.descriptor.Configuration
 
 class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
     final DependencyResolver ivyResolver = Mock()
@@ -198,6 +200,23 @@ class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
         0 * ivyResolver._
     }
 
+    def "fails when module descriptor configuration hierarchy is badly formed"() {
+        def dep = dependency()
+        def descriptor = module()
+        hasConfiguration(descriptor, 'broken', 'unknown')
+
+        when:
+        def state = resolver.create(dep)
+        state.descriptor
+
+        then:
+        ModuleVersionResolveException e = thrown()
+        e.message == "Configuration 'broken' extends unknown configuration 'unknown' in module descriptor for group:group, module:module, version:1.2."
+
+        and:
+        1 * ivyResolver.getDependency(dep, resolveData) >> resolvedRevision(descriptor)
+    }
+
     def dependency() {
         DependencyDescriptor descriptor = Mock()
         _ * descriptor.dependencyRevisionId >> new ModuleRevisionId(new ModuleId("group", "module"), "1.2")
@@ -205,9 +224,13 @@ class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
     }
 
     def module(String version = "1.2") {
-        ModuleDescriptor descriptor = Mock()
-        _ * descriptor.moduleRevisionId >> new ModuleRevisionId(new ModuleId("group", "module"), version)
+        ModuleDescriptor descriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("group", "module", version), "release", new Date())
         return descriptor
+    }
+
+    def hasConfiguration(DefaultModuleDescriptor descriptor, String config, String... extendsFrom) {
+        Configuration configuration = new Configuration(config, Configuration.Visibility.PUBLIC, null, extendsFrom, true, null)
+        descriptor.addConfiguration(configuration)
     }
 
     def resolvedRevision(ModuleDescriptor descriptor) {
