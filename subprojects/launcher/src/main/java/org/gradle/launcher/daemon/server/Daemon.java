@@ -78,7 +78,7 @@ public class Daemon implements Runnable, Stoppable {
      * @throws IllegalStateException if this daemon is already running, or has already been stopped.
      */
     public void start() {
-        LOGGER.debug("start() called on daemon");
+        LOGGER.info("start() called on daemon - {}", daemonContext);
         lifecyleLock.lock();
         try {
             if (stateCoordinator != null) {
@@ -100,7 +100,7 @@ public class Daemon implements Runnable, Stoppable {
                             try {
                                 command = (Command) connection.receive();
                                 LOGGER.debug("received command {} in new thread", command);
-                                commandExecuter.executeCommand(connection, command, stateCoordinator);
+                                commandExecuter.executeCommand(connection, command, daemonContext, stateCoordinator);
                             } catch (RuntimeException e) {
                                 LOGGER.error("Error processing the incoming command.", e);
                                 //TODO figure out if we can use our executor's exception handler.

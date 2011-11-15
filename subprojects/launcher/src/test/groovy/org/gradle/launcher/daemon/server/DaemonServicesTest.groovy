@@ -15,16 +15,14 @@
  */
 package org.gradle.launcher.daemon.server
 
+import org.gradle.StartParameter
 import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.os.ProcessEnvironment
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
 import spock.lang.Specification
 
 class DaemonServicesTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
-    final DaemonServices services = new DaemonServices(tmpDir.dir, LoggingServiceRegistry.newEmbeddableLogging())
+    final DaemonServices services = new DaemonServices(StartParameter.newInstance(), LoggingServiceRegistry.newEmbeddableLogging())
 
     def "makes a DaemonDir available"() {
         expect:

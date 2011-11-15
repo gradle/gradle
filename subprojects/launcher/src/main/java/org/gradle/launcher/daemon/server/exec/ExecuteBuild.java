@@ -36,7 +36,7 @@ public class ExecuteBuild extends BuildCommandOnly {
     }
 
     protected void doBuild(DaemonCommandExecution execution, Build build) {
-        DefaultGradleLauncherActionExecuter executer = new DefaultGradleLauncherActionExecuter(launcherFactory, loggingServices);
+        DefaultGradleLauncherActionExecuter executer = new DefaultGradleLauncherActionExecuter(launcherFactory, loggingServices, execution.getDaemonContext());
         try {
             Object result = executer.execute(build.getAction(), build.getParameters());
             execution.setResult(result);

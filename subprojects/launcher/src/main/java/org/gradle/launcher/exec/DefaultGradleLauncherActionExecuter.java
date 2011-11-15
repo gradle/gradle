@@ -15,6 +15,9 @@
  */
 package org.gradle.launcher.exec;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+
 import org.gradle.BuildExceptionReporter;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
@@ -24,14 +27,22 @@ import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.launcher.daemon.context.DaemonContext;
 
+/**
+ * @todo merge this into org.gradle.launcher.daemon.server.exec.ExecuteBuild
+ */
 public class DefaultGradleLauncherActionExecuter implements GradleLauncherActionExecuter<BuildActionParameters> {
+    private static final Logger LOGGER = Logging.getLogger(DefaultGradleLauncherActionExecuter.class);
+
     private final ServiceRegistry loggingServices;
     private final GradleLauncherFactory gradleLauncherFactory;
+    private final DaemonContext daemonContext;
 
-    public DefaultGradleLauncherActionExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry loggingServices) {
+    public DefaultGradleLauncherActionExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry loggingServices, DaemonContext daemonContext) {
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.loggingServices = loggingServices;
+        this.daemonContext = daemonContext;
     }
 
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
@@ -45,6 +56,9 @@ public class DefaultGradleLauncherActionExecuter implements GradleLauncherAction
         loggingManager.setLevel(startParameter.getLogLevel());
         loggingManager.start();
         try {
+
+            LOGGER.info("executing build with daemon context: {}", daemonContext);
+
             GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameter, parameters.getBuildRequestMetaData());
             BuildResult buildResult = action.run(gradleLauncher);
             Throwable failure = buildResult.getFailure();

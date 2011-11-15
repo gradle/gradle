@@ -16,22 +16,60 @@
 package org.gradle.launcher.daemon.context;
 
 import java.io.File;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * Keep in mind that this is a serialised value object.
- * 
+ *
  * @see DaemonContextBuilder
  */
 public class DefaultDaemonContext implements DaemonContext {
 
     private final File javaHome;
-    
-    public DefaultDaemonContext(File javaHome) {
+    private final File userHomeDir;
+    private final Long pid;
+    private final Integer idleTimeout;
+
+    public DefaultDaemonContext(File javaHome, File userHomeDir, Long pid, Integer idleTimeout) {
         this.javaHome = javaHome;
+        this.userHomeDir = userHomeDir;
+        this.pid = pid;
+        this.idleTimeout = idleTimeout;
+    }
+
+    public static DaemonContext parseFrom(String source) {
+        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[javaHome=([^\\n]+),userHomeDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)].*", Pattern.MULTILINE + Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(source);
+
+        if (matcher.matches()) {
+            String javaHome = matcher.group(1);
+            String userHomeDir = matcher.group(2);
+            Long pid = Long.parseLong(matcher.group(3));
+            Integer idleTimeout = Integer.decode(matcher.group(4));
+            return new DefaultDaemonContext(new File(javaHome), new File(userHomeDir), pid, idleTimeout);
+        } else {
+            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: " + source);
+        }
+    }
+
+    public String toString() {
+        return String.format("DefaultDaemonContext[javaHome=%s,userHomeDir=%s,pid=%s,idleTimeout=%s]", javaHome, userHomeDir, pid, idleTimeout);
     }
 
     public File getJavaHome() {
         return javaHome;
     }
 
+    public File getUserHomeDir() {
+        return userHomeDir;
+    }
+
+    public Long getPid() {
+        return pid;
+    }
+
+    public Integer getIdleTimeout() {
+        return idleTimeout;
+    }
 }

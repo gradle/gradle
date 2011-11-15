@@ -21,13 +21,12 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.DaemonStoppedException;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.exec.EntryPoint;
 import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.os.ProcessEnvironment;
 
 import java.io.*;
 import java.util.Arrays;
@@ -57,9 +56,7 @@ public class DaemonMain extends EntryPoint {
     }
 
     protected void doAction(ExecutionListener listener) {
-        File registryDir = startParameter.getGradleUserHomeDir();
-        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newChildProcessLogging();
-        DaemonServices daemonServices = new DaemonServices(registryDir, loggingServices);
+        DaemonServices daemonServices = new DaemonServices(startParameter, LoggingServiceRegistry.newChildProcessLogging());
 
         if (redirectIo) {
             try {
@@ -70,10 +67,9 @@ public class DaemonMain extends EntryPoint {
             }
         }
 
-        final Long pid = daemonServices.get(ProcessEnvironment.class).getPid();
-        int idleTimeout = getIdleTimeout(startParameter);
-        float idleTimeoutSecs = idleTimeout / 1000;
-        LOGGER.lifecycle("Starting daemon[pid = {}] with settings: idleTimeout = {} secs, registryDir = {}", pid, idleTimeoutSecs, registryDir);
+        final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
+        final Long pid = daemonContext.getPid();
+        int idleTimeout = daemonContext.getIdleTimeout();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
@@ -85,7 +81,7 @@ public class DaemonMain extends EntryPoint {
         daemon.start();
         try {
             daemon.awaitIdleTimeout(idleTimeout);
-            LOGGER.info("Daemon hit idle timeout (" + idleTimeoutSecs + " secs), stopping");
+            LOGGER.info("Daemon hit idle timeout (" + idleTimeout + "ms), stopping");
             daemon.stop();
         } catch (DaemonStoppedException e) {
             LOGGER.info("Daemon stopping due to stop request");
@@ -107,9 +103,5 @@ public class DaemonMain extends EntryPoint {
         originalErr.close();
         // TODO - make this work on windows
 //        originalIn.close();
-    }
-
-    private static int getIdleTimeout(StartParameter startParameter) {
-        return new DaemonIdleTimeout(startParameter).getIdleTimeout();
     }
 }

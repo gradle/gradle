@@ -19,6 +19,7 @@ import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
+import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 
 import java.io.File;
 
@@ -51,4 +52,9 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
     public Runnable makeDaemonStarter() {
         return new DaemonStarter(userHomeDir, idleTimeout);
     }
+
+    protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
+        builder.setUserHomeDir(userHomeDir);
+    }
+
 }

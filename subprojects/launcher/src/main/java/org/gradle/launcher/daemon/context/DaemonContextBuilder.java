@@ -16,11 +16,11 @@
 package org.gradle.launcher.daemon.context;
 
 import org.gradle.util.Jvm;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.os.jna.NativeEnvironment;
+import static org.gradle.util.GFileUtils.canonicalise;
 import org.gradle.api.internal.Factory;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Builds a daemon context, reflecting the current environment.
@@ -33,13 +33,14 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     private final Jvm jvm = Jvm.current();
 
     private File javaHome;
+    private File userHomeDir;
+    private Long pid;
+    private Integer idleTimeout;
 
     public DaemonContextBuilder() {
-        try {
-            javaHome = jvm.getJavaHome().getCanonicalFile();
-        } catch (IOException e) {
-            throw new UncheckedIOException("Unable to canonicalise JAVA_HOME '" + jvm.getJavaHome(), e);
-        }
+        javaHome = canonicalise(jvm.getJavaHome());
+        userHomeDir = canonicalise(new File(System.getProperty("user.home")));
+        pid = NativeEnvironment.current().maybeGetPid();
     }
 
     public File getJavaHome() {
@@ -50,10 +51,34 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         this.javaHome = javaHome;
     }
 
+    public File getUserHomeDir() {
+        return this.userHomeDir = userHomeDir;
+    }
+
+    public void setUserHomeDir(File userHomeDir) {
+        this.userHomeDir = userHomeDir;
+    }
+
+    public Long getPid() {
+        return pid;
+    }
+    
+    public void setPid(Long pid) {
+        this.pid = pid;
+    }
+
+    public Integer getIdleTimeout() {
+        return idleTimeout;
+    }
+    
+    public void setIdleTimeout(Integer idleTimeout) {
+        this.idleTimeout = idleTimeout;
+    }
+
     /**
      * Creates a new daemon context, based on the current state of this builder.
      */
     public DaemonContext create() {
-        return new DefaultDaemonContext(javaHome);
+        return new DefaultDaemonContext(javaHome, userHomeDir, pid, idleTimeout);
     }
 }

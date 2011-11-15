@@ -27,7 +27,7 @@ import java.io.File;
  * Instances must be serialisable because they are shared via the DaemonRegistry, which is permitted
  * to use serialisation to communicate across VM boundaries. Implementations are not required to be,
  * but should also be immutable.
- * 
+ *
  * @see DaemonContextBuilder
  * @see DaemonCompatibilitySpecFactory
  */
@@ -38,4 +38,18 @@ public interface DaemonContext extends Serializable {
      */
     File getJavaHome();
 
+    /**
+     * The user home dir that Gradle should use.
+     */
+    File getUserHomeDir();
+
+    /**
+     * The process id of the daemon.
+     */
+    Long getPid();
+
+    /**
+     * The daemon's idle timeout in milliseconds.
+     */
+    Integer getIdleTimeout();
 }

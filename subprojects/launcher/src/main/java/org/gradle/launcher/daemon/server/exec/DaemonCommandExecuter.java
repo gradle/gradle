@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
+import org.gradle.launcher.daemon.context.DaemonContext;
 
 /**
  * An object capable of responding to commands sent to a daemon.
@@ -36,5 +37,5 @@ public interface DaemonCommandExecuter {
      * <p>
      * The {@code command} param may be {@code null}, which means the client disconnected before sending a command.
      */
-    void executeCommand(Connection<Object> connection, Command command, DaemonStateCoordinator daemonStateCoordinator);
+    void executeCommand(Connection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateCoordinator daemonStateCoordinator);
 }
