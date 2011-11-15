@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.IvyContext;
+import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
@@ -97,8 +98,17 @@ public class IvyResolverBackedDependencyToModuleResolver implements DependencyTo
         }
 
         private void checkDescriptor(ModuleDescriptor descriptor) {
-            if (!copy(descriptor.getModuleRevisionId()).equals(copy(dependencyDescriptor.getDependencyRevisionId()))) {
+            ModuleRevisionId id = descriptor.getModuleRevisionId();
+            if (!copy(id).equals(copy(dependencyDescriptor.getDependencyRevisionId()))) {
                 onUnexpectedModuleRevisionId(descriptor);
+            }
+            for (Configuration configuration : descriptor.getConfigurations()) {
+                for (String parent : configuration.getExtends()) {
+                    if (descriptor.getConfiguration(parent) == null) {
+                        throw new ModuleVersionResolveException(String.format("Configuration '%s' extends unknown configuration '%s' in module descriptor for group:%s, module:%s, version:%s.",
+                                configuration.getName(), parent, id.getOrganisation(), id.getName(), id.getRevision()));
+                    }
+                }
             }
         }
 

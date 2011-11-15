@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-
 public class ResolvedConfigurationIdentifier {
     private final String moduleGroup;
     private final String moduleName;
@@ -30,11 +28,6 @@ public class ResolvedConfigurationIdentifier {
         this.moduleName = moduleName;
         this.moduleVersion = moduleVersion;
         this.configuration = configuration;
-    }
-
-    public ResolvedConfigurationIdentifier(ModuleRevisionId moduleRevisionId, String configuration) {
-        this(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision(),
-                configuration);
     }
 
     public String getConfiguration() {
