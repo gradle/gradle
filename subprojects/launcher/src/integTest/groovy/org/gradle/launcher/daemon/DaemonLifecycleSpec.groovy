@@ -19,8 +19,11 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.GradleHandles
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout
+import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.testing.AvailableJavaHomes
+import org.gradle.util.Jvm
+import static org.gradle.util.ConcurrentSpecification.poll
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Specification
@@ -80,7 +83,10 @@ class DaemonLifecycleSpec extends Specification {
 
     void completeBuild(buildNum = 0) {
         run { buildDir(buildNum).file("stop") << "stop" }
+    }
 
+    void waitForBuildToWait(buildNum = 0) {
+        run { poll { assert builds[buildNum].standardOutput.contains("waiting for stop file"); } }
     }
 
     void stopDaemons() {
@@ -113,7 +119,7 @@ class DaemonLifecycleSpec extends Specification {
             if (javaHome) {
                 withJavaHome(javaHome)
             }
-            withArguments("--foreground")
+            withArguments("--foreground", "--info")
         }.passthroughOutput().start()
     }
 
@@ -143,6 +149,18 @@ class DaemonLifecycleSpec extends Specification {
             failed build
             assert build.errorOutput.contains(DaemonDisappearedException.MESSAGE)
         }
+    }
+
+    void daemonContext(num = 0, Closure assertions) {
+        run { doDaemonContext(builds[num], assertions) }
+    }
+
+    void foregroundDaemonContext(num = 0, Closure assertions) {
+        run { doDaemonContext(foregroundDaemons[num], assertions) }
+    }
+
+    void doDaemonContext(gradleHandle, Closure assertions) {
+        DefaultDaemonContext.parseFrom(gradleHandle.standardOutput).with(assertions)
     }
 
     def setup() {
@@ -325,12 +343,26 @@ class DaemonLifecycleSpec extends Specification {
         then:
         idle()
 
+        and:
+        foregroundDaemonContext {
+            assert javaHome == AvailableJavaHomes.bestAlternative
+        }
+
         when:
         startBuild()
 
         then:
         numDaemons 2
         busy 1
+
+        when:
+        waitForBuildToWait()
+        completeBuild()
+
+        then:
+        daemonContext {
+            assert javaHome == Jvm.current().javaHome
+        }
     }
 
     def cleanup() {
