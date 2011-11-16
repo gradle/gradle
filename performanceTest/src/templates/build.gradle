@@ -29,7 +29,7 @@ dependencies {
     compile 'commons-lang:commons-lang:2.5'
     compile "commons-httpclient:commons-httpclient:3.0"
     compile "commons-codec:commons-codec:1.2"
-    compile "org.slf4j:jcl-over-slf4j:1.6.1"
+    compile "org.slf4j:jcl-over-slf4j:1.6.4"
     compile "org.codehaus.groovy:groovy:1.7.10"
     compile "commons-codec:commons-codec:1.2"
     testCompile 'junit:junit:4.8.2'
