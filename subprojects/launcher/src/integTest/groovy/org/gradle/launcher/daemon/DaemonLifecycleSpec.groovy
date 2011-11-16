@@ -24,6 +24,7 @@ import org.gradle.testing.AvailableJavaHomes
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Specification
+import org.gradle.os.OperatingSystem
 
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
@@ -32,6 +33,7 @@ import spock.lang.Specification
  * from the org.gradle.launcher.daemon.testing.* package to model a sequence of expected
  * daemon registry state changes, executing actions at certain state changes.
  */
+@IgnoreIf({OperatingSystem.current().windows})
 class DaemonLifecycleSpec extends Specification {
 
     @Rule public final GradleHandles handles = new GradleHandles()
