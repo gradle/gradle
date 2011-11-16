@@ -132,6 +132,29 @@ public class DefaultPluginRegistryTest {
     }
 
     @Test
+    public void failsWhenImplementationClassSpecifiedInPropertiesFileDoesNotImplementPlugin() throws MalformedURLException, ClassNotFoundException {
+        Properties properties = new Properties();
+        final TestFile propertiesFile = testDir.file("prop");
+        properties.setProperty("implementation-class", String.class.getName());
+        GUtil.saveProperties(properties, propertiesFile);
+        final URL url = propertiesFile.toURI().toURL();
+
+        context.checking(new Expectations() {{
+            allowing(classLoader).getResource("META-INF/gradle-plugins/brokenImpl.properties");
+            will(returnValue(url));
+            allowing(classLoader).loadClass("java.lang.String");
+            will(returnValue(String.class));
+        }});
+
+        try {
+            pluginRegistry.getTypeForId("brokenImpl");
+            fail();
+        } catch (PluginInstantiationException e) {
+            assertThat(e.getMessage(), equalTo("Implementation class 'java.lang.String' specified for plugin 'brokenImpl' does not implement the Plugin interface. Specified in " + url + "."));
+        }
+    }
+
+    @Test
     public void wrapsPluginInstantiationFailure() {
         try {
             pluginRegistry.loadPlugin(BrokenPlugin.class);
