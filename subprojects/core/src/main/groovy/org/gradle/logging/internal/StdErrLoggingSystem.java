@@ -20,8 +20,11 @@ import org.gradle.util.TimeProvider;
 import java.io.PrintStream;
 
 public class StdErrLoggingSystem extends PrintStreamLoggingSystem {
-    public StdErrLoggingSystem(OutputEventListener listener, TimeProvider timeProvider) {
+    private final boolean isEmbedded;
+
+    public StdErrLoggingSystem(OutputEventListener listener, TimeProvider timeProvider, boolean isEmbedded) {
         super(listener, "system.err", timeProvider);
+        this.isEmbedded = isEmbedded;
     }
 
     @Override
@@ -31,6 +34,9 @@ public class StdErrLoggingSystem extends PrintStreamLoggingSystem {
 
     @Override
     protected void set(PrintStream printStream) {
-        System.setErr(printStream);
+        if (!isEmbedded) {
+            //don't replace standard error if we don't own the process
+            System.setErr(printStream);
+        }
     }
 }
