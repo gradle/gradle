@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.model.BuildableProject
+import spock.lang.Ignore
 
 class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -59,6 +60,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         java.util.logging.Level.OFF == LogManager.getLogManager().getLogger("").level
     }
 
+    @Ignore
     def "regular gradle may mess around the standard streams and java logging"() {
         //(SF) this test assumes that our logging commodity replaces standard streams and resets java logging
         //not great, but at least a start.
