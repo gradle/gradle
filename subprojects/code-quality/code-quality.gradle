@@ -31,7 +31,7 @@ dependencies {
         }
     }
 
-    runtime module("com.puppycrawl.tools:checkstyle:5.4") {
+    runtime module("com.puppycrawl.tools:checkstyle:5.5") {
         dependency libraries.antlr
         dependency libraries.commons_cli
         dependency libraries.guava
