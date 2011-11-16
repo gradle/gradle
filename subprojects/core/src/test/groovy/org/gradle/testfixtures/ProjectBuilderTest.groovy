@@ -56,10 +56,19 @@ class ProjectBuilderTest extends Specification {
         project.gradle.gradleUserHomeDir == project.file('userHome')
     }
 
-    def canApplyACustomPlugin() {
+    def canApplyACustomPluginByType() {
         when:
         def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.dir).build()
         project.apply plugin: CustomPlugin
+
+        then:
+        project.tasks.hello instanceof DefaultTask
+    }
+
+    def canApplyACustomPluginById() {
+        when:
+        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.dir).build()
+        project.apply plugin: 'custom-plugin'
 
         then:
         project.tasks.hello instanceof DefaultTask

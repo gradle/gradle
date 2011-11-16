@@ -110,6 +110,51 @@ task test
         succeeds('test')
     }
 
+    def "can integration test plugin"() {
+        given:
+        file('src/main/groovy/CustomPlugin.groovy') << """
+import org.gradle.api.Project
+import org.gradle.api.Plugin
+class CustomPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.custom = 'value'
+    }
+}
+        """
+
+        file("src/main/resources/META-INF/gradle-plugins/custom.properties") << """
+implementation-class=CustomPlugin
+"""
+
+        file('src/test/groovy/CustomPluginTest.groovy') << """
+import org.junit.Test
+import org.gradle.testfixtures.ProjectBuilder
+class CustomPluginTest {
+    @Test
+    public void test() {
+        def project = ProjectBuilder.builder().build()
+
+        project.apply plugin: 'custom'
+
+        assert project.custom == 'value'
+    }
+}
+"""
+
+        buildFile << """
+apply plugin: 'groovy'
+repositories { mavenCentral() }
+dependencies {
+    compile gradleApi()
+    groovy localGroovy()
+    testCompile 'junit:junit:4.8.2'
+}
+"""
+
+        expect:
+        succeeds('test')
+    }
+
     def "can use java plugin from custom plugin and its integration tests"() {
         given:
         file('src/main/groovy/CustomPlugin.groovy') << """

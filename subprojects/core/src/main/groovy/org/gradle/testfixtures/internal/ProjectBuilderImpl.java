@@ -75,6 +75,8 @@ public class ProjectBuilderImpl {
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
 
+        gradle.getScriptClassLoader().addParent(getClass().getClassLoader());
+
         return project;
     }
 
