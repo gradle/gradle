@@ -20,11 +20,11 @@ dependencies {
     compile project(':plugins')
 
     compile libraries.slf4j_api
-    compile module("org.codenarc:CodeNarc:0.15") {
+    compile module("org.codenarc:CodeNarc:0.16.1") {
         dependency libraries.log4j_to_slf4j
         dependency libraries.groovy
         dependency libraries.ant
-        module("org.gmetrics:GMetrics:0.3") {
+        module("org.gmetrics:GMetrics:0.4") {
             dependency libraries.log4j_to_slf4j
             dependency libraries.groovy
             dependency libraries.ant
