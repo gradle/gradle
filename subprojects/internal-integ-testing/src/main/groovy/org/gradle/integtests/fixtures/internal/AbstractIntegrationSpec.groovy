@@ -28,7 +28,7 @@ import org.gradle.integtests.fixtures.*
 class AbstractIntegrationSpec extends Specification {
     
     @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     ExecutionResult result
     ExecutionFailure failure

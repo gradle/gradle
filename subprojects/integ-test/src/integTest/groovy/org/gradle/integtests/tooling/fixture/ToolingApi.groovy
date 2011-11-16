@@ -30,6 +30,7 @@ class ToolingApi {
     File projectDir
     private GradleDistribution dist
     private final List<Closure> connectorConfigurers = []
+    private boolean isEmbedded = GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded
 
     ToolingApi(GradleDistribution dist) {
         this.dist = dist
@@ -67,16 +68,21 @@ class ToolingApi {
         }
     }
 
-    def File getProjectDir() {
+    File getProjectDir() {
         return projectDir ?: dist.testDir
     }
 
-    private def connector() {
+    ToolingApi embeddedOnly() {
+        isEmbedded = true
+        return this;
+    }
+
+    GradleConnector connector() {
         GradleConnector connector = GradleConnector.newConnector()
         connector.useGradleUserHomeDir(new File(dist.userHomeDir.absolutePath))
         connector.forProjectDirectory(new File(getProjectDir().absolutePath))
         connector.searchUpwards(false)
-        if (GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded) {
+        if (isEmbedded) {
             LOGGER.info("Using embedded tooling API provider");
             connector.useClasspathDistribution()
             connector.embedded(true)
