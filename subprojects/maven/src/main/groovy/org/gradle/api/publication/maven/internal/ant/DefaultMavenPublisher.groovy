@@ -16,11 +16,11 @@
 package org.gradle.api.publication.maven.internal.ant
 
 import org.apache.tools.ant.Project
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.publication.maven.MavenPublication
 import org.gradle.api.publication.maven.MavenPublisher
-import org.gradle.api.publication.maven.MavenRepository
 import org.apache.maven.artifact.ant.*
-import org.gradle.api.internal.file.TemporaryFileProvider
 
 class DefaultMavenPublisher implements MavenPublisher {
     private final File localRepoDir
@@ -45,7 +45,7 @@ class DefaultMavenPublisher implements MavenPublisher {
         execute(publication, task)
     }
 
-    void deploy(MavenPublication publication, MavenRepository repository) {
+    void deploy(MavenPublication publication, MavenArtifactRepository repository) {
         def task = new DeployTask()
         task.addRemoteRepository(new RemoteRepository())
         task.remoteRepository.url = repository.url

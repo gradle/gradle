@@ -95,8 +95,8 @@ publications {
     maven {
         repository {
             url = 'http://localhost:${server.port}/repo'
-            authentication {
-                userName = 'szczepiq'
+            credentials {
+                username = 'szczepiq'
                 password = 'secret'
             }
         }
