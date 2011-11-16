@@ -40,8 +40,8 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         model.tasks.find { it.name == 'hey' }
-        System.out == outInstance
-        System.err == errInstance
+        System.out.is(outInstance)
+        System.err.is(errInstance)
     }
 
     def "tooling api does not reset the java logging"() {
@@ -82,5 +82,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         !System.out.is(outInstance)
         !System.err.is(errInstance)
         LogManager.getLogManager().getLogger("").getLevel() != java.util.logging.Level.OFF;
+        //We don't really care that the sys out/err has changed even though it affects other tests
+        //All integration tests have this 'feature' and apparently it is not a great deal of a problem at the moment
     }
 }
