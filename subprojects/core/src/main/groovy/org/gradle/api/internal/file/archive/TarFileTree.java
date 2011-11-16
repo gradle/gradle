@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import org.apache.tools.bzip2.CBZip2InputStream;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
 import org.gradle.api.GradleException;
@@ -27,19 +26,27 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.tasks.bundling.Decompressor;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HashUtil;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.zip.GZIPInputStream;
 
 public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final File tarFile;
+    private final Decompressor decompressor;
     private final File tmpDir;
 
     public TarFileTree(File tarFile, File tmpDir) {
+            this(tarFile, tmpDir, new DefaultDecompressor());
+    }
+
+    public TarFileTree(File tarFile, File tmpDir, Decompressor decompressor) {
         this.tarFile = tarFile;
+        this.decompressor = decompressor;
         String expandDirName = String.format("%s_%s", tarFile.getName(), HashUtil.createHash(tarFile.getAbsolutePath()));
         this.tmpDir = new File(tmpDir, expandDirName);
     }
@@ -63,7 +70,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         try {
             InputStream inputStream = null;
             try {
-                inputStream = openTar(tarFile);
+                inputStream = decompressor.decompress(tarFile);
                 visitImpl(visitor, inputStream);
             } finally {
                 assert inputStream != null;
@@ -72,25 +79,6 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         } catch (Exception e) {
             throw new GradleException(String.format("Could not expand %s.", getDisplayName()), e);
         }
-    }
-
-    private InputStream openTar(File tar) throws FileNotFoundException {
-        InputStream inputStream;
-        // Try GZip, BZip2, and plain tar
-        try {
-            inputStream = new GZIPInputStream(new FileInputStream(tar));
-        } catch (IOException gze) {
-            try {
-                // CBZip2InputStream expects the opening "Bz" to be skipped
-                InputStream is = new BufferedInputStream(new FileInputStream(tar));
-                byte[] skip = new byte[2];
-                is.read(skip);
-                inputStream = new CBZip2InputStream(is);
-            } catch (IOException bze) {
-                inputStream = new FileInputStream(tar);
-            }
-        }
-        return inputStream;
     }
 
     private void visitImpl(FileVisitor visitor, InputStream inputStream) throws IOException {
