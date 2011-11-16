@@ -17,10 +17,7 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.PathValidation;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.*;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
 
@@ -51,7 +48,7 @@ public interface FileOperations {
 
     FileTree zipTree(Object zipPath);
 
-    FileTree tarTree(Object tarPath);
+    ArchiveFileTree tarTree(Object tarPath);
 
     CopySpec copySpec(Closure closure);
 

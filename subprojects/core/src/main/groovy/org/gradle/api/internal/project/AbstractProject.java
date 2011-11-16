@@ -24,10 +24,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
@@ -691,7 +688,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return fileOperations.zipTree(zipPath);
     }
 
-    public FileTree tarTree(Object tarPath) {
+    public ArchiveFileTree tarTree(Object tarPath) {
         return fileOperations.tarTree(tarPath);
     }
 

@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.*;
+import org.gradle.api.internal.file.archive.ArchiveFileTreeAdapter;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
@@ -90,8 +91,10 @@ public class DefaultFileOperations implements FileOperations {
         return new FileTreeAdapter(new ZipFileTree(file(zipPath), getExpandDir()));
     }
 
-    public FileTree tarTree(Object tarPath) {
-        return new FileTreeAdapter(new TarFileTree(file(tarPath), getExpandDir()));
+    public ArchiveFileTree tarTree(Object tarPath) {
+        TarFileTree tarTree = new TarFileTree(file(tarPath), getExpandDir());
+        FileTreeAdapter fileTree = new FileTreeAdapter(tarTree);
+        return new ArchiveFileTreeAdapter(fileTree, tarTree);
     }
 
     private File getExpandDir() {

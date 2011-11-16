@@ -16,10 +16,7 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
@@ -207,7 +204,7 @@ public interface Script {
     FileTree zipTree(Object zipPath);
 
     /**
-     * <p>Creates a new {@code FileTree} which contains the contents of the given TAR file. The given tarPath path is
+     * <p>Creates a new {@code ArchiveFileTree} which contains the contents of the given TAR file. The given tarPath path is
      * evaluated as for {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
      * method to untar a TAR file.</p>
      *
@@ -218,7 +215,7 @@ public interface Script {
      * @param tarPath The TAR file. Evaluated as for {@link #file(Object)}.
      * @return the file tree. Never returns null.
      */
-    FileTree tarTree(Object tarPath);
+    ArchiveFileTree tarTree(Object tarPath);
 
     /**
      * Copy the specified files.  The given closure is used to configure a {@link org.gradle.api.file.CopySpec}, which

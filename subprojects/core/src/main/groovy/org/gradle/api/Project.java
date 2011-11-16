@@ -22,10 +22,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
@@ -947,7 +944,7 @@ public interface Project extends Comparable<Project> {
     FileTree zipTree(Object zipPath);
 
     /**
-     * <p>Creates a new {@code FileTree} which contains the contents of the given TAR file. The given tarPath path is
+     * <p>Creates a new {@code ArchiveFileTree} which contains the contents of the given TAR file. The given tarPath path is
      * evaluated as for {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
      * method to untar a TAR file.</p>
      *
@@ -958,7 +955,7 @@ public interface Project extends Comparable<Project> {
      * @param tarPath The TAR file. Evaluated as for {@link #file(Object)}.
      * @return the file tree. Never returns null.
      */
-    FileTree tarTree(Object tarPath);
+    ArchiveFileTree tarTree(Object tarPath);
 
     /**
      * Creates a directory and returns a file pointing to it.

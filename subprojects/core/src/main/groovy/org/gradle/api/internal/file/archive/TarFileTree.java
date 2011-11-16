@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final File tarFile;
-    private final Decompressor decompressor;
+    private Decompressor decompressor;
     private final File tmpDir;
 
     public TarFileTree(File tarFile, File tmpDir) {
@@ -49,6 +49,14 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         this.decompressor = decompressor;
         String expandDirName = String.format("%s_%s", tarFile.getName(), HashUtil.createHash(tarFile.getAbsolutePath()));
         this.tmpDir = new File(tmpDir, expandDirName);
+    }
+
+    public Decompressor getDecompressor() {
+        return decompressor;
+    }
+
+    public void setDecompressor(Decompressor decompressor) {
+        this.decompressor = decompressor;
     }
 
     public String getDisplayName() {
