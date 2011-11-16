@@ -17,11 +17,11 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertThat
 
 public class ArchiveIntegrationTest extends AbstractIntegrationTest {
     @Test public void canCopyFromAZip() {
@@ -70,6 +70,52 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         inTestDirectory().withTasks('copy').run()
 
         testFile('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
+    }
+
+    @Test public void "handles gzip compressed tars"() {
+        TestFile tar = file()
+        tar.create {
+            someDir {
+                file '1.txt'
+                file '2.txt'
+            }
+        }
+        tar.tgzTo(file('test.tgz'))
+
+        file('build.gradle') << '''
+            task copy(type: Copy) {
+                from tarTree('test.tgz')
+                exclude '**/2.txt'
+                into 'dest'
+            }
+'''
+
+        inTestDirectory().withTasks('copy').run()
+
+        file('dest').assertHasDescendants('someDir/1.txt')
+    }
+
+    @Test public void "handles bzip2 compressed tars"() {
+        TestFile tar = file()
+        tar.create {
+            someDir {
+                file '1.txt'
+                file '2.txt'
+            }
+        }
+        tar.tbzTo(file('test.tbz'))
+
+        file('build.gradle') << '''
+            task copy(type: Copy) {
+                from tarTree('test.tbz')
+                exclude '**/2.txt'
+                into 'dest'
+            }
+'''
+
+        inTestDirectory().withTasks('copy').run()
+
+        file('dest').assertHasDescendants('someDir/1.txt')
     }
 
     @Test public void cannotCreateAnEmptyZip() {
