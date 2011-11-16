@@ -1090,18 +1090,54 @@
             </tr>
             <tr>
                 <td>
-                    <literal>source</literal>
-                </td>
-                <td><apilink class="org.gradle.api.file.FileTree"/>. Can set using anything described in <xref linkend="sec:specifying_multiple_files"/>.</td>
-                <td><literal><replaceable>sourceSet</replaceable>.java</literal></td>
-            </tr>
-            <tr>
-                <td>
                     <literal>destinationDir</literal>
                 </td>
                 <td><classname>File</classname>.</td>
                 <td><literal><replaceable>sourceSet</replaceable>.output.classesDir</literal></td>
             </tr>
+            <tr>
+                <td>
+                    <literal>excludes</literal>
+                </td>
+                <td><literal>Set&lt;String&gt;</literal></td>
+                <td></td>
+            </tr>
+	    <tr>
+                <td>
+                    <literal>includes</literal>
+                </td>
+                <td><literal>Set&lt;String&gt;</literal></td>
+                <td></td>
+            </tr>
+	    <tr>
+                <td>
+                    <literal>options</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.compile.CompileOptions" /></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>source</literal>
+                </td>
+                <td><apilink class="org.gradle.api.file.FileTree"/>. Can set using anything described in <xref linkend="sec:specifying_multiple_files"/>.</td>
+                <td><literal><replaceable>sourceSet</replaceable>.java</literal></td>
+            </tr>
+	    <tr>
+                <td>
+                    <literal>sourceCompatibility</literal>
+                </td>
+                <td><literal>String</literal></td>
+                <td><literal>1.5</literal></td>
+            </tr>
+	    <tr>
+                <td>
+                    <literal>targetCompatibility</literal>
+                </td>
+                <td><literal>String</literal></td>
+                <td><literal>1.5</literal></td>
+            </tr>
+
         </table>
     </section>
 
