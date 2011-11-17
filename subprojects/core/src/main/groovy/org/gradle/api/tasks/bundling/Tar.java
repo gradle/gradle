@@ -32,11 +32,10 @@ import java.util.concurrent.Callable;
  */
 public class Tar extends AbstractArchiveTask {
     private final CopyActionImpl action;
-
-    private Compression compression;
+    private Compressor compressor;
 
     public Tar() {
-        compression = Compression.NONE;
+        setCompression(Compression.NONE);
         action = new TarCopyActionImpl(getServices().get(FileResolver.class));
         getConventionMapping().map("extension", new Callable<Object>(){
             public Object call() throws Exception {
@@ -50,19 +49,43 @@ public class Tar extends AbstractArchiveTask {
     }
 
     /**
-     * Returns the compression to use for this archive.
-     * @return The compression. Never returns null.
+     * Returns the compressor that is used in this tar task.
+     *
+     * @return The compressor. Never returns null.
      */
-    public Compression getCompression() {
-        return compression;
+    public Compressor getCompressor() {
+        return compressor;
     }
 
     /**
-     * Specifies the compression to use for this archive.
+     * Specifies the compressor for this tar task
+     *
+     * @param compressor compressor
+     */
+    public void setCompressor(Compressor compressor) {
+        assert compressor != null : "compressor cannot be null";
+        this.compressor = compressor;
+    }
+
+    /**
+     * Returns the compression that is used for this archive.
+     *
+     * @return The compression. Never returns null.
+     */
+    public Compression getCompression() {
+        if (compressor instanceof CompressionAware) {
+            return ((CompressionAware) compressor).getCompression();
+        }
+        return Compression.NONE;
+    }
+
+    /**
+     * Configures the compressor based on passed in compression.
+     *
      * @param compression The compression. Should not be null.
      */
     public void setCompression(Compression compression) {
-        this.compression = compression;
+        compressor = new DefaultCompressor(compression);
     }
 
     private class TarCopyActionImpl extends CopyActionImpl implements TarCopyAction {
@@ -75,7 +98,7 @@ public class Tar extends AbstractArchiveTask {
         }
 
         public Compressor getCompressor() {
-            return new DefaultCompressor(Tar.this.getCompression());
+            return Tar.this.getCompressor();
         }
     }
 }
