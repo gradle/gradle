@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file.archive;
 
-import org.gradle.api.internal.file.copy.ArchiveCopyAction;
-import org.gradle.api.tasks.bundling.Compressor;
+package org.gradle.api.tasks.bundling;
 
-public interface TarCopyAction extends ArchiveCopyAction {
-    Compressor getCompressor();
+import java.io.File;
+import java.io.OutputStream;
+
+/**
+ * Compresses the input
+ */
+public interface Compressor {
+
+    /**
+     * Returns the output stream that is able to compress into the input file
+     *
+     * @param destination the destination of the compression
+     */
+    OutputStream compress(File destination);
 }
