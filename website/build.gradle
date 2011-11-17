@@ -214,6 +214,8 @@ task install(type: Copy) {
     into "${System.getProperty('user.home')}/Sites/gradle"
 }
 
+task fullInstall(dependsOn: install)
+
 class WebsiteGitRepoComponentsExtension {
     Project project
     
@@ -231,7 +233,7 @@ class WebsiteGitRepoComponentsExtension {
             task.onlyIf { !checkoutDir.exists() }
         }
         
-        project.tasks.add(name: "update$friendlyName", type: Exec, dependsOn: [checkoutTask]) { task ->
+        project.fullInstall.dependsOn project.tasks.add(name: "update$friendlyName", type: Exec, dependsOn: [checkoutTask]) { task ->
             task.executable "git"
             task.args "pull"
             task.workingDir checkoutTask.checkoutDir
