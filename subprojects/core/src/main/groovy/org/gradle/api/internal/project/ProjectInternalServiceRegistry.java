@@ -124,7 +124,11 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected ArtifactHandler createArtifactHandler() {
-        return new DefaultArtifactHandler(get(ConfigurationContainer.class), new DefaultPublishArtifactFactory(get(DependencyMetaDataProvider.class)));
+        return new DefaultArtifactHandler(
+                get(ConfigurationContainer.class), 
+                new DefaultPublishArtifactFactory(
+                        get(Instantiator.class),
+                        get(DependencyMetaDataProvider.class)));
     }
 
     protected ProjectFinder createProjectFinder() {

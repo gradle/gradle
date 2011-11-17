@@ -25,13 +25,16 @@ import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import spock.lang.Specification
+import org.gradle.api.internal.Instantiator
+import org.gradle.api.internal.DirectInstantiator
 
 /**
  * @author Hans Dockter
  */
 public class DefaultPublishArtifactFactoryTest extends Specification {
     final DependencyMetaDataProvider provider = Mock()
-    private DefaultPublishArtifactFactory publishArtifactFactory = new DefaultPublishArtifactFactory(provider)
+    final Instantiator instantiator = new DirectInstantiator()
+    final DefaultPublishArtifactFactory publishArtifactFactory = new DefaultPublishArtifactFactory(instantiator, provider)
 
     def setup() {
         Module module = Mock()
