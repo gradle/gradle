@@ -16,6 +16,7 @@
 
 package org.gradle.api.file;
 
+import org.gradle.api.tasks.bundling.Compression;
 import org.gradle.api.tasks.bundling.Decompressor;
 
 /**
@@ -36,4 +37,11 @@ public interface ArchiveFileTree extends FileTree {
      * @param decompressor to set
      */
     void setDecompressor(Decompressor decompressor);
+
+    /**
+     * Configures a decompressor based on the passed in compression
+     *
+     * @param compression
+     */
+    void setCompression(Compression compression);
 }

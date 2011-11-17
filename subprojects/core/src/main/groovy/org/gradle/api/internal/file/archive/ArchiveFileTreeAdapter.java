@@ -17,7 +17,9 @@
 package org.gradle.api.internal.file.archive;
 
 import org.gradle.api.file.ArchiveFileTree;
+import org.gradle.api.internal.file.archive.decompressors.ExplicitDecompressor;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
+import org.gradle.api.tasks.bundling.Compression;
 import org.gradle.api.tasks.bundling.Decompressor;
 
 /**
@@ -38,5 +40,9 @@ public class ArchiveFileTreeAdapter extends FileTreeAdapter implements ArchiveFi
 
     public void setDecompressor(Decompressor decompressor) {
         tarTree.setDecompressor(decompressor);
+    }
+
+    public void setCompression(Compression compression) {
+        setDecompressor(new ExplicitDecompressor(compression));
     }
 }

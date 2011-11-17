@@ -118,6 +118,32 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
+    @Test public void "can choose compression method for tarTree"() {
+        TestFile tar = file()
+        tar.create {
+            someDir {
+                file '1.txt'
+                file '2.txt'
+            }
+        }
+        //file extension is non-standard:
+        tar.tbzTo(file('test.ext'))
+
+        file('build.gradle') << '''
+            task copy(type: Copy) {
+                def tree = tarTree('test.ext')
+                tree.compression = Compression.BZIP2
+                from tree
+                exclude '**/2.txt'
+                into 'dest'
+            }
+'''
+
+        inTestDirectory().withTasks('copy').run()
+
+        file('dest').assertHasDescendants('someDir/1.txt')
+    }
+
     @Test public void cannotCreateAnEmptyZip() {
         testFile('build.gradle') << '''
             task zip(type: Zip) {
