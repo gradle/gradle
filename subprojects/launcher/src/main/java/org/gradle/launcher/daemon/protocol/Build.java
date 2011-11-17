@@ -56,7 +56,7 @@ public class Build extends Command {
     }
     
     public GradleLauncher createGradleLauncher(GradleLauncherFactory launcherFactory) {
-        return launcherFactory.newInstance(startParameter, parameters.getBuildRequestMetaData());
+        return launcherFactory.newInstance(getStartParameter(), parameters.getBuildRequestMetaData());
     }
     
     public Object run(GradleLauncherFactory launcherFactory) {
