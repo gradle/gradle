@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.file.archive.decompressors;
 
-import org.apache.commons.io.FilenameUtils;
-import org.gradle.api.tasks.bundling.Decompressor;
 
-import java.io.File;
-import java.io.InputStream;
+import org.gradle.api.tasks.bundling.Compression
+import spock.lang.Specification
 
 /**
- * by Szczepan Faber, created at: 11/16/11
+ * by Szczepan Faber, created at: 11/17/11
  */
-public class AutoDetectingDecompressor implements Decompressor {
+public class DecompressorFactoryTest extends Specification {
 
-    private final DecompressorFactory decompressorFactory = new DecompressorFactory();
+    def factory = new DecompressorFactory();
 
-    public InputStream decompress(File file) {
-        assert file != null : "file to unarchive cannot be null!";
-
-        String ext = FilenameUtils.getExtension(file.getName());
-        Decompressor d = decompressorFactory.decompressor(ext);
-        return d.decompress(file);
+    def "creates decompressors"() {
+        expect:
+        factory.decompressor(Compression.BZIP2.extension) instanceof Bzip2Decompressor
+        factory.decompressor(Compression.GZIP.extension)  instanceof GzipDecompressor
+        factory.decompressor(Compression.NONE.extension)  instanceof NoOpDecompressor
+        factory.decompressor("foo")  instanceof NoOpDecompressor
     }
 }

@@ -19,30 +19,31 @@ package org.gradle.api.internal.file.archive.decompressors;
 import org.gradle.api.tasks.bundling.Compression;
 import org.gradle.api.tasks.bundling.Decompressor;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * by Szczepan Faber, created at: 11/17/11
  */
-public class ExplicitDecompressor implements Decompressor {
+public class DecompressorFactory {
 
-    private final Decompressor delegate;
-
-    public ExplicitDecompressor(Compression compression) {
-        Map<Compression, Decompressor> decompressors = new HashMap<Compression, Decompressor>();
-
-        decompressors.put(Compression.BZIP2, new Bzip2Decompressor());
-        decompressors.put(Compression.GZIP, new GzipDecompressor());
-        decompressors.put(Compression.NONE, new NoOpDecompressor());
-
-        delegate = decompressors.get(compression);
-        assert delegate != null : "Cannot select decompressor for compression: " + compression;
+    public Decompressor decompressor(Compression compression) {
+        switch(compression) {
+            case BZIP2: return new Bzip2Decompressor();
+            case GZIP:  return new GzipDecompressor();
+            default:    return new NoOpDecompressor();
+        }
     }
 
-    public InputStream decompress(File file) {
-        return delegate.decompress(file);
+    public Decompressor decompressor(String extension) {
+        Compression c = selectCompression(extension);
+        return decompressor(c);
+    }
+
+    private Compression selectCompression(String extension) {
+        Compression[] values = Compression.values();
+        for (Compression c : values) {
+            if (c.getExtension().equals(extension)) {
+                return c;
+            }
+        }
+        return Compression.NONE;
     }
 }
