@@ -30,7 +30,6 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
@@ -100,7 +99,6 @@ class DefaultProjectTest {
     DependencyFactory dependencyFactoryMock
     DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)
     PluginContainer pluginContainerMock = context.mock(PluginContainer)
-    PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory)
     ScriptHandler scriptHandlerMock = context.mock(ScriptHandler)
     DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider)
     Gradle build;

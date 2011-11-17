@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.*;
@@ -64,7 +63,6 @@ public class ProjectInternalServiceRegistryTest {
     private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final DependencyManagementServices dependencyManagementServices = context.mock(DependencyManagementServices.class);
     private final ITaskFactory taskFactory = context.mock(ITaskFactory.class);
-    private final PublishArtifactFactory publishArtifactFactory = context.mock(PublishArtifactFactory.class);
     private final DependencyFactory dependencyFactory = context.mock(DependencyFactory.class);
     private final ServiceRegistry parent = context.mock(ServiceRegistry.class);
     private final ProjectInternalServiceRegistry registry = new ProjectInternalServiceRegistry(parent, project);
@@ -85,8 +83,6 @@ public class ProjectInternalServiceRegistryTest {
             allowing(project).getBuildScriptSource();
             allowing(parent).get(ITaskFactory.class);
             will(returnValue(taskFactory));
-            allowing(parent).get(PublishArtifactFactory.class);
-            will(returnValue(publishArtifactFactory));
             allowing(parent).get(DependencyFactory.class);
             will(returnValue(dependencyFactory));
             allowing(parent).get(PluginRegistry.class);

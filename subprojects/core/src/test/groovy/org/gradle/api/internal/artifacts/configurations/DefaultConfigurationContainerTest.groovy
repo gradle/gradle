@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,89 +13,103 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.configurations;
 
+package org.gradle.api.internal.artifacts.configurations
 
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
-import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.listener.ListenerManager
-import org.gradle.util.HelperUtil
-import spock.lang.Specification
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.integration.junit4.JMock
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.gradle.api.internal.*
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 
 /**
- * @author Hans Dockter, Szczepan
+ * @author Hans Dockter
  */
-public class DefaultConfigurationContainerTest extends Specification {
-    private static final String TEST_DESCRIPTION = "testDescription";
-    private static final Closure TEST_CLOSURE = HelperUtil.createSetterClosure("Description", TEST_DESCRIPTION);
-    private static final String TEST_NAME = "testName";
 
-    private ArtifactDependencyResolver dependencyResolver = Mock()
-    private Instantiator instantiator = Mock()
-    private DomainObjectContext domainObjectContext = Mock()
-    private ListenerManager listenerManager = Mock()
-    private DependencyMetaDataProvider metaDataProvider = Mock()
-    def ConfigurationInternal conf = Mock()
+@RunWith(JMock)
+class DefaultConfigurationContainerTest {
+    private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(dependencyResolver, instantiator, domainObjectContext, listenerManager, metaDataProvider);
+    private ArtifactDependencyResolver dependencyResolver = context.mock(ArtifactDependencyResolver)
+    private DomainObjectContext domainObjectContext = context.mock(DomainObjectContext.class)
+    private ListenerManager listenerManager = context.mock(ListenerManager.class)
+    private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class)
+    private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
+    private DefaultConfigurationContainer configurationHandler = instantiator.newInstance(DefaultConfigurationContainer.class,
+            dependencyResolver, instantiator, { name -> name } as DomainObjectContext,
+            listenerManager, metaDataProvider)
 
-    def "adds and gets"() {
-        _ * conf.getName() >> "compile"
-        1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
-        1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, _ as DefaultResolutionStrategy) >> conf
-
-        when:
-        def compile = configurationContainer.add("compile")
-
-        then:
-        configurationContainer.getByName("compile") == compile
-
-        when:
-        configurationContainer.getByName("fooo")
-
-        then:
-        thrown(UnknownConfigurationException)
-    }
-
-    def "configures and finds"() {
-        _ * conf.getName() >> "compile"
-        1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
-        1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, _ as DefaultResolutionStrategy) >> conf
-
-        when:
-        def compile = configurationContainer.add("compile") {
-            description = "I compile!"
+    @Before
+    public void setup() {
+        context.checking {
+            ignoring(listenerManager)
         }
-
-        then:
-        configurationContainer.getByName("compile") == compile
-        1 * conf.setDescription("I compile!")
-
-        //finds configurations
-        configurationContainer.findByName("compile") == compile
-        configurationContainer.findByName("fooo") == null
-        configurationContainer.findAll { it.name == "compile" } as Set == [compile] as Set
-        configurationContainer.findAll { it.name == "fooo" } as Set == [] as Set
-
-        configurationContainer as List == [compile] as List
     }
 
-    def "creates detached"() {
-        given:
-        def dependency1 = HelperUtil.createDependency("group1", "name1", "version1");
-        def dependency2 = HelperUtil.createDependency("group2", "name2", "version2");
+    @Test
+    void addsNewConfigurationWhenConfiguringSelf() {
+        configurationHandler.configure {
+            newConf
+        }
+        assertThat(configurationHandler.findByName('newConf'), notNullValue())
+        assertThat(configurationHandler.newConf, notNullValue())
+    }
 
-        when:
-        def detached = configurationContainer.detachedConfiguration(dependency1, dependency2);
+    @Test(expected = UnknownConfigurationException)
+    void doesNotAddNewConfigurationWhenNotConfiguringSelf() {
+        configurationHandler.getByName('unknown')
+    }
 
-        then:
-        detached.getAll() == [detached] as Set
-        detached.getHierarchy() == [detached] as Set
-        [dependency1, dependency2].each { detached.getDependencies().contains(it) }
-        detached.getDependencies().size() == 2
+    @Test
+    void makesExistingConfigurationAvailableAsProperty() {
+        Configuration configuration = configurationHandler.add('newConf')
+        assertThat(configuration, notNullValue())
+        assertThat(configurationHandler.getByName("newConf"), sameInstance(configuration))
+        assertThat(configurationHandler.newConf, sameInstance(configuration))
+    }
+
+    @Test
+    void addsNewConfigurationWithClosureWhenConfiguringSelf() {
+        String someDesc = 'desc1'
+        configurationHandler.configure {
+            newConf {
+                description = someDesc
+            }
+        }
+        assertThat(configurationHandler.newConf.getDescription(), equalTo(someDesc))
+    }
+
+    @Test
+    void makesExistingConfigurationAvailableAsConfigureMethod() {
+        String someDesc = 'desc1'
+        configurationHandler.add('newConf')
+        Configuration configuration = configurationHandler.newConf {
+            description = someDesc
+        }
+        assertThat(configuration.getDescription(), equalTo(someDesc))
+    }
+
+    @Test
+    void makesExistingConfigurationAvailableAsConfigureMethodWhenConfiguringSelf() {
+        String someDesc = 'desc1'
+        Configuration configuration = configurationHandler.add('newConf')
+        configurationHandler.configure {
+            newConf {
+                description = someDesc
+            }
+        }
+        assertThat(configuration.getDescription(), equalTo(someDesc))
+    }
+
+    @Test(expected = MissingMethodException)
+    void newConfigurationWithNonClosureParametersShouldThrowMissingMethodEx() {
+        configurationHandler.newConf('a', 'b')
     }
 }
