@@ -1,12 +1,38 @@
 apply plugin: 'java'
 
-//START SNIPPET assign-artifact
+//START SNIPPET archive-artifact
 task myJar(type: Jar)
 
 artifacts {
     archives myJar
 }
-//END SNIPPET assign-artifact
+//END SNIPPET archive-artifact
+
+//START SNIPPET file-artifact
+def someFile = file('build/somefile.txt')
+
+artifacts {
+    archives someFile
+}
+//END SNIPPET file-artifact
+
+//START SNIPPET customised-file-artifact
+task myTask(type:  MyTaskType) {
+    destFile = file('build/somefile.txt')
+}
+
+artifacts {
+    archives(myTask.destFile) {
+        name 'my-artifact'
+        type 'text'
+        builtBy myTask
+    }
+}
+//END SNIPPET customised-file-artifact
+
+class MyTaskType extends DefaultTask {
+    File destFile
+}
 
 //START SNIPPET uploading
 repositories {

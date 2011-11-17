@@ -75,6 +75,7 @@
     <xi:include href='artifactMngmt.xml'/>
     <xi:include href='mavenPlugin.xml'/>
     <xi:include href='signingPlugin.xml'/>
+    <xi:include href='cpp.xml'/>
     <xi:include href='buildLifecycle.xml'/>
     <xi:include href='multiproject.xml'/>
     <xi:include href='customTasks.xml'/>
@@ -88,6 +89,5 @@
     <xi:include href='potentialTraps.xml'/>
     <xi:include href='commandLine.xml'/>
     <xi:include href='ideSupport.xml'/>
-    <xi:include href='cpp.xml'/>
     <xi:include href='glossary.xml'/>
 </book>

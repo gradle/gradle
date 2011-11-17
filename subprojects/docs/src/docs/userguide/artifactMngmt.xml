@@ -14,48 +14,63 @@
   ~ limitations under the License.
   -->
 <chapter id="artifact_management">
-    <title>Artifact Management</title>
+    <title>Publishing artifacts</title>
     <section>
         <title>Introduction</title>
-        <para>This chapter is about how you declare what are the artifacts of your project and how to work with
-            them (e.g. upload them). We define the artifacts of the projects as the files the project want to
-            provide to the outside world. This can be a library or a distribution or any other file. Usually artifacts
-            are archives, but not necessarily. In the Maven world a project can provide only one artifact. With Gradle
-            a project can provide as many artifacts as needed.
+        <para>This chapter is about how you declare the outgoing artifacts of your project, and how to work with
+            them (e.g. upload them). We define the artifacts of the projects as the files the project provides to the
+            outside world. This might be a library or a ZIP distribution or any other file. A project can publish as many artifacts as it wants.
         </para>
     </section>
     <section id="artifacts_and_configurations">
         <title>Artifacts and configurations</title>
         <para>Like dependencies, artifacts are grouped by configurations. In fact, a configuration can contain
-            both, artifacts and dependencies, at the same time. To assign an artifact to a configuration, you can write:
+            both artifacts and dependencies at the same time.
         </para>
-        <sample id="assignArtifact" dir="userguide/artifacts/uploading" title="Assignment of an artifact to a configuration">
-            <sourcefile file="build.gradle" snippet="assign-artifact"/>
-        </sample>
-        <para>What do you gain by assigning an artifact to a configuration? For each configuration (also for the custom
-        ones added by you) Gradle provides the tasks <code>upload[ConfigurationName]</code> and
-        <code>build[ConfigurationName]</code>.
-        <footnote><para>To be exact, the Base plugin provides those tasks. The BasePlugin is automatically applied, if you use
+        <para>For each configuration in your project, Gradle provides the tasks <literal>upload<replaceable>ConfigurationName</replaceable></literal> and
+        <literal>build<replaceable>ConfigurationName</replaceable></literal>.
+        <footnote><para>To be exact, the Base plugin provides those tasks. This plugin is automatically applied if you use
         the Java plugin.</para></footnote>
-        Execution of these tasks will build or upload the artifacts belonging to
-        the respective configuration.
+        Execution of these tasks will build or upload the artifacts belonging to the respective configuration.
         </para>
         <para>Table <xref linkend="tab:configurations"/> shows the configurations added by the Java plugin. Two of the
         configurations are relevant for the usage with artifacts. The <code>archives</code> configuration is the standard
         configuration to assign your artifacts to. The Java plugin automatically assigns the default jar to this
-        configuration. We will talk more about the <code>default</code> configuration in <xref linkend="project_libraries"/>.
-            As with dependencies, you can declare as many custom configurations as you like and assign artifacts to them.
+        configuration. We will talk more about the <code>runtime</code> configuration in <xref linkend="project_libraries"/>.
+        As with dependencies, you can declare as many custom configurations as you like and assign artifacts to them.
         </para>
-        <para>It is important to note that the custom archives you are creating as part of your build are not
-        automatically assigned to any configuration. You have to explicitly do this assignment.</para>
     </section>
+
     <section>
-        <title>Uploading artifacts</title>
+        <title>Declaring artifacts</title>
+        <section>
+            <title>Archive task artifacts</title>
+            <para>You can use an archive task to define an artifact:</para>
+            <sample id="archiveTaskArtifact" dir="userguide/artifacts/uploading" title="Defining an artifact using an archive task">
+                <sourcefile file="build.gradle" snippet="archive-artifact"/>
+            </sample>
+            <para>It is important to note that the custom archives you are creating as part of your build are not
+            automatically assigned to any configuration. You have to explicitly do this assignment.</para>
+        </section>
+        <section>
+            <title>File artifacts</title>
+            <para>You can also use a file to define an artifact:</para>
+            <sample id="fileArtifact" dir="userguide/artifacts/uploading" title="Defining an artifact using a file">
+                <sourcefile file="build.gradle" snippet="file-artifact"/>
+            </sample>
+            <para>Gradle will figure out the properties of the artifact based on the name of the file. You can customize these properties:</para>
+            <sample id="fileArtifact" dir="userguide/artifacts/uploading" title="Customizing an artifact">
+                <sourcefile file="build.gradle" snippet="customised-file-artifact"/>
+            </sample>
+        </section>
+    </section>
+
+    <section>
+        <title>Publishing artifacts</title>
         <para>We have said that there is a specific upload task for each configuration. But before you can do an upload,
-            you have to configure the upload task and define where to upload. The repositories you have defined (as described
-            in <xref linkend="sec:repositories"/>) are not automatically used for uploading. In fact, some of those repositories allow only for artifacts downloading.
-            Here is an example how
-            you can configure the upload task of a configuration:
+            you have to configure the upload task and define where to publish the artifacts to. The repositories you have defined (as described
+            in <xref linkend="sec:repositories"/>) are not automatically used for uploading. In fact, some of those repositories allow only for artifact downloading.
+            Here is an example how you can configure the upload task of a configuration:
         </para>
         <sample id="uploading" dir="userguide/artifacts/uploading" title="Configuration of the upload task">
             <sourcefile file="build.gradle" snippet="uploading"/>
@@ -68,11 +83,10 @@
     <section id="project_libraries">
         <title>More about project libraries</title>
         <para>If your project is supposed to be used as a library, you need to define what are the artifacts of this library
-            and what are the dependencies of these artifacts. The Java plugin adds a <code>default</code> configuration for
-            this purpose. This configuration extends both the <code>archives</code> and the <code>runtime</code> configuration,
-            with the implicit assumption that the <code>runtime</code> dependencies are the dependencies of the <code>archives</code>
-            configuration. Of course this is fully customizable. You can add your own custom configuration or let the the
-            existing configurations extends from other configurations. You might have different group of artifacts which have
+            and what are the dependencies of these artifacts. The Java plugin adds a <code>runtime</code> configuration for
+            this purpose, with the implicit assumption that the <code>runtime</code> dependencies are the dependencies of
+            the artifact you want to publish. Of course this is fully customizable. You can add your own custom configuration or let the
+            existing configurations extend from other configurations. You might have different group of artifacts which have
             a different set of dependencies. This mechanism is very powerful and flexible.
             </para>
         <para>If someone wants to use your project as a library, she simply needs to declare on which configuration of

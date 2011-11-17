@@ -55,6 +55,13 @@ code, pre {
  */
 
 /*
+ * Links
+ */
+a.link {
+    white-space: nowrap;
+}
+
+/*
  * Lists
  */
 

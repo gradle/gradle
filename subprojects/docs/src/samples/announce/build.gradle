@@ -1,6 +1,9 @@
 // START SNIPPET use-plugin
 apply plugin: 'announce'
 // END SNIPPET use-plugin
+// START SNIPPET use-build-announcements-plugin
+apply plugin: 'build-announcements'
+// END SNIPPET use-build-announcements-plugin
 
 //START SNIPPET announce-plugin-conf
 announce {  

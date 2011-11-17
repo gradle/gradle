@@ -1,0 +1,3 @@
+projectsLoaded {
+    rootProject.apply plugin: 'build-announcements'
+}
