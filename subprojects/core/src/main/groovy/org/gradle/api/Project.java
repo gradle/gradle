@@ -958,6 +958,32 @@ public interface Project extends Comparable<Project> {
     ArchiveFileTree tarTree(Object tarPath);
 
     /**
+     * <p>Creates a new {@code ArchiveFileTree} which contains the contents of the given TAR file. The given tarPath path is
+     * evaluated as for {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * method to untar a TAR file. Use optional closure to configure the resulting {@code ArchiveFileTree}</p>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
+     * <pre autoTested=''>
+     * task untar(type: Copy) {
+     *   from tarTree('someTar.ext') {
+     *     //tar tree tries to guess the compression based on the file extension
+     *     //if you need to specify the compression explicitly you can:
+     *     compression = Compression.GZIP
+     *   }
+     *   into 'dest'
+     * }
+     * </pre>
+     *
+     * @param tarPath The TAR file. Evaluated as for {@link #file(Object)}.
+     * @param configureClosure closure to configure resulting {@code ArchiveFileTree} object.
+     * @return the file tree. Never returns null.
+     */
+    ArchiveFileTree tarTree(Object tarPath, Closure configureClosure);
+
+    /**
      * Creates a directory and returns a file pointing to it.
      *
      * @param path The path for the directory to be created. Evaluated as for {@link #file(Object)}.

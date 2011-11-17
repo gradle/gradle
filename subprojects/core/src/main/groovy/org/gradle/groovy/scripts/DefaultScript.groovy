@@ -121,6 +121,10 @@ abstract class DefaultScript extends BasicScript {
         fileOperations.tarTree(tarPath)
     }
 
+    ArchiveFileTree tarTree(Object tarPath, Closure configureClosure) {
+        fileOperations.tarTree(tarPath, configureClosure)
+    }
+
     WorkResult copy(Closure closure) {
         fileOperations.copy(closure)
     }

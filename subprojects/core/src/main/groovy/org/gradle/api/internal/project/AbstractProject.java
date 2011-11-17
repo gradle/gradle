@@ -692,6 +692,10 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return fileOperations.tarTree(tarPath);
     }
 
+    public ArchiveFileTree tarTree(Object tarPath, Closure configureClosure) {
+        return fileOperations.tarTree(tarPath, configureClosure);
+    }
+
     public String relativePath(Object path) {
         return fileOperations.relativePath(path);
     }

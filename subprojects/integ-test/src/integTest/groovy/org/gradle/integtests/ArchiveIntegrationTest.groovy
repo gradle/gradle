@@ -118,7 +118,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-     @Test public void "knows compression of the tar tree"() {
+     @Test public void "knows compression of the tar"() {
         TestFile tar = file()
         tar.tbzTo(file('test.tbz2'))
 
@@ -170,8 +170,9 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
 
         file('build.gradle') << '''
             task copy(type: Copy) {
-                def tree = tarTree('test.ext')
-                tree.compression = Compression.BZIP2
+                def tree = tarTree('test.ext') {
+                    compression = Compression.BZIP2
+                }
                 from tree
                 exclude '**/2.txt'
                 into 'dest'

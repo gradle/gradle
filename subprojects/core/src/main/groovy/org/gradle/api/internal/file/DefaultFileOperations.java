@@ -97,6 +97,12 @@ public class DefaultFileOperations implements FileOperations {
         return new ArchiveFileTreeAdapter(fileTree, tarTree);
     }
 
+    public ArchiveFileTree tarTree(Object tarPath, Closure configureClosure) {
+        ArchiveFileTree tree = tarTree(tarPath);
+        configure(configureClosure, tree);
+        return tree;
+    }
+
     private File getExpandDir() {
         return temporaryFileProvider.newTemporaryFile("expandedArchives");
     }

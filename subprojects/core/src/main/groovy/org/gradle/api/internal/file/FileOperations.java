@@ -50,6 +50,8 @@ public interface FileOperations {
 
     ArchiveFileTree tarTree(Object tarPath);
 
+    ArchiveFileTree tarTree(Object tarPath, Closure configureClosure);
+
     CopySpec copySpec(Closure closure);
 
     WorkResult copy(Closure closure);
