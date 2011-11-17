@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.taskdefs.Tar;
 import org.apache.tools.ant.taskdefs.Zip;
+import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DeleteAction;
@@ -459,6 +460,24 @@ public class TestFile extends File implements TestFileContext {
         Tar tar = new Tar();
         tar.setBasedir(this);
         tar.setDestFile(zipFile);
+        AntUtil.execute(tar);
+        return this;
+    }
+
+    public TestFile tgzTo(TestFile tarFile) {
+        Tar tar = new Tar();
+        tar.setBasedir(this);
+        tar.setDestFile(tarFile);
+        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "gzip"));
+        AntUtil.execute(tar);
+        return this;
+    }
+
+    public TestFile tbzTo(TestFile tarFile) {
+        Tar tar = new Tar();
+        tar.setBasedir(this);
+        tar.setDestFile(tarFile);
+        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "bzip2"));
         AntUtil.execute(tar);
         return this;
     }
