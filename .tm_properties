@@ -3,5 +3,7 @@ exclude = "{**/build/{classes,distributions,repo,integ test,timestamp.txt,libs,t
 softTabs = true
 tabSize = 4
 
+TM_JAVA_SOURCE_FOLDER_REGEX=src|groovy|java|test|unit|integration|functional
+
 [ "**/build/reports/tests" ]
 include = "index.html"
