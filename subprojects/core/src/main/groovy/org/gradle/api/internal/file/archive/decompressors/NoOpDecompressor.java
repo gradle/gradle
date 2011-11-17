@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.bundling;
+package org.gradle.api.internal.file.archive.decompressors;
+
+import org.gradle.api.tasks.bundling.Decompressor;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 
 /**
- * Decompresses the input
+ * by Szczepan Faber, created at: 11/16/11
  */
-public interface Decompressor {
-
-    InputStream decompress(File file);
+public class NoOpDecompressor implements Decompressor {
+    public InputStream decompress(File file) {
+        try {
+            return new FileInputStream(file);
+        } catch (Exception e) {
+            String message = String.format("Unable to create input stream for file: %s due to: %s.", file.getName(), e.getMessage());
+            throw new RuntimeException(message, e);
+        }
+    }
 }

@@ -17,18 +17,19 @@ package org.gradle.api.internal.file.archive;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import static org.gradle.api.file.FileVisitorUtil.*;
-import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
-import org.gradle.util.TestFile;
 import org.gradle.util.TemporaryFolder;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-
+import org.gradle.util.TestFile;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static java.util.Collections.*;
+import static java.util.Collections.EMPTY_LIST;
+import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
+import static org.gradle.api.file.FileVisitorUtil.assertVisits;
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
+import static org.gradle.util.WrapUtil.toList;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class TarFileTreeTest {
     @Rule
@@ -55,9 +56,13 @@ public class TarFileTreeTest {
 
     @Test
     public void readsGzippedTarFile() {
+        TestFile tgz = tmpDir.getDir().file("test.tgz");
+
         rootDir.file("subdir/file1.txt").write("content");
         rootDir.file("subdir2/file2.txt").write("content");
-        rootDir.tgzTo(tarFile);
+        rootDir.tgzTo(tgz);
+
+        TarFileTree tree = new TarFileTree(tgz, expandDir);
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
@@ -65,9 +70,13 @@ public class TarFileTreeTest {
 
     @Test
     public void readsBzippedTarFile() {
+        TestFile tbz2 = tmpDir.getDir().file("test.tbz2");
+
         rootDir.file("subdir/file1.txt").write("content");
         rootDir.file("subdir2/file2.txt").write("content");
-        rootDir.tbzTo(tarFile);
+        rootDir.tbzTo(tbz2);
+
+        TarFileTree tree = new TarFileTree(tbz2, expandDir);
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));

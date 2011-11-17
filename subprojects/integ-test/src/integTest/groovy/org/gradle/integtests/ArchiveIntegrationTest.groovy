@@ -103,11 +103,11 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 file '2.txt'
             }
         }
-        tar.tbzTo(file('test.tbz'))
+        tar.tbzTo(file('test.tbz2'))
 
         file('build.gradle') << '''
             task copy(type: Copy) {
-                from tarTree('test.tbz')
+                from tarTree('test.tbz2')
                 exclude '**/2.txt'
                 into 'dest'
             }
