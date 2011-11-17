@@ -46,7 +46,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         PublishArtifact original = Mock()
 
         when:
-        def publishArtifact = publishArtifactFactory.createArtifact(original)
+        def publishArtifact = publishArtifactFactory.parseNotation(original)
 
         then:
         publishArtifact == original
@@ -57,7 +57,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         archiveTask.getArchivePath() >> new File("")
 
         when:
-        def publishArtifact = publishArtifactFactory.createArtifact(archiveTask)
+        def publishArtifact = publishArtifactFactory.parseNotation(archiveTask)
 
         then:
         publishArtifact instanceof ArchivePublishArtifact
@@ -68,7 +68,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         def file = new File("some.zip")
 
         when:
-        def publishArtifact = publishArtifactFactory.createArtifact(file)
+        def publishArtifact = publishArtifactFactory.parseNotation(file)
 
         then:
         publishArtifact instanceof DefaultPublishArtifact
@@ -81,7 +81,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         def file3 = new File(".zip")
 
         when:
-        def publishArtifact = publishArtifactFactory.createArtifact(file1)
+        def publishArtifact = publishArtifactFactory.parseNotation(file1)
 
         then:
         publishArtifact.name == 'some'
@@ -90,7 +90,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         publishArtifact.classifier == null
 
         when:
-        publishArtifact = publishArtifactFactory.createArtifact(file2)
+        publishArtifact = publishArtifactFactory.parseNotation(file2)
 
         then:
         publishArtifact.name == 'some.zip'
@@ -99,7 +99,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         publishArtifact.classifier == null
 
         when:
-        publishArtifact = publishArtifactFactory.createArtifact(file3)
+        publishArtifact = publishArtifactFactory.parseNotation(file3)
 
         then:
         publishArtifact.name == ''
@@ -112,7 +112,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         def file = new File("some-file")
 
         when:
-        def publishArtifact = publishArtifactFactory.createArtifact(file)
+        def publishArtifact = publishArtifactFactory.parseNotation(file)
 
         then:
         publishArtifact.file == file
@@ -129,7 +129,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         def file4 = new File("some-file-1.2.jar.jar")
 
         when:
-        def publishArtifact = publishArtifactFactory.createArtifact(file1)
+        def publishArtifact = publishArtifactFactory.parseNotation(file1)
 
         then:
         publishArtifact.name == 'some-file'
@@ -138,7 +138,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         publishArtifact.classifier == null
 
         when:
-        publishArtifact = publishArtifactFactory.createArtifact(file2)
+        publishArtifact = publishArtifactFactory.parseNotation(file2)
 
         then:
         publishArtifact.name == 'some-file-1.2'
@@ -147,7 +147,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         publishArtifact.classifier == null
 
         when:
-        publishArtifact = publishArtifactFactory.createArtifact(file3)
+        publishArtifact = publishArtifactFactory.parseNotation(file3)
 
         then:
         publishArtifact.name == 'some-file-1.22'
@@ -156,7 +156,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         publishArtifact.classifier == null
 
         when:
-        publishArtifact = publishArtifactFactory.createArtifact(file4)
+        publishArtifact = publishArtifactFactory.parseNotation(file4)
 
         then:
         publishArtifact.name == 'some-file-1.2.jar'
@@ -173,7 +173,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         def file5 = new File("some-file-1.2-.jar")
 
         when:
-        def publishArtifact = publishArtifactFactory.createArtifact(file1)
+        def publishArtifact = publishArtifactFactory.parseNotation(file1)
 
         then:
         publishArtifact.name == 'some-file'
@@ -182,7 +182,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         publishArtifact.classifier == 'classifier'
 
         when:
-        publishArtifact = publishArtifactFactory.createArtifact(file2)
+        publishArtifact = publishArtifactFactory.parseNotation(file2)
 
         then:
         publishArtifact.name == 'some-file-1.2-classifier'
@@ -191,7 +191,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         publishArtifact.classifier == null
 
         when:
-        publishArtifact = publishArtifactFactory.createArtifact(file3)
+        publishArtifact = publishArtifactFactory.parseNotation(file3)
 
         then:
         publishArtifact.name == ''
@@ -200,7 +200,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         publishArtifact.classifier == 'classifier'
 
         when:
-        publishArtifact = publishArtifactFactory.createArtifact(file4)
+        publishArtifact = publishArtifactFactory.parseNotation(file4)
 
         then:
         publishArtifact.name == 'some-file'
@@ -209,7 +209,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         publishArtifact.classifier == 'classifier'
 
         when:
-        publishArtifact = publishArtifactFactory.createArtifact(file5)
+        publishArtifact = publishArtifactFactory.parseNotation(file5)
 
         then:
         publishArtifact.name == 'some-file'
@@ -220,7 +220,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
 
     public void createArtifactWithNullNotationShouldThrowInvalidUserDataEx() {
         when:
-        publishArtifactFactory.createArtifact(null)
+        publishArtifactFactory.parseNotation(null)
 
         then:
         thrown(InvalidUserDataException)
@@ -228,7 +228,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
 
     public void createArtifactWithUnknownNotationShouldThrowInvalidUserDataEx() {
         when:
-        publishArtifactFactory.createArtifact(new Point(1, 2))
+        publishArtifactFactory.parseNotation(new Point(1, 2))
 
         then:
         thrown(InvalidUserDataException)

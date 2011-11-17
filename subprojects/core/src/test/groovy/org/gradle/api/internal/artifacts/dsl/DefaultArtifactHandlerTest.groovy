@@ -53,7 +53,7 @@ class DefaultArtifactHandlerTest extends Specification {
         artifactHandler.someConf("someNotation")
 
         then:
-        1 * artifactFactoryStub.createArtifact("someNotation") >> artifactDummy
+        1 * artifactFactoryStub.parseNotation("someNotation") >> artifactDummy
         1 * artifactsMock.add(artifactDummy)
     }
 
@@ -67,7 +67,7 @@ class DefaultArtifactHandlerTest extends Specification {
         artifact.type == 'source'
 
         and:
-        1 * artifactFactoryStub.createArtifact("someNotation") >> artifact
+        1 * artifactFactoryStub.parseNotation("someNotation") >> artifact
         1 * artifactsMock.add(artifact)
     }
 
@@ -79,8 +79,8 @@ class DefaultArtifactHandlerTest extends Specification {
         artifactHandler.someConf("someNotation", "someNotation2")
 
         then:
-        1 * artifactFactoryStub.createArtifact("someNotation") >> artifactDummy1
-        1 * artifactFactoryStub.createArtifact("someNotation2") >> artifactDummy2
+        1 * artifactFactoryStub.parseNotation("someNotation") >> artifactDummy1
+        1 * artifactFactoryStub.parseNotation("someNotation2") >> artifactDummy2
         1 * artifactsMock.add(artifactDummy1)
         1 * artifactsMock.add(artifactDummy2)
 
@@ -93,7 +93,7 @@ class DefaultArtifactHandlerTest extends Specification {
         artifactHandler.add('someConf', "someNotation")
 
         then:
-        1 * artifactFactoryStub.createArtifact("someNotation") >> artifactDummy
+        1 * artifactFactoryStub.parseNotation("someNotation") >> artifactDummy
         1 * artifactsMock.add(artifactDummy)
     }
 
@@ -107,7 +107,7 @@ class DefaultArtifactHandlerTest extends Specification {
         artifact.type == 'source'
 
         and:
-        1 * artifactFactoryStub.createArtifact("someNotation") >> artifact
+        1 * artifactFactoryStub.parseNotation("someNotation") >> artifact
         1 * artifactsMock.add(artifact)
     }
 

@@ -41,7 +41,11 @@ public class DefaultPublishArtifactFactory implements PublishArtifactFactory {
         this.metaDataProvider = metaDataProvider;
     }
 
-    public PublishArtifact createArtifact(Object notation) {
+    public boolean canParse(Object notation) {
+        throw new UnsupportedOperationException();
+    }
+
+    public PublishArtifact parseNotation(Object notation) {
         if (notation instanceof PublishArtifact) {
             return (PublishArtifact) notation;
         }

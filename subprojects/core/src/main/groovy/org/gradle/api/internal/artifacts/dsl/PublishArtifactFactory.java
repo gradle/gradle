@@ -16,10 +16,10 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.notations.api.NotationParser;
 
 /**
  * @author Hans Dockter
  */
-public interface PublishArtifactFactory {
-    PublishArtifact createArtifact(Object notation);
+public interface PublishArtifactFactory extends NotationParser<PublishArtifact> {
 }

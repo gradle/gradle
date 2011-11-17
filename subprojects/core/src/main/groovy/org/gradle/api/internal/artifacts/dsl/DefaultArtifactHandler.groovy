@@ -37,7 +37,7 @@ class DefaultArtifactHandler implements ArtifactHandler {
     }
 
     private PublishArtifact pushArtifact(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
-        PublishArtifact publishArtifact = publishArtifactFactory.createArtifact(notation)
+        PublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation)
         configuration.artifacts.add(publishArtifact)
         ConfigureUtil.configure(configureClosure, publishArtifact)
         return publishArtifact
