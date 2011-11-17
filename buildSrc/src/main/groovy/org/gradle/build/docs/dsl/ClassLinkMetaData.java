@@ -67,11 +67,18 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
             }
         }
         if (candidates.isEmpty()) {
-            throw new RuntimeException(String.format("No method '%s' found for class '%s'.", method, className));
+            String message = String.format("No method '%s' found for class '%s'.", method, className);
+            message += "\nThis problem may happen when some apilink from docbook template xmls refers to unknown method."
+                    +  "\nExample: <apilink class=\"org.gradle.api.Project\" method=\"someMethodThatDoesNotExist\"/>";
+            throw new RuntimeException(message);
         }
         if (candidates.size() != 1) {
-            throw new RuntimeException(String.format("Found multiple methods called '%s' in class '%s'. Candidates: %s",
-                    method, className, GUtil.join(candidates, ", ")));
+            String message = String.format("Found multiple methods called '%s' in class '%s'. Candidates: %s",
+                    method, className, GUtil.join(candidates, ", "));
+            message += "\nThis problem may happen when some apilink from docbook template xmls is incorrect. Example:"
+                    +  "\nIncorrect: <apilink class=\"org.gradle.api.Project\" method=\"tarTree\"/>"
+                    +  "\nCorrect:   <apilink class=\"org.gradle.api.Project\" method=\"tarTree(Object)\"/>";
+            throw new RuntimeException(message);
         }
         return candidates.get(0);
     }
