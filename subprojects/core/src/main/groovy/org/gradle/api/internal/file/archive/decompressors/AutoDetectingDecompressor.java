@@ -30,7 +30,7 @@ public class AutoDetectingDecompressor implements Decompressor {
     private final DecompressorFactory decompressorFactory = new DecompressorFactory();
 
     public InputStream decompress(File file) {
-        assert file != null : "file to unarchive cannot be null!";
+        assert file != null : "file to decompress cannot be null!";
 
         String ext = FilenameUtils.getExtension(file.getName());
         Decompressor d = decompressorFactory.decompressor(ext);

@@ -57,6 +57,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     }
 
     public void setDecompressor(Decompressor decompressor) {
+        assert decompressor != null: "decompressor cannot be null!";
         this.decompressor = decompressor;
     }
 
