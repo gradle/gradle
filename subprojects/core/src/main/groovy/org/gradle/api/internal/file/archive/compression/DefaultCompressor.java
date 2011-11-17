@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.archive.compression;
 
 import org.apache.tools.bzip2.CBZip2OutputStream;
 import org.gradle.api.tasks.bundling.Compression;
+import org.gradle.api.tasks.bundling.CompressionAware;
 import org.gradle.api.tasks.bundling.Compressor;
 
 import java.io.File;
@@ -28,7 +29,7 @@ import java.util.zip.GZIPOutputStream;
 /**
  * by Szczepan Faber, created at: 11/17/11
  */
-public class DefaultCompressor implements Compressor {
+public class DefaultCompressor implements Compressor, CompressionAware {
 
     private final Compression compression;
 
@@ -53,5 +54,9 @@ public class DefaultCompressor implements Compressor {
             String message = String.format("Unable to create output stream for file: %s due to: %s ", destination, e.getMessage());
             throw new RuntimeException(message, e);
         }
+    }
+
+    public Compression getCompression() {
+        return compression;
     }
 }

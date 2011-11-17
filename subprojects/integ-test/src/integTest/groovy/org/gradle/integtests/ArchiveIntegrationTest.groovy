@@ -138,6 +138,20 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 t.decompressor = {} as Decompressor
                 assert t.compression == Compression.NONE
             }
+
+            task myTar(type: Tar) {
+                compression = Compression.NONE
+                assert compression == Compression.NONE
+
+                compression = Compression.GZIP
+                assert compression == Compression.GZIP
+
+                compression = Compression.BZIP2
+                assert compression == Compression.BZIP2
+
+                compressor = {} as Compressor
+                assert compression == Compression.NONE
+            }
 '''
 
         inTestDirectory().withTasks('checkTarTree').run()
