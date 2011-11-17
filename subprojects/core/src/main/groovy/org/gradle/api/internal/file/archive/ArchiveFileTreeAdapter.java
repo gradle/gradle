@@ -17,7 +17,7 @@
 package org.gradle.api.internal.file.archive;
 
 import org.gradle.api.file.ArchiveFileTree;
-import org.gradle.api.internal.file.archive.decompressors.DecompressorFactory;
+import org.gradle.api.internal.file.archive.compression.DecompressorFactory;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.tasks.bundling.Compression;
 import org.gradle.api.tasks.bundling.CompressionAware;

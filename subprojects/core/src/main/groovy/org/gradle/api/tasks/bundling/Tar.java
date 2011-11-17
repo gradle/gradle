@@ -19,7 +19,7 @@ package org.gradle.api.tasks.bundling;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.TarCopyAction;
 import org.gradle.api.internal.file.archive.TarCopySpecVisitor;
-import org.gradle.api.internal.file.archive.decompressors.DefaultCompressor;
+import org.gradle.api.internal.file.archive.compression.DefaultCompressor;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 
 import java.io.File;

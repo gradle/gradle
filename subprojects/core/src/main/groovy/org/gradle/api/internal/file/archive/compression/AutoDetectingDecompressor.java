@@ -14,31 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.archive.decompressors;
+package org.gradle.api.internal.file.archive.compression;
 
-import org.gradle.api.tasks.bundling.Compression;
-import org.gradle.api.tasks.bundling.CompressionAware;
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.tasks.bundling.Decompressor;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.zip.GZIPInputStream;
 
 /**
  * by Szczepan Faber, created at: 11/16/11
  */
-public class GzipDecompressor implements Decompressor, CompressionAware {
-    public InputStream decompress(File source) {
-        try {
-            return new GZIPInputStream(new FileInputStream(source));
-        } catch (Exception e) {
-            String message = String.format("Unable to create gzip input stream for file: %s due to: %s.", source.getName(), e.getMessage());
-            throw new RuntimeException(message, e);
-        }
-    }
+public class AutoDetectingDecompressor implements Decompressor {
 
-    public Compression getCompression() {
-        return Compression.GZIP;
+    private final DecompressorFactory decompressorFactory = new DecompressorFactory();
+
+    public InputStream decompress(File source) {
+        assert source != null : "source file to decompress cannot be null!";
+
+        String ext = FilenameUtils.getExtension(source.getName());
+        Decompressor d = decompressorFactory.decompressor(ext);
+        return d.decompress(source);
     }
 }

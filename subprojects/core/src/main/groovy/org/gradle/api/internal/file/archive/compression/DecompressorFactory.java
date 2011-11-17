@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.archive.decompressors;
+package org.gradle.api.internal.file.archive.compression;
 
 import org.gradle.api.tasks.bundling.Compression;
 import org.gradle.api.tasks.bundling.Decompressor;

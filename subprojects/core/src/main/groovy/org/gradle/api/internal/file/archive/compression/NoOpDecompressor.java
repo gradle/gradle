@@ -14,26 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.archive.decompressors;
+package org.gradle.api.internal.file.archive.compression;
 
-import org.apache.commons.io.FilenameUtils;
+import org.gradle.api.tasks.bundling.Compression;
+import org.gradle.api.tasks.bundling.CompressionAware;
 import org.gradle.api.tasks.bundling.Decompressor;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 
 /**
  * by Szczepan Faber, created at: 11/16/11
  */
-public class AutoDetectingDecompressor implements Decompressor {
-
-    private final DecompressorFactory decompressorFactory = new DecompressorFactory();
-
+public class NoOpDecompressor implements Decompressor, CompressionAware {
     public InputStream decompress(File source) {
-        assert source != null : "source file to decompress cannot be null!";
+        try {
+            return new FileInputStream(source);
+        } catch (Exception e) {
+            String message = String.format("Unable to create input stream for file: %s due to: %s.", source.getName(), e.getMessage());
+            throw new RuntimeException(message, e);
+        }
+    }
 
-        String ext = FilenameUtils.getExtension(source.getName());
-        Decompressor d = decompressorFactory.decompressor(ext);
-        return d.decompress(source);
+    public Compression getCompression() {
+        return Compression.NONE;
     }
 }

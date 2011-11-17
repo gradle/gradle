@@ -19,7 +19,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.archive.decompressors.DefaultCompressor;
+import org.gradle.api.internal.file.archive.compression.DefaultCompressor;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
 import org.gradle.api.tasks.bundling.Compression;
 import org.gradle.util.TemporaryFolder;

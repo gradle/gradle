@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.archive.decompressors;
+package org.gradle.api.internal.file.archive.compression;
 
 import org.apache.tools.bzip2.CBZip2InputStream;
 import org.gradle.api.tasks.bundling.Compression;
