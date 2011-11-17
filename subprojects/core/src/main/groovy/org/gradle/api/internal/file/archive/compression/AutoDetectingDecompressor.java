@@ -27,13 +27,13 @@ import java.io.InputStream;
  */
 public class AutoDetectingDecompressor implements Decompressor {
 
-    private final DecompressorFactory decompressorFactory = new DecompressorFactory();
+    private final ArchiverFactory archiverFactory = new ArchiverFactory();
 
     public InputStream decompress(File source) {
         assert source != null : "source file to decompress cannot be null!";
 
         String ext = FilenameUtils.getExtension(source.getName());
-        Decompressor d = decompressorFactory.decompressor(ext);
+        Decompressor d = archiverFactory.decompressor(ext);
         return d.decompress(source);
     }
 }

@@ -22,19 +22,19 @@ import org.gradle.api.tasks.bundling.Decompressor;
 /**
  * by Szczepan Faber, created at: 11/17/11
  */
-public class DecompressorFactory {
+public class ArchiverFactory {
 
-    public Decompressor decompressor(Compression compression) {
+    public Archiver archiver(Compression compression) {
         switch(compression) {
-            case BZIP2: return new Bzip2Decompressor();
-            case GZIP:  return new GzipDecompressor();
-            default:    return new NoOpDecompressor();
+            case BZIP2: return new Bzip2Archiver();
+            case GZIP:  return new GzipArchiver();
+            default:    return new SimpleArchiver();
         }
     }
 
     public Decompressor decompressor(String extension) {
         Compression c = selectCompression(extension);
-        return decompressor(c);
+        return archiver(c);
     }
 
     private Compression selectCompression(String extension) {

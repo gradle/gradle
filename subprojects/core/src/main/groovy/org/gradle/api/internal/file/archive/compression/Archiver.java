@@ -16,28 +16,11 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.gradle.api.tasks.bundling.Compression;
-import org.gradle.api.tasks.bundling.CompressionAware;
+import org.gradle.api.tasks.bundling.Compressor;
 import org.gradle.api.tasks.bundling.Decompressor;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-
 /**
- * by Szczepan Faber, created at: 11/16/11
+ * by Szczepan Faber, created at: 11/17/11
  */
-public class NoOpDecompressor implements Decompressor, CompressionAware {
-    public InputStream decompress(File source) {
-        try {
-            return new FileInputStream(source);
-        } catch (Exception e) {
-            String message = String.format("Unable to create input stream for file: %s due to: %s.", source.getName(), e.getMessage());
-            throw new RuntimeException(message, e);
-        }
-    }
-
-    public Compression getCompression() {
-        return Compression.NONE;
-    }
+public interface Archiver extends Decompressor, Compressor {
 }

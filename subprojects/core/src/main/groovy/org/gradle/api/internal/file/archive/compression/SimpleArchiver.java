@@ -16,40 +16,28 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.apache.tools.bzip2.CBZip2OutputStream;
 import org.gradle.api.tasks.bundling.Compression;
 import org.gradle.api.tasks.bundling.CompressionAware;
-import org.gradle.api.tasks.bundling.Compressor;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.util.zip.GZIPOutputStream;
+import java.io.*;
 
 /**
- * by Szczepan Faber, created at: 11/17/11
+ * by Szczepan Faber, created at: 11/16/11
  */
-public class DefaultCompressor implements Compressor, CompressionAware {
+public class SimpleArchiver implements Archiver, CompressionAware {
 
-    private final Compression compression;
-
-    public DefaultCompressor(Compression compression) {
-        this.compression = compression;
+    public InputStream decompress(File source) {
+        try {
+            return new FileInputStream(source);
+        } catch (Exception e) {
+            String message = String.format("Unable to create input stream for file: %s due to: %s.", source.getName(), e.getMessage());
+            throw new RuntimeException(message, e);
+        }
     }
 
     public OutputStream compress(File destination) {
         try {
-            OutputStream outStr = new FileOutputStream(destination);
-            switch (compression) {
-                case GZIP:
-                    return new GZIPOutputStream(outStr);
-                case BZIP2:
-                    outStr.write('B');
-                    outStr.write('Z');
-                    return new CBZip2OutputStream(outStr);
-                default:
-                    return outStr;
-            }
+            return new FileOutputStream(destination);
         } catch (Exception e) {
             String message = String.format("Unable to create output stream for file: %s due to: %s ", destination, e.getMessage());
             throw new RuntimeException(message, e);
@@ -57,6 +45,6 @@ public class DefaultCompressor implements Compressor, CompressionAware {
     }
 
     public Compression getCompression() {
-        return compression;
+        return Compression.NONE;
     }
 }

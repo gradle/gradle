@@ -22,15 +22,15 @@ import spock.lang.Specification
 /**
  * by Szczepan Faber, created at: 11/17/11
  */
-public class DecompressorFactoryTest extends Specification {
+public class ArchiverFactoryTest extends Specification {
 
-    def factory = new DecompressorFactory();
+    def factory = new ArchiverFactory();
 
     def "creates decompressors"() {
         expect:
-        factory.decompressor(Compression.BZIP2.extension) instanceof Bzip2Decompressor
-        factory.decompressor(Compression.GZIP.extension)  instanceof GzipDecompressor
-        factory.decompressor(Compression.NONE.extension)  instanceof NoOpDecompressor
-        factory.decompressor("foo")  instanceof NoOpDecompressor
+        factory.decompressor(Compression.BZIP2.extension) instanceof Bzip2Archiver
+        factory.decompressor(Compression.GZIP.extension)  instanceof GzipArchiver
+        factory.decompressor(Compression.NONE.extension)  instanceof SimpleArchiver
+        factory.decompressor("foo")  instanceof SimpleArchiver
     }
 }
