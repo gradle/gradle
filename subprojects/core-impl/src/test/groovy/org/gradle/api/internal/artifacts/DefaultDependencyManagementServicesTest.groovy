@@ -77,6 +77,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         resolutionServices.resolveRepositoryHandler != null
         resolutionServices.configurationContainer != null
         resolutionServices.dependencyHandler != null
+        resolutionServices.artifactHandler != null
         resolutionServices.publishServicesFactory != null
     }
 

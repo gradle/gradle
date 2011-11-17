@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -74,6 +73,7 @@ public class ProjectInternalServiceRegistryTest {
     private final RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
     private final Factory publishServicesFactory = context.mock(Factory.class);
     private final DependencyHandler dependencyHandler = context.mock(DependencyHandler.class);
+    private final ArtifactHandler artifactHandler = context.mock(ArtifactHandler.class);
 
     @Before
     public void setUp() {
@@ -154,7 +154,7 @@ public class ProjectInternalServiceRegistryTest {
     public void providesAnArtifactHandler() {
         expectDependencyResolutionServicesCreated();
 
-        assertThat(registry.get(ArtifactHandler.class), instanceOf(DefaultArtifactHandler.class));
+        assertThat(registry.get(ArtifactHandler.class), sameInstance(artifactHandler));
         assertThat(registry.get(ArtifactHandler.class), sameInstance(registry.get(ArtifactHandler.class)));
     }
 
@@ -257,6 +257,9 @@ public class ProjectInternalServiceRegistryTest {
 
             allowing(dependencyResolutionServices).getDependencyHandler();
             will(returnValue(dependencyHandler));
+
+            allowing(dependencyResolutionServices).getArtifactHandler();
+            will(returnValue(artifactHandler));
         }});
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DomainObjectContext;
@@ -27,6 +28,8 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
+import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -185,6 +188,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         private DefaultRepositoryHandler repositoryHandler;
         private ConfigurationContainerInternal configurationContainer;
         private DependencyHandler dependencyHandler;
+        private DefaultArtifactHandler artifactHandler;
 
         private DefaultDependencyResolutionServices(ServiceRegistry parent, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
             this.parent = parent;
@@ -226,6 +230,17 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 dependencyHandler = new DefaultDependencyHandler(getConfigurationContainer(), parent.get(DependencyFactory.class), projectFinder);
             }
             return dependencyHandler;
+        }
+
+        public ArtifactHandler getArtifactHandler() {
+            if (artifactHandler == null) {
+                artifactHandler = new DefaultArtifactHandler(
+                        getConfigurationContainer(),
+                        new DefaultPublishArtifactFactory(
+                                get(Instantiator.class),
+                                dependencyMetaDataProvider));
+            }
+            return artifactHandler;
         }
 
         public Factory<ArtifactPublicationServices> getPublishServicesFactory() {
