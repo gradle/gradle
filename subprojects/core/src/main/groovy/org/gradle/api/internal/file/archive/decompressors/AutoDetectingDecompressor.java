@@ -29,11 +29,11 @@ public class AutoDetectingDecompressor implements Decompressor {
 
     private final DecompressorFactory decompressorFactory = new DecompressorFactory();
 
-    public InputStream decompress(File file) {
-        assert file != null : "file to decompress cannot be null!";
+    public InputStream decompress(File source) {
+        assert source != null : "source file to decompress cannot be null!";
 
-        String ext = FilenameUtils.getExtension(file.getName());
+        String ext = FilenameUtils.getExtension(source.getName());
         Decompressor d = decompressorFactory.decompressor(ext);
-        return d.decompress(file);
+        return d.decompress(source);
     }
 }

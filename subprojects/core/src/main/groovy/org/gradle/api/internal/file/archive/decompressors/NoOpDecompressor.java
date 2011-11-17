@@ -26,11 +26,11 @@ import java.io.InputStream;
  * by Szczepan Faber, created at: 11/16/11
  */
 public class NoOpDecompressor implements Decompressor {
-    public InputStream decompress(File file) {
+    public InputStream decompress(File source) {
         try {
-            return new FileInputStream(file);
+            return new FileInputStream(source);
         } catch (Exception e) {
-            String message = String.format("Unable to create input stream for file: %s due to: %s.", file.getName(), e.getMessage());
+            String message = String.format("Unable to create input stream for file: %s due to: %s.", source.getName(), e.getMessage());
             throw new RuntimeException(message, e);
         }
     }

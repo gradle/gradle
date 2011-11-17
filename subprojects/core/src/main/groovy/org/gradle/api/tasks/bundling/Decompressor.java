@@ -24,5 +24,10 @@ import java.io.InputStream;
  */
 public interface Decompressor {
 
-    InputStream decompress(File file);
+    /**
+     * returns an input stream that is able to read the compressed input file
+     *
+     * @param source the input
+     */
+    InputStream decompress(File source);
 }
