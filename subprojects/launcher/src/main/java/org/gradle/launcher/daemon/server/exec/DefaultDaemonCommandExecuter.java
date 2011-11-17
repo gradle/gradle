@@ -55,12 +55,12 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new CatchAndForwardDaemonFailure(),
             new HandleStop(),
             new UpdateDaemonStateAndHandleBusyDaemon(),
+            new EstablishBuildEnvironment(),
             new LogToClient(loggingManager), // from this point down, logging is sent back to the client
             new ForwardClientInput(executorFactory),
             new ReturnResult(),
             new ResetDeprecationLogger(),
             new ReportExceptions(loggingServices.get(StyledTextOutputFactory.class)),
-            new EstablishBuildEnvironment(),
             new WatchForDisconnection(),
             new ExecuteBuild(launcherFactory)
         ).proceed();
