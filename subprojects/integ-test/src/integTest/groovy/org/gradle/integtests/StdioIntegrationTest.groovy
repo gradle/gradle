@@ -36,7 +36,7 @@ task echo << {
 '''
 
         when:
-        executer.withStdIn("abc\n123").withArguments("-s")
+        executer.withStdIn("abc\n123").withArguments("-s", "--info")
         run "echo"
 
         then:
@@ -64,7 +64,7 @@ task echo << {
         writeEnd.write("abc\n123\nclose\n".bytes)
 
         when:
-        executer.withStdIn(readEnd).withArguments("-s")
+        executer.withStdIn(readEnd).withArguments("-s", "--info")
         run "echo"
 
         then:

@@ -22,7 +22,7 @@ import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.logging.internal.LoggingOutputInternal;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.DisconnectAwareConnectionDecorator;
@@ -34,13 +34,13 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
 
     final private ServiceRegistry loggingServices;
     private final ExecutorFactory executorFactory;
-    final private LoggingOutputInternal loggingOutput;
+    final private LoggingManagerInternal loggingManager;
     final private GradleLauncherFactory launcherFactory;
 
     public DefaultDaemonCommandExecuter(ServiceRegistry loggingServices, ExecutorFactory executorFactory) {
         this.loggingServices = loggingServices;
         this.executorFactory = executorFactory;
-        this.loggingOutput = loggingServices.get(LoggingOutputInternal.class);
+        this.loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
         this.launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
     }
 
@@ -55,14 +55,14 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new CatchAndForwardDaemonFailure(),
             new HandleStop(),
             new UpdateDaemonStateAndHandleBusyDaemon(),
+            new LogToClient(loggingManager), // from this point down, logging is sent back to the client
             new ForwardClientInput(executorFactory),
             new ReturnResult(),
-            new ForwardOutput(loggingOutput),
             new ResetDeprecationLogger(),
             new ReportExceptions(loggingServices.get(StyledTextOutputFactory.class)),
             new EstablishBuildEnvironment(),
             new WatchForDisconnection(),
-            new ExecuteBuild(loggingServices, launcherFactory)
+            new ExecuteBuild(launcherFactory)
         ).proceed();
     }
 
