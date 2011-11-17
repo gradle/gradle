@@ -148,7 +148,7 @@
 
         <para>You can use the contents of an archive, such as a ZIP or TAR file, as a file tree. You do this using
             the <apilink class="org.gradle.api.Project" method="zipTree"/> and
-            <apilink class="org.gradle.api.Project" method="tarTree"/> methods. These methods return a <literal>FileTree</literal>
+            <apilink class="org.gradle.api.Project" method="tarTree(java.lang.Object)"/> methods. These methods return a <literal>FileTree</literal>
             instance which you can use like any other file tree or file collection. For example, you can use it to expand
             the archive by copying the contents, or to merge some archives into another.
         </para>
