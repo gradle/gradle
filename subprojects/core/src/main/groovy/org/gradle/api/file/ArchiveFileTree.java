@@ -26,8 +26,6 @@ public interface ArchiveFileTree extends FileTree {
 
     /**
      * Decompressor for this archive file tree
-     *
-     * @return decompressor
      */
     Decompressor getDecompressor();
 
@@ -44,4 +42,9 @@ public interface ArchiveFileTree extends FileTree {
      * @param compression
      */
     void setCompression(Compression compression);
+
+    /**
+     * Compression used by this archive file tree
+     */
+    Compression getCompression();
 }

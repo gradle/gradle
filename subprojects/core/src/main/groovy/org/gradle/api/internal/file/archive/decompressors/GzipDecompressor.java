@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file.archive.decompressors;
 
+import org.gradle.api.tasks.bundling.Compression;
+import org.gradle.api.tasks.bundling.CompressionAware;
 import org.gradle.api.tasks.bundling.Decompressor;
 
 import java.io.File;
@@ -26,7 +28,7 @@ import java.util.zip.GZIPInputStream;
 /**
  * by Szczepan Faber, created at: 11/16/11
  */
-public class GzipDecompressor implements Decompressor {
+public class GzipDecompressor implements Decompressor, CompressionAware {
     public InputStream decompress(File source) {
         try {
             return new GZIPInputStream(new FileInputStream(source));
@@ -34,5 +36,9 @@ public class GzipDecompressor implements Decompressor {
             String message = String.format("Unable to create gzip input stream for file: %s due to: %s.", source.getName(), e.getMessage());
             throw new RuntimeException(message, e);
         }
+    }
+
+    public Compression getCompression() {
+        return Compression.GZIP;
     }
 }

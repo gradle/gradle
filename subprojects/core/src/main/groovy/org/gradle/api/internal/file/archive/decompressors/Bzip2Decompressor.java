@@ -17,6 +17,8 @@
 package org.gradle.api.internal.file.archive.decompressors;
 
 import org.apache.tools.bzip2.CBZip2InputStream;
+import org.gradle.api.tasks.bundling.Compression;
+import org.gradle.api.tasks.bundling.CompressionAware;
 import org.gradle.api.tasks.bundling.Decompressor;
 
 import java.io.BufferedInputStream;
@@ -27,7 +29,7 @@ import java.io.InputStream;
 /**
  * by Szczepan Faber, created at: 11/16/11
  */
-public class Bzip2Decompressor implements Decompressor {
+public class Bzip2Decompressor implements Decompressor, CompressionAware {
     public InputStream decompress(File source) {
         try {
             InputStream is = new BufferedInputStream(new FileInputStream(source));
@@ -39,5 +41,9 @@ public class Bzip2Decompressor implements Decompressor {
             String message = String.format("Unable to create bzip2 input stream for file: %s due to: %s.", source.getName(), e.getMessage());
             throw new RuntimeException(message, e);
         }
+    }
+
+    public Compression getCompression() {
+        return Compression.BZIP2;
     }
 }

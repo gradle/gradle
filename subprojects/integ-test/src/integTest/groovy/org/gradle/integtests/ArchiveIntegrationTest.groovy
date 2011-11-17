@@ -118,6 +118,31 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
+     @Test public void "knows compression of the tar tree"() {
+        TestFile tar = file()
+        tar.tbzTo(file('test.tbz2'))
+
+        file('build.gradle') << '''
+            task checkTarTree << {
+                def t = tarTree('test.tbz2')
+
+                t.compression = Compression.NONE
+                assert t.compression == Compression.NONE
+
+                t.compression = Compression.GZIP
+                assert t.compression == Compression.GZIP
+
+                t.compression = Compression.BZIP2
+                assert t.compression == Compression.BZIP2
+
+                t.decompressor = {} as Decompressor
+                assert t.compression == Compression.NONE
+            }
+'''
+
+        inTestDirectory().withTasks('checkTarTree').run()
+    }
+
     @Test public void "can choose compression method for tarTree"() {
         TestFile tar = file()
         tar.create {
