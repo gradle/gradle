@@ -184,6 +184,29 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
+    @Test public void "tarTree fails gracefully if cannot decompress"() {
+        TestFile tar = file()
+        tar.create {
+            someDir {
+                file '1.txt'
+                file '2.txt'
+            }
+        }
+        //file extension is different than the compression mode:
+        tar.tbzTo(file('test.tar'))
+
+        file('build.gradle') << '''
+            task copy(type: Copy) {
+                from tarTree('test.tar')
+                into 'dest'
+            }
+'''
+
+        def failure = inTestDirectory().withTasks('copy').runWithFailure()
+        assert failure.error.contains("Unable to expand TAR")
+        assert failure.error.contains("compression based on the file extension")
+    }
+
     @Test public void cannotCreateAnEmptyZip() {
         testFile('build.gradle') << '''
             task zip(type: Zip) {

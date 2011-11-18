@@ -23,7 +23,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.archive.compression.AutoDetectingDecompressor;
+import org.gradle.api.internal.file.archive.compression.FileExtensionBasedDecompressor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
@@ -42,7 +42,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     private final File tmpDir;
 
     public TarFileTree(File tarFile, File tmpDir) {
-            this(tarFile, tmpDir, new AutoDetectingDecompressor());
+            this(tarFile, tmpDir, new FileExtensionBasedDecompressor());
     }
 
     public TarFileTree(File tarFile, File tmpDir, Decompressor decompressor) {
@@ -87,7 +87,11 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
                 inputStream.close();
             }
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not expand %s.", getDisplayName()), e);
+            String message = "Unable to expand " + getDisplayName() + "\n"
+                    + "  The tar might be corrupted or it is compressed in an unexpected way.\n"
+                    + "  By default the tar tree tries to guess the compression based on the file extension.\n"
+                    + "  If you need to specify the compression explicitly please refer to the DSL reference.";
+            throw new GradleException(message, e);
         }
     }
 

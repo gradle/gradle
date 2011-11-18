@@ -25,7 +25,7 @@ import java.io.InputStream;
 /**
  * by Szczepan Faber, created at: 11/16/11
  */
-public class AutoDetectingDecompressor implements Decompressor {
+public class FileExtensionBasedDecompressor implements Decompressor {
 
     private final ArchiverFactory archiverFactory = new ArchiverFactory();
 
