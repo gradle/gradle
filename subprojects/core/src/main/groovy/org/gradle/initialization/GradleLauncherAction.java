@@ -18,8 +18,26 @@ package org.gradle.initialization;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 
+/**
+ * An object that performs some action with a {@link GradleLauncher}, and optionally produces a “result” object (e.g. the output).
+ * <p>
+ * Implementations of this are typically composed to bootstrap a build in a certain environment.
+ * <p>
+ * @see org.gradle.launcher.cli.ExecuteBuildAction
+ * @see org.gradle.tooling.internal.provider.BuildModelAction
+ */
 public interface GradleLauncherAction<T> {
+    
+    /**
+     * Something produced by the action, the meaning of which is entirely up to the implementation to define.
+     */
     T getResult();
 
+    /**
+     * Executes the action with the given launcher.
+     * <p>
+     * The state of the launcher is not defined as part of this contract, it is highly context specific. For example,
+     * it is not guaranteed that the start parameter for the launcher has been configured.
+     */
     BuildResult run(GradleLauncher launcher);
 }
