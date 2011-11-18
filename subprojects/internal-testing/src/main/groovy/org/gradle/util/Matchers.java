@@ -29,6 +29,8 @@ import org.jmock.internal.ReturnDefaultValueAction;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.ObjectOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -214,6 +216,24 @@ public class Matchers {
         };
     }
 
+    @Factory
+    public static Matcher<Object> isSerializable() {
+        return new BaseMatcher<Object>() {
+            public boolean matches(Object o) {
+                try {
+                    new ObjectOutputStream(new ByteArrayOutputStream()).writeObject(o);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                return true;
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("is serializable");
+            }
+        };
+    }
+    
     @Factory
     public static Matcher<Throwable> hasMessage(final Matcher<String> matcher) {
         return new BaseMatcher<Throwable>() {

@@ -80,6 +80,7 @@ class StartParameterTest {
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
         assertFalse(parameter.dryRun)
         assertFalse(parameter.continueOnFailure)
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testDefaultWithGradleUserHomeSystemProp() {
@@ -96,6 +97,7 @@ class StartParameterTest {
 
         assertThat(parameter.currentDir, equalTo(dir.canonicalFile))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(dir.canonicalFile)))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetBuildFile() {
@@ -106,6 +108,7 @@ class StartParameterTest {
         assertThat(parameter.buildFile, equalTo(file.canonicalFile))
         assertThat(parameter.currentDir, equalTo(file.canonicalFile.parentFile))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new BuildFileProjectSpec(file.canonicalFile)))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetNullBuildFile() {
@@ -117,6 +120,7 @@ class StartParameterTest {
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
         assertThat(parameter.initScripts, equalTo(Collections.emptyList()))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetProjectDir() {
@@ -126,6 +130,7 @@ class StartParameterTest {
 
         assertThat(parameter.currentDir, equalTo(file.canonicalFile))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(file.canonicalFile)))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetNullProjectDir() {
@@ -135,6 +140,7 @@ class StartParameterTest {
 
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetSettingsFile() {
@@ -145,6 +151,7 @@ class StartParameterTest {
         assertThat(parameter.currentDir, equalTo(file.canonicalFile.parentFile))
         assertThat(parameter.settingsScriptSource, instanceOf(UriScriptSource.class))
         assertThat(parameter.settingsScriptSource.resource.file, equalTo(file.canonicalFile))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetNullSettingsFile() {
@@ -152,17 +159,19 @@ class StartParameterTest {
         parameter.settingsFile = null
 
         assertThat(parameter.settingsScriptSource, nullValue())
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetSettingsScriptSource() {
         StartParameter parameter = new StartParameter()
         parameter.settingsFile = new File('settings file')
 
-        ScriptSource scriptSource = {} as ScriptSource
+        ScriptSource scriptSource = new StringScriptSource("", "")
 
         parameter.settingsScriptSource = scriptSource
 
         assertThat(parameter.settingsScriptSource, sameInstance(scriptSource))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testUseEmbeddedBuildFile() {
@@ -173,12 +182,14 @@ class StartParameterTest {
         assertThat(parameter.settingsScriptSource, instanceOf(StringScriptSource.class))
         assertThat(parameter.settingsScriptSource.resource.text, equalTo(""))
         assertThat(parameter.searchUpwards, equalTo(false))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetNullUserHomeDir() {
         StartParameter parameter = new StartParameter()
         parameter.gradleUserHomeDir = null
         assertThat(parameter.gradleUserHomeDir, equalTo(StartParameter.DEFAULT_GRADLE_USER_HOME))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testNewBuild() {
@@ -199,6 +210,7 @@ class StartParameterTest {
         parameter.defaultProjectSelector = [:] as ProjectSpec
         parameter.dryRun = true
         parameter.continueOnFailure = true
+        assertThat(parameter, isSerializable())
 
         StartParameter newParameter = parameter.newBuild();
 
@@ -216,5 +228,6 @@ class StartParameterTest {
         assertThat(newParameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
         assertThat(newParameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(newParameter.currentDir)))
         assertFalse(newParameter.dryRun)
+        assertThat(newParameter, isSerializable())
     }
 }

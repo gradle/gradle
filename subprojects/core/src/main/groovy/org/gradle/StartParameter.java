@@ -32,6 +32,7 @@ import org.gradle.util.GUtil;
 import org.gradle.util.SystemProperties;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -46,7 +47,7 @@ import java.util.*;
  * @author Hans Dockter
  * @see GradleLauncher
  */
-public class StartParameter {
+public class StartParameter implements Serializable {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     /**
      * The default user home directory.

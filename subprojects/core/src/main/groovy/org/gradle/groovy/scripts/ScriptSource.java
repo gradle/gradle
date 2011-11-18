@@ -17,10 +17,12 @@ package org.gradle.groovy.scripts;
 
 import org.gradle.api.internal.resource.Resource;
 
+import java.io.Serializable;
+
 /**
  * The source for the text of a script, with some meta-info about the script.
  */
-public interface ScriptSource {
+public interface ScriptSource extends Serializable {
     /**
      * Returns the name to use for the compiled class for this script. Never returns null.
      */

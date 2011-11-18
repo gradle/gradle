@@ -22,8 +22,9 @@ import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.InvalidUserDataException;
 
 import java.io.File;
+import java.io.Serializable;
 
-public class ProjectDirectoryProjectSpec extends AbstractProjectSpec {
+public class ProjectDirectoryProjectSpec extends AbstractProjectSpec implements Serializable {
     private final File dir;
 
     public ProjectDirectoryProjectSpec(File dir) {
