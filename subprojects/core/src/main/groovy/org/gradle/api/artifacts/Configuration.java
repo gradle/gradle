@@ -38,6 +38,7 @@ public interface Configuration extends FileCollection {
      * See docs for {@link ResolutionStrategy} for more info and examples.
      *
      * @return resolution strategy
+     * @since 1.0-milestone-6
      */
     ResolutionStrategy getResolutionStrategy();
 
@@ -47,6 +48,7 @@ public interface Configuration extends FileCollection {
      *
      * @param closure closure applied to the {@link ResolutionStrategy}
      * @return this configuration instance
+     * @since 1.0-milestone-6
      */
     Configuration resolutionStrategy(Closure closure);
 

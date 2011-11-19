@@ -44,6 +44,8 @@ import java.util.concurrent.TimeUnit;
  *   }
  * }
  * </pre>
+ *
+ * @since 1.0-milestone-6
  */
 public interface ResolutionStrategy {
 
@@ -60,6 +62,7 @@ public interface ResolutionStrategy {
      * </pre>
      *
      * @return this resolution strategy instance
+     * @since 1.0-milestone-6
      */
     ResolutionStrategy failOnVersionConflict();
 
@@ -82,6 +85,7 @@ public interface ResolutionStrategy {
      *
      * @param forcedModuleNotations typically group:name:version notations to append
      * @return this ResolutionStrategy instance
+     * @since 1.0-milestone-7
      */
     ResolutionStrategy force(Object... forcedModuleNotations);
 
@@ -100,6 +104,7 @@ public interface ResolutionStrategy {
      *
      * @param forcedModuleNotations typically group:name:version notations to set
      * @return this ResolutionStrategy instance
+     * @since 1.0-milestone-7
      */
     ResolutionStrategy setForcedModules(Object... forcedModuleNotations);
 
@@ -107,6 +112,7 @@ public interface ResolutionStrategy {
      * Returns currently configured forced modules. For more information on forcing versions see {@link #force(Object...)}
      *
      * @return forced modules
+     * @since 1.0-milestone-7
      */
     Set<ModuleVersionSelector> getForcedModules();
 
@@ -117,6 +123,7 @@ public interface ResolutionStrategy {
      * Units are resolved by calling the {@code valueOf(String)} method of {@link java.util.concurrent.TimeUnit} with the upper-cased string value.</p>
      * @param value The number of time units
      * @param units The units
+     * @since 1.0-milestone-6
      */
     void cacheDynamicVersionsFor(int value, String units);
 
@@ -128,6 +135,7 @@ public interface ResolutionStrategy {
      * <p>Use this method to provide a custom expiry time after which the cached value for any dynamic version will be expired.</p>
      * @param value The number of time units
      * @param units The units
+     * @since 1.0-milestone-6
      */
     void cacheDynamicVersionsFor(int value, TimeUnit units);
 
@@ -138,6 +146,7 @@ public interface ResolutionStrategy {
      * Units are resolved by calling the {@code valueOf(String)} method of {@link java.util.concurrent.TimeUnit} with the upper-cased string value.</p>
      * @param value The number of time units
      * @param units The units
+     * @since 1.0-milestone-6
      */
     void cacheChangingModulesFor(int value, String units);
 
@@ -149,6 +158,7 @@ public interface ResolutionStrategy {
      * <p>Use this method to provide a custom expiry time after which the cached entries for any changing module will be expired.</p>
      * @param value The number of time units
      * @param units The units
+     * @since 1.0-milestone-6
      */
     void cacheChangingModulesFor(int value, TimeUnit units);
 }
