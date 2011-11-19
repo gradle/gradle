@@ -31,6 +31,12 @@ import java.util.concurrent.TimeUnit;
  *     // e.g. multiple different versions of the same dependency (group and name are equal)
  *     failOnVersionConflict()
  *
+ *     // force certain versions of dependencies (including transitive)
+ *     //  *append new forced modules:
+ *     force 'asm:asm-all:3.3.1', 'commons-io:commons-io:1.4'
+ *     //  *replace existing forced modules with new ones:
+ *     forcedModules = ['asm:asm-all:3.3.1']
+ *
  *     // cache dynamic versions for 10 minutes
  *     cacheDynamicVersionsFor 10, 'minutes'
  *     // don't cache changing modules at all
@@ -58,29 +64,47 @@ public interface ResolutionStrategy {
     ResolutionStrategy failOnVersionConflict();
 
     /**
-     * <b>Experimental</b>. This part of the api is yet experimental - may change without notice.
+     * Allows forcing certain versions of dependencies, including transitive dependencies.
+     * <b>Appends</b> new forced modules to be considered when resolving dependencies.
      * <p>
-     * Configures forced versions in DSL friendly fashion.
+     * It accepts following notations:
+     * <ul>
+     *   <li>String in a format of: 'group:name:version', for example: 'org.gradle:gradle-core:1.0'</li>
+     *   <li>instance of {@link ModuleVersionSelector}</li>
+     *   <li>any collection or array of above will be automatically flattened</li>
+     * </ul>
+     * Example:
+     * <pre autoTested=''>
+     * configurations.all {
+     *   resolutionStrategy.force 'asm:asm-all:3.3.1', 'commons-io:commons-io:1.4'
+     * }
+     * </pre>
      *
-     * @param forcedModuleNotations group:name:version notations
+     * @param forcedModuleNotations typically group:name:version notations to append
      * @return this ResolutionStrategy instance
      */
     ResolutionStrategy force(Object... forcedModuleNotations);
 
     /**
-     * <b>Experimental</b>. This part of the api is yet experimental - may change without notice.
+     * Allows forcing certain versions of dependencies, including transitive dependencies.
+     * <b>Replaces</b> existing forced modules with the input.
      * <p>
-     * Replaces existing forced modules with the passed ones.
+     * For information on notations see {@link #force(Object...)}
+     * <p>
+     * Example:
+     * <pre autoTested=''>
+     * configurations.all {
+     *   resolutionStrategy.forcedModules = ['asm:asm-all:3.3.1', 'commons-io:commons-io:1.4']
+     * }
+     * </pre>
      *
-     * @param forcedModuleNotations forced modules to set
+     * @param forcedModuleNotations typically group:name:version notations to set
      * @return this ResolutionStrategy instance
      */
     ResolutionStrategy setForcedModules(Object... forcedModuleNotations);
 
     /**
-     * <b>Experimental</b>. This part of the api is yet experimental - may change without notice.
-     * <p>
-     * returns currently configured forced modules
+     * Returns currently configured forced modules. For more information on forcing versions see {@link #force(Object...)}
      *
      * @return forced modules
      */

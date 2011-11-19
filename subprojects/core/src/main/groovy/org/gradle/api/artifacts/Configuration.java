@@ -26,7 +26,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * <p>A {@code Configuration} represents a group of artifacts and their dependencies.</p>
+ * A {@code Configuration} represents a group of artifacts and their dependencies.
+ * <p>
+ * See also examples on managing configurations in {@link ConfigurationContainer}
  */
 public interface Configuration extends FileCollection {
 

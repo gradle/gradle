@@ -75,11 +75,9 @@ import org.gradle.api.NamedDomainObjectContainer;
  *   compile.transitive = false
  *   testCompile.transitive = false
  * }
- *
- * //Configuring strict conflict strategy - it will fail eagerly if in single configuration
- * //there are multiple different versions of the same dependency (group and name are equal).
- * configurations.all { resolutionStrategy.failOnVersionConflict() }
  * </pre>
+ *
+ * Examples on configuring the <b>resolution strategy</b> - see docs for {@link ResolutionStrategy}
  *
  * @author Hans Dockter
  */
