@@ -260,6 +260,9 @@
             <sample id="moduleDependencies" dir="userguide/artifacts/externalDependencies" title="Module dependencies">
                 <sourcefile file="build.gradle" snippet="module-dependencies"/>
             </sample>
+            <para>Please see the <apilink class='org.gradle.api.artifacts.dsl.DependencyHandler'/>
+                for more examples and complete reference. Please read on to get thorough understanding of the Gradle's dependency management.
+            </para>
             <para>Gradle provides different notations for module dependencies. There is a string notation and
                 a map notation. A module dependency has an API which allows for further configuration. Have a look at
                 <apilink class='org.gradle.api.artifacts.ExternalModuleDependency'/> to learn all about the API.
@@ -275,6 +278,28 @@
                 a module can only have one and only one artifact. In Gradle and Ivy a module can have multiple artifacts.
                 Each artifact can have a different set of dependencies.
             </para>
+            <section id='ssub:multi_artifact_dependencies'>
+                <title>Depending on modules with multiple artifacts</title>
+                As mentioned earlier, a maven module has only one artifact. So, when your project depends on a maven module
+                it's obvious what artifact is the actual dependency.
+                With Gradle or Ivy the case is different. Ivy model of dependencies (<literal>ivy.xml</literal>) can declare multiple artifacts.
+                For more information, see Ivy reference for <literal>ivy.xml</literal>.
+                In Gradle, when you declare a dependency on an ivy module you actually declare dependency on the <literal>'default'</literal> configuration of that module.
+                So the actual list of artifacts (typically jars) your project depends on, are all artifacts that are attached to the <literal>default</literal> configuration of that module.
+                This is very important in following exemplary use cases:
+                <itemizedlist>
+                    <listitem>The <literal>default</literal> configuration of some module contains some artifacts
+                        you don't want on the classpath. You might need to configure a dependency on specific artifact(s) of given module,
+                        rather than pulling all artifacts of the <literal>default</literal> dependency
+                    </listitem>
+                    <listitem>The artifact you need on the classpath has been published in a different configuration
+                        than the <literal>default</literal> one. This means this artifact will not be pulled in by Gradle.
+                        Unless you explicitly declare what configuration of the module you depend on.
+                    </listitem>
+                </itemizedlist>
+                There are other situations where it is necessary to fine-tune the dependency declaration.
+                Please see the <apilink class='org.gradle.api.artifacts.dsl.DependencyHandler'/> for examples and complete reference on declaring dependencies.
+            </section>
             <section id='ssub:artifact_dependencies'>
                 <title>Artifact only notation</title>
                 <para>As said above, if no module descriptor file can be found, Gradle by default

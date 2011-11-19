@@ -66,7 +66,7 @@ import java.util.Map;
  * }
  * </pre>
  *
- * Example of advanced dependency declaration including:
+ * Examples of advanced dependency declaration including:
  * <ul>
  * <li>forcing certain dependency version in case of the conflict</li>
  * <li>excluding certain dependencies by name, group or both</li>
@@ -88,6 +88,31 @@ import java.util.Map;
  *
  *     //disabling all transitive dependencies of this dependency
  *     transitive = false
+ *   }
+ * }
+ * </pre>
+ *
+ * More examples of advanced configuration, useful when dependency module has multiple artifacts
+ * <ul>
+ *   <li>declaring dependency to a specific configuration of the module</li>
+ *   <li>explicit specification of the artifact. See also {@link org.gradle.api.artifacts.ModuleDependency#artifact(groovy.lang.Closure)}</li>
+ * </ul>
+ *
+ * <pre autoTested=''>
+ * apply plugin: 'java' //so that I can declare 'compile' dependencies
+ *
+ * dependencies {
+ *   //configuring dependency to specific configuration of the module
+ *   compile configuration: 'someConf', group: 'org.someOrg', name: 'someModule', version: '1.0'
+ *
+ *   //configuring dependency on 'someLib' module
+ *   compile(group: 'org.myorg', name: 'someLib', version:'1.0') {
+ *     //explicitly adding the dependency artifact:
+ *     artifact {
+ *       name = 'someArtifact' //artifact name different than module name
+ *       type = 'jar'
+ *       classifier = 'someClassifier'
+ *     }
  *   }
  * }
  * </pre>
