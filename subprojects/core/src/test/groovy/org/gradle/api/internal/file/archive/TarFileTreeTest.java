@@ -27,6 +27,7 @@ import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
 import static org.gradle.api.file.FileVisitorUtil.assertVisits;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.WrapUtil.toList;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -118,7 +119,7 @@ public class TarFileTreeTest {
             tree.visit(null);
             fail();
         } catch (GradleException e) {
-            assertThat(e.getMessage(), equalTo("Could not expand TAR '" + tarFile + "'."));
+            assertThat(e.getMessage(), containsString("Unable to expand TAR '" + tarFile + "'"));
         }
     }
 }
