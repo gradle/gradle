@@ -103,14 +103,33 @@
             <para>In your dependency description you tell Gradle which version of a dependency is needed by another
                 dependency. This frequently leads to conflicts. Different dependencies rely on different versions of
                 another dependency. The JVM unfortunately does not offer yet any easy way, to have different versions of
-                the same jar in the classpath (see <xref linkend='sub:dependency_management_and_java'/>).
-                Gradle offers following conflict resolution strategies:
+                the same jar in the classpath (see <xref linkend='sub:dependency_management_and_java'/>).</para>
+            <para>Gradle offers following conflict resolution strategies:
                 <itemizedlist>
-                    <listitem><emphasis>Newest</emphasis> - used by default by Gradle - the newest version of the dependency is used.</listitem>
+                    <listitem><emphasis>Newest</emphasis> - used by default by Gradle - the newest version of the dependency is used.
+                    This strategy has been in Gradle since early days.
+                    </listitem>
                     <listitem><emphasis>Fail</emphasis> - fail eagerly on version conflict.
-                        Useful if you need extra control and manage the conflicts manually.</listitem>
+                        Useful if you need extra control and manage the conflicts manually.
+                        Introduced in <code>1.0-milestone-6</code>. See <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/> for reference on managing the conflict resolution strategies.
+                    </listitem>
                 </itemizedlist>
-                See <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/> for reference on managing the conflict resolution strategies.
+                Gradle provides means to resolve version conflicts:
+                <itemizedlist>
+                    <listitem>
+                        Configuring a first level dependency as <emphasis>forced</emphasis>.
+                        The feature has been in Gradle since early days.
+                        This approach is useful if the dependency incurring conflict is already a first level dependency.
+                        See examples in <apilink class='org.gradle.api.artifacts.dsl.DependencyHandler'/>
+                    </listitem>
+                    <listitem>
+                        Configuring any dependency (transitive or not) as <emphasis>forced</emphasis>.
+                        The feature was introduced in <code>1.0-milestone-7</code>.
+                        This approach is useful if the dependency incurring conflict is a transitive dependency.
+                        It also can be used to force versions of first level dependencies.
+                        See examples in <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
+                    </listitem>
+                </itemizedlist>
                 To deal with problems due to version conflicts, reports with dependency graphs are also very helpful.
                 Such reports are another feature of dependency management.
             </para>
