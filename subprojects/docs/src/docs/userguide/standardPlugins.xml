@@ -328,7 +328,26 @@
             </thead>
             <tr>
                 <td>base</td>
-                <td><para>Adds the standard lifecycle tasks to the project, plus some shared convention properties.</para></td>
+                <td><para>Adds the standard lifecycle tasks and configures reasonable defaults for the archive tasks:
+                    <itemizedlist>
+                        <listitem>adds build<replaceable>ConfigurationName</replaceable> tasks.
+                            Those tasks assemble the artifacts belonging to the specified configuration.
+                        </listitem>
+                        <listitem>adds upload<replaceable>ConfigurationName</replaceable> tasks.
+                            Those tasks assemble and upload the artifacts belonging to the specified configuration.
+                        </listitem>
+                        <listitem>configures reasonable default values for all archive tasks (e.g. tasks that inherit from
+                            <apilink class="org.gradle.api.tasks.bundling.AbstractArchiveTask"/>).
+                            For example, the archive tasks are tasks of types: <apilink class="org.gradle.api.tasks.bundling.Jar"/>,
+                            <apilink class="org.gradle.api.tasks.bundling.Tar"/>, <apilink class="org.gradle.api.tasks.bundling.Zip"/>.
+                            Specifically, <literal>destinationDir</literal>, <literal>baseName</literal> and <literal>version</literal>
+                            properties of the archive tasks are preconfigured with defaults.
+                            This is extremely useful because it drives consistency across projects;
+                            the consistency regarding naming conventions of archives and their location after the build completed.
+                        </listitem>
+                    </itemizedlist>
+                    </para>
+                </td>
             </tr>
             <tr>
                 <td>java-base</td>

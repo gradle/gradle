@@ -298,7 +298,9 @@
                     The tasks which produce the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
-                <td>Assembles the artifacts in the specified configuration.</td>
+                <td>Assembles the artifacts in the specified configuration.
+                    The task is added by the Base plugin which is implicitly applied by the Java plugin.
+                </td>
             </tr>
             <tr>
                 <td>
@@ -308,7 +310,9 @@
                     The tasks which uploads the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Upload"/></td>
-                <td>Assembles and uploads the artifacts in the specified configuration.</td>
+                <td>Assembles and uploads the artifacts in the specified configuration.
+                    The task is added by the Base plugin which is implicitly applied by the Java plugin.
+                </td>
             </tr>
         </table>
 
