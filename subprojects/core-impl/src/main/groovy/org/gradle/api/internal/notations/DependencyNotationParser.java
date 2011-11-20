@@ -31,9 +31,9 @@ public class DependencyNotationParser implements TopLevelNotationParser, Notatio
     private final NotationParser<Dependency> delegate;
 
     public DependencyNotationParser(Set<NotationParser<? extends Dependency>> compositeParsers) {
-        delegate = new NotationParserBuilder()
+        delegate = new NotationParserBuilder<Dependency>()
                 .resultingType(Dependency.class)
-                .parsers((Set) compositeParsers)
+                .parsers(compositeParsers)
                 .invalidNotationMessage("The dependency notation cannot be used to form the dependency.\n"
                             + "The most typical dependency notation types/formats:\n"
                             + "  - Strings, e.g. 'org.gradle:gradle-core:1.0'\n"

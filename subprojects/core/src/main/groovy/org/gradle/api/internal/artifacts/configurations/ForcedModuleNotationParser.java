@@ -38,7 +38,7 @@ import static java.util.Arrays.asList;
  */
 public class ForcedModuleNotationParser implements TopLevelNotationParser, NotationParser<Set<ModuleVersionSelector>> {
 
-    private NotationParser<Set<ModuleVersionSelector>> delegate = new NotationParserBuilder()
+    private NotationParser<Set<ModuleVersionSelector>> delegate = new NotationParserBuilder<ModuleVersionSelector>()
             .resultingType(ModuleVersionSelector.class)
             .parser(new ForcedModuleStringParser())
             .parser(new ForcedModuleMapParser())

@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.notations.CliendModuleNotationParser;
+import org.gradle.api.internal.notations.ClientModuleNotationParser;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 
@@ -34,11 +34,11 @@ import java.util.Map;
  */
 public class DefaultDependencyFactory implements DependencyFactory {
     private final DependencyNotationParser dependencyNotationParser;
-    private final CliendModuleNotationParser clientModuleNotationParser;
+    private final ClientModuleNotationParser clientModuleNotationParser;
     private ProjectDependencyFactory projectDependencyFactory;
 
     public DefaultDependencyFactory(DependencyNotationParser dependencyNotationParser,
-                                    CliendModuleNotationParser clientModuleNotationParser,
+                                    ClientModuleNotationParser clientModuleNotationParser,
                                     ProjectDependencyFactory projectDependencyFactory) {
         this.dependencyNotationParser = dependencyNotationParser;
         this.clientModuleNotationParser = clientModuleNotationParser;

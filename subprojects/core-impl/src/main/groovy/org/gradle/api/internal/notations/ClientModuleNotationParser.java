@@ -24,16 +24,17 @@ import org.gradle.api.internal.notations.api.TopLevelNotationParser;
 /**
  * @author Hans Dockter
  */
-public class CliendModuleNotationParser implements TopLevelNotationParser, NotationParser<ClientModule> {
+public class ClientModuleNotationParser implements TopLevelNotationParser, NotationParser<ClientModule> {
 
     private final NotationParser<ClientModule> delegate;
 
-    public CliendModuleNotationParser(Instantiator instantiator) {
-        delegate = new NotationParserBuilder()
-            .parser(new DependencyStringNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
-            .parser(new DependencyMapNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
-            .invalidNotationMessage("Client module dependency notation cannot be used to form a client module.")
-            .toComposite();
+    public ClientModuleNotationParser(Instantiator instantiator) {
+        delegate = new NotationParserBuilder<ClientModule>()
+                .resultingType(ClientModule.class)
+                .parser(new DependencyStringNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
+                .parser(new DependencyMapNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
+                .invalidNotationMessage("Client module dependency notation cannot be used to form a client module.")
+                .toComposite();
     }
 
     public boolean canParse(Object notation) {

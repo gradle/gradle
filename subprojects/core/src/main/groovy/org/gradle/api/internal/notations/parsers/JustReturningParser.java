@@ -20,11 +20,11 @@ import org.gradle.api.internal.notations.api.NotationParser;
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public class JustReturningParser implements NotationParser {
+public class JustReturningParser<T> implements NotationParser<T> {
 
-    private final Class passThroughType;
+    private final Class<T> passThroughType;
 
-    public JustReturningParser(Class passThroughType) {
+    public JustReturningParser(Class<T> passThroughType) {
         this.passThroughType = passThroughType;
     }
 
@@ -32,7 +32,7 @@ public class JustReturningParser implements NotationParser {
         return passThroughType.isInstance(notation);
     }
 
-    public Object parseNotation(Object notation) {
+    public T parseNotation(Object notation) {
         return passThroughType.cast(notation);
     }
 }

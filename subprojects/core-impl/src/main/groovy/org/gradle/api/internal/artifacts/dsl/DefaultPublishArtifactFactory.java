@@ -18,13 +18,15 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.Task;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.notations.NotationParserBuilder;
+import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
 import java.io.File;
@@ -35,25 +37,48 @@ import java.io.File;
 public class DefaultPublishArtifactFactory implements PublishArtifactFactory {
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider metaDataProvider;
+    private final NotationParser<PublishArtifact> delegate;
 
     public DefaultPublishArtifactFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider) {
         this.instantiator = instantiator;
         this.metaDataProvider = metaDataProvider;
+        delegate = new NotationParserBuilder<PublishArtifact>()
+                .resultingType(PublishArtifact.class)
+                .parser(new ArchiveTaskNotationParser())
+                .parser(new FileNotationParser())
+                .invalidNotationMessage("The artifact notation cannot be used to form the artifact.\n"
+                        + "The supported artifact notation types/formats:\n"
+                        + "  - instances of AbstractArchiveTask, e.g. jar\n"
+                        + "  - instances of File")
+                .toComposite();
     }
 
     public boolean canParse(Object notation) {
-        throw new UnsupportedOperationException();
+        return delegate.canParse(notation);
     }
 
     public PublishArtifact parseNotation(Object notation) {
-        if (notation instanceof PublishArtifact) {
-            return (PublishArtifact) notation;
+        return delegate.parseNotation(notation);
+    }
+
+    private class ArchiveTaskNotationParser extends TypedNotationParser<AbstractArchiveTask, PublishArtifact> {
+        private ArchiveTaskNotationParser() {
+            super(AbstractArchiveTask.class);
         }
-        if (notation instanceof AbstractArchiveTask) {
+
+        @Override
+        protected PublishArtifact parseType(AbstractArchiveTask notation) {
             return instantiator.newInstance(ArchivePublishArtifact.class, notation);
         }
-        if (notation instanceof File) {
-            File file = (File) notation;
+    }
+
+    private class FileNotationParser extends TypedNotationParser<File, PublishArtifact> {
+        private FileNotationParser() {
+            super(File.class);
+        }
+
+        @Override
+        protected PublishArtifact parseType(File file) {
             Module module = metaDataProvider.getModule();
 
             String name = file.getName();
@@ -92,7 +117,5 @@ public class DefaultPublishArtifactFactory implements PublishArtifactFactory {
 
             return instantiator.newInstance(DefaultPublishArtifact.class, name, extension, extension, classifier, null, file, new Task[0]);
         }
-
-        throw new InvalidUserDataException("Notation is invalid for an artifact! Passed notation=" + notation);
     }
 }

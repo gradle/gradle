@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 /**
  * by Szczepan Faber, created at: 11/10/11
  */
-public class DependencyStringNotationParser<T extends ExternalDependency> extends TypedNotationParser<CharSequence, ExternalDependency> {
+public class DependencyStringNotationParser<T extends ExternalDependency> extends TypedNotationParser<CharSequence, T> {
 
     private final Instantiator instantiator;
     private final Class<T> wantedType;

@@ -32,9 +32,7 @@ public abstract class TypedNotationParser<N, T> implements NotationParser<T> {
     }
 
     public boolean canParse(Object notation) {
-        //TODO what if someone passes in a null - see how it looks and improve the message
-        assert notation != null: "the notation cannot be null!";
-        return typeToken.isAssignableFrom(notation.getClass());
+        return typeToken.isInstance(notation);
     }
 
     public T parseNotation(Object notation) {

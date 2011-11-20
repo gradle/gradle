@@ -21,6 +21,7 @@ import org.gradle.api.internal.notations.parsers.AlwaysThrowingParser;
 import org.gradle.api.internal.notations.parsers.CompositeNotationParser;
 import org.gradle.api.internal.notations.parsers.FlatteningNotationParser;
 import org.gradle.api.internal.notations.parsers.JustReturningParser;
+import org.gradle.util.GUtil;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -30,45 +31,44 @@ import java.util.Set;
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public class NotationParserBuilder {
-    private Class resultingType;
+public class NotationParserBuilder<T> {
+    private Class<T> resultingType;
     private String invalidNotationMessage;
-    private Collection<NotationParser> notationParsers = new LinkedList<NotationParser>();
+    private Collection<NotationParser<? extends T>> notationParsers = new LinkedList<NotationParser<? extends T>>();
 
-    public NotationParserBuilder resultingType(Class resultingType) {
+    public NotationParserBuilder<T> resultingType(Class<T> resultingType) {
         this.resultingType = resultingType;
         return this;
     }
 
-    public NotationParserBuilder parser(NotationParser parser) {
+    public NotationParserBuilder<T> parser(NotationParser<? extends T> parser) {
         this.notationParsers.add(parser);
         return this;
     }
 
-    public NotationParserBuilder invalidNotationMessage(String invalidNotationMessage) {
+    public NotationParserBuilder<T> invalidNotationMessage(String invalidNotationMessage) {
         this.invalidNotationMessage = invalidNotationMessage;
         return this;
     }
 
-    public NotationParserBuilder parsers(Set<NotationParser> notationParsers) {
-        this.notationParsers.addAll(notationParsers);
+    public NotationParserBuilder<T> parsers(Iterable<? extends NotationParser<? extends T>> notationParsers) {
+        GUtil.addToCollection(this.notationParsers, notationParsers);
         return this;
     }
 
-    public <T> NotationParser<Set<T>> toFlatteningComposite() {
+    public NotationParser<Set<T>> toFlatteningComposite() {
         NotationParser<T> delegate = toComposite();
         return new FlatteningNotationParser<T>(delegate);
     }
 
-    public <T> NotationParser<T> toComposite() {
+    public NotationParser<T> toComposite() {
         assert invalidNotationMessage != null : "invalidNotationMessage cannot be null";
+        assert resultingType != null : "resultingType cannot be null";
 
-        List composites = new LinkedList();
-        if (resultingType != null) {
-            composites.add(new JustReturningParser(resultingType));
-        }
+        List<NotationParser<? extends T>> composites = new LinkedList<NotationParser<? extends T>>();
+        composites.add(new JustReturningParser<T>(resultingType));
         composites.addAll(this.notationParsers);
-        composites.add(new AlwaysThrowingParser(invalidNotationMessage));
+        composites.add(new AlwaysThrowingParser<T>(resultingType, invalidNotationMessage));
 
         return new CompositeNotationParser<T>(composites);
     }

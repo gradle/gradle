@@ -22,10 +22,12 @@ import org.gradle.api.internal.notations.api.NotationParser;
 /**
  * by Szczepan Faber, created at: 11/8/11
  */
-public class AlwaysThrowingParser implements NotationParser {
+public class AlwaysThrowingParser<T> implements NotationParser<T> {
+    private final Class<T> targetType;
     private final String invalidNotationMessage;
 
-    public AlwaysThrowingParser(String invalidNotationMessage) {
+    public AlwaysThrowingParser(Class<T> targetType, String invalidNotationMessage) {
+        this.targetType = targetType;
         this.invalidNotationMessage = invalidNotationMessage;
     }
 
@@ -33,10 +35,13 @@ public class AlwaysThrowingParser implements NotationParser {
         return true;
     }
 
-    public Object parseNotation(Object notation) {
-        String message = "Provided notation is invalid: " + notation + ".\n"
-                + "Specifically, the type of the notation is invalid: " + notation.getClass().getName() + ".\n"
-                + invalidNotationMessage;
+    public T parseNotation(Object notation) {
+        String message;
+        if (notation == null) {
+            message = String.format("Cannot convert a null value to an object of type %s.%n%s", targetType.getSimpleName(), invalidNotationMessage);
+        } else {
+            message = String.format("Cannot convert the provided notation to an object of type %s: %s.%n%s", targetType.getSimpleName(), notation, invalidNotationMessage);
+        }
         throw new InvalidNotationType(message);
     }
 }

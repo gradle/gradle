@@ -18,6 +18,7 @@ package org.gradle.api.internal.notations.parsers;
 
 import org.gradle.api.internal.notations.api.NotationParser;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -25,15 +26,19 @@ import java.util.Collection;
  */
 public class CompositeNotationParser<T> implements NotationParser<T> {
 
-    private final Collection<NotationParser<T>> delegates;
+    private final Collection<NotationParser<? extends T>> delegates;
 
-    public CompositeNotationParser(Collection<NotationParser<T>> delegates) {
+    public CompositeNotationParser(NotationParser<? extends T>... delegates) {
+        this.delegates = Arrays.asList(delegates);
+    }
+
+    public CompositeNotationParser(Collection<NotationParser<? extends T>> delegates) {
         assert delegates != null : "delegates cannot be null!";
         this.delegates = delegates;
     }
 
     public boolean canParse(Object notation) {
-        for (NotationParser<T> delegate : delegates) {
+        for (NotationParser<? extends T> delegate : delegates) {
             if (delegate.canParse(notation)) {
                 return true;
             }
@@ -42,7 +47,7 @@ public class CompositeNotationParser<T> implements NotationParser<T> {
     }
 
     public T parseNotation(Object notation) {
-        for (NotationParser<T> delegate : delegates) {
+        for (NotationParser<? extends T> delegate : delegates) {
             if (delegate.canParse(notation)) {
                 return delegate.parseNotation(notation);
             }
