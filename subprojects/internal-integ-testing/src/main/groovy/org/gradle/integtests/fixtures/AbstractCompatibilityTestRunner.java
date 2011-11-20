@@ -46,20 +46,20 @@ public abstract class AbstractCompatibilityTestRunner extends Runner {
         previous = new ArrayList<BasicGradleDistribution>();
         String versionStr = System.getProperty("org.gradle.integtest.versions", "latest");
         List<String> versions;
-        if (versionStr.equals("all")) {
-            versions = Arrays.asList(
-                    "0.8",
-                    "0.9-rc-3",
-                    "0.9",
-                    "0.9.1",
-                    "0.9.2",
-                    "1.0-milestone-1",
-                    "1.0-milestone-2",
-                    "1.0-milestone-3",
-                    "1.0-milestone-4",
-                    "1.0-milestone-5");
-        } else {
-            versions = Arrays.asList("1.0-milestone-5");
+        versions = Arrays.asList(
+                "0.8",
+                "0.9-rc-3",
+                "0.9",
+                "0.9.1",
+                "0.9.2",
+                "1.0-milestone-1",
+                "1.0-milestone-2",
+                "1.0-milestone-3",
+                "1.0-milestone-4",
+                "1.0-milestone-5",
+                "1.0-milestone-6");
+        if (!versionStr.equals("all")) {
+            versions = Collections.singletonList(versions.get(versions.size() - 1));
         }
         for (String version : versions) {
             BasicGradleDistribution previous = current.previousVersion(version);
