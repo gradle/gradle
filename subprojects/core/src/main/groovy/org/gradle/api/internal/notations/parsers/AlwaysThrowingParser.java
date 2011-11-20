@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.notations.parsers;
 
-import org.gradle.api.internal.notations.api.InvalidNotationType;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.notations.api.NotationParser;
 
 /**
@@ -42,6 +42,6 @@ public class AlwaysThrowingParser<T> implements NotationParser<T> {
         } else {
             message = String.format("Cannot convert the provided notation to an object of type %s: %s.%n%s", targetType.getSimpleName(), notation, invalidNotationMessage);
         }
-        throw new InvalidNotationType(message);
+        throw new InvalidUserDataException(message);
     }
 }

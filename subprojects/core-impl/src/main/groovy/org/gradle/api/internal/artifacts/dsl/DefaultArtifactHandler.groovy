@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GUtil
+import org.gradle.api.internal.notations.api.NotationParser
 
 /**
  * @author Hans Dockter
@@ -29,9 +30,9 @@ import org.gradle.util.GUtil
 class DefaultArtifactHandler implements ArtifactHandler {
 
     ConfigurationContainer configurationContainer
-    PublishArtifactFactory publishArtifactFactory
+    NotationParser<PublishArtifact> publishArtifactFactory
 
-    def DefaultArtifactHandler(ConfigurationContainer configurationContainer, PublishArtifactFactory publishArtifactFactory) {
+    def DefaultArtifactHandler(ConfigurationContainer configurationContainer, NotationParser<PublishArtifact> publishArtifactFactory) {
         this.configurationContainer = configurationContainer;
         this.publishArtifactFactory = publishArtifactFactory;
     }

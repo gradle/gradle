@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.IllegalDependencyNotation;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
 import org.gradle.api.internal.notations.NotationParserBuilder;
-import org.gradle.api.internal.notations.api.InvalidNotationFormat;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.TopLevelNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
@@ -73,7 +73,7 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser, Notat
             try {
                 ConfigureUtil.configureByMap(notation, out, mandatoryKeys);
             } catch (ConfigureUtil.IncompleteInputException e) {
-                throw new InvalidNotationFormat(
+                throw new InvalidUserDataException(
                           "Invalid format: " + notation + ". Missing mandatory key(s): " + e.getMissingKeys() + "\n"
                         + "The correct notation is a map with keys: " + mandatoryKeys + ", for example: [group: 'org.gradle', name:'gradle-core', version: '1.0']", e);
             }
@@ -92,13 +92,13 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser, Notat
             try {
                 parsed = new ParsedModuleStringNotation(notation.toString(), null);
             } catch (IllegalDependencyNotation e) {
-                throw new InvalidNotationFormat(
+                throw new InvalidUserDataException(
                     "Invalid format: '" + notation + "'. The Correct notation is a 3-part group:name:version notation,"
                     + "e.g: 'org.gradle:gradle-core:1.0'");
             }
 
             if (parsed.getGroup() == null || parsed.getName() == null || parsed.getVersion() == null) {
-                throw new InvalidNotationFormat(
+                throw new InvalidUserDataException(
                     "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
                     + "'org.gradle:gradle-core:1.0'");
             }

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.notations.parsers
 
-import org.gradle.api.internal.notations.api.InvalidNotationType
+import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
 class AlwaysThrowingParserTest extends Specification {
@@ -26,7 +26,7 @@ class AlwaysThrowingParserTest extends Specification {
         parser.parseNotation(null)
 
         then:
-        InvalidNotationType e = thrown()
+        InvalidUserDataException e = thrown()
         e.message == '''Cannot convert a null value to an object of type String.
 <broken>'''
     }
@@ -36,7 +36,7 @@ class AlwaysThrowingParserTest extends Specification {
         parser.parseNotation("bad")
 
         then:
-        InvalidNotationType e = thrown()
+        InvalidUserDataException e = thrown()
         e.message == '''Cannot convert the provided notation to an object of type String: bad.
 <broken>'''
 

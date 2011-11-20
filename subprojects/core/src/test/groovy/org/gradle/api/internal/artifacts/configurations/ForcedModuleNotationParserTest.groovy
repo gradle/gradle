@@ -17,8 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 
-import org.gradle.api.internal.notations.api.InvalidNotationFormat
-import org.gradle.api.internal.notations.api.InvalidNotationType
+import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
 /**
@@ -89,7 +88,7 @@ public class ForcedModuleNotationParserTest extends Specification {
         new ForcedModuleNotationParser().parseNotation(new Object())
 
         then:
-        thrown(InvalidNotationType)
+        thrown(InvalidUserDataException)
     }
 
     def "reports missing keys for map notation"() {
@@ -97,7 +96,7 @@ public class ForcedModuleNotationParserTest extends Specification {
         new ForcedModuleNotationParser().parseNotation([name: "bar", version: "1.0"])
 
         then:
-        thrown(InvalidNotationFormat)
+        thrown(InvalidUserDataException)
     }
 
     def "reports wrong keys for map notation"() {
@@ -105,7 +104,7 @@ public class ForcedModuleNotationParserTest extends Specification {
         new ForcedModuleNotationParser().parseNotation([groop: 'groop', name: "bar", version: "1.0"])
 
         then:
-        thrown(InvalidNotationFormat)
+        thrown(InvalidUserDataException)
     }
 
     def "reports invalid format for string notation"() {
@@ -113,7 +112,7 @@ public class ForcedModuleNotationParserTest extends Specification {
         new ForcedModuleNotationParser().parseNotation(["blahblah"])
 
         then:
-        thrown(InvalidNotationFormat)
+        thrown(InvalidUserDataException)
     }
 
     def "reports invalid missing data for string notation"() {
@@ -121,7 +120,7 @@ public class ForcedModuleNotationParserTest extends Specification {
         new ForcedModuleNotationParser().parseNotation([":foo:"])
 
         then:
-        def ex = thrown(InvalidNotationFormat)
+        def ex = thrown(InvalidUserDataException)
         ex.message.contains 'cannot be empty'
     }
 }

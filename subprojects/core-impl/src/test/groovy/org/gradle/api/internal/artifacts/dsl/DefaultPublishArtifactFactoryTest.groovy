@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.dsl;
 
 
 import java.awt.Point
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.DirectInstantiator
@@ -24,7 +25,6 @@ import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.internal.notations.api.InvalidNotationType
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import spock.lang.Specification
 
@@ -223,7 +223,7 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         publishArtifactFactory.parseNotation(null)
 
         then:
-        thrown(InvalidNotationType)
+        thrown(InvalidUserDataException)
     }
 
     public void createArtifactWithUnknownNotationShouldThrowInvalidUserDataEx() {
@@ -231,6 +231,6 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         publishArtifactFactory.parseNotation(new Point(1, 2))
 
         then:
-        thrown(InvalidNotationType)
+        thrown(InvalidUserDataException)
     }
 }

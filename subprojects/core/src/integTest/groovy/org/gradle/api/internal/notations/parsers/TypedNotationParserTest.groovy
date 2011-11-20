@@ -17,7 +17,6 @@
 package org.gradle.api.internal.notations.parsers;
 
 
-import org.gradle.api.internal.notations.api.InvalidNotationType
 import spock.lang.Specification
 
 /**
@@ -41,7 +40,7 @@ public class TypedNotationParserTest extends Specification {
         parser.parseNotation(new Object())
 
         then:
-        thrown(InvalidNotationType)
+        thrown(InvalidUserDataException)
     }
 
     class DummyParser extends TypedNotationParser<String, Integer> {

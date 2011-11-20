@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.internal.notations.api.TopLevelNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
@@ -34,7 +35,7 @@ import java.io.File;
 /**
  * @author Hans Dockter
  */
-public class DefaultPublishArtifactFactory implements PublishArtifactFactory {
+public class DefaultPublishArtifactFactory implements NotationParser<PublishArtifact>, TopLevelNotationParser {
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider metaDataProvider;
     private final NotationParser<PublishArtifact> delegate;
