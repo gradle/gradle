@@ -15,9 +15,11 @@
  */
 <% if (subprojects.empty ) { %>
 apply plugin: 'java'
+apply plugin: 'eclipse'
 
 repositories {
     mavenCentral()
+//    mavenRepo(urls: 'http://snapshots.repository.codehaus.org/')
     ivy {
         name = 'jfrog'
         artifactPattern('http://repo.jfrog.org/artifactory/gradle-plugins-snapshots/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]')
@@ -35,6 +37,7 @@ dependencies {
     testCompile 'junit:junit:4.8.2'
     compile 'org.jfrog.wharf:wharf-core:1.0-20110727083102@jar'
     runtime 'com.esotericsoftware:kryo:1.03', 'com.esotericsoftware:minlog:1.2', 'com.googlecode:reflectasm:1.01'
+//    compile 'org.codehaus.groovy:groovy-all:1.8.4-SNAPSHOT'
 }
 
 test {
