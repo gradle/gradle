@@ -133,9 +133,10 @@ allprojects {
 
 	configurations {
 		all {
-			resolutionStrategy { 
-				cacheDynamicVersionsFor 24, 'hours'
-				cacheChangingModulesFor 24, 'hours'
+			resolutionStrategy {
+                //we cannot use 'hours' for now due to java 1.5 problem
+			    cacheDynamicVersionsFor 24*60*60, 'seconds'
+			    cacheChangingModulesFor 24*60*60, 'seconds'
 			}
 		}
 	}
