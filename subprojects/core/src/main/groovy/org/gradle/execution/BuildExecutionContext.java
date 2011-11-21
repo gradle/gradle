@@ -21,6 +21,4 @@ public interface BuildExecutionContext {
     GradleInternal getGradle();
 
     void proceed();
-
-    void setDisplayName(String displayName);
 }

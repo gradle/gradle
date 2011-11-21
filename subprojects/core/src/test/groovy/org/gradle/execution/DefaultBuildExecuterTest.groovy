@@ -15,8 +15,8 @@
  */
 package org.gradle.execution
 
-import spock.lang.Specification
 import org.gradle.api.internal.GradleInternal
+import spock.lang.Specification
 
 class DefaultBuildExecuterTest extends Specification {
     final GradleInternal gradleInternal = Mock()
@@ -134,20 +134,5 @@ class DefaultBuildExecuterTest extends Specification {
         1 * executionAction.execute(!null) >> {
             assert it[0].gradle ==gradleInternal
         }
-    }
-
-    def "configuration action can modify execution display name"() {
-        BuildConfigurationAction configurationAction = Mock()
-        BuildExecutionAction executionAction = Mock()
-
-        given:
-        def buildExecution = new DefaultBuildExecuter([configurationAction], [])
-        _ * configurationAction.configure(!null) >> { it[0].displayName = 'display name' }
-
-        when:
-        buildExecution.select(gradleInternal)
-
-        then:
-        buildExecution.displayName == 'display name'
     }
 }

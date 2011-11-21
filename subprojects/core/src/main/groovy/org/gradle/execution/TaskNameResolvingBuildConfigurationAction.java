@@ -25,6 +25,8 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.util.GUtil;
 import org.gradle.util.JavaMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -37,6 +39,7 @@ import java.util.Set;
  * projects whose name is the given name.
  */
 public class TaskNameResolvingBuildConfigurationAction implements BuildConfigurationAction {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskNameResolvingBuildConfigurationAction.class);
     private final TaskNameResolver taskNameResolver;
 
     public TaskNameResolvingBuildConfigurationAction() {
@@ -58,9 +61,9 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
         }
 
         if (selectedTasks.keySet().size() == 1) {
-            context.setDisplayName(String.format("primary task %s", GUtil.toString(selectedTasks.keySet())));
+            LOGGER.info("Selected primary task {}", GUtil.toString(selectedTasks.keySet()));
         } else {
-            context.setDisplayName(String.format("primary tasks %s", GUtil.toString(selectedTasks.keySet())));
+            LOGGER.info("Selected primary tasks {}", GUtil.toString(selectedTasks.keySet()));
         }
 
         context.proceed();

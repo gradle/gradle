@@ -55,7 +55,6 @@ class DefaultTasksBuildExecutionActionTest extends Specification {
         then:
         1 * startParameter.setTaskNames(['a', 'b'])
         1 * context.proceed()
-        1 * context.setDisplayName("project default tasks 'a', 'b'")
     }
 
     def "uses the help task if no tasks specified in StartParameter or project"() {
@@ -69,6 +68,5 @@ class DefaultTasksBuildExecutionActionTest extends Specification {
         then:
         1 * startParameter.setTaskNames(['help'])
         1 * context.proceed()
-        1 * context.setDisplayName("default task 'help'")
     }
 }

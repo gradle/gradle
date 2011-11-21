@@ -26,15 +26,11 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.logging.LoggingManagerInternal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DefaultGradleLauncher extends GradleLauncher {
     private enum Stage {
         Configure, PopulateTaskGraph, Build
     }
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradleLauncher.class);
 
     private final GradleInternal gradle;
     private final SettingsHandler settingsHandler;
@@ -153,7 +149,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
         }
 
         // Execute build
-        LOGGER.info(String.format("Starting build for %s.", buildExecuter.getDisplayName()));
         buildExecuter.execute();
 
         assert upTo == Stage.Build;

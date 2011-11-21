@@ -87,7 +87,6 @@ public class TaskNameResolvingBuildConfigurationActionTest {
             one(resolver).selectAll("name", project);
             will(returnValue(tasks(task1, task2, task3)));
             one(taskExecuter).addTasks(toSet(task1, task2));
-            one(executionContext).setDisplayName("primary task 'name'");
             one(executionContext).proceed();
         }});
 
@@ -127,7 +126,6 @@ public class TaskNameResolvingBuildConfigurationActionTest {
             one(resolver).selectAll(pattern, project);
             will(returnValue(tasks(tasks)));
             one(taskExecuter).addTasks(toSet(task1, task2));
-            one(executionContext).setDisplayName(String.format("primary task '%s'", matches));
             one(executionContext).proceed();
         }});
 
@@ -148,7 +146,6 @@ public class TaskNameResolvingBuildConfigurationActionTest {
             one(resolver).select("b", otherProject);
             will(returnValue(tasks(task1, task2)));
             one(taskExecuter).addTasks(toSet(task1));
-            one(executionContext).setDisplayName("primary task 'a:b'");
             one(executionContext).proceed();
         }});
 
@@ -169,7 +166,6 @@ public class TaskNameResolvingBuildConfigurationActionTest {
             one(resolver).select("b", rootProject);
             will(returnValue(tasks(task1, task2)));
             one(taskExecuter).addTasks(toSet(task1));
-            one(executionContext).setDisplayName("primary task ':b'");
             one(executionContext).proceed();
         }});
 
@@ -192,7 +188,6 @@ public class TaskNameResolvingBuildConfigurationActionTest {
             one(resolver).select("b", otherProject);
             will(returnValue(tasks(task1, task2)));
             one(taskExecuter).addTasks(toSet(task1));
-            one(executionContext).setDisplayName("primary task ':a:b'");
             one(executionContext).proceed();
         }});
 
@@ -213,7 +208,6 @@ public class TaskNameResolvingBuildConfigurationActionTest {
             one(resolver).select("soTa", otherProject);
             will(returnValue(tasks(task1, task2)));
             one(taskExecuter).addTasks(toSet(task1));
-            one(executionContext).setDisplayName("primary task ':anotherProject:someTask'");
             one(executionContext).proceed();
         }});
 
@@ -234,7 +228,6 @@ public class TaskNameResolvingBuildConfigurationActionTest {
             one(resolver).select("soTa", otherProject);
             will(returnValue(tasks(task1, task2)));
             one(taskExecuter).addTasks(toSet(task1));
-            one(executionContext).setDisplayName("primary task ':anotherProject:someTask'");
             one(executionContext).proceed();
         }});
 

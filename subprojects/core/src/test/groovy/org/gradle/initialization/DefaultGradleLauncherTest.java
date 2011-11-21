@@ -289,8 +289,6 @@ public class DefaultGradleLauncherTest {
                 one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock);
                 one(buildConfigurerMock).configure(gradleMock);
                 one(buildExecuter).select(gradleMock);
-                allowing(buildExecuter).getDisplayName();
-                will(returnValue("display name"));
             }
         });
     }

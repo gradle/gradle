@@ -28,12 +28,6 @@ public interface BuildExecuter {
     void select(GradleInternal gradle);
 
     /**
-     * Returns the description of this executer. The result is used for log and error messages. Called after {@link
-     * #select(org.gradle.api.internal.GradleInternal)}.
-     */
-    String getDisplayName();
-
-    /**
      * Executes the selected tasks. Called after {@link #select(org.gradle.api.internal.GradleInternal)}.
      */
     void execute();

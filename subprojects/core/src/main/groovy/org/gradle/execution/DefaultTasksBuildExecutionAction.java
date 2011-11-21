@@ -19,6 +19,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.util.GUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +29,8 @@ import java.util.List;
  * A {@link BuildExecuter} which selects the default tasks for a project, or if none are defined, the 'help' task.
  */
 public class DefaultTasksBuildExecutionAction implements BuildConfigurationAction {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTasksBuildExecutionAction.class);
+
     public void configure(BuildExecutionContext context) {
         StartParameter startParameter = context.getGradle().getStartParameter();
 
@@ -38,14 +42,14 @@ public class DefaultTasksBuildExecutionAction implements BuildConfigurationActio
         // Gather the default tasks from this first group project
         ProjectInternal project = context.getGradle().getDefaultProject();
         List<String> defaultTasks = project.getDefaultTasks();
-        String displayName = String.format("project default tasks %s", GUtil.toString(defaultTasks));
         if (defaultTasks.size() == 0) {
             defaultTasks = Arrays.asList(ImplicitTasksConfigurer.HELP_TASK);
-            displayName = String.format("default task %s", GUtil.toString(defaultTasks));
+            LOGGER.info("No tasks specified. Using default task {}", GUtil.toString(defaultTasks));
+        } else {
+            LOGGER.info("No tasks specified. Using project default tasks {}", GUtil.toString(defaultTasks));
         }
 
         startParameter.setTaskNames(defaultTasks);
         context.proceed();
-        context.setDisplayName(displayName);
     }
 }

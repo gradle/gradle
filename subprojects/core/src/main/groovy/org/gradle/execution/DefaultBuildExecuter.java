@@ -24,7 +24,6 @@ public class DefaultBuildExecuter implements BuildExecuter {
     private final List<BuildConfigurationAction> configurationActions;
     private final List<BuildExecutionAction> executionActions;
     private GradleInternal gradle;
-    private String displayName;
 
     public DefaultBuildExecuter(Iterable<? extends BuildConfigurationAction> configurationActions, Iterable<? extends BuildExecutionAction> executionActions) {
         this.configurationActions = GUtil.toList(configurationActions);
@@ -41,10 +40,6 @@ public class DefaultBuildExecuter implements BuildExecuter {
             return;
         }
         configurationActions.get(index).configure(new BuildExecutionContext() {
-            public void setDisplayName(String displayName) {
-                DefaultBuildExecuter.this.displayName = displayName;
-            }
-
             public GradleInternal getGradle() {
                 return gradle;
             }
@@ -53,10 +48,6 @@ public class DefaultBuildExecuter implements BuildExecuter {
                 configure(index + 1);
             }
         });
-    }
-
-    public String getDisplayName() {
-        return displayName;
     }
 
     public void execute() {
@@ -70,10 +61,6 @@ public class DefaultBuildExecuter implements BuildExecuter {
         executionActions.get(index).execute(new BuildExecutionContext() {
             public GradleInternal getGradle() {
                 return gradle;
-            }
-
-            public void setDisplayName(String displayName) {
-                DefaultBuildExecuter.this.displayName = displayName;
             }
 
             public void proceed() {
