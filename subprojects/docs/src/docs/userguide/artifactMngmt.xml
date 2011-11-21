@@ -62,6 +62,12 @@
             <sample id="fileArtifact" dir="userguide/artifacts/uploading" title="Customizing an artifact">
                 <sourcefile file="build.gradle" snippet="customised-file-artifact"/>
             </sample>
+            <para>There is a map-based syntax for defining an artifact using a file. The map must include a <literal>file</literal> entry that
+                defines the file. The map may include other artifact properties:
+            </para>
+            <sample id="fileArtifact" dir="userguide/artifacts/uploading" title="Map syntax for defining an artifact using a file">
+                <sourcefile file="build.gradle" snippet="map-file-artifact"/>
+            </sample>
         </section>
     </section>
 

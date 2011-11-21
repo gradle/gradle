@@ -19,18 +19,17 @@ import groovy.lang.Closure;
 import org.gradle.api.artifacts.PublishArtifact;
 
 /**
- * This class is for creating publish artifacts and adding them to configurations. Creating publish artifacts
+ * This class is for defining artifacts to be published and adding them to configurations. Creating publish artifacts
  * does not mean to create an archive. What is created is a domain object which represents a file to be published
- * and information on how it should be published (e.g. the name). The publish artifact, that should be created,
- * can only be described with an archive at the moment. We will add additional notations in the future.
+ * and information on how it should be published (e.g. the name).
  *
  * <p>To create an publish artifact and assign it to a configuration you can use the following syntax:</p>
  *
- * <code>&lt;ArtifactHandler>.&lt;configurationName> &lt;artifact-notation>, &lt;artifact-notation> ...</code>
+ * <code>&lt;configurationName> &lt;artifact-notation>, &lt;artifact-notation> ...</code>
  *
  * or
  *
- * <code>&lt;ArtifactHandler>.&lt;configurationName> &lt;artifact-notation> { ... some code to configure the artifact }</code>
+ * <code>&lt;configurationName> &lt;artifact-notation> { ... some code to configure the artifact }</code>
  *
  * <p>The notation can be one of the following types:</p>
  *
@@ -41,6 +40,10 @@ import org.gradle.api.artifacts.PublishArtifact;
  *
  * <li>{@link java.io.File}. The information for publishing the artifact is extracted from the file name. You can tweak the resulting values by using
  * a closure to configure the properties of the artifact instance. A file artifact is represented using an instance of {@link org.gradle.api.artifacts.ConfigurablePublishArtifact}
+ * </li>
+ *
+ * <li>{@link java.util.Map}. The map should contain a 'file' key. This is converted to an artifact as described above. You can also
+ * specify other properties of the artifact using entries in the map.
  * </li>
  *
  * </ul>
