@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.hamcrest.Matchers
 
 /**
  * by Szczepan Faber, created at: 11/9/11
@@ -147,7 +148,6 @@ task checkDeps
 """
         then:
         fails 'checkDeps'
-        //TODO SF check how the system reacts to other invalid notations and tweak the messages
-        errorOutput.contains 'notation is invalid'
+        failure.assertThatCause(Matchers.startsWith("Cannot convert the provided notation to an object of type Dependency: 100."))
     }
 }
