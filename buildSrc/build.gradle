@@ -36,9 +36,10 @@ dependencies {
 
 configurations {
 	all {
-		resolutionStrategy { 
-			cacheDynamicVersionsFor 24, 'hours'
-			cacheChangingModulesFor 24, 'hours'
+		resolutionStrategy {
+            //commented out for now to make the java 1.5 build pass
+			//cacheDynamicVersionsFor 24, 'hours'
+			//cacheChangingModulesFor 24, 'hours'
 		}
 	}
 }
