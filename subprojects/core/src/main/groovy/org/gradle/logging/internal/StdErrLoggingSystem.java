@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.logging.internal;
 
-import org.gradle.util.TimeProvider;
-
-import java.io.PrintStream;
-
-public class StdErrLoggingSystem extends PrintStreamLoggingSystem {
-    private final boolean isEmbedded;
-
-    public StdErrLoggingSystem(OutputEventListener listener, TimeProvider timeProvider, boolean isEmbedded) {
-        super(listener, "system.err", timeProvider);
-        this.isEmbedded = isEmbedded;
-    }
-
-    @Override
-    protected PrintStream get() {
-        return System.err;
-    }
-
-    @Override
-    protected void set(PrintStream printStream) {
-        if (!isEmbedded) {
-            //don't replace standard error if we don't own the process
-            System.setErr(printStream);
-        }
-    }
+/**
+ * by Szczepan Faber, created at: 11/21/11
+ */
+public interface StdErrLoggingSystem extends LoggingSystem {
 }

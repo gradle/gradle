@@ -76,7 +76,10 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected StdOutLoggingSystem createStdOutLoggingSystem() {
-        return new StdOutLoggingSystem(stdoutListener, get(TimeProvider.class), isEmbedded);
+        if (isEmbedded) {
+            return new NoOpLoggingSystem();
+        }
+        return new DefaultStdOutLoggingSystem(stdoutListener, get(TimeProvider.class));
     }
 
     protected StyledTextOutputFactory createStyledTextOutputFactory() {
@@ -84,8 +87,11 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected StdErrLoggingSystem createStdErrLoggingSystem() {
+        if (isEmbedded) {
+            return new NoOpLoggingSystem();
+        }
         TextStreamOutputEventListener listener = new TextStreamOutputEventListener(get(OutputEventListener.class));
-        return new StdErrLoggingSystem(listener, get(TimeProvider.class), isEmbedded);
+        return new DefaultStdErrLoggingSystem(listener, get(TimeProvider.class));
     }
 
     protected ProgressLoggerFactory createProgressLoggerFactory() {
