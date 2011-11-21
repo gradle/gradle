@@ -35,10 +35,10 @@ import static org.hamcrest.Matchers.startsWith
  *
  * @author mhunsicker
  */
-public class OutputUILordTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final OpenApiFixture openApi = new OpenApiFixture()
-    @Rule public final TestResources resources = new TestResources('testProject')
+class OutputUILordTest {
+    @Rule public GradleDistribution dist = new GradleDistribution()
+    @Rule public OpenApiFixture openApi = new OpenApiFixture()
+    @Rule public TestResources resources = new TestResources('testProject')
 
     /**
      * This verifies that you can add file extension to the output lord. This is for
@@ -47,7 +47,7 @@ public class OutputUILordTest {
      * is tested elsewhere.
      */
     @Test
-    public void testAddingFileExtension() {
+    void testAddingFileExtension() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
         OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
 
@@ -62,7 +62,7 @@ public class OutputUILordTest {
      * or not the functions work via/exists in the Open API. The actual functionality is tested elsewhere.
      */
     @Test
-    public void testAddingPrefixedFileLink() {
+    void testAddingPrefixedFileLink() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
         OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
 
@@ -75,7 +75,7 @@ public class OutputUILordTest {
      * much as the open API doesn't have a problem with setting the font.
      */
     @Test
-    public void testFont() {
+    void testFont() {
         if (java.awt.GraphicsEnvironment.isHeadless()) {
             return;  // Can't run this test in headless mode!
         }
@@ -93,7 +93,7 @@ public class OutputUILordTest {
     }
 
     @Test
-    public void testReExecute() {
+    void testReExecute() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
         OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
 

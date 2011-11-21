@@ -44,10 +44,10 @@ import static org.hamcrest.Matchers.*
  * This tests numerous aspects of the Open API UI. This is how the Idea plugin extracts the UI from
  * Gradle.
  */
-public class OpenApiUiTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final TestResources resources = new TestResources('testproject')
-    @Rule public final OpenApiFixture openApi = new OpenApiFixture()
+class OpenApiUiTest {
+    @Rule public GradleDistribution dist = new GradleDistribution()
+    @Rule public TestResources resources = new TestResources('testproject')
+    @Rule public OpenApiFixture openApi = new OpenApiFixture()
 
     /**
      This tests to see if we can call the UIFactory to create a single pane UI.
@@ -56,7 +56,7 @@ public class OpenApiUiTest {
      to make sure the basics are working.
      */
     @Test
-    public void testSinglePaneBasic() {
+    void testSinglePaneBasic() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
 
         //make sure we got something
@@ -76,7 +76,7 @@ public class OpenApiUiTest {
      to make sure the basics are working.
      */
     @Test
-    public void testDualPaneBasic() {
+    void testDualPaneBasic() {
         DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
 
         //make sure we got something
@@ -98,7 +98,7 @@ public class OpenApiUiTest {
      * assume they're same).
      */
     @Test
-    public void testFavoritesBasic() {
+    void testFavoritesBasic() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
         checkFavoritesBasic(singlePane)
 
@@ -140,7 +140,7 @@ public class OpenApiUiTest {
      * command line, display name, and 'show output' setting.
      */
     @Test
-    public void testEditingFavorites() {
+    void testEditingFavorites() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
         FavoritesEditorVersion1 editor = singlePane.getFavoritesEditor()
 
@@ -174,7 +174,7 @@ public class OpenApiUiTest {
      * verifying that they've gone.
      */
     @Test
-    public void testRemovingFavorites() {
+    void testRemovingFavorites() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
         FavoritesEditorVersion1 editor = singlePane.getFavoritesEditor()
 
@@ -235,7 +235,7 @@ public class OpenApiUiTest {
      * concatenating them together.
      */
     @Test
-    public void testExecutingFavorites() {
+    void testExecutingFavorites() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
         FavoritesEditorVersion1 editor = singlePane.getFavoritesEditor()
 
@@ -282,7 +282,7 @@ public class OpenApiUiTest {
      * parent is returned, etc).
      */
     @Test
-    public void testProjectsAndTasks() {
+    void testProjectsAndTasks() {
         DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
         GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) dualPane.getGradleInterfaceVersion1()
 
@@ -371,7 +371,7 @@ public class OpenApiUiTest {
      * arguments are, just that it passes them along.
      */
     @Test
-    public void testRefreshWithArguments() {
+    void testRefreshWithArguments() {
         DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
         GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) dualPane.getGradleInterfaceVersion1()
 
@@ -409,7 +409,7 @@ public class OpenApiUiTest {
      * so we can verify that our component was shown.
      */
     @Test
-    public void testAddingComponentToSetupTab() {
+    void testAddingComponentToSetupTab() {
         if (java.awt.GraphicsEnvironment.isHeadless()) {
             return;  // Can't run this test in headless mode!
         }
@@ -463,7 +463,7 @@ public class OpenApiUiTest {
      * then verify that our tab was shown (actually using our tab's component).
      */
     @Test
-    public void testAddingCustomTab() {
+    void testAddingCustomTab() {
         if (java.awt.GraphicsEnvironment.isHeadless()) {
             return;  // Can't run this test in headless mode!
         }
@@ -564,7 +564,7 @@ public class OpenApiUiTest {
      * should be saved upon close and then restored.
      */
     @Test
-    public void testSettings() {
+    void testSettings() {
         TestSettingsNodeVersion1 settingsNode = new TestSettingsNodeVersion1();
 
         TestSingleDualPaneUIInteractionVersion1 testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1(new TestAlternateUIInteractionVersion1(), settingsNode);
@@ -616,7 +616,7 @@ public class OpenApiUiTest {
      * wait for it to complete and verify what was executed
      */
     @Test
-    public void testCommandLineAlteringListener() {
+    void testCommandLineAlteringListener() {
         DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
         GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) dualPane.getGradleInterfaceVersion1()
 
@@ -664,7 +664,7 @@ public class OpenApiUiTest {
      * the jar's name ends with the version number.
      */
     @Test
-    public void testVersion() {
+    void testVersion() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
         String version = ((GradleInterfaceVersion2) singlePane.getGradleInterfaceVersion1()).getVersion()
 
@@ -690,7 +690,7 @@ public class OpenApiUiTest {
      * of the gradle you're running.
      */
     @Test
-    public void testGradleHomeDirectory() {
+    void testGradleHomeDirectory() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
 
         Assert.assertEquals(dist.gradleHomeDir, singlePane.getGradleHomeDirectory())
@@ -702,7 +702,7 @@ public class OpenApiUiTest {
      * its working when accessed via the Open API.
      */
     @Test
-    public void testOutputUILord() {
+    void testOutputUILord() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
         OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
         Assert.assertNotNull(outputUILord)
@@ -713,7 +713,7 @@ public class OpenApiUiTest {
      * dual pane UI. This
      */
     @Test
-    public void testDualPaneOutputPaneNumber() {
+    void testDualPaneOutputPaneNumber() {
         if (java.awt.GraphicsEnvironment.isHeadless()) {
             return;  // Can't run this test in headless mode!
         }
@@ -754,7 +754,7 @@ public class OpenApiUiTest {
      * true.
      */
     @Test
-    public void testBusy() {
+    void testBusy() {
         DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
         GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) dualPane.getGradleInterfaceVersion1()
 
@@ -803,7 +803,7 @@ public class OpenApiUiTest {
      * This tests that we can set a custom gradle executor.
      */
     @Test
-    public void testSettingCustomGradleExecutor() {
+    void testSettingCustomGradleExecutor() {
         DualPaneUIVersion1 dualPane = openApi.createDualPaneUI()
         GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) dualPane.getGradleInterfaceVersion1()
 
@@ -865,7 +865,7 @@ private class TestVisibilityHierarchyListener implements HierarchyListener {
     private boolean componentWasShown = false;
     private boolean componentWasHidden = false;
 
-    public void hierarchyChanged(HierarchyEvent e) {
+    void hierarchyChanged(HierarchyEvent e) {
         if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
             if (e.getComponent().isShowing()) {
                 componentWasShown = true;
@@ -881,7 +881,7 @@ private class TestVisibilityHierarchyListener implements HierarchyListener {
  * A class that manages a dummy gradle tab. It just consists of a label,
  *  but tracks that certain fields were called.
  */
-public class TestTab implements GradleTabVersion1 {
+class TestTab implements GradleTabVersion1 {
     private JLabel label = new JLabel("Testing Testing 123")
     private TestVisibilityHierarchyListener hierarchyAdapter = new TestVisibilityHierarchyListener()
     private boolean nameRetrieved
