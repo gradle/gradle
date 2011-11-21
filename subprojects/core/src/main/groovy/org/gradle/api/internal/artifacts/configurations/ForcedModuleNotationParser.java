@@ -24,15 +24,13 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNota
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.TopLevelNotationParser;
+import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
-import org.gradle.util.ConfigureUtil;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static java.util.Arrays.asList;
 
 /**
  * by Szczepan Faber, created at: 10/11/11
@@ -54,28 +52,20 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser, Notat
         delegate.describe(candidateFormats);
     }
 
-    static class ForcedModuleMapParser extends TypedNotationParser<Map, ModuleVersionSelector> {
-
-        public ForcedModuleMapParser() {
-            super(Map.class);
-        }
-
+    static class ForcedModuleMapParser extends MapNotationParser<ModuleVersionSelector> {
         @Override
         public void describe(Collection<String> candidateFormats) {
             candidateFormats.add("Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0'].");
         }
 
-        public ModuleVersionSelector parseType(Map notation) {
-            ModuleVersionSelector out = selector(null, null, null);
-            List<String> mandatoryKeys = asList("group", "name", "version");
-            try {
-                ConfigureUtil.configureByMap(notation, out, mandatoryKeys);
-            } catch (ConfigureUtil.IncompleteInputException e) {
-                throw new InvalidUserDataException(
-                          "Invalid format: " + notation + ". Missing mandatory key(s): " + e.getMissingKeys() + "\n"
-                        + "The correct notation is a map with keys: " + mandatoryKeys + ", for example: [group: 'org.gradle', name:'gradle-core', version: '1.0']", e);
-            }
-            return out;
+        @Override
+        protected Collection<String> getRequiredKeys() {
+            return Arrays.asList("group", "name", "version");
+        }
+
+        @Override
+        protected ModuleVersionSelector parseMap(Map<String, Object> values) {
+            return selector(get(values, "group"), get(values, "name"), get(values, "version"));
         }
     }
 

@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import spock.lang.Specification
+import org.gradle.api.Task
 
 /**
  * @author Hans Dockter
@@ -73,6 +74,20 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         then:
         publishArtifact instanceof DefaultPublishArtifact
         publishArtifact.file == file
+    }
+
+    def createArtifactFromFileInMap() {
+        Task task = Mock()
+        def file = new File("some.zip")
+
+        when:
+        def publishArtifact = publishArtifactFactory.parseNotation(file: file, type: 'someType', builtBy: task)
+
+        then:
+        publishArtifact instanceof DefaultPublishArtifact
+        publishArtifact.file == file
+        publishArtifact.type == 'someType'
+        publishArtifact.buildDependencies.getDependencies(null) == [task] as Set
     }
 
     def determinesArtifactPropertiesFromFileName() {

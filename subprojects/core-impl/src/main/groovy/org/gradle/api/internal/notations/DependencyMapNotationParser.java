@@ -18,23 +18,21 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
-import org.gradle.api.internal.notations.parsers.TypedNotationParser;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.api.internal.notations.parsers.MapNotationParser;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
-public class DependencyMapNotationParser<T extends ExternalDependency> extends TypedNotationParser<Map, T> {
+public class DependencyMapNotationParser<T extends ExternalDependency> extends MapNotationParser<T> {
 
     private final Instantiator instantiator;
     private final Class<T> resultingType;
 
     public DependencyMapNotationParser(Instantiator instantiator, Class<T> resultingType) {
-        super(Map.class);
         this.instantiator = instantiator;
         this.resultingType = resultingType;
     }
@@ -45,22 +43,20 @@ public class DependencyMapNotationParser<T extends ExternalDependency> extends T
     }
 
     @Override
-    public T parseType(Map notation) {
-        Map<String, Object> args = new HashMap<String, Object>(notation);
-        String group = getAndRemove(args, "group");
-        String name = getAndRemove(args, "name");
-        String version = getAndRemove(args, "version");
-        String configuration = getAndRemove(args, "configuration");
+    protected Collection<String> getOptionalKeys() {
+        return Arrays.asList("group", "name", "version", "configuration", "ext", "classifier");
+    }
+
+    @Override
+    protected T parseMap(Map<String, Object> values) {
+        String group = get(values, "group");
+        String name = get(values, "name");
+        String version = get(values, "version");
+        String configuration = get(values, "configuration");
         T dependency = instantiator.newInstance(resultingType, group, name, version, configuration);
-        ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, getAndRemove(args, "ext"), getAndRemove(args,
+        ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, get(values, "ext"), get(values,
                 "classifier"));
-        ConfigureUtil.configureByMap(args, dependency);
         return dependency;
     }
 
-    private String getAndRemove(Map<String, Object> args, String key) {
-        Object value = args.get(key);
-        args.remove(key);
-        return value != null ? value.toString() : null;
-    }
 }

@@ -35,7 +35,6 @@ public class ClientModuleNotationParser implements TopLevelNotationParser, Notat
                 .resultingType(ClientModule.class)
                 .parser(new DependencyStringNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
                 .parser(new DependencyMapNotationParser<DefaultClientModule>(instantiator, DefaultClientModule.class))
-                .invalidNotationMessage("Client module dependency notation cannot be used to form a client module.")
                 .toComposite();
     }
 
