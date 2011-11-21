@@ -34,5 +34,14 @@ dependencies {
     testCompile 'org.spockframework:spock-core:0.6-groovy-1.8-SNAPSHOT@jar', 'cglib:cglib-nodep:2.2', 'org.objenesis:objenesis:1.2'
 }
 
+configurations {
+	all {
+		resolutionStrategy { 
+			cacheDynamicVersionsFor 24, 'hours'
+			cacheChangingModulesFor 24, 'hours'
+		}
+	}
+}
+
 apply from: '../gradle/compile.gradle'
 apply from: '../gradle/codeQuality.gradle'
