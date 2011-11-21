@@ -35,7 +35,7 @@ public interface AuthenticationSupported {
      * repositories {
      *     maven {
      *         credentials {
-     *             userName = 'joe'
+     *             username = 'joe'
      *             password = 'secret'
      *         }
      *     }
