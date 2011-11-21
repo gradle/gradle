@@ -57,14 +57,14 @@ public class NotationParserBuilder<T> {
     }
 
     public NotationParser<Set<T>> toFlatteningComposite() {
-        return wrap(new FlatteningNotationParser<T>(create()));
+        return wrapInErrorHandling(new FlatteningNotationParser<T>(create()));
     }
 
     public NotationParser<T> toComposite() {
-        return wrap(create());
+        return wrapInErrorHandling(create());
     }
 
-    private <S> NotationParser<S> wrap(NotationParser<S> parser) {
+    private <S> NotationParser<S> wrapInErrorHandling(NotationParser<S> parser) {
         return new ErrorHandlingNotationParser<S>(resultingType.getSimpleName(), invalidNotationMessage, parser);
     }
 
