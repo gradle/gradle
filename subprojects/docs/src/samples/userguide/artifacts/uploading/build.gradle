@@ -31,12 +31,12 @@ artifacts {
 //END SNIPPET customised-file-artifact
 
 //START SNIPPET map-file-artifact
-task myTask(type:  MyTaskType) {
+task generate(type:  MyTaskType) {
     destFile = file('build/somefile.txt')
 }
 
 artifacts {
-    archives file: myTask.destFile, name: 'my-artifact', type: 'text', builtBy: myTask
+    archives file: generate.destFile, name: 'my-artifact', type: 'text', builtBy: generate
 }
 //END SNIPPET map-file-artifact
 
