@@ -26,6 +26,7 @@ import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 
 public class DependencyClassPathNotationParser
@@ -43,6 +44,11 @@ public class DependencyClassPathNotationParser
         this.instantiator = instantiator;
         this.classPathRegistry = classPathRegistry;
         this.fileResolver = fileResolver;
+    }
+
+    @Override
+    public void describe(Collection<String> candidateFormats) {
+        candidateFormats.add("ClassPathNotation, e.g. gradleApi().");
     }
 
     public SelfResolvingDependency parseType(DependencyFactory.ClassPathNotation notation) {

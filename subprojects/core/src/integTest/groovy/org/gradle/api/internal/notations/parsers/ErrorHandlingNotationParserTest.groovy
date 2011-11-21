@@ -17,27 +17,44 @@ package org.gradle.api.internal.notations.parsers
 
 import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
+import org.gradle.api.internal.notations.api.NotationParser
+import org.gradle.api.internal.notations.api.UnsupportedNotationException
 
-class AlwaysThrowingParserTest extends Specification {
-    def parser = new AlwaysThrowingParser<String>(String.class, "<broken>")
+class ErrorHandlingNotationParserTest extends Specification {
+    def NotationParser<String> target = Mock()
+    def parser = new ErrorHandlingNotationParser<String>("String", "<broken>", target)
 
     def "reports unable to parse null"() {
+        given:
+        target.parseNotation(null) >> { throw new UnsupportedNotationException(null) }
+        target.describe(!null) >> { args -> args[0].add("format 1"); args[0].add("format 2") }
+
         when:
         parser.parseNotation(null)
 
         then:
         InvalidUserDataException e = thrown()
         e.message == '''Cannot convert a null value to an object of type String.
+The following types/formats are supported:
+  - format 1
+  - format 2
 <broken>'''
     }
 
     def "reports unable to parse non-null"() {
+        given:
+        target.parseNotation("bad") >> { throw new UnsupportedNotationException("broken-part") }
+        target.describe(!null) >> { args -> args[0].add("format 1"); args[0].add("format 2") }
+
         when:
         parser.parseNotation("bad")
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == '''Cannot convert the provided notation to an object of type String: bad.
+        e.message == '''Cannot convert the provided notation to an object of type String: broken-part.
+The following types/formats are supported:
+  - format 1
+  - format 2
 <broken>'''
 
     }

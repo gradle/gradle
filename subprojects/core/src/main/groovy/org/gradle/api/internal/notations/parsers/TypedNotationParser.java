@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.notations.parsers;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.internal.notations.api.UnsupportedNotationException;
+
+import java.util.Collection;
 
 /**
  * by Szczepan Faber, created at: 11/9/11
@@ -31,13 +33,13 @@ public abstract class TypedNotationParser<N, T> implements NotationParser<T> {
         this.typeToken = typeToken;
     }
 
-    public boolean canParse(Object notation) {
-        return typeToken.isInstance(notation);
+    public void describe(Collection<String> candidateFormats) {
+        candidateFormats.add(String.format("Instances of %s.", typeToken.getSimpleName()));
     }
 
     public T parseNotation(Object notation) {
-        if (!canParse(notation)) {
-            throw new InvalidUserDataException(this.getClass().getSimpleName() + " only parses instances of " + typeToken.getName());
+        if (!typeToken.isInstance(notation)) {
+            throw new UnsupportedNotationException(notation);
         }
         return parseType(typeToken.cast(notation));
     }

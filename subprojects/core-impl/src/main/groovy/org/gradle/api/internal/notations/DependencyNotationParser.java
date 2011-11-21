@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.TopLevelNotationParser;
 
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * by Szczepan Faber, created at: 11/8/11
@@ -30,24 +30,20 @@ public class DependencyNotationParser implements TopLevelNotationParser, Notatio
 
     private final NotationParser<Dependency> delegate;
 
-    public DependencyNotationParser(Set<NotationParser<? extends Dependency>> compositeParsers) {
+    public DependencyNotationParser(Iterable<NotationParser<? extends Dependency>> compositeParsers) {
         delegate = new NotationParserBuilder<Dependency>()
                 .resultingType(Dependency.class)
                 .parsers(compositeParsers)
-                .invalidNotationMessage("The dependency notation cannot be used to form the dependency.\n"
-                            + "The most typical dependency notation types/formats:\n"
-                            + "  - Strings, e.g. 'org.gradle:gradle-core:1.0'\n"
-                            + "  - Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0']\n"
-                            + "  - Projects, e.g. project(':some:project:path')\n"
-                            + "  - instances of FileCollection, e.g. files('some.jar', 'someOther.jar')\n"
-                            + "  - instances of Dependency type\n"
-                            + "  - A Collection of above (nested collections/arrays will be flattened)\n"
-                            + "Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
+                .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
                 .toComposite();
     }
 
     DependencyNotationParser(NotationParser<Dependency> delegate) {
         this.delegate = delegate;
+    }
+
+    public void describe(Collection<String> candidateFormats) {
+        delegate.describe(candidateFormats);
     }
 
     public Dependency parseNotation(Object dependencyNotation) {
@@ -58,9 +54,5 @@ public class DependencyNotationParser implements TopLevelNotationParser, Notatio
         } catch (Exception e) {
             throw new GradleException(String.format("Could not create a dependency using notation: %s", dependencyNotation), e);
         }
-    }
-
-    public boolean canParse(Object notation) {
-        return delegate.canParse(notation);
     }
 }

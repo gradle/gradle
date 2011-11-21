@@ -16,6 +16,9 @@
 package org.gradle.api.internal.notations.parsers;
 
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.internal.notations.api.UnsupportedNotationException;
+
+import java.util.Collection;
 
 /**
  * by Szczepan Faber, created at: 11/8/11
@@ -28,11 +31,14 @@ public class JustReturningParser<T> implements NotationParser<T> {
         this.passThroughType = passThroughType;
     }
 
-    public boolean canParse(Object notation) {
-        return passThroughType.isInstance(notation);
+    public void describe(Collection<String> candidateFormats) {
+        candidateFormats.add(String.format("Instances of %s.", passThroughType.getSimpleName()));
     }
 
     public T parseNotation(Object notation) {
+        if (!passThroughType.isInstance(notation)) {
+            throw new UnsupportedNotationException(notation);
+        }
         return passThroughType.cast(notation);
     }
 }

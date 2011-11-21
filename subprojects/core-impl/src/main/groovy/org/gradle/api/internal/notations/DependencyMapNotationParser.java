@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.util.ConfigureUtil;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +37,11 @@ public class DependencyMapNotationParser<T extends ExternalDependency> extends T
         super(Map.class);
         this.instantiator = instantiator;
         this.resultingType = resultingType;
+    }
+
+    @Override
+    public void describe(Collection<String> candidateFormats) {
+        candidateFormats.add("Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0'].");
     }
 
     @Override

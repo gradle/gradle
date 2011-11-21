@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.notations.api;
 
-import java.util.Collection;
+public class UnsupportedNotationException extends RuntimeException {
+    private final Object notation;
 
-/**
- * by Szczepan Faber, created at: 11/8/11
- */
-public interface NotationParser<T> {
-    void describe(Collection<String> candidateFormats);
+    public UnsupportedNotationException(Object notation) {
+        this.notation = notation;
+    }
 
-    T parseNotation(Object notation) throws UnsupportedNotationException;
+    public Object getNotation() {
+        return notation;
+    }
 }

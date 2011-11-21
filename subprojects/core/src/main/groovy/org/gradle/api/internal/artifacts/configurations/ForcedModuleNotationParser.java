@@ -27,6 +27,7 @@ import org.gradle.api.internal.notations.api.TopLevelNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.util.ConfigureUtil;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,14 +43,6 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser, Notat
             .resultingType(ModuleVersionSelector.class)
             .parser(new ForcedModuleStringParser())
             .parser(new ForcedModuleMapParser())
-            .invalidNotationMessage(
-                            "The forced module notation cannot be used to form the forced module.\n"
-                            + "Forced module notation only supports following types/formats:\n"
-                            + "  1. instances of ModuleIdentifier\n"
-                            + "  2. Strings (actually CharSequences), e.g. 'org.gradle:gradle-core:1.0'\n"
-                            + "  3. Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0']\n"
-                            + "  4. A Collection or array of above (nested collections/arrays will be flattened)\n"
-            )
             .toFlatteningComposite();
 
     public Set<ModuleVersionSelector> parseNotation(Object notation) {
@@ -57,14 +50,19 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser, Notat
         return delegate.parseNotation(notation);
     }
 
-    public boolean canParse(Object notation) {
-        return delegate.canParse(notation);
+    public void describe(Collection<String> candidateFormats) {
+        delegate.describe(candidateFormats);
     }
 
     static class ForcedModuleMapParser extends TypedNotationParser<Map, ModuleVersionSelector> {
 
         public ForcedModuleMapParser() {
             super(Map.class);
+        }
+
+        @Override
+        public void describe(Collection<String> candidateFormats) {
+            candidateFormats.add("Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0'].");
         }
 
         public ModuleVersionSelector parseType(Map notation) {
@@ -85,6 +83,11 @@ public class ForcedModuleNotationParser implements TopLevelNotationParser, Notat
 
         public ForcedModuleStringParser() {
             super(CharSequence.class);
+        }
+
+        @Override
+        public void describe(Collection<String> candidateFormats) {
+            candidateFormats.add("Strings/CharSequences, e.g. 'org.gradle:gradle-core:1.0'.");
         }
 
         public ModuleVersionSelector parseType(CharSequence notation) {

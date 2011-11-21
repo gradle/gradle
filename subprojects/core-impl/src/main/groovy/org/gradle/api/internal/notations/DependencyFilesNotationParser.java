@@ -22,6 +22,8 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDepend
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 
+import java.util.Collection;
+
 public class DependencyFilesNotationParser
         extends TypedNotationParser<FileCollection, SelfResolvingDependency>
         implements NotationParser<SelfResolvingDependency> {
@@ -31,6 +33,11 @@ public class DependencyFilesNotationParser
     public DependencyFilesNotationParser(Instantiator instantiator) {
         super(FileCollection.class);
         this.instantiator = instantiator;
+    }
+
+    @Override
+    public void describe(Collection<String> candidateFormats) {
+        candidateFormats.add("FileCollections, e.g. files('some.jar', 'someOther.jar').");
     }
 
     public SelfResolvingDependency parseType(FileCollection notation) {

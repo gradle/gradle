@@ -31,6 +31,7 @@ import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
 import java.io.File;
+import java.util.Collection;
 
 /**
  * @author Hans Dockter
@@ -47,15 +48,11 @@ public class DefaultPublishArtifactFactory implements NotationParser<PublishArti
                 .resultingType(PublishArtifact.class)
                 .parser(new ArchiveTaskNotationParser())
                 .parser(new FileNotationParser())
-                .invalidNotationMessage("The artifact notation cannot be used to form the artifact.\n"
-                        + "The supported artifact notation types/formats:\n"
-                        + "  - instances of AbstractArchiveTask, e.g. jar\n"
-                        + "  - instances of File")
                 .toComposite();
     }
 
-    public boolean canParse(Object notation) {
-        return delegate.canParse(notation);
+    public void describe(Collection<String> candidateFormats) {
+        delegate.describe(candidateFormats);
     }
 
     public PublishArtifact parseNotation(Object notation) {
@@ -65,6 +62,11 @@ public class DefaultPublishArtifactFactory implements NotationParser<PublishArti
     private class ArchiveTaskNotationParser extends TypedNotationParser<AbstractArchiveTask, PublishArtifact> {
         private ArchiveTaskNotationParser() {
             super(AbstractArchiveTask.class);
+        }
+
+        @Override
+        public void describe(Collection<String> candidateFormats) {
+            candidateFormats.add("Instances of AbstractArchiveTask, e.g. jar.");
         }
 
         @Override

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.notations.parsers;
 
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.api.internal.notations.api.UnsupportedNotationException;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,22 +38,21 @@ public class CompositeNotationParser<T> implements NotationParser<T> {
         this.delegates = delegates;
     }
 
-    public boolean canParse(Object notation) {
+    public void describe(Collection<String> candidateFormats) {
         for (NotationParser<? extends T> delegate : delegates) {
-            if (delegate.canParse(notation)) {
-                return true;
-            }
+            delegate.describe(candidateFormats);
         }
-        return false;
     }
 
     public T parseNotation(Object notation) {
         for (NotationParser<? extends T> delegate : delegates) {
-            if (delegate.canParse(notation)) {
+            try {
                 return delegate.parseNotation(notation);
+            } catch (UnsupportedNotationException e) {
+                // Ignore
             }
         }
 
-        throw new RuntimeException("Don't know how to parse: " + notation);
+        throw new UnsupportedNotationException(notation);
     }
 }

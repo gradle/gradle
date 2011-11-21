@@ -58,8 +58,8 @@ import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.lock.LockHolderFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultDependencyManagementServices extends DefaultServiceRegistry implements DependencyManagementServices {
     private final Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
@@ -133,12 +133,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         NotationParser<? extends Dependency> moduleStringParser = new DependencyStringNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class);
         NotationParser<? extends Dependency> selfResolvingDependencyFactory = new DependencyFilesNotationParser(instantiator);
 
-        Set<NotationParser<? extends Dependency>> notationParsers = WrapUtil.toSet(
+        List<NotationParser<? extends Dependency>> notationParsers = WrapUtil.toList(
                 moduleStringParser,
                 moduleMapParser,
                 selfResolvingDependencyFactory,
-                new DependencyClassPathNotationParser(instantiator, get(ClassPathRegistry.class), new IdentityFileResolver()),
-                projParser);
+                projParser,
+                new DependencyClassPathNotationParser(instantiator, get(ClassPathRegistry.class), new IdentityFileResolver()));
 
         DependencyNotationParser dependencyNotationParser = new DependencyNotationParser(notationParsers);
 

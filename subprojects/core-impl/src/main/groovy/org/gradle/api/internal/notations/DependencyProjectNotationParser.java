@@ -23,6 +23,8 @@ import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 
+import java.util.Collection;
+
 /**
  * by Szczepan Faber, created at: 11/10/11
  */
@@ -35,6 +37,11 @@ public class DependencyProjectNotationParser extends TypedNotationParser<Project
         super(Project.class);
         this.instruction = instruction;
         this.instantiator = instantiator;
+    }
+
+    @Override
+    public void describe(Collection<String> candidateFormats) {
+        candidateFormats.add("Projects, e.g. project(':some:project:path').");
     }
 
     public ProjectDependency parseType(Project notation) {

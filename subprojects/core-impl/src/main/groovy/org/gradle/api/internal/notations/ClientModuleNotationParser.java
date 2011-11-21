@@ -21,6 +21,8 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.TopLevelNotationParser;
 
+import java.util.Collection;
+
 /**
  * @author Hans Dockter
  */
@@ -37,8 +39,8 @@ public class ClientModuleNotationParser implements TopLevelNotationParser, Notat
                 .toComposite();
     }
 
-    public boolean canParse(Object notation) {
-        return delegate.canParse(notation);
+    public void describe(Collection<String> candidateFormats) {
+        delegate.describe(candidateFormats);
     }
 
     public ClientModule parseNotation(Object notation) {

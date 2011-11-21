@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +40,11 @@ public class DependencyStringNotationParser<T extends ExternalDependency> extend
         super(CharSequence.class);
         this.instantiator = instantiator;
         this.wantedType = wantedType;
+    }
+
+    @Override
+    public void describe(Collection<String> candidateFormats) {
+        candidateFormats.add("Strings/CharSequences, e.g. 'org.gradle:gradle-core:1.0'.");
     }
 
     protected T parseType(CharSequence notation) {

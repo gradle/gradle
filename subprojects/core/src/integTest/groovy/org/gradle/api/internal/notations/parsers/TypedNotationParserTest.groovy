@@ -17,6 +17,7 @@
 package org.gradle.api.internal.notations.parsers;
 
 
+import org.gradle.api.internal.notations.api.UnsupportedNotationException
 import spock.lang.Specification
 
 /**
@@ -26,21 +27,17 @@ public class TypedNotationParserTest extends Specification {
 
     def parser = new DummyParser();
 
-    def "knows if can parse"(){
+    def "parses object of source type"(){
         expect:
-        false == parser.canParse(new Object())
-        true == parser.canParse("100")
+        parser.parseNotation("100") == 100
     }
 
     def "throws meaningful exception on parse attempt"(){
-        expect:
-        100 == parser.parseNotation("100")
-
         when:
         parser.parseNotation(new Object())
 
         then:
-        thrown(InvalidUserDataException)
+        thrown(UnsupportedNotationException)
     }
 
     class DummyParser extends TypedNotationParser<String, Integer> {
