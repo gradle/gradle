@@ -170,7 +170,8 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     
     protected InitScriptHandler createInitScriptHandler() {
         return new InitScriptHandler(
-                new UserHomeInitScriptFinder(
+                new CompositeInitScriptFinder(
+                        new UserHomeInitScriptFinder(),
                         new DefaultInitScriptFinder()),
                 new DefaultInitScriptProcessor(
                         get(ScriptPluginFactory.class)));

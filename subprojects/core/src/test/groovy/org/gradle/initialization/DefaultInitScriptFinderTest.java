@@ -16,12 +16,14 @@
 package org.gradle.initialization;
 
 import org.gradle.util.GFileUtils;
+import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
@@ -30,10 +32,13 @@ import java.util.List;
 import java.util.ArrayList;
 import java.io.File;
 
+@RunWith(JMock.class)
 public class DefaultInitScriptFinderTest {
+    final JUnit4Mockery context = new JUnit4Mockery();
+    final DefaultInitScriptFinder finder = new DefaultInitScriptFinder();
+
     @Test
     public void testFindScripts() {
-        JUnit4Mockery context = new JUnit4Mockery();
 
         final GradleInternal gradleMock = context.mock(GradleInternal.class);
         final StartParameter testStartParameter = new StartParameter();
@@ -45,7 +50,8 @@ public class DefaultInitScriptFinderTest {
             will(returnValue(testStartParameter));
         }});
 
-        List<ScriptSource> sourceList = new DefaultInitScriptFinder().findScripts(gradleMock);
+        List<ScriptSource> sourceList = new ArrayList<ScriptSource>();
+        finder.findScripts(gradleMock, sourceList);
         assertThat(getSourceFiles(sourceList), equalTo(canonicalise(testStartParameter.getInitScripts())));
     }
 

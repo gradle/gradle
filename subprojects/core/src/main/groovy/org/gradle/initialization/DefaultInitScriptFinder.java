@@ -21,20 +21,17 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * Simple finder that "finds" all the init scripts that were explicitly added to the start parameters.
  */
 public class DefaultInitScriptFinder implements InitScriptFinder {
-    public List<ScriptSource> findScripts(GradleInternal gradle) {
+    public void findScripts(GradleInternal gradle, Collection<ScriptSource> scripts) {
         List<File> scriptFiles = gradle.getStartParameter().getInitScripts();
-        List<ScriptSource> scripts = new ArrayList<ScriptSource>(scriptFiles.size());
         for (File file : scriptFiles) {
             scripts.add(new UriScriptSource("initialization script", file));
         }
-
-        return scripts;
     }
 }

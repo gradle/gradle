@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,21 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.UriScriptSource;
 
-import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
-public class UserHomeInitScriptFinder implements InitScriptFinder {
-    public static final String DEFAULT_INIT_SCRIPT_NAME = "init.gradle";
+public class CompositeInitScriptFinder implements InitScriptFinder {
+    private final List<InitScriptFinder> finders;
+
+    public CompositeInitScriptFinder(InitScriptFinder...finders) {
+        this.finders = Arrays.asList(finders);
+    }
 
     public void findScripts(GradleInternal gradle, Collection<ScriptSource> scripts) {
-        File userHomeDir = gradle.getStartParameter().getGradleUserHomeDir();
-        File userInitScript = new File(userHomeDir, DEFAULT_INIT_SCRIPT_NAME);
-        if (userInitScript.isFile()) {
-            scripts.add(new UriScriptSource("initialization script", userInitScript));
+        for (InitScriptFinder finder : finders) {
+            finder.findScripts(gradle, scripts);
         }
     }
 }
-

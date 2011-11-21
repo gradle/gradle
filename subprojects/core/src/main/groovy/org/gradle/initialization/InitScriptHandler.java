@@ -19,6 +19,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.configuration.InitScriptProcessor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,7 +35,8 @@ public class InitScriptHandler {
     }
 
     public void executeScripts(GradleInternal gradle) {
-        List<ScriptSource> scriptSources = finder.findScripts(gradle);
+        List<ScriptSource> scriptSources = new ArrayList<ScriptSource>();
+        finder.findScripts(gradle, scriptSources);
         for (ScriptSource source : scriptSources) {
             processor.process(source, gradle);
         }
