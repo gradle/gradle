@@ -131,6 +131,15 @@ allprojects {
         }
     }
 
+	configurations {
+		all {
+			resolutionStrategy { 
+				cacheDynamicVersionsFor 24, 'hours'
+				cacheChangingModulesFor 24, 'hours'
+			}
+		}
+	}
+
     version = this.version
 
     apply from: "$rootDir/gradle/conventions-dsl.gradle"
