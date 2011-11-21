@@ -51,7 +51,7 @@ import org.gradle.testfixtures.ProjectBuilder
 class HelperUtil {
 
     public static final Closure TEST_CLOSURE = {}
-    public static final Spec TEST_SEPC  = new AndSpec()
+    public static final Spec TEST_SPEC = new AndSpec()
     private static final AsmBackedClassGenerator CLASS_GENERATOR = new AsmBackedClassGenerator()
     private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(CLASS_GENERATOR))
 
@@ -87,7 +87,7 @@ class HelperUtil {
                 .build();
     }
 
-    static def pureStringTransform(def collection) {
+    static pureStringTransform(def collection) {
         collection.collect {
             it.toString()
         }
@@ -164,9 +164,9 @@ class HelperUtil {
     }
 }
 
-public interface TestClosure {
+interface TestClosure {
     Object call(Object param);
 }
 
-public abstract class TestScript extends DefaultScript {
+abstract class TestScript extends DefaultScript {
 }
