@@ -36,7 +36,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "task hey"
 
         when:
-        BuildableProject model = toolingApi.embeddedOnly().withConnection { connection -> connection.getModel(BuildableProject.class) }
+        BuildableProject model = toolingApi.withConnection { connection -> connection.getModel(BuildableProject.class) }
 
         then:
         model.tasks.find { it.name == 'hey' }
@@ -53,34 +53,10 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         assert java.util.logging.Level.OFF == LogManager.getLogManager().getLogger("").level
-        BuildableProject model = toolingApi.embeddedOnly().withConnection { connection -> connection.getModel(BuildableProject.class) }
+        BuildableProject model = toolingApi.withConnection { connection -> connection.getModel(BuildableProject.class) }
 
         then:
         model.tasks.find { it.name == 'hey' }
         java.util.logging.Level.OFF == LogManager.getLogManager().getLogger("").level
-    }
-
-    def "using gradle without tooling api may mess around the standard streams and java logging"() {
-        //(SF) this test assumes that our logging commodity replaces standard streams and resets java logging
-        //not great, but at least a start.
-        given:
-
-        //it only make sense to test in embedded mode.
-        //Forking mode has his own process that we don't control from the test so it's hard to assert.
-        executer = new GradleDistributionExecuter(Executer.embedded, distribution)
-
-        def outInstance = System.out
-        def errInstance = System.err
-
-        buildFile << "task hey"
-
-        when:
-        succeeds 'hey'
-
-        then:
-        !System.out.is(outInstance)
-        !System.err.is(errInstance)
-        //We don't really care that the sys out/err has changed even though it affects other tests
-        //All integration tests have this 'feature' and apparently it is not a great deal of a problem at the moment
     }
 }

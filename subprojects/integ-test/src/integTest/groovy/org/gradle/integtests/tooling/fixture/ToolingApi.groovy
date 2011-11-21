@@ -72,11 +72,6 @@ class ToolingApi {
         return projectDir ?: dist.testDir
     }
 
-    ToolingApi embeddedOnly() {
-        isEmbedded = true
-        return this;
-    }
-
     GradleConnector connector() {
         GradleConnector connector = GradleConnector.newConnector()
         connector.useGradleUserHomeDir(new File(dist.userHomeDir.absolutePath))
