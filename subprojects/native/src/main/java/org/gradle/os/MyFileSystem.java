@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 
 @ThreadSafe
 public abstract class MyFileSystem {
-    private static final Logger logger = LoggerFactory.getLogger(MyFileSystem.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MyFileSystem.class);
     private static final MyFileSystem INSTANCE = new ProbingFileSystem();
 
     public static MyFileSystem current() {
@@ -92,7 +92,7 @@ public abstract class MyFileSystem {
                 File upperCased = new File(file.getPath().toUpperCase());
                 return hasContent(upperCased, secret);
             } catch (IOException e) {
-                logger.warn("Failed to determine if current file system is case sensitive. Assuming it isn't.");
+                LOGGER.warn("Failed to determine if current file system is case sensitive. Assuming it isn't.");
                 return false;
             }
         }
@@ -104,7 +104,7 @@ public abstract class MyFileSystem {
                 int errorCode = PosixUtil.current().symlink(file.getPath(), symlink.getPath());
                 return errorCode == 0 && hasContent(symlink, secret);
             } catch (IOException e) {
-                logger.warn("Failed to determine if current file system is symlink aware. Assuming it isn't.");
+                LOGGER.warn("Failed to determine if current file system is symlink aware. Assuming it isn't.");
                 return false;
             } finally {
                 FileUtils.deleteQuietly(symlink);
@@ -117,7 +117,7 @@ public abstract class MyFileSystem {
                 channel = new FileOutputStream(file).getChannel();
                 return channel.tryLock() == null;
             } catch (IOException e) {
-                logger.warn("Failed to determine if current file system implicitly locks file on open. Assuming it doesn't.");
+                LOGGER.warn("Failed to determine if current file system implicitly locks file on open. Assuming it doesn't.");
                 return false;
             } finally {
                 Closeables.closeQuietly(channel);
