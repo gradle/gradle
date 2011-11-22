@@ -33,9 +33,9 @@ import java.util.ArrayList;
 import java.io.File;
 
 @RunWith(JMock.class)
-public class DefaultInitScriptFinderTest {
+public class ProvidedInitScriptFinderTest {
     final JUnit4Mockery context = new JUnit4Mockery();
-    final DefaultInitScriptFinder finder = new DefaultInitScriptFinder();
+    final ProvidedInitScriptFinder finder = new ProvidedInitScriptFinder();
 
     @Test
     public void testFindScripts() {

@@ -145,6 +145,7 @@ public class TopLevelBuildServiceRegistryTest {
         allowGetCoreImplClassLoader();
         expectScriptClassLoaderCreated();
         expectListenerManagerCreated();
+        allowGetGradleDistributionLocator();
 
         assertThat(registry.get(InitScriptHandler.class), instanceOf(InitScriptHandler.class));
         assertThat(registry.get(InitScriptHandler.class), sameInstance(registry.get(InitScriptHandler.class)));
@@ -269,6 +270,13 @@ public class TopLevelBuildServiceRegistryTest {
             allowing(classLoaderRegistry).getCoreImplClassLoader();
             will(returnValue(new ClassLoader() {
             }));
+        }});
+    }
+
+    private void allowGetGradleDistributionLocator() {
+        context.checking(new Expectations() {{
+            allowing(parent).get(GradleDistributionLocator.class);
+            will(returnValue(context.mock(GradleDistributionLocator.class)));
         }});
     }
 
