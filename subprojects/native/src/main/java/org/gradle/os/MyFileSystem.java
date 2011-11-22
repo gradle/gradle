@@ -18,10 +18,17 @@ package org.gradle.os;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.util.UUID;
 
+import com.google.common.io.Closeables;
+import net.jcip.annotations.ThreadSafe;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.SystemProperties;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+@ThreadSafe
 public class MyFileSystem {
     private static final Logger logger = LoggerFactory.getLogger(MyFileSystem.class);
 
@@ -30,23 +37,34 @@ public class MyFileSystem {
     }
 
     public boolean isSymlinkAware() {
+        File file = null;
+        File symlink = null;
         try {
-            File source = File.createTempFile("gradle_symlink_check", null, null);
-            File target = File.createTempFile("gradle_symlink_check", null, null);
-            return PosixUtil.current().symlink(source.getPath(), target.getPath()) == 0;
+            file = File.createTempFile("gradle_symlink_check", null, null);
+            symlink = new File(SystemProperties.getJavaIoTmpDir(), UUID.randomUUID().toString());
+            return PosixUtil.current().symlink(file.getPath(), symlink.getPath()) == 0;
         } catch (IOException e) {
             logger.warn("Failed to determine if current file system is symlink-aware. Assuming it isn't.");
             return false;
+        } finally {
+            GFileUtils.deleteQuietly(file);
+            GFileUtils.deleteQuietly(symlink);
         }
     }
 
     public boolean getImplicitlyLocksFileOnOpen() {
+        File file = null;
+        FileChannel channel = null;
         try {
-            File probe = File.createTempFile("gradle_implicit_lock_check", null, null);
-            return new FileOutputStream(probe).getChannel().tryLock() == null;
+            file = File.createTempFile("gradle_implicit_file_lock_check", null, null);
+            channel = new FileOutputStream(file).getChannel();
+            return channel.tryLock() == null;
         } catch (IOException e) {
             logger.warn("Failed to determine if current file system implicitly locks file on open. Assuming it doesn't.");
             return false;
+        } finally {
+            Closeables.closeQuietly(channel);
+            GFileUtils.deleteQuietly(file);
         }
     }
 }
