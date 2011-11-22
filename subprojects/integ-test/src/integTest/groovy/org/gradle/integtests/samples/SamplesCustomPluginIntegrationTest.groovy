@@ -15,39 +15,45 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.JUnitTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.junit.Rule
-import org.junit.Test
 
-class SamplesCustomPluginIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class SamplesCustomPluginIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample('customPlugin')
 
-    @Test
+    def getProducerDir() {
+        return sample.dir.file('plugin')
+    }
+
+    def getConsumerDir() {
+        return sample.dir.file('consumer')
+    }
+
     public void canTestPluginAndTaskImplementation() {
-        TestFile projectDir = sample.dir
+        when:
+        executer.inDirectory(producerDir).withTasks('check').run()
 
-        executer.inDirectory(projectDir).withTasks('check').run()
-
-        def result = new JUnitTestExecutionResult(projectDir)
+        then:
+        def result = new JUnitTestExecutionResult(producerDir)
         result.assertTestClassesExecuted('org.gradle.GreetingTaskTest', 'org.gradle.GreetingPluginTest')
     }
 
-    @Test
     public void canPublishAndUsePluginAndTestImplementations() {
-        TestFile projectDir = sample.dir
+        given:
+        executer.inDirectory(producerDir).withTasks('uploadArchives').run()
 
-        executer.inDirectory(projectDir).withTasks('uploadArchives').run()
+        when:
+        def result = executer.inDirectory(consumerDir).withTasks('greeting').run()
 
-        def result = executer.usingBuildScript(projectDir.file('usesCustomTask.gradle')).withTasks('greeting').run()
-        assert result.output.contains('howdy!')
+        then:
+        result.output.contains('howdy!')
 
-        result = executer.usingBuildScript(projectDir.file('usesCustomPlugin.gradle')).withTasks('hello').run()
-        assert result.output.contains('hello from GreetingTask')
+        when:
+        result = executer.inDirectory(consumerDir).withTasks('hello').run()
+
+        then:
+        result.output.contains('hello from GreetingTask')
     }
 }
