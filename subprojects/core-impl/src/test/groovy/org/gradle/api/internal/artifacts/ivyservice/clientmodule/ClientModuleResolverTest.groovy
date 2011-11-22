@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice
+package org.gradle.api.internal.artifacts.ivyservice.clientmodule
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.resolve.ResolveData
 import org.apache.ivy.plugins.resolver.DependencyResolver
-import spock.lang.Specification
 import org.gradle.api.artifacts.ClientModule
+import spock.lang.Specification
 
 /**
  * @author Hans Dockter
@@ -30,13 +30,17 @@ class ClientModuleResolverTest extends Specification {
     final ModuleDescriptor module = Mock()
     final DependencyResolver targetResolver = Mock()
     final ResolveData resolveData = Mock()
-    final ClientModuleResolver resolver = new ClientModuleResolver("name", [module: module], targetResolver)
+    final ClientModuleRegistry clientModuleRegistry = Mock()
+    final ClientModuleResolver resolver = new ClientModuleResolver("name", clientModuleRegistry, targetResolver)
 
     def "resolves dependency descriptor that matches module in supplied registry"() {
         DependencyDescriptor dependencyDescriptor = dependency("module")
+        when:
 
-        expect:
+        clientModuleRegistry.getClientModule("module") >> module
         def resolvedDependency = resolver.getDependency(dependencyDescriptor, resolveData)
+
+        then:
         resolvedDependency.descriptor == module
         resolvedDependency.resolver == targetResolver
         resolvedDependency.artifactResolver == targetResolver

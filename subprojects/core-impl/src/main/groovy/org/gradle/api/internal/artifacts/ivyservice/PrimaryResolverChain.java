@@ -25,6 +25,7 @@ import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

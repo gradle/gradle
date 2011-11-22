@@ -20,19 +20,18 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.util.WrapUtil;
-
-import java.util.Map;
 
 /**
  * @author Hans Dockter
 */
 public class ClientModuleDependencyDescriptorFactory extends AbstractDependencyDescriptorFactoryInternal {
     private ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule;
-    private Map<String, ModuleDescriptor> clientModuleRegistry;
+    private ClientModuleRegistry clientModuleRegistry;
 
-    public ClientModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule, Map<String, ModuleDescriptor> clientModuleRegistry) {
+    public ClientModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule, ClientModuleRegistry clientModuleRegistry) {
         super(excludeRuleConverter);
         this.moduleDescriptorFactoryForClientModule = moduleDescriptorFactoryForClientModule;
         this.clientModuleRegistry = clientModuleRegistry;
@@ -56,7 +55,7 @@ public class ClientModuleDependencyDescriptorFactory extends AbstractDependencyD
 
         ModuleDescriptor moduleDescriptor = moduleDescriptorFactoryForClientModule.createModuleDescriptor(
                 dependencyDescriptor.getDependencyRevisionId(), getClientModule(dependency).getDependencies());
-        clientModuleRegistry.put(getClientModule(dependency).getId(), moduleDescriptor);
+        clientModuleRegistry.registerClientModule(getClientModule(dependency), moduleDescriptor);
 
         return dependencyDescriptor;
     }

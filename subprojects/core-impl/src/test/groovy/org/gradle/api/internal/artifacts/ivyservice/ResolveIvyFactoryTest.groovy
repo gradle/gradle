@@ -16,12 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.apache.ivy.Ivy
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider
+import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRegistry
 import spock.lang.Specification
+import org.apache.ivy.plugins.version.VersionMatcher
 
 class ResolveIvyFactoryTest extends Specification {
     final IvyFactory ivyFactory = Mock()
@@ -29,7 +30,7 @@ class ResolveIvyFactoryTest extends Specification {
     final SettingsConverter settingsConverter = Mock()
     final DependencyResolver internalRepo = Mock()
     final ResolutionStrategyInternal resolutionStrategy = Mock()
-    final Map<String, ModuleDescriptor> clientModuleRegistry = [:]
+    final ClientModuleRegistry clientModuleRegistry = Mock()
     final ResolveIvyFactory factory = new ResolveIvyFactory(ivyFactory, resolverProvider, settingsConverter, internalRepo, clientModuleRegistry)
 
     def "creates Ivy instance"() {
@@ -37,15 +38,23 @@ class ResolveIvyFactoryTest extends Specification {
         IvySettings ivySettings = Mock()
         DependencyResolver resolver1 = Mock()
         DependencyResolver resolver2 = Mock()
+        DependencyResolver userResolverChain = Mock()
+        VersionMatcher versionMatcher = Mock()
 
         when:
         def result = factory.create(resolutionStrategy)
 
         then:
-        result == ivy
         1 * resolverProvider.resolvers >> [resolver1, resolver2]
-        1 * settingsConverter.convertForResolve([resolver1, resolver2], internalRepo, clientModuleRegistry, resolutionStrategy) >> ivySettings
+        1 * settingsConverter.convertForResolve([resolver1, resolver2], resolutionStrategy) >> ivySettings
         1 * ivyFactory.createIvy(ivySettings) >> ivy
+        2 * ivy.getSettings() >> ivySettings
+        1 * ivySettings.getDefaultResolver() >> userResolverChain
+        1 * ivySettings.getVersionMatcher() >> versionMatcher
         0 * _._
+
+        and:
+        // TODO:DAZ more testing when this settles down
+        result instanceof DefaultIvyAdapter
     }
 }

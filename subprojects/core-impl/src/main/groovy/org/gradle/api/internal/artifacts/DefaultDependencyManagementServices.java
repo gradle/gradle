@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
@@ -35,6 +34,8 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandl
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.clientmodule.DefaultClientModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
@@ -57,12 +58,9 @@ import org.gradle.util.TimeProvider;
 import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.lock.LockHolderFactory;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class DefaultDependencyManagementServices extends DefaultServiceRegistry implements DependencyManagementServices {
-    private final Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
 
     public DefaultDependencyManagementServices(ServiceRegistry parent) {
         super(parent);
@@ -110,7 +108,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 new ClientModuleDependencyDescriptorFactory(
                         get(ExcludeRuleConverter.class),
                         clientModuleDescriptorFactory,
-                        clientModuleRegistry),
+                        get(ClientModuleRegistry.class)),
                 new ProjectDependencyDescriptorFactory(
                         get(ExcludeRuleConverter.class)),
                 get(ExternalModuleDependencyDescriptorFactory.class));
@@ -177,6 +175,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     protected IvyFactory createIvyFactory() {
         return  new DefaultIvyFactory();
+    }
+    
+    protected ClientModuleRegistry createClientModuleRegistry() {
+        return new DefaultClientModuleRegistry();
     }
 
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
@@ -258,7 +260,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(SettingsConverter.class),
                     new DefaultInternalRepository(
                             get(PublishModuleDescriptorConverter.class)),
-                    clientModuleRegistry);
+                    get(ClientModuleRegistry.class));
 
             ResolvedArtifactFactory resolvedArtifactFactory = new ResolvedArtifactFactory(
                     get(CacheLockingManager.class)

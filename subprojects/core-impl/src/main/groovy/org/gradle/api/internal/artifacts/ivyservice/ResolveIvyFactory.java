@@ -16,22 +16,20 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-
-import java.util.Map;
+import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRegistry;
 
 public class ResolveIvyFactory {
     private final IvyFactory ivyFactory;
     private final ResolverProvider resolverProvider;
     private final DependencyResolver internalRepository;
-    private final Map<String, ModuleDescriptor> clientModuleRegistry;
+    private final ClientModuleRegistry clientModuleRegistry;
     private final SettingsConverter settingsConverter;
 
-    public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter, DependencyResolver internalRepository, Map<String, ModuleDescriptor> clientModuleRegistry) {
+    public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter, DependencyResolver internalRepository, ClientModuleRegistry clientModuleRegistry) {
         this.ivyFactory = ivyFactory;
         this.resolverProvider = resolverProvider;
         this.settingsConverter = settingsConverter;

@@ -16,15 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.util.WrapUtil;
-
-import java.util.Map;
 
 public class DefaultIvyAdapter implements IvyAdapter {
     private static final String TOP_LEVEL_RESOLVER_CHAIN_NAME = "topLevelResolverChain";
@@ -35,7 +34,7 @@ public class DefaultIvyAdapter implements IvyAdapter {
     private final VersionMatcher versionMatcher;
     private final ResolutionStrategyInternal resolutionStrategy;
 
-    public DefaultIvyAdapter(Ivy ivy, DependencyResolver internalRepository, Map<String, ModuleDescriptor> clientModuleRegistry, ResolutionStrategyInternal resolutionStrategy) {
+    public DefaultIvyAdapter(Ivy ivy, DependencyResolver internalRepository, ClientModuleRegistry clientModuleRegistry, ResolutionStrategyInternal resolutionStrategy) {
         this.ivy = ivy;
         DependencyResolver userResolver = ivy.getSettings().getDefaultResolver();
         primaryResolver = constructPrimaryResolver(clientModuleRegistry, internalRepository, userResolver);
@@ -43,7 +42,7 @@ public class DefaultIvyAdapter implements IvyAdapter {
         this.resolutionStrategy = resolutionStrategy;
     }
     
-    private DependencyResolver constructPrimaryResolver(Map<String, ModuleDescriptor> clientModuleRegistry, DependencyResolver internalResolver, DependencyResolver userResolver) {
+    private DependencyResolver constructPrimaryResolver(ClientModuleRegistry clientModuleRegistry, DependencyResolver internalResolver, DependencyResolver userResolver) {
         ClientModuleResolver clientModuleResolver = new ClientModuleResolver(CLIENT_MODULE_RESOLVER_NAME, clientModuleRegistry, primaryResolver);
         PrimaryResolverChain primaryResolverChain = new PrimaryResolverChain(clientModuleResolver, internalResolver, userResolver);
         primaryResolverChain.setName(TOP_LEVEL_RESOLVER_CHAIN_NAME);
