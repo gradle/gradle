@@ -22,12 +22,23 @@ package org.gradle.api.tasks.testing;
 public interface TestLogging {
 
     /**
-     * Whether to show eagerly the standard stream events. Standard output is printed at INFO level, standard error at ERROR level.
+     * Deprecated for naming consistency reasons, please use {@link #setShowStandardStreams(boolean)}
      *
-     * @param standardStream to configure
+     * @deprecated
+     *
+     * @param standardStreams to configure
      * @return this logging instance
      */
-    TestLogging setShowStandardStream(boolean standardStream);
+    @Deprecated
+    TestLogging setShowStandardStream(boolean standardStreams);
+
+    /**
+     * Whether to show eagerly the standard stream events. Standard output is printed at INFO level, standard error at ERROR level.
+     *
+     * @param standardStreams to configure
+     * @return this logging instance
+     */
+    TestLogging setShowStandardStreams(boolean standardStreams);
 
     /**
      * Whether to show eagerly the standard stream events. Standard output is printed at INFO level, standard error at ERROR level.
