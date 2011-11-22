@@ -377,10 +377,24 @@ public class StartParameter implements Serializable {
      */
     public File getDaemonRegistryDir() {
         if (daemonRegistryDir == null) {
-            return new File(gradleUserHomeDir, "daemon");
+            return getDefaultDaemonRegistryDir(getGradleUserHomeDir());
         } else {
             return daemonRegistryDir;
         }
+    }
+
+    /**
+     * Returns the default daemon registry dir, given the gradle user home dir.
+     * <p>
+     * If the {@code gradleUserHomeDir} is {@code null}, the {@link #DEFAULT_GRADLE_USER_HOME} will be used.
+     * <p>
+     * The returned file will be the directory “daemon” inside the used gradle user home dir value.
+     * 
+     * @param gradleUserHomeDir the gradle user home dir, or {@code null} to use {@link #DEFAULT_GRADLE_USER_HOME}
+     * @return the default daemon registry dir
+     */
+    static public File getDefaultDaemonRegistryDir(File gradleUserHomeDir) {
+        return GFileUtils.canonicalise(new File(gradleUserHomeDir == null ? DEFAULT_GRADLE_USER_HOME : gradleUserHomeDir, "daemon"));
     }
 
     /**

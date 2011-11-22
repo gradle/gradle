@@ -93,7 +93,7 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedProjectProperties, startParameter.getProjectProperties());
         assertEquals(expectedSystemProperties, startParameter.getSystemPropertiesArgs());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
-        assertEquals(expectedDaemonRegistryDir == null ? new File(startParameter.getGradleUserHomeDir(), "daemon") : expectedDaemonRegistryDir, startParameter.getDaemonRegistryDir());
+        assertEquals(expectedDaemonRegistryDir == null ? StartParameter.getDefaultDaemonRegistryDir(startParameter.getGradleUserHomeDir()) : expectedDaemonRegistryDir, startParameter.getDaemonRegistryDir());
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
         assertEquals(expectedColorOutput, startParameter.isColorOutput());
         assertEquals(expectedDryRun, startParameter.isDryRun());
