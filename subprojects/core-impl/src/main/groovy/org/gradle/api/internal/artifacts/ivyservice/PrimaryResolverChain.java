@@ -20,7 +20,6 @@ import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.report.DownloadReport;
-import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
@@ -29,19 +28,20 @@ import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRes
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.text.ParseException;
 
 /**
  * Resolver which looks for definitions first in defined Client Modules, before delegating to the user-defined resolver chain.
  * Artifact download is delegated to user-defined resolver chain.
  */
-public class PrimaryResolverChain extends AbstractLimitedDependencyResolver implements DependencyResolver {
+public class PrimaryResolverChain implements GradleDependencyResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(PrimaryResolverChain.class);
     private final ClientModuleResolver clientModuleResolver;
-    private final DependencyResolver projectResolver;
+    private final GradleDependencyResolver projectResolver;
     private final DependencyResolver userResolverChain;
 
-    public PrimaryResolverChain(ClientModuleResolver clientModuleResolver, DependencyResolver projectResolver, DependencyResolver userResolverChain) {
+    public PrimaryResolverChain(ClientModuleResolver clientModuleResolver, GradleDependencyResolver projectResolver, DependencyResolver userResolverChain) {
         this.clientModuleResolver = clientModuleResolver;
         this.projectResolver = projectResolver;
         this.userResolverChain = userResolverChain;
@@ -61,16 +61,14 @@ public class PrimaryResolverChain extends AbstractLimitedDependencyResolver impl
         return userResolverChain.getDependency(dd, data);
     }
 
-    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
-        if (artifacts.length != 1) {
-            throw new IllegalArgumentException("Can only handle one artifact at a time");
-        }
-        DownloadReport projectDownloadReport = projectResolver.download(artifacts, options);
-        if (projectDownloadReport.getArtifactsReports()[0].getDownloadStatus() != DownloadStatus.FAILED) {
-            return projectDownloadReport;
+    public File resolve(Artifact artifact) {
+        File projectFile = projectResolver.resolve(artifact);
+        if (projectFile != null) {
+            return projectFile;
         }
 
-        return userResolverChain.download(artifacts, options);
+        DownloadReport downloadReport = userResolverChain.download(new Artifact[]{artifact}, new DownloadOptions());
+        return downloadReport.getArtifactReport(artifact).getLocalFile();
     }
 
     public ArtifactOrigin locate(Artifact artifact) {

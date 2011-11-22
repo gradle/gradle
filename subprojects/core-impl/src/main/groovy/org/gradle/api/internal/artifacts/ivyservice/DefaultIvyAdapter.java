@@ -26,15 +26,12 @@ import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRes
 import org.gradle.util.WrapUtil;
 
 public class DefaultIvyAdapter implements IvyAdapter {
-    private static final String TOP_LEVEL_RESOLVER_CHAIN_NAME = "topLevelResolverChain";
-    private static final String CLIENT_MODULE_RESOLVER_NAME = "clientModuleResolver";
-
     private final Ivy ivy;
-    private final DependencyResolver primaryResolver;
+    private final PrimaryResolverChain primaryResolver;
     private final VersionMatcher versionMatcher;
     private final ResolutionStrategyInternal resolutionStrategy;
 
-    public DefaultIvyAdapter(Ivy ivy, DependencyResolver internalRepository, ClientModuleRegistry clientModuleRegistry, ResolutionStrategyInternal resolutionStrategy) {
+    public DefaultIvyAdapter(Ivy ivy, GradleDependencyResolver internalRepository, ClientModuleRegistry clientModuleRegistry, ResolutionStrategyInternal resolutionStrategy) {
         this.ivy = ivy;
         DependencyResolver userResolver = ivy.getSettings().getDefaultResolver();
         primaryResolver = constructPrimaryResolver(clientModuleRegistry, internalRepository, userResolver);
@@ -42,10 +39,9 @@ public class DefaultIvyAdapter implements IvyAdapter {
         this.resolutionStrategy = resolutionStrategy;
     }
     
-    private DependencyResolver constructPrimaryResolver(ClientModuleRegistry clientModuleRegistry, DependencyResolver internalResolver, DependencyResolver userResolver) {
-        ClientModuleResolver clientModuleResolver = new ClientModuleResolver(CLIENT_MODULE_RESOLVER_NAME, clientModuleRegistry, primaryResolver);
+    private PrimaryResolverChain constructPrimaryResolver(ClientModuleRegistry clientModuleRegistry, GradleDependencyResolver internalResolver, DependencyResolver userResolver) {
+        ClientModuleResolver clientModuleResolver = new ClientModuleResolver(clientModuleRegistry);
         PrimaryResolverChain primaryResolverChain = new PrimaryResolverChain(clientModuleResolver, internalResolver, userResolver);
-        primaryResolverChain.setName(TOP_LEVEL_RESOLVER_CHAIN_NAME);
         return primaryResolverChain;
     }
 
@@ -62,6 +58,6 @@ public class DefaultIvyAdapter implements IvyAdapter {
     }
 
     public ArtifactToFileResolver getArtifactToFileResolver() {
-        return new IvyResolverBackedArtifactToFileResolver(primaryResolver);
+        return primaryResolver;
     }
 }

@@ -20,27 +20,23 @@ import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
-import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ClientModule;
-import org.gradle.api.internal.artifacts.ivyservice.AbstractLimitedDependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.GradleDependencyResolver;
+
+import java.io.File;
 
 /**
  * @author Hans Dockter
  */
-public class ClientModuleResolver extends AbstractLimitedDependencyResolver {
+public class ClientModuleResolver implements GradleDependencyResolver {
     private ClientModuleRegistry moduleRegistry;
-    private DependencyResolver userResolver;
 
-    public ClientModuleResolver(String name, ClientModuleRegistry moduleRegistry, DependencyResolver userResolver) {
-        setName(name);
+    public ClientModuleResolver(ClientModuleRegistry moduleRegistry) {
         this.moduleRegistry = moduleRegistry;
-        this.userResolver = userResolver;
     }
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dde, ResolveData data) {
@@ -52,10 +48,10 @@ public class ClientModuleResolver extends AbstractLimitedDependencyResolver {
         MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.getMetadataArtifact());
         downloadReport.setDownloadStatus(DownloadStatus.NO);
         downloadReport.setSearched(false);
-        return new ResolvedModuleRevision(userResolver, userResolver, moduleDescriptor, downloadReport);
+        return new ResolvedModuleRevision(null, null, moduleDescriptor, downloadReport);
     }
 
-    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
+    public File resolve(Artifact artifact) {
         throw new UnsupportedOperationException();
     }
 

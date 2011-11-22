@@ -28,7 +28,7 @@ class ResolveIvyFactoryTest extends Specification {
     final IvyFactory ivyFactory = Mock()
     final ResolverProvider resolverProvider = Mock()
     final SettingsConverter settingsConverter = Mock()
-    final DependencyResolver internalRepo = Mock()
+    final GradleDependencyResolver internalRepo = Mock()
     final ResolutionStrategyInternal resolutionStrategy = Mock()
     final ClientModuleRegistry clientModuleRegistry = Mock()
     final ResolveIvyFactory factory = new ResolveIvyFactory(ivyFactory, resolverProvider, settingsConverter, internalRepo, clientModuleRegistry)

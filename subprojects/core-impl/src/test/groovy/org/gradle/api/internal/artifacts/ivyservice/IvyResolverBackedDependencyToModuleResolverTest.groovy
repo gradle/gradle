@@ -16,21 +16,20 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.apache.ivy.Ivy
+import org.apache.ivy.core.module.descriptor.Configuration
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleId
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.resolve.ResolveData
-import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.apache.ivy.core.resolve.ResolvedModuleRevision
+import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.version.VersionMatcher
 import spock.lang.Specification
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.core.resolve.ResolvedModuleRevision
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.settings.IvySettings
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.descriptor.Configuration
 
 class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
-    final DependencyResolver ivyResolver = Mock()
+    final GradleDependencyResolver ivyResolver = Mock()
     final Ivy ivy = Mock()
     final ResolveData resolveData = Mock()
     final VersionMatcher versionMatcher = Mock()

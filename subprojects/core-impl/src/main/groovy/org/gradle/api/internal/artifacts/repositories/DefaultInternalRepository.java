@@ -20,17 +20,13 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.report.ArtifactDownloadReport;
-import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
-import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.ivyservice.AbstractLimitedDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.GradleDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -42,12 +38,11 @@ import java.text.ParseException;
 /**
  * @author Hans Dockter
  */
-public class DefaultInternalRepository extends AbstractLimitedDependencyResolver implements InternalRepository {
+public class DefaultInternalRepository implements GradleDependencyResolver {
     private final ModuleDescriptorConverter moduleDescriptorConverter;
 
     public DefaultInternalRepository(ModuleDescriptorConverter moduleDescriptorConverter) {
         this.moduleDescriptorConverter = moduleDescriptorConverter;
-        setName(ArtifactRepositoryContainer.INTERNAL_REPOSITORY_NAME);
     }
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
@@ -59,7 +54,7 @@ public class DefaultInternalRepository extends AbstractLimitedDependencyResolver
         MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.getMetadataArtifact());
         downloadReport.setDownloadStatus(DownloadStatus.NO);
         downloadReport.setSearched(false);
-        return new ResolvedModuleRevision(this, this, moduleDescriptor, downloadReport);
+        return new ResolvedModuleRevision(null, null, moduleDescriptor, downloadReport);
     }
 
     private ModuleDescriptor findProject(DependencyDescriptor descriptor) {
@@ -85,23 +80,13 @@ public class DefaultInternalRepository extends AbstractLimitedDependencyResolver
         return projectDescriptor;
     }
 
-    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
-        DownloadReport dr = new DownloadReport();
-        for (Artifact artifact : artifacts) {
-            ArtifactDownloadReport artifactDownloadReport = new ArtifactDownloadReport(artifact);
-            String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
-            if (path == null) {
-                artifactDownloadReport.setDownloadStatus(DownloadStatus.FAILED);
-            } else {
-                File file = new File(path);
-                artifactDownloadReport.setDownloadStatus(DownloadStatus.SUCCESSFUL);
-                artifactDownloadReport.setArtifactOrigin(new ArtifactOrigin(artifact, true, getName()));
-                artifactDownloadReport.setLocalFile(file);
-                artifactDownloadReport.setSize(file.length());
-            }
-            dr.addArtifactReport(artifactDownloadReport);
-        }
-        return dr;
+
+    public File resolve(Artifact artifact) {
+        String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
+        if (path == null) {
+            return null;
+        } 
+        return new File(path);
     }
 
     public ArtifactOrigin locate(Artifact artifact) {

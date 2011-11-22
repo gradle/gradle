@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.clientmodule
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.resolve.ResolveData
-import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.artifacts.ClientModule
+import org.gradle.api.internal.artifacts.ivyservice.GradleDependencyResolver
 import spock.lang.Specification
 
 /**
@@ -28,10 +28,10 @@ import spock.lang.Specification
  */
 class ClientModuleResolverTest extends Specification {
     final ModuleDescriptor module = Mock()
-    final DependencyResolver targetResolver = Mock()
+    final GradleDependencyResolver targetResolver = Mock()
     final ResolveData resolveData = Mock()
     final ClientModuleRegistry clientModuleRegistry = Mock()
-    final ClientModuleResolver resolver = new ClientModuleResolver("name", clientModuleRegistry, targetResolver)
+    final ClientModuleResolver resolver = new ClientModuleResolver(clientModuleRegistry)
 
     def "resolves dependency descriptor that matches module in supplied registry"() {
         DependencyDescriptor dependencyDescriptor = dependency("module")
@@ -42,8 +42,6 @@ class ClientModuleResolverTest extends Specification {
 
         then:
         resolvedDependency.descriptor == module
-        resolvedDependency.resolver == targetResolver
-        resolvedDependency.artifactResolver == targetResolver
     }
 
     def "returns null for unknown module"() {
