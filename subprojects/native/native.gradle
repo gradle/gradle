@@ -3,7 +3,7 @@
 */
 dependencies {
     groovy libraries.groovy
-    compile project(':core')
+    compile libraries.commons_io
     compile libraries.slf4j_api
     compile libraries.jna
     compile module('org.jruby.ext.posix:jna-posix:1.0.3') {

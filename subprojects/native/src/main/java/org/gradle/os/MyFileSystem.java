@@ -23,6 +23,8 @@ import java.util.UUID;
 
 import com.google.common.io.Closeables;
 import net.jcip.annotations.ThreadSafe;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.SystemProperties;
 import org.slf4j.LoggerFactory;
@@ -47,8 +49,8 @@ public class MyFileSystem {
             logger.warn("Failed to determine if current file system is symlink-aware. Assuming it isn't.");
             return false;
         } finally {
-            GFileUtils.deleteQuietly(file);
-            GFileUtils.deleteQuietly(symlink);
+            FileUtils.deleteQuietly(file);
+            FileUtils.deleteQuietly(symlink);
         }
     }
 
@@ -64,7 +66,7 @@ public class MyFileSystem {
             return false;
         } finally {
             Closeables.closeQuietly(channel);
-            GFileUtils.deleteQuietly(file);
+            FileUtils.deleteQuietly(file);
         }
     }
 }
