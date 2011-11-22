@@ -24,9 +24,6 @@ import java.util.UUID;
 import com.google.common.io.Closeables;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.SystemProperties;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -43,7 +40,7 @@ public class MyFileSystem {
         File symlink = null;
         try {
             file = File.createTempFile("gradle_symlink_check", null, null);
-            symlink = new File(SystemProperties.getJavaIoTmpDir(), UUID.randomUUID().toString());
+            symlink = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
             return PosixUtil.current().symlink(file.getPath(), symlink.getPath()) == 0;
         } catch (IOException e) {
             logger.warn("Failed to determine if current file system is symlink-aware. Assuming it isn't.");
