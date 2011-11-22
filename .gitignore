@@ -2,6 +2,7 @@
 .gradle
 /build
 /out
+/intTestHomeDir
 /subprojects/*/out
 /intellij
 /buildSrc/lib
