@@ -243,5 +243,11 @@ class StartParameterTest {
         p.daemonRegistryDir = null
         assert p.daemonRegistryDir == new File(p.gradleUserHomeDir, "daemon").canonicalFile
     }
+
+    @Test public void testDefaultDaemonRegistryDirMovesWithUserHomeDir() {
+        StartParameter p = new StartParameter()
+        p.gradleUserHomeDir = new File("abc")
+        assert p.daemonRegistryDir ==  new File("abc/daemon").canonicalFile
+    }
         
 }

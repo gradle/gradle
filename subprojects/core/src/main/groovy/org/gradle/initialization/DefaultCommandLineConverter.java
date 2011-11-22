@@ -59,6 +59,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String SYSTEM_PROP = "D";
     private static final String PROJECT_PROP = "P";
     public static final String GRADLE_USER_HOME = "g";
+    public static final String DAEMON_REGISTRY_DIR = "daemon-registry-dir";
     private static final String EMBEDDED_SCRIPT = "e";
     private static final String CACHE = "C";
     private static final String DRY_RUN = "m";
@@ -96,6 +97,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(DEPENDENCIES, "dependencies").mapsToSubcommand(ImplicitTasksConfigurer.DEPENDENCIES_TASK).hasDescription("Show list of all project dependencies").deprecated(deprecationMessage("dependencies"));
         parser.option(PROJECT_DIR, "project-dir").hasArgument().hasDescription("Specifies the start directory for Gradle. Defaults to current directory.");
         parser.option(GRADLE_USER_HOME, "gradle-user-home").hasArgument().hasDescription("Specifies the gradle user home directory.");
+        parser.option(DAEMON_REGISTRY_DIR).hasArgument().hasDescription("Specifies the daemon registry directory.");
         parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specifies an initialization script.");
         parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specifies the settings file.");
         parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specifies the build file.");
@@ -144,6 +146,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
         if (options.hasOption(GRADLE_USER_HOME)) {
             startParameter.setGradleUserHomeDir(resolver.resolve(options.option(GRADLE_USER_HOME).getValue()));
+        }
+        if (options.hasOption(DAEMON_REGISTRY_DIR)) {
+            startParameter.setDaemonRegistryDir(resolver.resolve(options.option(DAEMON_REGISTRY_DIR).getValue()));
         }
         if (options.hasOption(BUILD_FILE)) {
             startParameter.setBuildFile(resolver.resolve(options.option(BUILD_FILE).getValue()));

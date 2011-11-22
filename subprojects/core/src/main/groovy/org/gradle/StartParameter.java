@@ -376,7 +376,11 @@ public class StartParameter implements Serializable {
      * @return The daemon registry directory.
      */
     public File getDaemonRegistryDir() {
-        return daemonRegistryDir;
+        if (daemonRegistryDir == null) {
+            return new File(gradleUserHomeDir, "daemon");
+        } else {
+            return daemonRegistryDir;
+        }
     }
 
     /**
@@ -393,10 +397,7 @@ public class StartParameter implements Serializable {
      */
     public void setDaemonRegistryDir(File daemonRegistryDir) {
         if (daemonRegistryDir == null) {
-            if (gradleUserHomeDir == null) {
-                setGradleUserHomeDir(null);
-            }
-            this.daemonRegistryDir = new File(gradleUserHomeDir, "daemon");
+            this.daemonRegistryDir = null;
         } else {
             this.daemonRegistryDir = GFileUtils.canonicalise(daemonRegistryDir);
         }

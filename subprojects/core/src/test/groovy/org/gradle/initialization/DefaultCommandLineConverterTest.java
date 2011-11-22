@@ -23,6 +23,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.util.GUtil;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.junit.Rule;
@@ -49,6 +50,7 @@ public class DefaultCommandLineConverterTest {
     private TestFile currentDir = testDir.file("current-dir");
     private File expectedBuildFile;
     private File expectedGradleUserHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
+    private File expectedDaemonRegistryDir = null;
     private File expectedProjectDir = currentDir;
     private List<String> expectedTaskNames = toList();
     private Set<String> expectedExcludedTasks = toSet();
@@ -91,7 +93,7 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedProjectProperties, startParameter.getProjectProperties());
         assertEquals(expectedSystemProperties, startParameter.getSystemPropertiesArgs());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
-        assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
+        assertEquals(expectedDaemonRegistryDir == null ? new File(startParameter.getGradleUserHomeDir(), "daemon") : expectedDaemonRegistryDir, startParameter.getDaemonRegistryDir());
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
         assertEquals(expectedColorOutput, startParameter.isColorOutput());
         assertEquals(expectedDryRun, startParameter.isDryRun());
@@ -372,6 +374,12 @@ public class DefaultCommandLineConverterTest {
     public void withTaskAndTaskOption() {
         expectedTaskNames = toList("someTask", "--some-task-option");
         checkConversion("someTask", "--some-task-option");
+    }
+    
+    @Test
+    public void withDaemonRegistryDir() {
+        expectedDaemonRegistryDir = GFileUtils.canonicalise(new File(currentDir, "abc"));
+        checkConversion("--daemon-registry-dir", "abc");
     }
 
 }
