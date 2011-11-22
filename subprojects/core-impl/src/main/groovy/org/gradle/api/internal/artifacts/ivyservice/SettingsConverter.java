@@ -15,13 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -33,6 +31,5 @@ public interface SettingsConverter {
 
     IvySettings convertForPublish(List<DependencyResolver> publishResolvers);
 
-    IvySettings convertForResolve(List<DependencyResolver> classpathResolvers, DependencyResolver projectResolver,
-                                  Map<String, ModuleDescriptor> clientModuleRegistry, ResolutionStrategyInternal resolutionStrategy);
+    IvySettings convertForResolve(List<DependencyResolver> classpathResolvers, ResolutionStrategyInternal resolutionStrategy);
 }

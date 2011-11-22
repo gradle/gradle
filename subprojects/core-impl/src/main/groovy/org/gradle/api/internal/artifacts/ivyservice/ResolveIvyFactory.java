@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -38,7 +39,9 @@ public class ResolveIvyFactory {
         this.clientModuleRegistry = clientModuleRegistry;
     }
 
-    public Ivy create(ResolutionStrategyInternal resolutionStrategy) {
-        return ivyFactory.createIvy(settingsConverter.convertForResolve(resolverProvider.getResolvers(), internalRepository, clientModuleRegistry, resolutionStrategy));
+    public IvyAdapter create(ResolutionStrategyInternal resolutionStrategy) {
+        IvySettings ivySettings = settingsConverter.convertForResolve(resolverProvider.getResolvers(), resolutionStrategy);
+        Ivy ivy = ivyFactory.createIvy(ivySettings);
+        return new DefaultIvyAdapter(ivy, internalRepository, clientModuleRegistry, resolutionStrategy);
     }
 }

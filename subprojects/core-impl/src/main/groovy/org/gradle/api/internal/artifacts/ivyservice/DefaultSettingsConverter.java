@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
@@ -28,7 +27,6 @@ import org.apache.ivy.util.Message;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.WrapUtil;
@@ -48,7 +46,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private UserResolverChain userResolverChain;
-    private DependencyResolver outerChain;
 
     public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory, ModuleResolutionCache moduleResolutionCache) {
         this.progressLoggerFactory = progressLoggerFactory;
@@ -84,25 +81,17 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return publishSettings;
     }
 
-    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, DependencyResolver projectResolver, Map<String, ModuleDescriptor> clientModuleRegistry, ResolutionStrategyInternal resolutionStrategy) {
+    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, ResolutionStrategyInternal resolutionStrategy) {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
             userResolverChain = createUserResolverChain();
-            ClientModuleResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
-            outerChain = new TopLeveResolverChain(clientModuleResolver, projectResolver, userResolverChain);
-            outerChain.setName(TOP_LEVEL_RESOLVER_CHAIN_NAME);
-            initializeResolvers(resolveSettings, WrapUtil.toList(userResolverChain, clientModuleResolver, outerChain));
+            resolveSettings.addResolver(userResolverChain);
+            resolveSettings.setDefaultResolver(USER_RESOLVER_CHAIN_NAME);
         }
         
         userResolverChain.setCachePolicy(resolutionStrategy.getCachePolicy());
-
         replaceResolvers(dependencyResolvers, userResolverChain);
-        resolveSettings.setDefaultResolver(outerChain.getName());
         return resolveSettings;
-    }
-
-    private ClientModuleResolver createClientModuleResolver(Map<String, ModuleDescriptor> clientModuleRegistry, DependencyResolver userResolverChain) {
-        return new ClientModuleResolver(CLIENT_MODULE_RESOLVER_NAME, clientModuleRegistry, userResolverChain);
     }
 
     private UserResolverChain createUserResolverChain() {
@@ -121,18 +110,13 @@ public class DefaultSettingsConverter implements SettingsConverter {
         }
         for (DependencyResolver resolver : resolvers) {
             resolver.setSettings(resolveSettings);
-            DependencyResolver sharedResolver;
-            if (resolver instanceof InternalRepository) {
+            String resolverId = new WharfResolverMetadata(resolver).getId();
+            DependencyResolver sharedResolver = resolversById.get(resolverId);
+            if (sharedResolver == null) {
+                initializeResolvers(resolveSettings, WrapUtil.toList(resolver));
+                assert resolveSettings.getResolver(resolver.getName()) == resolver;
+                resolversById.put(resolverId, resolver);
                 sharedResolver = resolver;
-            } else {
-                String id = new WharfResolverMetadata(resolver).getId();
-                sharedResolver = resolversById.get(id);
-                if (sharedResolver == null) {
-                    initializeResolvers(resolveSettings, WrapUtil.toList(resolver));
-                    assert resolveSettings.getResolver(resolver.getName()) == resolver;
-                    resolversById.put(id, resolver);
-                    sharedResolver = resolver;
-                }
             }
             resolveSettings.addResolver(sharedResolver);
             chainResolver.add(sharedResolver);

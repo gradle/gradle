@@ -15,18 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.apache.ivy.Ivy;
 import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolveOptions;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,18 +40,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) throws ResolveException {
         LOGGER.debug("Resolving {}", configuration);
 
-        Ivy ivy = ivyFactory.create(configuration.getResolutionStrategy());
-        DependencyResolver resolver = ivy.getSettings().getDefaultResolver();
+        IvyAdapter ivyAdapter = ivyFactory.create(configuration.getResolutionStrategy());
 
-        ResolveOptions options = new ResolveOptions();
-        options.setDownload(false);
-        options.setConfs(WrapUtil.toArray(configuration.getName()));
-        ResolveData resolveData = new ResolveData(ivy.getResolveEngine(), options);
-        VersionMatcher versionMatcher = ivy.getSettings().getVersionMatcher();
-
-        DependencyToModuleResolver dependencyResolver = new IvyResolverBackedDependencyToModuleResolver(ivy, resolveData, resolver, versionMatcher);
-        dependencyResolver = new VersionForcingDependencyToModuleResolver(dependencyResolver, configuration.getResolutionStrategy().getForcedModules());
-        IvyResolverBackedArtifactToFileResolver artifactResolver = new IvyResolverBackedArtifactToFileResolver(resolver);
+        ResolveData resolveData = ivyAdapter.getResolveData(configuration.getName());
+        DependencyToModuleResolver dependencyResolver = ivyAdapter.getDependencyToModuleResolver(resolveData);
+        ArtifactToFileResolver artifactResolver = ivyAdapter.getArtifactToFileResolver();
 
         ModuleConflictResolver conflictResolver;
         if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {

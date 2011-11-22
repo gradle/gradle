@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.settings.IvySettings
-import org.apache.ivy.plugins.resolver.ChainResolver
-import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.internal.Factory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
@@ -31,8 +28,6 @@ class DefaultSettingsConverterTest extends Specification {
     final IBiblioResolver testResolver = new IBiblioResolver()
     final IBiblioResolver testResolver2 = new IBiblioResolver()
 
-    Map clientModuleRegistry = [a: [:] as ModuleDescriptor]
-    DependencyResolver projectResolver = Mock()
     ResolutionStrategyInternal resolutionStrategy = Mock()
     ModuleResolutionCache dynamicRevisionCache = Mock()
 
@@ -49,7 +44,7 @@ class DefaultSettingsConverterTest extends Specification {
 
     public void testConvertForResolve() {
         when:
-        IvySettings settings = converter.convertForResolve([testResolver, testResolver2], projectResolver, clientModuleRegistry, resolutionStrategy)
+        IvySettings settings = converter.convertForResolve([testResolver, testResolver2], resolutionStrategy)
 
         then:
         1 * ivySettingsFactory.create() >> ivySettings
@@ -58,29 +53,20 @@ class DefaultSettingsConverterTest extends Specification {
 
         assert settings.is(ivySettings)
 
-        ChainResolver chainResolver = settings.getResolver(DefaultSettingsConverter.USER_RESOLVER_CHAIN_NAME)
+        UserResolverChain chainResolver = settings.getResolver(DefaultSettingsConverter.USER_RESOLVER_CHAIN_NAME)
         assert chainResolver.resolvers == [testResolver, testResolver2]
         assert chainResolver.returnFirst
-
-        assert settings.getResolver(DefaultSettingsConverter.CLIENT_MODULE_RESOLVER_NAME) instanceof ClientModuleResolver
-        assert settings.getResolver(DefaultSettingsConverter.TOP_LEVEL_RESOLVER_CHAIN_NAME) instanceof TopLeveResolverChain
-
-        DependencyResolver topLevelResolver = settings.getResolver(DefaultSettingsConverter.TOP_LEVEL_RESOLVER_CHAIN_NAME)
-        assert settings.defaultResolver.is(topLevelResolver)
+        assert settings.defaultResolver.is(chainResolver)
 
         [testResolver.name, testResolver2.name].each {
             assert settings.getResolver(it)
             assert settings.getResolver(it).repositoryCacheManager.settings == settings
         }
-        [DefaultSettingsConverter.CLIENT_MODULE_RESOLVER_NAME, DefaultSettingsConverter.TOP_LEVEL_RESOLVER_CHAIN_NAME, DefaultSettingsConverter.USER_RESOLVER_CHAIN_NAME].each {
-            assert settings.getResolver(it)
-            assert settings.getResolver(it).repositoryCacheManager instanceof NoOpRepositoryCacheManager
-        }
     }
 
     public void shouldReuseResolveSettings() {
         when:
-        IvySettings settings = converter.convertForResolve([testResolver, testResolver2], projectResolver, clientModuleRegistry, resolutionStrategy)
+        IvySettings settings = converter.convertForResolve([testResolver, testResolver2], resolutionStrategy)
 
         then:
         1 * ivySettingsFactory.create() >> ivySettings
@@ -89,16 +75,16 @@ class DefaultSettingsConverterTest extends Specification {
 
         assert settings.is(ivySettings)
 
-        ChainResolver chainResolver = settings.getResolver(DefaultSettingsConverter.USER_RESOLVER_CHAIN_NAME)
+        UserResolverChain chainResolver = settings.defaultResolver
         assert chainResolver.resolvers == [testResolver, testResolver2]
 
         when:
-        settings = converter.convertForResolve([testResolver], projectResolver, clientModuleRegistry, resolutionStrategy)
+        settings = converter.convertForResolve([testResolver], resolutionStrategy)
 
         then:
         assert settings.is(ivySettings)
 
-        ChainResolver secondChainResolver = settings.getResolver(DefaultSettingsConverter.USER_RESOLVER_CHAIN_NAME)
+        UserResolverChain secondChainResolver = settings.getResolver(DefaultSettingsConverter.USER_RESOLVER_CHAIN_NAME)
         assert secondChainResolver.resolvers == [testResolver]
         assert !ivySettings.resolvers.contains(testResolver2)
     }

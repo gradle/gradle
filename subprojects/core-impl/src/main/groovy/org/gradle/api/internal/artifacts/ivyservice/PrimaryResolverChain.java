@@ -34,13 +34,13 @@ import java.text.ParseException;
  * Resolver which looks for definitions first in defined Client Modules, before delegating to the user-defined resolver chain.
  * Artifact download is delegated to user-defined resolver chain.
  */
-public class TopLeveResolverChain extends AbstractLimitedDependencyResolver implements DependencyResolver {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TopLeveResolverChain.class);
+public class PrimaryResolverChain extends AbstractLimitedDependencyResolver implements DependencyResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PrimaryResolverChain.class);
     private final ClientModuleResolver clientModuleResolver;
     private final DependencyResolver projectResolver;
     private final DependencyResolver userResolverChain;
 
-    public TopLeveResolverChain(ClientModuleResolver clientModuleResolver, DependencyResolver projectResolver, DependencyResolver userResolverChain) {
+    public PrimaryResolverChain(ClientModuleResolver clientModuleResolver, DependencyResolver projectResolver, DependencyResolver userResolverChain) {
         this.clientModuleResolver = clientModuleResolver;
         this.projectResolver = projectResolver;
         this.userResolverChain = userResolverChain;
