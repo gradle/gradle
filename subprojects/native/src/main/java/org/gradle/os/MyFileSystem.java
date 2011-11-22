@@ -26,7 +26,6 @@ import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.UncheckedIOException;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -72,7 +71,7 @@ public abstract class MyFileSystem {
                 symlinkAware = probeSymlinkAware(probe, secret);
                 implicitLock = probeImplicitlyLocksFileOnOpen(probe);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw new RuntimeException(e);
             } finally {
                 FileUtils.deleteQuietly(probe);
             }
