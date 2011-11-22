@@ -15,25 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.report.DownloadStatus;
-import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
-import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.GradleDependencyResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.ReflectionUtil;
 
 import java.io.File;
-import java.text.ParseException;
 
 /**
  * @author Hans Dockter
@@ -45,16 +37,12 @@ public class DefaultInternalRepository implements GradleDependencyResolver {
         this.moduleDescriptorConverter = moduleDescriptorConverter;
     }
 
-    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
-        ModuleDescriptor moduleDescriptor = findProject(dd);
+    public ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor) {
+        ModuleDescriptor moduleDescriptor = findProject(dependencyDescriptor);
         if (moduleDescriptor == null) {
-            return data.getCurrentResolvedModuleRevision();
+            return null;
         }
-
-        MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.getMetadataArtifact());
-        downloadReport.setDownloadStatus(DownloadStatus.NO);
-        downloadReport.setSearched(false);
-        return new ResolvedModuleRevision(null, null, moduleDescriptor, downloadReport);
+        return new FixedModuleVersionResolver(dependencyDescriptor, moduleDescriptor);
     }
 
     private ModuleDescriptor findProject(DependencyDescriptor descriptor) {
@@ -87,9 +75,5 @@ public class DefaultInternalRepository implements GradleDependencyResolver {
             return null;
         } 
         return new File(path);
-    }
-
-    public ArtifactOrigin locate(Artifact artifact) {
-        return null;
     }
 }

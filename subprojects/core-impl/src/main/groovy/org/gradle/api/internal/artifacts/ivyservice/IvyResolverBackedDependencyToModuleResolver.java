@@ -33,10 +33,10 @@ import org.apache.ivy.plugins.version.VersionMatcher;
 public class IvyResolverBackedDependencyToModuleResolver implements DependencyToModuleResolver {
     private final Ivy ivy;
     private final ResolveData resolveData;
-    private final GradleDependencyResolver resolver;
+    private final DependencyResolver resolver;
     private final VersionMatcher versionMatcher;
 
-    public IvyResolverBackedDependencyToModuleResolver(Ivy ivy, ResolveData resolveData, GradleDependencyResolver resolver, VersionMatcher versionMatcher) {
+    public IvyResolverBackedDependencyToModuleResolver(Ivy ivy, ResolveData resolveData, DependencyResolver resolver, VersionMatcher versionMatcher) {
         this.ivy = ivy;
         this.resolveData = resolveData;
         this.resolver = resolver;

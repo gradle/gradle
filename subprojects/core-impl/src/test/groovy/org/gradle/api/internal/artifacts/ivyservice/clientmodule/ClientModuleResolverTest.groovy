@@ -18,10 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.clientmodule
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.resolve.ResolveData
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.internal.artifacts.ivyservice.GradleDependencyResolver
 import spock.lang.Specification
+import org.apache.ivy.core.module.id.ModuleId
 
 /**
  * @author Hans Dockter
@@ -31,6 +33,7 @@ class ClientModuleResolverTest extends Specification {
     final GradleDependencyResolver targetResolver = Mock()
     final ResolveData resolveData = Mock()
     final ClientModuleRegistry clientModuleRegistry = Mock()
+    final ModuleRevisionId moduleId = new ModuleRevisionId(new ModuleId("org", "name"), "1.0")
     final ClientModuleResolver resolver = new ClientModuleResolver(clientModuleRegistry)
 
     def "resolves dependency descriptor that matches module in supplied registry"() {
@@ -38,21 +41,23 @@ class ClientModuleResolverTest extends Specification {
         when:
 
         clientModuleRegistry.getClientModule("module") >> module
-        def resolvedDependency = resolver.getDependency(dependencyDescriptor, resolveData)
+        def moduleResolver = resolver.create(dependencyDescriptor)
 
         then:
-        resolvedDependency.descriptor == module
+        moduleResolver.id == moduleId
+        moduleResolver.descriptor == module
     }
 
     def "returns null for unknown module"() {
         DependencyDescriptor dependencyDescriptor = dependency(null)
         
         expect:
-        resolver.getDependency(dependencyDescriptor, resolveData) == null   
+        resolver.create(dependencyDescriptor) == null
     }
     
     def dependency(String module) {
         DependencyDescriptor descriptor = Mock()
+        _ * descriptor.getDependencyRevisionId() >> moduleId
         _ * descriptor.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY) >> module
         return descriptor
     }

@@ -27,24 +27,21 @@ import org.gradle.util.WrapUtil;
 
 public class DefaultIvyAdapter implements IvyAdapter {
     private final Ivy ivy;
-    private final PrimaryResolverChain primaryResolver;
+    private final ClientModuleRegistry clientModuleRegistry;
     private final VersionMatcher versionMatcher;
     private final ResolutionStrategyInternal resolutionStrategy;
+    private final DependencyResolver userResolver;
+    private final GradleDependencyResolver internalRepository;
 
     public DefaultIvyAdapter(Ivy ivy, GradleDependencyResolver internalRepository, ClientModuleRegistry clientModuleRegistry, ResolutionStrategyInternal resolutionStrategy) {
         this.ivy = ivy;
-        DependencyResolver userResolver = ivy.getSettings().getDefaultResolver();
-        primaryResolver = constructPrimaryResolver(clientModuleRegistry, internalRepository, userResolver);
-        versionMatcher = ivy.getSettings().getVersionMatcher();
+        this.clientModuleRegistry = clientModuleRegistry;
         this.resolutionStrategy = resolutionStrategy;
+        this.internalRepository = internalRepository;
+        userResolver = ivy.getSettings().getDefaultResolver();
+        versionMatcher = ivy.getSettings().getVersionMatcher();
     }
     
-    private PrimaryResolverChain constructPrimaryResolver(ClientModuleRegistry clientModuleRegistry, GradleDependencyResolver internalResolver, DependencyResolver userResolver) {
-        ClientModuleResolver clientModuleResolver = new ClientModuleResolver(clientModuleRegistry);
-        PrimaryResolverChain primaryResolverChain = new PrimaryResolverChain(clientModuleResolver, internalResolver, userResolver);
-        return primaryResolverChain;
-    }
-
     public ResolveData getResolveData(String configurationName) {
         ResolveOptions options = new ResolveOptions();
         options.setDownload(false);
@@ -53,11 +50,14 @@ public class DefaultIvyAdapter implements IvyAdapter {
     }
 
     public DependencyToModuleResolver getDependencyToModuleResolver(ResolveData resolveData) {
-        IvyResolverBackedDependencyToModuleResolver ivyBackedResolver = new IvyResolverBackedDependencyToModuleResolver(ivy, resolveData, primaryResolver, versionMatcher);
-        return new VersionForcingDependencyToModuleResolver(ivyBackedResolver, this.resolutionStrategy.getForcedModules());
+        DependencyToModuleResolver clientModuleResolver = new ClientModuleResolver(clientModuleRegistry);
+        IvyResolverBackedDependencyToModuleResolver ivyBackedResolver = new IvyResolverBackedDependencyToModuleResolver(ivy, resolveData, userResolver, versionMatcher);
+        PrimaryResolverChain primaryResolverChain = new PrimaryResolverChain(clientModuleResolver, internalRepository, ivyBackedResolver, null);
+        return new VersionForcingDependencyToModuleResolver(primaryResolverChain, this.resolutionStrategy.getForcedModules());
     }
 
     public ArtifactToFileResolver getArtifactToFileResolver() {
-        return primaryResolver;
+        ArtifactToFileResolver ivyBackedResolver = new IvyResolverBackedArtifactToFileResolver(userResolver);
+        return new PrimaryResolverChain(null, internalRepository, null, ivyBackedResolver);
     }
 }

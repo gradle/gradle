@@ -16,49 +16,43 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.report.DownloadReport;
-import org.apache.ivy.core.resolve.DownloadOptions;
-import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.text.ParseException;
 
 /**
  * Resolver which looks for definitions first in defined Client Modules, before delegating to the user-defined resolver chain.
  * Artifact download is delegated to user-defined resolver chain.
  */
-public class PrimaryResolverChain implements GradleDependencyResolver {
+public class PrimaryResolverChain implements DependencyToModuleResolver, ArtifactToFileResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(PrimaryResolverChain.class);
-    private final ClientModuleResolver clientModuleResolver;
+    private final DependencyToModuleResolver clientModuleResolver;
     private final GradleDependencyResolver projectResolver;
-    private final DependencyResolver userResolverChain;
+    private final DependencyToModuleResolver ivyDependencyResolver;
+    private final ArtifactToFileResolver ivyArtifactResolver;
 
-    public PrimaryResolverChain(ClientModuleResolver clientModuleResolver, GradleDependencyResolver projectResolver, DependencyResolver userResolverChain) {
+    public PrimaryResolverChain(DependencyToModuleResolver clientModuleResolver, GradleDependencyResolver projectResolver, DependencyToModuleResolver ivyDependencyResolver, ArtifactToFileResolver ivyArtifactResolver) {
         this.clientModuleResolver = clientModuleResolver;
         this.projectResolver = projectResolver;
-        this.userResolverChain = userResolverChain;
+        this.ivyDependencyResolver = ivyDependencyResolver;
+        this.ivyArtifactResolver = ivyArtifactResolver;
     }
 
-    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
-        ResolvedModuleRevision clientModuleDependency = clientModuleResolver.getDependency(dd, data);
-        if (clientModuleDependency != null) {
-            LOGGER.debug("Found client module: {}", clientModuleDependency);
-            return clientModuleDependency;
+    public ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor) {
+        ModuleVersionResolver clientModuleVersionResolver = clientModuleResolver.create(dependencyDescriptor);
+        if (clientModuleVersionResolver != null) {
+            LOGGER.debug("Found client module: {}", clientModuleVersionResolver.getId());
+            return clientModuleVersionResolver;
         }
-        ResolvedModuleRevision projectModuleDependency = projectResolver.getDependency(dd, data);
-        if (projectModuleDependency != null) {
-            LOGGER.debug("Found project module: {}", projectModuleDependency);
-            return projectModuleDependency;
+        ModuleVersionResolver projectModuleVersionResolver = projectResolver.create(dependencyDescriptor);
+        if (projectModuleVersionResolver != null) {
+            LOGGER.debug("Found project module: {}", projectModuleVersionResolver.getId());
+            return projectModuleVersionResolver;
         }
-        return userResolverChain.getDependency(dd, data);
+        return ivyDependencyResolver.create(dependencyDescriptor);
     }
 
     public File resolve(Artifact artifact) {
@@ -67,15 +61,6 @@ public class PrimaryResolverChain implements GradleDependencyResolver {
             return projectFile;
         }
 
-        DownloadReport downloadReport = userResolverChain.download(new Artifact[]{artifact}, new DownloadOptions());
-        return downloadReport.getArtifactReport(artifact).getLocalFile();
-    }
-
-    public ArtifactOrigin locate(Artifact artifact) {
-        ArtifactOrigin projectLocation = projectResolver.locate(artifact);
-        if (projectLocation != null) {
-            return projectLocation;
-        }
-        return userResolverChain.locate(artifact);
+        return ivyArtifactResolver.resolve(artifact);
     }
 }

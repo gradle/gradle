@@ -16,46 +16,29 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
-import org.apache.ivy.core.cache.ArtifactOrigin;
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.report.DownloadStatus;
-import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
-import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.gradle.api.artifacts.ClientModule;
-import org.gradle.api.internal.artifacts.ivyservice.GradleDependencyResolver;
-
-import java.io.File;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.FixedModuleVersionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
 
 /**
  * @author Hans Dockter
  */
-public class ClientModuleResolver implements GradleDependencyResolver {
+public class ClientModuleResolver implements DependencyToModuleResolver {
     private ClientModuleRegistry moduleRegistry;
 
     public ClientModuleResolver(ClientModuleRegistry moduleRegistry) {
         this.moduleRegistry = moduleRegistry;
     }
 
-    public ResolvedModuleRevision getDependency(DependencyDescriptor dde, ResolveData data) {
+    public ModuleVersionResolver create(final DependencyDescriptor dde) {
         if (dde.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY) == null) {
-            return data.getCurrentResolvedModuleRevision();
+            return null;
         }
 
-        ModuleDescriptor moduleDescriptor = moduleRegistry.getClientModule(dde.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY));
-        MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.getMetadataArtifact());
-        downloadReport.setDownloadStatus(DownloadStatus.NO);
-        downloadReport.setSearched(false);
-        return new ResolvedModuleRevision(null, null, moduleDescriptor, downloadReport);
-    }
-
-    public File resolve(Artifact artifact) {
-        throw new UnsupportedOperationException();
-    }
-
-    public ArtifactOrigin locate(Artifact artifact) {
-        throw new UnsupportedOperationException();
+        final ModuleDescriptor moduleDescriptor = moduleRegistry.getClientModule(dde.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY));
+        return new FixedModuleVersionResolver(dde, moduleDescriptor);
     }
 }
