@@ -46,7 +46,7 @@ public class PathAssembler {
 
     private String getDistHome(URI distUrl) {
         String name = getDistName(distUrl);
-        Matcher matcher = Pattern.compile("(\\p{Alpha}+-\\d+\\.\\d+.*?)(-\\p{Alpha}+)?\\.zip").matcher(name);
+        Matcher matcher = Pattern.compile("(\\p{Alpha}+(-\\p{Alpha}+)*-\\d+\\.\\d+.*?)(-\\p{Alpha}+)?\\.zip").matcher(name);
         if (!matcher.matches()) {
             throw new RuntimeException(String.format("Cannot determine Gradle version from distribution URL '%s'.",
                     distUrl));
