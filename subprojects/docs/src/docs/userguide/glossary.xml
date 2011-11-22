@@ -102,11 +102,15 @@
     </glossdiv>
     <glossdiv>
         <title>I</title>
-        <glossentry>
+        <glossentry id="initScript">
             <glossterm>Init Script</glossterm>
             <glossdef>
-                <para>??</para>
+                <para>A script that is run before the build itself starts, to allow customization of Gradle and the build.</para>
             </glossdef>
+        </glossentry>
+        <glossentry>
+            <glossterm>Initialization Script</glossterm>
+            <glosssee otherterm="initScript"/>
         </glossentry>
     </glossdiv>
     <glossdiv>
