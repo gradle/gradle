@@ -17,8 +17,10 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
+import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
@@ -184,25 +186,19 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @Test public void "tarTree fails gracefully if cannot decompress"() {
-        TestFile tar = file()
-        tar.create {
-            someDir {
-                file '1.txt'
-                file '2.txt'
-            }
-        }
-        //file extension is different than the compression mode:
-        tar.tbzTo(file('test.tar'))
+    @Rule public final TestResources resources = new TestResources()
 
+    @Test public void "tarTreeFailsGracefully"() {
         file('build.gradle') << '''
             task copy(type: Copy) {
-                from tarTree('test.tar')
+                //the input file comes from the resources to make sure it is truly improper 'tar', see GRADLE-1952
+                from tarTree('compressedTarWithWrongExtension.tar')
                 into 'dest'
             }
 '''
 
         def failure = inTestDirectory().withTasks('copy').runWithFailure()
+
         assert failure.error.contains("Unable to expand TAR")
         assert failure.error.contains("compression based on the file extension")
     }
