@@ -1,6 +1,6 @@
 <sample>
-    <para>A set of builds that show how to implement, test, publish and use a custom plugin and task.</para>
-    <para>This sample contains the following builds:</para>
+    <para>A set of projects that show how to implement, test, publish and use a custom plugin and task.</para>
+    <para>This sample contains the following projects:</para>
     <itemizedlist>
         <listitem>
             <para>The <filename>plugin</filename> directory contains the project that implements and publishes the plugin.</para>

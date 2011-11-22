@@ -30,18 +30,20 @@ class ProductPlugin implements Plugin<Project> {
                 mavenCentral()
             }
 
-            def pluginConvention = new ProductPluginConvention()
-            convention.plugins.product = pluginConvention
-            pluginConvention.distSrcDirs << rootProject.file('src/dist')
-            pluginConvention.distSrcDirs << project.file('src/dist')
+            def product = new ProductDefinition()
+            extensions.product = product
+            product.distSrcDirs << rootProject.file('src/dist')
+            product.distSrcDirs << project.file('src/dist')
 
             configurations {
                 runtime
             }
             tasks.add(name: 'dist', type: Zip)
+            artifacts {
+                archives dist
+            }
 
             afterEvaluate {
-                ProductDefinition product = pluginConvention.product
                 product.modules.each {p ->
                     dependencies { runtime project.project(p.path) }
                 }
@@ -50,7 +52,7 @@ class ProductPlugin implements Plugin<Project> {
                     into('lib') {
                         from configurations.runtime
                     }
-                    from(pluginConvention.distSrcDirs) {
+                    from(product.distSrcDirs) {
                         filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [
                                 productName: product.displayName,
                                 version: version
