@@ -7,12 +7,12 @@ import spock.lang.Specification
 class MyLinuxFileSystemTest extends Specification {
     def fs = new MyFileSystem()
 
-    def "is case-sensitive"() {
+    def "is case sensitive"() {
         expect:
         fs.caseSensitive
     }
 
-    def "is symlink-aware"() {
+    def "is symlink aware"() {
         expect:
         fs.symlinkAware
     }

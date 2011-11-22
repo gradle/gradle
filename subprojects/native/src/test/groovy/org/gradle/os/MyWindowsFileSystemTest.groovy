@@ -7,12 +7,12 @@ import spock.lang.Specification
 class MyWindowsFileSystemTest extends Specification {
     def fs = new MyFileSystem()
 
-    def "is case-insensitive"() {
+    def "is case insensitive"() {
         expect:
         !fs.caseSensitive
     }
 
-    def "is not symlink-aware"() {
+    def "is not symlink aware"() {
         expect:
         !fs.symlinkAware
     }
