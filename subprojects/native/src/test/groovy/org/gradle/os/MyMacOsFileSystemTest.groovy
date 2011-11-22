@@ -32,7 +32,7 @@ class MyMacOsFileSystemTest extends Specification {
         fs.symlinkAware
     }
 
-    def "doesn't implicitly lock file on open"() {
+    def "does not implicitly lock file on open"() {
         expect:
         !fs.implicitlyLocksFileOnOpen
     }

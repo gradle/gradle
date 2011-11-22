@@ -32,8 +32,8 @@ class MyWindowsFileSystemTest extends Specification {
         !fs.symlinkAware
     }
 
-    def "implicitly locks file on open"() {
+    def "does not implicitly lock file on open"() {
         expect:
-        fs.implicitlyLocksFileOnOpen
+        !fs.implicitlyLocksFileOnOpen
     }
 }
