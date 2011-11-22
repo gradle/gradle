@@ -18,6 +18,8 @@ package org.gradle.initialization;
 
 import org.gradle.*;
 import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.project.GlobalServicesRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
@@ -120,9 +122,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             listenerManager.addListener(new ProfileListener(requestMetaData.getBuildTimeClock().getStartTime()));
         }
 
-        DefaultGradle gradle = new DefaultGradle(
-                tracker.getCurrentBuild(),
-                startParameter, serviceRegistry);
+        GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry);
         return new DefaultGradleLauncher(
                 gradle,
                 serviceRegistry.get(InitScriptHandler.class),
