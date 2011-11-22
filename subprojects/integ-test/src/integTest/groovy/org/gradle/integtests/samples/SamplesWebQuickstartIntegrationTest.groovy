@@ -16,34 +16,28 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.util.TestFile
 import org.junit.Rule
-import org.junit.Test
-import static org.hamcrest.Matchers.containsString
-import static org.junit.Assert.assertThat
 
 /**
  * @author Hans Dockter
  */
-class SamplesWebQuickstartIntegrationTest {
-    static final String WEB_PROJECT_NAME = 'web-project'
-
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample('webApplication/quickstart')
 
-    @Test
-    public void webProjectSamples() {
-        TestFile webProjectDir = sample.dir
-        executer.inDirectory(webProjectDir).withTasks('clean', 'build').run()
+    def "can build a war"() {
+        given:
+        sample sample
 
+        when:
+        run 'clean', 'build'
+
+        then:
         // Check contents of War
-        TestFile warContents = dist.testDir.file('jar')
-        webProjectDir.file("build/libs/quickstart.war").unzipTo(warContents)
+        TestFile warContents = file('war-tmp')
+        sample.dir.file("build/libs/quickstart.war").unzipTo(warContents)
         warContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'index.jsp',
@@ -52,14 +46,48 @@ class SamplesWebQuickstartIntegrationTest {
                 'WEB-INF/lib/log4j-1.2.15.jar',
                 'WEB-INF/lib/commons-io-1.4.jar',
         )
-        
-        ExecutionResult result = executer.inDirectory(webProjectDir).withTasks('clean', 'runTest').run()
-        checkServletOutput(result)
-        result = executer.inDirectory(webProjectDir).withTasks('clean', 'runWarTest').run()
-        checkServletOutput(result)
     }
 
-    static void checkServletOutput(ExecutionResult result) {
-        assertThat(result.output, containsString('hello Gradle'))
+    def "can execute servlet"() {
+        given:
+        // Inject some int test stuff
+        sample.dir.file('build.gradle') << """
+def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
+
+httpPort = portFinder.nextAvailable
+stopPort = portFinder.nextAvailable
+println "http port = \$httpPort, stop port = \$stopPort"
+
+[jettyRun, jettyRunWar]*.daemon = true
+
+task runTest(dependsOn: jettyRun) << {
+    callServlet()
+}
+
+task runWarTest(dependsOn: jettyRunWar) << {
+    callServlet()
+}
+
+private void callServlet() {
+    URL url = new URL("http://localhost:\$httpPort/quickstart")
+    println url.text
+    jettyStop.execute()
+}
+
+"""
+
+        when:
+        sample sample
+        run 'runTest'
+
+        then:
+        output.contains('hello Gradle')
+
+        when:
+        sample sample
+        run 'runWarTest'
+
+        then:
+        output.contains('hello Gradle')
     }
 }

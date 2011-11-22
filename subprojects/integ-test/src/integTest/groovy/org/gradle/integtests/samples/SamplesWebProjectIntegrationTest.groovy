@@ -16,30 +16,27 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.util.TestFile
-import org.junit.Assert
 import org.junit.Rule
-import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
-class SamplesWebProjectIntegrationTest {
+class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
     static final String WEB_PROJECT_NAME = 'customised'
 
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public final Sample sample = new Sample('webApplication/customised')
 
-    @Test
-    public void webProjectSamples() {
-        TestFile webProjectDir = sample.dir
-        executer.inDirectory(webProjectDir).withTasks('clean', 'assemble').run()
-        TestFile tmpDir = dist.testDir.file('unjar')
-        webProjectDir.file("build/libs/customised-1.0.war").unzipTo(tmpDir)
+    def "can build war"() {
+        when:
+        sample sample
+        run 'clean', 'assemble'
+        
+        then:
+        TestFile tmpDir = file('unjar')
+        sample.dir.file("build/libs/customised-1.0.war").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'root.txt',
                 'META-INF/MANIFEST.MF',
@@ -56,16 +53,46 @@ class SamplesWebProjectIntegrationTest {
                 'webapp.html')
     }
 
-    @Test
-    public void checkJettyPlugin() {
-        TestFile webProjectDir = sample.dir
-        executer.inDirectory(webProjectDir).withTasks('clean', 'runTest').run()
-        checkServletOutput(webProjectDir)
-        executer.inDirectory(webProjectDir).withTasks('clean', 'runWarTest').run()
-        checkServletOutput(webProjectDir)
-    }
+    def "can execute servlet"() {
+        given:
+        // Inject some int test stuff
+        sample.dir.file('build.gradle') << """
+def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
 
-    static void checkServletOutput(TestFile webProjectDir) {
-        Assert.assertEquals('Hello Gradle', webProjectDir.file("build/servlet-out.txt").text)
+httpPort = portFinder.nextAvailable
+stopPort = portFinder.nextAvailable
+println "http port = \$httpPort, stop port = \$stopPort"
+
+[jettyRun, jettyRunWar]*.daemon = true
+
+task runTest(dependsOn: jettyRun) << {
+    callServlet()
+}
+
+task runWarTest(dependsOn: jettyRunWar) << {
+    callServlet()
+}
+
+private void callServlet() {
+    URL url = new URL("http://localhost:\$httpPort/customised/hello")
+    println url.text
+    jettyStop.execute()
+}
+
+"""
+
+        when:
+        sample sample
+        run 'runTest'
+
+        then:
+        output.contains('Hello Gradle')
+
+        when:
+        sample sample
+        run 'runWarTest'
+
+        then:
+        output.contains('Hello Gradle')
     }
 }

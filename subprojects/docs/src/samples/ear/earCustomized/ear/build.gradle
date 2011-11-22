@@ -32,7 +32,3 @@ ear {
         }
     }
 }
-
-// START SNIPPET enable-jar
-jar.enabled = true
-// END SNIPPET enable-jar
