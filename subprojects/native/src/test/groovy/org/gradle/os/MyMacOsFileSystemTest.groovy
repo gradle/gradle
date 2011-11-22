@@ -7,9 +7,9 @@ import spock.lang.Specification
 class MyMacOsFileSystemTest extends Specification {
     def fs = MyFileSystem.current()
 
-    def "is case sensitive"() {
+    def "is not case sensitive"() {
         expect:
-        fs.caseSensitive
+        !fs.caseSensitive
     }
 
     def "is symlink aware"() {

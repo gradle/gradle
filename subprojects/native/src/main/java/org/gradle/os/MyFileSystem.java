@@ -90,10 +90,11 @@ public abstract class MyFileSystem {
         boolean probeCaseSensitive(File file, String secret) {
             try {
                 File upperCased = new File(file.getPath().toUpperCase());
-                return hasContent(upperCased, secret);
+                return !hasContent(upperCased, secret);
             } catch (IOException e) {
-                LOGGER.warn("Failed to determine if current file system is case sensitive. Assuming it isn't.");
-                return false;
+                boolean result = !new File("foo").equals(new File("FOO"));
+                LOGGER.warn("Failed to determine if current file system is case sensitive. Best guess is '{}'.", result);
+                return result;
             }
         }
 
