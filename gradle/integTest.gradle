@@ -124,7 +124,7 @@ class IntegTestConvention {
     }
 
     File getIntegTestUserDir() {
-        return project.file("$project.buildDir/intTestHomeDir")
+        return project.file('intTestHomeDir')
     }
 
     File getIntegTestImageDir() {
