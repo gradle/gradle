@@ -55,7 +55,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             userHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
         }
 
-        return new DaemonRegistryServices(userHome).get(DaemonRegistry.class);
+        return new DaemonRegistryServices(StartParameter.getDefaultDaemonRegistryDir(userHome)).get(DaemonRegistry.class);
     }
 
     /**

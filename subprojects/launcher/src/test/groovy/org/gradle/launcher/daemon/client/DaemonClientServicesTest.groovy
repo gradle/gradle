@@ -21,7 +21,7 @@ import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
 import org.gradle.logging.LoggingServiceRegistry
 
 class DaemonClientServicesTest extends Specification {
-    final DaemonClientServices services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), new File("userdir"), 100)
+    final DaemonClientServices services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), new File("daemon"), 100)
 
     def "makes a DaemonRegistry available"() {
         expect:

@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
@@ -28,19 +29,17 @@ import java.io.File;
  */
 public class DaemonClientServices extends DaemonClientServicesSupport {
 
-    private final File userHomeDir;
     private final int idleTimeout;
     private final ServiceRegistry registryServices;
 
-    public DaemonClientServices(ServiceRegistry loggingServices, File userHomeDir) {
-        this(loggingServices, userHomeDir, DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT);
+    public DaemonClientServices(ServiceRegistry loggingServices, File daemonRegistryDir) {
+        this(loggingServices, daemonRegistryDir, DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT);
     }
 
-    public DaemonClientServices(ServiceRegistry loggingServices, File userHomeDir, int idleTimeout) {
+    public DaemonClientServices(ServiceRegistry loggingServices, File daemonRegistryDir, int idleTimeout) {
         super(loggingServices);
-        this.userHomeDir = userHomeDir;
         this.idleTimeout = idleTimeout;
-        this.registryServices = new DaemonRegistryServices(userHomeDir);
+        this.registryServices = new DaemonRegistryServices(daemonRegistryDir);
         add(registryServices);
     }
 
@@ -50,11 +49,11 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
     }
 
     public Runnable makeDaemonStarter() {
-        return new DaemonStarter(userHomeDir, idleTimeout);
+        return new DaemonStarter(registryServices.get(DaemonDir.class), idleTimeout);
     }
 
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
-        builder.setUserHomeDir(userHomeDir);
+        builder.setDaemonRegistryDir(registryServices.get(DaemonDir.class).getBaseDir());
     }
 
 }

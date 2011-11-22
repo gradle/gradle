@@ -82,7 +82,7 @@ public class DefaultConnection implements ConnectionVersion4 {
             executer = new EmbeddedGradleLauncherActionExecuter(gradleLauncherFactory);
         } else {
             File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
-            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, gradleUserHomeDir);
+            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, StartParameter.getDefaultDaemonRegistryDir(gradleUserHomeDir));
             DaemonClient client = clientServices.get(DaemonClient.class);
             executer = new DaemonGradleLauncherActionExecuter(client);
         }

@@ -34,13 +34,13 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     private final Jvm jvm = Jvm.current();
 
     private File javaHome;
-    private File userHomeDir;
+    private File daemonRegistryDir;
     private Long pid;
     private Integer idleTimeout;
 
     public DaemonContextBuilder() {
         javaHome = canonicalise(jvm.getJavaHome());
-        userHomeDir = canonicalise(StartParameter.DEFAULT_GRADLE_USER_HOME);
+        daemonRegistryDir = StartParameter.getDefaultDaemonRegistryDir();
         pid = NativeEnvironment.current().maybeGetPid();
     }
 
@@ -52,12 +52,12 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         this.javaHome = javaHome;
     }
 
-    public File getUserHomeDir() {
-        return this.userHomeDir = userHomeDir;
+    public File getDaemonRegistryDir() {
+        return this.daemonRegistryDir = daemonRegistryDir;
     }
 
-    public void setUserHomeDir(File userHomeDir) {
-        this.userHomeDir = userHomeDir;
+    public void setDaemonRegistryDir(File daemonRegistryDir) {
+        this.daemonRegistryDir = daemonRegistryDir;
     }
 
     public Long getPid() {
@@ -80,6 +80,6 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
      * Creates a new daemon context, based on the current state of this builder.
      */
     public DaemonContext create() {
-        return new DefaultDaemonContext(javaHome, userHomeDir, pid, idleTimeout);
+        return new DefaultDaemonContext(javaHome, daemonRegistryDir, pid, idleTimeout);
     }
 }

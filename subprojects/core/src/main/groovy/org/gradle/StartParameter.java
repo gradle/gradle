@@ -396,6 +396,13 @@ public class StartParameter implements Serializable {
     static public File getDefaultDaemonRegistryDir(File gradleUserHomeDir) {
         return GFileUtils.canonicalise(new File(gradleUserHomeDir == null ? DEFAULT_GRADLE_USER_HOME : gradleUserHomeDir, "daemon"));
     }
+    
+    /**
+     * Returns the default daemon registry dir of {@code DEFAULT_GRADLE_USER_HOME/daemon}.
+     */
+    static public File getDefaultDaemonRegistryDir() {
+        return getDefaultDaemonRegistryDir(null);
+    }
 
     /**
      * Sets the directory to use as daemon registry directory. Set to {@code null} to use the default directory.
@@ -405,7 +412,6 @@ public class StartParameter implements Serializable {
      * Daemons are always tied to the Gradle version, so the actual directory used will be a directory named by the version of 
      * Gradle inside this directory.
      * <p>
-     * Note: setting this value currently has no effect (i.e. not yet implemented)
      * 
      * @param gradleUserHomeDir The home directory. May be null.
      */

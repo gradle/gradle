@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -37,11 +38,11 @@ public class DaemonStarter implements Runnable {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonStarter.class);
 
-    private final File userHomeDir;
+    private final DaemonDir daemonDir;
     private final int idleTimeout;
 
-    public DaemonStarter(File userHomeDir, int idleTimeout) {
-        this.userHomeDir = userHomeDir;
+    public DaemonStarter(DaemonDir daemonDir, int idleTimeout) {
+        this.daemonDir = daemonDir;
         this.idleTimeout = idleTimeout;
     }
 
@@ -68,17 +69,17 @@ public class DaemonStarter implements Runnable {
         daemonArgs.add("-cp");
         daemonArgs.add(GUtil.join(bootstrapClasspath, File.pathSeparator));
         daemonArgs.add(GradleDaemon.class.getName());
-        daemonArgs.add(String.format("-%s", DefaultCommandLineConverter.GRADLE_USER_HOME));
-        daemonArgs.add(userHomeDir.getAbsolutePath());
+        daemonArgs.add(String.format("-%s", DefaultCommandLineConverter.DAEMON_REGISTRY_DIR));
+        daemonArgs.add(daemonDir.getBaseDir().getAbsolutePath());
 
         DaemonIdleTimeout idleTimeout = new DaemonIdleTimeout(System.getenv("GRADLE_OPTS"), this.idleTimeout);
         daemonArgs.add(idleTimeout.toSysArg());
 
-        LOGGER.info("starting daemon process: workingDir = {}, daemonArgs: {}", userHomeDir, daemonArgs);
-        startProcess(daemonArgs, userHomeDir);
+        startProcess(daemonArgs, daemonDir.getVersionedDir());
     }
 
     private void startProcess(List<String> args, File workingDir) {
+        LOGGER.info("starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
         try {
             workingDir.mkdirs();
             if (OperatingSystem.current().isWindows()) {

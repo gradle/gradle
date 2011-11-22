@@ -37,7 +37,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         this.loggingServices = loggingServices;
         this.startParameter = startParameter;
 
-        add(new DaemonRegistryServices(startParameter.getGradleUserHomeDir()));
+        add(new DaemonRegistryServices(startParameter.getDaemonRegistryDir()));
     }
 
     protected ExecutorFactory createExecutorFactory() {
@@ -46,7 +46,7 @@ public class DaemonServices extends DefaultServiceRegistry {
 
     protected DaemonContext createDaemonContext() {
         DaemonContextBuilder builder = new DaemonContextBuilder();
-        builder.setUserHomeDir(startParameter.getGradleUserHomeDir());
+        builder.setDaemonRegistryDir(startParameter.getDaemonRegistryDir());
         builder.setIdleTimeout(get(DaemonIdleTimeout.class).getIdleTimeout());
         return builder.create();
     }

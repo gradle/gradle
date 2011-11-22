@@ -27,42 +27,42 @@ import java.util.regex.Matcher;
 public class DefaultDaemonContext implements DaemonContext {
 
     private final File javaHome;
-    private final File userHomeDir;
+    private final File daemonRegistryDir;
     private final Long pid;
     private final Integer idleTimeout;
 
-    public DefaultDaemonContext(File javaHome, File userHomeDir, Long pid, Integer idleTimeout) {
+    public DefaultDaemonContext(File javaHome, File daemonRegistryDir, Long pid, Integer idleTimeout) {
         this.javaHome = javaHome;
-        this.userHomeDir = userHomeDir;
+        this.daemonRegistryDir = daemonRegistryDir;
         this.pid = pid;
         this.idleTimeout = idleTimeout;
     }
 
     public static DaemonContext parseFrom(String source) {
-        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[javaHome=([^\\n]+),userHomeDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)].*", Pattern.MULTILINE + Pattern.DOTALL);
+        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?)].*", Pattern.MULTILINE + Pattern.DOTALL);
         Matcher matcher = pattern.matcher(source);
 
         if (matcher.matches()) {
             String javaHome = matcher.group(1);
-            String userHomeDir = matcher.group(2);
+            String daemonRegistryDir = matcher.group(2);
             Long pid = Long.parseLong(matcher.group(3));
             Integer idleTimeout = Integer.decode(matcher.group(4));
-            return new DefaultDaemonContext(new File(javaHome), new File(userHomeDir), pid, idleTimeout);
+            return new DefaultDaemonContext(new File(javaHome), new File(daemonRegistryDir), pid, idleTimeout);
         } else {
             throw new IllegalStateException("unable to parse DefaultDaemonContext from source: " + source);
         }
     }
 
     public String toString() {
-        return String.format("DefaultDaemonContext[javaHome=%s,userHomeDir=%s,pid=%s,idleTimeout=%s]", javaHome, userHomeDir, pid, idleTimeout);
+        return String.format("DefaultDaemonContext[javaHome=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s]", javaHome, daemonRegistryDir, pid, idleTimeout);
     }
 
     public File getJavaHome() {
         return javaHome;
     }
 
-    public File getUserHomeDir() {
-        return userHomeDir;
+    public File getDaemonRegistryDir() {
+        return daemonRegistryDir;
     }
 
     public Long getPid() {

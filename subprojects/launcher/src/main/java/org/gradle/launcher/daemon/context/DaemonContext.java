@@ -39,9 +39,9 @@ public interface DaemonContext extends Serializable {
     File getJavaHome();
 
     /**
-     * The user home dir that Gradle should use.
+     * The directory that the should be used for daemon storage (not including the gradle version number).
      */
-    File getUserHomeDir();
+    File getDaemonRegistryDir();
 
     /**
      * The process id of the daemon.

@@ -125,7 +125,7 @@ public class CommandLineActionFactory {
         final StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
         int idleTimeout = new DaemonIdleTimeout(startParameter).getIdleTimeout();
-        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, startParameter.getGradleUserHomeDir(), idleTimeout);
+        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, startParameter.getDaemonRegistryDir(), idleTimeout);
         DaemonClient client = clientServices.get(DaemonClient.class);
 
         boolean useDaemon = System.getProperty("org.gradle.daemon", "false").equals("true");

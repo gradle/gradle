@@ -28,10 +28,10 @@ import java.io.File;
  * Takes care of instantiating and wiring together the services required for a daemon registry.
  */
 public class DaemonRegistryServices extends DefaultServiceRegistry {
-    private final File userHomeDir;
+    private final File daemonRegistryDir;
 
-    public DaemonRegistryServices(File userHomeDir) {
-        this.userHomeDir = userHomeDir;
+    public DaemonRegistryServices(File daemonRegistryDir) {
+        this.daemonRegistryDir = daemonRegistryDir;
     }
 
     protected ProcessEnvironment createProcessEnvironment() {
@@ -39,7 +39,7 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
     }
 
     protected DaemonDir createDaemonDir() {
-        return new DaemonDir(userHomeDir, get(ProcessEnvironment.class));
+        return new DaemonDir(daemonRegistryDir, get(ProcessEnvironment.class));
     }
 
     protected FileLockManager createFileLockManager() {

@@ -22,24 +22,27 @@ import org.gradle.util.GradleVersion;
 import java.io.File;
 import java.util.UUID;
 
-/**
- * @author: Szczepan Faber, created at: 8/20/11
- */
 public class DaemonDir {
 
-    private final File dir;
+    private final File baseDir;
+    private final File versionedDir;
     private final File registryFile;
     private final ProcessEnvironment processEnvironment;
 
     public DaemonDir(File baseDir, ProcessEnvironment processEnvironment) {
-        dir = new File(baseDir, String.format("daemon/%s", GradleVersion.current().getVersion()));
-        registryFile = new File(dir, "registry.bin");
-        dir.mkdirs();
+        this.baseDir = baseDir;
+        this.versionedDir = new File(baseDir, String.format("%s", GradleVersion.current().getVersion()));
+        this.registryFile = new File(versionedDir, "registry.bin");
+        this.versionedDir.mkdirs();
         this.processEnvironment = processEnvironment;
     }
 
-    public File getDir() {
-        return dir;
+    public File getBaseDir() {
+        return baseDir;
+    }
+    
+    public File getVersionedDir() {
+        return versionedDir;
     }
 
     public File getRegistry() {
@@ -49,6 +52,6 @@ public class DaemonDir {
     //very simplistic, just making sure each damon has unique log file
     public File createUniqueLog() {
         Long pid = processEnvironment.maybeGetPid();
-        return new File(dir, String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid));
+        return new File(versionedDir, String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid));
     }
 }
