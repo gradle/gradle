@@ -5,7 +5,7 @@ import spock.lang.Specification
 
 @IgnoreIf({ !OperatingSystem.current().linux })
 class MyLinuxFileSystemTest extends Specification {
-    def fs = new MyFileSystem()
+    def fs = MyFileSystem.current()
 
     def "is case sensitive"() {
         expect:

@@ -5,7 +5,7 @@ import spock.lang.Specification
 
 @IgnoreIf({ !OperatingSystem.current().macOsX })
 class MyMacOsFileSystemTest extends Specification {
-    def fs = new MyFileSystem()
+    def fs = MyFileSystem.current()
 
     def "is case sensitive"() {
         expect:
