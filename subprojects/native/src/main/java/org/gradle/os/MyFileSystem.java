@@ -63,33 +63,33 @@ public abstract class MyFileSystem {
         }
 
         ProbingFileSystem() {
-            String secret = generateSecret();
-            File probe = null;
+            String content = generateUniqueContent();
+            File file = null;
             try {
-                probe = generateFile(secret);
-                caseSensitive = probeCaseSensitive(probe, secret);
-                symlinkAware = probeSymlinkAware(probe, secret);
-                implicitLock = probeImplicitlyLocksFileOnOpen(probe);
+                file = createFile(content);
+                caseSensitive = probeCaseSensitive(file, content);
+                symlinkAware = probeSymlinkAware(file, content);
+                implicitLock = probeImplicitlyLocksFileOnOpen(file);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } finally {
-                FileUtils.deleteQuietly(probe);
+                FileUtils.deleteQuietly(file);
             }
         }
 
-        String generateSecret() {
+        String generateUniqueContent() {
             return UUID.randomUUID().toString();
         }
 
-        File generateFile(String secret) throws IOException {
+        File createFile(String secret) throws IOException {
             File file = File.createTempFile("gradle_fs_probing", null, null);
             Files.write(secret, file, Charsets.UTF_8);
             return file;
         }
 
-        boolean probeCaseSensitive(File probe, String secret) {
+        boolean probeCaseSensitive(File file, String secret) {
             try {
-                File upperCased = new File(probe.getPath().toUpperCase());
+                File upperCased = new File(file.getPath().toUpperCase());
                 return hasContent(upperCased, secret);
             } catch (IOException e) {
                 logger.warn("Failed to determine if current file system is case sensitive. Assuming it isn't.");
@@ -97,11 +97,11 @@ public abstract class MyFileSystem {
             }
         }
 
-        boolean probeSymlinkAware(File probe, String secret) {
+        boolean probeSymlinkAware(File file, String secret) {
             File symlink = null;
             try {
-                symlink = createUniqueTempFileName();
-                int errorCode = PosixUtil.current().symlink(probe.getPath(), symlink.getPath());
+                symlink = generateUniqueTempFileName();
+                int errorCode = PosixUtil.current().symlink(file.getPath(), symlink.getPath());
                 return errorCode == 0 && hasContent(symlink, secret);
             } catch (IOException e) {
                 logger.warn("Failed to determine if current file system is symlink aware. Assuming it isn't.");
@@ -111,10 +111,10 @@ public abstract class MyFileSystem {
             }
         }
 
-        boolean probeImplicitlyLocksFileOnOpen(File probe) {
+        boolean probeImplicitlyLocksFileOnOpen(File file) {
             FileChannel channel = null;
             try {
-                channel = new FileOutputStream(probe).getChannel();
+                channel = new FileOutputStream(file).getChannel();
                 return channel.tryLock() == null;
             } catch (IOException e) {
                 logger.warn("Failed to determine if current file system implicitly locks file on open. Assuming it doesn't.");
@@ -124,11 +124,11 @@ public abstract class MyFileSystem {
             }
         }
 
-        boolean hasContent(File upperCased, String secret) throws IOException {
-            return Files.readFirstLine(upperCased, Charsets.UTF_8).equals(secret);
+        boolean hasContent(File file, String content) throws IOException {
+            return file.exists() && Files.readFirstLine(file, Charsets.UTF_8).equals(content);
         }
 
-        File createUniqueTempFileName() throws IOException {
+        File generateUniqueTempFileName() throws IOException {
             return new File(System.getProperty("java.io.tmpdir"), "gradle_unique_file_name" + UUID.randomUUID().toString());
         }
     }
