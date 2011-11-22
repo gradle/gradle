@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.context;
 
+import org.gradle.StartParameter;
 import org.gradle.util.Jvm;
 import org.gradle.os.jna.NativeEnvironment;
 import static org.gradle.util.GFileUtils.canonicalise;
@@ -39,7 +40,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
 
     public DaemonContextBuilder() {
         javaHome = canonicalise(jvm.getJavaHome());
-        userHomeDir = canonicalise(new File(System.getProperty("user.home")));
+        userHomeDir = canonicalise(StartParameter.DEFAULT_GRADLE_USER_HOME);
         pid = NativeEnvironment.current().maybeGetPid();
     }
 
