@@ -50,7 +50,7 @@ public class DefaultCommandLineConverterTest {
     private TestFile currentDir = testDir.file("current-dir");
     private File expectedBuildFile;
     private File expectedGradleUserHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
-    private File expectedDaemonRegistryDir = null;
+    private File expectedDaemonRegistryDir;
     private File expectedProjectDir = currentDir;
     private List<String> expectedTaskNames = toList();
     private Set<String> expectedExcludedTasks = toSet();
