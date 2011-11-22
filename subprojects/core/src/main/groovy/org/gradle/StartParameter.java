@@ -70,6 +70,7 @@ public class StartParameter implements Serializable {
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     private File gradleUserHomeDir;
+    private File daemonRegistryDir;
     private CacheUsage cacheUsage = CacheUsage.ON;
     private ScriptSource buildScriptSource;
     private ScriptSource settingsScriptSource;
@@ -118,6 +119,7 @@ public class StartParameter implements Serializable {
 
         gradleUserHomeDir = GFileUtils.canonicalise(new File(gradleUserHome));
         setCurrentDir(null);
+        setDaemonRegistryDir(null);
     }
 
     /**
@@ -135,6 +137,7 @@ public class StartParameter implements Serializable {
         startParameter.projectProperties = projectProperties;
         startParameter.systemPropertiesArgs = systemPropertiesArgs;
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
+        startParameter.daemonRegistryDir = daemonRegistryDir;
         startParameter.cacheUsage = cacheUsage;
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
@@ -161,6 +164,7 @@ public class StartParameter implements Serializable {
     public StartParameter newBuild() {
         StartParameter startParameter = new StartParameter();
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
+        startParameter.daemonRegistryDir = daemonRegistryDir;
         startParameter.cacheUsage = cacheUsage;
         startParameter.logLevel = logLevel;
         startParameter.colorOutput = colorOutput;
@@ -361,6 +365,41 @@ public class StartParameter implements Serializable {
      */
     public void setGradleUserHomeDir(File gradleUserHomeDir) {
         this.gradleUserHomeDir = gradleUserHomeDir == null ? DEFAULT_GRADLE_USER_HOME : GFileUtils.canonicalise(gradleUserHomeDir);
+    }
+
+    /**
+     * Returns the directory that the will contain the daemon registry files (not including the Gradle version number).
+     * <p>
+     * Daemons are always tied to the Gradle version, so the actual directory used will be a directory named by the version of 
+     * Gradle inside this directory.
+     * 
+     * @return The daemon registry directory.
+     */
+    public File getDaemonRegistryDir() {
+        return daemonRegistryDir;
+    }
+
+    /**
+     * Sets the directory to use as daemon registry directory. Set to {@code null} to use the default directory.
+     * <p>
+     * The default value is {@code $gradleUserHomeDir/daemon}.
+     * <p>
+     * Daemons are always tied to the Gradle version, so the actual directory used will be a directory named by the version of 
+     * Gradle inside this directory.
+     * <p>
+     * Note: setting this value currently has no effect (i.e. not yet implemented)
+     * 
+     * @param gradleUserHomeDir The home directory. May be null.
+     */
+    public void setDaemonRegistryDir(File daemonRegistryDir) {
+        if (daemonRegistryDir == null) {
+            if (gradleUserHomeDir == null) {
+                setGradleUserHomeDir(null);
+            }
+            this.daemonRegistryDir = new File(gradleUserHomeDir, "daemon");
+        } else {
+            this.daemonRegistryDir = GFileUtils.canonicalise(daemonRegistryDir);
+        }
     }
 
     public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
