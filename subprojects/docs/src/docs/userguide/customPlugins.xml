@@ -208,6 +208,8 @@
                 to a local repository:
             </para>
             <sample id="customPluginStandalone" dir="customPlugin/consumer" title="Using a custom plugin in another project">
+                <test args="-p../plugin uploadArchives"/>
+                <test args="hello"/>
                 <sourcefile file="build.gradle" snippet="use-plugin"/>
             </sample>
         </section>

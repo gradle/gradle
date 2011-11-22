@@ -143,6 +143,8 @@
                 to a local repository:
             </para>
             <sample id="usingCustomTask" dir="customPlugin/consumer" title="Using a custom task in another project">
+                <test args="-p../plugin uploadArchives"/>
+                <test args="greeting"/>
                 <sourcefile file="build.gradle" snippet="use-task"/>
             </sample>
         </section>
