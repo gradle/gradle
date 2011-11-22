@@ -29,6 +29,11 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+/**
+ * Provides information on the current file system. For a system with multiple different
+ * file systems, the information is accurate for the file system that holds the Java temp
+ * directory.
+ */
 @ThreadSafe
 public abstract class MyFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(MyFileSystem.class);
@@ -38,8 +43,26 @@ public abstract class MyFileSystem {
         return INSTANCE;
     }
 
+    /**
+     * Tells whether the file system is case sensitive.
+     *
+     * @return <tt>true</tt> if the file system is case sensitive, <tt>false</tt> otherwise
+     */
     public abstract boolean isCaseSensitive();
+
+    /**
+     * Tells if the file system can resolve symlinks. If the answer cannot be determined reliably,
+     * <tt>true</tt> is returned.
+     *
+     * @return <tt>true</tt> if the file system can resolve symlinks, <tt>false</tt> otherwise
+     */
     public abstract boolean isSymlinkAware();
+
+    /**
+     * Tells whether the file system implicitly locks a file when it is opened.
+     *
+     * @return <tt>true</tt> if the file system implicitly locks a file when it is opened, <tt>false</tt> otherwise
+     */
     public abstract boolean getImplicitlyLocksFileOnOpen();
 
     private static class ProbingFileSystem extends MyFileSystem {
@@ -92,6 +115,8 @@ public abstract class MyFileSystem {
                 File upperCased = new File(file.getPath().toUpperCase());
                 return !hasContent(upperCased, secret);
             } catch (IOException e) {
+                // not fully accurate but a sensible fallback
+                // see http://stackoverflow.com/questions/1288102/how-do-i-detect-whether-the-file-system-is-case-sensitive
                 boolean result = !new File("foo").equals(new File("FOO"));
                 LOGGER.warn("Failed to determine if current file system is case sensitive. Best guess is '{}'.", result);
                 return result;
@@ -103,10 +128,14 @@ public abstract class MyFileSystem {
             try {
                 symlink = generateUniqueTempFileName();
                 int errorCode = PosixUtil.current().symlink(file.getPath(), symlink.getPath());
-                return errorCode == 0 && hasContent(symlink, secret);
+                if (errorCode != 0) {
+                    LOGGER.warn("Failed to determine if current file system is symlink aware. Assuming it is.");
+                    return true;
+                }
+                return hasContent(symlink, secret);
             } catch (IOException e) {
-                LOGGER.warn("Failed to determine if current file system is symlink aware. Assuming it isn't.");
-                return false;
+                LOGGER.warn("Failed to determine if current file system is symlink aware. Assuming it is.");
+                return true;
             } finally {
                 FileUtils.deleteQuietly(symlink);
             }
