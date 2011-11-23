@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 import groovy.lang.*;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.util.ReflectionUtil;
 import org.objectweb.asm.*;
 
@@ -67,8 +68,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
             if (isDynamicAware) {
                 interfaceTypes.add(dynamicObjectAwareType.getInternalName());
-            }
-            if (isDynamicAware) {
+                interfaceTypes.add(Type.getType(ExtensionAware.class).getInternalName());
                 interfaceTypes.add(groovyObjectType.getInternalName());
             }
 
@@ -596,7 +596,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // GENERATE <setter>(v)
 
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+            methodVisitor.visitVarInsn(paramType.getOpcode(Opcodes.ILOAD), 1);
 
             methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), setter.getName(), setterDescriptor);
 
@@ -619,7 +619,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // GENERATE super.<propName>(v)
 
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+            methodVisitor.visitVarInsn(paramType.getOpcode(Opcodes.ILOAD), 1);
 
             methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), metaMethod.getName(), methodDescriptor);
 

@@ -22,6 +22,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskInputs;
@@ -129,7 +130,7 @@ import java.util.Set;
  *
  * @author Hans Dockter
  */
-public interface Task extends Comparable<Task> {
+public interface Task extends Comparable<Task>, ExtensionAware {
     public static final String TASK_NAME = "name";
 
     public static final String TASK_DESCRIPTION = "description";

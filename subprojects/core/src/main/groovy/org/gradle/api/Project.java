@@ -32,6 +32,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -166,7 +167,7 @@ import java.util.Set;
  *
  * @author Hans Dockter
  */
-public interface Project extends Comparable<Project> {
+public interface Project extends Comparable<Project>, ExtensionAware {
     /**
      * The default project build file name.
      */

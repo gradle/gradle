@@ -18,10 +18,14 @@ package org.gradle.api.internal;
 
 import groovy.lang.*;
 import org.gradle.api.GradleException;
+import org.gradle.api.plugins.ExtensionAware;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Map<Class, Map<Class, Class>> GENERATED_CLASSES = new HashMap<Class, Map<Class, Class>>();
@@ -61,6 +65,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             builder.startClass(isConventionAware, isDynamicAware);
 
             if (isDynamicAware && !DynamicObjectAware.class.isAssignableFrom(type)) {
+                if (ExtensionAware.class.isAssignableFrom(type)) {
+                    throw new UnsupportedOperationException("A type that implements ExtensionAware must currently also implement DynamicObjectAware.");
+                }
                 builder.mixInDynamicAware();
             }
             if (isDynamicAware && !GroovyObject.class.isAssignableFrom(type)) {
@@ -80,7 +87,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 }
             }
 
-            Collection<String> skipProperties = Arrays.asList("metaClass", "conventionMapping", "convention", "asDynamicObject");
+            Collection<String> skipProperties = Arrays.asList("metaClass", "conventionMapping", "convention", "asDynamicObject", "extensions");
 
             MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
             for (MetaProperty property : metaClass.getProperties()) {
@@ -89,31 +96,36 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 }
                 if (property instanceof MetaBeanProperty) {
                     MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
+
+                    boolean needsConventionMapping = true;
                     MetaMethod getter = metaBeanProperty.getGetter();
                     if (getter == null) {
-                        continue;
+                        needsConventionMapping = false;
+                    } else {
+                        if (Modifier.isFinal(getter.getModifiers()) || Modifier.isPrivate(getter.getModifiers())) {
+                            needsConventionMapping = false;
+                        } else if (getter.getReturnType().isPrimitive()) {
+                            needsConventionMapping = false;
+                        } else {
+                            Class declaringClass = getter.getDeclaringClass().getTheClass();
+                            if (declaringClass.isAssignableFrom(noMappingClass)) {
+                                needsConventionMapping = false;
+                            }
+                        }
                     }
-                    if (Modifier.isFinal(getter.getModifiers()) || Modifier.isPrivate(getter.getModifiers())) {
-                        continue;
+
+                    if (needsConventionMapping) {
+                        builder.addGetter(metaBeanProperty);
                     }
-                    if (getter.getReturnType().isPrimitive()) {
-                        continue;
-                    }
-                    Class declaringClass = getter.getDeclaringClass().getTheClass();
-                    if (declaringClass.isAssignableFrom(noMappingClass)) {
-                        continue;
-                    }
-                    builder.addGetter(metaBeanProperty);
 
                     MetaMethod setter = metaBeanProperty.getSetter();
-                    if (setter == null) {
-                        continue;
-                    }
-                    if (Modifier.isFinal(setter.getModifiers()) || Modifier.isPrivate(setter.getModifiers())) {
+                    if (setter == null || Modifier.isPrivate(setter.getModifiers())) {
                         continue;
                     }
 
-                    builder.addSetter(metaBeanProperty);
+                    if (needsConventionMapping && !Modifier.isFinal(setter.getModifiers())) {
+                        builder.addSetter(metaBeanProperty);
+                    }
 
                     if (Iterable.class.isAssignableFrom(property.getType())) {
                         continue;

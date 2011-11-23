@@ -345,7 +345,11 @@ assert 'overridden value' == global
             tasks.withType(GroovyTask) { conventionMapping.prop = { '[default]' } }
             task test(type: GroovyTask)
             assert test.prop == '[default]'
-            test { prop 'value' }
+            test {
+                description 'does something'
+                prop 'value'
+            }
+            assert test.description == 'does something'
             assert test.prop == 'value'
 '''
 

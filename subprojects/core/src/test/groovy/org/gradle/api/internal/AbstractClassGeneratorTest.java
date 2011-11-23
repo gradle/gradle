@@ -20,6 +20,7 @@ import groovy.lang.GroovyObject;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.GUtil;
@@ -72,8 +73,18 @@ public abstract class AbstractClassGeneratorTest {
         assertThat(bean.getProp(), equalTo("value"));
         assertThat(bean.doStuff("some value"), equalTo("{some value}"));
 
-        assertThat(dynamicBean.getConvention(), notNullValue());
-        assertThat(dynamicBean.getExtensions(), sameInstance((ExtensionContainer) dynamicBean.getConvention()));
+        assertThat(dynamicBean.getExtensions(), notNullValue());
+        assertThat(dynamicBean.getConvention(), sameInstance(dynamicBean.getExtensions()));
+    }
+
+    @Test
+    public void mixesInExtensionAwareInterface() throws Exception {
+        Class<? extends Bean> generatedClass = generator.generate(Bean.class);
+        assertTrue(ExtensionAware.class.isAssignableFrom(generatedClass));
+        Bean bean = generatedClass.newInstance();
+        ExtensionAware dynamicBean = (ExtensionAware) bean;
+
+        assertThat(dynamicBean.getExtensions(), notNullValue());
     }
 
     @Test
@@ -368,10 +379,19 @@ public abstract class AbstractClassGeneratorTest {
 
     @Test
     public void mixesInSetValueMethodForProperty() throws Exception {
-        Bean bean = generator.generate(Bean.class).newInstance();
+        BeanWithVariousGettersAndSetters bean = generator.generate(BeanWithVariousGettersAndSetters.class).newInstance();
 
         call("{ it.prop 'value'}", bean);
         assertThat(bean.getProp(), equalTo("value"));
+
+        call("{ it.finalGetter 'another'}", bean);
+        assertThat(bean.getFinalGetter(), equalTo("another"));
+        
+        call("{ it.writeOnly 12}", bean);
+        assertThat(bean.writeOnly, equalTo(12));
+
+        call("{ it.primitive 12}", bean);
+        assertThat(bean.getPrimitive(), equalTo(12));
     }
 
     @Test
@@ -431,6 +451,9 @@ public abstract class AbstractClassGeneratorTest {
 
         assertThat(call("{ it.prop 1.2}", bean), sameInstance((Object) bean));
         assertThat(bean.getProp(), equalTo("<1.2>"));
+
+        assertThat(call("{ it.prop 1}", bean), nullValue());
+        assertThat(bean.getProp(), equalTo("<1>"));
     }
 
     public static class Bean {
@@ -496,6 +519,10 @@ public abstract class AbstractClassGeneratorTest {
         public BeanWithDslMethods prop(Object property) {
             this.prop = String.format("<%s>", property);
             return this;
+        }
+
+        public void prop(int property) {
+            this.prop = String.format("<%s>", property);
         }
     }
 
@@ -598,6 +625,33 @@ public abstract class AbstractClassGeneratorTest {
         
         public BeanWithVariousPropertyTypes setReturnValueProperty(String val) {
             return this;
+        }
+    }
+
+    public static class BeanWithVariousGettersAndSetters extends Bean {
+        private int primitive;
+        private boolean bool;
+        private String finalGetter;
+        private Integer writeOnly;
+
+        public int getPrimitive() {
+            return primitive;
+        }
+
+        public void setPrimitive(int primitive) {
+            this.primitive = primitive;
+        }
+
+        public final String getFinalGetter() {
+            return finalGetter;
+        }
+
+        public void setFinalGetter(String value) {
+            finalGetter = value;
+        }
+
+        public void setWriteOnly(Integer value) {
+            writeOnly = value;
         }
     }
 

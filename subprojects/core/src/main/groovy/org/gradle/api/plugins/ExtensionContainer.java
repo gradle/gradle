@@ -19,10 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.UnknownDomainObjectException;
 
 /**
- * Allows adding 'namespaced' DSL extensions to the target object.
- *
- * <p>Extensions can be added using a dynamic property accessor: {@code extensions.myExtension = someValue} is the same as {@code extensions.add('myExtension', someValue)}</p>
- *
+ * Allows adding 'namespaced' DSL extensions to a target object.
  */
 public interface ExtensionContainer {
 

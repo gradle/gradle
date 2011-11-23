@@ -51,7 +51,7 @@ public class GroovySourceGenerationBackedClassGenerator extends AbstractClassGen
             }
             if (isDynamicAware) {
                 src.format(isConventionAware ? ", " : "implements ");
-                src.format("org.gradle.api.internal.DynamicObjectAware ");
+                src.format("org.gradle.api.internal.DynamicObjectAware, org.gradle.api.plugins.ExtensionAware");
             }
             src.format("{%n");
         }
