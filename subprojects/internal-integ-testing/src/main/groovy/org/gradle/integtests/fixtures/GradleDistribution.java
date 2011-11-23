@@ -35,9 +35,10 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     private static final TestFile USER_GUIDE_INFO_DIR;
     private static final TestFile DISTS_DIR;
     private static final TestFile LIBS_REPO;
+
     private final TemporaryFolder temporaryFolder = new TemporaryFolder();
     private TestFile userHome;
-    private boolean usingOwnUserHomeDir = false;
+    private boolean usingOwnUserHomeDir;
 
     static {
         USER_HOME_DIR = file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
