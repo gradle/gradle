@@ -34,6 +34,7 @@ public class GzipArchiver implements ReadableResource {
     private DescribedReadableResource resource;
 
     public GzipArchiver(DescribedReadableResource resource) {
+        assert resource != null;
         this.resource = resource;
     }
 

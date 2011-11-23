@@ -20,6 +20,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.DescribedReadableResource;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
+import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceDoesNotExist;
 import org.gradle.api.tasks.bundling.Compression;
 
@@ -31,19 +32,27 @@ import java.io.InputStream;
  */
 public class MaybeCompressedFileResource extends AbstractFileResource implements DescribedReadableResource {
 
+    private final ReadableResource resource;
+
     public MaybeCompressedFileResource(File file) {
         super(file);
+        String ext = FilenameUtils.getExtension(file.getName());
+        FileResource fileResource = new FileResource(file);
+
+        if (Compression.BZIP2.getExtension().equals(ext)) {
+            resource = new Bzip2Archiver(fileResource);
+        } else if (Compression.GZIP.getExtension().equals(ext)) {
+            resource = new GzipArchiver(fileResource);
+        } else {
+            resource = fileResource;
+        }
     }
 
     public InputStream read() throws ResourceDoesNotExist {
-        String ext = FilenameUtils.getExtension(file.getName());
-        //TODO SF get rid of decompressors and refactor
-        if (Compression.BZIP2.getExtension().equals(ext)) {
-            return new Bzip2Archiver(new FileResource(file)).read();
-        } else if (Compression.GZIP.getExtension().equals(ext)) {
-            return new GzipArchiver(new FileResource(file)).read();
-        } else {
-            return new FileResource(file).read();
-        }
+        return resource.read();
+    }
+
+    public ReadableResource getResource() {
+        return resource;
     }
 }

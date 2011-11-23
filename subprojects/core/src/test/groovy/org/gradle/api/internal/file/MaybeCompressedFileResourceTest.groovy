@@ -16,27 +16,20 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.resources.ReadableResource;
 
-import java.io.File;
+import org.gradle.api.internal.file.archive.compression.Bzip2Archiver
+import org.gradle.api.internal.file.archive.compression.GzipArchiver
+import spock.lang.Specification
 
 /**
- * by Szczepan Faber, created at: 11/23/11
+ * by Szczepan Faber, created at: 11/24/11
  */
-public abstract class AbstractFileResource implements ReadableResource {
+public class MaybeCompressedFileResourceTest extends Specification {
 
-    protected final File file;
-
-    public AbstractFileResource(File file) {
-        assert file != null;
-        this.file = file;
-    }
-
-    public String getUniqueName() {
-        return file.getAbsolutePath();
-    }
-
-    public String getName() {
-        return file.getName();
+    def "understands file extensions"() {
+        expect:
+        new MaybeCompressedFileResource(new File("foo")).resource instanceof FileResource
+        new MaybeCompressedFileResource(new File("foo.tgz")).resource instanceof GzipArchiver
+        new MaybeCompressedFileResource(new File("foo.tbz2")).resource instanceof Bzip2Archiver
     }
 }

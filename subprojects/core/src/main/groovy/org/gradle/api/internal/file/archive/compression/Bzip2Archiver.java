@@ -31,6 +31,7 @@ public class Bzip2Archiver implements ReadableResource {
     private DescribedReadableResource resource;
 
     public Bzip2Archiver(DescribedReadableResource resource) {
+        assert resource != null;
         this.resource = resource;
     }
 
