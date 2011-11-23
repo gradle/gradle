@@ -20,25 +20,26 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectModuleRegistry;
 
 public class ResolveIvyFactory {
     private final IvyFactory ivyFactory;
     private final ResolverProvider resolverProvider;
-    private final GradleDependencyResolver internalRepository;
+    private final ProjectModuleRegistry projectModuleRegistry;
     private final ClientModuleRegistry clientModuleRegistry;
     private final SettingsConverter settingsConverter;
 
-    public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter, GradleDependencyResolver internalRepository, ClientModuleRegistry clientModuleRegistry) {
+    public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter, ProjectModuleRegistry projectModuleRegistry, ClientModuleRegistry clientModuleRegistry) {
         this.ivyFactory = ivyFactory;
         this.resolverProvider = resolverProvider;
         this.settingsConverter = settingsConverter;
-        this.internalRepository = internalRepository;
+        this.projectModuleRegistry = projectModuleRegistry;
         this.clientModuleRegistry = clientModuleRegistry;
     }
 
     public IvyAdapter create(ResolutionStrategyInternal resolutionStrategy) {
         IvySettings ivySettings = settingsConverter.convertForResolve(resolverProvider.getResolvers(), resolutionStrategy);
         Ivy ivy = ivyFactory.createIvy(ivySettings);
-        return new DefaultIvyAdapter(ivy, internalRepository, clientModuleRegistry, resolutionStrategy);
+        return new DefaultIvyAdapter(ivy, clientModuleRegistry, projectModuleRegistry, resolutionStrategy);
     }
 }

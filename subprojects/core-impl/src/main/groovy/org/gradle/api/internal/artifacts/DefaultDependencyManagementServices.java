@@ -40,9 +40,9 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolu
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDependencyResolver;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenCacheLocator;
-import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
@@ -258,7 +258,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(IvyFactory.class),
                     resolverProvider,
                     get(SettingsConverter.class),
-                    new DefaultInternalRepository(
+                    new DefaultProjectModuleRegistry(
                             get(PublishModuleDescriptorConverter.class)),
                     get(ClientModuleRegistry.class));
 

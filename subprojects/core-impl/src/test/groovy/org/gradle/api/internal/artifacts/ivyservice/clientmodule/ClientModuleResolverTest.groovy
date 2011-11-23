@@ -18,19 +18,17 @@ package org.gradle.api.internal.artifacts.ivyservice.clientmodule
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.resolve.ResolveData
 import org.gradle.api.artifacts.ClientModule
-import org.gradle.api.internal.artifacts.ivyservice.GradleDependencyResolver
 import spock.lang.Specification
-import org.apache.ivy.core.module.id.ModuleId
 
 /**
  * @author Hans Dockter
  */
 class ClientModuleResolverTest extends Specification {
     final ModuleDescriptor module = Mock()
-    final GradleDependencyResolver targetResolver = Mock()
     final ResolveData resolveData = Mock()
     final ClientModuleRegistry clientModuleRegistry = Mock()
     final ModuleRevisionId moduleId = new ModuleRevisionId(new ModuleId("org", "name"), "1.0")

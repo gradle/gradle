@@ -18,20 +18,21 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.apache.ivy.Ivy
 import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.resolver.DependencyResolver
+import org.apache.ivy.plugins.version.VersionMatcher
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRegistry
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectModuleRegistry
 import spock.lang.Specification
-import org.apache.ivy.plugins.version.VersionMatcher
 
 class ResolveIvyFactoryTest extends Specification {
     final IvyFactory ivyFactory = Mock()
     final ResolverProvider resolverProvider = Mock()
     final SettingsConverter settingsConverter = Mock()
-    final GradleDependencyResolver internalRepo = Mock()
     final ResolutionStrategyInternal resolutionStrategy = Mock()
+    final ProjectModuleRegistry projectModuleRegistry = Mock()
     final ClientModuleRegistry clientModuleRegistry = Mock()
-    final ResolveIvyFactory factory = new ResolveIvyFactory(ivyFactory, resolverProvider, settingsConverter, internalRepo, clientModuleRegistry)
+    final ResolveIvyFactory factory = new ResolveIvyFactory(ivyFactory, resolverProvider, settingsConverter, projectModuleRegistry, clientModuleRegistry)
 
     def "creates Ivy instance"() {
         Ivy ivy = Mock()

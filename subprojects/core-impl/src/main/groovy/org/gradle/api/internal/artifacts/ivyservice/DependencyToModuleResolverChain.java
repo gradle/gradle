@@ -16,29 +16,23 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-
 /**
  * Resolver which looks for definitions first in defined Client Modules, before delegating to the user-defined resolver chain.
- * Artifact download is delegated to user-defined resolver chain.
  */
-public class PrimaryResolverChain implements DependencyToModuleResolver, ArtifactToFileResolver {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PrimaryResolverChain.class);
+public class DependencyToModuleResolverChain implements DependencyToModuleResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyToModuleResolverChain.class);
     private final DependencyToModuleResolver clientModuleResolver;
-    private final GradleDependencyResolver projectResolver;
+    private final DependencyToModuleResolver projectResolver;
     private final DependencyToModuleResolver ivyDependencyResolver;
-    private final ArtifactToFileResolver ivyArtifactResolver;
 
-    public PrimaryResolverChain(DependencyToModuleResolver clientModuleResolver, GradleDependencyResolver projectResolver, DependencyToModuleResolver ivyDependencyResolver, ArtifactToFileResolver ivyArtifactResolver) {
+    public DependencyToModuleResolverChain(DependencyToModuleResolver clientModuleResolver, DependencyToModuleResolver projectResolver, DependencyToModuleResolver ivyDependencyResolver) {
         this.clientModuleResolver = clientModuleResolver;
         this.projectResolver = projectResolver;
         this.ivyDependencyResolver = ivyDependencyResolver;
-        this.ivyArtifactResolver = ivyArtifactResolver;
     }
 
     public ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor) {
@@ -53,14 +47,5 @@ public class PrimaryResolverChain implements DependencyToModuleResolver, Artifac
             return projectModuleVersionResolver;
         }
         return ivyDependencyResolver.create(dependencyDescriptor);
-    }
-
-    public File resolve(Artifact artifact) {
-        File projectFile = projectResolver.resolve(artifact);
-        if (projectFile != null) {
-            return projectFile;
-        }
-
-        return ivyArtifactResolver.resolve(artifact);
     }
 }
