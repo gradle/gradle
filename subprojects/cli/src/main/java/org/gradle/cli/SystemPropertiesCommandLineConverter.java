@@ -37,4 +37,8 @@ public class SystemPropertiesCommandLineConverter extends AbstractCommandLineCon
         }
         return properties;
     }
+    
+    public static String toArg(String name, String value) {
+        return String.format("-%s%s=%s", SYSTEM_PROP, name, value);
+    }
 }

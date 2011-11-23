@@ -65,8 +65,7 @@ class DaemonLifecycleSpec extends Specification {
         run {
             builds << handles.createHandle {
                 withTasks("watch")
-                addGradleOpts(new DaemonIdleTimeout(daemonIdleTimeout * 1000).toSysArg())
-                withArguments("--daemon", "--info")
+                withArguments(DaemonIdleTimeout.toCliArg(daemonIdleTimeout * 1000), "--daemon", "--info")
                 if (javaHome) {
                     withJavaHome(javaHome)
                 }

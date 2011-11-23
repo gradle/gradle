@@ -19,6 +19,7 @@ import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
+import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 
 import java.io.File;
@@ -32,7 +33,7 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
     private final ServiceRegistry registryServices;
 
     public DaemonClientServices(ServiceRegistry loggingServices, File daemonBaseDir) {
-        this(loggingServices, daemonBaseDir, null);
+        this(loggingServices, daemonBaseDir, DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT);
     }
 
     public DaemonClientServices(ServiceRegistry loggingServices, File daemonBaseDir, Integer idleTimeout) {

@@ -45,36 +45,31 @@ public class DaemonMain extends EntryPoint {
     final private Integer idleTimeoutMs;
 
     public static void main(String[] args) {
-        if (args.length == 0) {
-            invalidArgs("At least one arg required (daemon registry base dir path)");
+        if (args.length != 2) {
+            invalidArgs("both arguments are required");
         }
         File daemonBaseDir = new File(args[0]);
         
         Integer idleTimeoutMs = null;
-        if (args.length > 1) {
-            try {
-                idleTimeoutMs = Integer.parseInt(args[1]);
-            } catch (NumberFormatException e) {
-                invalidArgs("Second (option) argument must be a whole number (i.e. daemon idle timeout in ms)");
-            }
+        try {
+            idleTimeoutMs = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e) {
+            invalidArgs("Second argument must be a whole number (i.e. daemon idle timeout in ms)");
         }
         
-        new DaemonMain(daemonBaseDir, true, idleTimeoutMs).run();
+        new DaemonMain(daemonBaseDir, idleTimeoutMs, true).run();
     }
 
     private static void invalidArgs(String message) {
-        System.out.println("Invalid arguments: " + message);
+        System.out.println("USAGE: «path to registry base dir» «idle timeout in milliseconds»");
+        System.out.println(message);
         System.exit(1);
     }
 
-    public DaemonMain(File daemonBaseDir, boolean redirectIo) {
-        this(daemonBaseDir, redirectIo, null);
-    }
-
-    public DaemonMain(File daemonBaseDir, boolean redirectIo, Integer idleTimeoutMs) {
+    public DaemonMain(File daemonBaseDir, Integer idleTimeoutMs, boolean redirectIo) {
         this.daemonBaseDir = daemonBaseDir;
-        this.redirectIo = redirectIo;
         this.idleTimeoutMs = idleTimeoutMs;
+        this.redirectIo = redirectIo;
     }
 
     protected void doAction(ExecutionListener listener) {
@@ -91,7 +86,6 @@ public class DaemonMain extends EntryPoint {
 
         final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
         final Long pid = daemonContext.getPid();
-        int idleTimeout = daemonContext.getIdleTimeout();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
@@ -102,8 +96,8 @@ public class DaemonMain extends EntryPoint {
         Daemon daemon = daemonServices.get(Daemon.class);
         daemon.start();
         try {
-            daemon.awaitIdleTimeout(idleTimeout);
-            LOGGER.info("Daemon hit idle timeout (" + idleTimeout + "ms), stopping");
+            daemon.awaitIdleTimeout(idleTimeoutMs);
+            LOGGER.info("Daemon hit idle timeout (" + idleTimeoutMs + "ms), stopping");
             daemon.stop();
         } catch (DaemonStoppedException e) {
             LOGGER.info("Daemon stopping due to stop request");

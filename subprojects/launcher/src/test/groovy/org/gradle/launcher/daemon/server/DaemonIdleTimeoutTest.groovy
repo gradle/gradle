@@ -18,35 +18,32 @@ package org.gradle.launcher.daemon.server
 import spock.lang.Specification
 import org.gradle.api.GradleException
 
-/**
- * @author: Szczepan Faber, created at: 8/29/11
- */
+import static org.gradle.launcher.daemon.server.DaemonIdleTimeout.calculateFromPropertiesOrUseDefault
+
 class DaemonIdleTimeoutTest extends Specification {
-
-    def "turns timeout into system property string"() {
-        expect:
-        "-Dorg.gradle.daemon.idletimeout=1000" == new DaemonIdleTimeout(null, 1000).toSysArg()
-        "-Dorg.gradle.daemon.idletimeout=1000" == new DaemonIdleTimeout("-Dfoo=bar", 1000).toSysArg()
-        "-Dorg.gradle.daemon.idletimeout=1000" == new DaemonIdleTimeout("-Dorg.gradle.daemon.idletimeout=foo", 1000).toSysArg()
-        "-Dorg.gradle.daemon.idletimeout=2000" == new DaemonIdleTimeout("-Dorg.gradle.daemon.idletimeout=2000", 1000).toSysArg()
+    
+    def parse(val) {
+        calculateFromPropertiesOrUseDefault((DaemonIdleTimeout.SYSTEM_PROPERTY_KEY): val.toString())
     }
-
-    def "reads and validates timeout"() {
+    
+    def "reads valid timeout"() {
         expect:
-        4000 == new DaemonIdleTimeout(['org.gradle.daemon.idletimeout': '4000']).idleTimeout
-
+        parse(4000) == 4000
+    }
+    
+    def "nice message for invalid"() {
         when:
-        new DaemonIdleTimeout(['org.gradle.daemon.idletimeout': 'asdf']).idleTimeout
+        parse("asdf")
 
         then:
         def ex = thrown(GradleException)
         ex.message.contains 'org.gradle.daemon.idletimeout'
         ex.message.contains 'asdf'
-
-        when:
-        def timeout = new DaemonIdleTimeout([:]).idleTimeout
-
-        then:
-        timeout == DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT
     }
+    
+    def "uses default if prop not set"() {
+        expect:
+        calculateFromPropertiesOrUseDefault("abc": "def") == DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT
+    }
+
 }

@@ -125,8 +125,8 @@ public class CommandLineActionFactory {
 
         final StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
-        Integer idleTimeout = new DaemonIdleTimeout(startParameter.getSystemPropertiesArgs()).getIdleTimeout();
-        File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(System.getProperties(), startParameter.getGradleUserHomeDir());
+        Integer idleTimeout = DaemonIdleTimeout.calculateFromPropertiesOrUseDefault(startParameter.getSystemPropertiesArgs());
+        File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(startParameter.getSystemPropertiesArgs(), startParameter.getGradleUserHomeDir());
         DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonBaseDir, idleTimeout);
         DaemonClient client = clientServices.get(DaemonClient.class);
 
@@ -136,7 +136,7 @@ public class CommandLineActionFactory {
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
 
         if (commandLine.hasOption(FOREGROUND)) {
-            return new ActionAdapter(new DaemonMain(daemonBaseDir, false));
+            return new ActionAdapter(new DaemonMain(daemonBaseDir, idleTimeout, false));
         }
         if (commandLine.hasOption(STOP)) {
             return new ActionAdapter(new StopDaemonAction(client));

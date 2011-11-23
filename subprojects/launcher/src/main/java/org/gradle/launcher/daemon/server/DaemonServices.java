@@ -34,14 +34,10 @@ public class DaemonServices extends DefaultServiceRegistry {
     private final File daemonBaseDir;
     private final Integer idleTimeoutMs;
     private final ServiceRegistry loggingServices;
-
-    public DaemonServices(File daemonBaseDir, ServiceRegistry loggingServices) {
-        this(daemonBaseDir, null, loggingServices);
-    }
     
     public DaemonServices(File daemonBaseDir, Integer idleTimeoutMs, ServiceRegistry loggingServices) {
         this.daemonBaseDir = daemonBaseDir;
-        this.idleTimeoutMs = idleTimeoutMs == null ? DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT : idleTimeoutMs;
+        this.idleTimeoutMs = idleTimeoutMs;
         this.loggingServices = loggingServices;
 
         add(new DaemonRegistryServices(daemonBaseDir));
