@@ -73,6 +73,24 @@ public abstract class MyFileSystem {
      */
     public abstract boolean getImplicitlyLocksFileOnOpen();
 
+    /**
+     * Creates a symlink from one path to another.
+     * 
+     * @param from path of the symlink to be created
+     * @param to path of the file to link to
+     * @exception IOException if the operation fails
+     */
+    public abstract void createSymlink(File from, File to) throws IOException;
+
+    /**
+     * Tries to create a symlink from one path to another.
+     *
+     * @param from path of the symlink to be created
+     * @param to path of the file to link to
+     * @return <tt>true</tt> if the operation was successful, <tt>false</tt> otherwise
+     */
+    public abstract boolean tryCreateSymlink(File from, File to);
+
     private static class ProbingFileSystem extends MyFileSystem {
         final boolean caseSensitive;
         final boolean symlinkAware;
@@ -97,6 +115,19 @@ public abstract class MyFileSystem {
         @Override
         public boolean getImplicitlyLocksFileOnOpen() {
             return implicitLock;
+        }
+
+        @Override
+        public void createSymlink(File from, File to) throws IOException {
+            int returnCode = PosixUtil.current().symlink(to.getPath(), from.getPath());
+            if (returnCode != 0) {
+                throw new IOException("Failed to create symlink. Return code is: " + returnCode);
+            }
+        }
+        
+        @Override
+        public boolean tryCreateSymlink(File from, File to) {
+            return PosixUtil.current().symlink(to.getPath(), from.getPath()) == 0;    
         }
 
         ProbingFileSystem() {
@@ -133,7 +164,7 @@ public abstract class MyFileSystem {
                 // not fully accurate but a sensible fallback
                 // see http://stackoverflow.com/questions/1288102/how-do-i-detect-whether-the-file-system-is-case-sensitive
                 boolean result = !new File("foo").equals(new File("FOO"));
-                LOGGER.warn("Failed to determine if current file system is case sensitive. Best guess is '{}'.", result);
+                LOGGER.warn("Failed to determine if file system is case sensitive. Best guess is '{}'.", result);
                 return result;
             }
         }
@@ -142,14 +173,14 @@ public abstract class MyFileSystem {
             File symlink = null;
             try {
                 symlink = generateUniqueTempFileName();
-                int errorCode = PosixUtil.current().symlink(file.getPath(), symlink.getPath());
-                if (errorCode != 0) {
-                    LOGGER.warn("Failed to determine if current file system is symlink aware. Assuming it is.");
+                int returnCode = PosixUtil.current().symlink(file.getPath(), symlink.getPath());
+                if (returnCode != 0) {
+                    LOGGER.warn("Failed to determine if file system is symlink aware. Assuming it is.");
                     return true;
                 }
                 return hasContent(symlink, content);
             } catch (IOException e) {
-                LOGGER.warn("Failed to determine if current file system is symlink aware. Assuming it is.");
+                LOGGER.warn("Failed to determine if file system is symlink aware. Assuming it is.");
                 return true;
             } finally {
                 FileUtils.deleteQuietly(symlink);
@@ -160,10 +191,10 @@ public abstract class MyFileSystem {
             File symlink = null;
             try {
                 symlink = generateUniqueTempFileName();
-                int errorCode = PosixUtil.current().symlink(file.getPath(), symlink.getPath());
-                return errorCode != 0 && hasContent(symlink, content);
+                int returnCode = PosixUtil.current().symlink(file.getPath(), symlink.getPath());
+                return returnCode != 0 && hasContent(symlink, content);
             } catch (IOException e) {
-                LOGGER.warn("Failed to determine if current file system can create symlinks. Assuming it can't.");
+                LOGGER.warn("Failed to determine if file system can create symlinks. Assuming it can't.");
                 return false;
             } finally {
                 FileUtils.deleteQuietly(symlink);
@@ -176,7 +207,7 @@ public abstract class MyFileSystem {
                 channel = new FileOutputStream(file).getChannel();
                 return channel.tryLock() == null;
             } catch (IOException e) {
-                LOGGER.warn("Failed to determine if current file system implicitly locks file on open. Assuming it doesn't.");
+                LOGGER.warn("Failed to determine if file system implicitly locks file on open. Assuming it doesn't.");
                 return false;
             } finally {
                 Closeables.closeQuietly(channel);
