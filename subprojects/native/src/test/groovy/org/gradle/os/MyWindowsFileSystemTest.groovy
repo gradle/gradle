@@ -28,12 +28,12 @@ class MyWindowsFileSystemTest extends Specification {
         !fs.caseSensitive
     }
 
-    def "cannot resolve symbolic link"() {
+    def "can resolve symbolic link"() {
         expect:
-        !fs.canResolveSymbolicLink()
+        fs.canResolveSymbolicLink()
     }
 
-    def "cannot created symbolic link"() {
+    def "cannot create symbolic link"() {
         expect:
         !fs.canCreateSymbolicLink()
     }
