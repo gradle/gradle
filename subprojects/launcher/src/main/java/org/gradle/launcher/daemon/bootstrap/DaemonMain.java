@@ -56,7 +56,8 @@ public class DaemonMain extends EntryPoint {
     }
 
     protected void doAction(ExecutionListener listener) {
-        DaemonServices daemonServices = new DaemonServices(startParameter, LoggingServiceRegistry.newChildProcessLogging());
+        File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(startParameter.getSystemPropertiesArgs(), startParameter.getGradleUserHomeDir());
+        DaemonServices daemonServices = new DaemonServices(startParameter, daemonBaseDir, LoggingServiceRegistry.newChildProcessLogging());
 
         if (redirectIo) {
             try {

@@ -32,14 +32,14 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
     private final int idleTimeout;
     private final ServiceRegistry registryServices;
 
-    public DaemonClientServices(ServiceRegistry loggingServices, File daemonRegistryDir) {
-        this(loggingServices, daemonRegistryDir, DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT);
+    public DaemonClientServices(ServiceRegistry loggingServices, File daemonBaseDir) {
+        this(loggingServices, daemonBaseDir, DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT);
     }
 
-    public DaemonClientServices(ServiceRegistry loggingServices, File daemonRegistryDir, int idleTimeout) {
+    public DaemonClientServices(ServiceRegistry loggingServices, File daemonBaseDir, int idleTimeout) {
         super(loggingServices);
         this.idleTimeout = idleTimeout;
-        this.registryServices = new DaemonRegistryServices(daemonRegistryDir);
+        this.registryServices = new DaemonRegistryServices(daemonBaseDir);
         add(registryServices);
     }
 

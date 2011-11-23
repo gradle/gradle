@@ -23,15 +23,16 @@ import org.gradle.os.jna.NativeEnvironment;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 
 import java.io.File;
+import java.util.Properties;
 
 /**
  * Takes care of instantiating and wiring together the services required for a daemon registry.
  */
 public class DaemonRegistryServices extends DefaultServiceRegistry {
-    private final File daemonRegistryDir;
+    private final File daemonBaseDir;
 
-    public DaemonRegistryServices(File daemonRegistryDir) {
-        this.daemonRegistryDir = daemonRegistryDir;
+    public DaemonRegistryServices(File daemonBaseDir) {
+        this.daemonBaseDir = daemonBaseDir;
     }
 
     protected ProcessEnvironment createProcessEnvironment() {
@@ -39,7 +40,7 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
     }
 
     protected DaemonDir createDaemonDir() {
-        return new DaemonDir(daemonRegistryDir, get(ProcessEnvironment.class));
+        return new DaemonDir(daemonBaseDir, get(ProcessEnvironment.class));
     }
 
     protected FileLockManager createFileLockManager() {
@@ -48,6 +49,10 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
 
     protected DaemonRegistry createDaemonRegistry() {
         return new PersistentDaemonRegistry(get(DaemonDir.class).getRegistry(), get(FileLockManager.class));
+    }
+    
+    protected Properties createProperties() {
+        return System.getProperties();
     }
 
 }

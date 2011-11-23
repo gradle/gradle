@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
-import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
@@ -69,8 +68,7 @@ public class DaemonStarter implements Runnable {
         daemonArgs.add("-cp");
         daemonArgs.add(GUtil.join(bootstrapClasspath, File.pathSeparator));
         daemonArgs.add(GradleDaemon.class.getName());
-        daemonArgs.add(String.format("-%s", DefaultCommandLineConverter.DAEMON_REGISTRY_DIR));
-        daemonArgs.add(daemonDir.getBaseDir().getAbsolutePath());
+        daemonArgs.add(String.format("-D%s=%s", DaemonDir.SYSTEM_PROPERTY_KEY, daemonDir.getBaseDir().getAbsolutePath()));
 
         DaemonIdleTimeout idleTimeout = new DaemonIdleTimeout(System.getenv("GRADLE_OPTS"), this.idleTimeout);
         daemonArgs.add(idleTimeout.toSysArg());

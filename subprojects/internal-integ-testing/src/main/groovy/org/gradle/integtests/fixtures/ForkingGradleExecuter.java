@@ -18,10 +18,14 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.StartParameter;
 import org.gradle.os.OperatingSystem;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.CommandLineParserFactory;
+import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleState;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.util.TestFile;
@@ -32,6 +36,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.fail;
 
@@ -55,9 +60,21 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             userHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
         }
 
-        return new DaemonRegistryServices(StartParameter.getDefaultDaemonRegistryDir(userHome)).get(DaemonRegistry.class);
+        File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(getSystemPropertiesFromArgs(), userHome);
+        return new DaemonRegistryServices(daemonBaseDir).get(DaemonRegistry.class);
     }
 
+    protected Map<String, String> getSystemPropertiesFromArgs() {
+        SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
+        converter.setCommandLineParserFactory(new CommandLineParserFactory() {
+            public CommandLineParser create() {
+                return new CommandLineParser().allowUnknownOptions();
+            }
+        }); 
+        
+        return converter.convert(getAllArgs());
+        
+    }
     /**
      * Adds some options to the GRADLE_OPTS environment variable to use.
      */
