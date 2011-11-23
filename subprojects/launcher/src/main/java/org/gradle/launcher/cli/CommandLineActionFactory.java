@@ -44,6 +44,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
@@ -125,12 +126,13 @@ public class CommandLineActionFactory {
 
         final StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
-        Integer idleTimeout = DaemonIdleTimeout.calculateFromPropertiesOrUseDefault(startParameter.getSystemPropertiesArgs());
-        File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(startParameter.getSystemPropertiesArgs(), startParameter.getGradleUserHomeDir());
+        Properties mergedSystemProperties = startParameter.getMergedSystemProperties();
+        Integer idleTimeout = DaemonIdleTimeout.calculateFromPropertiesOrUseDefault(mergedSystemProperties);
+        File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(mergedSystemProperties, startParameter.getGradleUserHomeDir());
         DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonBaseDir, idleTimeout);
         DaemonClient client = clientServices.get(DaemonClient.class);
 
-        boolean useDaemon = System.getProperty("org.gradle.daemon", "false").equals("true");
+        boolean useDaemon = mergedSystemProperties.getProperty("org.gradle.daemon", "false").equals("true");
         useDaemon = useDaemon || commandLine.hasOption(DAEMON);
         useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
