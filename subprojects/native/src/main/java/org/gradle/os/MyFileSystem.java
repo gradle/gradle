@@ -51,51 +51,52 @@ public abstract class MyFileSystem {
     public abstract boolean isCaseSensitive();
 
     /**
-     * Tells if the file system can resolve symlinks. If the answer cannot be determined reliably,
+     * Tells if the file system can resolve symbolic links. If the answer cannot be determined reliably,
      * <tt>true</tt> is returned.
      *
-     * @return <tt>true</tt> if the file system can resolve symlinks, <tt>false</tt> otherwise
+     * @return <tt>true</tt> if the file system can resolve symbolic links, <tt>false</tt> otherwise
      */
-    public abstract boolean isSymlinkAware();
+    public abstract boolean canResolveSymbolicLink();
 
     /**
-     * Tells if the file system can create symlinks. If the answer cannot be determined accurately,
+     * Tells if the file system can create symbolic links. If the answer cannot be determined accurately,
      * <tt>false</tt> is returned.
      *
-     * @return <tt>true</tt> if the file system can create symlinks, <tt>false</tt> otherwise
+     * @return <tt>true</tt> if the file system can create symbolic links, <tt>false</tt> otherwise
      */
-    public abstract boolean canCreateSymlinks();
+    public abstract boolean canCreateSymbolicLink();
 
     /**
      * Tells whether the file system implicitly locks a file when it is opened.
      *
      * @return <tt>true</tt> if the file system implicitly locks a file when it is opened, <tt>false</tt> otherwise
      */
-    public abstract boolean getImplicitlyLocksFileOnOpen();
+    public abstract boolean getLocksFileOnOpen();
 
     /**
-     * Creates a symlink from one path to another.
+     * Creates a symbolic link to a target file.
      * 
-     * @param from path of the symlink to be created
-     * @param to path of the file to link to
+     *
+     * @param link the link to be created
+     * @param target the file to link to
      * @exception IOException if the operation fails
      */
-    public abstract void createSymlink(File from, File to) throws IOException;
+    public abstract void createSymbolicLink(File link, File target) throws IOException;
 
     /**
-     * Tries to create a symlink from one path to another.
+     * Tries to create a symbolic link to a target file.
      *
-     * @param from path of the symlink to be created
-     * @param to path of the file to link to
+     * @param link the link to be created
+     * @param target the file to link to
      * @return <tt>true</tt> if the operation was successful, <tt>false</tt> otherwise
      */
-    public abstract boolean tryCreateSymlink(File from, File to);
+    public abstract boolean tryCreateSymbolicLink(File link, File target);
 
     private static class ProbingFileSystem extends MyFileSystem {
         final boolean caseSensitive;
-        final boolean symlinkAware;
-        final boolean canCreateSymlinks;
-        final boolean implicitLock;
+        final boolean canResolveSymbolicLink;
+        final boolean canCreateSymbolicLink;
+        final boolean locksFileOnOpen;
 
         @Override
         public boolean isCaseSensitive() {
@@ -103,31 +104,32 @@ public abstract class MyFileSystem {
         }
 
         @Override
-        public boolean isSymlinkAware() {
-            return symlinkAware;
+        public boolean canResolveSymbolicLink() {
+            return canResolveSymbolicLink;
         }
 
         @Override
-        public boolean canCreateSymlinks() {
-            return canCreateSymlinks;
+        public boolean canCreateSymbolicLink() {
+            return canCreateSymbolicLink;
         }
 
         @Override
-        public boolean getImplicitlyLocksFileOnOpen() {
-            return implicitLock;
+        public boolean getLocksFileOnOpen() {
+            return locksFileOnOpen;
         }
 
         @Override
-        public void createSymlink(File from, File to) throws IOException {
-            int returnCode = PosixUtil.current().symlink(to.getPath(), from.getPath());
+        public void createSymbolicLink(File link, File target) throws IOException {
+            int returnCode = PosixUtil.current().symlink(target.getPath(), link.getPath());
             if (returnCode != 0) {
-                throw new IOException("Failed to create symlink. Return code is: " + returnCode);
+                throw new IOException("Failed to create symbolic link " + link +
+                        " pointing to " + target + ". Return code is: " + returnCode);
             }
         }
         
         @Override
-        public boolean tryCreateSymlink(File from, File to) {
-            return PosixUtil.current().symlink(to.getPath(), from.getPath()) == 0;    
+        public boolean tryCreateSymbolicLink(File link, File target) {
+            return PosixUtil.current().symlink(target.getPath(), link.getPath()) == 0;
         }
 
         ProbingFileSystem() {
@@ -136,9 +138,9 @@ public abstract class MyFileSystem {
             try {
                 file = createFile(content);
                 caseSensitive = probeCaseSensitive(file, content);
-                symlinkAware = probeSymlinkAware(file, content);
-                canCreateSymlinks = probeCanCreateSymlinks(file, content);
-                implicitLock = probeImplicitlyLocksFileOnOpen(file);
+                canResolveSymbolicLink = probeCanResolveSymbolicLink(file, content);
+                canCreateSymbolicLink = probeCanCreateSymbolicLink(file, content);
+                locksFileOnOpen = probeLocksFileOnOpen(file);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } finally {
@@ -169,39 +171,39 @@ public abstract class MyFileSystem {
             }
         }
 
-        boolean probeSymlinkAware(File file, String content) {
-            File symlink = null;
+        boolean probeCanResolveSymbolicLink(File file, String content) {
+            File link = null;
             try {
-                symlink = generateUniqueTempFileName();
-                int returnCode = PosixUtil.current().symlink(file.getPath(), symlink.getPath());
+                link = generateUniqueTempFileName();
+                int returnCode = PosixUtil.current().symlink(file.getPath(), link.getPath());
                 if (returnCode != 0) {
-                    LOGGER.warn("Failed to determine if file system is symlink aware. Assuming it is.");
+                    LOGGER.warn("Failed to determine if file system can resolve symbolic links. Assuming it can.");
                     return true;
                 }
-                return hasContent(symlink, content);
+                return hasContent(link, content);
             } catch (IOException e) {
-                LOGGER.warn("Failed to determine if file system is symlink aware. Assuming it is.");
+                LOGGER.warn("Failed to determine if file system can resolve symbolic links. Assuming it can.");
                 return true;
             } finally {
-                FileUtils.deleteQuietly(symlink);
+                FileUtils.deleteQuietly(link);
             }
         }
 
-        boolean probeCanCreateSymlinks(File file, String content) {
-            File symlink = null;
+        boolean probeCanCreateSymbolicLink(File file, String content) {
+            File link = null;
             try {
-                symlink = generateUniqueTempFileName();
-                int returnCode = PosixUtil.current().symlink(file.getPath(), symlink.getPath());
-                return returnCode != 0 && hasContent(symlink, content);
+                link = generateUniqueTempFileName();
+                int returnCode = PosixUtil.current().symlink(file.getPath(), link.getPath());
+                return returnCode != 0 && hasContent(link, content);
             } catch (IOException e) {
-                LOGGER.warn("Failed to determine if file system can create symlinks. Assuming it can't.");
+                LOGGER.warn("Failed to determine if file system can create symbolic links. Assuming it can't.");
                 return false;
             } finally {
-                FileUtils.deleteQuietly(symlink);
+                FileUtils.deleteQuietly(link);
             }
         }
 
-        boolean probeImplicitlyLocksFileOnOpen(File file) {
+        boolean probeLocksFileOnOpen(File file) {
             FileChannel channel = null;
             try {
                 channel = new FileOutputStream(file).getChannel();
