@@ -27,18 +27,18 @@ class MyWindowsFileSystemTest extends Specification {
         !fs.caseSensitive
     }
 
-    def "is not symlink aware"() {
+    def "cannot resolve symlinks"() {
         expect:
-        !fs.symlinkAware
+        !fs.canResolveSymbolicLink()
     }
 
     def "cannot created symlinks"() {
         expect:
-        !fs.canCreateSymlinks()
+        !fs.canCreateSymbolicLink()
     }
 
     def "does not implicitly lock file on open"() {
         expect:
-        !fs.implicitlyLocksFileOnOpen
+        !fs.locksFileOnOpen
     }
 }

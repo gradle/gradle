@@ -20,8 +20,10 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.Test
+
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
@@ -292,7 +294,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
 
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
 
-        if (!System.getProperty("os.name").contains("unsupported")) {
+        if (TestPrecondition.FILE_PERMISSIONS.fulfilled) {
             expandDir.file('prefix/dir1').assertPermissions(equalTo("rwxr-xr-x"))
             expandDir.file('prefix/dir1/renamed_file1.txt').assertPermissions(equalTo("rw-r--r--"))
             expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
@@ -337,7 +339,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
 
         expandDir.file('dir1/file1.txt').assertContents(equalTo('[abc]'))
 
-        if (!System.getProperty("os.name").contains("unsupported")) {
+        if (TestPrecondition.FILE_PERMISSIONS.fulfilled) {
             expandDir.file('dir1').assertPermissions(equalTo("rwxr-xr-x"))
             expandDir.file('dir1/file1.txt').assertPermissions(equalTo("rw-r--r--"))
             expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))

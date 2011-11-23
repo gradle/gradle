@@ -23,6 +23,9 @@ import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.openapi.external.ui.OutputUILordVersion1
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1
+import org.gradle.util.TestPrecondition
+import org.gradle.util.Requires
+import org.gradle.util.PreconditionVerifier
 
 import org.junit.Assert
 import org.junit.Rule
@@ -35,10 +38,12 @@ import static org.hamcrest.Matchers.startsWith
  *
  * @author mhunsicker
  */
+@Requires(TestPrecondition.SWING)
 class OutputUILordTest {
     @Rule public GradleDistribution dist = new GradleDistribution()
     @Rule public OpenApiFixture openApi = new OpenApiFixture()
     @Rule public TestResources resources = new TestResources('testProject')
+    @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
 
     /**
      * This verifies that you can add file extension to the output lord. This is for

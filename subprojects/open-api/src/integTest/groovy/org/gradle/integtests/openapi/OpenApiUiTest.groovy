@@ -33,6 +33,9 @@ import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1
 import org.gradle.os.OperatingSystem
 import org.gradle.openapi.external.ui.*
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.gradle.util.PreconditionVerifier
 
 import org.junit.Assert
 import org.junit.Rule
@@ -44,10 +47,12 @@ import static org.hamcrest.Matchers.*
  * This tests numerous aspects of the Open API UI. This is how the Idea plugin extracts the UI from
  * Gradle.
  */
+@Requires(TestPrecondition.SWING)
 class OpenApiUiTest {
     @Rule public GradleDistribution dist = new GradleDistribution()
     @Rule public TestResources resources = new TestResources('testproject')
     @Rule public OpenApiFixture openApi = new OpenApiFixture()
+    @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
 
     /**
      This tests to see if we can call the UIFactory to create a single pane UI.

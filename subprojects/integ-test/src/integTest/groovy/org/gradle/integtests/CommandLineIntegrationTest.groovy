@@ -15,25 +15,29 @@
  */
 package org.gradle.integtests
 
+import org.apache.tools.ant.taskdefs.Chmod
 import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Jvm
+import org.gradle.util.PreconditionVerifier
+import org.gradle.util.TestPrecondition
+import org.gradle.util.Requires
+import org.gradle.util.AntUtil
+import org.gradle.util.TestFile
 import org.gradle.os.OperatingSystem
+import org.gradle.os.MyFileSystem
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.util.AntUtil
-import org.apache.tools.ant.taskdefs.Chmod
-import org.gradle.util.TestFile
-import org.gradle.os.PosixUtil
-import org.junit.Before
 
 public class CommandLineIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public final TestResources resources = new TestResources()
+    @Rule public final PreconditionVerifier verifier = new PreconditionVerifier()
 
     @Before
     public void setup() {
@@ -106,7 +110,7 @@ public class CommandLineIntegrationTest {
             binary = new File("/bin/$command")
         }
         assert binary.exists()
-        PosixUtil.current().symlink(binary.absolutePath, binDir.file(command).absolutePath)
+        MyFileSystem.current().createSymbolicLink(binDir.file(command), binary.absoluteFile)
     }
 
     @Test
@@ -175,17 +179,11 @@ public class CommandLineIntegrationTest {
     }
 
     @Test
+    @Requires(TestPrecondition.SYMLINKS)
     public void resolvesLinksWhenDeterminingHomeDirectory() {
-        if (OperatingSystem.current().isWindows()) {
-            return
-        }
-        if (System.getProperty("os.name").contains("unsupported")) {
-            return
-        }
-
         def script = dist.testFile('bin/my app')
         script.parentFile.createDir()
-        PosixUtil.current().symlink(dist.gradleHomeDir.file('bin/gradle').absolutePath, script.absolutePath)
+        MyFileSystem.current().createSymbolicLink(script, dist.gradleHomeDir.file('bin/gradle'))
 
         def result = executer.usingExecutable(script.absolutePath).withTasks("help").run()
         assert result.output.contains("my app")

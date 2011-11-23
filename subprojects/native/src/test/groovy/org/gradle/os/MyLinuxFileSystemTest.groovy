@@ -27,18 +27,18 @@ class MyLinuxFileSystemTest extends Specification {
         fs.caseSensitive
     }
 
-    def "is symlink aware"() {
+    def "can resolve symlinks"() {
         expect:
-        fs.symlinkAware
+        fs.canResolveSymbolicLink()
     }
 
     def "can create symlinks"() {
         expect:
-        fs.canCreateSymlinks()
+        fs.canCreateSymbolicLink()
     }
 
     def "does not implicitly lock file on open"() {
         expect:
-        !fs.implicitlyLocksFileOnOpen
+        !fs.locksFileOnOpen
     }
 }
