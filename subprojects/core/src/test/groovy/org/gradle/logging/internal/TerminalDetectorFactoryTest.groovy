@@ -18,12 +18,11 @@ package org.gradle.logging.internal;
 
 import org.gradle.logging.internal.JnaBootPathConfigurer.JnaNotAvailableException
 import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestPrecondition
+import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.IgnoreIf
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 /**
  * @author: Szczepan Faber, created at: 9/12/11
