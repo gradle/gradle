@@ -53,7 +53,6 @@ class StartParameterTest {
         testObj.projectProperties = [a: 'a']
         testObj.systemPropertiesArgs = [b: 'b']
         testObj.gradleUserHomeDir = new File('b')
-        testObj.daemonRegistryDir = new File('c')
         testObj.initScripts = [new File('init script'), new File("/path/to/another init script")]
         testObj.cacheUsage = CacheUsage.ON
         testObj.logLevel = LogLevel.WARN
@@ -67,7 +66,6 @@ class StartParameterTest {
     @Test public void testDefaultValues() {
         StartParameter parameter = new StartParameter();
         assertThat(parameter.gradleUserHomeDir, equalTo(StartParameter.DEFAULT_GRADLE_USER_HOME))
-        assertThat(parameter.daemonRegistryDir, equalTo(new File(parameter.gradleUserHomeDir, "daemon")))
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
 
         assertThat(parameter.buildFile, nullValue())
@@ -90,7 +88,6 @@ class StartParameterTest {
         System.setProperty(StartParameter.GRADLE_USER_HOME_PROPERTY_KEY, gradleUserHome.absolutePath)
         StartParameter parameter = new StartParameter();
         assertThat(parameter.gradleUserHomeDir, equalTo(gradleUserHome))
-        assertThat(parameter.daemonRegistryDir, equalTo(new File(gradleUserHome, "daemon")))
     }
 
     @Test public void testSetCurrentDir() {
@@ -220,7 +217,6 @@ class StartParameterTest {
         assertThat(newParameter, not(equalTo(parameter)));
 
         assertThat(newParameter.gradleUserHomeDir, equalTo(parameter.gradleUserHomeDir));
-        assertThat(newParameter.daemonRegistryDir, equalTo(parameter.daemonRegistryDir));
         assertThat(newParameter.cacheUsage, equalTo(parameter.cacheUsage));
         assertThat(newParameter.logLevel, equalTo(parameter.logLevel));
         assertThat(newParameter.colorOutput, equalTo(parameter.colorOutput));
@@ -233,25 +229,6 @@ class StartParameterTest {
         assertThat(newParameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(newParameter.currentDir)))
         assertFalse(newParameter.dryRun)
         assertThat(newParameter, isSerializable())
-    }
-    
-    @Test public void testExplicitDaemonRegistryDir() {
-        StartParameter p = new StartParameter()
-        p.daemonRegistryDir = new File("abc")
-        assert p.daemonRegistryDir ==  new File("abc").canonicalFile
-        
-        p.daemonRegistryDir = null
-        assert p.daemonRegistryDir == StartParameter.getDefaultDaemonRegistryDir(p.gradleUserHomeDir)
-    }
-
-    @Test public void testDefaultDaemonRegistryDirMovesWithUserHomeDir() {
-        StartParameter p = new StartParameter()
-        p.gradleUserHomeDir = new File("abc")
-        assert p.daemonRegistryDir ==  StartParameter.getDefaultDaemonRegistryDir(p.gradleUserHomeDir)
-    }
-    
-    @Test public void testGetDefaultDaemonRegistryDir() {
-        assert new File("abc/daemon").canonicalFile ==  StartParameter.getDefaultDaemonRegistryDir(new File("abc"))
     }
     
 }

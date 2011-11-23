@@ -20,6 +20,7 @@ import org.gradle.util.Jvm;
 import org.gradle.os.jna.NativeEnvironment;
 import static org.gradle.util.GFileUtils.canonicalise;
 import org.gradle.api.internal.Factory;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 
 import java.io.File;
 
@@ -40,7 +41,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
 
     public DaemonContextBuilder() {
         javaHome = canonicalise(jvm.getJavaHome());
-        daemonRegistryDir = StartParameter.getDefaultDaemonRegistryDir();
+        daemonRegistryDir = DaemonDir.getDirectoryInGradleUserHome(StartParameter.DEFAULT_GRADLE_USER_HOME);
         pid = NativeEnvironment.current().maybeGetPid();
     }
 
