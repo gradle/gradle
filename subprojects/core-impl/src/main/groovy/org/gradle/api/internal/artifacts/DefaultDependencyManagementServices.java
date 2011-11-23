@@ -257,10 +257,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             ResolveIvyFactory ivyFactory = new ResolveIvyFactory(
                     get(IvyFactory.class),
                     resolverProvider,
-                    get(SettingsConverter.class),
-                    new DefaultProjectModuleRegistry(
-                            get(PublishModuleDescriptorConverter.class)),
-                    get(ClientModuleRegistry.class));
+                    get(SettingsConverter.class));
 
             ResolvedArtifactFactory resolvedArtifactFactory = new ResolvedArtifactFactory(
                     get(CacheLockingManager.class)
@@ -269,7 +266,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             ArtifactDependencyResolver resolver = new DefaultDependencyResolver(
                     ivyFactory,
                     get(PublishModuleDescriptorConverter.class),
-                    resolvedArtifactFactory);
+                    resolvedArtifactFactory,
+                    new DefaultProjectModuleRegistry(
+                            get(PublishModuleDescriptorConverter.class)),
+                    get(ClientModuleRegistry.class));
             return new ErrorHandlingArtifactDependencyResolver(
                     new EventBroadcastingArtifactDependencyResolver(
                             new ShortcircuitEmptyConfigsArtifactDependencyResolver(
