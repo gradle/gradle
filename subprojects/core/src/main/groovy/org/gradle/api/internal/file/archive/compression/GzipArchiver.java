@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
+import org.gradle.api.internal.DescribedReadableResource;
+import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.tasks.bundling.Compression;
 import org.gradle.api.tasks.bundling.CompressionAware;
 
@@ -26,7 +28,17 @@ import java.util.zip.GZIPOutputStream;
 /**
  * by Szczepan Faber, created at: 11/16/11
  */
-public class GzipArchiver implements Archiver, CompressionAware {
+public class GzipArchiver implements ReadableResource, Archiver, CompressionAware {
+
+    private DescribedReadableResource resource;
+
+    public GzipArchiver() {
+        //TODO SF refactor
+    }
+
+    public GzipArchiver(DescribedReadableResource resource) {
+        this.resource = resource;
+    }
 
     public InputStream decompress(File source) {
         try {
@@ -50,5 +62,15 @@ public class GzipArchiver implements Archiver, CompressionAware {
 
     public Compression getCompression() {
         return Compression.GZIP;
+    }
+
+    public InputStream read() {
+        InputStream is = resource.read();
+        try {
+            return new GZIPInputStream(is);
+        } catch (Exception e) {
+            String message = String.format("Unable to create gzip input stream for resource: %s due to: %s.", resource.getName(), e.getMessage());
+            throw new RuntimeException(message, e);
+        }
     }
 }

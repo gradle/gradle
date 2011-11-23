@@ -17,7 +17,11 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.PathValidation;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
 
@@ -48,9 +52,7 @@ public interface FileOperations {
 
     FileTree zipTree(Object zipPath);
 
-    ArchiveFileTree tarTree(Object tarPath);
-
-    ArchiveFileTree tarTree(Object tarPath, Closure configureClosure);
+    FileTree tarTree(Object tarPath);
 
     CopySpec copySpec(Closure closure);
 
@@ -63,4 +65,8 @@ public interface FileOperations {
     ExecResult javaexec(Closure cl);
 
     ExecResult exec(Closure cl);
+
+    ReadableResource gzip(Object path);
+
+    ReadableResource bzip2(Object path);
 }

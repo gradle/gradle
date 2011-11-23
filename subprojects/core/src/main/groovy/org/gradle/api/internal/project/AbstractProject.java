@@ -24,7 +24,10 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
@@ -41,6 +44,7 @@ import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ProjectEvaluator;
@@ -688,12 +692,16 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return fileOperations.zipTree(zipPath);
     }
 
-    public ArchiveFileTree tarTree(Object tarPath) {
+    public FileTree tarTree(Object tarPath) {
         return fileOperations.tarTree(tarPath);
     }
 
-    public ArchiveFileTree tarTree(Object tarPath, Closure configureClosure) {
-        return fileOperations.tarTree(tarPath, configureClosure);
+    public ReadableResource gzip(Object path) {
+        return fileOperations.gzip(path);
+    }
+
+    public ReadableResource bzip2(Object path) {
+        return fileOperations.bzip2(path);
     }
 
     public String relativePath(Object path) {

@@ -23,7 +23,6 @@ import org.gradle.util.TestFile
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.Test
-
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
@@ -127,22 +126,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         tar.tbzTo(file('test.tbz2'))
 
         file('build.gradle') << '''
-            task checkTarTree << {
-                def t = tarTree('test.tbz2')
-
-                t.compression = Compression.NONE
-                assert t.compression == Compression.NONE
-
-                t.compression = Compression.GZIP
-                assert t.compression == Compression.GZIP
-
-                t.compression = Compression.BZIP2
-                assert t.compression == Compression.BZIP2
-
-                t.decompressor = {} as Decompressor
-                assert t.compression == Compression.NONE
-            }
-
             task myTar(type: Tar) {
                 compression = Compression.NONE
                 assert compression == Compression.NONE
@@ -158,7 +141,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
             }
 '''
 
-        inTestDirectory().withTasks('checkTarTree').run()
+        inTestDirectory().withTasks('myTar').run()
     }
 
     @Test public void "can choose compression method for tarTree"() {
@@ -174,10 +157,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
 
         file('build.gradle') << '''
             task copy(type: Copy) {
-                def tree = tarTree('test.ext') {
-                    compression = Compression.BZIP2
-                }
-                from tree
+                from tarTree(bzip2('test.ext'))
                 exclude '**/2.txt'
                 into 'dest'
             }

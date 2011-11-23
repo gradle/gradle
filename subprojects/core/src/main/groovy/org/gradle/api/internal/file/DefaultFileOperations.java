@@ -19,14 +19,17 @@ import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.*;
-import org.gradle.api.internal.file.archive.ArchiveFileTreeAdapter;
+import org.gradle.api.internal.DescribedReadableResource;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
+import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
+import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.*;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.DefaultExecAction;
@@ -91,16 +94,18 @@ public class DefaultFileOperations implements FileOperations {
         return new FileTreeAdapter(new ZipFileTree(file(zipPath), getExpandDir()));
     }
 
-    public ArchiveFileTree tarTree(Object tarPath) {
-        TarFileTree tarTree = new TarFileTree(file(tarPath), getExpandDir());
-        FileTreeAdapter fileTree = new FileTreeAdapter(tarTree);
-        return new ArchiveFileTreeAdapter(fileTree, tarTree);
-    }
-
-    public ArchiveFileTree tarTree(Object tarPath, Closure configureClosure) {
-        ArchiveFileTree tree = tarTree(tarPath);
-        configure(configureClosure, tree);
-        return tree;
+    public FileTree tarTree(Object tarPath) {
+        //TODO SF - rationalize, refactor if possible
+        DescribedReadableResource res;
+        if (tarPath instanceof DescribedReadableResource) {
+            res = (DescribedReadableResource) tarPath;
+        } else if (tarPath instanceof ReadableResource) {
+            res = new AnonymousDescribedReadableResource((ReadableResource) tarPath);
+        } else {
+            res = new MaybeCompressedFileResource(file(tarPath));
+        }
+        TarFileTree tarTree = new TarFileTree(res, getExpandDir());
+        return new FileTreeAdapter(tarTree);
     }
 
     private File getExpandDir() {
@@ -154,5 +159,13 @@ public class DefaultFileOperations implements FileOperations {
     public ExecResult exec(Closure cl) {
         ExecAction execAction = ConfigureUtil.configure(cl, new DefaultExecAction(fileResolver));
         return execAction.execute();
+    }
+
+    public ReadableResource gzip(Object path) {
+        return new GzipArchiver(new FileResource(file(path)));
+    }
+
+    public ReadableResource bzip2(Object path) {
+        return new Bzip2Archiver(new FileResource(file(path)));
     }
 }

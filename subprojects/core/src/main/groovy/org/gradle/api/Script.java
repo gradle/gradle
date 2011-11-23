@@ -16,7 +16,10 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
@@ -204,18 +207,36 @@ public interface Script {
     FileTree zipTree(Object zipPath);
 
     /**
-     * <p>Creates a new {@code ArchiveFileTree} which contains the contents of the given TAR file. The given tarPath path is
-     * evaluated as for {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
-     * method to untar a TAR file.</p>
+     * Creates a new {@code FileTree} which contains the contents of the given TAR file. The given tarPath path can be:
+     * <ul>
+     *   <li>an instance of {@link org.gradle.api.resources.Resource}</li>
+     *   <li>any other object is evaluated as for {@link #file(Object)}</li>
+     * </ul>
      *
-     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
-     * queried.</p>
+     * queried.
+     * <p>
+     * Unless custom implementation of resources is passed, the tar tree attempts to guess the compression based on the file extension.
+     * <p>
+     * You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * method to untar a TAR file:
      *
-     * @param tarPath The TAR file. Evaluated as for {@link #file(Object)}.
+     * <pre autoTested=''>
+     * task untar(type: Copy) {
+     *   from tarTree('someCompressedTar.gzip')
+     *
+     *   //tar tree attempts to guess the compression based on the file extension
+     *   //however if you must to specify the compression explicitly you can:
+     *   from tarTree(gzip('someTar.ext'))
+     *   into 'dest'
+     * }
+     * </pre>
+     *
+     * @param tarPath The TAR file or an instance of {@link org.gradle.api.resources.Resource}.
      * @return the file tree. Never returns null.
      */
-    ArchiveFileTree tarTree(Object tarPath);
+    FileTree tarTree(Object tarPath);
 
     /**
      * Copy the specified files.  The given closure is used to configure a {@link org.gradle.api.file.CopySpec}, which

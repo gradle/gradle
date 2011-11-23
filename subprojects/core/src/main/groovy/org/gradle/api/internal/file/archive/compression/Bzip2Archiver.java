@@ -18,6 +18,8 @@ package org.gradle.api.internal.file.archive.compression;
 
 import org.apache.tools.bzip2.CBZip2InputStream;
 import org.apache.tools.bzip2.CBZip2OutputStream;
+import org.gradle.api.internal.DescribedReadableResource;
+import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.tasks.bundling.Compression;
 import org.gradle.api.tasks.bundling.CompressionAware;
 
@@ -26,10 +28,22 @@ import java.io.*;
 /**
  * by Szczepan Faber, created at: 11/16/11
  */
-public class Bzip2Archiver implements Archiver, CompressionAware {
+public class Bzip2Archiver implements ReadableResource, Archiver, CompressionAware {
+
+    private DescribedReadableResource resource;
+
+    public Bzip2Archiver() {
+        //TODO SF refactor
+    }
+
+    public Bzip2Archiver(DescribedReadableResource resource) {
+        this.resource = resource;
+    }
+
     public InputStream decompress(File source) {
         try {
-            InputStream is = new BufferedInputStream(new FileInputStream(source));
+            FileInputStream fileInputStream = new FileInputStream(source);
+            InputStream is = new BufferedInputStream(fileInputStream);
             // CBZip2InputStream expects the opening "BZ" to be skipped
             byte[] skip = new byte[2];
             is.read(skip);
@@ -54,5 +68,19 @@ public class Bzip2Archiver implements Archiver, CompressionAware {
 
     public Compression getCompression() {
         return Compression.BZIP2;
+    }
+
+    public InputStream read() {
+        InputStream fileInputStream = resource.read();
+        try {
+            InputStream is = new BufferedInputStream(fileInputStream);
+            // CBZip2InputStream expects the opening "BZ" to be skipped
+            byte[] skip = new byte[2];
+            is.read(skip);
+            return new CBZip2InputStream(is);
+        } catch (Exception e) {
+            String message = String.format("Unable to create bzip2 input stream for resource: %s due to: %s.", resource.getName(), e.getMessage());
+            throw new RuntimeException(message, e);
+        }
     }
 }

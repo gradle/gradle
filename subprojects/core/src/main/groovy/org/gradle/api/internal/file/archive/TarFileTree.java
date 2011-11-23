@@ -22,12 +22,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.DescribedReadableResource;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.archive.compression.FileExtensionBasedDecompressor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
-import org.gradle.api.tasks.bundling.Decompressor;
+import org.gradle.api.resources.ResourceDoesNotExist;
+import org.gradle.api.resources.ResourceIsAFolder;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HashUtil;
 
@@ -37,32 +38,17 @@ import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
-    private final File tarFile;
-    private Decompressor decompressor;
+    private final DescribedReadableResource resource;
     private final File tmpDir;
 
-    public TarFileTree(File tarFile, File tmpDir) {
-            this(tarFile, tmpDir, new FileExtensionBasedDecompressor());
-    }
-
-    public TarFileTree(File tarFile, File tmpDir, Decompressor decompressor) {
-        this.tarFile = tarFile;
-        this.decompressor = decompressor;
-        String expandDirName = String.format("%s_%s", tarFile.getName(), HashUtil.createHash(tarFile.getAbsolutePath()));
+    public TarFileTree(DescribedReadableResource resource, File tmpDir) {
+        this.resource = resource;
+        String expandDirName = String.format("%s_%s", resource.getName(), HashUtil.createHash(resource.getUniqueName()));
         this.tmpDir = new File(tmpDir, expandDirName);
     }
 
-    public Decompressor getDecompressor() {
-        return decompressor;
-    }
-
-    public void setDecompressor(Decompressor decompressor) {
-        assert decompressor != null: "decompressor cannot be null!";
-        this.decompressor = decompressor;
-    }
-
     public String getDisplayName() {
-        return String.format("TAR '%s'", tarFile);
+        return String.format("TAR '%s'", resource.getUniqueName());
     }
 
     public DirectoryFileTree getMirror() {
@@ -70,20 +56,20 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     }
 
     public void visit(FileVisitor visitor) {
-        if (!tarFile.exists()) {
+        InputStream inputStream;
+        try {
+            inputStream = resource.read();
+            assert inputStream != null;
+        } catch (ResourceDoesNotExist e) {
             return;
-        }
-        if (!tarFile.isFile()) {
+        } catch (ResourceIsAFolder e) {
             throw new InvalidUserDataException(String.format("Cannot expand %s as it is not a file.", getDisplayName()));
         }
 
         try {
-            InputStream inputStream = null;
             try {
-                inputStream = decompressor.decompress(tarFile);
                 visitImpl(visitor, inputStream);
             } finally {
-                assert inputStream != null;
                 inputStream.close();
             }
         } catch (Exception e) {
@@ -123,7 +109,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         public String getDisplayName() {
-            return String.format("tar entry %s!%s", tarFile, entry.getName());
+            return String.format("tar entry %s!%s", resource.getUniqueName(), entry.getName());
         }
 
         public void stopVisiting() {
