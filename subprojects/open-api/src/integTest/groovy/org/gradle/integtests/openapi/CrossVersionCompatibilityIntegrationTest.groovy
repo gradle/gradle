@@ -20,11 +20,14 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.DefaultClassLoaderFactory
+import org.gradle.util.TestPrecondition
+import org.gradle.util.Requires
 import org.junit.Assert
 import org.junit.Rule
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+@Requires(TestPrecondition.SWING)
 class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSpec {
     private final Logger logger = LoggerFactory.getLogger(CrossVersionCompatibilityIntegrationTest)
     @Rule public final TestResources resources = new TestResources()

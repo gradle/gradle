@@ -30,6 +30,7 @@ import org.gradle.util.PreconditionVerifier
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import org.junit.ClassRule
 
 import static org.hamcrest.Matchers.startsWith
 
@@ -43,7 +44,7 @@ class OutputUILordTest {
     @Rule public GradleDistribution dist = new GradleDistribution()
     @Rule public OpenApiFixture openApi = new OpenApiFixture()
     @Rule public TestResources resources = new TestResources('testProject')
-    @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
+    @ClassRule public static PreconditionVerifier verifier = new PreconditionVerifier()
 
     /**
      * This verifies that you can add file extension to the output lord. This is for

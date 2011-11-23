@@ -40,6 +40,7 @@ import org.gradle.util.PreconditionVerifier
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import org.junit.ClassRule
 
 import static org.hamcrest.Matchers.*
 
@@ -52,7 +53,7 @@ class OpenApiUiTest {
     @Rule public GradleDistribution dist = new GradleDistribution()
     @Rule public TestResources resources = new TestResources('testproject')
     @Rule public OpenApiFixture openApi = new OpenApiFixture()
-    @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
+    @ClassRule public static PreconditionVerifier verifier = new PreconditionVerifier()
 
     /**
      This tests to see if we can call the UIFactory to create a single pane UI.
