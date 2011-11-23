@@ -46,9 +46,5 @@ tree.visit {element ->
 FileTree zip = zipTree('someFile.zip')
 
 // Create a TAR file tree using path
-FileTree tar = tarTree('someFile.tar') {
-    //tar tree tries to guess the compression based on the file extension
-    //if you need to specify the compression explicitly you can:
-    compression = Compression.NONE
-}
+FileTree tar = tarTree('someFile.tar')
 // END SNIPPET archive-trees
