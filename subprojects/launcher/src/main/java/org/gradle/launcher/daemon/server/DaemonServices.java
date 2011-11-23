@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
@@ -32,14 +31,18 @@ import java.io.File;
  * Takes care of instantiating and wiring together the services required by the daemon server.
  */
 public class DaemonServices extends DefaultServiceRegistry {
-    private final ServiceRegistry loggingServices;
-    private final StartParameter startParameter;
     private final File daemonBaseDir;
+    private final Integer idleTimeoutMs;
+    private final ServiceRegistry loggingServices;
 
-    public DaemonServices(StartParameter startParameter, File daemonBaseDir, ServiceRegistry loggingServices) {
-        this.loggingServices = loggingServices;
-        this.startParameter = startParameter;
+    public DaemonServices(File daemonBaseDir, ServiceRegistry loggingServices) {
+        this(daemonBaseDir, null, loggingServices);
+    }
+    
+    public DaemonServices(File daemonBaseDir, Integer idleTimeoutMs, ServiceRegistry loggingServices) {
         this.daemonBaseDir = daemonBaseDir;
+        this.idleTimeoutMs = idleTimeoutMs == null ? DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT : idleTimeoutMs;
+        this.loggingServices = loggingServices;
 
         add(new DaemonRegistryServices(daemonBaseDir));
     }
@@ -51,7 +54,7 @@ public class DaemonServices extends DefaultServiceRegistry {
     protected DaemonContext createDaemonContext() {
         DaemonContextBuilder builder = new DaemonContextBuilder();
         builder.setDaemonRegistryDir(daemonBaseDir);
-        builder.setIdleTimeout(get(DaemonIdleTimeout.class).getIdleTimeout());
+        builder.setIdleTimeout(idleTimeoutMs);
         return builder.create();
     }
 
@@ -67,7 +70,4 @@ public class DaemonServices extends DefaultServiceRegistry {
                 get(ExecutorFactory.class));
     }
 
-    protected DaemonIdleTimeout createDaemonIdleTimeout() {
-        return new DaemonIdleTimeout(startParameter);
-    }
 }

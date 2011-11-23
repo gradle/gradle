@@ -15,14 +15,13 @@
  */
 package org.gradle.launcher.daemon.server
 
-import org.gradle.StartParameter
 import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.os.ProcessEnvironment
 import spock.lang.Specification
 
 class DaemonServicesTest extends Specification {
-    final DaemonServices services = new DaemonServices(StartParameter.newInstance(), new File("daemon-base"), LoggingServiceRegistry.newEmbeddableLogging())
+    final DaemonServices services = new DaemonServices(new File("daemon-base"), LoggingServiceRegistry.newEmbeddableLogging())
 
     def "makes a DaemonDir available"() {
         expect:

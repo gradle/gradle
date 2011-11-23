@@ -38,9 +38,9 @@ public class DaemonStarter implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(DaemonStarter.class);
 
     private final DaemonDir daemonDir;
-    private final int idleTimeout;
+    private final Integer idleTimeout;
 
-    public DaemonStarter(DaemonDir daemonDir, int idleTimeout) {
+    public DaemonStarter(DaemonDir daemonDir, Integer idleTimeout) {
         this.daemonDir = daemonDir;
         this.idleTimeout = idleTimeout;
     }
@@ -68,10 +68,8 @@ public class DaemonStarter implements Runnable {
         daemonArgs.add("-cp");
         daemonArgs.add(GUtil.join(bootstrapClasspath, File.pathSeparator));
         daemonArgs.add(GradleDaemon.class.getName());
-        daemonArgs.add(String.format("-D%s=%s", DaemonDir.SYSTEM_PROPERTY_KEY, daemonDir.getBaseDir().getAbsolutePath()));
-
-        DaemonIdleTimeout idleTimeout = new DaemonIdleTimeout(System.getenv("GRADLE_OPTS"), this.idleTimeout);
-        daemonArgs.add(idleTimeout.toSysArg());
+        daemonArgs.add(String.format(daemonDir.getBaseDir().getAbsolutePath()));
+        daemonArgs.add(new DaemonIdleTimeout(System.getenv("GRADLE_OPTS"), this.idleTimeout).getIdleTimeout().toString());
 
         startProcess(daemonArgs, daemonDir.getVersionedDir());
     }

@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 
 import java.util.Map;
@@ -27,45 +26,41 @@ import java.util.regex.Pattern;
  * Centralises determining the daemon idle timeout and default value.
  */
 public class DaemonIdleTimeout {
-    public static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
+    public static final Integer DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     private static final String TIMEOUT_PROPERTY = "org.gradle.daemon.idletimeout";
-    private final int idleTimeout;
+    private final Integer idleTimeout;
 
     public DaemonIdleTimeout(String vmParams) {
-        this(vmParams, DEFAULT_IDLE_TIMEOUT);
-    }
-
-    public DaemonIdleTimeout(StartParameter startParameter) {
-        this(startParameter.getSystemPropertiesArgs());
+        this(vmParams, null);
     }
 
     /**
      * parses input vm params and looks for the timeout property. If not found the default is used.
      */
-    public DaemonIdleTimeout(String vmParams, int defaultIdleTimeout) {
+    public DaemonIdleTimeout(String vmParams, Integer defaultIdleTimeout) {
         String p = readProperty(vmParams);
         if (p != null) {
             idleTimeout = Integer.parseInt(p);
         } else {
-            idleTimeout = defaultIdleTimeout;
+            idleTimeout = defaultIdleTimeout == null ? DEFAULT_IDLE_TIMEOUT : defaultIdleTimeout;
         }
     }
 
     public DaemonIdleTimeout(Map<String, String> sysProperties) {
-        this(sysProperties, DEFAULT_IDLE_TIMEOUT);
+        this(sysProperties, null);
     }
 
     /**
      * throws exception if timeout property is not in the properties or when it is not a valid int
      */
-    public DaemonIdleTimeout(Map<String, String> sysProperties, int defaultIdleTimeout) {
+    public DaemonIdleTimeout(Map<String, String> sysProperties, Integer defaultIdleTimeout) {
         if (sysProperties == null) {
             sysProperties = Collections.<String, String>emptyMap();
         }
         
         String timeoutProperty = sysProperties.get(TIMEOUT_PROPERTY);
         if (timeoutProperty == null) {
-            idleTimeout = defaultIdleTimeout;
+            idleTimeout = defaultIdleTimeout == null ? DEFAULT_IDLE_TIMEOUT : defaultIdleTimeout;
         } else {
             try {
                 idleTimeout = Integer.parseInt(timeoutProperty);
@@ -75,8 +70,8 @@ public class DaemonIdleTimeout {
         }
     }
 
-    public DaemonIdleTimeout(int idleTimeout) {
-        this.idleTimeout = idleTimeout;
+    public DaemonIdleTimeout(Integer idleTimeout) {
+        this.idleTimeout = idleTimeout == null ? DEFAULT_IDLE_TIMEOUT : idleTimeout;
     }
 
     private String readProperty(String vmParams) {
@@ -90,7 +85,7 @@ public class DaemonIdleTimeout {
         return idleDaemonTimeoutArg;
     }
 
-    public int getIdleTimeout() {
+    public Integer getIdleTimeout() {
         return idleTimeout;
     }
 

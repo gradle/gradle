@@ -15,10 +15,9 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
-import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.DefaultCommandLineConverter;
+
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
@@ -29,7 +28,6 @@ import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingServiceRegistry;
 
 import java.io.*;
-import java.util.Arrays;
 
 /**
  * The entry point for a daemon process.
@@ -42,22 +40,45 @@ public class DaemonMain extends EntryPoint {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonMain.class);
 
-    final private StartParameter startParameter;
+    final private File daemonBaseDir;
     final private boolean redirectIo;
+    final private Integer idleTimeoutMs;
 
     public static void main(String[] args) {
-        StartParameter startParameter = new DefaultCommandLineConverter().convert(Arrays.asList(args));
-        new DaemonMain(startParameter, true).run();
+        if (args.length == 0) {
+            invalidArgs("At least one arg required (daemon registry base dir path)");
+        }
+        File daemonBaseDir = new File(args[0]);
+        
+        Integer idleTimeoutMs = null;
+        if (args.length > 1) {
+            try {
+                idleTimeoutMs = Integer.parseInt(args[1]);
+            } catch (NumberFormatException e) {
+                invalidArgs("Second (option) argument must be a whole number (i.e. daemon idle timeout in ms)");
+            }
+        }
+        
+        new DaemonMain(daemonBaseDir, true, idleTimeoutMs).run();
     }
 
-    public DaemonMain(StartParameter startParameter, boolean redirectIo) {
-        this.startParameter = startParameter;
+    private static void invalidArgs(String message) {
+        System.out.println("Invalid arguments: " + message);
+        System.exit(1);
+    }
+
+    public DaemonMain(File daemonBaseDir, boolean redirectIo) {
+        this(daemonBaseDir, redirectIo, null);
+    }
+
+    public DaemonMain(File daemonBaseDir, boolean redirectIo, Integer idleTimeoutMs) {
+        this.daemonBaseDir = daemonBaseDir;
         this.redirectIo = redirectIo;
+        this.idleTimeoutMs = idleTimeoutMs;
     }
 
     protected void doAction(ExecutionListener listener) {
-        File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(startParameter.getSystemPropertiesArgs(), startParameter.getGradleUserHomeDir());
-        DaemonServices daemonServices = new DaemonServices(startParameter, daemonBaseDir, LoggingServiceRegistry.newChildProcessLogging());
+        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, LoggingServiceRegistry.newChildProcessLogging());
 
         if (redirectIo) {
             try {
