@@ -413,7 +413,7 @@ public class StartParameter implements Serializable {
      * Gradle inside this directory.
      * <p>
      * 
-     * @param gradleUserHomeDir The home directory. May be null.
+     * @param daemonRegistryDir The directory to use as daemon registry directory. May be null.
      */
     public void setDaemonRegistryDir(File daemonRegistryDir) {
         if (daemonRegistryDir == null) {
