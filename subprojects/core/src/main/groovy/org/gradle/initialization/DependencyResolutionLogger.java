@@ -30,7 +30,7 @@ public class DependencyResolutionLogger implements DependencyResolutionListener 
 
     public void beforeResolve(ResolvableDependencies dependencies) {
         logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
-        logger.setDescription(String.format("Resolving %s", dependencies));
+        logger.setDescription(String.format("Resolve %s", dependencies));
         logger.setShortDescription(String.format("Resolving %s", dependencies));
         logger.started();
     }

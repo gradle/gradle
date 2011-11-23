@@ -19,9 +19,10 @@ import org.gradle.integtests.fixtures.ArtifactBuilder
 import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.util.TestFile
+import org.gradle.util.TextUtil
 
 class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
-    def "executes init script from user home dir"() {
+    def "executes init.gradle from user home dir"() {
         given:
         distribution.requireOwnUserHomeDir()
         
@@ -34,7 +35,26 @@ class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains("greetings from user home")
     }
-    
+
+    def "executes init scripts from init.d directory in user home dir in alphabetical order"() {
+        given:
+        distribution.requireOwnUserHomeDir()
+
+        and:
+        distribution.userHomeDir.file('init.d/a.gradle') << 'println "init a"'
+        distribution.userHomeDir.file('init.d/b.gradle') << 'println "init b"'
+        distribution.userHomeDir.file('init.d/c.gradle') << 'println "init c"'
+
+        when:
+        run()
+
+        then:
+        output.contains TextUtil.toPlatformLineSeparators('''init a
+init b
+init c
+''')
+    }
+
     def "executes init script with correct environment"() {
         given:
         def implClassName = 'com.google.common.collect.Multimap'

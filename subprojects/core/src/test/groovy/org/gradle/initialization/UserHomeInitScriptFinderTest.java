@@ -56,7 +56,7 @@ public class UserHomeInitScriptFinderTest {
 
     @Test
     public void addsUserInitScriptWhenItExists() {
-        File initScript = tmpDir.file("init.gradle").createFile();
+        File initScript = tmpDir.createFile("init.gradle");
 
         List<ScriptSource> sourceList = new ArrayList<ScriptSource>();
         finder.findScripts(gradleMock, sourceList);
@@ -66,9 +66,20 @@ public class UserHomeInitScriptFinderTest {
     }
 
     @Test
-    public void doesNotAddUserInitScriptWhenItDoesNotExist() {
+    public void doesNotAddUserInitScriptsWhenTheyDoNotExist() {
         List<ScriptSource> sourceList = new ArrayList<ScriptSource>();
         finder.findScripts(gradleMock, sourceList);
         assertThat(sourceList.size(), equalTo(0));
+    }
+
+    @Test
+    public void addsInitScriptsFromInitDirectoryWhenItExists() {
+        File initScript = tmpDir.createFile("init.d/script.gradle");
+
+        List<ScriptSource> sourceList = new ArrayList<ScriptSource>();
+        finder.findScripts(gradleMock, sourceList);
+        assertThat(sourceList.size(), equalTo(1));
+        assertThat(sourceList.get(0), instanceOf(UriScriptSource.class));
+        assertThat(sourceList.get(0).getResource().getFile(), equalTo(initScript));
     }
 }

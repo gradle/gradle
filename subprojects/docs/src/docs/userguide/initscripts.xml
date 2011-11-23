@@ -67,6 +67,9 @@
                 <para>Put a file called <filename>init.gradle</filename> in the <filename><replaceable>USER_HOME</replaceable>/.gradle/</filename> directory.</para>
             </listitem>
             <listitem>
+                <para>Put a file that ends with <filename>.gradle</filename> in the <filename><replaceable>USER_HOME</replaceable>/.gradle/init.d/</filename> directory.</para>
+            </listitem>
+            <listitem>
                 <para>Put a file that ends with <filename>.gradle</filename> in the <filename><replaceable>GRADLE_HOME</replaceable>/init.d/</filename>
                     directory, in the Gradle distribution. This allows you to package up a custom Gradle distribution containing some custom build logic and plugins. You can
                     combine this with the <link linkend="gradle_wrapper">Gradle wrapper</link> as a way to make custom logic available to all builds
@@ -75,9 +78,10 @@
             </listitem>
         </itemizedlist>
         <para>
-            If more than one init script is found they will all be executed, in the order specified above. This allows, for example, a tool to
-            specify an init script on the command line and the user to put one in their home directory for defining the environment and both
-            scripts will run when gradle is executed.
+            If more than one init script is found they will all be executed, in the order specified above. Scripts in a given directory are executed
+            in alphabetical order.
+            This allows, for example, a tool to specify an init script on the command line and the user to put one in their home directory for defining
+            the environment and both scripts will run when gradle is executed.
         </para>
     </section>
     <section>

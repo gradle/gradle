@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,29 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-public class UserHomeInitScriptFinder extends DirectoryInitScriptFinder implements InitScriptFinder {
-    public void findScripts(GradleInternal gradle, Collection<ScriptSource> scripts) {
-        File userHomeDir = gradle.getStartParameter().getGradleUserHomeDir();
-        File userInitScript = new File(userHomeDir, "init.gradle");
-        if (userInitScript.isFile()) {
-            scripts.add(new UriScriptSource("initialization script", userInitScript));
+public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
+    protected void findScriptsInDir(File initScriptsDir, Collection<ScriptSource> scripts) {
+        if (!initScriptsDir.isDirectory()) {
+            return;
         }
-        findScriptsInDir(new File(userHomeDir, "init.d"), scripts);
+        List<File> files = new ArrayList<File>();
+        for (File file : initScriptsDir.listFiles()) {
+            if (file.isFile() && file.getName().endsWith(".gradle")) {
+                files.add(file);
+            }
+        }
+        Collections.sort(files);
+        for (File file : files) {
+            scripts.add(new UriScriptSource("initialization script", file));
+        }
     }
 }
-

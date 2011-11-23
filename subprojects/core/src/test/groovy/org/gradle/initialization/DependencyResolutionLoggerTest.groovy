@@ -32,7 +32,7 @@ class DependencyResolutionLoggerTest extends Specification {
 
         then:
         1 * progressLoggerFactory.newOperation(DependencyResolutionLogger) >> progressLogger
-        1 * progressLogger.setDescription("Resolving ${dependencies}")
+        1 * progressLogger.setDescription("Resolve ${dependencies}")
         1 * progressLogger.setShortDescription("Resolving ${dependencies}")
         1 * progressLogger.started()
         0 * progressLogger._
