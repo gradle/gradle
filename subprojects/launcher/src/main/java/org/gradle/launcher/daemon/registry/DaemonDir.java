@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.registry;
 import org.gradle.os.ProcessEnvironment;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.GFileUtils;
+import org.gradle.cli.SystemPropertiesCommandLineConverter;
 
 import java.io.File;
 import java.util.UUID;
@@ -75,4 +76,9 @@ public class DaemonDir {
         Long pid = processEnvironment.maybeGetPid();
         return new File(versionedDir, String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid));
     }
+    
+    public static String toCliArg(String path) {
+        return SystemPropertiesCommandLineConverter.toArg(SYSTEM_PROPERTY_KEY, path);
+    }
+    
 }

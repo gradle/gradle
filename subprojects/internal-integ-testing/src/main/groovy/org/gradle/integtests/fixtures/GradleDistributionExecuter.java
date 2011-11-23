@@ -22,6 +22,7 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,6 +39,8 @@ import java.util.List;
 public class GradleDistributionExecuter extends AbstractGradleExecuter implements MethodRule {
     private static final String IGNORE_SYS_PROP = "org.gradle.integtest.ignore";
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
+    private static final String DAEMON_REGISTRY_SYS_PROP = "org.gradle.integtest.daemon.registry";
+    
     private GradleDistribution dist;
     private boolean workingDirSet;
     private boolean userHomeSet;
@@ -213,6 +216,12 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
             copyTo(forkingGradleExecuter);
             forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
             forkingGradleExecuter.addGradleOpts(String.format("-Dorg.gradle.daemon.idletimeout=%s", 5 * 60 * 1000));
+            
+            String customDaemonRegistryDir = System.getProperty(DAEMON_REGISTRY_SYS_PROP);
+            if (customDaemonRegistryDir != null && !dist.isUsingOwnUserHomeDir()) {
+                forkingGradleExecuter.addGradleOpts(DaemonDir.toCliArg(customDaemonRegistryDir));
+            }
+
             returnedExecuter = forkingGradleExecuter;
 //        } else {
 //            System.setProperty("java.io.tmpdir", tmpDir.getAbsolutePath());

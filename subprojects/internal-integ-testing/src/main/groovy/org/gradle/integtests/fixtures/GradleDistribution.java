@@ -37,6 +37,7 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     private static final TestFile LIBS_REPO;
     private final TemporaryFolder temporaryFolder = new TemporaryFolder();
     private TestFile userHome;
+    private boolean usingOwnUserHomeDir = false;
 
     static {
         USER_HOME_DIR = file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
@@ -84,7 +85,12 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
         return GradleVersion.version(version).compareTo(GradleVersion.version("0.8")) > 0;
     }
 
+    public boolean isUsingOwnUserHomeDir() {
+        return usingOwnUserHomeDir;
+    }
+
     public void requireOwnUserHomeDir() {
+        usingOwnUserHomeDir = true;
         userHome = getTestDir().file("user-home");
     }
 
