@@ -18,7 +18,7 @@ package org.gradle.util
 import org.junit.runners.model.Statement
 
 class EmptyStatement extends Statement {
-    static final instance = new EmptyStatement()
+    public static final INSTANCE = new EmptyStatement()
 
     @Override
     void evaluate() {}

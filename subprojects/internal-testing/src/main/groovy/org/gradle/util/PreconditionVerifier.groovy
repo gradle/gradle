@@ -22,6 +22,6 @@ import org.junit.runner.Description
 class PreconditionVerifier implements TestRule {
     Statement apply(Statement base, Description description) {
         def preconditions = description.annotations.findAll { it instanceof Requires }*.value().flatten()
-        preconditions.every { it.fulfilled } ? base : EmptyStatement.instance
+        preconditions.every { it.fulfilled } ? base : EmptyStatement.INSTANCE
     }
 }
