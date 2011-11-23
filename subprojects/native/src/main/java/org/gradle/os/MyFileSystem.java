@@ -122,8 +122,8 @@ public abstract class MyFileSystem {
         public void createSymbolicLink(File link, File target) throws IOException {
             int returnCode = PosixUtil.current().symlink(target.getPath(), link.getPath());
             if (returnCode != 0) {
-                throw new IOException("Failed to create symbolic link " + link +
-                        " pointing to " + target + ". Return code is: " + returnCode);
+                throw new IOException("Failed to create symbolic link " + link
+                        + " pointing to " + target + ". Return code is: " + returnCode);
             }
         }
         
