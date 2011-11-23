@@ -16,14 +16,28 @@
 package org.gradle.os
 
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.util.TemporaryFolder
 
 class OperatingSystemTest extends Specification {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
     @Rule TemporaryFolder tmpDir = new TemporaryFolder()
 
+    def "uses os.name property to determine OS name"() {
+        System.properties['os.name'] = 'GradleOS 1.0'
+        
+        expect:
+        OperatingSystem.current().name == 'GradleOS 1.0'
+    }
+    
+    def "uses os.version property to determine OS version"() {
+        System.properties['os.version'] = '42'
+        
+        expect:
+        OperatingSystem.current().version == '42'
+    }
+    
     def "uses os.name property to determine if windows"() {
         System.properties['os.name'] = 'Windows 7'
 

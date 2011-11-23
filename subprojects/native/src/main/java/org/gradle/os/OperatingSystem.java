@@ -46,7 +46,15 @@ public abstract class OperatingSystem {
 
     @Override
     public String toString() {
-        return String.format("%s %s %s", System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"));
+        return String.format("%s %s %s", getName(), getVersion(), System.getProperty("os.arch"));
+    }
+
+    public String getName() {
+        return System.getProperty("os.name");
+    }
+    
+    public String getVersion() {
+        return System.getProperty("os.version");
     }
 
     public boolean isWindows() {
@@ -188,8 +196,7 @@ public abstract class OperatingSystem {
         }
 
         protected String getOsPrefix() {
-            String name = System.getProperty("os.name");
-            String osPrefix = name.toLowerCase();
+            String osPrefix = getName().toLowerCase();
             int space = osPrefix.indexOf(" ");
             if (space != -1) {
                 osPrefix = osPrefix.substring(0, space);
