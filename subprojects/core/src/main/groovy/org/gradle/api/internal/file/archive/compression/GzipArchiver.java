@@ -18,50 +18,39 @@ package org.gradle.api.internal.file.archive.compression;
 
 import org.gradle.api.internal.DescribedReadableResource;
 import org.gradle.api.resources.ReadableResource;
-import org.gradle.api.tasks.bundling.Compression;
-import org.gradle.api.tasks.bundling.CompressionAware;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
  * by Szczepan Faber, created at: 11/16/11
  */
-public class GzipArchiver implements ReadableResource, Archiver, CompressionAware {
+public class GzipArchiver implements ReadableResource {
 
     private DescribedReadableResource resource;
-
-    public GzipArchiver() {
-        //TODO SF refactor
-    }
 
     public GzipArchiver(DescribedReadableResource resource) {
         this.resource = resource;
     }
 
-    public InputStream decompress(File source) {
-        try {
-            FileInputStream is = new FileInputStream(source);
-            return new GZIPInputStream(is);
-        } catch (Exception e) {
-            String message = String.format("Unable to create gzip input stream for file: %s due to: %s.", source.getName(), e.getMessage());
-            throw new RuntimeException(message, e);
-        }
-    }
-
-    public OutputStream compress(File destination) {
-        try {
-            OutputStream outStr = new FileOutputStream(destination);
-            return new GZIPOutputStream(outStr);
-        } catch (Exception e) {
-            String message = String.format("Unable to create gzip output stream for file: %s due to: %s ", destination, e.getMessage());
-            throw new RuntimeException(message, e);
-        }
-    }
-
-    public Compression getCompression() {
-        return Compression.GZIP;
+    public static Compressor getCompressor() {
+        // this is not very beautiful but at some point we will
+        // get rid of Compressor in favor of the writable Resource
+        return new Compressor() {
+            public OutputStream compress(File destination) {
+                try {
+                    OutputStream outStr = new FileOutputStream(destination);
+                    return new GZIPOutputStream(outStr);
+                } catch (Exception e) {
+                    String message = String.format("Unable to create gzip output stream for file: %s due to: %s ", destination, e.getMessage());
+                    throw new RuntimeException(message, e);
+                }
+            }
+        };
     }
 
     public InputStream read() {

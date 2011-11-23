@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.bundling;
+package org.gradle.api.internal.file.archive.compression;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 
 /**
- * Aware about the compression
+ * by Szczepan Faber, created at: 11/16/11
  */
-public interface CompressionAware {
+public class SimpleCompressor implements Compressor {
 
-    /**
-     * the compression
-     */
-    Compression getCompression();
+    public OutputStream compress(File destination) {
+        try {
+            return new FileOutputStream(destination);
+        } catch (Exception e) {
+            String message = String.format("Unable to create output stream for file: %s due to: %s ", destination, e.getMessage());
+            throw new RuntimeException(message, e);
+        }
+    }
 }

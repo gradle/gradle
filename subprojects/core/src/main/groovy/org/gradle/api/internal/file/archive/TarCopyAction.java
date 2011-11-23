@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.file.archive;
 
+import org.gradle.api.internal.file.archive.compression.Compressor;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
-import org.gradle.api.tasks.bundling.Compressor;
 
 public interface TarCopyAction extends ArchiveCopyAction {
     Compressor getCompressor();

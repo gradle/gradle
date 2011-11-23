@@ -154,7 +154,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
 
         file('build.gradle') << '''
             task myTar(type: Tar) {
-                compression = Compression.NONE
                 assert compression == Compression.NONE
 
                 compression = Compression.GZIP
@@ -162,9 +161,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
 
                 compression = Compression.BZIP2
                 assert compression == Compression.BZIP2
-
-                compressor = {} as Compressor
-                assert compression == Compression.NONE
             }
 '''
 

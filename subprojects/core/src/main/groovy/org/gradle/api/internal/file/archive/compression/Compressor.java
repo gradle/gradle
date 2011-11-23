@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.bundling;
+package org.gradle.api.internal.file.archive.compression;
 
 import java.io.File;
 import java.io.OutputStream;

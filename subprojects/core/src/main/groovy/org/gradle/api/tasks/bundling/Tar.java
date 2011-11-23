@@ -19,7 +19,10 @@ package org.gradle.api.tasks.bundling;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.TarCopyAction;
 import org.gradle.api.internal.file.archive.TarCopySpecVisitor;
-import org.gradle.api.internal.file.archive.compression.ArchiverFactory;
+import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
+import org.gradle.api.internal.file.archive.compression.Compressor;
+import org.gradle.api.internal.file.archive.compression.GzipArchiver;
+import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 
 import java.io.File;
@@ -32,7 +35,7 @@ import java.util.concurrent.Callable;
  */
 public class Tar extends AbstractArchiveTask {
     private final CopyActionImpl action;
-    private Compressor compressor;
+    private Compression compression;
 
     public Tar() {
         setCompression(Compression.NONE);
@@ -49,34 +52,12 @@ public class Tar extends AbstractArchiveTask {
     }
 
     /**
-     * Returns the compressor that is used in this tar task.
-     *
-     * @return The compressor. Never returns null.
-     */
-    public Compressor getCompressor() {
-        return compressor;
-    }
-
-    /**
-     * Specifies the compressor for this tar task
-     *
-     * @param compressor compressor
-     */
-    public void setCompressor(Compressor compressor) {
-        assert compressor != null : "compressor cannot be null";
-        this.compressor = compressor;
-    }
-
-    /**
      * Returns the compression that is used for this archive.
      *
      * @return The compression. Never returns null.
      */
     public Compression getCompression() {
-        if (compressor instanceof CompressionAware) {
-            return ((CompressionAware) compressor).getCompression();
-        }
-        return Compression.NONE;
+        return compression;
     }
 
     /**
@@ -85,7 +66,7 @@ public class Tar extends AbstractArchiveTask {
      * @param compression The compression. Should not be null.
      */
     public void setCompression(Compression compression) {
-        compressor = new ArchiverFactory().archiver(compression);
+        this.compression = compression;
     }
 
     private class TarCopyActionImpl extends CopyActionImpl implements TarCopyAction {
@@ -98,7 +79,11 @@ public class Tar extends AbstractArchiveTask {
         }
 
         public Compressor getCompressor() {
-            return Tar.this.getCompressor();
+            switch(compression) {
+                case BZIP2: return Bzip2Archiver.getCompressor();
+                case GZIP:  return GzipArchiver.getCompressor();
+                default:    return new SimpleCompressor();
+            }
         }
     }
 }

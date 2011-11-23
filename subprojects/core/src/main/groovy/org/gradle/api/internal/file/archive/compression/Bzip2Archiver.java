@@ -20,54 +20,36 @@ import org.apache.tools.bzip2.CBZip2InputStream;
 import org.apache.tools.bzip2.CBZip2OutputStream;
 import org.gradle.api.internal.DescribedReadableResource;
 import org.gradle.api.resources.ReadableResource;
-import org.gradle.api.tasks.bundling.Compression;
-import org.gradle.api.tasks.bundling.CompressionAware;
 
 import java.io.*;
 
 /**
  * by Szczepan Faber, created at: 11/16/11
  */
-public class Bzip2Archiver implements ReadableResource, Archiver, CompressionAware {
+public class Bzip2Archiver implements ReadableResource {
 
     private DescribedReadableResource resource;
-
-    public Bzip2Archiver() {
-        //TODO SF refactor
-    }
 
     public Bzip2Archiver(DescribedReadableResource resource) {
         this.resource = resource;
     }
 
-    public InputStream decompress(File source) {
-        try {
-            FileInputStream fileInputStream = new FileInputStream(source);
-            InputStream is = new BufferedInputStream(fileInputStream);
-            // CBZip2InputStream expects the opening "BZ" to be skipped
-            byte[] skip = new byte[2];
-            is.read(skip);
-            return new CBZip2InputStream(is);
-        } catch (Exception e) {
-            String message = String.format("Unable to create bzip2 input stream for file: %s due to: %s.", source.getName(), e.getMessage());
-            throw new RuntimeException(message, e);
-        }
-    }
-
-    public OutputStream compress(File destination) {
-        try {
-            OutputStream outStr = new FileOutputStream(destination);
-            outStr.write('B');
-            outStr.write('Z');
-            return new CBZip2OutputStream(outStr);
-        } catch (Exception e) {
-            String message = String.format("Unable to create bzip2 output stream for file: %s due to: %s ", destination, e.getMessage());
-            throw new RuntimeException(message, e);
-        }
-    }
-
-    public Compression getCompression() {
-        return Compression.BZIP2;
+    public static Compressor getCompressor() {
+        // this is not very beautiful but at some point we will
+        // get rid of Compressor in favor of the writable Resource
+        return new Compressor() {
+            public OutputStream compress(File destination) {
+                try {
+                    OutputStream outStr = new FileOutputStream(destination);
+                    outStr.write('B');
+                    outStr.write('Z');
+                    return new CBZip2OutputStream(outStr);
+                } catch (Exception e) {
+                    String message = String.format("Unable to create bzip2 output stream for file: %s due to: %s ", destination, e.getMessage());
+                    throw new RuntimeException(message, e);
+                }
+            }
+        };
     }
 
     public InputStream read() {

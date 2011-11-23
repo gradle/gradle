@@ -21,7 +21,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
-import org.gradle.api.internal.file.archive.compression.SimpleArchiver;
+import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
@@ -69,7 +69,7 @@ public class TarCopySpecVisitorTest {
             allowing(copyAction).getArchivePath();
             will(returnValue(tarFile));
             allowing(copyAction).getCompressor();
-            will(returnValue(new SimpleArchiver()));
+            will(returnValue(new SimpleCompressor()));
         }});
 
         visitor.startVisit(copyAction);
@@ -94,7 +94,7 @@ public class TarCopySpecVisitorTest {
             allowing(copyAction).getArchivePath();
             will(returnValue(tarFile));
             allowing(copyAction).getCompressor();
-            will(returnValue(new GzipArchiver()));
+            will(returnValue(GzipArchiver.getCompressor()));
         }});
 
         visitor.startVisit(copyAction);
@@ -119,7 +119,7 @@ public class TarCopySpecVisitorTest {
             allowing(copyAction).getArchivePath();
             will(returnValue(tarFile));
             allowing(copyAction).getCompressor();
-            will(returnValue(new Bzip2Archiver()));
+            will(returnValue(Bzip2Archiver.getCompressor()));
         }});
 
         visitor.startVisit(copyAction);
@@ -144,7 +144,7 @@ public class TarCopySpecVisitorTest {
             allowing(copyAction).getArchivePath();
             will(returnValue(tarFile));
             allowing(copyAction).getCompressor();
-            will(returnValue(new SimpleArchiver()));
+            will(returnValue(new SimpleCompressor()));
         }});
 
         try {
@@ -164,7 +164,7 @@ public class TarCopySpecVisitorTest {
             will(returnValue(tarFile));
 
             allowing(copyAction).getCompressor();
-            will(returnValue(new SimpleArchiver(
+            will(returnValue(new SimpleCompressor(
 
             )));
         }});
