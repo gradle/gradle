@@ -15,6 +15,9 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+
 import org.gradle.api.Action;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.launcher.daemon.protocol.IoCommand;
@@ -35,6 +38,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * commands over the connection and finishing with a CloseInput command.»
  */
 public class DaemonClientInputForwarder implements Stoppable {
+
+    private static final Logger LOGGER = Logging.getLogger(DaemonClientInputForwarder.class);
 
     public static final int DEFAULT_BUFFER_SIZE = 1024;
 
@@ -71,13 +76,18 @@ public class DaemonClientInputForwarder implements Stoppable {
 
             Action<String> dispatcher = new Action<String>() {
                 public void execute(String input) {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug(String.format("Forwarding input to daemon: '%s'", input.replace("\n", "\\n")));
+                    }                    
                     dispatch.dispatch(new ForwardInput(clientMetadata, input.getBytes()));
                 }
             };
 
             Runnable onFinish = new Runnable() {
                 public void run() {
-                    dispatch.dispatch(new CloseInput(clientMetadata));
+                    CloseInput message = new CloseInput(clientMetadata);
+                    LOGGER.debug("Dispatching close input message: %s", message);
+                    dispatch.dispatch(message);
                 }
             };
 
@@ -93,6 +103,7 @@ public class DaemonClientInputForwarder implements Stoppable {
         lifecycleLock.lock();
         try {
             if (!stopped) {
+                LOGGER.debug("input forwarder stop requested");
                 forwarder.stop();
                 stopped = true;
             }
