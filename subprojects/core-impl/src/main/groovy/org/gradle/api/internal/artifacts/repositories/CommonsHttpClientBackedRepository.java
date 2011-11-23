@@ -182,9 +182,10 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         }
 
         private Resource init() throws IOException {
-            LOGGER.debug("Attempting to get resource {}.", source);
+            LOGGER.info("Attempting to GET resource {}.", source);
             int result = client.executeMethod(method);
             if (result == 404) {
+                LOGGER.debug("Resource missing: {}.", source);
                 return new MissingResource(source);
             }
             if (!wasSuccessful(result)) {
@@ -248,6 +249,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         }
 
         public InputStream openStream() throws IOException {
+            LOGGER.debug("Attempting to download resource {}.", source);
             return method.getResponseBodyAsStream();
         }
     }

@@ -221,11 +221,14 @@ public class UserResolverChain extends ChainResolver {
         if (cachedArtifactResolution != null) {
             // TODO:DAZ Expire these entries (artifact was missing from resolver)
             if (cachedArtifactResolution.getArtifactFile() == null) {
+                LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
                 return emptyDownloadReport(artifact);
             }
 
             // For changing modules, the underlying cached artifact file is removed
             if (cachedArtifactResolution.getArtifactFile().exists()) {
+                LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactResolution.getArtifactFile());
+
                 ArtifactDownloadReport downloadReport = new ArtifactDownloadReport(artifact);
                 downloadReport.setDownloadStatus(DownloadStatus.NO);
                 downloadReport.setLocalFile(cachedArtifactResolution.getArtifactFile());
@@ -235,6 +238,7 @@ public class UserResolverChain extends ChainResolver {
 
         // Otherwise, do the actual download
         ArtifactDownloadReport artifactReport = downloadWithoutCache(artifactResolver, artifact, options);
+        LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), artifactReport.getLocalFile());
         artifactResolutionCache.recordArtifactResolution(artifactResolver, artifact.getId(), artifactReport.getLocalFile());
         return artifactReport;
     }
