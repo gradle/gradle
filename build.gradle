@@ -97,7 +97,7 @@ libraries += [
         jaxen: 'jaxen:jaxen:1.1@jar',
         jcip: "net.jcip:jcip-annotations:1.0",
         jna: 'net.java.dev.jna:jna:3.2.2@jar',
-        junit: 'junit:junit:4.8.2',
+        junit: 'junit:junit:4.10',
         xmlunit: 'xmlunit:xmlunit:1.3',
 ]
 
