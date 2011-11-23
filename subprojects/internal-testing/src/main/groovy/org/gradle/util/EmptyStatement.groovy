@@ -15,13 +15,11 @@
  */
 package org.gradle.util
 
-import org.junit.rules.TestRule
 import org.junit.runners.model.Statement
-import org.junit.runner.Description
 
-class PreconditionVerifier implements TestRule {
-    Statement apply(Statement base, Description description) {
-        def preconditions = description.annotations.findAll { it instanceof Requires }*.value().flatten()
-        preconditions.every { it.fulfilled } ? base : EmptyStatement.instance
-    }
+class EmptyStatement extends Statement {
+    static final instance = new EmptyStatement()
+
+    @Override
+    void evaluate() {}
 }
