@@ -32,6 +32,11 @@ class MyMacOsFileSystemTest extends Specification {
         fs.symlinkAware
     }
 
+    def "can create symlinks"() {
+        expect:
+        fs.canCreateSymlinks()
+    }
+
     def "does not implicitly lock file on open"() {
         expect:
         !fs.implicitlyLocksFileOnOpen

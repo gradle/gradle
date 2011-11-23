@@ -59,6 +59,14 @@ public abstract class MyFileSystem {
     public abstract boolean isSymlinkAware();
 
     /**
+     * Tells if the file system can create symlinks. If the answer cannot be determined accurately,
+     * <tt>false</tt> is returned.
+     *
+     * @return <tt>true</tt> if the file system can create symlinks, <tt>false</tt> otherwise
+     */
+    public abstract boolean canCreateSymlinks();
+
+    /**
      * Tells whether the file system implicitly locks a file when it is opened.
      *
      * @return <tt>true</tt> if the file system implicitly locks a file when it is opened, <tt>false</tt> otherwise
@@ -68,6 +76,7 @@ public abstract class MyFileSystem {
     private static class ProbingFileSystem extends MyFileSystem {
         final boolean caseSensitive;
         final boolean symlinkAware;
+        final boolean canCreateSymlinks;
         final boolean implicitLock;
 
         @Override
@@ -78,6 +87,11 @@ public abstract class MyFileSystem {
         @Override
         public boolean isSymlinkAware() {
             return symlinkAware;
+        }
+
+        @Override
+        public boolean canCreateSymlinks() {
+            return canCreateSymlinks;
         }
 
         @Override
@@ -92,6 +106,7 @@ public abstract class MyFileSystem {
                 file = createFile(content);
                 caseSensitive = probeCaseSensitive(file, content);
                 symlinkAware = probeSymlinkAware(file, content);
+                canCreateSymlinks = probeCanCreateSymlinks(file, content);
                 implicitLock = probeImplicitlyLocksFileOnOpen(file);
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -110,10 +125,10 @@ public abstract class MyFileSystem {
             return file;
         }
 
-        boolean probeCaseSensitive(File file, String secret) {
+        boolean probeCaseSensitive(File file, String content) {
             try {
                 File upperCased = new File(file.getPath().toUpperCase());
-                return !hasContent(upperCased, secret);
+                return !hasContent(upperCased, content);
             } catch (IOException e) {
                 // not fully accurate but a sensible fallback
                 // see http://stackoverflow.com/questions/1288102/how-do-i-detect-whether-the-file-system-is-case-sensitive
@@ -123,7 +138,7 @@ public abstract class MyFileSystem {
             }
         }
 
-        boolean probeSymlinkAware(File file, String secret) {
+        boolean probeSymlinkAware(File file, String content) {
             File symlink = null;
             try {
                 symlink = generateUniqueTempFileName();
@@ -132,10 +147,24 @@ public abstract class MyFileSystem {
                     LOGGER.warn("Failed to determine if current file system is symlink aware. Assuming it is.");
                     return true;
                 }
-                return hasContent(symlink, secret);
+                return hasContent(symlink, content);
             } catch (IOException e) {
                 LOGGER.warn("Failed to determine if current file system is symlink aware. Assuming it is.");
                 return true;
+            } finally {
+                FileUtils.deleteQuietly(symlink);
+            }
+        }
+
+        boolean probeCanCreateSymlinks(File file, String content) {
+            File symlink = null;
+            try {
+                symlink = generateUniqueTempFileName();
+                int errorCode = PosixUtil.current().symlink(file.getPath(), symlink.getPath());
+                return errorCode != 0 && hasContent(symlink, content);
+            } catch (IOException e) {
+                LOGGER.warn("Failed to determine if current file system can create symlinks. Assuming it can't.");
+                return false;
             } finally {
                 FileUtils.deleteQuietly(symlink);
             }
