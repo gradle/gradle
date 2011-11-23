@@ -231,4 +231,20 @@ class StartParameterTest {
         assertThat(newParameter, isSerializable())
     }
     
+    void testMergingSystemProperties() {
+        def p = { args = null ->
+            def sp = new StartParameter()
+            if (args) {
+                sp.systemPropertyArgs = args
+            }
+            sp.mergedSystemProperties.sort()
+        }
+        
+        System.properties.clear()
+        System.properties.a = "1"
+    
+        assert p(b: "2") == [a: "1", b: "2"]
+        assert p(a: "2", b: "3") == [a: "2", b: "3"]
+        assert p() == [a: "1"]
+    }
 }

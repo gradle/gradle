@@ -346,6 +346,20 @@ public class StartParameter implements Serializable {
     }
 
     /**
+     * Returns a newly constructed map that is the JVM system properties merged with the system property args.
+     * <p>
+     * System property args take precedency overy JVM system properties.
+     * 
+     * @return The merged system properties
+     */
+    public Properties getMergedSystemProperties() {
+        Properties merged = new Properties();
+        merged.putAll(System.getProperties());
+        merged.putAll(getSystemPropertiesArgs());
+        return merged;
+    }
+
+    /**
      * Returns the directory to use as the user home directory.
      *
      * @return The home directory.
