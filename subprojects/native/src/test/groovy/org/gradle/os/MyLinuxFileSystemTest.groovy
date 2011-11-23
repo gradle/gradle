@@ -15,10 +15,11 @@
  */
 package org.gradle.os
 
-import spock.lang.IgnoreIf
 import spock.lang.Specification
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
-@IgnoreIf({ !OperatingSystem.current().linux })
+@Requires(TestPrecondition.LINUX)
 class MyLinuxFileSystemTest extends Specification {
     def fs = MyFileSystem.current()
 
@@ -27,12 +28,12 @@ class MyLinuxFileSystemTest extends Specification {
         fs.caseSensitive
     }
 
-    def "can resolve symlinks"() {
+    def "can resolve symbolic link"() {
         expect:
         fs.canResolveSymbolicLink()
     }
 
-    def "can create symlinks"() {
+    def "can create symbolic link"() {
         expect:
         fs.canCreateSymbolicLink()
     }

@@ -15,10 +15,11 @@
  */
 package org.gradle.os
 
-import spock.lang.IgnoreIf
 import spock.lang.Specification
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
-@IgnoreIf({ !OperatingSystem.current().windows })
+@Requires(TestPrecondition.WINDOWS)
 class MyWindowsFileSystemTest extends Specification {
     def fs = MyFileSystem.current()
 
@@ -27,12 +28,12 @@ class MyWindowsFileSystemTest extends Specification {
         !fs.caseSensitive
     }
 
-    def "cannot resolve symlinks"() {
+    def "cannot resolve symbolic link"() {
         expect:
         !fs.canResolveSymbolicLink()
     }
 
-    def "cannot created symlinks"() {
+    def "cannot created symbolic link"() {
         expect:
         !fs.canCreateSymbolicLink()
     }
