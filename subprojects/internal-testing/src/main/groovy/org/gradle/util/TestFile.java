@@ -26,13 +26,12 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DeleteAction;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
+import org.gradle.os.MyFileSystem;
 import org.gradle.os.OperatingSystem;
-import org.gradle.os.PosixUtil;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 import org.hamcrest.Matcher;
-import org.jruby.ext.posix.POSIX;
 
 import java.io.*;
 import java.net.URI;
@@ -242,17 +241,17 @@ public class TestFile extends File implements TestFileContext {
     }
 
     public TestFile linkTo(File target) {
-        return linkTo(target.getAbsolutePath());
+        getParentFile().createDir();
+        try {
+            MyFileSystem.current().createSymbolicLink(getAbsoluteFile(), target);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return this;
     }
 
     public TestFile linkTo(String target) {
-        getParentFile().createDir();
-        POSIX posix = PosixUtil.current();
-        int retval = posix.symlink(target, getAbsolutePath());
-        if (retval != 0) {
-            throw new UncheckedIOException(String.format("Could not create link from '%s' to '%s'. Errno: %s", this, target, posix.errno()));
-        }
-        return this;
+        return linkTo(new File(target));
     }
 
     public TestFile touch() {

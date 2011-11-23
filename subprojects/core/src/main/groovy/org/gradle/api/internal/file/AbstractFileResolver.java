@@ -60,7 +60,7 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     private File normalise(File file) {
         try {
-            assert file.isAbsolute() : String.format("Cannot normalise a relative file: '%s'", file);
+            assert file.isAbsolute() : String.format("Cannot normalize a relative file: '%s'", file);
 
             if (!OperatingSystem.current().getFileSystem().isSymlinkAware()) {
                 return file.getCanonicalFile();
@@ -107,7 +107,7 @@ public abstract class AbstractFileResolver implements FileResolver {
             }
             return current;
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not normalise path for file '%s'.", file), e);
+            throw new UncheckedIOException(String.format("Could not normalize path for file '%s'.", file), e);
         }
     }
 

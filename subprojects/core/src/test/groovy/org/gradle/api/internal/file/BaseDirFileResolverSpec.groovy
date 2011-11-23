@@ -19,41 +19,38 @@ import org.gradle.os.OperatingSystem
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.os.PosixUtil
-import spock.lang.IgnoreIf
+
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.gradle.os.MyFileSystem
 
 class BaseDirFileResolverSpec extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     final def fileSystem = OperatingSystem.current().fileSystem
 
-    @IgnoreIf( { System.getProperty("os.name").contains("unsupported") } )
+    @Requires(TestPrecondition.SYMLINKS)
     def "normalises absolute path which points to an absolute link"() {
-        if (!fileSystem.symlinkAware) {
-            return
-        }
         def target = createFile(new File(tmpDir.dir, 'target.txt'))
         def file = new File(tmpDir.dir, 'a/other.txt')
         link(target, file)
         assert file.exists() && file.file
 
         expect:
-        normalise(file) == file
+        normalize(file) == file
     }
 
-    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
+    @Requires(TestPrecondition.SYMLINKS)
     def "normalises absolute path which points to a relative link"() {
-        if (!fileSystem.symlinkAware) {
-            return
-        }
         createFile(new File(tmpDir.dir, 'target.txt'))
         def file = new File(tmpDir.dir, 'a/other.txt')
         link('../target.txt', file)
         assert file.exists() && file.file
 
         expect:
-        normalise(file) == file
+        normalize(file) == file
     }
 
+    @Requires(TestPrecondition.CASE_SENSITIVE_FS)
     def "normalises absolute path which has mismatched case"() {
         if (fileSystem.caseSensitive) {
             return
@@ -63,10 +60,10 @@ class BaseDirFileResolverSpec extends Specification {
         assert path.exists() && path.file
 
         expect:
-        normalise(path) == file
+        normalize(path) == file
     }
 
-    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
+    @Requires([TestPrecondition.SYMLINKS, TestPrecondition.CASE_SENSITIVE_FS])
     def "normalises absolute path which points to a link using mismatched case"() {
         if (fileSystem.caseSensitive || !fileSystem.symlinkAware) {
             return
@@ -78,58 +75,48 @@ class BaseDirFileResolverSpec extends Specification {
         assert path.exists() && path.file
 
         expect:
-        normalise(path) == file
+        normalize(path) == file
     }
 
-    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
+    @Requires(TestPrecondition.SYMLINKS)
     def "normalises path which points to a link to something that does not exist"() {
-        if (!fileSystem.symlinkAware) {
-            return
-        }
         def file = new File(tmpDir.dir, 'a/other.txt')
         link('unknown.txt', file)
         assert !file.exists() && !file.file
 
         expect:
-        normalise(file) == file
+        normalize(file) == file
     }
 
-    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
+    @Requires(TestPrecondition.SYMLINKS)
     def "normalises path when ancestor is an absolute link"() {
-        if (!fileSystem.symlinkAware) {
-            return
-        }
         def target = createFile(new File(tmpDir.dir, 'target/file.txt'))
         def file = new File(tmpDir.dir, 'a/b/file.txt')
         link(target.parentFile, file.parentFile)
         assert file.exists() && file.file
 
         expect:
-        normalise(file) == file
+        normalize(file) == file
     }
 
+    @Requires(TestPrecondition.CASE_SENSITIVE_FS)
     def "normalises path when ancestor has mismatched case"() {
-        if (fileSystem.caseSensitive) {
-            return
-        }
         def file = createFile(new File(tmpDir.dir, "a/b/file.txt"))
         def path = new File(tmpDir.dir, "A/b/file.txt")
         assert file.exists() && file.file
 
         expect:
-        normalise(path) == file
+        normalize(path) == file
     }
 
+    @Requires(TestPrecondition.CASE_SENSITIVE_FS)
     def "normalises ancestor with mismatched case when target file does not exist"() {
-        if (fileSystem.caseSensitive) {
-            return
-        }
         tmpDir.createDir("a")
         def file = new File(tmpDir.dir, "a/b/file.txt")
         def path = new File(tmpDir.dir, "A/b/file.txt")
 
         expect:
-        normalise(path) == file
+        normalize(path) == file
     }
 
     def "normalises relative path"() {
@@ -139,20 +126,17 @@ class BaseDirFileResolverSpec extends Specification {
         def child = createFile(new File(baseDir, "a/b/file.txt"))
 
         expect:
-        normalise("a/b/file.txt", baseDir) == child
-        normalise("./a/b/file.txt", baseDir) == child
-        normalise(".//a/b//file.txt", baseDir) == child
-        normalise("sub/../a/b/file.txt", baseDir) == child
-        normalise("../sub", baseDir) == sibling
-        normalise("..", baseDir) == ancestor
-        normalise(".", baseDir) == baseDir
+        normalize("a/b/file.txt", baseDir) == child
+        normalize("./a/b/file.txt", baseDir) == child
+        normalize(".//a/b//file.txt", baseDir) == child
+        normalize("sub/../a/b/file.txt", baseDir) == child
+        normalize("../sub", baseDir) == sibling
+        normalize("..", baseDir) == ancestor
+        normalize(".", baseDir) == baseDir
     }
 
-    @IgnoreIf({ System.getProperty("os.name").contains("unsupported") })
+    @Requires(TestPrecondition.SYMLINKS)
     def "normalises relative path when base dir is a link"() {
-        if (!fileSystem.symlinkAware) {
-            return
-        }
         def target = createFile(new File(tmpDir.dir, 'target/file.txt'))
         def baseDir = new File(tmpDir.dir, 'base')
         link("target", baseDir)
@@ -160,60 +144,51 @@ class BaseDirFileResolverSpec extends Specification {
         assert file.exists() && file.file
 
         expect:
-        normalise('file.txt', baseDir) == file
+        normalize('file.txt', baseDir) == file
     }
 
+    @Requires(TestPrecondition.WINDOWS)
     def "normalises path which uses windows 8.3 name"() {
-        if (!OperatingSystem.current().windows) {
-            return
-        }
         def file = createFile(new File(tmpDir.dir, 'dir/file-with-long-name.txt'))
         def path = new File(tmpDir.dir, 'dir/FILE-W~1.TXT')
         assert path.exists() && path.file
 
         expect:
-        normalise(path) == file
+        normalize(path) == file
     }
 
     def "normalises file system roots"() {
         expect:
-        normalise(root) == root
+        normalize(root) == root
 
         where:
         root << File.listRoots()
     }
 
+    @Requires(TestPrecondition.WINDOWS)
     def "normalises non-existent file system root"() {
-        if (!OperatingSystem.current().windows) {
-            return
-        }
         def file = new File("Q:\\")
         assert !file.exists()
         assert file.absolute
 
         expect:
-        normalise(file) == file
+        normalize(file) == file
     }
 
     def "normalises relative path that refers to ancestor of file system root"() {
         File root = File.listRoots()[0]
 
         expect:
-        normalise("../../..", root) == root
+        normalize("../../..", root) == root
     }
 
     def link(File target, File file) {
-        link(target.absolutePath, file)
+        file.parentFile.mkdirs()
+        MyFileSystem.current().createSymbolicLink(file, target)
     }
 
     def link(String target, File file) {
-        file.getParentFile().mkdirs()
-
-        def posix = PosixUtil.current()
-        int retval = posix.symlink(target, file.getAbsolutePath())
-        if (retval != 0) {
-            throw new IOException("Could not create link ${file} to ${target}. errno = ${posix.errno()}")
-        }
+        link(new File(target), file)
     }
 
     def createFile(File file) {
@@ -222,7 +197,7 @@ class BaseDirFileResolverSpec extends Specification {
         return file
     }
 
-    def normalise(Object path, File baseDir = tmpDir.dir) {
+    def normalize(Object path, File baseDir = tmpDir.dir) {
         return new BaseDirFileResolver(baseDir).resolve(path)
     }
 }
