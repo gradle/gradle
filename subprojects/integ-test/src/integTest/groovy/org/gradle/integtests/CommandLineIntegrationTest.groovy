@@ -88,6 +88,7 @@ public class CommandLineIntegrationTest {
     }
 
     @Test
+    @Requires(TestPrecondition.SYMLINKS)
     public void failsWhenJavaHomeNotSetAndPathDoesNotContainJava() {
         def path
         if (OperatingSystem.current().windows) {
