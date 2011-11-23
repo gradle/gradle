@@ -28,8 +28,8 @@ enum TestPrecondition {
     SYMLINKS({
         MyFileSystem.current().canCreateSymbolicLink()
     }),
-    CASE_SENSITIVE_FS({
-        MyFileSystem.current().caseSensitive
+    CASE_INSENSITIVE_FS({
+        !MyFileSystem.current().caseSensitive
     }),
     FILE_PERMISSIONS({
         MAC_OS_X.fulfilled || LINUX.fulfilled
