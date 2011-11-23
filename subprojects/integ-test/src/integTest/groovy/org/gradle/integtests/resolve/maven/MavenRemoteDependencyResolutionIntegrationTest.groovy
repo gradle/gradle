@@ -164,6 +164,45 @@ task listJars << {
         succeeds 'eclipseClasspath'
     }
 
+    def "only attempts to download missing artifacts from HTTP Maven repository once"() {
+        given:
+        server.start()
+
+        def projectA = repo().module('group', 'projectA', '1.0')
+        projectA.publish()
+
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+repositories {
+    maven { url 'http://localhost:${server.port}/repo1' }
+}
+dependencies {
+    compile 'group:projectA:1.0'
+}
+eclipse { classpath { downloadJavadoc = true } }
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.0.jar']
+}
+"""
+
+        when:
+        server.resetExpectations()
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
+        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0-sources.jar')
+        server.expectGetMissing('/repo1/group/projectA/1.0/projectA-1.0-javadoc.jar')
+
+        then:
+        succeeds 'eclipseClasspath'
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds 'eclipseClasspath'
+    }
+
     def "can resolve and cache dependencies from multiple HTTP Maven repositories"() {
         given:
         server.start()

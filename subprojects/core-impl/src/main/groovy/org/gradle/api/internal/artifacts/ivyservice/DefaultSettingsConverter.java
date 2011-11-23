@@ -26,6 +26,7 @@ import org.apache.ivy.plugins.resolver.*;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -43,14 +44,17 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final Map<String, DependencyResolver> resolversById = new HashMap<String, DependencyResolver>();
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
     private final ModuleResolutionCache moduleResolutionCache;
+    private final ArtifactResolutionCache artifactResolutionCache;
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private UserResolverChain userResolverChain;
 
-    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory, ModuleResolutionCache moduleResolutionCache) {
+    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory,
+                                    ModuleResolutionCache moduleResolutionCache, ArtifactResolutionCache artifactResolutionCache) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.settingsFactory = settingsFactory;
         this.moduleResolutionCache = moduleResolutionCache;
+        this.artifactResolutionCache = artifactResolutionCache;
         Message.setDefaultLogger(new IvyLoggingAdaper());
     }
 
@@ -95,7 +99,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     private UserResolverChain createUserResolverChain() {
-        UserResolverChain chainResolver = new UserResolverChain(moduleResolutionCache);
+        UserResolverChain chainResolver = new UserResolverChain(moduleResolutionCache, artifactResolutionCache);
         chainResolver.setName(USER_RESOLVER_CHAIN_NAME);
         chainResolver.setReturnFirst(true);
         chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));

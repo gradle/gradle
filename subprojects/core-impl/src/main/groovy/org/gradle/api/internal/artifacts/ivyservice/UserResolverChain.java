@@ -33,10 +33,11 @@ import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ChangingModuleRevision;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ChangingModuleRevision;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,9 +50,11 @@ public class UserResolverChain extends ChainResolver {
 
     private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
     private final DynamicRevisionDependencyConverter dynamicRevisions;
+    private final ArtifactResolutionCache artifactResolutionCache;
 
-    public UserResolverChain(ModuleResolutionCache moduleResolutionCache) {
+    public UserResolverChain(ModuleResolutionCache moduleResolutionCache, ArtifactResolutionCache artifactResolutionCache) {
         dynamicRevisions = new DynamicRevisionDependencyConverter(moduleResolutionCache);
+        this.artifactResolutionCache = artifactResolutionCache;
     }
 
     public void setCachePolicy(CachePolicy cachePolicy) {
@@ -191,23 +194,57 @@ public class UserResolverChain extends ChainResolver {
 
     private ArtifactDownloadReport downloadFromSingleRepository(DependencyResolver artifactResolver, Artifact artifact, DownloadOptions options) {
         LOGGER.debug("Attempting to download artifact {} using resolver {}", artifact, artifactResolver);
-        DownloadReport downloadReport = artifactResolver.download(new Artifact[]{artifact}, options);
-        return downloadReport.getArtifactReport(artifact);
+        return downloadWithCache(artifactResolver, artifact, options);
     }
 
     private ArtifactDownloadReport downloadFromAnyRepository(Artifact artifact, DownloadOptions options) {
         // Check all of the resolvers in turn, stopping at the first successful match
-        Artifact[] singleArtifact = {artifact};
         // TODO Try all repositories for cached artifact first
         LOGGER.debug("Attempting to download {} using all resolvers", artifact);
         for (DependencyResolver resolver : getResolvers()) {
-            DownloadReport downloadReport = resolver.download(singleArtifact, options);
-            ArtifactDownloadReport artifactDownload = downloadReport.getArtifactReport(artifact);
+            ArtifactDownloadReport artifactDownload = downloadWithCache(resolver, artifact, options);
             if (artifactDownload.getDownloadStatus() != DownloadStatus.FAILED) {
                 return artifactDownload;
             }
         }
 
+        return emptyDownloadReport(artifact);
+    }
+
+    private ArtifactDownloadReport downloadWithCache(DependencyResolver artifactResolver, Artifact artifact, DownloadOptions options) {
+        if (artifactResolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager) {
+            return downloadWithoutCache(artifactResolver, artifact, options);
+        }
+
+        // Look in the cache for this resolver
+        ArtifactResolutionCache.CachedArtifactResolution cachedArtifactResolution = artifactResolutionCache.getCachedArtifactResolution(artifactResolver, artifact.getId());
+        if (cachedArtifactResolution != null) {
+            // TODO:DAZ Expire these entries (artifact was missing from resolver)
+            if (cachedArtifactResolution.getArtifactFile() == null) {
+                return emptyDownloadReport(artifact);
+            }
+
+            // For changing modules, the underlying cached artifact file is removed
+            if (cachedArtifactResolution.getArtifactFile().exists()) {
+                ArtifactDownloadReport downloadReport = new ArtifactDownloadReport(artifact);
+                downloadReport.setDownloadStatus(DownloadStatus.NO);
+                downloadReport.setLocalFile(cachedArtifactResolution.getArtifactFile());
+                return downloadReport;
+            }
+        }
+
+        // Otherwise, do the actual download
+        ArtifactDownloadReport artifactReport = downloadWithoutCache(artifactResolver, artifact, options);
+        artifactResolutionCache.recordArtifactResolution(artifactResolver, artifact.getId(), artifactReport.getLocalFile());
+        return artifactReport;
+    }
+
+    private ArtifactDownloadReport downloadWithoutCache(DependencyResolver artifactResolver, Artifact artifact, DownloadOptions options) {
+        DownloadReport downloadReport = artifactResolver.download(new Artifact[]{artifact}, options);
+        return downloadReport.getArtifactReport(artifact);
+    }
+
+    private ArtifactDownloadReport emptyDownloadReport(Artifact artifact) {
         ArtifactDownloadReport failedDownload = new ArtifactDownloadReport(artifact);
         failedDownload.setDownloadStatus(DownloadStatus.FAILED);
         return failedDownload;
