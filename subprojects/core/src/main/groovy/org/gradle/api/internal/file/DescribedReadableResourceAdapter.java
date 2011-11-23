@@ -27,18 +27,24 @@ import java.util.UUID;
 /**
  * by Szczepan Faber, created at: 11/23/11
  */
-public class AnonymousDescribedReadableResource implements DescribedReadableResource {
+public class DescribedReadableResourceAdapter implements DescribedReadableResource {
     private final ReadableResource resource;
 
-    public AnonymousDescribedReadableResource(ReadableResource resource) {
+    public DescribedReadableResourceAdapter(ReadableResource resource) {
         this.resource = resource;
     }
 
     public String getUniqueName() {
-        return getName() + "_" + UUID.randomUUID(); //TODO SF - coverage
+        if (resource instanceof DescribedReadableResource) {
+            return ((DescribedReadableResource) resource).getUniqueName();
+        }
+        return getName() + "_" + UUID.randomUUID();
     }
 
     public String getName() {
+        if (resource instanceof DescribedReadableResource) {
+            return ((DescribedReadableResource) resource).getName();
+        }
         return "anonymous_resource";
     }
 

@@ -95,12 +95,9 @@ public class DefaultFileOperations implements FileOperations {
     }
 
     public FileTree tarTree(Object tarPath) {
-        //TODO SF - rationalize, refactor if possible
         DescribedReadableResource res;
-        if (tarPath instanceof DescribedReadableResource) {
-            res = (DescribedReadableResource) tarPath;
-        } else if (tarPath instanceof ReadableResource) {
-            res = new AnonymousDescribedReadableResource((ReadableResource) tarPath);
+        if (tarPath instanceof ReadableResource) {
+            res = new DescribedReadableResourceAdapter((ReadableResource) tarPath);
         } else {
             res = new MaybeCompressedFileResource(file(tarPath));
         }

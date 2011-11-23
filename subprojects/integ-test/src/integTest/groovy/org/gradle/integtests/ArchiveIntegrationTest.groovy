@@ -98,6 +98,33 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
+    @Test public void "allows user to provide a custom resource for the tarTree"() {
+        TestFile tar = file()
+        tar.create {
+            someDir {
+                file '1.txt'
+            }
+        }
+        tar.tarTo(file('test.tar'))
+
+        file('build.gradle') << '''
+            def res = new ReadableResource() {
+                InputStream read() {
+                    new FileInputStream(file('test.tar'))
+                }
+            }
+
+            task copy(type: Copy) {
+                from tarTree(res)
+                into 'dest'
+            }
+'''
+
+        inTestDirectory().withTasks('copy').run()
+
+        file('dest').assertHasDescendants('someDir/1.txt')
+    }
+
     @Test public void "handles bzip2 compressed tars"() {
         TestFile tar = file()
         tar.create {
