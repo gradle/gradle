@@ -96,7 +96,7 @@ try {
         !result.error.contains('quiet message')
     }
 
-    def "each script has independent ClassLoader"() {
+    def "each init script has independent ClassLoader"() {
         given:
         createExternalJar()
 
@@ -124,6 +124,28 @@ try {
 
         then:
         notThrown(Throwable)
+    }
+    
+    def "init script can inject configuration into the root project and all projects"() {
+        given:
+        settingsFile << "include 'a', 'b'"
+
+        and:
+        file("init.gradle") << """
+allprojects {
+    task worker
+}
+rootProject {
+    task root(dependsOn: allprojects*.worker)
+}
+        """
+        
+        when:
+        executer.withArguments("-I", "init.gradle")
+        run "root"
+
+        then:
+        executedTasks == [':worker', ':a:worker', ':b:worker', ':root']
     }
 
     private def createExternalJar() {

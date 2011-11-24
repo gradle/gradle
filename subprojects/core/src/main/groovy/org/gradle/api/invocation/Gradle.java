@@ -18,6 +18,7 @@ package org.gradle.api.invocation;
 import groovy.lang.Closure;
 import org.gradle.BuildListener;
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraph;
@@ -63,8 +64,25 @@ public interface Gradle {
      * <p>Returns the root project of this build.</p>
      *
      * @return The root project. Never returns null.
+     * @throws IllegalStateException When called before the root project is available.
      */
-    Project getRootProject();
+    Project getRootProject() throws IllegalStateException;
+
+    /**
+     * Adds an action to execute against the root project of this build. If the root project is already available, the action
+     * is executed immediately. Otherwise, the action is executed when the root project becomes available.
+     *
+     * @param action The action to execute.
+     */
+    void rootProject(Action<? super Project> action);
+
+    /**
+     * Adds an action to execute against all projects of this build. The action is executed immediately against all projects which are
+     * already available. It is also executed as subsequent projects are added to this build.
+     *
+     * @param action The action to execute.
+     */
+    void allprojects(Action<? super Project> action);
 
     /**
      * <p>Returns the {@link TaskExecutionGraph} for this build.</p>

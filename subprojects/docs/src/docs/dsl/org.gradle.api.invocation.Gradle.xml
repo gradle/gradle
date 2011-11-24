@@ -74,6 +74,12 @@
             <tr>
                 <td>useLogger</td>
             </tr>
+            <tr>
+                <td>rootProject</td>
+            </tr>
+            <tr>
+                <td>allprojects</td>
+            </tr>
         </table>
     </section>
 </section>
