@@ -39,7 +39,7 @@ import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.util.*;
 
-public class UserResolverChain extends ChainResolver {
+public class UserResolverChain extends ChainResolver implements DependencyResolvers {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
 
     private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
@@ -168,8 +168,12 @@ public class UserResolverChain extends ChainResolver {
         }
     }
 
-    public DependencyResolver getResolver(ModuleRevisionId moduleRevisionId) {
-        return artifactResolvers.get(moduleRevisionId);
+    public List<DependencyResolver> getArtifactResolversForModule(ModuleRevisionId moduleRevisionId) {
+        DependencyResolver moduleDescriptorResolver = artifactResolvers.get(moduleRevisionId);
+        if (moduleDescriptorResolver != null && moduleDescriptorResolver != this) {
+            return Collections.singletonList(moduleDescriptorResolver);
+        }
+        return getResolvers();
     }
 
     @Override

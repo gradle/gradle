@@ -24,42 +24,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * An {@link ArtifactToFileResolver} implementation that uses Ivy {@link DependencyResolver} instances from the {@link UserResolverChain} to download the artifact.
  */
-public class UserResolverChainBackedArtifactToFileResolver implements ArtifactToFileResolver {
+public class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileResolver {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChainBackedArtifactToFileResolver.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(IvyResolverBackedArtifactToFileResolver.class);
 
     private final ArtifactResolutionCache artifactResolutionCache;
-    private final UserResolverChain userResolverChain;
+    private final DependencyResolvers dependencyResolvers;
 
-    public UserResolverChainBackedArtifactToFileResolver(UserResolverChain userResolverChain, ArtifactResolutionCache artifactResolutionCache) {
-        this.userResolverChain = userResolverChain;
+    public IvyResolverBackedArtifactToFileResolver(DependencyResolvers dependencyResolvers, ArtifactResolutionCache artifactResolutionCache) {
+        this.dependencyResolvers = dependencyResolvers;
         this.artifactResolutionCache = artifactResolutionCache;
     }
 
     public File resolve(Artifact artifact) {
-        DependencyResolver artifactResolver = userResolverChain.getResolver(artifact.getModuleRevisionId());
-        if (artifactResolver != null && artifactResolver != this) {
-            return downloadFromSingleRepository(artifactResolver, artifact);
-        } else {
-            return downloadFromAnyRepository(artifact);
-        }
-    }
-
-    private File downloadFromSingleRepository(DependencyResolver artifactResolver, Artifact artifact) {
-        LOGGER.debug("Attempting to download artifact {} using resolver {}", artifact, artifactResolver);
-        return downloadWithCache(artifactResolver, artifact, new DownloadOptions());
-    }
-
-    private File downloadFromAnyRepository(Artifact artifact) {
-        // Check all of the resolvers in turn, stopping at the first successful match: this is used for Client Modules where the module was never resolved
-        // TODO Try all repositories for cached artifact first
+        List<DependencyResolver> artifactResolvers = dependencyResolvers.getArtifactResolversForModule(artifact.getModuleRevisionId());
         DownloadOptions downloadOptions = new DownloadOptions();
-        LOGGER.debug("Attempting to download {} using all resolvers", artifact);
-        for (DependencyResolver resolver : userResolverChain.getResolvers()) {
+        LOGGER.debug("Attempting to download {} using resolvers {}", artifact, artifactResolvers);
+        for (DependencyResolver resolver : artifactResolvers) {
             File artifactDownload = downloadWithCache(resolver, artifact, downloadOptions);
             if (artifactDownload != null) {
                 return artifactDownload;
@@ -77,7 +63,7 @@ public class UserResolverChainBackedArtifactToFileResolver implements ArtifactTo
         // Look in the cache for this resolver
         ArtifactResolutionCache.CachedArtifactResolution cachedArtifactResolution = artifactResolutionCache.getCachedArtifactResolution(artifactResolver, artifact.getId());
         if (cachedArtifactResolution != null) {
-            // TODO:DAZ Expire these entries (artifact was missing from resolver)
+            // TODO:DAZ Expire these entries (ie: recheck when artifact was missing from resolver)
             if (cachedArtifactResolution.getArtifactFile() == null) {
                 LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
                 return null;
