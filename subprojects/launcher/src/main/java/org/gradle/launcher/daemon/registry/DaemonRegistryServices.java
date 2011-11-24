@@ -39,9 +39,12 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
     private final Cache<File, DaemonRegistry> daemonRegistryCache;
 
     private static final Map<File, DaemonRegistry> REGISTRY_STORAGE = new HashMap<File, DaemonRegistry>();
+    private static final Cache<File, DaemonRegistry> REGISTRY_CACHE = new CacheAccessSerializer<File, DaemonRegistry>(
+            new MapBackedCache<File, DaemonRegistry>(REGISTRY_STORAGE)
+    );
         
     public DaemonRegistryServices(File daemonBaseDir) {
-        this(daemonBaseDir, new CacheAccessSerializer<File, DaemonRegistry>(new MapBackedCache<File, DaemonRegistry>(REGISTRY_STORAGE)));
+        this(daemonBaseDir, REGISTRY_CACHE);
     }
 
     protected DaemonRegistryServices(File daemonBaseDir, Cache<File, DaemonRegistry> daemonRegistryCache) {
