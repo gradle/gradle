@@ -26,7 +26,6 @@ import org.gradle.messaging.remote.internal.ConnectException;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.util.UncheckedException;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -35,7 +34,7 @@ import java.util.List;
 public class DefaultDaemonConnector implements DaemonConnector {
 
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
-    public final static int DEFAULT_CONNECT_TIMEOUT = 30000;
+    public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
 
     private final DaemonRegistry daemonRegistry;
     private final Spec<DaemonContext> contextCompatibilitySpec;
@@ -92,7 +91,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
         LOGGER.info("Starting Gradle daemon");
         daemonStarter.run();
-        Date expiry = new Date(System.currentTimeMillis() + connectTimeout);
+        long expiry = System.currentTimeMillis() + connectTimeout;
         do {
             connection = findConnection(daemonRegistry.getIdle());
             if (connection != null) {
@@ -103,7 +102,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             } catch (InterruptedException e) {
                 throw UncheckedException.asUncheckedException(e);
             }
-        } while (System.currentTimeMillis() < expiry.getTime());
+        } while (System.currentTimeMillis() < expiry);
 
         throw new GradleException("Timeout waiting to connect to Gradle daemon.");
     }
