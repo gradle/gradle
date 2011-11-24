@@ -16,6 +16,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.api.internal.project.SynchronizedServiceRegistry;
 import org.gradle.tooling.internal.consumer.ConnectionFactory;
 import org.gradle.tooling.internal.consumer.ConnectorServiceRegistry;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
@@ -44,7 +45,8 @@ import java.net.URI;
  * <p>{@code GradleConnector} instances are not thread-safe.</p>
  */
 public abstract class GradleConnector {
-    private static final ServiceRegistry SERVICES = new ConnectorServiceRegistry();
+
+    private static final ServiceRegistry SERVICES = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
 
     /**
      * Creates a new connector instance.
