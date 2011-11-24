@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.util.TimeProvider;
 
 import java.io.Serializable;
@@ -31,7 +33,11 @@ class DefaultCachedModuleDescriptor implements ModuleDescriptorCache.CachedModul
         ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
     }
 
-    public ModuleDescriptor getModule() {
+    public ResolvedModuleVersion getModuleVersion() {
+        return new DefaultResolvedModuleVersion(moduleDescriptor.getModuleRevisionId());
+    }
+
+    public ModuleDescriptor getModuleDescriptor() {
         return moduleDescriptor;
     }
 

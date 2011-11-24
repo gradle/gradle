@@ -28,11 +28,7 @@ class DefaultCachedModuleResolution implements ModuleResolutionCache.CachedModul
 
     public DefaultCachedModuleResolution(ModuleRevisionId requestedVersion, ModuleResolutionCacheEntry entry, TimeProvider timeProvider) {
         this.requestedVersion = requestedVersion;
-        if (entry.encodedRevisionId == null) {
-            this.resolvedVersion = requestedVersion;
-        } else {
-            this.resolvedVersion = ModuleRevisionId.decode(entry.encodedRevisionId);
-        }
+        this.resolvedVersion = ModuleRevisionId.decode(entry.encodedRevisionId);
         ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
     }
 
@@ -53,10 +49,6 @@ class DefaultCachedModuleResolution implements ModuleResolutionCache.CachedModul
     }
 
     public boolean isDynamicVersion() {
-        return !isChangingModule();
-    }
-
-    public boolean isChangingModule() {
-        return requestedVersion.equals(resolvedVersion);
+        return !requestedVersion.equals(resolvedVersion);
     }
 }

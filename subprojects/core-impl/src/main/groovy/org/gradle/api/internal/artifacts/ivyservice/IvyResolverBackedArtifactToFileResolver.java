@@ -56,7 +56,7 @@ public class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileRe
     }
 
     private File downloadWithCache(DependencyResolver artifactResolver, Artifact artifact, DownloadOptions options) {
-        if (artifactResolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager) {
+        if (dependencyResolvers.isLocalResolver(artifactResolver)) {
             return downloadWithoutCache(artifactResolver, artifact, options);
         }
 

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.artifacts.ResolvedModuleVersion;
 
 public interface ModuleDescriptorCache {
     void cacheModuleDescriptor(DependencyResolver resolver, ModuleDescriptor moduleDescriptor, boolean isChanging);
@@ -25,7 +26,9 @@ public interface ModuleDescriptorCache {
     CachedModuleDescriptor getCachedModuleDescriptor(DependencyResolver resolver, ModuleRevisionId moduleId);
 
     interface CachedModuleDescriptor {
-        ModuleDescriptor getModule();
+        ResolvedModuleVersion getModuleVersion();
+
+        ModuleDescriptor getModuleDescriptor();
 
         boolean isChangingModule();
 

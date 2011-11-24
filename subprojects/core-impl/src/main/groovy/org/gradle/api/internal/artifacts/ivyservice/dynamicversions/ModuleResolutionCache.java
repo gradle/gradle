@@ -23,8 +23,6 @@ public interface ModuleResolutionCache {
 
     void recordResolvedDynamicVersion(DependencyResolver resolver, ModuleRevisionId dynamicVersion, ModuleRevisionId resolvedVersion);
 
-    void recordChangingModuleResolution(DependencyResolver resolver, ModuleRevisionId module);
-
     CachedModuleResolution getCachedModuleResolution(DependencyResolver resolver, ModuleRevisionId dynamicVersion);
 
     interface CachedModuleResolution {
@@ -33,7 +31,7 @@ public interface ModuleResolutionCache {
         ResolvedModuleVersion getResolvedModule();
 
         boolean isDynamicVersion();
-        boolean isChangingModule();
+
         long getAgeMillis();
     }
 }

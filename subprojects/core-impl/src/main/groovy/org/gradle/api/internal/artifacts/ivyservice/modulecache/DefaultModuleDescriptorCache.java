@@ -28,11 +28,15 @@ import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.util.TimeProvider;
 import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.Serializable;
 
 public class DefaultModuleDescriptorCache implements ModuleDescriptorCache, IvySettingsAware {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleDescriptorCache.class);
+
     private final TimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
@@ -81,6 +85,8 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache, IvyS
     }
 
     public void cacheModuleDescriptor(DependencyResolver resolver, ModuleDescriptor moduleDescriptor, boolean isChanging) {
+        LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), isChanging);
+
         // TODO:DAZ Cache will already be locked, due to prior call to getCachedModuleDescriptor. This locking should be more explicit
         moduleDescriptorStore.putModuleDescriptor(resolver, moduleDescriptor);
         getCache().put(createKey(resolver, moduleDescriptor.getModuleRevisionId()), createEntry(isChanging));

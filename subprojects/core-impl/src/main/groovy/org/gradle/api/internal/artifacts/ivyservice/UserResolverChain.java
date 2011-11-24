@@ -42,14 +42,16 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
     private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
     private final DynamicRevisionDependencyConverter dynamicRevisions;
     private final ModuleDescriptorCache moduleDescriptorCache;
+    private CachePolicy cachePolicy;
 
     public UserResolverChain(ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache) {
-        dynamicRevisions = new DynamicRevisionDependencyConverter(moduleResolutionCache);
         this.moduleDescriptorCache = moduleDescriptorCache;
+        dynamicRevisions = new DynamicRevisionDependencyConverter(moduleResolutionCache);
     }
 
     public void setCachePolicy(CachePolicy cachePolicy) {
         dynamicRevisions.setCachePolicy(cachePolicy);
+        this.cachePolicy = cachePolicy;
     }
 
     @Override
@@ -127,7 +129,7 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
         }
         return best;
     }
-    
+
     private ModuleResolution chooseBest(ModuleResolution one, ModuleResolution two) {
         if (one == null || two == null) {
             return two == null ? one : two;
@@ -175,6 +177,10 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
         return getResolvers();
     }
 
+    public boolean isLocalResolver(DependencyResolver resolver) {
+        return resolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager;
+    }
+
     @Override
     public List<DependencyResolver> getResolvers() {
         return super.getResolvers();
@@ -193,17 +199,9 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
         }
 
         public void maybeSaveDynamicRevision(DependencyDescriptor original, ResolvedModuleRevision downloadedModule) {
-            if (downloadedModule == null) {
-                return;
-            }
-
             ModuleRevisionId originalId = original.getDependencyRevisionId();
             ModuleRevisionId resolvedId = downloadedModule.getId();
 
-            if (isChangingModule(original, downloadedModule)) {
-                LOGGER.debug("Recording changing module in module resolution cache: {}", resolvedId);
-                moduleResolutionCache.recordChangingModuleResolution(downloadedModule.getResolver(), resolvedId);
-            }
             if (isDynamicVersion(original, downloadedModule)) {
                 LOGGER.debug("Caching resolved revision in dynamic revision cache: Will use '{}' for '{}'", resolvedId, originalId);
                 moduleResolutionCache.recordResolvedDynamicVersion(downloadedModule.getResolver(), originalId, resolvedId);
@@ -218,31 +216,16 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
             if (cachedModuleResolution == null) {
                 return original;
             }
-            DependencyDescriptor modified = original;
             if (cachedModuleResolution.isDynamicVersion()) {
                 if (cachePolicy.mustRefreshDynamicVersion(cachedModuleResolution.getResolvedModule(), cachedModuleResolution.getAgeMillis())) {
-                    LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}'", originalId);                    
+                    LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}'", originalId);
+                    return original;
                 } else {
                     LOGGER.debug("Found resolved revision in dynamic revision cache: Using '{}' for '{}'", cachedModuleResolution.getResolvedVersion(), originalId);
-                    modified = modified.clone(cachedModuleResolution.getResolvedVersion());
+                    return original.clone(cachedModuleResolution.getResolvedVersion());
                 }
             }
-            
-            if (cachedModuleResolution.isChangingModule()) {
-                if (cachePolicy.mustRefreshChangingModule(cachedModuleResolution.getResolvedModule(), cachedModuleResolution.getAgeMillis())) {
-                    LOGGER.debug("Resolved changing module in cache is expired: will perform fresh resolve of '{}'", originalId);
-                    modified = ForceChangeDependencyDescriptor.forceChangingFlag(modified, true);
-                } else {
-                    LOGGER.debug("Found cached version of changing module: Using cached metadata for '{}'", originalId);
-                    modified = ForceChangeDependencyDescriptor.forceChangingFlag(modified, false);
-                }
-            }
-
-            return modified;
-        }
-
-        private boolean isChangingModule(DependencyDescriptor descriptor, ResolvedModuleRevision downloadedModule) {
-            return descriptor.isChanging() || downloadedModule instanceof ChangingModuleRevision;
+            return original;
         }
 
         private boolean isDynamicVersion(DependencyDescriptor descriptor, ResolvedModuleRevision downloadedModule) {
@@ -268,7 +251,7 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
         public boolean isStaticVersion() {
             return staticVersion;
         }
-        
+
         public boolean isGeneratedModuleDescriptor() {
             if (resolvedModule == null) {
                 throw new IllegalStateException();
@@ -277,22 +260,28 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
         }
 
         public void lookupModuleInCache() {
+            // No caching for local resolvers
+            if (isLocalResolver(resolver)) {
+                resolvedDescriptor = dependencyDescriptor;
+                return;
+            }
+
             resolvedDescriptor = dynamicRevisions.maybeResolveDynamicRevision(resolver, dependencyDescriptor);
-            resolvedModule = findModuleInCache(resolver, resolvedDescriptor, resolveData);
+            resolvedModule = findModuleInCache(resolver, resolvedDescriptor);
         }
-        
+
         public void resolveModule() {
             try {
-                // TODO:DAZ This should take the resolved descriptor, but this means that local repositories use cached dynamic version resolution
-                // Need to ensure that no caching is performed for local repositories before we make the switch
-                resolvedModule = resolver.getDependency(dependencyDescriptor, resolveData);
-                dynamicRevisions.maybeSaveDynamicRevision(dependencyDescriptor, resolvedModule);
+                resolvedModule = resolver.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDescriptor, true), resolveData);
 
-                // TODO:DAZ Set changing flag correctly
-                // TODO:DAZ Record missing module
-                if (resolvedModule != null) {
-                    moduleDescriptorCache.cacheModuleDescriptor(resolver, resolvedModule.getDescriptor(), false);
+                if (resolvedModule == null || isLocalResolver(resolver)) {
+                    return;
                 }
+
+                dynamicRevisions.maybeSaveDynamicRevision(dependencyDescriptor, resolvedModule);
+                // TODO:DAZ Handle null: record missing module
+                moduleDescriptorCache.cacheModuleDescriptor(resolver, resolvedModule.getDescriptor(), isChangingModule(dependencyDescriptor, resolvedModule));
+
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
@@ -302,20 +291,23 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
             return resolvedModule;
         }
 
-        private ResolvedModuleRevision findModuleInCache(DependencyResolver resolver, DependencyDescriptor dd, ResolveData resolveData) {
-            // TODO:DAZ remove isChanging check when we use ModuleDescriptorCache for tracking changing modules
-            if (resolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager || dd.isChanging()) {
-                return null;
-            }
-            
-            // TODO:DAZ Move changing module timeout to here
-            // TODO:DAZ Cache non-existence of module in resolver...
-            ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(resolver, dd.getDependencyRevisionId());
+        private ResolvedModuleRevision findModuleInCache(DependencyResolver resolver, DependencyDescriptor dd) {
+            // TODO:DAZ Cache non-existence of module in resolver and use here to avoid lookup
+            ModuleRevisionId moduleRevisionId = dd.getDependencyRevisionId();
+            ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(resolver, moduleRevisionId);
             if (cachedModuleDescriptor == null) {
                 return null;
             }
+            if (cachedModuleDescriptor.isChangingModule()) {
+                if (cachePolicy.mustRefreshChangingModule(cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
+                    LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}'", moduleRevisionId);
+                    return null;
+                }
+                LOGGER.debug("Found cached version of changing module: '{}'", moduleRevisionId);
+            }
 
-            return new ResolvedModuleRevision(resolver, resolver, cachedModuleDescriptor.getModule(), null);
+            LOGGER.debug("Using cached module metadata for '{}'", moduleRevisionId);
+            return new ResolvedModuleRevision(resolver, resolver, cachedModuleDescriptor.getModuleDescriptor(), null);
         }
 
 
@@ -325,6 +317,10 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
 
         public String getRevision() {
             return resolvedModule.getId().getRevision();
+        }
+
+        private boolean isChangingModule(DependencyDescriptor descriptor, ResolvedModuleRevision downloadedModule) {
+            return descriptor.isChanging() || downloadedModule instanceof ChangingModuleRevision;
         }
     }
 }

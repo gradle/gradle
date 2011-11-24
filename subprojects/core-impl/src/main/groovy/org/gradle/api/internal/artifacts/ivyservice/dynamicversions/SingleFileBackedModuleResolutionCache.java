@@ -59,10 +59,6 @@ public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCa
         getCache().put(createKey(resolver, requestedVersion), createEntry(resolvedVersion));
     }
 
-    public void recordChangingModuleResolution(DependencyResolver resolver, ModuleRevisionId module) {
-        getCache().put(createKey(resolver, module), createEntry(null));
-    }
-
     public CachedModuleResolution getCachedModuleResolution(DependencyResolver resolver, ModuleRevisionId moduleId) {
         ModuleResolutionCacheEntry moduleResolutionCacheEntry = getCache().get(createKey(resolver, moduleId));
         if (moduleResolutionCacheEntry == null) {

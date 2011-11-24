@@ -15,33 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.gradle.api.GradleException;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.Field;
 
 public class ForceChangeDependencyDescriptor {
     public static DependencyDescriptor forceChangingFlag(DependencyDescriptor delegate, boolean isChanging) {
-        ChangingDependencyDescriptorInvocationHandler invocationHandler = new ChangingDependencyDescriptorInvocationHandler(delegate, isChanging);
-        return DependencyDescriptor.class.cast(Proxy.newProxyInstance(DependencyDescriptor.class.getClassLoader(), new Class<?>[]{DependencyDescriptor.class}, invocationHandler));
-    }
-
-    private static class ChangingDependencyDescriptorInvocationHandler implements InvocationHandler {
-        private final DependencyDescriptor delegate;
-        private final boolean changing;
-
-        private ChangingDependencyDescriptorInvocationHandler(DependencyDescriptor delegate, boolean isChanging) {
-            this.delegate = delegate;
-            this.changing = isChanging;
-        }
-
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if (method.getName().equals("isChanging")) {
-                return changing;
-            }
-            return method.invoke(delegate, args);
+        try {
+            Field field = DefaultDependencyDescriptor.class.getDeclaredField("isChanging");
+            field.setAccessible(true);
+            field.set(delegate, isChanging);
+            return delegate;
+        } catch (Exception e) {
+            throw new GradleException("Could not get cache options from AbstractResolver", e);
         }
     }
-
 }
