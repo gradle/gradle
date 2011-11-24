@@ -270,8 +270,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         }
 
         progressLogger = progressLoggerFactory.newOperation(AbstractJettyRunTask.class);
-        progressLogger.setDescription("Jetty listening on port " + getHttpPort());
-        progressLogger.setShortDescription("Listening on port " + getHttpPort());
+        progressLogger.setDescription(String.format("Run Jetty at http://localhost:%d/%s", getHttpPort(), getContextPath()));
+        progressLogger.setShortDescription(String.format("Running at http://localhost:%d/%s", getHttpPort(), getContextPath()));
         progressLogger.started();
         try {
             // keep the thread going if not in daemon mode
