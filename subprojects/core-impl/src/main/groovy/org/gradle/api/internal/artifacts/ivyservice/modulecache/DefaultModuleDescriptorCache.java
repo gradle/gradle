@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.IvySettingsAware;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
@@ -34,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultModuleDescriptorCache implements ModuleDescriptorCache, IvySettingsAware {
+public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleDescriptorCache.class);
 
     private final TimeProvider timeProvider;

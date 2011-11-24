@@ -25,11 +25,15 @@ import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.util.TimeProvider;
 import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.Serializable;
 
 public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCache {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SingleFileBackedModuleResolutionCache.class);
+
     private final TimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
@@ -40,7 +44,7 @@ public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCa
         this.cacheLockingManager = cacheLockingManager;
         this.cacheMetadata = cacheMetadata;
     }
-    
+
     private PersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry> getCache() {
         if (cache == null) {
             cache = initCache();
@@ -55,7 +59,12 @@ public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCa
                 new DefaultSerializer<ModuleResolutionCacheEntry>(ModuleResolutionCacheEntry.class.getClassLoader()));
     }
 
-    public void recordResolvedDynamicVersion(DependencyResolver resolver, ModuleRevisionId requestedVersion, ModuleRevisionId resolvedVersion) {
+    public void cacheModuleResolution(DependencyResolver resolver, ModuleRevisionId requestedVersion, ModuleRevisionId resolvedVersion) {
+        if (requestedVersion.equals(resolvedVersion)) {
+            return;
+        }
+
+        LOGGER.debug("Caching resolved revision in dynamic revision cache: Will use '{}' for '{}'", resolvedVersion, requestedVersion);
         getCache().put(createKey(resolver, requestedVersion), createEntry(resolvedVersion));
     }
 

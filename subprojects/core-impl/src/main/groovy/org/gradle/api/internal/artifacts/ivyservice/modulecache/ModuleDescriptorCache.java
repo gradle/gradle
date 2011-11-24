@@ -17,10 +17,11 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.plugins.IvySettingsAware;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 
-public interface ModuleDescriptorCache {
+public interface ModuleDescriptorCache extends IvySettingsAware {
     void cacheModuleDescriptor(DependencyResolver resolver, ModuleDescriptor moduleDescriptor, boolean isChanging);
 
     CachedModuleDescriptor getCachedModuleDescriptor(DependencyResolver resolver, ModuleRevisionId moduleId);

@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 
 public interface ModuleResolutionCache {
 
-    void recordResolvedDynamicVersion(DependencyResolver resolver, ModuleRevisionId dynamicVersion, ModuleRevisionId resolvedVersion);
+    void cacheModuleResolution(DependencyResolver resolver, ModuleRevisionId dynamicVersion, ModuleRevisionId resolvedVersion);
 
     CachedModuleResolution getCachedModuleResolution(DependencyResolver resolver, ModuleRevisionId dynamicVersion);
 

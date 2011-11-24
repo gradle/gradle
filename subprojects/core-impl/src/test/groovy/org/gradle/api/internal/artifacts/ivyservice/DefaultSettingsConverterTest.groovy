@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.internal.Factory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
 
@@ -30,13 +31,14 @@ class DefaultSettingsConverterTest extends Specification {
 
     ResolutionStrategyInternal resolutionStrategy = Mock()
     ModuleResolutionCache dynamicRevisionCache = Mock()
+    ModuleDescriptorCache moduleDescriptorCache = Mock()
 
     File testGradleUserHome = new File('gradleUserHome')
 
     final Factory<IvySettings> ivySettingsFactory = Mock()
     final IvySettings ivySettings = new IvySettings()
 
-    DefaultSettingsConverter converter = new DefaultSettingsConverter(Mock(ProgressLoggerFactory), ivySettingsFactory, dynamicRevisionCache)
+    DefaultSettingsConverter converter = new DefaultSettingsConverter(Mock(ProgressLoggerFactory), ivySettingsFactory, dynamicRevisionCache, moduleDescriptorCache)
 
     public void setup() {
         testResolver.name = 'resolver'
@@ -49,6 +51,7 @@ class DefaultSettingsConverterTest extends Specification {
         then:
         1 * ivySettingsFactory.create() >> ivySettings
         1 * resolutionStrategy.getCachePolicy()
+        1 * moduleDescriptorCache.setSettings(ivySettings)
         0 * _._
 
         assert settings.is(ivySettings)
@@ -71,6 +74,7 @@ class DefaultSettingsConverterTest extends Specification {
         then:
         1 * ivySettingsFactory.create() >> ivySettings
         1 * resolutionStrategy.getCachePolicy()
+        1 * moduleDescriptorCache.setSettings(ivySettings)
         0 * _._
 
         assert settings.is(ivySettings)

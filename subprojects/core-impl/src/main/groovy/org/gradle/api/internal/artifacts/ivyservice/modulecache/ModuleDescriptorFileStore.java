@@ -28,17 +28,17 @@ import java.util.Collections;
 
 public class ModuleDescriptorFileStore {
     private static final String DESCRIPTOR_ARTIFACT_PATTERN =
-            "[organisation]/[module](/[branch])/[revision]/[resolverId].ivy.xml";
+            "module-metadata/[organisation]/[module](/[branch])/[revision]/[resolverId].ivy.xml";
 
-    private final File baseDir;
+    private final ArtifactCacheMetaData cacheMetaData;
 
     public ModuleDescriptorFileStore(ArtifactCacheMetaData cacheMetaData) {
-        this.baseDir = new File(cacheMetaData.getCacheDir(), "module-metadata");
+        this.cacheMetaData = cacheMetaData;
     }
     
     public File getModuleDescriptorFile(DependencyResolver dependencyResolver, ModuleRevisionId moduleRevisionId) {
         String filePath = getFilePath(dependencyResolver, moduleRevisionId);
-        return new File(baseDir, filePath);
+        return new File(cacheMetaData.getCacheDir(), filePath);
     }
 
     private String getFilePath(DependencyResolver dependencyResolver, ModuleRevisionId moduleRevisionId) {
