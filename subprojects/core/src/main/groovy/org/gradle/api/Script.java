@@ -228,7 +228,7 @@ public interface Script {
      *
      *   //tar tree attempts to guess the compression based on the file extension
      *   //however if you must to specify the compression explicitly you can:
-     *   from tarTree(gzip('someTar.ext'))
+     *   from tarTree(resources.gzip('someTar.ext'))
      *   into 'dest'
      * }
      * </pre>

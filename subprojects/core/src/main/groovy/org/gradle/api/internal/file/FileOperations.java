@@ -21,7 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
 
@@ -66,7 +66,5 @@ public interface FileOperations {
 
     ExecResult exec(Closure cl);
 
-    ReadableResource gzip(Object path);
-
-    ReadableResource bzip2(Object path);
+    ResourceHandler getResources();
 }

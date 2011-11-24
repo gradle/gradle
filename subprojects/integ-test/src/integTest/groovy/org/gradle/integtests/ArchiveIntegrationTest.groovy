@@ -180,7 +180,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
 
         file('build.gradle') << '''
             task copy(type: Copy) {
-                from tarTree(bzip2('test.ext'))
+                from tarTree(resources.bzip2('test.ext'))
                 exclude '**/2.txt'
                 into 'dest'
             }

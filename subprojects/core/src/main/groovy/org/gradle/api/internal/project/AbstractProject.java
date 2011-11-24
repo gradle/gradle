@@ -44,7 +44,7 @@ import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ProjectEvaluator;
@@ -696,12 +696,8 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return fileOperations.tarTree(tarPath);
     }
 
-    public ReadableResource gzip(Object path) {
-        return fileOperations.gzip(path);
-    }
-
-    public ReadableResource bzip2(Object path) {
-        return fileOperations.bzip2(path);
+    public ResourceHandler getResources() {
+        return fileOperations.getResources();
     }
 
     public String relativePath(Object path) {

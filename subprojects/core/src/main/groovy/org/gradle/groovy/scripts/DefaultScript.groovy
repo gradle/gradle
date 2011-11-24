@@ -30,7 +30,7 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.ObjectConfigurationAction
-import org.gradle.api.resources.ReadableResource
+import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.process.ExecResult
@@ -125,12 +125,8 @@ abstract class DefaultScript extends BasicScript {
         fileOperations.tarTree(tarPath)
     }
 
-    ReadableResource gzip(Object path) {
-        return fileOperations.gzip(path);
-    }
-
-    ReadableResource bzip2(Object path) {
-        return fileOperations.bzip2(path);
+    ResourceHandler getResources() {
+        fileOperations.resources
     }
 
     WorkResult copy(Closure closure) {

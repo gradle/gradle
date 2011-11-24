@@ -22,14 +22,14 @@ import org.gradle.api.file.*;
 import org.gradle.api.internal.DescribedReadableResource;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
-import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
-import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.*;
+import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.DefaultExecAction;
@@ -50,12 +50,14 @@ public class DefaultFileOperations implements FileOperations {
     private final TaskResolver taskResolver;
     private final TemporaryFileProvider temporaryFileProvider;
     private DeleteAction deleteAction;
+    private final ResourceHandler resourceHandler;
 
     public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider) {
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
         this.deleteAction = new DeleteActionImpl(fileResolver);
+        this.resourceHandler = new DefaultResourceHandler(fileResolver);
     }
 
     public File file(Object path) {
@@ -158,11 +160,7 @@ public class DefaultFileOperations implements FileOperations {
         return execAction.execute();
     }
 
-    public ReadableResource gzip(Object path) {
-        return new GzipArchiver(new FileResource(file(path)));
-    }
-
-    public ReadableResource bzip2(Object path) {
-        return new Bzip2Archiver(new FileResource(file(path)));
+    public ResourceHandler getResources() {
+        return resourceHandler;
     }
 }
