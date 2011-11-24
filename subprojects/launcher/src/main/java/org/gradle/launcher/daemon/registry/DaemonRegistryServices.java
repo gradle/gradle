@@ -15,12 +15,13 @@
  */
 package org.gradle.launcher.daemon.registry;
 
+import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.os.*;
+import org.gradle.launcher.daemon.client.DaemonRegistryFactory;
+import org.gradle.os.ProcessEnvironment;
 import org.gradle.os.jna.NativeEnvironment;
-import org.gradle.api.internal.project.DefaultServiceRegistry;
 
 import java.io.File;
 import java.util.Properties;
@@ -29,10 +30,16 @@ import java.util.Properties;
  * Takes care of instantiating and wiring together the services required for a daemon registry.
  */
 public class DaemonRegistryServices extends DefaultServiceRegistry {
-    private final File daemonBaseDir;
+    private final DaemonRegistry daemonRegistry;
+    private final DaemonDir daemonDir;
 
     public DaemonRegistryServices(File daemonBaseDir) {
-        this.daemonBaseDir = daemonBaseDir;
+        this(daemonBaseDir, new DaemonRegistryFactory());
+    }
+
+    public DaemonRegistryServices(File daemonBaseDir, DaemonRegistryFactory daemonRegistryFactory) {
+        this.daemonDir = new DaemonDir(daemonBaseDir, get(ProcessEnvironment.class));
+        this.daemonRegistry = daemonRegistryFactory.synchronizedRegistry(get(DaemonDir.class).getRegistry(), get(FileLockManager.class));
     }
 
     protected ProcessEnvironment createProcessEnvironment() {
@@ -40,7 +47,7 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
     }
 
     protected DaemonDir createDaemonDir() {
-        return new DaemonDir(daemonBaseDir, get(ProcessEnvironment.class));
+        return daemonDir;
     }
 
     protected FileLockManager createFileLockManager() {
@@ -48,11 +55,10 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
     }
 
     protected DaemonRegistry createDaemonRegistry() {
-        return new PersistentDaemonRegistry(get(DaemonDir.class).getRegistry(), get(FileLockManager.class));
+        return daemonRegistry;
     }
     
     protected Properties createProperties() {
         return System.getProperties();
     }
-
 }
