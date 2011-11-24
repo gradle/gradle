@@ -28,6 +28,7 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Access to daemon registry files. Useful also for testing.
@@ -36,11 +37,10 @@ import java.util.concurrent.locks.Lock;
  */
 public class PersistentDaemonRegistry implements DaemonRegistry {
     private final SimpleStateCache<DaemonRegistryContent> cache;
-    private final Lock lock;
+    private final Lock lock = new ReentrantLock();
     private final File registryFile;
 
-    public PersistentDaemonRegistry(Lock lock, File registryFile, FileLockManager fileLockManager) {
-        this.lock = lock;
+    public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager) {
         this.registryFile = registryFile;
         cache = new SimpleStateCache<DaemonRegistryContent>(
                 registryFile,

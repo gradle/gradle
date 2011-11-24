@@ -35,14 +35,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultConnection implements ConnectionVersion4 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final ServiceRegistry loggingServices;
     private final GradleLauncherFactory gradleLauncherFactory;
-    private final Lock daemonRegistryLock = new ReentrantLock();
 
     public DefaultConnection() {
         LOGGER.debug("Using tooling API provider version {}.", GradleVersion.current().getVersion());
@@ -88,7 +85,7 @@ public class DefaultConnection implements ConnectionVersion4 {
         } else {
             File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
             File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(System.getProperties(), gradleUserHomeDir);
-            DaemonRegistryServices registryServices = new DaemonRegistryServices(daemonBaseDir, daemonRegistryLock);
+            DaemonRegistryServices registryServices = new DaemonRegistryServices(daemonBaseDir);
             DaemonClientServices clientServices = new DaemonClientServices(loggingServices, registryServices);
             DaemonClient client = clientServices.get(DaemonClient.class);
             executer = new DaemonGradleLauncherActionExecuter(client);
