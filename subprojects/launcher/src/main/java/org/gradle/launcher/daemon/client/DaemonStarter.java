@@ -86,9 +86,7 @@ public class DaemonStarter implements Runnable {
 
                 new WindowsProcessStarter().start(workingDir, commandLine.toString());
             } else {
-                ProcessBuilder builder = new ProcessBuilder(args);
-                builder.directory(workingDir);
-                Process process = builder.start();
+                Process process = new ProcessBuilder(args).directory(workingDir).start();
                 process.getOutputStream().close();
                 process.getErrorStream().close();
                 process.getInputStream().close();
