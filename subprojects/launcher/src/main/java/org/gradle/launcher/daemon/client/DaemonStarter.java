@@ -60,7 +60,6 @@ public class DaemonStarter implements Runnable {
         daemonArgs.add(Jvm.current().getJavaExecutable().getAbsolutePath());
         daemonArgs.add("-Xmx1024m");
         daemonArgs.add("-XX:MaxPermSize=256m");
-        daemonArgs.add("-XX:MaxPermSize=256m");
         //Useful for debugging purposes - simply uncomment and connect to debug
 //        daemonArgs.add("-Xdebug");
 //        daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5006");
