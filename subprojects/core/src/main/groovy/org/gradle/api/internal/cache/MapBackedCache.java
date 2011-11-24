@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.cache;
 
-import org.gradle.api.internal.Factory;
-
 import java.util.Map;
 
 public class MapBackedCache<K, V> extends CacheSupport<K, V> {
