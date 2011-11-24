@@ -23,7 +23,6 @@ import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
-import org.gradle.launcher.daemon.client.DaemonRegistryFactory;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
@@ -36,19 +35,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultConnection implements ConnectionVersion4 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final ServiceRegistry loggingServices;
     private final GradleLauncherFactory gradleLauncherFactory;
-    private final DaemonRegistryFactory daemonRegistryFactory;
+    private final Lock daemonRegistryLock = new ReentrantLock();
 
     public DefaultConnection() {
         LOGGER.debug("Using tooling API provider version {}.", GradleVersion.current().getVersion());
         loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
         gradleLauncherFactory = new DefaultGradleLauncherFactory(loggingServices);
         GradleLauncher.injectCustomFactory(gradleLauncherFactory);
-        daemonRegistryFactory = new DaemonRegistryFactory();
     }
 
     public ConnectionMetaDataVersion1 getMetaData() {
@@ -88,7 +88,7 @@ public class DefaultConnection implements ConnectionVersion4 {
         } else {
             File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
             File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(System.getProperties(), gradleUserHomeDir);
-            DaemonRegistryServices registryServices = new DaemonRegistryServices(daemonBaseDir, daemonRegistryFactory);
+            DaemonRegistryServices registryServices = new DaemonRegistryServices(daemonBaseDir, daemonRegistryLock);
             DaemonClientServices clientServices = new DaemonClientServices(loggingServices, registryServices);
             DaemonClient client = clientServices.get(DaemonClient.class);
             executer = new DaemonGradleLauncherActionExecuter(client);
