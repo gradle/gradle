@@ -42,7 +42,8 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
     private static final Cache<File, DaemonRegistry> REGISTRY_CACHE = new CacheAccessSerializer<File, DaemonRegistry>(
             new MapBackedCache<File, DaemonRegistry>(REGISTRY_STORAGE)
     );
-        
+
+    //TODO SF - If possible I'd like to have an integration test that covers the necessity of separate registry storages
     public DaemonRegistryServices(File daemonBaseDir) {
         this(daemonBaseDir, REGISTRY_CACHE);
     }
