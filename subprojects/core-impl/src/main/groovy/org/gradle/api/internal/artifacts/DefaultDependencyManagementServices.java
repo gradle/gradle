@@ -180,8 +180,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 new IvySettingsFactory(
                         get(ArtifactCacheMetaData.class),
                         get(LockHolderFactory.class)),
-                get(ModuleResolutionCache.class),
-                get(ArtifactResolutionCache.class));
+                get(ModuleResolutionCache.class));
     }
 
     protected IvyFactory createIvyFactory() {
@@ -268,7 +267,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             ResolveIvyFactory ivyFactory = new ResolveIvyFactory(
                     get(IvyFactory.class),
                     resolverProvider,
-                    get(SettingsConverter.class));
+                    get(SettingsConverter.class),
+                    get(ArtifactResolutionCache.class));
 
             ResolvedArtifactFactory resolvedArtifactFactory = new ResolvedArtifactFactory(
                     get(CacheLockingManager.class)

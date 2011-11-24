@@ -18,21 +18,23 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveOptions;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.version.VersionMatcher;
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.util.WrapUtil;
 
 public class DefaultIvyAdapter implements IvyAdapter {
     private final Ivy ivy;
     private final VersionMatcher versionMatcher;
-    private final DependencyResolver userResolver;
+    private final UserResolverChain userResolver;
+    private final ArtifactResolutionCache artifactResolutionCache;
 
-    public DefaultIvyAdapter(Ivy ivy) {
+    public DefaultIvyAdapter(Ivy ivy, ArtifactResolutionCache artifactResolutionCache) {
         this.ivy = ivy;
-        userResolver = ivy.getSettings().getDefaultResolver();
+        this.artifactResolutionCache = artifactResolutionCache;
+        userResolver = (UserResolverChain) ivy.getSettings().getDefaultResolver();
         versionMatcher = ivy.getSettings().getVersionMatcher();
     }
-    
+
     public ResolveData getResolveData(String configurationName) {
         ResolveOptions options = new ResolveOptions();
         options.setDownload(false);
@@ -45,6 +47,6 @@ public class DefaultIvyAdapter implements IvyAdapter {
     }
 
     public ArtifactToFileResolver getArtifactToFileResolver() {
-        return new IvyResolverBackedArtifactToFileResolver(userResolver);
+        return new UserResolverChainBackedArtifactToFileResolver(userResolver, artifactResolutionCache);
     }
 }

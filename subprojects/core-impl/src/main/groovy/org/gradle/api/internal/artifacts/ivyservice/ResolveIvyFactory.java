@@ -19,21 +19,24 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 
 public class ResolveIvyFactory {
     private final IvyFactory ivyFactory;
     private final ResolverProvider resolverProvider;
     private final SettingsConverter settingsConverter;
+    private final ArtifactResolutionCache artifactResolutionCache;
 
-    public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter) {
+    public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter, ArtifactResolutionCache artifactResolutionCache) {
         this.ivyFactory = ivyFactory;
         this.resolverProvider = resolverProvider;
         this.settingsConverter = settingsConverter;
+        this.artifactResolutionCache = artifactResolutionCache;
     }
 
     public IvyAdapter create(ResolutionStrategyInternal resolutionStrategy) {
         IvySettings ivySettings = settingsConverter.convertForResolve(resolverProvider.getResolvers(), resolutionStrategy);
         Ivy ivy = ivyFactory.createIvy(ivySettings);
-        return new DefaultIvyAdapter(ivy);
+        return new DefaultIvyAdapter(ivy, artifactResolutionCache);
     }
 }
