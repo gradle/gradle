@@ -53,6 +53,15 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
             client.getParams().setAuthenticationPreemptive(true);
             client.getState().setCredentials(new AuthScope(null, -1, null), new UsernamePasswordCredentials(username, password));
         }
+        setUpHttpProxy();
+    }
+
+    public void setUpHttpProxy() {
+        String proxyHost = System.getProperty("http.proxyHost");
+        String proxyPort = System.getProperty("http.proxyPort");
+        if (proxyHost != null && proxyPort != null && proxyPort.matches("\\d+")) {
+            client.getHostConfiguration().setProxy(proxyHost, Integer.parseInt(proxyPort));
+        }
     }
 
     public Resource getResource(final String source) throws IOException {
