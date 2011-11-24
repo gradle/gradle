@@ -24,6 +24,7 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.registry.DaemonDir;
+import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
@@ -84,7 +85,8 @@ public class DefaultConnection implements ConnectionVersion4 {
         } else {
             File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
             File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(System.getProperties(), gradleUserHomeDir);
-            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonBaseDir);
+            DaemonRegistryServices registryServices = new DaemonRegistryServices(daemonBaseDir);
+            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, registryServices);
             DaemonClient client = clientServices.get(DaemonClient.class);
             executer = new DaemonGradleLauncherActionExecuter(client);
         }

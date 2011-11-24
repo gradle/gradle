@@ -30,7 +30,7 @@ class ToolingApi {
     File projectDir
     private GradleDistribution dist
     private final List<Closure> connectorConfigurers = []
-    private boolean isEmbedded = GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded
+    boolean isEmbedded = GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded
 
     ToolingApi(GradleDistribution dist) {
         this.dist = dist
