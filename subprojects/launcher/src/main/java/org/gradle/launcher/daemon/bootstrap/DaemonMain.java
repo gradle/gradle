@@ -42,7 +42,7 @@ public class DaemonMain extends EntryPoint {
 
     final private File daemonBaseDir;
     final private boolean redirectIo;
-    final private Integer idleTimeoutMs;
+    final private int idleTimeoutMs;
 
     public static void main(String[] args) {
         if (args.length != 2) {
@@ -50,7 +50,7 @@ public class DaemonMain extends EntryPoint {
         }
         File daemonBaseDir = new File(args[0]);
         
-        Integer idleTimeoutMs = null;
+        int idleTimeoutMs = 0;
         try {
             idleTimeoutMs = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
@@ -66,7 +66,7 @@ public class DaemonMain extends EntryPoint {
         System.exit(1);
     }
 
-    public DaemonMain(File daemonBaseDir, Integer idleTimeoutMs, boolean redirectIo) {
+    public DaemonMain(File daemonBaseDir, int idleTimeoutMs, boolean redirectIo) {
         this.daemonBaseDir = daemonBaseDir;
         this.idleTimeoutMs = idleTimeoutMs;
         this.redirectIo = redirectIo;

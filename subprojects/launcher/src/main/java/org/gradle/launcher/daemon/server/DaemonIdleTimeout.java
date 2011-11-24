@@ -20,12 +20,12 @@ import org.gradle.cli.SystemPropertiesCommandLineConverter;
 
 import java.util.Map;
 
-abstract public class DaemonIdleTimeout {
+public abstract class DaemonIdleTimeout {
     
-    public static final Integer DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
+    public static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     public static final String SYSTEM_PROPERTY_KEY = "org.gradle.daemon.idletimeout";
 
-    public static Integer calculateFromPropertiesOrUseDefault(Map<?, ?> properties) {
+    public static int calculateFromPropertiesOrUseDefault(Map<?, ?> properties) {
         Object propertyValue = properties.get(SYSTEM_PROPERTY_KEY);
         if (propertyValue == null) {
             return DEFAULT_IDLE_TIMEOUT;

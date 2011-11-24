@@ -37,9 +37,9 @@ public class DaemonStarter implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(DaemonStarter.class);
 
     private final DaemonDir daemonDir;
-    private final Integer idleTimeout;
+    private final int idleTimeout;
 
-    public DaemonStarter(DaemonDir daemonDir, Integer idleTimeout) {
+    public DaemonStarter(DaemonDir daemonDir, int idleTimeout) {
         this.daemonDir = daemonDir;
         this.idleTimeout = idleTimeout;
     }
@@ -67,7 +67,7 @@ public class DaemonStarter implements Runnable {
         daemonArgs.add(GUtil.join(bootstrapClasspath, File.pathSeparator));
         daemonArgs.add(GradleDaemon.class.getName());
         daemonArgs.add(daemonDir.getBaseDir().getAbsolutePath());
-        daemonArgs.add(idleTimeout.toString());
+        daemonArgs.add(String.valueOf(idleTimeout));
 
         startProcess(daemonArgs, daemonDir.getVersionedDir());
     }

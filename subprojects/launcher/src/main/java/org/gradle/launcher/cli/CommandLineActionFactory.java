@@ -127,7 +127,7 @@ public class CommandLineActionFactory {
         final StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
         Properties mergedSystemProperties = startParameter.getMergedSystemProperties();
-        Integer idleTimeout = DaemonIdleTimeout.calculateFromPropertiesOrUseDefault(mergedSystemProperties);
+        int idleTimeout = DaemonIdleTimeout.calculateFromPropertiesOrUseDefault(mergedSystemProperties);
         File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(mergedSystemProperties, startParameter.getGradleUserHomeDir());
         DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonBaseDir, idleTimeout);
         DaemonClient client = clientServices.get(DaemonClient.class);
