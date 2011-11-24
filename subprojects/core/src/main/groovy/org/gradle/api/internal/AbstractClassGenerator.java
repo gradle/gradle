@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import groovy.lang.*;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.ExtensionAware;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Map<Class, Map<Class, Class>> GENERATED_CLASSES = new HashMap<Class, Map<Class, Class>>();
@@ -89,6 +89,8 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
             Collection<String> skipProperties = Arrays.asList("metaClass", "conventionMapping", "convention", "asDynamicObject", "extensions");
 
+            Set<MetaBeanProperty> settableProperties = new HashSet<MetaBeanProperty>();
+
             MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
             for (MetaProperty property : metaClass.getProperties()) {
                 if (skipProperties.contains(property.getName())) {
@@ -131,17 +133,46 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                         continue;
                     }
 
-                    boolean hasSetMethod = false;
-                    for (MetaMethod metaMethod : metaClass.getMethods()) {
-                        if (metaMethod.getName().equals(property.getName()) && metaMethod.getParameterTypes().length == 1) {
-                            builder.overrideSetMethod(metaBeanProperty, metaMethod);
-                            hasSetMethod = true;
-                        }
-                    }
+                    settableProperties.add(metaBeanProperty);
+                }
+            }
 
-                    if (!hasSetMethod) {
-                        builder.addSetMethod(metaBeanProperty);
+            Multimap<String, MetaMethod> methods = HashMultimap.create();
+            Set<MetaMethod> actionMethods = new HashSet<MetaMethod>();
+
+            for (MetaMethod method : metaClass.getMethods()) {
+                if (method.isPrivate()) {
+                    continue;
+                }
+                if (method.getParameterTypes().length != 1) {
+                    continue;
+                }
+                methods.put(method.getName(), method);
+                if (method.getParameterTypes()[0].getTheClass().equals(Action.class)) {
+                    actionMethods.add(method);
+                }
+            }
+
+            for (MetaMethod method : actionMethods) {
+                boolean hasClosure = false;
+                for (MetaMethod otherMethod : methods.get(method.getName())) {
+                    if (otherMethod.getParameterTypes()[0].getTheClass().equals(Closure.class)) {
+                        hasClosure = true;
+                        break;
                     }
+                }
+                if (!hasClosure) {
+                    builder.addActionMethod(method);
+                }
+            }
+
+            for (MetaBeanProperty property : settableProperties) {
+                Collection<MetaMethod> methodsForProperty = methods.get(property.getName());
+                for (MetaMethod method : methodsForProperty) {
+                    builder.overrideSetMethod(property, method);
+                }
+                if (methodsForProperty.isEmpty()) {
+                    builder.addSetMethod(property);
                 }
             }
 
@@ -185,5 +216,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         void addSetMethod(MetaBeanProperty property) throws Exception;
 
         Class<? extends T> generate() throws Exception;
+
+        void addActionMethod(MetaMethod method) throws Exception;
     }
 }

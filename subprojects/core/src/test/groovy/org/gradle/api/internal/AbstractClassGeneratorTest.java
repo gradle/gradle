@@ -17,6 +17,7 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
@@ -240,26 +241,27 @@ public abstract class AbstractClassGeneratorTest {
         BeanSubClass bean = generator.generate(BeanSubClass.class).newInstance();
         IConventionAware conventionAware = (IConventionAware) bean;
         conventionAware.getConventionMapping().map(GUtil.map(
-                "property", new ConventionValue(){
+                "property", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         throw new UnsupportedOperationException();
                     }
                 },
-                "interfaceProperty", new ConventionValue(){
+                "interfaceProperty", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         throw new UnsupportedOperationException();
                     }
                 },
-                "overriddenProperty", new ConventionValue(){
+                "overriddenProperty", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return "conventionValue";
                     }
                 },
-                "otherProperty", new ConventionValue(){
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return "conventionValue";
-                    }
-                }));
+                "otherProperty", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return "conventionValue";
+            }
+        }
+        ));
         assertEquals(null, bean.getProperty());
         assertEquals(null, bean.getInterfaceProperty());
         assertEquals("conventionValue", bean.getOverriddenProperty());
@@ -386,7 +388,7 @@ public abstract class AbstractClassGeneratorTest {
 
         call("{ it.finalGetter 'another'}", bean);
         assertThat(bean.getFinalGetter(), equalTo("another"));
-        
+
         call("{ it.writeOnly 12}", bean);
         assertThat(bean.writeOnly, equalTo(12));
 
@@ -456,6 +458,22 @@ public abstract class AbstractClassGeneratorTest {
         assertThat(bean.getProp(), equalTo("<1>"));
     }
 
+    @Test
+    public void mixesInClosureOverloadForActionMethod() throws Exception {
+        Bean bean = generator.generate(Bean.class).newInstance();
+        bean.prop = "value";
+
+        call("{def value; it.doStuff { value = it }; assert value == \'value\' }", bean);
+    }
+
+    @Test
+    public void doesNotOverrideExistingClosureOverload() throws IllegalAccessException, InstantiationException {
+        BeanWithDslMethods bean = generator.generate(BeanWithDslMethods.class).newInstance();
+        bean.prop = "value";
+
+        assertThat(call("{def value; it.doStuff { value = it }; return value }", bean), equalTo((Object) "[value]"));
+    }
+
     public static class Bean {
         private String prop;
 
@@ -469,6 +487,10 @@ public abstract class AbstractClassGeneratorTest {
 
         public String doStuff(String value) {
             return "{" + value + "}";
+        }
+
+        public void doStuff(Action<String> action) {
+            action.execute(getProp());
         }
     }
 
@@ -524,6 +546,10 @@ public abstract class AbstractClassGeneratorTest {
         public void prop(int property) {
             this.prop = String.format("<%s>", property);
         }
+
+        public void doStuff(Closure cl) {
+            cl.call(String.format("[%s]", getProp()));
+        }
     }
 
     public static class ConventionAwareBean extends Bean implements IConventionAware, ConventionMapping {
@@ -555,7 +581,7 @@ public abstract class AbstractClassGeneratorTest {
 
         public <T> T getConventionValue(T actualValue, String propertyName) {
             if (actualValue instanceof String) {
-                return (T)("[" + actualValue + "]");
+                return (T) ("[" + actualValue + "]");
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -622,7 +648,7 @@ public abstract class AbstractClassGeneratorTest {
         public String getReturnValueProperty() {
             return "value";
         }
-        
+
         public BeanWithVariousPropertyTypes setReturnValueProperty(String val) {
             return this;
         }
@@ -724,5 +750,6 @@ public abstract class AbstractClassGeneratorTest {
         abstract void implementMe();
     }
 
-    private static class PrivateBean {}
+    private static class PrivateBean {
+    }
 }
