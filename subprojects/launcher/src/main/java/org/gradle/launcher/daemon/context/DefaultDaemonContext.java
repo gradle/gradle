@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 /**
- * Keep in mind that this is a serialised value object.
+ * Keep in mind that this is a serialized value object.
  *
  * @see DaemonContextBuilder
  */

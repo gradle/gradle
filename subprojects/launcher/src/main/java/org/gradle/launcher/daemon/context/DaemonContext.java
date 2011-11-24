@@ -24,8 +24,8 @@ import java.io.File;
  * This is used by clients to determine whether or not a daemon meets its requirements
  * such as JDK version, special system properties etc.
  * <p>
- * Instances must be serialisable because they are shared via the DaemonRegistry, which is permitted
- * to use serialisation to communicate across VM boundaries. Implementations are not required to be,
+ * Instances must be serializable because they are shared via the DaemonRegistry, which is permitted
+ * to use serialization to communicate across VM boundaries. Implementations are not required to be,
  * but should also be immutable.
  *
  * @see DaemonContextBuilder
