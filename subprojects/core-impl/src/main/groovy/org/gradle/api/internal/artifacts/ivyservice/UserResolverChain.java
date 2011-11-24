@@ -16,26 +16,23 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.cache.CacheMetadataOptions;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
-import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.StringUtils;
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ChangingModuleRevision;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.util.*;
 
@@ -44,9 +41,11 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
 
     private final Map<ModuleRevisionId, DependencyResolver> artifactResolvers = new HashMap<ModuleRevisionId, DependencyResolver>();
     private final DynamicRevisionDependencyConverter dynamicRevisions;
+    private final ModuleDescriptorCache moduleDescriptorCache;
 
-    public UserResolverChain(ModuleResolutionCache moduleResolutionCache) {
+    public UserResolverChain(ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache) {
         dynamicRevisions = new DynamicRevisionDependencyConverter(moduleResolutionCache);
+        this.moduleDescriptorCache = moduleDescriptorCache;
     }
 
     public void setCachePolicy(CachePolicy cachePolicy) {
@@ -253,7 +252,7 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
 
     private class ModuleResolution implements ArtifactInfo {
         private final DependencyResolver resolver;
-        private final DependencyDescriptor descriptor;
+        private final DependencyDescriptor dependencyDescriptor;
         private final ResolveData resolveData;
         private final boolean staticVersion;
         private ResolvedModuleRevision resolvedModule;
@@ -261,7 +260,7 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
 
         public ModuleResolution(DependencyResolver resolver, DependencyDescriptor moduleDescriptor, ResolveData resolveData, boolean staticVersion) {
             this.resolver = resolver;
-            this.descriptor = moduleDescriptor;
+            this.dependencyDescriptor = moduleDescriptor;
             this.resolveData = resolveData;
             this.staticVersion = staticVersion;
         }
@@ -278,7 +277,7 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
         }
 
         public void lookupModuleInCache() {
-            resolvedDescriptor = dynamicRevisions.maybeResolveDynamicRevision(resolver, descriptor);
+            resolvedDescriptor = dynamicRevisions.maybeResolveDynamicRevision(resolver, dependencyDescriptor);
             resolvedModule = findModuleInCache(resolver, resolvedDescriptor, resolveData);
         }
         
@@ -286,8 +285,14 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
             try {
                 // TODO:DAZ This should take the resolved descriptor, but this means that local repositories use cached dynamic version resolution
                 // Need to ensure that no caching is performed for local repositories before we make the switch
-                resolvedModule = resolver.getDependency(descriptor, resolveData);
-                dynamicRevisions.maybeSaveDynamicRevision(descriptor, resolvedModule);
+                resolvedModule = resolver.getDependency(dependencyDescriptor, resolveData);
+                dynamicRevisions.maybeSaveDynamicRevision(dependencyDescriptor, resolvedModule);
+
+                // TODO:DAZ Set changing flag correctly
+                // TODO:DAZ Record missing module
+                if (resolvedModule != null) {
+                    moduleDescriptorCache.cacheModuleDescriptor(resolver, resolvedModule.getDescriptor(), false);
+                }
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
@@ -298,22 +303,21 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
         }
 
         private ResolvedModuleRevision findModuleInCache(DependencyResolver resolver, DependencyDescriptor dd, ResolveData resolveData) {
-            CacheMetadataOptions cacheOptions = getCacheMetadataOptions(resolver, resolveData);
-            return resolver.getRepositoryCacheManager().findModuleInCache(dd, dd.getDependencyRevisionId(), cacheOptions, resolver.getName());
+            // TODO:DAZ remove isChanging check when we use ModuleDescriptorCache for tracking changing modules
+            if (resolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager || dd.isChanging()) {
+                return null;
+            }
+            
+            // TODO:DAZ Move changing module timeout to here
+            // TODO:DAZ Cache non-existence of module in resolver...
+            ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(resolver, dd.getDependencyRevisionId());
+            if (cachedModuleDescriptor == null) {
+                return null;
+            }
+
+            return new ResolvedModuleRevision(resolver, resolver, cachedModuleDescriptor.getModule(), null);
         }
 
-        private CacheMetadataOptions getCacheMetadataOptions(DependencyResolver resolver, ResolveData resolveData) {
-            if (resolver instanceof AbstractResolver) {
-                try {
-                    Method method = AbstractResolver.class.getDeclaredMethod("getCacheOptions", ResolveData.class);
-                    method.setAccessible(true);
-                    return (CacheMetadataOptions) method.invoke(resolver, resolveData);
-                } catch (Exception e) {
-                    throw new GradleException("Could not get cache options from AbstractResolver", e);
-                }
-            }
-            return new CacheMetadataOptions();
-        }
 
         public long getLastModified() {
             return resolvedModule.getPublicationDate().getTime();

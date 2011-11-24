@@ -40,6 +40,8 @@ import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleReg
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.DefaultClientModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleDescriptorCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectModuleRegistry;
@@ -166,6 +168,14 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         );
     }
 
+    protected ModuleDescriptorCache createModuleDescriptorCache() {
+        return new DefaultModuleDescriptorCache(
+                get(ArtifactCacheMetaData.class),
+                get(TimeProvider.class),
+                get(CacheLockingManager.class)
+        );
+    }
+
     protected ArtifactResolutionCache createArtifactResolutionCache() {
         return new SingleFileBackedArtifactResolutionCache(
                 get(ArtifactCacheMetaData.class),
@@ -180,7 +190,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 new IvySettingsFactory(
                         get(ArtifactCacheMetaData.class),
                         get(LockHolderFactory.class)),
-                get(ModuleResolutionCache.class));
+                get(ModuleResolutionCache.class),
+                get(ModuleDescriptorCache.class));
     }
 
     protected IvyFactory createIvyFactory() {

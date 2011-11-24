@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.plugins.IvySettingsAware;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
@@ -27,6 +28,7 @@ import org.apache.ivy.util.Message;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.WrapUtil;
@@ -43,15 +45,17 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final Map<String, DependencyResolver> resolversById = new HashMap<String, DependencyResolver>();
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
     private final ModuleResolutionCache moduleResolutionCache;
+    private final ModuleDescriptorCache moduleDescriptorCache;
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private UserResolverChain userResolverChain;
 
     public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory,
-                                    ModuleResolutionCache moduleResolutionCache) {
+                                    ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.settingsFactory = settingsFactory;
         this.moduleResolutionCache = moduleResolutionCache;
+        this.moduleDescriptorCache = moduleDescriptorCache;
         Message.setDefaultLogger(new IvyLoggingAdaper());
     }
 
@@ -89,14 +93,15 @@ public class DefaultSettingsConverter implements SettingsConverter {
             resolveSettings.addResolver(userResolverChain);
             resolveSettings.setDefaultResolver(USER_RESOLVER_CHAIN_NAME);
         }
-        
+
+        ((IvySettingsAware) moduleDescriptorCache).setSettings(resolveSettings);
         userResolverChain.setCachePolicy(resolutionStrategy.getCachePolicy());
         replaceResolvers(dependencyResolvers, userResolverChain);
         return resolveSettings;
     }
 
     private UserResolverChain createUserResolverChain() {
-        UserResolverChain chainResolver = new UserResolverChain(moduleResolutionCache);
+        UserResolverChain chainResolver = new UserResolverChain(moduleResolutionCache, moduleDescriptorCache);
         chainResolver.setName(USER_RESOLVER_CHAIN_NAME);
         chainResolver.setReturnFirst(true);
         chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));
