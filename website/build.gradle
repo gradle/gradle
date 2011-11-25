@@ -245,7 +245,6 @@ class WebsiteGitRepoComponentsExtension {
 project.extensions.add("websiteGitRepoComponents", new WebsiteGitRepoComponentsExtension(project: project))
 
 websiteGitRepoComponents {
-    board "git@github.com:gradleware/gradle-status-board.git"
     trainings "git@github.com:gradleware/training-data.git"
 }
 
