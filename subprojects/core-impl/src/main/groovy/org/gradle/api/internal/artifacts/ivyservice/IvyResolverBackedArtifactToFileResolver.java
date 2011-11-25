@@ -78,6 +78,7 @@ public class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileRe
 
         // Otherwise, do the actual download
         File artifactFile = downloadWithoutCache(artifactResolver, artifact, options);
+        // TODO:DAZ Only cache missing artifact when download report tells us it was missing (not on network failure)
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), artifactFile);
         artifactResolutionCache.recordArtifactResolution(artifactResolver, artifact.getId(), artifactFile);
         return artifactFile;
