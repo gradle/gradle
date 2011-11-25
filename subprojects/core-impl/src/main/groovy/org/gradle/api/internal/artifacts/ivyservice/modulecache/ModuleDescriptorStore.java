@@ -19,13 +19,12 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
+import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.util.UncheckedException;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.ParseException;
 
 public class ModuleDescriptorStore {
 
@@ -45,27 +44,17 @@ public class ModuleDescriptorStore {
         try {
             URL result = moduleDescriptorFile.toURI().toURL();
             return parser.parseDescriptor(ivySettings, result, false);
-        } catch (MalformedURLException e) {
-            // TODO:DAZ
-            throw new RuntimeException("BAD", e);
-        } catch (ParseException e) {
-            throw new RuntimeException("BAD", e);
-        } catch (IOException e) {
-            throw new RuntimeException("BAD", e);
+        } catch (Exception e) {
+            throw UncheckedException.asUncheckedException(e);
         }
     }
 
     public void putModuleDescriptor(DependencyResolver dependencyResolver, ModuleDescriptor moduleDescriptor) {
         File moduleDescriptorFile = moduleDescriptorFileStore.getModuleDescriptorFile(dependencyResolver, moduleDescriptor.getModuleRevisionId());
         try {
-            // TODO:DAZ use parser/writer directly, so it's a clean write, not an update
-            moduleDescriptor.toIvyFile(moduleDescriptorFile);
-        } catch (ParseException e) {
-            // TODO:DAZ
-            throw new RuntimeException("BAD", e);
-        } catch (IOException e) {
-            throw new RuntimeException("BAD", e);
+            XmlModuleDescriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
+        } catch (Exception e) {
+            throw UncheckedException.asUncheckedException(e);
         }
-
     }
 }
