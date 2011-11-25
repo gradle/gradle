@@ -23,16 +23,13 @@ public class Synchronizer {
 
     private final Lock lock = new ReentrantLock();
 
-    public <T> T synchronize(ThreadSafely<T> action) {
+    public <T> T synchronize(Factory<T> factory) {
         lock.lock();
         try {
-            return action.run();
+            return factory.create();
         } finally {
             lock.unlock();
         }
     }
 
-    public static interface ThreadSafely<T> {
-        T run();
-    }
 }

@@ -34,24 +34,24 @@ public class SynchronizedServiceRegistry implements ServiceRegistry {
     }
 
     public <T> T get(final Class<T> serviceType) throws UnknownServiceException {
-        return synchronizer.synchronize(new Synchronizer.ThreadSafely<T>() {
-            public T run() {
+        return synchronizer.synchronize(new Factory<T>() {
+            public T create() {
                 return delegate.get(serviceType);
             }
         });
     }
 
     public <T> Factory<T> getFactory(final Class<T> type) throws UnknownServiceException {
-        return synchronizer.synchronize(new Synchronizer.ThreadSafely<Factory<T>>() {
-            public Factory<T> run() {
+        return synchronizer.synchronize(new Factory<Factory<T>>() {
+            public Factory<T> create() {
                 return delegate.getFactory(type);
             }
         });
     }
 
     public <T> T newInstance(final Class<T> type) throws UnknownServiceException {
-        return synchronizer.synchronize(new Synchronizer.ThreadSafely<T>() {
-            public T run() {
+        return synchronizer.synchronize(new Factory<T>() {
+            public T create() {
                 return delegate.newInstance(type);
             }
         });
