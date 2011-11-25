@@ -128,6 +128,9 @@ task html(dependsOn: configureReleases) {
 
         copy {
             into buildWebsiteDir
+            from(webContentSrcDir) {
+                include ".htaccess"
+            }
             from(webSrcDir) {
                 include 'css/**'
                 include 'img/**'
