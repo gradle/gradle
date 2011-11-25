@@ -34,7 +34,7 @@ public class SynchronizedServiceRegistry implements ServiceRegistry {
     }
 
     public <T> T get(final Class<T> serviceType) throws UnknownServiceException {
-        return synchronizer.threadSafely(new Synchronizer.ThreadSafely<T>() {
+        return synchronizer.synchronize(new Synchronizer.ThreadSafely<T>() {
             public T run() {
                 return delegate.get(serviceType);
             }
@@ -42,7 +42,7 @@ public class SynchronizedServiceRegistry implements ServiceRegistry {
     }
 
     public <T> Factory<T> getFactory(final Class<T> type) throws UnknownServiceException {
-        return synchronizer.threadSafely(new Synchronizer.ThreadSafely<Factory<T>>() {
+        return synchronizer.synchronize(new Synchronizer.ThreadSafely<Factory<T>>() {
             public Factory<T> run() {
                 return delegate.getFactory(type);
             }
@@ -50,7 +50,7 @@ public class SynchronizedServiceRegistry implements ServiceRegistry {
     }
 
     public <T> T newInstance(final Class<T> type) throws UnknownServiceException {
-        return synchronizer.threadSafely(new Synchronizer.ThreadSafely<T>() {
+        return synchronizer.synchronize(new Synchronizer.ThreadSafely<T>() {
             public T run() {
                 return delegate.newInstance(type);
             }

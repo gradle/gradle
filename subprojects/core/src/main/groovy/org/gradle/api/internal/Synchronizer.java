@@ -19,16 +19,11 @@ package org.gradle.api.internal;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * TODO SF - find a better place if it is useful
- *
- * by Szczepan Faber, created at: 11/24/11
- */
 public class Synchronizer {
 
     private final Lock lock = new ReentrantLock();
 
-    public <T> T threadSafely(ThreadSafely<T> action) {
+    public <T> T synchronize(ThreadSafely<T> action) {
         lock.lock();
         try {
             return action.run();
