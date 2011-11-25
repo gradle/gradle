@@ -14,30 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project;
+package org.gradle.api.internal;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * TODO SF - find a better place if it is useful
- *
- * by Szczepan Faber, created at: 11/24/11
- */
 public class Synchronizer {
 
     private final Lock lock = new ReentrantLock();
 
-    public <T> T threadSafely(ThreadSafely<T> action) {
+    public <T> T synchronize(Factory<T> factory) {
         lock.lock();
         try {
-            return action.run();
+            return factory.create();
         } finally {
             lock.unlock();
         }
     }
 
-    public static interface ThreadSafely<T> {
-        T run();
-    }
 }
