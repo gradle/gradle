@@ -89,11 +89,15 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      *
      * <h4>'pattern'</h4>
      * A repository layout that allows custom patterns to be defined. eg:
-     * <pre>
-     *     layout 'pattern' , {
-     *         artifacts '[module]/[revision]/[artifact](.[ext])'
-     *         ivy '[module]/[revision]/ivy.xml'
+     * <pre autoTested="">
+     * repositories {
+     *     ivy {
+     *         layout 'pattern' , {
+     *             artifact '[module]/[revision]/[artifact](.[ext])'
+     *             ivy '[module]/[revision]/ivy.xml'
+     *         }
      *     }
+     * }
      * </pre>
      *
      * @param layoutName The name of the layout to use.
