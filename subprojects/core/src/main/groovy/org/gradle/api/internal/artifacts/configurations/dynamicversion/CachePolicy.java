@@ -21,4 +21,6 @@ public interface CachePolicy {
     boolean mustRefreshDynamicVersion(ResolvedModuleVersion version, long ageMillis);
 
     boolean mustRefreshChangingModule(ResolvedModuleVersion vesion, long ageMillis);
+    
+    boolean mustRefreshMissingArtifact(long ageMillis);
 }

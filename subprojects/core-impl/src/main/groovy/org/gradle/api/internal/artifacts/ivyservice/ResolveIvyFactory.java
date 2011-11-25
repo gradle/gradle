@@ -37,6 +37,6 @@ public class ResolveIvyFactory {
     public IvyAdapter create(ResolutionStrategyInternal resolutionStrategy) {
         IvySettings ivySettings = settingsConverter.convertForResolve(resolverProvider.getResolvers(), resolutionStrategy);
         Ivy ivy = ivyFactory.createIvy(ivySettings);
-        return new DefaultIvyAdapter(ivy, artifactResolutionCache);
+        return new DefaultIvyAdapter(ivy, artifactResolutionCache, resolutionStrategy);
     }
 }

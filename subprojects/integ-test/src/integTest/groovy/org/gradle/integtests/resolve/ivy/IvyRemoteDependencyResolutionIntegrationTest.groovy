@@ -218,6 +218,107 @@ task show << { println configurations.compile.files }
         failure.assertHasCause("Could not GET 'http://localhost:${server.port}/group/projectA/1.2/ivy-1.2.xml'. Received status code 500 from server: broken")
     }
 
+    public void "caches missing artifacts until changing module cache expiry"() {
+        server.start()
+
+        given:
+        buildFile << """
+repositories {
+    ivy {
+        url "http://localhost:${server.port}"
+    }
+}
+configurations { compile }
+if (project.hasProperty('doNotCacheChangingModules')) {
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
+}
+dependencies {
+    compile 'group:projectA:1.2'
+    compile 'group:projectA:1.2@zip'
+}
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        and:
+        def module = ivyRepo().module('group', 'projectA', '1.2')
+        module.publish()
+
+        when:
+        server.expectGet('/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
+        server.expectGet('/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
+        server.expectGetMissing('/group/projectA/1.2/projectA-1.2.zip')
+
+        then:
+        // TODO:DAZ This build should fail, as the artifact is missing GRADLE-1961!!!
+        succeeds("retrieve")
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        // TODO:DAZ This build should fail, as the artifact is missing GRADLE-1961!!!
+        succeeds("retrieve")
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
+        server.expectGet('/group/projectA/1.2/projectA-1.2.zip', module.jarFile)
+
+        then:
+        executer.withArguments("-PdoNotCacheChangingModules").withTasks('retrieve').run()
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectA-1.2.zip')
+    }
+
+    public void "recovers from failed artifact download"() {
+        server.start()
+
+        given:
+        buildFile << """
+repositories {
+    ivy {
+        url "http://localhost:${server.port}"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+    compile 'group:projectA:1.2@zip'
+}
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        and:
+        def module = ivyRepo().module('group', 'projectA', '1.2')
+        module.publish()
+
+        when:
+        server.expectGet('/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
+        server.expectGet('/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
+        server.addBroken('/group/projectA/1.2/projectA-1.2.zip')
+
+        then:
+        // TODO:DAZ This build should fail, as the artifact is missing GRADLE-1961!!!
+        succeeds("retrieve")
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
+        server.expectGet('/group/projectA/1.2/projectA-1.2.zip', module.jarFile)
+
+        then:
+        succeeds("retrieve")
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectA-1.2.zip')
+    }
+
     public void "uses all configured patterns to resolve artifacts and caches result"() {
         server.start()
 

@@ -16,9 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadReport;
+import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,10 +38,12 @@ public class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileRe
 
     private final ArtifactResolutionCache artifactResolutionCache;
     private final DependencyResolvers dependencyResolvers;
+    private final CachePolicy cachePolicy;
 
-    public IvyResolverBackedArtifactToFileResolver(DependencyResolvers dependencyResolvers, ArtifactResolutionCache artifactResolutionCache) {
+    public IvyResolverBackedArtifactToFileResolver(DependencyResolvers dependencyResolvers, ArtifactResolutionCache artifactResolutionCache, CachePolicy cachePolicy) {
         this.dependencyResolvers = dependencyResolvers;
         this.artifactResolutionCache = artifactResolutionCache;
+        this.cachePolicy = cachePolicy;
     }
 
     public File resolve(Artifact artifact) {
@@ -57,35 +62,50 @@ public class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileRe
 
     private File downloadWithCache(DependencyResolver artifactResolver, Artifact artifact, DownloadOptions options) {
         if (dependencyResolvers.isLocalResolver(artifactResolver)) {
-            return downloadWithoutCache(artifactResolver, artifact, options);
+            return downloadFromResolver(artifactResolver, artifact, options).getLocalFile();
         }
 
         // Look in the cache for this resolver
         ArtifactResolutionCache.CachedArtifactResolution cachedArtifactResolution = artifactResolutionCache.getCachedArtifactResolution(artifactResolver, artifact.getId());
         if (cachedArtifactResolution != null) {
-            // TODO:DAZ Expire these entries (ie: recheck when artifact was missing from resolver)
             if (cachedArtifactResolution.getArtifactFile() == null) {
-                LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
-                return null;
-            }
-
-            // For changing modules, the underlying cached artifact file will have been removed
-            if (cachedArtifactResolution.getArtifactFile().exists()) {
+                if (!cachePolicy.mustRefreshMissingArtifact(cachedArtifactResolution.getAgeMillis())) {
+                    LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
+                    return null;
+                }
+            // Need to check file existence since for changing modules the underlying cached artifact file will have been removed
+            } else if (cachedArtifactResolution.getArtifactFile().exists()) {
                 LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactResolution.getArtifactFile());
                 return cachedArtifactResolution.getArtifactFile();
             }
         }
 
+        return downloadArtifact(artifactResolver, artifact, options);
+    }
+
+    private File downloadArtifact(DependencyResolver artifactResolver, Artifact artifact, DownloadOptions options) {
         // Otherwise, do the actual download
-        File artifactFile = downloadWithoutCache(artifactResolver, artifact, options);
-        // TODO:DAZ Only cache missing artifact when download report tells us it was missing (not on network failure)
+        ArtifactDownloadReport artifactReport = downloadFromResolver(artifactResolver, artifact, options);
+        if (downloadFailed(artifactReport)) {
+            LOGGER.debug("Failed in attempt to resolve artifact '{}' using resolver: {}", artifact.getId(), artifactReport.getDownloadDetails());
+            return null;
+        }
+
+        File artifactFile = artifactReport.getLocalFile();
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), artifactFile);
         artifactResolutionCache.recordArtifactResolution(artifactResolver, artifact.getId(), artifactFile);
         return artifactFile;
     }
 
-    private File downloadWithoutCache(DependencyResolver artifactResolver, Artifact artifact, DownloadOptions options) {
+    private boolean downloadFailed(ArtifactDownloadReport artifactReport) {
+        // Ivy reports FAILED with MISSING_ARTIFACT message when the artifact doesn't exist. We're happy to cache null in these cases.
+        // For other failures (eg network failure) we want to try again - don't cache.
+        return artifactReport.getDownloadStatus() == DownloadStatus.FAILED
+                && !artifactReport.getDownloadDetails().equals(ArtifactDownloadReport.MISSING_ARTIFACT);
+    }
+
+    private ArtifactDownloadReport downloadFromResolver(DependencyResolver artifactResolver, Artifact artifact, DownloadOptions options) {
         DownloadReport downloadReport = artifactResolver.download(new Artifact[]{artifact}, options);
-        return downloadReport.getArtifactReport(artifact).getLocalFile();
+        return downloadReport.getArtifactReport(artifact);
     }
 }

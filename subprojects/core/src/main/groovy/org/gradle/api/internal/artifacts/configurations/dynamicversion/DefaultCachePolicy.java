@@ -41,6 +41,10 @@ public class DefaultCachePolicy implements CachePolicy {
         return ageMillis >= changingModuleExpiry.getMillis();
     }
 
+    public boolean mustRefreshMissingArtifact(long ageMillis) {
+        return ageMillis >= changingModuleExpiry.getMillis();
+    }
+
     private static class Duration {
         private final int value;
         private final TimeUnit units;

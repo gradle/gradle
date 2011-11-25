@@ -76,7 +76,6 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
     public CachedModuleDescriptor getCachedModuleDescriptor(DependencyResolver resolver, ModuleRevisionId moduleRevisionId) {
         ModuleDescriptorCacheEntry moduleDescriptorCacheEntry = getCache().get(createKey(resolver, moduleRevisionId));
         if (moduleDescriptorCacheEntry == null) {
-            // TODO:DAZ Could do something smart if the entry is missing but the file is present?
             return null;
         }
         ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(resolver, moduleRevisionId, ivySettings);

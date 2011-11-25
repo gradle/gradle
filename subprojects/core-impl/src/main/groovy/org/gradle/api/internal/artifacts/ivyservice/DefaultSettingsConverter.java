@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.IvySettingsAware;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
@@ -94,7 +93,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
             resolveSettings.setDefaultResolver(USER_RESOLVER_CHAIN_NAME);
         }
 
-        ((IvySettingsAware) moduleDescriptorCache).setSettings(resolveSettings);
+        moduleDescriptorCache.setSettings(resolveSettings);
         userResolverChain.setCachePolicy(resolutionStrategy.getCachePolicy());
         replaceResolvers(dependencyResolvers, userResolverChain);
         return resolveSettings;

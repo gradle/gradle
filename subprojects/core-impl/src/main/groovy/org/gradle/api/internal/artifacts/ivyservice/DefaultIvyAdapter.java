@@ -19,6 +19,7 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.plugins.version.VersionMatcher;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.util.WrapUtil;
 
@@ -27,10 +28,12 @@ public class DefaultIvyAdapter implements IvyAdapter {
     private final VersionMatcher versionMatcher;
     private final UserResolverChain userResolver;
     private final ArtifactResolutionCache artifactResolutionCache;
+    private final ResolutionStrategyInternal resolutionStrategy;
 
-    public DefaultIvyAdapter(Ivy ivy, ArtifactResolutionCache artifactResolutionCache) {
+    public DefaultIvyAdapter(Ivy ivy, ArtifactResolutionCache artifactResolutionCache, ResolutionStrategyInternal resolutionStrategy) {
         this.ivy = ivy;
         this.artifactResolutionCache = artifactResolutionCache;
+        this.resolutionStrategy = resolutionStrategy;
         userResolver = (UserResolverChain) ivy.getSettings().getDefaultResolver();
         versionMatcher = ivy.getSettings().getVersionMatcher();
     }
@@ -47,6 +50,6 @@ public class DefaultIvyAdapter implements IvyAdapter {
     }
 
     public ArtifactToFileResolver getArtifactToFileResolver() {
-        return new IvyResolverBackedArtifactToFileResolver(userResolver, artifactResolutionCache);
+        return new IvyResolverBackedArtifactToFileResolver(userResolver, artifactResolutionCache, resolutionStrategy.getCachePolicy());
     }
 }
