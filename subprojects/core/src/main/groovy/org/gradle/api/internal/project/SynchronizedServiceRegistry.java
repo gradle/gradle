@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.Synchronizer;
 import org.gradle.api.internal.Factory;
 
 /**
