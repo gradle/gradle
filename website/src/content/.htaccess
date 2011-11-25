@@ -9,3 +9,5 @@ RewriteCond %{REQUEST_FILENAME}\.php -f
 RewriteRule ^(.*)$ $1.php
 
 Options +Indexes
+
+php_flag short_open_tag on
