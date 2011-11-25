@@ -16,26 +16,23 @@
 package org.gradle.api.internal.cache;
 
 import org.gradle.api.internal.Factory;
-
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import org.gradle.api.internal.Synchronizer;
 
 public class CacheAccessSerializer<K, V> implements Cache<K, V> {
     
-    final private Lock lock = new ReentrantLock();
+    final private Synchronizer synchronizer = new Synchronizer();
     final private Cache<K, V> cache;
     
     public CacheAccessSerializer(Cache<K, V> cache) {
         this.cache = cache;
     }
 
-    public <T extends K> V get(T key, Factory<? extends V> factory) {
-        lock.lock();
-        try {
-            return cache.get(key, factory);
-        } finally {
-            lock.unlock();
-        }
+    public <T extends K> V get(final T key, final Factory<? extends V> factory) {
+        return synchronizer.synchronize(new Factory<V>() {
+            public V create() {
+                return cache.get(key, factory);
+            }
+        });
     }
 
 }
