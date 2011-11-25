@@ -22,12 +22,17 @@ import org.gradle.api.GradleException;
 import java.lang.reflect.Field;
 
 public class ForceChangeDependencyDescriptor {
-    public static DependencyDescriptor forceChangingFlag(DependencyDescriptor delegate, boolean isChanging) {
+    public static DependencyDescriptor forceChangingFlag(DependencyDescriptor original, boolean isChanging) {
+        if (original.isChanging() == isChanging) {
+            return original;
+        }
+
+        DependencyDescriptor forcedChanging = original.clone(original.getDependencyRevisionId());
         try {
             Field field = DefaultDependencyDescriptor.class.getDeclaredField("isChanging");
             field.setAccessible(true);
-            field.set(delegate, isChanging);
-            return delegate;
+            field.set(forcedChanging, isChanging);
+            return forcedChanging;
         } catch (Exception e) {
             throw new GradleException("Could not get cache options from AbstractResolver", e);
         }
