@@ -99,7 +99,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         CachedModuleDescriptor cachedModuleDescriptor = getCachedModuleDescriptor(resolver, newDescriptor.getModuleRevisionId());
         if (cachedModuleDescriptor != null && cachedModuleDescriptor.isChangingModule()) {
             ModuleDescriptor oldDescriptor = cachedModuleDescriptor.getModuleDescriptor();
-            if (oldDescriptor.getPublicationDate().getTime() != newDescriptor.getPublicationDate().getTime()) {
+            if (oldDescriptor.getResolvedPublicationDate().getTime() != newDescriptor.getResolvedPublicationDate().getTime()) {
                 expireArtifacts(resolver, oldDescriptor);
             }
         }

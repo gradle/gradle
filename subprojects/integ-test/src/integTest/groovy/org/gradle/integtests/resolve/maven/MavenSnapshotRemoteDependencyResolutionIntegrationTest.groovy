@@ -184,9 +184,9 @@ task retrieve(type: Sync) {
         def nonUniqueJarSnapshot = file('libs/nonunique-1.0-SNAPSHOT.jar').assertIsCopyOf(nonUniqueVersionModule.artifactFile).snapshot()
 
         when: "Republish the snapshots"
+        waitOneSecondSoThatPublicationDateWillHaveChanged()
         uniqueVersionModule.publishWithChangedContent()
         nonUniqueVersionModule.publishWithChangedContent()
-        waitOneSecondSoThatPublicationDateWillHaveChanged()
 
         and: "No server requests"
         server.resetExpectations()
@@ -260,8 +260,6 @@ task retrieve(type: Sync) {
         when: "Server handles requests"
         server.resetExpectations()
         server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', module.moduleDir.file("maven-metadata.xml"))
-
-        // TODO - this should not be here?
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${module.pomFile.name}", module.pomFile)
 
         // Retrieve again with zero timeout should check for updated snapshot
