@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
-import org.jfrog.wharf.ivy.cache.WharfCacheManager
 import org.jfrog.wharf.ivy.lock.LockHolderFactory
 import spock.lang.Specification
 
@@ -34,9 +33,7 @@ class IvySettingsFactoryTest extends Specification {
         def settings = factory.create()
 
         then:
-        settings.defaultRepositoryCacheManager instanceof WharfCacheManager
-        settings.defaultRepositoryCacheManager.lockFactory == lockHolderFactory
-        settings.defaultCache == cacheDir
+        settings.defaultCache == new File(cacheDir, 'ivy')
         settings.defaultCacheArtifactPattern == ArtifactRepositoryContainer.DEFAULT_CACHE_ARTIFACT_PATTERN
     }
 }

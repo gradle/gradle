@@ -137,6 +137,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
             if (!(existingCacheManager instanceof NoOpRepositoryCacheManager) && !(existingCacheManager instanceof LocalFileRepositoryCacheManager)) {
                 String resolverId = new WharfResolverMetadata(dependencyResolver).getId();
                 RemoteFileRepositoryCacheManager cacheManager = new RemoteFileRepositoryCacheManager("cache-" + dependencyResolver.getName(), new File(ivySettings.getDefaultCache(), resolverId));
+                cacheManager.setSettings(ivySettings);
                 ((AbstractResolver) dependencyResolver).setRepositoryCacheManager(cacheManager);
             }
             attachListener(dependencyResolver);

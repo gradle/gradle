@@ -34,14 +34,13 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
     private final TimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
-    private final ArtifactFileStore artifactFileStore;
+    private ArtifactFileStore artifactFileStore;
     private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> cache;
 
     public SingleFileBackedArtifactResolutionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
         this.cacheMetadata = cacheMetadata;
-        artifactFileStore = new LinkingArtifactFileStore(new File(cacheMetadata.getCacheDir(), "artifacts"));
     }
     
     private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> getCache() {
@@ -52,6 +51,7 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
     }
 
     private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> initCache() {
+        artifactFileStore = new LinkingArtifactFileStore(new File(cacheMetadata.getCacheDir(), "artifacts"));
         File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), "artifacts.bin");
         FileLock artifactResolutionCacheLock = cacheLockingManager.getCacheMetadataFileLock(artifactResolutionCacheFile);
         return new BTreePersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry>(artifactResolutionCacheFile, artifactResolutionCacheLock,

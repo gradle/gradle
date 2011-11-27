@@ -66,7 +66,7 @@ public class DefaultFileStore implements FileStore {
 
     public File getTempFile() {
         long tempLong = generator.nextLong();
-        if (tempLong < 0) tempLong = -tempLong;
+        tempLong = tempLong < 0 ?- tempLong : -tempLong;
         return new File(baseDir, "temp/" + tempLong);
     }
 }

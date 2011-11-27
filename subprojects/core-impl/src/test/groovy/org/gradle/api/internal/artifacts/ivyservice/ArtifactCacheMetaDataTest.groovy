@@ -41,7 +41,7 @@ class ArtifactCacheMetaDataTest extends Specification {
         result == cacheDir
 
         and:
-        1 * cacheRepository.store("artifacts-5") >> cacheBuilder
+        1 * cacheRepository.store("artifacts-6") >> cacheBuilder
         1 * cacheBuilder.withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache) >> cacheBuilder
         1 * cacheBuilder.open() >> cache
         0 * cacheRepository._
