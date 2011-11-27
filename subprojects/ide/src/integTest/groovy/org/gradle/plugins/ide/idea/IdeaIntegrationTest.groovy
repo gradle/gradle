@@ -312,8 +312,8 @@ apply plugin: "idea"
         def expectedXml = expectedFile.text
 
         def homeDir = distribution.userHomeDir.absolutePath.replace(File.separator, '/')
-        def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/artifacts-\\d+/(.+?/.+?)/[a-z0-9]+/")
-        def actualXml = file.text.replaceAll(pattern, "@CACHE_DIR@/\$1/@REPO@/")
+        def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/artifacts-\\d+/artifacts/[a-z0-9]+/")
+        def actualXml = file.text.replaceAll(pattern, "@CACHE_DIR@/@REPO@/")
 
         Diff diff = new Diff(expectedXml, actualXml)
         diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
