@@ -68,9 +68,6 @@ integTestTasks.all {
         if (isDevBuild()) {
             systemProperties['org.gradle.integtest.versions'] = 'latest'
         }
-        if (isCIBuild()) {
-            maxParallelForks = 2
-        }
     }
 }
 
