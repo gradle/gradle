@@ -33,6 +33,7 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 
+import java.io.File;
 import java.util.*;
 
 /**
@@ -131,10 +132,12 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
         for (DependencyResolver dependencyResolver : allResolvers) {
             ivySettings.addResolver(dependencyResolver);
-            RepositoryCacheManager cacheManager = dependencyResolver.getRepositoryCacheManager();
-            // Ensure that each resolver is sharing the same cache instance (ignoring caches which don't actually cache anything)
-            if (!(cacheManager instanceof NoOpRepositoryCacheManager) && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
-                ((AbstractResolver) dependencyResolver).setRepositoryCacheManager(ivySettings.getDefaultRepositoryCacheManager());
+            RepositoryCacheManager existingCacheManager = dependencyResolver.getRepositoryCacheManager();
+            // For any resolvers that require caching - give them a resolver-specific Cache Manager
+            if (!(existingCacheManager instanceof NoOpRepositoryCacheManager) && !(existingCacheManager instanceof LocalFileRepositoryCacheManager)) {
+                String resolverId = new WharfResolverMetadata(dependencyResolver).getId();
+                RemoteFileRepositoryCacheManager cacheManager = new RemoteFileRepositoryCacheManager("cache-" + dependencyResolver.getName(), new File(ivySettings.getDefaultCache(), resolverId));
+                ((AbstractResolver) dependencyResolver).setRepositoryCacheManager(cacheManager);
             }
             attachListener(dependencyResolver);
         }

@@ -22,7 +22,6 @@ import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.internal.NoOpFileLock;
 import org.gradle.cache.internal.SimpleStateCache;
-import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 import org.jfrog.wharf.ivy.lock.LockHolder;
 import org.jfrog.wharf.ivy.lock.LockHolderFactory;
 import org.jfrog.wharf.ivy.marshall.api.MrmMarshaller;
@@ -45,18 +44,10 @@ public class IvySettingsFactory implements Factory<IvySettings> {
 
     public IvySettings create() {
         IvySettings ivySettings = new IvySettings();
-        ivySettings.setDefaultCache(cacheMetaData.getCacheDir());
+        ivySettings.setDefaultCache(new File(cacheMetaData.getCacheDir(), "ivy"));
         ivySettings.setDefaultCacheIvyPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_IVY_PATTERN);
         ivySettings.setDefaultCacheArtifactPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
-
-        WharfCacheManager cacheManager = WharfCacheManager.newInstance(ivySettings);
-        cacheManager.setLockFactory(lockHolderFactory);
-        cacheManager.setMrmMarshaller(new DefaultMrmMarshaller(lockHolderFactory));
-        cacheManager.setWharfResolverMarshaller(new DefaultWharfResolverMarshaller(lockHolderFactory));
-
-        ivySettings.setDefaultRepositoryCacheManager(cacheManager);
-
         return ivySettings;
     }
 
