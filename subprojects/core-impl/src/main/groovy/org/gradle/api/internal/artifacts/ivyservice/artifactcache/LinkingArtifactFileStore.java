@@ -19,7 +19,9 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.util.UncheckedException;
+import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 import org.jfrog.wharf.ivy.util.WharfUtils;
 
 import java.io.File;
@@ -35,8 +37,8 @@ public class LinkingArtifactFileStore implements ArtifactFileStore {
         this.baseDir = baseDir;
     }
 
-    public File storeArtifactFile(ArtifactRevisionId artifactId, File contentFile) {
-        File cacheFile = getArtifactFileLocation(artifactId);
+    public File storeArtifactFile(DependencyResolver dependencyResolver, ArtifactRevisionId artifactId, File contentFile) {
+        File cacheFile = getArtifactFileLocation(dependencyResolver, artifactId);
         try {
             WharfUtils.linkCacheFileToStorage(contentFile, cacheFile);
         } catch (IOException e) {
@@ -45,14 +47,15 @@ public class LinkingArtifactFileStore implements ArtifactFileStore {
         return cacheFile;
     }
 
-    public void removeArtifactFile(ArtifactRevisionId artifactId) {
-        File cacheFile = getArtifactFileLocation(artifactId);
+    public void removeArtifactFile(DependencyResolver dependencyResolver, ArtifactRevisionId artifactId) {
+        File cacheFile = getArtifactFileLocation(dependencyResolver, artifactId);
         cacheFile.delete();
     }
 
-    private File getArtifactFileLocation(ArtifactRevisionId artifactId) {
+    private File getArtifactFileLocation(DependencyResolver dependencyResolver, ArtifactRevisionId artifactId) {
+        String resolverId = new WharfResolverMetadata(dependencyResolver).getId();
         Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
         String artifactPath = IvyPatternHelper.substitute(DEFAULT_ARTIFACT_PATTERN, dummyArtifact);
-        return new File(baseDir, artifactPath);
+        return new File(baseDir, resolverId + "/" + artifactPath);
     }
 }

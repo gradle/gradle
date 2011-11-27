@@ -16,11 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.artifactcache;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 
 import java.io.File;
 
 public interface ArtifactFileStore {
-    File storeArtifactFile(ArtifactRevisionId artifactId, File contentFile);
+    File storeArtifactFile(DependencyResolver dependencyResolver, ArtifactRevisionId artifactId, File contentFile);
 
-    void removeArtifactFile(ArtifactRevisionId artifactId);
+    void removeArtifactFile(DependencyResolver dependencyResolver, ArtifactRevisionId artifactId);
 }

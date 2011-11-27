@@ -68,17 +68,17 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
 
     public void recordArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifactId, File artifactFile) {
         if (artifactFile == null) {
-            artifactFileStore.removeArtifactFile(artifactId);
+            artifactFileStore.removeArtifactFile(resolver, artifactId);
             getCache().put(createKey(resolver, artifactId), createEntry(null));
         } else {
-            File cacheFile = artifactFileStore.storeArtifactFile(artifactId, artifactFile);
+            File cacheFile = artifactFileStore.storeArtifactFile(resolver, artifactId, artifactFile);
             getCache().put(createKey(resolver, artifactId), createEntry(cacheFile));
         }
     }
 
     public void expireCachedArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifact) {
         getCache().remove(createKey(resolver, artifact));
-        artifactFileStore.removeArtifactFile(artifact);
+        artifactFileStore.removeArtifactFile(resolver, artifact);
     }
 
     private RevisionKey createKey(DependencyResolver resolver, ArtifactRevisionId artifactId) {
