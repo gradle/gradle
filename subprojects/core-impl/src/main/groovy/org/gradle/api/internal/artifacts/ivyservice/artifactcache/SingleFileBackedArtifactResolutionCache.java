@@ -34,12 +34,14 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
     private final TimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
+    private final ArtifactFileStore artifactFileStore;
     private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> cache;
 
     public SingleFileBackedArtifactResolutionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
         this.cacheMetadata = cacheMetadata;
+        artifactFileStore = new LinkingArtifactFileStore(new File(cacheMetadata.getCacheDir(), "artifacts"));
     }
     
     private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> getCache() {
@@ -50,7 +52,7 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
     }
 
     private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> initCache() {
-        File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), "artifact-resolution.bin");
+        File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), "artifacts.bin");
         FileLock artifactResolutionCacheLock = cacheLockingManager.getCacheMetadataFileLock(artifactResolutionCacheFile);
         return new BTreePersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry>(artifactResolutionCacheFile, artifactResolutionCacheLock,
                 RevisionKey.class, ArtifactResolutionCacheEntry.class);
@@ -65,11 +67,18 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
     }
 
     public void recordArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifactId, File artifactFile) {
-        getCache().put(createKey(resolver, artifactId), createEntry(artifactFile));
+        if (artifactFile == null) {
+            artifactFileStore.removeArtifactFile(artifactId);
+            getCache().put(createKey(resolver, artifactId), createEntry(null));
+        } else {
+            File cacheFile = artifactFileStore.storeArtifactFile(artifactId, artifactFile);
+            getCache().put(createKey(resolver, artifactId), createEntry(cacheFile));
+        }
     }
 
     public void expireCachedArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifact) {
         getCache().remove(createKey(resolver, artifact));
+        artifactFileStore.removeArtifactFile(artifact);
     }
 
     private RevisionKey createKey(DependencyResolver resolver, ArtifactRevisionId artifactId) {

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.cache.*;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
