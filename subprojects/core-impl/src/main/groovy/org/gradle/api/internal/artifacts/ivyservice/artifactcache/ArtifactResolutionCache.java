@@ -21,7 +21,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import java.io.File;
 
 public interface ArtifactResolutionCache {
-    void recordArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifact, File artifactFile);
+    File storeArtifactFile(DependencyResolver resolver, ArtifactRevisionId artifact, File artifactFile);
 
     void expireCachedArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifact);
 

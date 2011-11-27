@@ -66,13 +66,15 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
         return new DefaultCachedArtifactResolution(artifactId, artifactResolutionCacheEntry, timeProvider);
     }
 
-    public void recordArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifactId, File artifactFile) {
+    public File storeArtifactFile(DependencyResolver resolver, ArtifactRevisionId artifactId, File artifactFile) {
         if (artifactFile == null) {
             artifactFileStore.removeArtifactFile(resolver, artifactId);
             getCache().put(createKey(resolver, artifactId), createEntry(null));
+            return null;
         } else {
             File cacheFile = artifactFileStore.storeArtifactFile(resolver, artifactId, artifactFile);
             getCache().put(createKey(resolver, artifactId), createEntry(cacheFile));
+            return cacheFile;
         }
     }
 

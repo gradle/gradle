@@ -93,8 +93,7 @@ public class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileRe
 
         File artifactFile = artifactReport.getLocalFile();
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), artifactFile);
-        artifactResolutionCache.recordArtifactResolution(artifactResolver, artifact.getId(), artifactFile);
-        return artifactFile;
+        return artifactResolutionCache.storeArtifactFile(artifactResolver, artifact.getId(), artifactFile);
     }
 
     private boolean downloadFailed(ArtifactDownloadReport artifactReport) {

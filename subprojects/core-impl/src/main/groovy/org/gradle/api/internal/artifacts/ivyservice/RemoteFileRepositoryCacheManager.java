@@ -36,6 +36,8 @@ import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.DefaultFileStore;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,12 +52,14 @@ public class RemoteFileRepositoryCacheManager implements RepositoryCacheManager,
 
     private final String name;
     private final File cacheRoot;
+    private final FileStore fileStore;
     private IvySettings settings;
 
 
-    public RemoteFileRepositoryCacheManager(String name, File cacheRoot) {
+    public RemoteFileRepositoryCacheManager(String name, File resolverCacheRoot) {
         this.name = name;
-        this.cacheRoot = cacheRoot;
+        this.cacheRoot = resolverCacheRoot;
+        this.fileStore = new DefaultFileStore(resolverCacheRoot);
     }
 
     public void setSettings(IvySettings settings) {
@@ -96,7 +100,6 @@ public class RemoteFileRepositoryCacheManager implements RepositoryCacheManager,
         }
 
         long start = System.currentTimeMillis();
-        File archiveFile = getArchiveFileInCache(artifact);
         try {
             ResolvedResource artifactRef = resourceResolver.resolve(artifact);
             if (artifactRef != null) {
@@ -105,13 +108,13 @@ public class RemoteFileRepositoryCacheManager implements RepositoryCacheManager,
                     listener.startArtifactDownload(this, artifactRef, artifact, origin);
                 }
 
-                resourceDownloader.download(artifact, artifactRef.getResource(), archiveFile);
+                File artifactFile = downloadArtifactFile(artifact, resourceDownloader, artifactRef);
 
-                adr.setSize(archiveFile.length());
+                adr.setSize(artifactFile.length());
                 adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
                 adr.setDownloadStatus(DownloadStatus.SUCCESSFUL);
                 adr.setArtifactOrigin(origin);
-                adr.setLocalFile(archiveFile);
+                adr.setLocalFile(artifactFile);
             } else {
                 adr.setDownloadStatus(DownloadStatus.FAILED);
                 adr.setDownloadDetails(ArtifactDownloadReport.MISSING_ARTIFACT);
@@ -123,7 +126,7 @@ public class RemoteFileRepositoryCacheManager implements RepositoryCacheManager,
             adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
         }
         if (listener != null) {
-            listener.endArtifactDownload(this, artifact, adr, archiveFile);
+            listener.endArtifactDownload(this, artifact, adr, adr.getLocalFile());
         }
         return adr;
     }
@@ -187,6 +190,12 @@ public class RemoteFileRepositoryCacheManager implements RepositoryCacheManager,
             parserSettings = ((AbstractResolver) resolver).getParserSettings();
         }
         return parser.parseDescriptor(parserSettings, artifactFile.toURI().toURL(), mdRef.getResource(), options.isValidate());
+    }
+
+    private File downloadArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, ResolvedResource artifactRef) throws IOException {
+        File tempFile = fileStore.getTempFile();
+        resourceDownloader.download(artifact, artifactRef.getResource(), tempFile);
+        return fileStore.add(tempFile);
     }
 
 }
