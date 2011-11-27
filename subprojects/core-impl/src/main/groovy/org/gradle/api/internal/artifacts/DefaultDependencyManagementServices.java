@@ -172,8 +172,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return new DefaultModuleDescriptorCache(
                 get(ArtifactCacheMetaData.class),
                 get(TimeProvider.class),
-                get(CacheLockingManager.class)
-        );
+                get(CacheLockingManager.class),
+                get(ArtifactResolutionCache.class));
     }
 
     protected ArtifactResolutionCache createArtifactResolutionCache() {

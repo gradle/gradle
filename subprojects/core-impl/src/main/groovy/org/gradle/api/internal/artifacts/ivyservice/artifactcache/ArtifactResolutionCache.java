@@ -23,6 +23,8 @@ import java.io.File;
 public interface ArtifactResolutionCache {
     void recordArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifact, File artifactFile);
 
+    void expireCachedArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifact);
+
     CachedArtifactResolution getCachedArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifact);
 
     interface CachedArtifactResolution {

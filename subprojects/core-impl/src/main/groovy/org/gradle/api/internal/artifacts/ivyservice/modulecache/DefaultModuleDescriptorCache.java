@@ -15,12 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
@@ -38,16 +40,18 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
     private final TimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
-    
+
+    private final ArtifactResolutionCache artifactResolutionCache;
     private final ModuleDescriptorStore moduleDescriptorStore;
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> cache;
 
     private IvySettings ivySettings;
 
-    public DefaultModuleDescriptorCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public DefaultModuleDescriptorCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactResolutionCache artifactResolutionCache) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
         this.cacheMetadata = cacheMetadata;
+        this.artifactResolutionCache = artifactResolutionCache;
 
         // TODO:DAZ inject this
         moduleDescriptorStore = new ModuleDescriptorStore(new ModuleDescriptorFileStore(cacheMetadata));
@@ -84,9 +88,27 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
     public void cacheModuleDescriptor(DependencyResolver resolver, ModuleDescriptor moduleDescriptor, boolean isChanging) {
         LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), isChanging);
 
+        expireArtifactsForChangingModuleIfRequired(resolver, moduleDescriptor);
+
         // TODO:DAZ Cache will already be locked, due to prior call to getCachedModuleDescriptor. This locking should be more explicit
         moduleDescriptorStore.putModuleDescriptor(resolver, moduleDescriptor);
         getCache().put(createKey(resolver, moduleDescriptor.getModuleRevisionId()), createEntry(isChanging));
+    }
+
+    private void expireArtifactsForChangingModuleIfRequired(DependencyResolver resolver, ModuleDescriptor newDescriptor) {
+        CachedModuleDescriptor cachedModuleDescriptor = getCachedModuleDescriptor(resolver, newDescriptor.getModuleRevisionId());
+        if (cachedModuleDescriptor != null && cachedModuleDescriptor.isChangingModule()) {
+            ModuleDescriptor oldDescriptor = cachedModuleDescriptor.getModuleDescriptor();
+            if (oldDescriptor.getPublicationDate().getTime() != newDescriptor.getPublicationDate().getTime()) {
+                expireArtifacts(resolver, oldDescriptor);
+            }
+        }
+    }
+
+    private void expireArtifacts(DependencyResolver resolver, ModuleDescriptor descriptor) {
+        for (Artifact artifact : descriptor.getAllArtifacts()) {
+            artifactResolutionCache.expireCachedArtifactResolution(resolver, artifact.getId());
+        }
     }
 
     private RevisionKey createKey(DependencyResolver resolver, ModuleRevisionId moduleRevisionId) {
