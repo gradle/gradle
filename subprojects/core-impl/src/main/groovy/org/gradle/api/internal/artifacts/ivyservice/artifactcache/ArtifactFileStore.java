@@ -21,6 +21,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import java.io.File;
 
 public interface ArtifactFileStore {
+    String getArtifactPath(ArtifactRevisionId artifactId);
+
     File storeArtifactFile(DependencyResolver dependencyResolver, ArtifactRevisionId artifactId, File contentFile);
 
     void removeArtifactFile(DependencyResolver dependencyResolver, ArtifactRevisionId artifactId);

@@ -51,11 +51,15 @@ public class LinkingArtifactFileStore implements ArtifactFileStore {
         File cacheFile = getArtifactFileLocation(dependencyResolver, artifactId);
         cacheFile.delete();
     }
+    
+    public String getArtifactPath(ArtifactRevisionId artifactId) {
+        Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
+        return IvyPatternHelper.substitute(DEFAULT_ARTIFACT_PATTERN, dummyArtifact);
+    }
 
     private File getArtifactFileLocation(DependencyResolver dependencyResolver, ArtifactRevisionId artifactId) {
         String resolverId = new WharfResolverMetadata(dependencyResolver).getId();
-        Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
-        String artifactPath = IvyPatternHelper.substitute(DEFAULT_ARTIFACT_PATTERN, dummyArtifact);
+        String artifactPath = getArtifactPath(artifactId);
         return new File(baseDir, resolverId + "/" + artifactPath);
     }
 }

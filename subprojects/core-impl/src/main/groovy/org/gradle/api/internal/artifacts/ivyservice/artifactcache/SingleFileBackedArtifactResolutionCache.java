@@ -27,8 +27,6 @@ import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 public class SingleFileBackedArtifactResolutionCache implements ArtifactResolutionCache {
     private final TimeProvider timeProvider;
@@ -84,7 +82,8 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
     }
 
     private RevisionKey createKey(DependencyResolver resolver, ArtifactRevisionId artifactId) {
-        return new RevisionKey(resolver, artifactId);
+        String artifactPath = artifactFileStore.getArtifactPath(artifactId);
+        return new RevisionKey(resolver, artifactPath);
     }
 
     private ArtifactResolutionCacheEntry createEntry(File artifactFile) {
@@ -95,24 +94,9 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
         private final String resolverId;
         private final String artifactId;
 
-        private RevisionKey(DependencyResolver resolver, ArtifactRevisionId revision) {
+        private RevisionKey(DependencyResolver resolver, String artifactPath) {
             this.resolverId = new WharfResolverMetadata(resolver).getId();
-            this.artifactId = encodeArtifactRevisionId(revision);
-        }
-
-        // TODO:DAZ Rationalise this
-        // Code based on ModuleRevisionId.encodeToString
-        private String encodeArtifactRevisionId(ArtifactRevisionId id) {
-            Map<String, String> attributes = new HashMap<String, String>(id.getAttributes());
-            attributes.keySet().removeAll(id.getExtraAttributes().keySet());
-            attributes.putAll(id.getQualifiedExtraAttributes());
-
-            StringBuilder buf = new StringBuilder();
-            for (String name : attributes.keySet()) {
-                String value = String.valueOf(attributes.get(name));
-                buf.append("[").append(name).append("=").append(value).append("]");
-            }
-            return buf.toString();
+            this.artifactId = artifactPath;
         }
 
         @Override
@@ -126,12 +110,12 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
                 return false;
             }
             RevisionKey other = (RevisionKey) o;
-            return resolverId.equals(other.resolverId) && artifactId.equals(other.artifactId);
+            return toString().equals(other.toString());
         }
 
         @Override
         public int hashCode() {
-            return resolverId.hashCode() ^ artifactId.hashCode();
+            return toString().hashCode();
         }
     }
 
