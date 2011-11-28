@@ -43,9 +43,9 @@ import java.io.IOException;
 import java.text.ParseException;
 
 /**
- * A cache manager for remote repositories.
+ * A cache manager for remote repositories, that downloads files and stores them in the FileStore provided.
  */
-public class RemoteFileRepositoryCacheManager implements RepositoryCacheManager, IvySettingsAware {
+public class DownloadingRepositoryCacheManager implements RepositoryCacheManager, IvySettingsAware {
     private static final String DEFAULT_ARTIFACT_PATTERN =
             "[organisation]/[module](/[branch])/[revision]/[type]/[artifact]-[revision](-[classifier])(.[ext])";
 
@@ -54,7 +54,7 @@ public class RemoteFileRepositoryCacheManager implements RepositoryCacheManager,
     private IvySettings settings;
 
 
-    public RemoteFileRepositoryCacheManager(String name, FileStore fileStore) {
+    public DownloadingRepositoryCacheManager(String name, FileStore fileStore) {
         this.name = name;
         this.fileStore = fileStore;
     }

@@ -38,7 +38,7 @@ public class IvySettingsFactory implements Factory<IvySettings> {
         ivySettings.setDefaultCacheArtifactPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
 
-        ivySettings.setDefaultRepositoryCacheManager(new RemoteFileRepositoryCacheManager("downloading", fileStore));
+        ivySettings.setDefaultRepositoryCacheManager(new DownloadingRepositoryCacheManager("downloading", fileStore));
 
         return ivySettings;
     }
