@@ -31,7 +31,7 @@ import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.LoggingServiceRegistry;
 
 /**
- * Wires together the embedded daemon.
+ * Wires together the embedded daemon client.
  */
 public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
 
@@ -39,7 +39,6 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
 
     public EmbeddedDaemonClientServices() {
         this(LoggingServiceRegistry.newCommandLineProcessLogging(), false);
-        add(EmbeddedDaemonFactory.class, new EmbeddedDaemonFactory());
     }
 
     private class EmbeddedDaemonFactory implements Factory<Daemon> {
@@ -57,6 +56,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     public EmbeddedDaemonClientServices(ServiceRegistry loggingServices, boolean displayOutput) {
         super(loggingServices);
         this.displayOutput = displayOutput;
+        add(EmbeddedDaemonFactory.class, new EmbeddedDaemonFactory());
     }
 
     protected DaemonRegistry createDaemonRegistry() {
