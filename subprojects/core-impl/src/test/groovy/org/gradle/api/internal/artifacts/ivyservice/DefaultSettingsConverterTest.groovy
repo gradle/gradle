@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.internal.Factory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
+import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
@@ -32,13 +33,14 @@ class DefaultSettingsConverterTest extends Specification {
     ResolutionStrategyInternal resolutionStrategy = Mock()
     ModuleResolutionCache dynamicRevisionCache = Mock()
     ModuleDescriptorCache moduleDescriptorCache = Mock()
+    FileStore fileStore = Mock()
 
     File testGradleUserHome = new File('gradleUserHome')
 
     final Factory<IvySettings> ivySettingsFactory = Mock()
     final IvySettings ivySettings = new IvySettings()
 
-    DefaultSettingsConverter converter = new DefaultSettingsConverter(Mock(ProgressLoggerFactory), ivySettingsFactory, dynamicRevisionCache, moduleDescriptorCache)
+    DefaultSettingsConverter converter = new DefaultSettingsConverter(Mock(ProgressLoggerFactory), ivySettingsFactory, dynamicRevisionCache, moduleDescriptorCache, fileStore)
 
     public void setup() {
         testResolver.name = 'resolver'

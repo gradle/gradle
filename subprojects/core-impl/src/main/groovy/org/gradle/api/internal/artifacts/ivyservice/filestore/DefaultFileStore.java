@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.apache.ivy.util.ChecksumHelper;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.util.UncheckedException;
 import org.jfrog.wharf.ivy.util.WharfUtils;
 
@@ -28,8 +29,8 @@ public class DefaultFileStore implements FileStore {
     private final File baseDir;
     private final Random generator = new Random(System.currentTimeMillis());
 
-    public DefaultFileStore(File baseDir) {
-        this.baseDir = baseDir;
+    public DefaultFileStore(ArtifactCacheMetaData cacheMetaData) {
+        this.baseDir = new File(cacheMetaData.getCacheDir(), "filestore");
     }
 
     public File add(File contentFile) {
@@ -66,7 +67,7 @@ public class DefaultFileStore implements FileStore {
 
     public File getTempFile() {
         long tempLong = generator.nextLong();
-        tempLong = tempLong < 0 ?- tempLong : -tempLong;
+        tempLong = tempLong < 0 ? -tempLong : tempLong;
         return new File(baseDir, "temp/" + tempLong);
     }
 }

@@ -34,6 +34,8 @@ import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.util.TimeProvider
 import spock.lang.Specification
+import org.gradle.cache.DirectoryCacheBuilder
+import org.gradle.cache.PersistentCache
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -53,13 +55,24 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.getFactory(LoggingManagerInternal) >> loggingFactory
         ProgressLoggerFactory progressLoggerFactory = Mock()
         _ * parent.get(ProgressLoggerFactory) >> progressLoggerFactory
-        CacheRepository cacheRepository = Mock()
+        CacheRepository cacheRepository = initCacheRepository()
         _ * parent.get(CacheRepository) >> cacheRepository
         ClassPathRegistry classPathRegistry = Mock()
         _ * parent.get(ClassPathRegistry) >> classPathRegistry
         _ * parent.get(ListenerManager) >> listenerManager
         _ * parent.get(FileLockManager) >> Mock(FileLockManager)
         _ * parent.get(TimeProvider) >> Mock(TimeProvider)
+    }
+
+    private CacheRepository initCacheRepository() {
+        CacheRepository cacheRepository = Mock()
+        DirectoryCacheBuilder cacheBuilder = Mock()
+        _ * cacheRepository.store(_) >> cacheBuilder
+        _ * cacheBuilder.withVersionStrategy(_) >> cacheBuilder
+        PersistentCache cache = Mock()
+        _ * cacheBuilder.open() >> cache
+        cache.baseDir >> new File("cache")
+        return cacheRepository
     }
 
     def "can create dependency resolution services"() {

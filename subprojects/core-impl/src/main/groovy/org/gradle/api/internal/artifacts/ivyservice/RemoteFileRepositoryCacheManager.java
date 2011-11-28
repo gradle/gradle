@@ -36,7 +36,6 @@ import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.DefaultFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore;
 
 import java.io.File;
@@ -51,15 +50,13 @@ public class RemoteFileRepositoryCacheManager implements RepositoryCacheManager,
             "[organisation]/[module](/[branch])/[revision]/[type]/[artifact]-[revision](-[classifier])(.[ext])";
 
     private final String name;
-    private final File cacheRoot;
     private final FileStore fileStore;
     private IvySettings settings;
 
 
-    public RemoteFileRepositoryCacheManager(String name, File resolverCacheRoot) {
+    public RemoteFileRepositoryCacheManager(String name, FileStore fileStore) {
         this.name = name;
-        this.cacheRoot = resolverCacheRoot;
-        this.fileStore = new DefaultFileStore(resolverCacheRoot);
+        this.fileStore = fileStore;
     }
 
     public void setSettings(IvySettings settings) {
@@ -129,10 +126,6 @@ public class RemoteFileRepositoryCacheManager implements RepositoryCacheManager,
             listener.endArtifactDownload(this, artifact, adr, adr.getLocalFile());
         }
         return adr;
-    }
-
-    public File getArchiveFileInCache(Artifact artifact) {
-        return new File(cacheRoot, getArchivePathInCache(artifact));
     }
 
     public String getArchivePathInCache(Artifact artifact) {
