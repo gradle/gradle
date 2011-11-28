@@ -35,7 +35,7 @@ class DaemonClientTest extends Specification {
     final DaemonClient client = new DaemonClient(connector, metaData, outputEventListener)
 
     def setup() {
-        _ * daemonConnection.getConnection() >> connection
+        daemonConnection.getConnection() >> connection
     }
 
     def stopsTheDaemonWhenRunning() {
@@ -47,8 +47,8 @@ class DaemonClientTest extends Specification {
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new Success(null)
         1 * connection.stop()
-        _ * daemonConnection.getConnection() >> connection // why do I need this? Why doesn't the interaction specified in setup cover me?
-        0 * _._
+        daemonConnection.getConnection() >> connection // why do I need this? Why doesn't the interaction specified in setup cover me?
+        0 * _
     }
 
     def "stops all daemons"() {
@@ -67,7 +67,7 @@ class DaemonClientTest extends Specification {
 
         then:
         1 * connector.maybeConnect() >> null
-        0 * _._
+        0 * _
     }
 
     def executesAction() {
