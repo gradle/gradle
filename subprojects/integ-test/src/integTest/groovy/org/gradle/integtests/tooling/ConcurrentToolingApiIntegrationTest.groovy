@@ -23,6 +23,8 @@ import org.gradle.util.ConcurrentSpecification
 import spock.lang.Ignore
 import spock.lang.Issue
 
+// TODO - this needs to cover cross-version compatibility (ie can run concurrent builds for any target gradle >= 1.0-milestone-7)
+// TODO - should cover concurrent builds each with a different target gradle version
 class ConcurrentToolingApiIntegrationTest extends ConcurrentSpecification {
 
     def dist = new GradleDistribution()
@@ -38,28 +40,23 @@ apply plugin: 'java'
         when:
         shortTimeout = 20000
 
-        executor.execute(thread())
-        executor.execute(thread())
+        start { fetchModel() }
+        start { fetchModel() }
 
         then:
         //fails most of the time
         finished()
     }
 
-    private Thread thread() {
-        def thread = new Thread() {
-            void run() {
-                toolingApi.withConnection {
-                    try {
-                        def model = it.getModel(IdeaProject)
-                        assert model != null
-                    } catch (Exception e) {
-                        throw new RuntimeException("""Looks like we've hit a concurrency problem.
+    def fetchModel() {
+        toolingApi.withConnection {
+            try {
+                def model = it.getModel(IdeaProject)
+                assert model != null
+            } catch (Exception e) {
+                throw new RuntimeException("""Looks like we've hit a concurrency problem.
 See the full stacktrace and the list of causes to investigate""", e);
-                    }
-                }
             }
         }
-        return thread
     }
 }
