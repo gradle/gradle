@@ -62,7 +62,6 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.WrapUtil;
-import org.jfrog.wharf.ivy.lock.LockHolderFactory;
 
 import java.util.List;
 
@@ -197,10 +196,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 get(ProgressLoggerFactory.class),
                 new IvySettingsFactory(
                         get(ArtifactCacheMetaData.class),
-                        get(LockHolderFactory.class)),
+                        get(FileStore.class)),
                 get(ModuleResolutionCache.class),
-                get(ModuleDescriptorCache.class),
-                get(FileStore.class));
+                get(ModuleDescriptorCache.class)
+        );
     }
 
     protected IvyFactory createIvyFactory() {

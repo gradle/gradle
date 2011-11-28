@@ -27,7 +27,6 @@ import org.apache.ivy.util.Message;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -46,18 +45,16 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
-    private final FileStore fileStore;
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private UserResolverChain userResolverChain;
 
     public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory,
-                                    ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache, FileStore fileStore) {
+                                    ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.settingsFactory = settingsFactory;
         this.moduleResolutionCache = moduleResolutionCache;
         this.moduleDescriptorCache = moduleDescriptorCache;
-        this.fileStore = fileStore;
         Message.setDefaultLogger(new IvyLoggingAdaper());
     }
 
@@ -135,12 +132,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
         for (DependencyResolver dependencyResolver : allResolvers) {
             ivySettings.addResolver(dependencyResolver);
             RepositoryCacheManager existingCacheManager = dependencyResolver.getRepositoryCacheManager();
-            // For any resolvers that require caching - give them a resolver-specific Cache Manager
+            // Ensure that each resolver is sharing the same cache instance (ignoring caches which don't actually cache anything)
             if (!(existingCacheManager instanceof NoOpRepositoryCacheManager) && !(existingCacheManager instanceof LocalFileRepositoryCacheManager)) {
-                // TODO:DAZ This is no longer resolver-specific - can share a single instance.
-                RemoteFileRepositoryCacheManager cacheManager = new RemoteFileRepositoryCacheManager("cache-" + dependencyResolver.getName(), fileStore);
-                cacheManager.setSettings(ivySettings);
-                ((AbstractResolver) dependencyResolver).setRepositoryCacheManager(cacheManager);
+                ((AbstractResolver) dependencyResolver).setRepositoryCacheManager(ivySettings.getDefaultRepositoryCacheManager());
             }
             attachListener(dependencyResolver);
         }

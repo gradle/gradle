@@ -23,7 +23,7 @@ class IvySettingsFactoryTest extends Specification {
     final File cacheDir = new File('user-dir')
     final ArtifactCacheMetaData cacheMetaData = Mock()
     final LockHolderFactory lockHolderFactory = Mock()
-    final IvySettingsFactory factory = new IvySettingsFactory(cacheMetaData, lockHolderFactory)
+    final IvySettingsFactory factory = new IvySettingsFactory(cacheMetaData, fileStore)
 
     def "creates and configures an IvySettings instance"() {
         given:

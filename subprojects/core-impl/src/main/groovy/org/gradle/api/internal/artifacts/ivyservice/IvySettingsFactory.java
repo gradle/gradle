@@ -18,28 +18,17 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.internal.Factory;
-import org.gradle.cache.DefaultSerializer;
-import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.internal.NoOpFileLock;
-import org.gradle.cache.internal.SimpleStateCache;
-import org.jfrog.wharf.ivy.lock.LockHolder;
-import org.jfrog.wharf.ivy.lock.LockHolderFactory;
-import org.jfrog.wharf.ivy.marshall.api.MrmMarshaller;
-import org.jfrog.wharf.ivy.marshall.api.WharfResolverMarshaller;
-import org.jfrog.wharf.ivy.model.ModuleRevisionMetadata;
-import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 
 public class IvySettingsFactory implements Factory<IvySettings> {
-    private final LockHolderFactory lockHolderFactory;
     private final ArtifactCacheMetaData cacheMetaData;
+    private final FileStore fileStore;
 
-    public IvySettingsFactory(ArtifactCacheMetaData cacheMetaData, LockHolderFactory lockHolderFactory) {
+    public IvySettingsFactory(ArtifactCacheMetaData cacheMetaData, FileStore fileStore) {
         this.cacheMetaData = cacheMetaData;
-        this.lockHolderFactory = lockHolderFactory;
+        this.fileStore = fileStore;
     }
 
     public IvySettings create() {
@@ -48,92 +37,9 @@ public class IvySettingsFactory implements Factory<IvySettings> {
         ivySettings.setDefaultCacheIvyPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_IVY_PATTERN);
         ivySettings.setDefaultCacheArtifactPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
+
+        ivySettings.setDefaultRepositoryCacheManager(new RemoteFileRepositoryCacheManager("downloading", fileStore));
+
         return ivySettings;
-    }
-
-    private static class DefaultMrmMarshaller implements MrmMarshaller {
-        private final LockHolderFactory lockHolderFactory;
-
-        private DefaultMrmMarshaller(LockHolderFactory lockHolderFactory) {
-            this.lockHolderFactory = lockHolderFactory;
-        }
-
-        public ModuleRevisionMetadata getModuleRevisionMetadata(File file) {
-            LockHolder lockHolder = lockHolderFactory.getOrCreateLockHolder(file);
-            if (!lockHolder.acquireLock()) {
-                throw new RuntimeException(String.format("Could not acquire lock for %s", file));
-            }
-            try {
-                return getCache(file).get();
-            } finally {
-                lockHolder.releaseLock();
-            }
-        }
-
-        public void save(ModuleRevisionMetadata mrm, File file) {
-            LockHolder lockHolder = lockHolderFactory.getOrCreateLockHolder(file);
-            if (!lockHolder.acquireLock()) {
-                throw new RuntimeException(String.format("Could not acquire lock for %s", file));
-            }
-            try {
-                getCache(file).set(mrm);
-            } finally {
-                lockHolder.releaseLock();
-            }
-        }
-
-        private PersistentStateCache<ModuleRevisionMetadata> getCache(File file) {
-            return new SimpleStateCache<ModuleRevisionMetadata>(file, new NoOpFileLock(), new DefaultSerializer<ModuleRevisionMetadata>(getClass().getClassLoader()));
-        }
-
-        public String getDataFilePattern() {
-            return "[organisation]/[module](/[branch])/wharfdata-[revision].bin";
-        }
-    }
-
-    private static class DefaultWharfResolverMarshaller implements WharfResolverMarshaller {
-        private final LockHolderFactory lockHolderFactory;
-
-        private DefaultWharfResolverMarshaller(LockHolderFactory lockHolderFactory) {
-            this.lockHolderFactory = lockHolderFactory;
-        }
-
-        public Set<WharfResolverMetadata> getWharfMetadatas(File baseDir) {
-            File file = getCacheFile(baseDir);
-            LockHolder lockHolder = lockHolderFactory.getOrCreateLockHolder(file);
-            if (!lockHolder.acquireLock()) {
-                throw new RuntimeException(String.format("Could not acquire lock for %s", file));
-            }
-            try {
-                Set<WharfResolverMetadata> result = getCache(file).get();
-                if (result == null) {
-                    return new HashSet<WharfResolverMetadata>();
-                }
-                return result;
-            } finally {
-                lockHolder.releaseLock();
-            }
-        }
-
-        public void save(File baseDir, Set<WharfResolverMetadata> wharfResolverMetadatas) {
-            File file = getCacheFile(baseDir);
-            LockHolder lockHolder = lockHolderFactory.getOrCreateLockHolder(file);
-            if (!lockHolder.acquireLock()) {
-                throw new RuntimeException(String.format("Could not acquire lock for %s", file));
-            }
-            try {
-                getCache(file).set(wharfResolverMetadatas);
-            } finally {
-                lockHolder.releaseLock();
-            }
-        }
-
-        private PersistentStateCache<Set<WharfResolverMetadata>> getCache(File file) {
-            return new SimpleStateCache<Set<WharfResolverMetadata>>(file, new NoOpFileLock(), new DefaultSerializer<Set<WharfResolverMetadata>>(getClass().getClassLoader()));
-        }
-
-        private File getCacheFile(File baseDir) {
-            return new File(baseDir, "wharf/resolvers.bin");
-        }
     }
 }
