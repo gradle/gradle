@@ -24,7 +24,7 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
+import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
@@ -85,11 +85,19 @@ public class DefaultConnection implements ConnectionVersion4 {
         } else {
             File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
             File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(System.getProperties(), gradleUserHomeDir);
-            DaemonRegistryServices registryServices = new DaemonRegistryServices(daemonBaseDir);
-            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, registryServices);
+            int idleTimeout = getIdleTimeout(operationParameters);
+            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonBaseDir, idleTimeout);
             DaemonClient client = clientServices.get(DaemonClient.class);
             executer = new DaemonGradleLauncherActionExecuter(client);
         }
         return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingServices.getFactory(LoggingManagerInternal.class));
+    }
+
+    private int getIdleTimeout(BuildOperationParametersVersion1 operationParameters) {
+        if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
+            return (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
+        } else {
+            return DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT;
+        }
     }
 }
