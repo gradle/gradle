@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.provider;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
@@ -96,7 +97,7 @@ public class DefaultConnection implements ConnectionVersion4 {
     }
 
     private List<String> getDaemonOpts() {
-        String env = System.getenv("GRADLE_DAEMON_OPTS");
+        String env = Strings.nullToEmpty(System.getenv("GRADLE_DAEMON_OPTS"));
         return Lists.newArrayList(Splitter.onPattern("\\s").omitEmptyStrings().split(env));
     }
 
