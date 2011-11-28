@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class DaemonDir {
 
-    static public final String SYSTEM_PROPERTY_KEY = "gradle.daemon.registry.base";
+    public static final String SYSTEM_PROPERTY_KEY = "org.gradle.daemon.registry.base";
         
     private final File baseDir;
     private final File versionedDir;
