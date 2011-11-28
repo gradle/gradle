@@ -38,10 +38,12 @@ public class DaemonStarter implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(DaemonStarter.class);
 
     private final DaemonDir daemonDir;
+    private final List<String> daemonOpts;
     private final int idleTimeout;
 
-    public DaemonStarter(DaemonDir daemonDir, int idleTimeout) {
+    public DaemonStarter(DaemonDir daemonDir, List<String> daemonOpts, int idleTimeout) {
         this.daemonDir = daemonDir;
+        this.daemonOpts = daemonOpts;
         this.idleTimeout = idleTimeout;
     }
 
@@ -59,8 +61,8 @@ public class DaemonStarter implements Runnable {
 
         List<String> daemonArgs = new ArrayList<String>();
         daemonArgs.add(Jvm.current().getJavaExecutable().getAbsolutePath());
-        daemonArgs.add("-Xmx1024m");
-        daemonArgs.add("-XX:MaxPermSize=256m");
+        LOGGER.info("Setting GRADLE_DAEMON_OPTS: {}", daemonOpts);
+        daemonArgs.addAll(daemonOpts);
         //Useful for debugging purposes - simply uncomment and connect to debug
 //        daemonArgs.add("-Xdebug");
 //        daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5006");
@@ -75,7 +77,7 @@ public class DaemonStarter implements Runnable {
     }
 
     private void startProcess(List<String> args, File workingDir) {
-        LOGGER.info("starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
+        LOGGER.info("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
         try {
             workingDir.mkdirs();
             if (OperatingSystem.current().isWindows()) {

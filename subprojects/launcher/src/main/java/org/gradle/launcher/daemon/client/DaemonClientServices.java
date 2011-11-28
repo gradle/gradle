@@ -19,29 +19,26 @@ import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
-import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon client.
  */
 public class DaemonClientServices extends DaemonClientServicesSupport {
-
+    private final List<String> daemonOpts;
     private final int idleTimeout;
     private final ServiceRegistry registryServices;
 
-    public DaemonClientServices(ServiceRegistry loggingServices, DaemonRegistryServices daemonBaseDir) {
-        this(loggingServices, daemonBaseDir, DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT);
+    public DaemonClientServices(ServiceRegistry loggingServices, File daemonBaseDir, List<String> daemonOpts, Integer idleTimeout) {
+        this(loggingServices, new DaemonRegistryServices(daemonBaseDir), daemonOpts, idleTimeout);
     }
 
-    public DaemonClientServices(ServiceRegistry loggingServices, File daemonBaseDir, Integer idleTimeout) {
-        this(loggingServices, new DaemonRegistryServices(daemonBaseDir), idleTimeout);
-    }
-
-    private DaemonClientServices(ServiceRegistry loggingServices, DaemonRegistryServices registryServices, Integer idleTimeout) {
+    private DaemonClientServices(ServiceRegistry loggingServices, DaemonRegistryServices registryServices, List<String> daemonOpts, Integer idleTimeout) {
         super(loggingServices);
+        this.daemonOpts = daemonOpts;
         this.idleTimeout = idleTimeout;
         this.registryServices = registryServices;
         add(registryServices);
@@ -53,7 +50,7 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
     }
 
     public Runnable makeDaemonStarter() {
-        return new DaemonStarter(registryServices.get(DaemonDir.class), idleTimeout);
+        return new DaemonStarter(registryServices.get(DaemonDir.class), daemonOpts, idleTimeout);
     }
 
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {

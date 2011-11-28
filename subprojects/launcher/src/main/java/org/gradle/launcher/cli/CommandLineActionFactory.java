@@ -15,6 +15,8 @@
  */
 package org.gradle.launcher.cli;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import org.gradle.BuildExceptionReporter;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
@@ -129,7 +131,7 @@ public class CommandLineActionFactory {
         Properties mergedSystemProperties = startParameter.getMergedSystemProperties();
         int idleTimeout = DaemonIdleTimeout.calculateFromPropertiesOrUseDefault(mergedSystemProperties);
         File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(mergedSystemProperties, startParameter.getGradleUserHomeDir());
-        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonBaseDir, idleTimeout);
+        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonBaseDir, getDaemonOpts(), idleTimeout);
         DaemonClient client = clientServices.get(DaemonClient.class);
 
         boolean useDaemon = mergedSystemProperties.getProperty("org.gradle.daemon", "false").equals("true");
@@ -149,6 +151,11 @@ public class CommandLineActionFactory {
         }
 
         return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData(), startTime));
+    }
+    
+    private List<String> getDaemonOpts() {
+        String env = System.getenv("GRADLE_DAEMON_OPTS");
+        return Lists.newArrayList(Splitter.onPattern("\\s").omitEmptyStrings().split(env));
     }
 
     private static void showUsage(PrintStream out, CommandLineParser parser) {
