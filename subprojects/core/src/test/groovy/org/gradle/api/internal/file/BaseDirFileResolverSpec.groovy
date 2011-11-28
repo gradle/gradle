@@ -15,19 +15,15 @@
  */
 package org.gradle.api.internal.file
 
-import org.gradle.os.OperatingSystem
-import org.gradle.os.FileSystem
+import org.gradle.os.MyFileSystem
+import org.gradle.util.Requires
 import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.gradle.os.MyFileSystem
-
 class BaseDirFileResolverSpec extends Specification {
     @Rule TemporaryFolder tmpDir = new TemporaryFolder()
-    FileSystem fileSystem = OperatingSystem.current().fileSystem
 
     @Requires(TestPrecondition.SYMLINKS)
     def "normalizes absolute path which points to an absolute link"() {
