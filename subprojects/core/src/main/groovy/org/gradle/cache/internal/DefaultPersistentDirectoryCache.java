@@ -55,7 +55,7 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
             try {
                 boolean valid = determineIfCacheIsValid(cacheUsage, properties, lock);
                 if (!valid) {
-                    // Escalate to exclusive lock and rebuilt the cache
+                    // Escalate to exclusive lock and rebuild the cache
                     lock.writeToFile(new Runnable() {
                         public void run() {
                             buildCacheDir(initAction, lock);
