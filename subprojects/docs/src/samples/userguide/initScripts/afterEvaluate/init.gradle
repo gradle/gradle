@@ -1,5 +1,0 @@
-afterProject { project ->
-	project.repositories {
-		mavenLocal()
-	}
-}

@@ -86,21 +86,24 @@
     </section>
     <section>
         <title>Writing an init script</title>
-        <para>
-            <para>Similar to a Gradle build script, an init script is a groovy script. Each init script has a
-                <apilink class="org.gradle.api.invocation.Gradle"/> instance associated with it. Any property reference
-                and method call in the init script will delegate to this <classname>Gradle</classname> instance.
-            </para>
-            <para>Each init script also implements the <apilink class="org.gradle.api.Script"/> interface.</para>
-            <para>The following sample shows how to perform extra configuration from an init script after each project is evaluated.
+        <para>Similar to a Gradle build script, an init script is a groovy script. Each init script has a
+            <apilink class="org.gradle.api.invocation.Gradle"/> instance associated with it. Any property reference
+            and method call in the init script will delegate to this <classname>Gradle</classname> instance.
+        </para>
+        <para>Each init script also implements the <apilink class="org.gradle.api.Script"/> interface.</para>
+        <section>
+            <title>Configuring projects from an init script</title>
+            <para>You can use an init script to configure the projects in the build. This works in a similar way to configuring projects in a
+                multi-project build.
+                The following sample shows how to perform extra configuration from an init script <emphasis>before</emphasis> the projects are evaluated.
                 This sample uses this feature to configure an extra repository to be used only for certain environments.
             </para>
-            <sample id="afterEvaluateInInitScript" dir="userguide/initScripts/afterEvaluate" title="Using init script to perform extra configuration after project is evaluated">
+            <sample id="initScriptConfiguration" dir="userguide/initScripts/configurationInjection" title="Using init script to perform extra configuration before projects are evaluated">
                 <sourcefile file="build.gradle"/>
                 <sourcefile file="init.gradle"/>
                 <output args="--init-script init.gradle -q showRepos"/>
             </sample>
-        </para>
+        </section>
     </section>
     <section id='sec:custom_classpath'>
         <title>External dependencies for the init script</title>
