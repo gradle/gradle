@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.resolve.ResolveData;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
 
 public interface IvyAdapter {
     ResolveData getResolveData(String configurationName);

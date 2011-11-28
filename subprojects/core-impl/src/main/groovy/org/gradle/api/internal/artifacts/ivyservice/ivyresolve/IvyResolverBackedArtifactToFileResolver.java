@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
@@ -22,6 +22,7 @@ import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +31,9 @@ import java.io.File;
 import java.util.List;
 
 /**
- * An {@link ArtifactToFileResolver} implementation that uses Ivy {@link DependencyResolver} instances from the {@link UserResolverChain} to download the artifact.
+ * An {@link org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver} implementation that uses Ivy {@link DependencyResolver} instances from the {@link UserResolverChain} to download the artifact.
  */
-public class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileResolver {
+class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileResolver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyResolverBackedArtifactToFileResolver.class);
 

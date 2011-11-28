@@ -19,6 +19,7 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DownloadingRepositoryCacheManager;
 
 import java.io.File;
 

@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.UserResolverChain
 
 class DefaultSettingsConverterTest extends Specification {
     final IBiblioResolver testResolver = new IBiblioResolver()

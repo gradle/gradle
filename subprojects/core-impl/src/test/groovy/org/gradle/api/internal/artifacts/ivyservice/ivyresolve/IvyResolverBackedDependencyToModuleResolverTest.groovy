@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.ivy.Ivy
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
@@ -28,6 +28,8 @@ import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.Configuration
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 
 class IvyResolverBackedDependencyToModuleResolverTest extends Specification {
     final DependencyResolver ivyResolver = Mock()

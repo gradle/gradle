@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.ivy.Ivy
 import org.apache.ivy.core.settings.IvySettings
@@ -21,6 +21,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.version.VersionMatcher
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider
+import org.gradle.api.internal.artifacts.ivyservice.IvyFactory
+import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache
 import spock.lang.Specification
 
