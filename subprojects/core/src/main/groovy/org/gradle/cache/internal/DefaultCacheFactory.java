@@ -179,7 +179,10 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
 
         public <K, V> IndexedCacheReference<K, V> getIndexedCache(Serializer<V> serializer) {
             if (indexedCache == null) {
-                BTreePersistentIndexedCache<K, V> indexedCache = new BTreePersistentIndexedCache<K, V>(new File(getCache().getBaseDir(), "cache.bin"), getCache().getLock(), serializer);
+                BTreePersistentIndexedCache<K, V> indexedCache = new BTreePersistentIndexedCache<K, V>(new File(getCache().getBaseDir(), "cache.bin"),
+                        getCache().getLock(),
+                        new DefaultSerializer<K>(),
+                        serializer);
                 this.indexedCache = new IndexedCacheReference<K, V>(indexedCache, this);
             }
             return indexedCache;

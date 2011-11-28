@@ -19,7 +19,6 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
@@ -54,7 +53,7 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
         File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), "artifact-resolution.bin");
         FileLock artifactResolutionCacheLock = cacheLockingManager.getCacheMetadataFileLock(artifactResolutionCacheFile);
         return new BTreePersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry>(artifactResolutionCacheFile, artifactResolutionCacheLock,
-                new DefaultSerializer<ArtifactResolutionCacheEntry>(ArtifactResolutionCacheEntry.class.getClassLoader()));
+                RevisionKey.class, ArtifactResolutionCacheEntry.class);
     }
 
     public CachedArtifactResolution getCachedArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifactId) {
@@ -101,9 +100,6 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
             return buf.toString();
         }
 
-        /**
-         * Currently, BTreePersistentIndexedCache uses hashCode of toString value for lookup.
-         */
         @Override
         public String toString() {
             return resolverId + ":" + artifactId;

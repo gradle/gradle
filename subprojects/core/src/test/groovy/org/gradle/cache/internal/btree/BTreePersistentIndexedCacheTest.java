@@ -41,7 +41,8 @@ import static org.junit.Assert.assertThat;
 public class BTreePersistentIndexedCacheTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
-    private final Serializer<Integer> serializer = new DefaultSerializer<Integer>();
+    private final Serializer<String> stringSerializer = new DefaultSerializer<String>();
+    private final Serializer<Integer> integerSerializer = new DefaultSerializer<Integer>();
     private BTreePersistentIndexedCache<String, Integer> cache;
     private TestFile cacheFile;
     private FileLock fileLock;
@@ -50,7 +51,7 @@ public class BTreePersistentIndexedCacheTest {
     public void setup() {
         cacheFile = tmpDir.file("cache.bin");
         fileLock = new DefaultFileLockManager(new DefaultProcessMetaDataProvider(NativeEnvironment.current())).lock(cacheFile, FileLockManager.LockMode.Exclusive, "cache");
-        cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, fileLock, serializer, (short) 4, 100);
+        cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, fileLock, stringSerializer, integerSerializer, (short) 4, 100);
     }
 
     @After
@@ -123,7 +124,7 @@ public class BTreePersistentIndexedCacheTest {
 
     @Test
     public void reusesEmptySpaceWhenPuttingEntries() {
-        BTreePersistentIndexedCache<String, String> cache = new BTreePersistentIndexedCache<String, String>(cacheFile, fileLock, new DefaultSerializer<String>(), (short) 4, 100);
+        BTreePersistentIndexedCache<String, String> cache = new BTreePersistentIndexedCache<String, String>(cacheFile, fileLock, stringSerializer, stringSerializer, (short) 4, 100);
 
         cache.put("key_1", "abcd");
         cache.put("key_2", "abcd");
@@ -232,7 +233,7 @@ public class BTreePersistentIndexedCacheTest {
         cacheFile.assertIsFile();
         cacheFile.write("some junk");
 
-        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, fileLock, serializer);
+        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, fileLock, stringSerializer, integerSerializer);
 
         assertNull(cache.get("key_1"));
         cache.put("key_1", 99);
@@ -248,7 +249,7 @@ public class BTreePersistentIndexedCacheTest {
 
     @Test
     public void canUseFileAsKey() {
-        BTreePersistentIndexedCache<File, Integer> cache = new BTreePersistentIndexedCache<File, Integer>(cacheFile, fileLock, serializer);
+        BTreePersistentIndexedCache<File, Integer> cache = new BTreePersistentIndexedCache<File, Integer>(cacheFile, fileLock, new DefaultSerializer<File>(), integerSerializer);
 
         cache.put(new File("file"), 1);
         cache.put(new File("dir/file"), 2);
@@ -257,6 +258,17 @@ public class BTreePersistentIndexedCacheTest {
         assertThat(cache.get(new File("file")), equalTo(1));
         assertThat(cache.get(new File("dir/file")), equalTo(2));
         assertThat(cache.get(new File("File")), equalTo(3));
+    }
+
+    @Test
+    public void handlesKeysWithSameHashCode() {
+        String key1 = new String(new byte[]{2, 31});
+        String key2 = new String(new byte[]{1, 62});
+        cache.put(key1, 1);
+        cache.put(key2, 2);
+
+        assertThat(cache.get(key1), equalTo(1));
+        assertThat(cache.get(key2), equalTo(2));
     }
 
     private void checkAdds(Integer... values) {

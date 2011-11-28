@@ -21,7 +21,6 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
@@ -70,7 +69,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), "module-metadata.bin");
         FileLock artifactResolutionCacheLock = cacheLockingManager.getCacheMetadataFileLock(artifactResolutionCacheFile);
         return new BTreePersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry>(artifactResolutionCacheFile, artifactResolutionCacheLock,
-                new DefaultSerializer<ModuleDescriptorCacheEntry>(ModuleDescriptorCacheEntry.class.getClassLoader()));
+                RevisionKey.class, ModuleDescriptorCacheEntry.class);
     }
 
     public CachedModuleDescriptor getCachedModuleDescriptor(DependencyResolver resolver, ModuleRevisionId moduleRevisionId) {
