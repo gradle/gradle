@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.integtests.fixtures.GradleDistribution
@@ -25,8 +26,7 @@ import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import static org.junit.Assert.*
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData
+import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter
@@ -43,7 +43,6 @@ class CacheProjectIntegrationTest {
     TestFile propertiesFile
     TestFile classFile
     TestFile artifactsCache
-    TestFile dependenciesCache
 
     @Before
     public void setUp() {
@@ -58,8 +57,6 @@ class CacheProjectIntegrationTest {
         ScriptSource source = new UriScriptSource("build file", buildFile)
         propertiesFile = userHomeDir.file("caches/$version/scripts/$source.className/ProjectScript/no_buildscript/cache.properties")
         classFile = userHomeDir.file("caches/$version/scripts/$source.className/ProjectScript/no_buildscript/classes/${source.className}.class")
-        def cacheVersion = ArtifactCacheMetaData.CACHE_LAYOUT_VERSION
-        dependenciesCache = userHomeDir.file("caches/artifacts-${cacheVersion}/commons-io/commons-io/")
         artifactsCache = projectDir.file(".gradle/$version/taskArtifacts/cache.bin")
     }
 
@@ -102,11 +99,20 @@ class CacheProjectIntegrationTest {
     public void "does not rebuild artifact cache when run with --cache rebuild"() {
         createLargeBuildScript()
         testBuild("hello1", "Hello 1")
+
+        TestFile dependenciesCache = findDependencyCacheDir()
         assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
 
         modifyLargeBuildScript()
         testBuild("newTask", "I am new", "-Crebuild")
         assert dependenciesCache.isDirectory() && dependenciesCache.listFiles().length > 0
+    }
+
+    private TestFile findDependencyCacheDir() {
+        def cacheVersion = ArtifactCacheMetaData.CACHE_LAYOUT_VERSION
+        // Find the first directory under 'artifacts': it will be the resolver key
+        def resolverArtifactCache = new TestFile(userHomeDir.file("caches/artifacts-${cacheVersion}/artifacts").listFiles().first())
+        return resolverArtifactCache.file("commons-io/commons-io/")
     }
 
     private def testBuild(String taskName, String expected, String... args) {
