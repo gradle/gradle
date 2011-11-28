@@ -21,10 +21,12 @@ import java.io.Serializable;
 
 class ModuleDescriptorCacheEntry implements Serializable {
     public boolean isChanging;
+    public boolean isMissing;
     public long createTimestamp;
 
-    ModuleDescriptorCacheEntry(boolean isChanging, TimeProvider timeProvider) {
+    ModuleDescriptorCacheEntry(boolean isChanging, boolean isMissing, TimeProvider timeProvider) {
         this.isChanging = isChanging;
+        this.isMissing = isMissing;
         this.createTimestamp = timeProvider.getCurrentTime();
     }
 }

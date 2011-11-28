@@ -95,7 +95,61 @@ task retrieve(type: Sync) {
         file('libs/projectB-2.2.jar').assertIsCopyOf(projectB2.jarFile)
     }
 
-    def "uses latest of versions obtained from multiple HTTP repositories"() {
+    def "checks new repositories before returning any cached value"() {
+        server.start()
+
+        given:
+        buildFile << """
+repositories {
+    ivy { url "http://localhost:${server.port}/repo1" }
+}
+
+if (project.hasProperty('addRepo2')) {
+    repositories {
+        ivy { url "http://localhost:${server.port}/repo2" }
+    }
+}
+
+configurations { compile }
+
+dependencies {
+    compile group: "group", name: "projectA", version: "1.+"
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        when:
+        def projectA11 = ivyRepo('repo1').module("group", "projectA", "1.1")
+        projectA11.publish()
+        def projectA12 = ivyRepo('repo2').module("group", "projectA", "1.2")
+        projectA12.publish()
+
+        and: "Server handles requests"
+        serveUpDynamicRevision(projectA11, "/repo1")
+
+        and: "Retrieve with only repo1"
+        run 'retrieve'
+
+        then: "Version 1.1 is used"
+        file('libs').assertHasDescendants('projectA-1.1.jar')
+
+        when: "Server handles requests"
+        server.resetExpectations()
+        serveUpDynamicRevision(projectA12, "/repo2")
+
+        and: "Retrieve with both repos"
+        executer.withArguments("-PaddRepo2")
+        run 'retrieve'
+
+        then: "Version 1.2 is used"
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+    }
+    
+    def "uses and caches latest of versions obtained from multiple HTTP repositories"() {
         server.start()
 
         given:
@@ -112,17 +166,13 @@ dependencies {
     compile group: "group", name: "projectA", version: "1.+"
 }
 
-configurations.all {
-    resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
-}
-
 task retrieve(type: Sync) {
     from configurations.compile
     into 'libs'
 }
 """
 
-        when: "Version 1.1 is published"
+        when: "Versions are published"
         def projectA11 = ivyRepo('repo1').module("group", "projectA", "1.1")
         projectA11.publish()
         def projectA12 = ivyRepo('repo3').module("group", "projectA", "1.2")
@@ -140,6 +190,13 @@ task retrieve(type: Sync) {
 
         then: "Version 1.2 is used"
         file('libs').assertHasDescendants('projectA-1.2.jar')
+        
+        when: "Run again with cached dependencies"
+        server.resetExpectations()
+        def result = run 'retrieve'
+        
+        then: "No server requests, task skipped"
+        result.assertTaskSkipped(':retrieve')
     }
 
     def "caches resolved revisions until cache expiry"() {

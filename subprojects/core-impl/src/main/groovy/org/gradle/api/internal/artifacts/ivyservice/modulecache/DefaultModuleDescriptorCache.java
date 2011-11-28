@@ -81,18 +81,25 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         if (moduleDescriptorCacheEntry == null) {
             return null;
         }
-        ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(resolver, moduleRevisionId, ivySettings);
+        ModuleDescriptor descriptor = null;
+        if (!moduleDescriptorCacheEntry.isMissing) {
+            descriptor = moduleDescriptorStore.getModuleDescriptor(resolver, moduleRevisionId, ivySettings);
+        }
         return new DefaultCachedModuleDescriptor(moduleDescriptorCacheEntry, descriptor, timeProvider);
     }
 
-    public void cacheModuleDescriptor(DependencyResolver resolver, ModuleDescriptor moduleDescriptor, boolean isChanging) {
-        LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), isChanging);
-
-        expireArtifactsForChangingModuleIfRequired(resolver, moduleDescriptor);
-
-        // TODO:DAZ Cache will already be locked, due to prior call to getCachedModuleDescriptor. This locking should be more explicit
-        moduleDescriptorStore.putModuleDescriptor(resolver, moduleDescriptor);
-        getCache().put(createKey(resolver, moduleDescriptor.getModuleRevisionId()), createEntry(isChanging));
+    public void cacheModuleDescriptor(DependencyResolver resolver, ModuleRevisionId moduleRevisionId, ModuleDescriptor moduleDescriptor, boolean isChanging) {
+        if (moduleDescriptor == null) {
+            LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", moduleRevisionId, isChanging);
+            getCache().put(createKey(resolver, moduleRevisionId), createMissingEntry(isChanging));
+        } else {
+            LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), isChanging);
+            expireArtifactsForChangingModuleIfRequired(resolver, moduleDescriptor);
+    
+            // TODO:DAZ Cache will already be locked, due to prior call to getCachedModuleDescriptor. This locking should be more explicit
+            moduleDescriptorStore.putModuleDescriptor(resolver, moduleDescriptor);
+            getCache().put(createKey(resolver, moduleRevisionId), createEntry(isChanging));
+        }
     }
 
     private void expireArtifactsForChangingModuleIfRequired(DependencyResolver resolver, ModuleDescriptor newDescriptor) {
@@ -115,17 +122,21 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         return new RevisionKey(resolver, moduleRevisionId);
     }
 
+    private ModuleDescriptorCacheEntry createMissingEntry(boolean changing) {
+        return new ModuleDescriptorCacheEntry(changing, true, timeProvider);
+    }
+
     private ModuleDescriptorCacheEntry createEntry(boolean changing) {
-        return new ModuleDescriptorCacheEntry(changing, timeProvider);
+        return new ModuleDescriptorCacheEntry(changing, false, timeProvider);
     }
 
     private static class RevisionKey implements Serializable {
         private final String resolverId;
-        private final String artifactId;
+        private final String moduleRevisionId;
 
         private RevisionKey(DependencyResolver resolver, ModuleRevisionId moduleRevisionId) {
             this.resolverId = new WharfResolverMetadata(resolver).getId();
-            this.artifactId = moduleRevisionId.encodeToString();
+            this.moduleRevisionId = moduleRevisionId == null ? null : moduleRevisionId.encodeToString();
         }
 
         @Override
@@ -134,12 +145,12 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
                 return false;
             }
             RevisionKey other = (RevisionKey) o;
-            return resolverId.equals(other.resolverId) && artifactId.equals(other.artifactId);
+            return resolverId.equals(other.resolverId) && moduleRevisionId.equals(other.moduleRevisionId);
         }
 
         @Override
         public int hashCode() {
-            return resolverId.hashCode() ^ artifactId.hashCode();
+            return resolverId.hashCode() ^ moduleRevisionId.hashCode();
         }
     }
 

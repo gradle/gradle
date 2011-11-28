@@ -16,13 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
-import org.jfrog.wharf.ivy.lock.LockHolderFactory
+import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore
 import spock.lang.Specification
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DownloadingRepositoryCacheManager
 
 class IvySettingsFactoryTest extends Specification {
     final File cacheDir = new File('user-dir')
     final ArtifactCacheMetaData cacheMetaData = Mock()
-    final LockHolderFactory lockHolderFactory = Mock()
+    final FileStore fileStore = Mock()
     final IvySettingsFactory factory = new IvySettingsFactory(cacheMetaData, fileStore)
 
     def "creates and configures an IvySettings instance"() {
@@ -33,6 +34,8 @@ class IvySettingsFactoryTest extends Specification {
         def settings = factory.create()
 
         then:
+        settings.defaultRepositoryCacheManager instanceof DownloadingRepositoryCacheManager
+        settings.defaultRepositoryCacheManager.fileStore == fileStore
         settings.defaultCache == new File(cacheDir, 'ivy')
         settings.defaultCacheArtifactPattern == ArtifactRepositoryContainer.DEFAULT_CACHE_ARTIFACT_PATTERN
     }

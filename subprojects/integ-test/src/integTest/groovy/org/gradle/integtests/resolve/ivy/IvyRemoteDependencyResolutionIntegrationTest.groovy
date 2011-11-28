@@ -180,42 +180,99 @@ task listJars << {
         succeeds('listJars')
     }
 
-    public void "reports missing and failed HTTP downloads"() {
+    public void "reports and recovers from missing module"() {
         server.start()
 
         given:
+        def repo = ivyRepo()
+        def module = repo.module('group', 'projectA', '1.2')
+        module.publish()
+        
         buildFile << """
 repositories {
     ivy {
         url "http://localhost:${server.port}"
     }
 }
-configurations { compile }
+configurations { missing }
 dependencies {
-    compile 'group:projectA:1.2'
+    missing 'group:projectA:1.2'
 }
-task show << { println configurations.compile.files }
+if (project.hasProperty('doNotCacheChangingModules')) {
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
+}
+task showMissing << { println configurations.missing.files }
 """
 
         when:
         server.expectGetMissing('/group/projectA/1.2/ivy-1.2.xml')
         server.expectGetMissing('/group/projectA/1.2/projectA-1.2.jar')
-        fails("show")
+        fails("showMissing")
 
         then:
-        failure.assertHasDescription('Execution failed for task \':show\'.')
-        failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+        failure.assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
         failure.assertThatCause(Matchers.containsString('Could not find group:group, module:projectA, version:1.2.'))
 
         when:
-        server.addBroken('/')
-        fails("show")
+        server.resetExpectations() // Missing status is cached
+        fails('showMissing')
 
         then:
-        failure.assertHasDescription('Execution failed for task \':show\'.')
-        failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
-        failure.assertHasCause('Could not resolve group:group, module:projectA, version:1.2')
-        failure.assertHasCause("Could not GET 'http://localhost:${server.port}/group/projectA/1.2/ivy-1.2.xml'. Received status code 500 from server: broken")
+        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+        failure.assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
+        failure.assertThatCause(Matchers.containsString('Could not find group:group, module:projectA, version:1.2.'))
+        
+        when:
+        server.resetExpectations()
+        server.expectGet('/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
+        server.expectGet('/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
+        
+        then:
+        executer.withArguments("-PdoNotCacheChangingModules")
+        succeeds('showMissing')
+    }
+
+    public void "reports and recovers from broken module"() {
+        server.start()
+
+        given:
+        def repo = ivyRepo()
+        def module = repo.module('group', 'projectA', '1.3')
+        module.publish()
+
+        buildFile << """
+repositories {
+    ivy {
+        url "http://localhost:${server.port}"
+    }
+}
+configurations { broken }
+dependencies {
+    broken 'group:projectA:1.3'
+}
+task showBroken << { println configurations.broken.files }
+"""
+
+        when:
+        server.addBroken('/')
+        fails("showBroken")
+
+        then:
+        failure.assertHasDescription('Execution failed for task \':showBroken\'.')
+        failure.assertHasCause('Could not resolve all dependencies for configuration \':broken\'.')
+        failure.assertHasCause('Could not resolve group:group, module:projectA, version:1.3')
+        failure.assertHasCause("Could not GET 'http://localhost:${server.port}/group/projectA/1.3/ivy-1.3.xml'. Received status code 500 from server: broken")
+
+        when:
+        server.resetExpectations()
+        server.expectGet('/group/projectA/1.3/ivy-1.3.xml', module.ivyFile)
+        server.expectGet('/group/projectA/1.3/projectA-1.3.jar', module.jarFile)
+        
+        then:
+        succeeds("showBroken")
     }
 
     public void "caches missing artifacts until changing module cache expiry"() {

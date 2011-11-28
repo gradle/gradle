@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 public interface CachePolicy {
     boolean mustRefreshDynamicVersion(ResolvedModuleVersion version, long ageMillis);
 
-    boolean mustRefreshChangingModule(ResolvedModuleVersion vesion, long ageMillis);
+    boolean mustRefreshChangingModule(ResolvedModuleVersion version, long ageMillis);
     
     boolean mustRefreshMissingArtifact(long ageMillis);
 }

@@ -23,7 +23,6 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ChangingModuleRevision;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -38,16 +37,13 @@ public class MavenResolver extends IBiblioResolver {
 
     @Override
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
-        if (dd.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT")) {
-            // Force resolution with changing flag set
-            DependencyDescriptor changingDescriptor = ForceChangeDependencyDescriptor.forceChangingFlag(dd, true);
+        ResolvedModuleRevision moduleRevision = super.getDependency(dd, data);
 
-            ResolvedModuleRevision changingModule = super.getDependency(changingDescriptor, data);
-
-            // Return a ChangingModuleRevision to indicate that this module is changing
-            return changingModule == null ? null : new ChangingModuleRevision(changingModule);
+        if (moduleRevision != null && dd.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT")) {
+            return new ChangingModuleRevision(moduleRevision);
         }
-        return super.getDependency(dd, data);
+
+        return moduleRevision;
     }
 
     @Override

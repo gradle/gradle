@@ -22,7 +22,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 
 public interface ModuleDescriptorCache extends IvySettingsAware {
-    void cacheModuleDescriptor(DependencyResolver resolver, ModuleDescriptor moduleDescriptor, boolean isChanging);
+    void cacheModuleDescriptor(DependencyResolver resolver, ModuleRevisionId resolvedModuleVersionId, ModuleDescriptor moduleDescriptor, boolean isChanging);
 
     CachedModuleDescriptor getCachedModuleDescriptor(DependencyResolver resolver, ModuleRevisionId moduleId);
 
@@ -34,5 +34,7 @@ public interface ModuleDescriptorCache extends IvySettingsAware {
         boolean isChangingModule();
 
         long getAgeMillis();
+
+        boolean isMissing();
     }
 }
