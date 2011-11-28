@@ -20,6 +20,7 @@ import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.util.GradleVersion;
 import org.gradle.util.Jvm;
 import org.gradle.util.GUtil;
 import org.gradle.api.GradleException;
@@ -66,6 +67,7 @@ public class DaemonStarter implements Runnable {
         daemonArgs.add("-cp");
         daemonArgs.add(GUtil.join(bootstrapClasspath, File.pathSeparator));
         daemonArgs.add(GradleDaemon.class.getName());
+        daemonArgs.add(GradleVersion.current().getVersion());
         daemonArgs.add(daemonDir.getBaseDir().getAbsolutePath());
         daemonArgs.add(String.valueOf(idleTimeout));
 

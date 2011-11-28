@@ -45,14 +45,14 @@ public class DaemonMain extends EntryPoint {
     final private int idleTimeoutMs;
 
     public static void main(String[] args) {
-        if (args.length != 2) {
-            invalidArgs("both arguments are required");
+        if (args.length != 3) {
+            invalidArgs("3 arguments are required: <gradle-version> <daemon-dir> <timeout-millis>");
         }
-        File daemonBaseDir = new File(args[0]);
+        File daemonBaseDir = new File(args[1]);
         
         int idleTimeoutMs = 0;
         try {
-            idleTimeoutMs = Integer.parseInt(args[1]);
+            idleTimeoutMs = Integer.parseInt(args[2]);
         } catch (NumberFormatException e) {
             invalidArgs("Second argument must be a whole number (i.e. daemon idle timeout in ms)");
         }
