@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
- 
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
@@ -85,6 +82,24 @@ class JavaBasePluginTest extends Specification {
         classes instanceof DefaultTask
         Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
         classes.dependsOn.contains project.sourceSets.custom.output.dirs
+    }
+    
+    void tasksReflectChangesToSourceSetConfiguration() {
+        def classesDir = project.file('target/classes')
+        def resourcesDir = project.file('target/resources')
+
+        when:
+        javaBasePlugin.apply(project)
+        project.sourceSets.add('custom')
+        project.sourceSets.custom.output.classesDir = classesDir
+        project.sourceSets.custom.output.resourcesDir = resourcesDir
+
+        then:
+        def processResources = project.tasks['processCustomResources']
+        processResources.destinationDir == resourcesDir
+
+        def compileJava = project.tasks['compileCustomJava']
+        compileJava.destinationDir == classesDir
     }
 
     void createsConfigurationsForNewSourceSet() {
