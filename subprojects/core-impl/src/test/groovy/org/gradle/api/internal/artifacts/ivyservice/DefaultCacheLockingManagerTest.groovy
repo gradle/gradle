@@ -43,114 +43,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         0 * _._
     }
 
-    def "acquires file lock on first call to acquireLock"() {
-        Callable<String> action = Mock()
-        FileLock lock = Mock()
-
-        when:
-        lockingManager.withCacheLock("some operation", action)
-
-        then:
-        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact file $cacheDir", "some operation") >> lock
-        1 * action.call() >> {
-            lockingManager.getLockHolder(cacheDir).acquireLock()
-            lockingManager.getLockHolder(cacheDir).releaseLock()
-        }
-        1 * lock.close()
-        0 * _._
-    }
-
-    def "releases file lock on last call to releaseLock"() {
-        Callable<String> action = Mock()
-        FileLock lock = Mock()
-
-        when:
-        lockingManager.withCacheLock("some operation", action)
-
-        then:
-        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact file $cacheDir", "some operation") >> lock
-        1 * action.call() >> {
-            lockingManager.getLockHolder(cacheDir).acquireLock()
-            lockingManager.getLockHolder(cacheDir).acquireLock()
-            lockingManager.getLockHolder(cacheDir).releaseLock()
-            lockingManager.getLockHolder(cacheDir).releaseLock()
-        }
-        1 * lock.close()
-        0 * _._
-    }
-
-    def "releases all locks when action completes"() {
-        Callable<String> action = Mock()
-        FileLock lock = Mock()
-
-        when:
-        lockingManager.withCacheLock("some operation", action)
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'Some artifact file locks were not released.'
-        
-        and:
-        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact file $cacheDir", "some operation") >> lock
-        1 * action.call() >> {
-            lockingManager.getLockHolder(cacheDir).acquireLock()
-            lockingManager.getLockHolder(cacheDir).acquireLock()
-        }
-        1 * lock.close()
-        0 * _._
-    }
-
-    def "cannot lock file when artifact cache is not locked"() {
-        given:
-        def lockHolder = lockingManager.getLockHolder(tmpDir.file("artifact"))
-
-        when:
-        lockHolder.acquireLock()
-
-        then:
-        thrown(IllegalStateException)
-    }
-
-    def "cannot release lock when already released"() {
-        Callable<String> action = Mock()
-        FileLock lock = Mock()
-
-        when:
-        lockingManager.withCacheLock("some operation", action)
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'Cannot release artifact file lock, as the file is not locked.'
-
-        and:
-        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact file $cacheDir", "some operation") >> lock
-        1 * action.call() >> {
-            lockingManager.getLockHolder(cacheDir).acquireLock()
-            lockingManager.getLockHolder(cacheDir).releaseLock()
-            lockingManager.getLockHolder(cacheDir).releaseLock()
-        }
-        1 * lock.close()
-        0 * _._
-    }
-    
-    def "cannot release lock when not locked"() {
-        Callable<String> action = Mock()
-
-        when:
-        lockingManager.withCacheLock("some operation", action)
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'Cannot release artifact file lock, as the file is not locked.'
-
-        and:
-        1 * action.call() >> {
-            lockingManager.getLockHolder(cacheDir).releaseLock()
-        }
-        0 * _._
-    }
-
-     def "does not lock metadata file until metadata file lock is used"() {
+    def "locks metadata file when metadata file lock is used and releases lock at the end of the action"() {
         Callable<String> action = Mock()
         FileLock lock = Mock()
 
@@ -254,5 +147,4 @@ class DefaultCacheLockingManagerTest extends Specification {
         1 * lock.close()
         0 * _._
     }
-
 }
