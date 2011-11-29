@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.cache.internal.FileAccess;
 import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.LockTimeoutException;
@@ -80,7 +81,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
         new CompositeStoppable().addCloseables(metadataLocks.values()).stop();
     }
 
-    public FileLock getCacheMetadataFileLock(final File metadataFile) {
+    public FileAccess getMetadataFileAccess(final File metadataFile) {
         return new MetadataFileLock(metadataFile);
     }
 
@@ -88,7 +89,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
         lock.lock();
         try {
             if (!locked) {
-                throw new IllegalStateException("Cannot acquire artifact lock, as the artifact cache is not locked by this process.");
+                throw new IllegalStateException("Cannot acquire metadata file lock, as the artifact cache is not locked by this process.");
             }
             FileLock metadataFileLock = metadataLocks.get(metadataFile);
             if (metadataFileLock == null) {
@@ -106,21 +107,11 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
      * Any call to {@link #readFromFile} or {@link #writeToFile} will open the lock, even if it was previously closed. Thus the lock can be used for a long
      * lived persistent cache, as long as all access occurs within a withCacheLock() block.
      */
-    private class MetadataFileLock implements FileLock {
+    private class MetadataFileLock implements FileAccess {
         private final File metadataFile;
 
         public MetadataFileLock(File metadataFile) {
             this.metadataFile = metadataFile;
-        }
-
-        public boolean getUnlockedCleanly() {
-            // TODO Not sure about this
-            return acquireLock().getUnlockedCleanly();
-        }
-
-        public boolean isLockFile(File file) {
-            // TODO Not sure about this
-            return acquireLock().isLockFile(file);
         }
 
         public <T> T readFromFile(Callable<T> action) throws LockTimeoutException {

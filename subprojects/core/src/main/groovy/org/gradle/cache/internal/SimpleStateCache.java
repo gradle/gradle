@@ -24,18 +24,18 @@ import java.io.*;
 import java.util.concurrent.Callable;
 
 public class SimpleStateCache<T> implements PersistentStateCache<T> {
-    private final FileLock lock;
+    private final FileAccess fileAccess;
     private final Serializer<T> serializer;
     private final File cacheFile;
 
-    public SimpleStateCache(File cacheFile, FileLock lock, Serializer<T> serializer) {
+    public SimpleStateCache(File cacheFile, FileAccess fileAccess, Serializer<T> serializer) {
         this.cacheFile = cacheFile;
-        this.lock = lock;
+        this.fileAccess = fileAccess;
         this.serializer = serializer;
     }
 
     public T get() {
-        return lock.readFromFile(new Callable<T>() {
+        return fileAccess.readFromFile(new Callable<T>() {
             public T call() throws Exception {
                 return deserialize();
             }
@@ -43,7 +43,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
     }
 
     public void set(final T newValue) {
-        lock.writeToFile(new Runnable() {
+        fileAccess.writeToFile(new Runnable() {
             public void run() {
                 serialize(newValue);
             }
@@ -51,7 +51,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
     }
 
     public void update(final UpdateAction<T> updateAction) {
-        lock.writeToFile(new Runnable() {
+        fileAccess.writeToFile(new Runnable() {
             public void run() {
                 T oldValue = deserialize();
                 T newValue = updateAction.update(oldValue);

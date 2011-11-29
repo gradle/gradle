@@ -20,7 +20,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.FileLock;
+import org.gradle.cache.internal.FileAccess;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.util.TimeProvider;
 import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
@@ -53,8 +53,8 @@ public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCa
 
     private PersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry> initCache() {
         File dynamicRevisionsFile = new File(cacheMetadata.getCacheDir(), "dynamic-revisions.bin");
-        FileLock dynamicRevisionsLock = cacheLockingManager.getCacheMetadataFileLock(dynamicRevisionsFile);
-        return new BTreePersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry>(dynamicRevisionsFile, dynamicRevisionsLock,
+        FileAccess cacheFileAccess = cacheLockingManager.getMetadataFileAccess(dynamicRevisionsFile);
+        return new BTreePersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry>(dynamicRevisionsFile, cacheFileAccess,
                 RevisionKey.class, ModuleResolutionCacheEntry.class);
     }
 

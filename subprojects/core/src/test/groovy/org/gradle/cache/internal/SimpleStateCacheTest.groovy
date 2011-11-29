@@ -15,18 +15,18 @@
  */
 package org.gradle.cache.internal
 
+import org.gradle.cache.DefaultSerializer
+import org.gradle.cache.PersistentStateCache
 import org.gradle.cache.Serializer
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.cache.DefaultSerializer
-import org.gradle.cache.PersistentStateCache
 
 class SimpleStateCacheTest extends Specification {
     @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
-    final FileLock lock = Mock()
+    final FileAccess fileAccess = Mock()
     final Serializer<String> serializer = new DefaultSerializer<String>()
-    final SimpleStateCache<String> cache = new SimpleStateCache<String>(tmpDir.file("state.bin"), lock, serializer)
+    final SimpleStateCache<String> cache = new SimpleStateCache<String>(tmpDir.file("state.bin"), fileAccess, serializer)
 
     def "returns null when file does not exist"() {
         when:
@@ -34,7 +34,7 @@ class SimpleStateCacheTest extends Specification {
 
         then:
         result == null
-        1 * lock.readFromFile(!null) >> { it[0].call() }
+        1 * fileAccess.readFromFile(!null) >> { it[0].call() }
     }
     
     def "get returns last value written to file"() {
@@ -42,7 +42,7 @@ class SimpleStateCacheTest extends Specification {
         cache.set('some value')
 
         then:
-        1 * lock.writeToFile(!null) >> { it[0].run() }
+        1 * fileAccess.writeToFile(!null) >> { it[0].run() }
         tmpDir.file('state.bin').assertIsFile()
 
         when:
@@ -50,7 +50,7 @@ class SimpleStateCacheTest extends Specification {
 
         then:
         result == 'some value'
-        1 * lock.readFromFile(!null) >> { it[0].call() }
+        1 * fileAccess.readFromFile(!null) >> { it[0].call() }
     }
 
     def "update provides access to cached value"() {
@@ -58,7 +58,7 @@ class SimpleStateCacheTest extends Specification {
         cache.set("foo")
 
         then:
-        1 * lock.writeToFile(!null) >> { it[0].run() }
+        1 * fileAccess.writeToFile(!null) >> { it[0].run() }
 
         when:
         cache.update({ value ->
@@ -67,14 +67,14 @@ class SimpleStateCacheTest extends Specification {
         } as PersistentStateCache.UpdateAction)
 
         then:
-        1 * lock.writeToFile(!null) >> { it[0].run() }
+        1 * fileAccess.writeToFile(!null) >> { it[0].run() }
 
         when:
         def result = cache.get()
 
         then:
         result == "foo bar"
-        1 * lock.readFromFile(!null) >> { it[0].call() }
+        1 * fileAccess.readFromFile(!null) >> { it[0].call() }
     }
 
     def "update does not explode when no existing value"() {
@@ -85,13 +85,13 @@ class SimpleStateCacheTest extends Specification {
         } as PersistentStateCache.UpdateAction)
 
         then:
-        1 * lock.writeToFile(!null) >> { it[0].run() }
+        1 * fileAccess.writeToFile(!null) >> { it[0].run() }
 
         when:
         def result = cache.get()
 
         then:
         result == "bar"
-        1 * lock.readFromFile(!null) >> { it[0].call() }
+        1 * fileAccess.readFromFile(!null) >> { it[0].call() }
     }
 }

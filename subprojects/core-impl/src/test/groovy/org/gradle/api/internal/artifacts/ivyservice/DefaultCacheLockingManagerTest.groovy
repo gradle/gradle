@@ -52,7 +52,7 @@ class DefaultCacheLockingManagerTest extends Specification {
 
         then:
         1 * action.call() >> {
-            lockingManager.getCacheMetadataFileLock(cacheDir)
+            lockingManager.getMetadataFileAccess(cacheDir)
         }
         0 * _._
 
@@ -63,7 +63,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "metadata file ${cacheDir.name}", "use metadata file") >> lock
         1 * lock.writeToFile(_)
         1 * action.call() >> {
-            FileLock metadataLock = lockingManager.getCacheMetadataFileLock(cacheDir)
+            def metadataLock = lockingManager.getMetadataFileAccess(cacheDir)
             metadataLock.writeToFile(Mock(Runnable))
         }
         1 * lock.close()
@@ -82,7 +82,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         2 * lock.writeToFile(_)
         2 * lock.readFromFile(_)
         1 * action.call() >> {
-            FileLock metadataLock = lockingManager.getCacheMetadataFileLock(cacheDir)
+            def metadataLock = lockingManager.getMetadataFileAccess(cacheDir)
             metadataLock.writeToFile(Mock(Runnable))
             metadataLock.writeToFile(Mock(Runnable))
             metadataLock.readFromFile(Mock(Callable))
@@ -97,7 +97,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         FileLock lock = Mock()
 
         when:
-        lockingManager.getCacheMetadataFileLock(new File(cacheDir, "metadata"))
+        lockingManager.getMetadataFileAccess(new File(cacheDir, "metadata"))
 
         then:
         0 * _._
@@ -109,7 +109,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "metadata file ${cacheDir.name}", "use metadata file") >> lock
         1 * lock.writeToFile(_)
         1 * action.call() >> {
-            FileLock metadataLock = lockingManager.getCacheMetadataFileLock(cacheDir)
+            def metadataLock = lockingManager.getMetadataFileAccess(cacheDir)
             metadataLock.writeToFile(Mock(Runnable))
         }
         1 * lock.close()
@@ -121,14 +121,14 @@ class DefaultCacheLockingManagerTest extends Specification {
         FileLock lock = Mock()
 
         when:
-        lockingManager.getCacheMetadataFileLock(new File(cacheDir, "metadata"))
+        lockingManager.getMetadataFileAccess(new File(cacheDir, "metadata"))
         lockingManager.withCacheLock("use metadata file", action)
 
         then:
         1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "metadata file ${cacheDir.name}", "use metadata file") >> lock
         1 * lock.writeToFile(_)
         1 * action.call() >> {
-            FileLock metadataLock = lockingManager.getCacheMetadataFileLock(cacheDir)
+            def metadataLock = lockingManager.getMetadataFileAccess(cacheDir)
             metadataLock.writeToFile(Mock(Runnable))
         }
         1 * lock.close()
@@ -141,7 +141,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "metadata file ${cacheDir.name}", "use metadata file") >> lock
         1 * lock.writeToFile(_)
         1 * action.call() >> {
-            FileLock metadataLock = lockingManager.getCacheMetadataFileLock(cacheDir)
+            def metadataLock = lockingManager.getMetadataFileAccess(cacheDir)
             metadataLock.writeToFile(Mock(Runnable))
         }
         1 * lock.close()

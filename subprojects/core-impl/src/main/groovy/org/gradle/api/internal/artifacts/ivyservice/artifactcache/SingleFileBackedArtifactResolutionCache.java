@@ -20,7 +20,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.FileLock;
+import org.gradle.cache.internal.FileAccess;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.util.TimeProvider;
 import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
@@ -51,8 +51,8 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
     private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> initCache() {
         artifactFileStore = new LinkingArtifactFileStore(new File(cacheMetadata.getCacheDir(), "artifacts"));
         File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), "artifacts.bin");
-        FileLock artifactResolutionCacheLock = cacheLockingManager.getCacheMetadataFileLock(artifactResolutionCacheFile);
-        return new BTreePersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry>(artifactResolutionCacheFile, artifactResolutionCacheLock,
+        FileAccess cacheFileAccess = cacheLockingManager.getMetadataFileAccess(artifactResolutionCacheFile);
+        return new BTreePersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry>(artifactResolutionCacheFile, cacheFileAccess,
                 RevisionKey.class, ArtifactResolutionCacheEntry.class);
     }
 

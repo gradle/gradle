@@ -19,7 +19,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.Serializer;
-import org.gradle.cache.internal.FileLock;
+import org.gradle.cache.internal.FileAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,22 +51,22 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     private final StateCheckBlockStore store;
     private HeaderBlock header;
 
-    public BTreePersistentIndexedCache(File cacheFile, FileLock fileLock, Class<K> keyType, Class<V> valueType) {
-        this(cacheFile, fileLock, new DefaultSerializer<K>(keyType.getClassLoader()), new DefaultSerializer<V>(valueType.getClassLoader()), (short) 512, 512);
+    public BTreePersistentIndexedCache(File cacheFile, FileAccess fileAccess, Class<K> keyType, Class<V> valueType) {
+        this(cacheFile, fileAccess, new DefaultSerializer<K>(keyType.getClassLoader()), new DefaultSerializer<V>(valueType.getClassLoader()), (short) 512, 512);
     }
     
-    public BTreePersistentIndexedCache(File cacheFile, FileLock fileLock, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        this(cacheFile, fileLock, keySerializer, valueSerializer, (short) 512, 512);
+    public BTreePersistentIndexedCache(File cacheFile, FileAccess fileAccess, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        this(cacheFile, fileAccess, keySerializer, valueSerializer, (short) 512, 512);
     }
 
-    public BTreePersistentIndexedCache(File cacheFile, FileLock fileLock, Serializer<K> keySerializer, Serializer<V> valueSerializer,
+    public BTreePersistentIndexedCache(File cacheFile, FileAccess fileAccess, Serializer<K> keySerializer, Serializer<V> valueSerializer,
                                        short maxChildIndexEntries, int maxFreeListEntries) {
         this.cacheFile = cacheFile;
         this.keySerializer = keySerializer;
         this.serializer = valueSerializer;
         this.maxChildIndexEntries = maxChildIndexEntries;
         this.minIndexChildNodes = maxChildIndexEntries / 2;
-        BlockStore cachingStore = new CachingBlockStore(new LockingBlockStore(new FileBackedBlockStore(cacheFile), fileLock), IndexBlock.class, FreeListBlockStore.FreeListBlock.class);
+        BlockStore cachingStore = new CachingBlockStore(new LockingBlockStore(new FileBackedBlockStore(cacheFile), fileAccess), IndexBlock.class, FreeListBlockStore.FreeListBlock.class);
 //        BlockStore cachingStore = new CachingBlockStore(new FileBackedBlockStore(cacheFile), IndexBlock.class, FreeListBlockStore.FreeListBlock.class);
         store = new StateCheckBlockStore(new FreeListBlockStore(cachingStore, maxFreeListEntries));
         try {

@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.FileLock;
+import org.gradle.cache.internal.FileAccess;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.util.TimeProvider;
 import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
@@ -71,8 +71,8 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
 
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> initCache() {
         File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), "module-metadata.bin");
-        FileLock artifactResolutionCacheLock = cacheLockingManager.getCacheMetadataFileLock(artifactResolutionCacheFile);
-        return new BTreePersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry>(artifactResolutionCacheFile, artifactResolutionCacheLock,
+        FileAccess cacheFileAccess = cacheLockingManager.getMetadataFileAccess(artifactResolutionCacheFile);
+        return new BTreePersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry>(artifactResolutionCacheFile, cacheFileAccess,
                 RevisionKey.class, ModuleDescriptorCacheEntry.class);
     }
 
