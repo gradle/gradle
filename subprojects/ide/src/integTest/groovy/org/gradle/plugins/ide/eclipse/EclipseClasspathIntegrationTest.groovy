@@ -434,7 +434,7 @@ apply plugin: 'eclipse'
     }
 
     @Test
-    void CanAccessXmlModelBeforeAndAfterGeneration() {
+    void canAccessXmlModelBeforeAndAfterGeneration() {
         //given
         def classpath = getClasspathFile([:])
         classpath << '''<?xml version="1.0" encoding="UTF-8"?>
