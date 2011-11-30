@@ -17,14 +17,8 @@ package org.gradle.cache.internal.btree;
 
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.Serializer;
-import org.gradle.cache.internal.DefaultFileLockManager;
-import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
-import org.gradle.cache.internal.FileLock;
-import org.gradle.cache.internal.FileLockManager;
-import org.gradle.os.jna.NativeEnvironment;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,18 +39,11 @@ public class BTreePersistentIndexedCacheTest {
     private final Serializer<Integer> integerSerializer = new DefaultSerializer<Integer>();
     private BTreePersistentIndexedCache<String, Integer> cache;
     private TestFile cacheFile;
-    private FileLock fileLock;
 
     @Before
     public void setup() {
         cacheFile = tmpDir.file("cache.bin");
-        fileLock = new DefaultFileLockManager(new DefaultProcessMetaDataProvider(NativeEnvironment.current())).lock(cacheFile, FileLockManager.LockMode.Exclusive, "cache");
-        cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, fileLock, stringSerializer, integerSerializer, (short) 4, 100);
-    }
-
-    @After
-    public void cleanup() {
-        fileLock.close();
+        cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, stringSerializer, integerSerializer, (short) 4, 100);
     }
 
     @Test
@@ -124,7 +111,7 @@ public class BTreePersistentIndexedCacheTest {
 
     @Test
     public void reusesEmptySpaceWhenPuttingEntries() {
-        BTreePersistentIndexedCache<String, String> cache = new BTreePersistentIndexedCache<String, String>(cacheFile, fileLock, stringSerializer, stringSerializer, (short) 4, 100);
+        BTreePersistentIndexedCache<String, String> cache = new BTreePersistentIndexedCache<String, String>(cacheFile, stringSerializer, stringSerializer, (short) 4, 100);
 
         cache.put("key_1", "abcd");
         cache.put("key_2", "abcd");
@@ -233,7 +220,7 @@ public class BTreePersistentIndexedCacheTest {
         cacheFile.assertIsFile();
         cacheFile.write("some junk");
 
-        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, fileLock, stringSerializer, integerSerializer);
+        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, stringSerializer, integerSerializer);
 
         assertNull(cache.get("key_1"));
         cache.put("key_1", 99);
@@ -249,7 +236,7 @@ public class BTreePersistentIndexedCacheTest {
 
     @Test
     public void canUseFileAsKey() {
-        BTreePersistentIndexedCache<File, Integer> cache = new BTreePersistentIndexedCache<File, Integer>(cacheFile, fileLock, new DefaultSerializer<File>(), integerSerializer);
+        BTreePersistentIndexedCache<File, Integer> cache = new BTreePersistentIndexedCache<File, Integer>(cacheFile, new DefaultSerializer<File>(), integerSerializer);
 
         cache.put(new File("file"), 1);
         cache.put(new File("dir/file"), 2);

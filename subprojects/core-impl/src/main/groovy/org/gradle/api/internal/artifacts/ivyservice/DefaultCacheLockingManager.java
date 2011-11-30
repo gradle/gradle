@@ -33,7 +33,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
     private String operationDisplayName;
 
     public DefaultCacheLockingManager(FileLockManager fileLockManager, ArtifactCacheMetaData metaData) {
-        this.cacheManager = new UnitOfWorkCacheManager("artifact cache", metaData.getCacheDir(), fileLockManager);
+        this.cacheManager = new UnitOfWorkCacheManager(String.format("artifact cache '%s'", metaData.getCacheDir()), metaData.getCacheDir(), fileLockManager);
     }
 
     public <T> T withCacheLock(String operationDisplayName, Callable<? extends T> action) {

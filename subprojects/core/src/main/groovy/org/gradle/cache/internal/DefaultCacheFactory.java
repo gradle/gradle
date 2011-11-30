@@ -179,11 +179,16 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
 
         public <K, V> IndexedCacheReference<K, V> getIndexedCache(Serializer<V> serializer) {
             if (indexedCache == null) {
-                BTreePersistentIndexedCache<K, V> indexedCache = new BTreePersistentIndexedCache<K, V>(new File(getCache().getBaseDir(), "cache.bin"),
-                        getCache().getLock(),
+                final BTreePersistentIndexedCache<K, V> indexedCache = new BTreePersistentIndexedCache<K, V>(new File(getCache().getBaseDir(), "cache.bin"),
                         new DefaultSerializer<K>(),
                         serializer);
-                this.indexedCache = new IndexedCacheReference<K, V>(indexedCache, this);
+                Factory<BTreePersistentIndexedCache<K, V>> cacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
+                    public BTreePersistentIndexedCache<K, V> create() {
+                        return indexedCache;
+                    }
+                };
+                MultiProcessSafePersistentIndexedCache<K, V> safeCache = new MultiProcessSafePersistentIndexedCache<K, V>(cacheFactory, getCache().getLock());
+                this.indexedCache = new IndexedCacheReference<K, V>(safeCache, this);
             }
             return indexedCache;
         }
@@ -203,8 +208,8 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
         }
     }
 
-    private class IndexedCacheReference<K, V> extends NestedCacheReference<BTreePersistentIndexedCache<K, V>> {
-        private IndexedCacheReference(BTreePersistentIndexedCache<K, V> cache, DirCacheReference backingCache) {
+    private class IndexedCacheReference<K, V> extends NestedCacheReference<MultiProcessSafePersistentIndexedCache<K, V>> {
+        private IndexedCacheReference(MultiProcessSafePersistentIndexedCache<K, V> cache, DirCacheReference backingCache) {
             super(cache, backingCache);
         }
 

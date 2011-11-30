@@ -53,7 +53,7 @@ public class UnitOfWorkCacheManager implements UnitOfWorkParticipant {
     }
 
     <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(final File cacheFile, final Class<K> keyType, final Class<V> valueType) {
-        return new BTreePersistentIndexedCache<K, V>(cacheFile, fileAccess, keyType, valueType);
+        return new BTreePersistentIndexedCache<K, V>(cacheFile, keyType, valueType);
     }
 
     public void onStartWork() {

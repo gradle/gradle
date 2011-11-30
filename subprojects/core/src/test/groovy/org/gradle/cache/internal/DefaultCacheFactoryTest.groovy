@@ -19,7 +19,6 @@ import org.gradle.CacheUsage
 import org.gradle.api.Action
 import org.gradle.cache.DefaultSerializer
 import org.gradle.cache.internal.CacheFactory.CrossVersionMode
-import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
@@ -77,7 +76,7 @@ class DefaultCacheFactoryTest extends Specification {
         def cache = factory.openIndexedCache(tmpDir.dir, CacheUsage.ON, [prop: 'value'], FileLockManager.LockMode.Exclusive, CrossVersionMode.VersionSpecific, new DefaultSerializer())
 
         then:
-        cache instanceof BTreePersistentIndexedCache
+        cache instanceof MultiProcessSafePersistentIndexedCache
     }
 
     public void "creates state cache instance"() {
