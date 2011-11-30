@@ -26,6 +26,9 @@ import org.apache.ivy.plugins.repository.*;
 import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.url.ApacheURLLister;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.repositories.transport.HttpProxySettings;
+import org.gradle.api.internal.artifacts.repositories.transport.HttpSettings;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.UncheckedException;
@@ -46,13 +49,16 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonsHttpClientBackedRepository.class);
     private final Map<String, Resource> resources = new HashMap<String, Resource>();
     private final HttpClient client = new HttpClient();
+    private final HttpProxySettings proxySettings;
     private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
 
-    public CommonsHttpClientBackedRepository(String username, String password) {
-        if (GUtil.isTrue(username)) {
+    public CommonsHttpClientBackedRepository(HttpSettings httpSettings) {
+        PasswordCredentials credentials = httpSettings.getCredentials();
+        if (GUtil.isTrue(credentials.getUsername())) {
             client.getParams().setAuthenticationPreemptive(true);
-            client.getState().setCredentials(new AuthScope(null, -1, null), new UsernamePasswordCredentials(username, password));
+            client.getState().setCredentials(new AuthScope(null, -1, null), new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword()));
         }
+        this.proxySettings = httpSettings.getProxySettings();
     }
 
     public Resource getResource(final String source) throws IOException {
@@ -131,7 +137,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         PutMethod method = new PutMethod(destination);
         configureMethod(method);
         method.setRequestEntity(new FileRequestEntity(source));
-        int result = client.executeMethod(method);
+        int result = executeMethod(method);
         if (!wasSuccessful(result)) {
             throw new IOException(String.format("Could not PUT '%s'. Received status code %s from server: %s", destination, result, method.getStatusText()));
         }
@@ -144,6 +150,22 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
                 return false;
             }
         });
+    }
+
+    private int executeMethod(HttpMethod method) throws IOException {
+        configureProxyIfRequired(method);
+        return client.executeMethod(method);
+    }
+
+    private void configureProxyIfRequired(HttpMethod method) throws URIException {
+        if (proxySettings.isProxyConfigured(method.getURI().getHost())) {
+            // Only set proxy host once
+            if (client.getHostConfiguration().getProxyHost() == null) {
+                client.getHostConfiguration().setProxy(proxySettings.getProxyHost(), proxySettings.getProxyPort());
+            }
+        } else {
+            client.getHostConfiguration().setProxyHost(null);
+        }
     }
 
     public List list(String parent) throws IOException {
@@ -183,7 +205,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
 
         private Resource init() throws IOException {
             LOGGER.info("Attempting to GET resource {}.", source);
-            int result = client.executeMethod(method);
+            int result = executeMethod(method);
             if (result == 404) {
                 LOGGER.debug("Resource missing: {}.", source);
                 return new MissingResource(source);

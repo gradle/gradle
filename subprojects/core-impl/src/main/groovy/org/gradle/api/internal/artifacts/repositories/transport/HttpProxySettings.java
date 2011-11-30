@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
-import org.gradle.api.internal.artifacts.repositories.transport.HttpSettings;
-
-public class CommonsHttpClientResolver extends RepositoryResolver {
-    public CommonsHttpClientResolver(HttpSettings httpSettings) {
-        setRepository(new CommonsHttpClientBackedRepository(httpSettings));
-    }
+public interface HttpProxySettings {
+    boolean isProxyConfigured(String host);
+    
+    String getProxyHost();
+    
+    int getProxyPort();
 }

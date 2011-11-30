@@ -21,6 +21,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.transport.DefaultHttpSettings;
+import org.gradle.api.internal.artifacts.repositories.transport.HttpSettings;
 import org.gradle.api.internal.file.FileResolver;
 
 import java.io.File;
@@ -92,8 +94,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                 resolver.addArtifactUrl(getFilePath(repoUrl));
             }
         } else {
-            PasswordCredentials credentials = getCredentials();
-            resolver.setRepository(new CommonsHttpClientBackedRepository(credentials.getUsername(), credentials.getPassword()));
+            HttpSettings httpSettings = new DefaultHttpSettings(getCredentials());
+            resolver.setRepository(new CommonsHttpClientBackedRepository(httpSettings));
             resolver.setRoot(getUriPath(rootUri));
 
             Collection<URI> artifactUrls = getArtifactUrls();

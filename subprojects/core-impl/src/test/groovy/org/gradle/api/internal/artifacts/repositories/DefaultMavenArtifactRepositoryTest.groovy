@@ -51,7 +51,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("http://localhost:9090/repo")
         _ * resolver.resolveUri('repo-dir') >> uri
-        1 * credentials.getUsername() >> 'username'
+        2 * credentials.getUsername() >> 'username'
         1 * credentials.getPassword() >> 'password'
         0 * _._
 
