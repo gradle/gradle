@@ -22,6 +22,7 @@ import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.api.internal.Factory
 
 class DefaultCacheLockingManagerTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -85,8 +86,8 @@ class DefaultCacheLockingManagerTest extends Specification {
             def metadataLock = lockingManager.getMetadataFileAccess(cacheDir)
             metadataLock.writeToFile(Mock(Runnable))
             metadataLock.writeToFile(Mock(Runnable))
-            metadataLock.readFromFile(Mock(Callable))
-            metadataLock.readFromFile(Mock(Callable))
+            metadataLock.readFromFile(Mock(Factory))
+            metadataLock.readFromFile(Mock(Factory))
         }
         1 * lock.close()
         0 * _._

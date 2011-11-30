@@ -16,13 +16,13 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.api.internal.Factory
 import org.gradle.cache.internal.FileLockManager.LockMode
+import org.gradle.os.OperatingSystem
 import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.util.TestFile
-import java.util.concurrent.Callable
-import org.gradle.os.OperatingSystem
 
 /**
  * @author: Szczepan Faber, created at: 8/30/11
@@ -175,7 +175,7 @@ class DefaultFileLockManagerTest extends Specification {
         lock.close()
 
         when:
-        lock.readFromFile({} as Callable)
+        lock.readFromFile({} as Factory)
 
         then:
         thrown(IllegalStateException)

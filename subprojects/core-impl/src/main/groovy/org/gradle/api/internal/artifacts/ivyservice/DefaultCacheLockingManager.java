@@ -15,10 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.cache.internal.FileAccess;
-import org.gradle.cache.internal.FileLock;
-import org.gradle.cache.internal.FileLockManager;
-import org.gradle.cache.internal.LockTimeoutException;
+import org.gradle.api.internal.Factory;
+import org.gradle.cache.internal.*;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.util.UncheckedException;
 
@@ -107,22 +105,20 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
      * Any call to {@link #readFromFile} or {@link #writeToFile} will open the lock, even if it was previously closed. Thus the lock can be used for a long
      * lived persistent cache, as long as all access occurs within a withCacheLock() block.
      */
-    private class MetadataFileLock implements FileAccess {
+    private class MetadataFileLock extends AbstractFileAccess {
         private final File metadataFile;
 
         public MetadataFileLock(File metadataFile) {
             this.metadataFile = metadataFile;
         }
 
-        public <T> T readFromFile(Callable<T> action) throws LockTimeoutException {
+        @Override
+        public <T> T readFromFile(Factory<T> action) throws LockTimeoutException {
             return acquireLock().readFromFile(action);
         }
 
         public void writeToFile(Runnable action) throws LockTimeoutException {
             acquireLock().writeToFile(action);
-        }
-
-        public void close() {
         }
 
         private FileLock acquireLock() {

@@ -15,18 +15,18 @@
  */
 package org.gradle.cache.internal
 
-import spock.lang.Specification
-import java.util.concurrent.Callable
+import org.gradle.api.internal.Factory
 import org.gradle.cache.internal.FileLockManager.LockMode
+import spock.lang.Specification
 
-class OnDemandFileLockTest extends Specification {
+class OnDemandFileAccessTest extends Specification {
     final FileLockManager manager = Mock()
     final FileLock targetLock = Mock()
     final File file = new File("some-target-file")
-    final OnDemandFileLock lock = new OnDemandFileLock(file, "some-lock", manager)
+    final OnDemandFileAccess lock = new OnDemandFileAccess(file, "some-lock", manager)
 
     def "acquires shared lock to read file"() {
-        def action = {} as Callable
+        def action = {} as Factory
 
         when:
         lock.readFromFile(action)

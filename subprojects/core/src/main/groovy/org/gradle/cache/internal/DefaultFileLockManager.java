@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
@@ -68,7 +69,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
     }
 
-    private class DefaultFileLock implements FileLock {
+    private class DefaultFileLock extends AbstractFileAccess implements FileLock {
         private final File lockFile;
         private final File target;
         private final LockMode mode;
@@ -121,13 +122,9 @@ public class DefaultFileLockManager implements FileLockManager {
             });
         }
 
-        public <T> T readFromFile(Callable<T> action) throws LockTimeoutException {
+        public <T> T readFromFile(Factory<T> action) throws LockTimeoutException {
             assertOpen();
-            try {
-                return action.call();
-            } catch (Exception e) {
-                throw UncheckedException.asUncheckedException(e);
-            }
+            return action.create();
         }
 
         public void writeToFile(Runnable action) {

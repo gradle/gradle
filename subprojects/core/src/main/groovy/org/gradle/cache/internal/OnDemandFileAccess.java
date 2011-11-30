@@ -15,29 +15,22 @@
  */
 package org.gradle.cache.internal;
 
-import java.io.File;
-import java.util.concurrent.Callable;
+import org.gradle.api.internal.Factory;
 
-public class OnDemandFileLock implements FileLock {
+import java.io.File;
+
+public class OnDemandFileAccess extends AbstractFileAccess {
     private final String displayName;
     private final FileLockManager manager;
     private final File targetFile;
 
-    public OnDemandFileLock(File targetFile, String displayName, FileLockManager manager) {
+    public OnDemandFileAccess(File targetFile, String displayName, FileLockManager manager) {
         this.targetFile = targetFile;
         this.displayName = displayName;
         this.manager = manager;
     }
 
-    public boolean getUnlockedCleanly() {
-        throw new UnsupportedOperationException();
-    }
-
-    public boolean isLockFile(File file) {
-        throw new UnsupportedOperationException();
-    }
-
-    public <T> T readFromFile(Callable<T> action) throws LockTimeoutException {
+    public <T> T readFromFile(Factory<T> action) throws LockTimeoutException {
         FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Shared, displayName);
         try {
             return lock.readFromFile(action);
@@ -53,8 +46,5 @@ public class OnDemandFileLock implements FileLock {
         } finally {
             lock.close();
         }
-    }
-
-    public void close() {
     }
 }

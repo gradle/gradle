@@ -34,7 +34,7 @@ class SimpleStateCacheTest extends Specification {
 
         then:
         result == null
-        1 * fileAccess.readFromFile(!null) >> { it[0].call() }
+        1 * fileAccess.readFromFile(!null) >> { it[0].create() }
     }
     
     def "get returns last value written to file"() {
@@ -50,7 +50,7 @@ class SimpleStateCacheTest extends Specification {
 
         then:
         result == 'some value'
-        1 * fileAccess.readFromFile(!null) >> { it[0].call() }
+        1 * fileAccess.readFromFile(!null) >> { it[0].create() }
     }
 
     def "update provides access to cached value"() {
@@ -74,7 +74,7 @@ class SimpleStateCacheTest extends Specification {
 
         then:
         result == "foo bar"
-        1 * fileAccess.readFromFile(!null) >> { it[0].call() }
+        1 * fileAccess.readFromFile(!null) >> { it[0].create() }
     }
 
     def "update does not explode when no existing value"() {
@@ -92,6 +92,6 @@ class SimpleStateCacheTest extends Specification {
 
         then:
         result == "bar"
-        1 * fileAccess.readFromFile(!null) >> { it[0].call() }
+        1 * fileAccess.readFromFile(!null) >> { it[0].create() }
     }
 }

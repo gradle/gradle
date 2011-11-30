@@ -17,15 +17,14 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.*;
-import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 public class InMemoryCacheFactory implements CacheFactory {
     public PersistentCache openStore(File storeDir, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Action<? super PersistentCache> initializer) throws CacheOpenException {
@@ -50,21 +49,9 @@ public class InMemoryCacheFactory implements CacheFactory {
         return new SimpleStateCache<E>(new File(cacheDir, "state.bin"), new NoOpFileLock(), new DefaultSerializer<E>());
     }
 
-    private static class NoOpFileLock implements FileLock {
-        public boolean getUnlockedCleanly() {
-            return true;
-        }
-
-        public boolean isLockFile(File file) {
-            return false;
-        }
-
-        public <T> T readFromFile(Callable<T> action) throws LockTimeoutException {
-            try {
-                return action.call();
-            } catch (Exception e) {
-                throw UncheckedException.asUncheckedException(e);
-            }
+    private static class NoOpFileLock extends AbstractFileAccess {
+        public <T> T readFromFile(Factory<T> action) throws LockTimeoutException {
+            return action.create();
         }
 
         public void writeToFile(Runnable action) throws LockTimeoutException {

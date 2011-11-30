@@ -17,11 +17,11 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.Factory;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.Serializer;
 
 import java.io.*;
-import java.util.concurrent.Callable;
 
 public class SimpleStateCache<T> implements PersistentStateCache<T> {
     private final FileAccess fileAccess;
@@ -35,8 +35,8 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
     }
 
     public T get() {
-        return fileAccess.readFromFile(new Callable<T>() {
-            public T call() throws Exception {
+        return fileAccess.readFromFile(new Factory<T>() {
+            public T create() {
                 return deserialize();
             }
         });
