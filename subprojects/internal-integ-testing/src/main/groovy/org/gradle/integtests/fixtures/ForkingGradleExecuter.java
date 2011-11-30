@@ -102,7 +102,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.environment("GRADLE_HOME", "");
         builder.environment("JAVA_HOME", getJavaHome());
         builder.environment("GRADLE_OPTS", formatGradleOpts());
-        builder.environment(getEnvironmentVars());
+        builder.environment(getAllEnvironmentVars());
         builder.workingDir(getWorkingDir());
         builder.setStandardInput(getStdin());
 

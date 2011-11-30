@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TestFile;
 import org.junit.rules.MethodRule;
@@ -34,7 +33,7 @@ import java.util.List;
  * By default, this executer will execute Gradle in a forked process. There is a system property which enables executing
  * Gradle in the current process.
  */
-public class GradleDistributionExecuter extends AbstractGradleExecuter implements MethodRule {
+public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter implements MethodRule {
     private static final String IGNORE_SYS_PROP = "org.gradle.integtest.ignore";
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
 
@@ -104,10 +103,6 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         return base;
     }
 
-    public DaemonRegistry getDaemonRegistry() {
-        return configureExecuter().getDaemonRegistry();
-    }
-
     @Override
     public GradleExecuter reset() {
         super.reset();
@@ -132,22 +127,12 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         return this;
     }
 
-    @Override
-    protected ExecutionResult doRun() {
-        return checkResult(configureExecuter().run());
-    }
-
-    @Override
-    protected ExecutionFailure doRunWithFailure() {
-        return checkResult(configureExecuter().runWithFailure());
-    }
-
     public GradleDistributionExecuter withDeprecationChecksDisabled() {
         deprecationChecksOn = false;
         return this;
     }
 
-    private <T extends ExecutionResult> T checkResult(T result) {
+    protected <T extends ExecutionResult> T checkResult(T result) {
         // Assert that nothing unexpected was logged
         result.assertOutputHasNoStackTraces();
         result.assertErrorHasNoStackTraces();
@@ -178,11 +163,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         return result;
     }
 
-    public GradleHandle createHandle() {
-        return configureExecuter().createHandle();
-    }
-
-    private GradleExecuter configureExecuter() {
+    protected GradleExecuter configureExecuter() {
         if (!workingDirSet) {
             inDirectory(dist.getTestDir());
         }

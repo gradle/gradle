@@ -94,7 +94,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         executer.withTasks(tasks);
         executer.withArguments(args);
-        executer.withEnvironmentVars(environmentVars);
+        executer.withEnvironmentVars(getAllEnvironmentVars());
         executer.usingExecutable(executable);
         if (quiet) {
             executer.withQuietLogging();
@@ -225,6 +225,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             environmentVars.put(entry.getKey(), entry.getValue().toString());
         }
         return this;
+    }
+
+    protected Map<String, String> getAllEnvironmentVars() {
+        return environmentVars;
     }
 
     public Map<String, String> getEnvironmentVars() {
