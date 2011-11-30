@@ -15,8 +15,8 @@
  */
 package org.gradle.util
 
-import org.gradle.os.MyFileSystem
 import org.gradle.os.OperatingSystem
+import org.gradle.os.FileSystems
 
 enum TestPrecondition {
     SWING({
@@ -26,10 +26,10 @@ enum TestPrecondition {
         !UNSUPPORTED_OS.fulfilled
     }),
     SYMLINKS({
-        MyFileSystem.current().canCreateSymbolicLink()
+        FileSystems.default.canCreateSymbolicLink()
     }),
     CASE_INSENSITIVE_FS({
-        !MyFileSystem.current().caseSensitive
+        !FileSystems.default.caseSensitive
     }),
     FILE_PERMISSIONS({
         MAC_OS_X.fulfilled || LINUX.fulfilled
@@ -42,6 +42,9 @@ enum TestPrecondition {
     }),
     PROCESS_ID({
         !UNSUPPORTED_OS.fulfilled
+    }),
+    NO_FILE_LOCK_ON_OPEN({
+        !FileSystems.default.locksFileOnOpen
     }),
     WINDOWS({
         OperatingSystem.current().windows

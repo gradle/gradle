@@ -17,11 +17,13 @@
 package org.gradle.integtests.environment
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
-import org.junit.Test
-import spock.lang.Issue
 import org.gradle.os.OperatingSystem
 import org.gradle.testing.AvailableJavaHomes
 import org.gradle.util.Jvm
+import org.gradle.os.FileSystems
+
+import org.junit.Test
+import spock.lang.Issue
 
 /**
  * @author: Szczepan Faber, created at: 8/11/11
@@ -38,7 +40,7 @@ assert file('.') == new File(new URI('${projectDir.toURI()}'))
         File relativeDir = new File(distribution.testDir, 'java/multiproject/../quickstart')
         executer.inDirectory(relativeDir).run()
 
-        if (!OperatingSystem.current().fileSystem.caseSensitive) {
+        if (!FileSystems.default.caseSensitive) {
             File mixedCaseDir = new File(distribution.testDir, "JAVA/QuickStart")
             executer.inDirectory(mixedCaseDir).run()
         }

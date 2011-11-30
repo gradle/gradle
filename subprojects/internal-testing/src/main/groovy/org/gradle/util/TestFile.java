@@ -26,7 +26,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DeleteAction;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
-import org.gradle.os.MyFileSystem;
+import org.gradle.os.FileSystems;
 import org.gradle.os.OperatingSystem;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.DefaultExecAction;
@@ -243,7 +243,7 @@ public class TestFile extends File implements TestFileContext {
     public TestFile linkTo(File target) {
         getParentFile().createDir();
         try {
-            MyFileSystem.current().createSymbolicLink(getAbsoluteFile(), target);
+            FileSystems.getDefault().createSymbolicLink(getAbsoluteFile(), target);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

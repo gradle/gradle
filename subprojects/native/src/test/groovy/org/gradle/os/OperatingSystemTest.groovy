@@ -54,14 +54,6 @@ class OperatingSystemTest extends Specification {
         !os.macOsX
     }
 
-    def "windows has case insensitive file system"() {
-        def os = new OperatingSystem.Windows()
-
-        expect:
-        !os.fileSystem.caseSensitive
-        !os.fileSystem.symlinkAware
-    }
-
     def "windows transforms script names"() {
         def os = new OperatingSystem.Windows()
 
@@ -117,14 +109,6 @@ class OperatingSystemTest extends Specification {
         !os.windows
         os.unix
         os.macOsX
-    }
-
-    def "Mac OS X has case insensitive file system"() {
-        def os = new OperatingSystem.MacOs()
-
-        expect:
-        !os.fileSystem.caseSensitive
-        os.fileSystem.symlinkAware
     }
 
     def "uses os.name property to determine if solaris"() {
@@ -186,14 +170,6 @@ class OperatingSystemTest extends Specification {
         expect:
         os.findInPath("a") == exe
         os.findInPath("unknown") == null
-    }
-
-    def "UNIX has case sensitive file system"() {
-        def os = new OperatingSystem.Unix()
-
-        expect:
-        os.fileSystem.caseSensitive
-        os.fileSystem.symlinkAware
     }
 
     def "solaris uses prefix of x86 for 32bit intel"() {

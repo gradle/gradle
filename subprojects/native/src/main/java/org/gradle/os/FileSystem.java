@@ -15,10 +15,59 @@
  */
 package org.gradle.os;
 
+import java.io.File;
+import java.io.IOException;
+
+/**
+ * A file system accessible to Gradle.
+ */
 public interface FileSystem {
+    /**
+     * Tells whether the file system is case sensitive.
+     *
+     * @return <tt>true</tt> if the file system is case sensitive, <tt>false</tt> otherwise
+     */
     boolean isCaseSensitive();
 
-    boolean isSymlinkAware();
+    /**
+     * Tells if the file system can resolve symbolic links. If the answer cannot be determined reliably,
+     * <tt>true</tt> is returned.
+     *
+     * @return <tt>true</tt> if the file system can resolve symbolic links, <tt>false</tt> otherwise
+     */
+    boolean canResolveSymbolicLink();
 
-    boolean getImplicitlyLocksFileOnOpen();
+    /**
+     * Tells if the file system can create symbolic links. If the answer cannot be determined accurately,
+     * <tt>false</tt> is returned.
+     *
+     * @return <tt>true</tt> if the file system can create symbolic links, <tt>false</tt> otherwise
+     */
+    boolean canCreateSymbolicLink();
+
+    /**
+     * Tells whether the file system implicitly locks a file when it is opened.
+     *
+     * @return <tt>true</tt> if the file system implicitly locks a file when it is opened, <tt>false</tt> otherwise
+     */
+    boolean getLocksFileOnOpen();
+
+    /**
+     * Creates a symbolic link to a target file.
+     *
+     *
+     * @param link the link to be created
+     * @param target the file to link to
+     * @exception java.io.IOException if the operation fails
+     */
+    void createSymbolicLink(File link, File target) throws IOException;
+
+    /**
+     * Tries to create a symbolic link to a target file.
+     *
+     * @param link the link to be created
+     * @param target the file to link to
+     * @return <tt>true</tt> if the operation was successful, <tt>false</tt> otherwise
+     */
+    boolean tryCreateSymbolicLink(File link, File target);
 }

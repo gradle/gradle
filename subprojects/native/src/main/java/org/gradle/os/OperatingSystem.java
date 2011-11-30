@@ -73,8 +73,6 @@ public abstract class OperatingSystem {
         return false;
     }
 
-    public abstract FileSystem getFileSystem();
-
     public abstract String getNativePrefix();
 
     public abstract String getScriptName(String scriptPath);
@@ -113,13 +111,6 @@ public abstract class OperatingSystem {
     }
 
     static class Windows extends OperatingSystem {
-        private static final FileSystem FILE_SYSTEM = new WindowsFileSystem();
-
-        @Override
-        public FileSystem getFileSystem() {
-            return FILE_SYSTEM;
-        }
-
         @Override
         public boolean isWindows() {
             return true;
@@ -152,8 +143,6 @@ public abstract class OperatingSystem {
     }
 
     static class Unix extends OperatingSystem {
-        private static final FileSystem FILE_SYSTEM = new UnixFileSystem();
-
         @Override
         public String getScriptName(String scriptPath) {
             return scriptPath;
@@ -162,11 +151,6 @@ public abstract class OperatingSystem {
         @Override
         public String getExecutableName(String executablePath) {
             return executablePath;
-        }
-
-        @Override
-        public FileSystem getFileSystem() {
-            return FILE_SYSTEM;
         }
 
         @Override
@@ -206,13 +190,6 @@ public abstract class OperatingSystem {
     }
 
     static class MacOs extends Unix {
-        private static final FileSystem FILE_SYSTEM = new MacFileSystem();
-
-        @Override
-        public FileSystem getFileSystem() {
-            return FILE_SYSTEM;
-        }
-
         @Override
         public boolean isMacOsX() {
             return true;
@@ -245,42 +222,6 @@ public abstract class OperatingSystem {
                 return "x86";
             }
             return super.getArch();
-        }
-    }
-
-    static class UnixFileSystem implements FileSystem {
-        public boolean isCaseSensitive() {
-            return true;
-        }
-
-        public boolean isSymlinkAware() {
-            return true;
-        }
-
-        public boolean getImplicitlyLocksFileOnOpen() {
-            return false;
-        }
-    }
-
-    static class MacFileSystem extends UnixFileSystem {
-        @Override
-        public boolean isCaseSensitive() {
-            return false;
-        }
-    }
-
-    static class WindowsFileSystem implements FileSystem {
-        public boolean isCaseSensitive() {
-            return false;
-        }
-
-        public boolean isSymlinkAware() {
-            // Not strictly true - Vista and later can handle symlinks. But not every user (most users?) don't have permission to create them.
-            return false;
-        }
-
-        public boolean getImplicitlyLocksFileOnOpen() {
-            return true;
         }
     }
 }

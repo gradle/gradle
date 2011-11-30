@@ -27,7 +27,7 @@ import org.gradle.util.Requires
 import org.gradle.util.AntUtil
 import org.gradle.util.TestFile
 import org.gradle.os.OperatingSystem
-import org.gradle.os.MyFileSystem
+import org.gradle.os.FileSystems
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -111,7 +111,7 @@ public class CommandLineIntegrationTest {
             binary = new File("/bin/$command")
         }
         assert binary.exists()
-        MyFileSystem.current().createSymbolicLink(binDir.file(command), binary.absoluteFile)
+        FileSystems.default.createSymbolicLink(binDir.file(command), binary.absoluteFile)
     }
 
     @Test
@@ -184,7 +184,7 @@ public class CommandLineIntegrationTest {
     public void resolvesLinksWhenDeterminingHomeDirectory() {
         def script = dist.testFile('bin/my app')
         script.parentFile.createDir()
-        MyFileSystem.current().createSymbolicLink(script, dist.gradleHomeDir.file('bin/gradle'))
+        FileSystems.default.createSymbolicLink(script, dist.gradleHomeDir.file('bin/gradle'))
 
         def result = executer.usingExecutable(script.absolutePath).withTasks("help").run()
         assert result.output.contains("my app")

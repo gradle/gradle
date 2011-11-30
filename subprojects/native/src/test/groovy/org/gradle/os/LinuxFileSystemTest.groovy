@@ -20,8 +20,8 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.LINUX)
-class MyLinuxFileSystemTest extends Specification {
-    def fs = MyFileSystem.current()
+class LinuxFileSystemTest extends Specification {
+    def fs = FileSystems.default
 
     def "is case sensitive"() {
         expect:

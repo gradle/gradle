@@ -20,8 +20,8 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.WINDOWS)
-class MyWindowsFileSystemTest extends Specification {
-    def fs = MyFileSystem.current()
+class WindowsFileSystemTest extends Specification {
+    def fs = FileSystems.default
 
     def "is case insensitive"() {
         expect:

@@ -22,7 +22,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.os.OperatingSystem;
+import org.gradle.os.FileSystems;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -62,7 +62,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         try {
             assert file.isAbsolute() : String.format("Cannot normalize a relative file: '%s'", file);
 
-            if (!OperatingSystem.current().getFileSystem().isSymlinkAware()) {
+            if (FileSystems.getDefault().canResolveSymbolicLink()) {
                 return file.getCanonicalFile();
             }
 
@@ -84,7 +84,7 @@ public abstract class AbstractFileResolver implements FileResolver {
                 resolvedPath = File.separator + resolvedPath;
             }
             File candidate = new File(resolvedPath);
-            if (OperatingSystem.current().getFileSystem().isCaseSensitive()) {
+            if (FileSystems.getDefault().isCaseSensitive()) {
                 return candidate;
             }
 
@@ -189,7 +189,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         for (File file : File.listRoots()) {
             String rootPath = file.getAbsolutePath();
             String normalisedStr = str;
-            if (!OperatingSystem.current().getFileSystem().isCaseSensitive()) {
+            if (!FileSystems.getDefault().isCaseSensitive()) {
                 rootPath = rootPath.toLowerCase();
                 normalisedStr = normalisedStr.toLowerCase();
             }

@@ -20,8 +20,8 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.MAC_OS_X)
-class MyMacOsFileSystemTest extends Specification {
-    def fs = MyFileSystem.current()
+class MacOsFileSystemTest extends Specification {
+    def fs = FileSystems.default
 
     def "is not case sensitive"() {
         expect:

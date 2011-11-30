@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.file
 
-import org.gradle.os.MyFileSystem
 import org.gradle.util.Requires
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
+import org.gradle.os.FileSystems
+
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -29,22 +30,22 @@ class BaseDirFileResolverSpec extends Specification {
     def "normalizes absolute path which points to an absolute link"() {
         def target = createFile(new File(tmpDir.dir, 'target.txt'))
         def file = new File(tmpDir.dir, 'a/other.txt')
-        link(target, file)
+        createLink(file, target)
         assert file.exists() && file.file
 
         expect:
-        normalize(file) == file
+        normalize(file) == target
     }
 
     @Requires(TestPrecondition.SYMLINKS)
     def "normalizes absolute path which points to a relative link"() {
-        createFile(new File(tmpDir.dir, 'target.txt'))
+        def target = createFile(new File(tmpDir.dir, 'target.txt'))
         def file = new File(tmpDir.dir, 'a/other.txt')
-        link('../target.txt', file)
+        createLink(file, '../target.txt')
         assert file.exists() && file.file
 
         expect:
-        normalize(file) == file
+        normalize(file) == target
     }
 
     @Requires(TestPrecondition.CASE_INSENSITIVE_FS)
@@ -58,21 +59,21 @@ class BaseDirFileResolverSpec extends Specification {
     }
 
     @Requires([TestPrecondition.SYMLINKS, TestPrecondition.CASE_INSENSITIVE_FS])
-    def "normalizes absolute path which points to a link using mismatched case"() {
+    def "normalizes absolute path which points to a target using mismatched case"() {
         def target = createFile(new File(tmpDir.dir, 'target.txt'))
         def file = new File(tmpDir.dir, 'dir/file.txt')
-        link(target, file)
+        createLink(file, target)
         def path = new File(tmpDir.dir, 'dir/FILE.txt')
         assert path.exists() && path.file
 
         expect:
-        normalize(path) == file
+        normalize(path) == target
     }
 
     @Requires(TestPrecondition.SYMLINKS)
     def "normalizes path which points to a link to something that does not exist"() {
         def file = new File(tmpDir.dir, 'a/other.txt')
-        link('unknown.txt', file)
+        createLink(file, 'unknown.txt')
         assert !file.exists() && !file.file
 
         expect:
@@ -83,11 +84,11 @@ class BaseDirFileResolverSpec extends Specification {
     def "normalizes path when ancestor is an absolute link"() {
         def target = createFile(new File(tmpDir.dir, 'target/file.txt'))
         def file = new File(tmpDir.dir, 'a/b/file.txt')
-        link(target.parentFile, file.parentFile)
+        createLink(file.parentFile, target.parentFile)
         assert file.exists() && file.file
 
         expect:
-        normalize(file) == file
+        normalize(file) == target
     }
 
     @Requires(TestPrecondition.CASE_INSENSITIVE_FS)
@@ -130,12 +131,12 @@ class BaseDirFileResolverSpec extends Specification {
     def "normalizes relative path when base dir is a link"() {
         def target = createFile(new File(tmpDir.dir, 'target/file.txt'))
         def baseDir = new File(tmpDir.dir, 'base')
-        link("target", baseDir)
+        createLink(baseDir, "target")
         def file = new File(baseDir, 'file.txt')
         assert file.exists() && file.file
 
         expect:
-        normalize('file.txt', baseDir) == file
+        normalize('file.txt', baseDir) == target
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -173,22 +174,22 @@ class BaseDirFileResolverSpec extends Specification {
         normalize("../../..", root) == root
     }
 
-    def link(File target, File file) {
-        file.parentFile.mkdirs()
-        MyFileSystem.current().createSymbolicLink(file, target)
+    def createLink(File link, File target) {
+        link.parentFile.mkdirs()
+        FileSystems.default.createSymbolicLink(link, target)
     }
 
-    def link(String target, File file) {
-        link(new File(target), file)
+    def createLink(File link, String target) {
+        createLink(link, new File(target))
     }
 
     def createFile(File file) {
         file.parentFile.mkdirs()
         file.text = 'content'
-        return file
+        file
     }
 
     def normalize(Object path, File baseDir = tmpDir.dir) {
-        return new BaseDirFileResolver(baseDir).resolve(path)
+        new BaseDirFileResolver(baseDir).resolve(path)
     }
 }
