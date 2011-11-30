@@ -84,9 +84,9 @@ class GenericFileSystem implements FileSystem {
         return UUID.randomUUID().toString();
     }
 
-    private File createFile(String secret) throws IOException {
+    private File createFile(String content) throws IOException {
         File file = File.createTempFile("gradle_fs_probing", null, null);
-        Files.write(secret, file, Charsets.UTF_8);
+        Files.write(content, file, Charsets.UTF_8);
         return file;
     }
 
