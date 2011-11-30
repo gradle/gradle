@@ -17,33 +17,16 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ChangingModuleRevision;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MavenResolver extends IBiblioResolver {
     public MavenResolver() {
-        setChangingPattern(null);
         setDescriptor(BasicResolver.DESCRIPTOR_OPTIONAL);
         setM2compatible(true);
-    }
-
-    @Override
-    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
-        ResolvedModuleRevision moduleRevision = super.getDependency(dd, data);
-
-        if (moduleRevision != null && dd.getDependencyRevisionId().getRevision().endsWith("SNAPSHOT")) {
-            return new ChangingModuleRevision(moduleRevision);
-        }
-
-        return moduleRevision;
     }
 
     @Override

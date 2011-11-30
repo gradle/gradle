@@ -26,7 +26,6 @@ import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ChangingModuleRevision;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
@@ -233,7 +232,6 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
                 return false;
             }
 
-            // TODO:DAZ Cache non-existence of module in resolver and use here to avoid lookup
             ModuleRevisionId resolvedModuleVersionId = resolvedDependencyDescriptor.getDependencyRevisionId();
             ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(resolver, resolvedModuleVersionId);
             if (cachedModuleDescriptor == null) {
@@ -273,7 +271,7 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
                     moduleDescriptorCache.cacheModuleDescriptor(resolver, resolvedDependencyDescriptor.getDependencyRevisionId(), null, requestedDependencyDescriptor.isChanging());
                 } else {
                     moduleResolutionCache.cacheModuleResolution(resolver, requestedDependencyDescriptor.getDependencyRevisionId(), resolvedModule.getId());
-                    moduleDescriptorCache.cacheModuleDescriptor(resolver, resolvedModule.getId(), resolvedModule.getDescriptor(), isChangingModule(requestedDependencyDescriptor, resolvedModule));
+                    moduleDescriptorCache.cacheModuleDescriptor(resolver, resolvedModule.getId(), resolvedModule.getDescriptor(), isChangingDependency(requestedDependencyDescriptor, resolvedModule));
                 }
             } catch (ParseException e) {
                 throw new RuntimeException(e);
@@ -292,8 +290,13 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
             return resolvedModule.getId().getRevision();
         }
 
-        private boolean isChangingModule(DependencyDescriptor descriptor, ResolvedModuleRevision downloadedModule) {
-            return descriptor.isChanging() || downloadedModule instanceof ChangingModuleRevision;
+        private boolean isChangingDependency(DependencyDescriptor descriptor, ResolvedModuleRevision downloadedModule) {
+            if (descriptor.isChanging()) {
+                return true;
+            }
+
+            ChangingModuleDetector detector = new ChangingModuleDetector(getSettings());
+            return detector.isChangingModule(resolver, downloadedModule, resolveData);
         }
 
         private boolean bypassCache() {

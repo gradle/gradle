@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.cache.*;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
@@ -46,9 +45,6 @@ import java.text.ParseException;
  * A cache manager for remote repositories, that downloads files and stores them in the FileStore provided.
  */
 public class DownloadingRepositoryCacheManager implements RepositoryCacheManager, IvySettingsAware {
-    private static final String DEFAULT_ARTIFACT_PATTERN =
-            "[organisation]/[module](/[branch])/[revision]/[type]/[artifact]-[revision](-[classifier])(.[ext])";
-
     private final String name;
     private final FileStore fileStore;
     private IvySettings settings;
@@ -126,10 +122,6 @@ public class DownloadingRepositoryCacheManager implements RepositoryCacheManager
             listener.endArtifactDownload(this, artifact, adr, adr.getLocalFile());
         }
         return adr;
-    }
-
-    public String getArchivePathInCache(Artifact artifact) {
-        return IvyPatternHelper.substitute(DEFAULT_ARTIFACT_PATTERN, artifact);
     }
 
     public ResolvedModuleRevision cacheModuleDescriptor(DependencyResolver resolver, final ResolvedResource mdRef, DependencyDescriptor dd, Artifact moduleArtifact, ResourceDownloader downloader, CacheMetadataOptions options)
