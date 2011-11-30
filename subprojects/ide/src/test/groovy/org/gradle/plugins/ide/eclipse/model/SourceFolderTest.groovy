@@ -63,7 +63,7 @@ class SourceFolderTest extends Specification {
         return folder
     }
 
-    def "honors dir in equality"() {
+    def "ignores null dir in equality"() {
         given:
         def one = createSourceFolder()
         def two = createSourceFolder()
@@ -71,11 +71,12 @@ class SourceFolderTest extends Specification {
         two == one
 
         when:
+        one.dir = null
         two.dir = new File('.')
 
         then:
-        one != two
-        two != one
+        one == two
+        two == one
     }
 
     def "trims path"() {

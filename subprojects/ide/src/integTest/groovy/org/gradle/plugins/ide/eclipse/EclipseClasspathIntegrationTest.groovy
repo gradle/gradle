@@ -408,6 +408,31 @@ dependencies {
         libraries[0].assertHasJar(file('newDependency.jar'))
     }
 
+    @Issue('GRADLE-1953')
+    @Test
+    void "can construct and reconstruct classpath from java sourcesets"() {
+        given:
+        def buildFile = file("build.gradle") << """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+"""
+        createJavaSourceDirs(buildFile)
+
+        when:
+        executer.usingBuildScript(buildFile).withTasks('eclipseClasspath').run()
+
+        then:
+        assert classpath.entries.size() == 4
+        assert classpath.sources.size() == 2
+
+        when:
+        executer.usingBuildScript(buildFile).withTasks('eclipseClasspath').run()
+
+        then:
+        assert classpath.entries.size() == 4
+        assert classpath.sources.size() == 2
+    }
+
     @Test
     void "can access xml model before and after generation"() {
         //given

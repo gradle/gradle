@@ -51,6 +51,10 @@ class EclipseClasspathFixture {
         return getClasspath().classpathentry.findAll { it.@kind == 'con' }.collect { it.@path }
     }
 
+    List<String> getSources() {
+        return getClasspath().classpathentry.findAll{ it.@kind == 'src' && !it.@path.startsWith('/') }.collect { it.@path }
+    }
+
     List<String> getProjects() {
         return getClasspath().classpathentry.findAll { it.@kind == 'src' && it.@path.startsWith('/') }.collect { it.@path }
     }
