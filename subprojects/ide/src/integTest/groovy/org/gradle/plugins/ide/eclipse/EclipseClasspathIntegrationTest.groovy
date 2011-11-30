@@ -31,7 +31,7 @@ class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
     String content
 
     @Test
-    void "classpath contains library entries for external and file dependencies"() {
+    void classpathContainsLibraryEntriesForExternalAndFileDependencies() {
         //given
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
         module.artifact(classifier: 'sources')
@@ -73,7 +73,7 @@ dependencies {
 
     @Test
     @Issue("GRADLE-1622")
-    void "classpath contains entries for dependencies that only differ by classifier"() {
+    void classpathContainsEntriesForDependenciesThatOnlyDifferByClassifier() {
         given:
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
         module.artifact(classifier: 'extra')
@@ -111,7 +111,7 @@ dependencies {
     }
 
     @Test
-    void "substitutes path variables into library paths"() {
+    void substituesPathVariablesIntoLibraryPaths() {
         //given
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
         module.artifact(classifier: 'sources')
@@ -149,7 +149,7 @@ eclipse {
     }
 
     @Test
-    void "can customise the classpath model"() {
+    void canCustomizeTheClasspathModel() {
         //when
         runEclipseTask """
 apply plugin: 'java'
@@ -206,7 +206,7 @@ eclipse {
 
     @Test
     @Issue("GRADLE-1487")
-    void "handles plus minus configurations for self resolving deps"() {
+    void handlesPlusMinusConfigurationsForSelfResolvingDeps() {
         //when
         runEclipseTask """
 apply plugin: 'java'
@@ -236,7 +236,7 @@ eclipse.classpath {
     }
 
     @Test
-    void "handles plus minus configurations for project deps"() {
+    void handlesPlusMinusConfigurationsForProjectDeps() {
         //when
         runEclipseTask "include 'foo', 'bar', 'unwanted'",
                 """
@@ -268,7 +268,7 @@ eclipse.classpath {
     }
 
     @Test
-    void "handles plus minus configurations for external deps"() {
+    void handlesPlusMinusConfigurationsForExternalDeps() {
         //given
         def jar = mavenRepo.module('coolGroup', 'coolArtifact', '1.0').dependsOn('coolGroup', 'unwantedArtifact', '1.0').publish().artifactFile
         mavenRepo.module('coolGroup', 'unwantedArtifact', '1.0').publish()
@@ -305,7 +305,7 @@ eclipse.classpath {
     }
 
     @Test
-    void "can toggle javadoc and sources on"() {
+    void canToggleJavadocAndSourcesOn() {
         //given
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
         module.artifact(classifier: 'sources')
@@ -343,7 +343,7 @@ eclipse.classpath {
     }
 
     @Test
-    void "can toggle javadoc and sources off"() {
+    void canToggleJavadocAndSourcesOff() {
         //given
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
         module.artifact(classifier: 'sources')
@@ -379,7 +379,7 @@ eclipse.classpath {
     }
 
     @Test
-    void "removes dependencies from existing classpath file when merging"() {
+    void removeDependenciesFromExistingClasspathFileWhenMerging() {
         //given
         getClasspathFile() << '''<?xml version="1.0" encoding="UTF-8"?>
 <classpath>
@@ -410,7 +410,7 @@ dependencies {
 
     @Issue('GRADLE-1953')
     @Test
-    void "can construct and reconstruct classpath from java sourcesets"() {
+    void canConstructAndReconstructClasspathFromJavaSourceSets() {
         given:
         def buildFile = file("build.gradle") << """
 apply plugin: 'java'
@@ -434,7 +434,7 @@ apply plugin: 'eclipse'
     }
 
     @Test
-    void "can access xml model before and after generation"() {
+    void CanAccessXmlModelBeforeAndAfterGeneration() {
         //given
         def classpath = getClasspathFile([:])
         classpath << '''<?xml version="1.0" encoding="UTF-8"?>
@@ -488,7 +488,7 @@ eclipseClasspath.doLast() {
 
     @Issue("GRADLE-1502")
     @Test
-    void "creates linked resources for source directories which are not under the project directory"() {
+    void createsLinkedResourcesForSourceDirectoriesWhichAreNotUnderTheProjectDirectory() {
         file('someGroovySrc').mkdirs()
 
         def settingsFile = file('settings.gradle')
@@ -526,7 +526,7 @@ project(':api') {
 
     @Issue("GRADLE-1402")
     @Test
-    void "should put sourceSet's output dir on classpath"() {
+    void shouldNotPutSourceSetsOutputDirOnClasspath() {
         testFile('build/generated/main/prod.resource').createFile()
         testFile('build/generated/test/test.resource').createFile()
 
@@ -564,7 +564,7 @@ task generateForTest << {}
 
     @Test
     @Issue("GRADLE-1613")
-    void "should allow setting non-exported configurations"() {
+    void shouldAllowSettingNonExportedConfigurations() {
         //when
         runEclipseTask """
 apply plugin: 'java'
@@ -597,7 +597,7 @@ eclipse {
     }
 
     @Test
-    void "does not break when some dependencies cannot be resolved"() {
+    void doesNotBreakWhenSomeDependenciesCannotBeResolved() {
         //given
         def repoJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0').publish().artifactFile
         def localJar = file('someDependency.jar').createFile()

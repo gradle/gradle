@@ -101,7 +101,7 @@ idea {
     }
 
     @Test
-    void "plus minus configurations work fine for self resolving file dependencies"() {
+    void plusMinusConfigurationsWorkFineForSelfResolvingFileDependencies() {
         //when
         runTask 'idea', '''
 apply plugin: "java"
@@ -178,7 +178,7 @@ idea {
 
     @Issue("GRADLE-1504")
     @Test
-    void "should put sourceSet's output dir on classpath"() {
+    void shouldNotPutSourceSetsOutputDirOnClasspath() {
         testFile('build/generated/main/foo.resource').createFile()
         testFile('build/ws/test/service.xml').createFile()
 
@@ -218,7 +218,7 @@ task generateForTest << {}
     }
 
     @Test
-    void "enables toggling javadoc and sources off"() {
+    void enablesTogglingJavadocAndSourcesOff() {
         //given
         def repoDir = file("repo")
         def module = maven(repoDir).module("coolGroup", "niceArtifact")
@@ -252,7 +252,7 @@ idea.module {
     }
 
     @Test
-    void "does not break when some dependencies cannot be resolved"() {
+    void doesNotBreakWhenSomeDependenciesCannotBeResolved() {
         //given
         def repoDir = file("repo")
         maven(repoDir).module("groupOne", "artifactTwo").publish()
