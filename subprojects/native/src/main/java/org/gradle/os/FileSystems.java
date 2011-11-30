@@ -16,6 +16,8 @@
 package org.gradle.os;
 
 public abstract class FileSystems {
+    private static final FileSystem DEFAULT = new GenericFileSystem();
+    
     /**
      * Returns the default file system. The default file system is defined as the file system
      * that holds the <tt>java.io.tmpdir</tt> directory.
@@ -23,6 +25,6 @@ public abstract class FileSystems {
      * @return the default file system
      */
     public static FileSystem getDefault() {
-        return new DefaultFileSystem();
+        return DEFAULT;
     }
 }

@@ -28,8 +28,8 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.UUID;
 
-class DefaultFileSystem implements FileSystem {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileSystem.class);
+class GenericFileSystem implements FileSystem {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GenericFileSystem.class);
 
     final boolean caseSensitive;
     final boolean canResolveSymbolicLink;
@@ -64,7 +64,7 @@ class DefaultFileSystem implements FileSystem {
         return PosixUtil.current().symlink(target.getPath(), link.getPath()) == 0;
     }
 
-    DefaultFileSystem() {
+    GenericFileSystem() {
         String content = generateUniqueContent();
         File file = null;
         try {
