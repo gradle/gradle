@@ -154,14 +154,23 @@ class UserGuideSamplesRunner extends Runner {
     }
 
     List<String> normaliseOutput(List<String> lines) {
-        lines.inject(new ArrayList<String>()) { List values, String line ->
+        if (lines.empty) {
+            return lines;
+        }
+        List<String> result = new ArrayList<String>()
+        int pos = 0
+        if (lines[0] == 'Note: the Gradle build daemon is an experimental feature.' && lines[1] == 'As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.') {
+            pos = 2
+        }
+        for (int i = pos; i < lines.size(); i++) {
+            String line =  lines.get(i);
             if (line.matches('Download .+')) {
                 // ignore
             } else {
-                values << line
+                result << line
             }
-            values
         }
+        return result
     }
 
     boolean compare(String expected, String actual) {
