@@ -68,6 +68,7 @@ class GenericFileSystem implements FileSystem {
         String content = generateUniqueContent();
         File file = null;
         try {
+            checkJavaIoTmpDirExists();
             file = createFile(content);
             caseSensitive = probeCaseSensitive(file, content);
             canResolveSymbolicLink = probeCanResolveSymbolicLink(file, content);
@@ -85,7 +86,6 @@ class GenericFileSystem implements FileSystem {
     }
 
     private File createFile(String content) throws IOException {
-        checkJavaIoTmpDirExists();
         File file = File.createTempFile("gradle_fs_probing", null, null);
         Files.write(content, file, Charsets.UTF_8);
         return file;
@@ -154,14 +154,13 @@ class GenericFileSystem implements FileSystem {
     }
 
     private File generateUniqueTempFileName() throws IOException {
-        checkJavaIoTmpDirExists();
         return new File(System.getProperty("java.io.tmpdir"), "gradle_unique_file_name" + UUID.randomUUID().toString());
     }
     
     private void checkJavaIoTmpDirExists() throws IOException {
         File dir = new File(System.getProperty("java.io.tmpdir"));
         if (!dir.exists()) {
-            throw new IOException("java.io.tmpdir doesn't exist: " + dir);
+            throw new IOException("java.io.tmpdir is set to a directory that doesn't exist: " + dir);
         }
     }
 }
