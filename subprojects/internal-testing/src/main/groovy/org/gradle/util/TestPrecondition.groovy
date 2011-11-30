@@ -44,7 +44,7 @@ enum TestPrecondition {
         !UNKNOWN_OS.fulfilled
     }),
     NO_FILE_LOCK_ON_OPEN({
-        !WINDOWS.fulfilled
+        MAC_OS_X.fulfilled || LINUX.fulfilled
     }),
     WINDOWS({
         OperatingSystem.current().windows
