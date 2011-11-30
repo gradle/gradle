@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
-abstract public class OutputScrapingGradleHandle<T extends GradleExecuter> implements GradleHandle<T> {
+abstract public class OutputScrapingGradleHandle implements GradleHandle {
 
     protected ExecutionResult toExecutionResult(String output, String error) {
         return new OutputScrapingExecutionResult(transformStandardOutput(output), transformErrorOutput(error));

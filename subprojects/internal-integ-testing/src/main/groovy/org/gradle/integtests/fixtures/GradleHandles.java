@@ -15,60 +15,39 @@
  */
 package org.gradle.integtests.fixtures;
 
+import groovy.lang.Closure;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.util.List;
-import java.util.LinkedList;
-
-import groovy.lang.Closure;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GradleHandles implements MethodRule {
+    private GradleDistributionExecuter executer;
+    private final List<GradleHandle> createdHandles = new CopyOnWriteArrayList<GradleHandle>();
 
-    private final GradleDistribution distribution;
-    private final GradleDistributionExecuter executer;
-
-    private final List<GradleHandle<? extends ForkingGradleExecuter>> createdHandles = new LinkedList<GradleHandle<? extends ForkingGradleExecuter>>();
-
-    public GradleHandles() {
-        this(new GradleDistribution());
-    }
-
-    public GradleHandles(GradleDistribution distribution) {
-        this.distribution = distribution;
-        this.executer = new GradleDistributionExecuter(GradleDistributionExecuter.Executer.forking, distribution);
-    }
-
-    public GradleDistributionExecuter getExecuter() {
-        return this.executer;
-    }
-
-    public List<GradleHandle<? extends ForkingGradleExecuter>> getCreatedHandles() {
-        return new LinkedList<GradleHandle<? extends ForkingGradleExecuter>>(createdHandles);
-    }
-
-    public GradleHandle<? extends ForkingGradleExecuter> createHandle() {
-        GradleHandle<? extends ForkingGradleExecuter> handle = executer.createHandle();
+    public GradleHandle createHandle() {
+        GradleHandle handle = executer.createHandle();
         createdHandles.add(handle);
         return handle;
     }
 
-    public GradleHandle<? extends ForkingGradleExecuter> createHandle(Closure executerConfig) {
-        GradleHandle<? extends ForkingGradleExecuter> handle = createHandle();
+    public GradleHandle createHandle(Closure executerConfig) {
+        GradleHandle handle = createHandle();
         executerConfig.setDelegate(handle.getExecuter());
         executerConfig.call(handle.getExecuter());
         return handle;
     }
 
     public DaemonRegistry getDaemonRegistry() {
-        return getExecuter().getDaemonRegistry();
+        return executer.getDaemonRegistry();
     }
 
-    public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
-        return distribution.apply(executer.apply(base, method, target), method, target);
+    public Statement apply(Statement base, FrameworkMethod method, final Object target) {
+        executer = RuleHelper.getField(target, GradleDistributionExecuter.class);
+        return base;
     }
 
 }

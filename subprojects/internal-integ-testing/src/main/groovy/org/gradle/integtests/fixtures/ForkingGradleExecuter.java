@@ -17,17 +17,17 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.StartParameter;
-import org.gradle.os.OperatingSystem;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.CommandLineParserFactory;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.gradle.launcher.daemon.registry.DaemonDir;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
+import org.gradle.os.OperatingSystem;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleState;
-import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.util.TestFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,8 +116,8 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         return builder;
     }
 
-    public GradleHandle<? extends ForkingGradleExecuter> createHandle() {
-        return new ForkingGradleHandle<ForkingGradleExecuter>(this);
+    public GradleHandle createHandle() {
+        return new ForkingGradleHandle(this);
     }
 
     protected ExecutionResult doRun() {
@@ -192,10 +192,10 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    protected static class ForkingGradleHandle<T extends ForkingGradleExecuter> extends OutputScrapingGradleHandle<T> {
+    protected static class ForkingGradleHandle extends OutputScrapingGradleHandle {
         private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleHandle.class);
 
-        final private T executer;
+        final private ForkingGradleExecuter executer;
         private boolean passthrough;
 
         private class MultiplexingOutputStream extends OutputStream {
@@ -222,15 +222,15 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
         private ExecHandle execHandle;
 
-        public ForkingGradleHandle(T executer) {
+        public ForkingGradleHandle(ForkingGradleExecuter executer) {
             this.executer = executer;
         }
 
-        public T getExecuter() {
+        public ForkingGradleExecuter getExecuter() {
             return executer;
         }
 
-        public GradleHandle<T> passthroughOutput() {
+        public GradleHandle passthroughOutput() {
             passthrough = true;
             return this;
         }
@@ -243,17 +243,17 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             return errorOutput.toString();
         }
 
-        public GradleHandle<T> setStandardInput(InputStream inputStream) {
+        public GradleHandle setStandardInput(InputStream inputStream) {
             this.inputStream = inputStream;
             return this;
         }
 
-        public GradleHandle<T> start() {
+        public GradleHandle start() {
             createExecHandle().start();
             return this;
         }
 
-        public GradleHandle<T> abort() {
+        public GradleHandle abort() {
             getExecHandle().abort();
             return this;
         }

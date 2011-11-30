@@ -38,7 +38,7 @@ public abstract class DaemonIdleTimeout {
         }
     }
 
-    public static String toCliArg(Integer idleTimeout) {
-        return SystemPropertiesCommandLineConverter.toArg(SYSTEM_PROPERTY_KEY, idleTimeout.toString());
+    public static String toCliArg(Integer idleTimeoutMs) {
+        return SystemPropertiesCommandLineConverter.toArg(SYSTEM_PROPERTY_KEY, idleTimeoutMs.toString());
     }
 }

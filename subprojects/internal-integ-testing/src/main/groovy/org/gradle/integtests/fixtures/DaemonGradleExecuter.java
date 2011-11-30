@@ -15,30 +15,40 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.util.TestFile;
+import org.gradle.launcher.daemon.registry.DaemonDir;
+import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
+    private static final String DAEMON_REGISTRY_SYS_PROP = "org.gradle.integtest.daemon.registry";
+    private final GradleDistribution distribution;
 
-    public DaemonGradleExecuter(TestFile gradleHomeDir) {
-        super(gradleHomeDir);
+    public DaemonGradleExecuter(GradleDistribution distribution) {
+        super(distribution.getGradleHomeDir());
+        this.distribution = distribution;
     }
 
     @Override
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<String>();
         args.add("--daemon");
+        args.add(DaemonIdleTimeout.toCliArg(5 * 60 * 1000));
+        String customDaemonRegistryDir = System.getProperty(DAEMON_REGISTRY_SYS_PROP);
+        if (customDaemonRegistryDir != null && !distribution.isUsingOwnUserHomeDir()) {
+            args.add(DaemonDir.toCliArg(customDaemonRegistryDir));
+        }
         args.addAll(super.getAllArgs());
         return args;
     }
 
-    public GradleHandle<DaemonGradleExecuter> createHandle() {
-        return new DaemonGradleHandle<DaemonGradleExecuter>(this);
+    public GradleHandle createHandle() {
+        return new DaemonGradleHandle(this);
     }
 
-    protected static class DaemonGradleHandle<T extends DaemonGradleExecuter> extends ForkingGradleHandle<T> {
-        public DaemonGradleHandle(T executer) {
+    protected static class DaemonGradleHandle extends ForkingGradleHandle {
+        public DaemonGradleHandle(ForkingGradleExecuter executer) {
             super(executer);
         }
 

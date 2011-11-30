@@ -284,6 +284,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return allArgs;
     }
 
+    public GradleHandle createHandle() {
+        throw new UnsupportedOperationException(String.format("A %s does not support creating handles.", getClass().getSimpleName()));
+    }
+
     public final ExecutionResult run() {
         try {
             return doRun();
