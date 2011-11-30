@@ -50,7 +50,7 @@ public class InMemoryCacheFactory implements CacheFactory {
     }
 
     private static class NoOpFileLock extends AbstractFileAccess {
-        public <T> T readFromFile(Factory<T> action) throws LockTimeoutException {
+        public <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException {
             return action.create();
         }
 

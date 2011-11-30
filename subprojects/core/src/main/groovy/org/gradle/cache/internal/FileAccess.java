@@ -32,7 +32,7 @@ public interface FileAccess {
      * @throws LockTimeoutException On timeout acquiring lock, if required.
      * @throws IllegalStateException When this lock has been closed.
      */
-    <T> T readFromFile(Callable<T> action) throws LockTimeoutException;
+    <T> T readFromFile(Callable<? extends T> action) throws LockTimeoutException;
 
     /**
      * Runs the given action under a shared or exclusive lock on the target file.
@@ -43,7 +43,7 @@ public interface FileAccess {
      * @throws LockTimeoutException On timeout acquiring lock, if required.
      * @throws IllegalStateException When this lock has been closed.
      */
-    <T> T readFromFile(Factory<T> action) throws LockTimeoutException;
+    <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException;
 
     /**
      * Runs the given action under an exclusive lock on the target file. If the given action fails, the lock is marked as uncleanly unlocked.

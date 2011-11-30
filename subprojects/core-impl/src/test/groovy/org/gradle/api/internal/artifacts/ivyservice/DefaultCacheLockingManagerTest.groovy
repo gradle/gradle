@@ -22,13 +22,19 @@ import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.internal.Factory
 
 class DefaultCacheLockingManagerTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     final FileLockManager fileLockManager = Mock()
+    final ArtifactCacheMetaData metaData = Mock()
     final File cacheDir = tmpDir.file("cache-dir")
-    final DefaultCacheLockingManager lockingManager = new DefaultCacheLockingManager(fileLockManager)
+    final File cacheFile = cacheDir.file("cache-file.bin")
+    DefaultCacheLockingManager lockingManager
+
+    def setup() {
+        _ * metaData.cacheDir >> cacheDir
+        lockingManager = new DefaultCacheLockingManager(fileLockManager, metaData)
+    }
 
     def "executes action and returns result"() {
         Callable<String> action = Mock()
@@ -44,107 +50,21 @@ class DefaultCacheLockingManagerTest extends Specification {
         0 * _._
     }
 
-    def "locks metadata file when metadata file lock is used and releases lock at the end of the action"() {
+    def "locks metadata file when metadata cache is used and releases lock at the end of the action"() {
         Callable<String> action = Mock()
         FileLock lock = Mock()
+        def cache = lockingManager.createCache(cacheFile, String, Integer)
 
         when:
         lockingManager.withCacheLock("some operation", action)
 
         then:
         1 * action.call() >> {
-            lockingManager.getMetadataFileAccess(cacheDir)
+            cache.get("key")
         }
-        0 * _._
-
-        when:
-        lockingManager.withCacheLock("use metadata file", action)
-
-        then:
-        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "metadata file ${cacheDir.name}", "use metadata file") >> lock
-        1 * lock.writeToFile(_)
-        1 * action.call() >> {
-            def metadataLock = lockingManager.getMetadataFileAccess(cacheDir)
-            metadataLock.writeToFile(Mock(Runnable))
-        }
-        1 * lock.close()
-        0 * _._
-    }
-
-    def "locks metadata file once for all uses of metadata file lock"() {
-        Callable<String> action = Mock()
-        FileLock lock = Mock()
-
-        when:
-        lockingManager.withCacheLock("use metadata file", action)
-
-        then:
-        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "metadata file ${cacheDir.name}", "use metadata file") >> lock
-        2 * lock.writeToFile(_)
-        2 * lock.readFromFile(_)
-        1 * action.call() >> {
-            def metadataLock = lockingManager.getMetadataFileAccess(cacheDir)
-            metadataLock.writeToFile(Mock(Runnable))
-            metadataLock.writeToFile(Mock(Runnable))
-            metadataLock.readFromFile(Mock(Factory))
-            metadataLock.readFromFile(Mock(Factory))
-        }
-        1 * lock.close()
-        0 * _._
-    }
-
-    def "can create metadata lock before cache is locked"() {
-        Callable<String> action = Mock()
-        FileLock lock = Mock()
-
-        when:
-        lockingManager.getMetadataFileAccess(new File(cacheDir, "metadata"))
-
-        then:
-        0 * _._
-
-        when:
-        lockingManager.withCacheLock("use metadata file", action)
-
-        then:
-        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "metadata file ${cacheDir.name}", "use metadata file") >> lock
-        1 * lock.writeToFile(_)
-        1 * action.call() >> {
-            def metadataLock = lockingManager.getMetadataFileAccess(cacheDir)
-            metadataLock.writeToFile(Mock(Runnable))
-        }
-        1 * lock.close()
-        0 * _._
-    }
-
-    def "can reuse metadata lock with different cache locks"() {
-        Callable<String> action = Mock()
-        FileLock lock = Mock()
-
-        when:
-        lockingManager.getMetadataFileAccess(new File(cacheDir, "metadata"))
-        lockingManager.withCacheLock("use metadata file", action)
-
-        then:
-        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "metadata file ${cacheDir.name}", "use metadata file") >> lock
-        1 * lock.writeToFile(_)
-        1 * action.call() >> {
-            def metadataLock = lockingManager.getMetadataFileAccess(cacheDir)
-            metadataLock.writeToFile(Mock(Runnable))
-        }
-        1 * lock.close()
-        0 * _._
-
-        when:
-        lockingManager.withCacheLock("use metadata file", action)
-
-        then:
-        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "metadata file ${cacheDir.name}", "use metadata file") >> lock
-        1 * lock.writeToFile(_)
-        1 * action.call() >> {
-            def metadataLock = lockingManager.getMetadataFileAccess(cacheDir)
-            metadataLock.writeToFile(Mock(Runnable))
-        }
+        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact cache") >> lock
+        _ * lock.readFromFile(_)
+        _ * lock.writeToFile(_)
         1 * lock.close()
         0 * _._
     }

@@ -158,7 +158,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     protected DefaultCacheLockingManager createCacheLockingManager() {
         return new DefaultCacheLockingManager(
-                get(FileLockManager.class)
+                get(FileLockManager.class),
+                get(ArtifactCacheMetaData.class)
         );
     }
     

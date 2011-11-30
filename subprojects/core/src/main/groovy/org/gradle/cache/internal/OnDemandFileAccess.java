@@ -30,7 +30,7 @@ public class OnDemandFileAccess extends AbstractFileAccess {
         this.manager = manager;
     }
 
-    public <T> T readFromFile(Factory<T> action) throws LockTimeoutException {
+    public <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException {
         FileLock lock = manager.lock(targetFile, FileLockManager.LockMode.Shared, displayName);
         try {
             return lock.readFromFile(action);

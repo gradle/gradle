@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.cache.internal;
 
-import org.gradle.cache.PersistentIndexedCache;
+public interface UnitOfWorkParticipant {
+    void onStartWork();
 
-import java.io.File;
-import java.util.concurrent.Callable;
-
-public interface CacheLockingManager {
-    <T> T withCacheLock(String operationDisplayName, Callable<? extends T> action);
-
-    /**
-     * Creates a cache implementation that is managed by this locking manager.
-     */
-    <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType);
+    void onEndWork();
 }

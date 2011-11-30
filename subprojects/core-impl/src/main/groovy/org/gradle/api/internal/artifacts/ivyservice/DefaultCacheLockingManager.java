@@ -15,28 +15,25 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.internal.Factory;
-import org.gradle.cache.internal.*;
-import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.FileLockManager;
+import org.gradle.cache.internal.UnitOfWorkCacheManager;
 import org.gradle.util.UncheckedException;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultCacheLockingManager implements CacheLockingManager {
-    private final FileLockManager fileLockManager;
     private final Lock lock = new ReentrantLock();
-    private final Map<File, FileLock> metadataLocks = new HashMap<File, FileLock>();
-    
+    private final UnitOfWorkCacheManager cacheManager;
+
     private boolean locked;
     private String operationDisplayName;
 
-    public DefaultCacheLockingManager(FileLockManager fileLockManager) {
-        this.fileLockManager = fileLockManager;
+    public DefaultCacheLockingManager(FileLockManager fileLockManager, ArtifactCacheMetaData metaData) {
+        this.cacheManager = new UnitOfWorkCacheManager("artifact cache", metaData.getCacheDir(), fileLockManager);
     }
 
     public <T> T withCacheLock(String operationDisplayName, Callable<? extends T> action) {
@@ -57,6 +54,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
                 throw new IllegalStateException("Cannot lock the artifact cache, as it is already locked by this process.");
             }
             this.operationDisplayName = operationDisplayName;
+            cacheManager.onStartWork();
             locked = true;
         } finally {
             lock.unlock();
@@ -66,63 +64,14 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
     private void unlockCache() {
         lock.lock();
         try {
-            // Metadata locks are opened on demand, but closed when the cache lock is released
-            closeMetadataLocks();
+            cacheManager.onEndWork();
         } finally {
             locked = false;
-            metadataLocks.clear();
             lock.unlock();
         }
     }
 
-    private void closeMetadataLocks() {
-        new CompositeStoppable().addCloseables(metadataLocks.values()).stop();
-    }
-
-    public FileAccess getMetadataFileAccess(final File metadataFile) {
-        return new MetadataFileLock(metadataFile);
-    }
-
-    private FileLock acquireMetadataFileLock(File metadataFile) {
-        lock.lock();
-        try {
-            if (!locked) {
-                throw new IllegalStateException("Cannot acquire metadata file lock, as the artifact cache is not locked by this process.");
-            }
-            FileLock metadataFileLock = metadataLocks.get(metadataFile);
-            if (metadataFileLock == null) {
-                metadataFileLock = fileLockManager.lock(metadataFile, FileLockManager.LockMode.Exclusive, String.format("metadata file %s", metadataFile.getName()), operationDisplayName);
-                metadataLocks.put(metadataFile, metadataFileLock);
-            }
-            return metadataFileLock;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    /**
-     * A FileLock implementation that locks on first use within a cache lock block, and retains file lock for the duration of the Cache lock.
-     * Any call to {@link #readFromFile} or {@link #writeToFile} will open the lock, even if it was previously closed. Thus the lock can be used for a long
-     * lived persistent cache, as long as all access occurs within a withCacheLock() block.
-     */
-    private class MetadataFileLock extends AbstractFileAccess {
-        private final File metadataFile;
-
-        public MetadataFileLock(File metadataFile) {
-            this.metadataFile = metadataFile;
-        }
-
-        @Override
-        public <T> T readFromFile(Factory<T> action) throws LockTimeoutException {
-            return acquireLock().readFromFile(action);
-        }
-
-        public void writeToFile(Runnable action) throws LockTimeoutException {
-            acquireLock().writeToFile(action);
-        }
-
-        private FileLock acquireLock() {
-            return acquireMetadataFileLock(metadataFile);
-        }
+    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
+        return cacheManager.newCache(cacheFile, keyType, valueType);
     }
 }
