@@ -98,7 +98,7 @@ class GenericFileSystem implements FileSystem {
             // not fully accurate but a sensible fallback
             // see http://stackoverflow.com/questions/1288102/how-do-i-detect-whether-the-file-system-is-case-sensitive
             boolean result = !new File("foo").equals(new File("FOO"));
-            LOGGER.warn("Failed to determine if file system is case sensitive. Best guess is '{}'.", result);
+            LOGGER.info("Failed to determine if file system is case sensitive. Best guess is '{}'.", result);
             return result;
         }
     }
@@ -109,12 +109,12 @@ class GenericFileSystem implements FileSystem {
             link = generateUniqueTempFileName();
             int returnCode = PosixUtil.current().symlink(file.getPath(), link.getPath());
             if (returnCode != 0) {
-                LOGGER.warn("Failed to determine if file system can resolve symbolic links. Assuming it can.");
+                LOGGER.info("Failed to determine if file system can resolve symbolic links. Assuming it can.");
                 return true;
             }
             return hasContent(link, content);
         } catch (IOException e) {
-            LOGGER.warn("Failed to determine if file system can resolve symbolic links. Assuming it can.");
+            LOGGER.info("Failed to determine if file system can resolve symbolic links. Assuming it can.");
             return true;
         } finally {
             FileUtils.deleteQuietly(link);
@@ -128,7 +128,7 @@ class GenericFileSystem implements FileSystem {
             int returnCode = PosixUtil.current().symlink(file.getPath(), link.getPath());
             return returnCode == 0 && hasContent(link, content);
         } catch (IOException e) {
-            LOGGER.warn("Failed to determine if file system can create symbolic links. Assuming it can't.");
+            LOGGER.info("Failed to determine if file system can create symbolic links. Assuming it can't.");
             return false;
         } finally {
             FileUtils.deleteQuietly(link);
@@ -141,7 +141,7 @@ class GenericFileSystem implements FileSystem {
             channel = new FileOutputStream(file).getChannel();
             return channel.tryLock() == null;
         } catch (IOException e) {
-            LOGGER.warn("Failed to determine if file system implicitly locks file on open. Assuming it doesn't.");
+            LOGGER.info("Failed to determine if file system implicitly locks file on open. Assuming it doesn't.");
             return false;
         } finally {
             Closeables.closeQuietly(channel);
