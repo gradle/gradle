@@ -44,6 +44,18 @@ class UnitOfWorkCacheManagerTest extends Specification {
         0 * _._
     }
 
+    def "can create cache instance inside of unit of work"() {
+        given:
+        manager.onStartWork()
+
+        when:
+        def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
+
+        then:
+        cache instanceof MultiProcessSafePersistentIndexedCache
+        0 * _._
+    }
+
     def "locks cache dir on first access after start of unit of work"() {
         when:
         def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)

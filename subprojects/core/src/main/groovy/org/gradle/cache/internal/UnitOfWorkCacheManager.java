@@ -41,9 +41,6 @@ public class UnitOfWorkCacheManager implements UnitOfWorkParticipant {
     }
 
     public <K, V> PersistentIndexedCache<K, V> newCache(final File cacheFile, final Class<K> keyType, final Class<V> valueType) {
-        if (working) {
-            throw new UnsupportedOperationException("Creating a cache inside a unit of work not supported yet.");
-        }
         Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
             public BTreePersistentIndexedCache<K, V> create() {
                 return doCreateCache(cacheFile, keyType, valueType);
@@ -51,6 +48,7 @@ public class UnitOfWorkCacheManager implements UnitOfWorkParticipant {
         };
         MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new MultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
         caches.add(indexedCache);
+        indexedCache.onStartWork();
         return indexedCache;
     }
 
