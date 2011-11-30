@@ -62,7 +62,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         1 * action.call() >> {
             cache.get("key")
         }
-        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact cache") >> lock
+        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact cache '$cacheDir'") >> lock
         _ * lock.readFromFile(_)
         _ * lock.writeToFile(_)
         1 * lock.close()
