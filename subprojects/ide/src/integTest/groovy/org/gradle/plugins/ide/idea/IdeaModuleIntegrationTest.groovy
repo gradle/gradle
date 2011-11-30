@@ -201,7 +201,7 @@ sourceSets.test.output.dir "$buildDir/ws/test"
     }
 
     @Test
-    void "the 'buildBy' task be executed"() {
+    void theBuildByTaskBeExecuted() {
         //when
         def result = runIdeaTask('''
 apply plugin: "java"

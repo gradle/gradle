@@ -546,7 +546,7 @@ sourceSets.test.output.dir "$buildDir/generated/test"
     }
 
     @Test
-    void "the 'buildBy' task be executed"() {
+    void theBuildByTaskBeExecuted() {
         //when
         def result = runEclipseTask('''
 apply plugin: "java"
