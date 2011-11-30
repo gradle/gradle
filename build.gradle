@@ -156,7 +156,7 @@ configure(publishedProjects()) {
 
 allprojects {
     apply from: "$rootDir/gradle/codeQuality.gradle"
-    apply from: "$rootDir/gradle/fakeOsInTests.gradle"
+    apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
 }
 
 apply from: "gradle/idea.gradle"

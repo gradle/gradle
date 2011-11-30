@@ -56,7 +56,7 @@ enum TestPrecondition {
         OperatingSystem.current().linux
     }),
     UNKNOWN_OS({
-        OperatingSystem.current().name.contains("unsupported")
+        OperatingSystem.current().name == "unknown operating system"
     });
 
     /**
