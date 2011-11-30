@@ -20,10 +20,10 @@ import org.gradle.os.FileSystems
 
 enum TestPrecondition {
     SWING({
-        !UNSUPPORTED_OS.fulfilled
+        !UNKNOWN_OS.fulfilled
     }),
     JNA({
-        !UNSUPPORTED_OS.fulfilled
+        !UNKNOWN_OS.fulfilled
     }),
     SYMLINKS({
         FileSystems.default.canCreateSymbolicLink()
@@ -35,16 +35,16 @@ enum TestPrecondition {
         MAC_OS_X.fulfilled || LINUX.fulfilled
     }),
     SET_ENV_VARIABLE({
-        !UNSUPPORTED_OS.fulfilled
+        !UNKNOWN_OS.fulfilled
     }),
     WORKING_DIR({
-        !UNSUPPORTED_OS.fulfilled
+        !UNKNOWN_OS.fulfilled
     }),
     PROCESS_ID({
-        !UNSUPPORTED_OS.fulfilled
+        !UNKNOWN_OS.fulfilled
     }),
     NO_FILE_LOCK_ON_OPEN({
-        !FileSystems.default.locksFileOnOpen
+        !WINDOWS.fulfilled
     }),
     WINDOWS({
         OperatingSystem.current().windows
@@ -55,7 +55,7 @@ enum TestPrecondition {
     LINUX({
         OperatingSystem.current().linux
     }),
-    UNSUPPORTED_OS({
+    UNKNOWN_OS({
         OperatingSystem.current().name.contains("unsupported")
     });
 
