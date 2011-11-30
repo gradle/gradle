@@ -34,7 +34,7 @@ class BaseDirFileResolverSpec extends Specification {
         assert file.exists() && file.file
 
         expect:
-        normalize(file) == target
+        normalize(file) == file
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -45,7 +45,7 @@ class BaseDirFileResolverSpec extends Specification {
         assert file.exists() && file.file
 
         expect:
-        normalize(file) == target
+        normalize(file) == file
     }
 
     @Requires(TestPrecondition.CASE_INSENSITIVE_FS)
@@ -67,7 +67,7 @@ class BaseDirFileResolverSpec extends Specification {
         assert path.exists() && path.file
 
         expect:
-        normalize(path) == target
+        normalize(path) == file
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -88,7 +88,7 @@ class BaseDirFileResolverSpec extends Specification {
         assert file.exists() && file.file
 
         expect:
-        normalize(file) == target
+        normalize(file) == file
     }
 
     @Requires(TestPrecondition.CASE_INSENSITIVE_FS)
@@ -136,7 +136,7 @@ class BaseDirFileResolverSpec extends Specification {
         assert file.exists() && file.file
 
         expect:
-        normalize('file.txt', baseDir) == target
+        normalize('file.txt', baseDir) == file
     }
 
     @Requires(TestPrecondition.WINDOWS)

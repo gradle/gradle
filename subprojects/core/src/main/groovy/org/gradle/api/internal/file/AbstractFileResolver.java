@@ -62,7 +62,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         try {
             assert file.isAbsolute() : String.format("Cannot normalize a relative file: '%s'", file);
 
-            if (FileSystems.getDefault().canResolveSymbolicLink()) {
+            if (!FileSystems.getDefault().canResolveSymbolicLink()) {
                 return file.getCanonicalFile();
             }
 
