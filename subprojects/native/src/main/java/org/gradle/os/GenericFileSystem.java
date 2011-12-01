@@ -53,7 +53,7 @@ class GenericFileSystem implements FileSystem {
     }
 
     public void createSymbolicLink(File link, File target) throws IOException {
-        int returnCode = PosixUtil.current().symlink(target.getPath(), link.getPath());
+        int returnCode = doCreateSymbolicLink(link, target);
         if (returnCode != 0) {
             throw new IOException("Failed to create symbolic link " + link
                     + " pointing to " + target + ". Return code is: " + returnCode);
@@ -61,7 +61,16 @@ class GenericFileSystem implements FileSystem {
     }
 
     public boolean tryCreateSymbolicLink(File link, File target) {
-        return PosixUtil.current().symlink(target.getPath(), link.getPath()) == 0;
+        return doCreateSymbolicLink(link, target) == 0;
+    }
+
+    private int doCreateSymbolicLink(File link, File target) {
+        try {
+            return PosixUtil.current().symlink(target.getPath(), link.getPath());
+        } catch (UnsatisfiedLinkError e) {
+            // Assume symlink() is not available
+            return 1;
+        }
     }
 
     GenericFileSystem() {
@@ -108,7 +117,7 @@ class GenericFileSystem implements FileSystem {
         File link = null;
         try {
             link = generateUniqueTempFileName();
-            int returnCode = PosixUtil.current().symlink(file.getPath(), link.getPath());
+            int returnCode = doCreateSymbolicLink(link, file);
             if (returnCode != 0) {
                 LOGGER.info("Failed to determine if file system can resolve symbolic links. Assuming it can.");
                 return true;
@@ -126,13 +135,7 @@ class GenericFileSystem implements FileSystem {
         File link = null;
         try {
             link = generateUniqueTempFileName();
-            int returnCode = 0;
-            try {
-                returnCode = PosixUtil.current().symlink(file.getPath(), link.getPath());
-            } catch (UnsatisfiedLinkError e) {
-                // Assume symlink() is not available
-                return false;
-            }
+            int returnCode = doCreateSymbolicLink(link, file);
             return returnCode == 0 && hasContent(link, content);
         } catch (IOException e) {
             LOGGER.info("Failed to determine if file system can create symbolic links. Assuming it can't.");
