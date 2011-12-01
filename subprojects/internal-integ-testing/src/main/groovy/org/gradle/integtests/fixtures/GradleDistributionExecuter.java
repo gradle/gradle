@@ -160,10 +160,11 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     public void assertErrorHasNoStackTraces(ExecutionResult result) {
         String error = result.getError();
         if (result instanceof ExecutionFailure) {
-            // Snip everything after the expected exception
+            // Axe everything after the expected exception
             int pos = error.lastIndexOf("* Exception is:" + TextUtil.getPlatformLineSeparator());
-            assert pos >= 0;
-            error = error.substring(0, pos);
+            if (pos >= 0) {
+                error = error.substring(0, pos);
+            }
         }
         assertNoStackTraces(error, "Standard error");
     }
