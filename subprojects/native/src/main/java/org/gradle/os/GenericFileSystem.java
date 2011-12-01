@@ -126,7 +126,13 @@ class GenericFileSystem implements FileSystem {
         File link = null;
         try {
             link = generateUniqueTempFileName();
-            int returnCode = PosixUtil.current().symlink(file.getPath(), link.getPath());
+            int returnCode = 0;
+            try {
+                returnCode = PosixUtil.current().symlink(file.getPath(), link.getPath());
+            } catch (UnsatisfiedLinkError e) {
+                // Assume symlink() is not available
+                return false;
+            }
             return returnCode == 0 && hasContent(link, content);
         } catch (IOException e) {
             LOGGER.info("Failed to determine if file system can create symbolic links. Assuming it can't.");
