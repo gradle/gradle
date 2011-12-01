@@ -93,7 +93,7 @@ public class CommandLineActionFactory {
             ParsedCommandLine commandLine = parser.parse(args);
             @SuppressWarnings("unchecked")
             CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = (CommandLineConverter<LoggingConfiguration>)loggingServices.get(CommandLineConverter.class);
-            loggingConfiguration = loggingConfigurationConverter.convert(commandLine);
+            loggingConfigurationConverter.convert(commandLine, loggingConfiguration);
             action = createAction(parser, commandLine, startParameterConverter, loggingServices);
         } catch (CommandLineArgumentException e) {
             action = new CommandLineParseFailureAction(parser, e);
@@ -101,7 +101,7 @@ public class CommandLineActionFactory {
 
         return new WithLoggingAction(loggingConfiguration, loggingServices,
                 new ExceptionReportingAction(action,
-                        new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), new StartParameter(), clientMetaData())));
+                        new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())));
     }
 
     private static GradleLauncherMetaData clientMetaData() {

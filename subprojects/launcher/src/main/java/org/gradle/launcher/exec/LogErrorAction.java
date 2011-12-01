@@ -16,15 +16,15 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.BuildExceptionReporter;
-import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.StreamingStyledTextOutputFactory;
 
 public class LogErrorAction implements Action<Throwable> {
 
     public void execute(Throwable e) {
-        BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new StartParameter(), new GradleLauncherMetaData());
+        BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new LoggingConfiguration(), new GradleLauncherMetaData());
         exceptionReporter.reportException(e);
     }
 
