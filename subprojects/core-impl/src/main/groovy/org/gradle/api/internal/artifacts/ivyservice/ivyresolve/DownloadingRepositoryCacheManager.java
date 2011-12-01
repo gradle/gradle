@@ -25,17 +25,17 @@ import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.IvySettingsAware;
 import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
-import org.apache.ivy.plugins.parser.ModuleDescriptorParserRegistry;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
+import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
-import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleScopedParserSettings;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ParserRegistry;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,18 +44,15 @@ import java.text.ParseException;
 /**
  * A cache manager for remote repositories, that downloads files and stores them in the FileStore provided.
  */
-public class DownloadingRepositoryCacheManager implements RepositoryCacheManager, IvySettingsAware {
+public class DownloadingRepositoryCacheManager implements RepositoryCacheManager {
     private final String name;
     private final FileStore fileStore;
-    private IvySettings settings;
+    private final IvySettings settings;
+    private final ParserRegistry parserRegistry = new ParserRegistry();
 
-
-    public DownloadingRepositoryCacheManager(String name, FileStore fileStore) {
+    public DownloadingRepositoryCacheManager(String name, FileStore fileStore, IvySettings settings) {
         this.name = name;
         this.fileStore = fileStore;
-    }
-
-    public void setSettings(IvySettings settings) {
         this.settings = settings;
     }
 
@@ -126,8 +123,6 @@ public class DownloadingRepositoryCacheManager implements RepositoryCacheManager
 
     public ResolvedModuleRevision cacheModuleDescriptor(DependencyResolver resolver, final ResolvedResource mdRef, DependencyDescriptor dd, Artifact moduleArtifact, ResourceDownloader downloader, CacheMetadataOptions options)
             throws ParseException {
-        // TODO:DAZ Handle caching of artifacts of changing modules - they will no longer be deleted
-        // TODO:DAZ locking
         if (!moduleArtifact.isMetadata()) {
             return null;
         }
@@ -147,7 +142,8 @@ public class DownloadingRepositoryCacheManager implements RepositoryCacheManager
                 return null;
             }
 
-            ModuleDescriptor md = parseModuleDescriptor(resolver, mdRef, options, report.getLocalFile());
+            ModuleRevisionId moduleRevisionId = moduleArtifact.getId().getModuleRevisionId();
+            ModuleDescriptor md = parseModuleDescriptor(resolver, moduleRevisionId, options, report.getLocalFile(), mdRef.getResource());
             Message.debug("\t" + getName() + ": parsed downloaded md file for " + moduleArtifact.getModuleRevisionId() + "; parsed=" + md.getModuleRevisionId());
 
             MetadataArtifactDownloadReport madr
@@ -168,13 +164,10 @@ public class DownloadingRepositoryCacheManager implements RepositoryCacheManager
         }
     }
 
-    private ModuleDescriptor parseModuleDescriptor(DependencyResolver resolver, ResolvedResource mdRef, CacheMetadataOptions options, File artifactFile) throws ParseException, IOException {
-        ModuleDescriptorParser parser = ModuleDescriptorParserRegistry.getInstance().getParser(mdRef.getResource());
-        ParserSettings parserSettings = settings;
-        if (resolver instanceof AbstractResolver) {
-            parserSettings = ((AbstractResolver) resolver).getParserSettings();
-        }
-        return parser.parseDescriptor(parserSettings, artifactFile.toURI().toURL(), mdRef.getResource(), options.isValidate());
+    private ModuleDescriptor parseModuleDescriptor(DependencyResolver resolver, ModuleRevisionId moduleRevisionId, CacheMetadataOptions options, File artifactFile, Resource resource) throws ParseException, IOException {
+        ModuleDescriptorParser parser = parserRegistry.forResource(resource);
+        ParserSettings parserSettings = new ModuleScopedParserSettings(settings, resolver, moduleRevisionId);
+        return parser.parseDescriptor(parserSettings, artifactFile.toURI().toURL(), resource, options.isValidate());
     }
 
     private File downloadArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, ResolvedResource artifactRef) throws IOException {

@@ -46,8 +46,8 @@ class MavenRemoteDependencyResolutionIntegrationTest extends AbstractIntegration
         given:
         server.start()
 
-        def projectA = repo().module('group', 'projectA')
-        projectA.publish()
+        def projectB = repo().module('group', 'projectB').publish()
+        def projectA = repo().module('group', 'projectA').dependsOn('projectB').publish()
 
         buildFile << """
 repositories {
@@ -67,12 +67,14 @@ task retrieve(type: Sync) {
         when:
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', projectA.artifactFile)
-        
-        and:        
+        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+
+        and:
         run 'retrieve'
         
         then:
-        file('libs').assertHasDescendants('projectA-1.0.jar')
+        file('libs').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar')
         def snapshot = file('libs/projectA-1.0.jar').snapshot()
         
         when:
@@ -221,10 +223,8 @@ task listJars << {
 }
 """
 
-        def projectA = repo().module('group', 'projectA')
-        def projectB = repo().module('group', 'projectB')
-        projectA.publish()
-        projectB.publish()
+        def projectA = repo().module('group', 'projectA').publish()
+        def projectB = repo().module('group', 'projectB').publish()
 
         when:
         server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.pom', projectA.pomFile)

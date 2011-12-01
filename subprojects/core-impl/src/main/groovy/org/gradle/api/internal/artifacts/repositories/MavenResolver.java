@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.core.cache.ArtifactOrigin;
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
 
@@ -27,16 +25,6 @@ public class MavenResolver extends IBiblioResolver {
     public MavenResolver() {
         setDescriptor(BasicResolver.DESCRIPTOR_OPTIONAL);
         setM2compatible(true);
-    }
-
-    @Override
-    public ArtifactOrigin locate(Artifact artifact) {
-        // Only locate meta-data artifacts (this method _may_ be used for looking up parent POM - I'm not certain)
-        if (artifact.isMetadata()) {
-            return super.locate(artifact);
-        }
-        // Any other call is an attempt to locate source/javadoc jars, which we don't care about
-        return null;
     }
 
     public void addArtifactUrl(String url) {
