@@ -18,9 +18,9 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
-import org.junit.Rule
-import org.hamcrest.Matchers
 import org.gradle.util.SetSystemProperties
+import org.hamcrest.Matchers
+import org.junit.Rule
 
 class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -203,8 +203,7 @@ task listJars << {
 """
 
         when:
-        System.setProperty("http.proxyHost", "localhost")
-        System.setProperty("http.proxyPort", "${server.port}")
+        executer.withArguments("-Dhttp.proxyHost=localhost", "-Dhttp.proxyPort=${server.port}")
 
         and:
         server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
