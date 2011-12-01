@@ -15,7 +15,6 @@
  */
 package org.gradle.foundation;
 
-import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 
 import java.util.ArrayList;
@@ -28,16 +27,7 @@ import java.util.List;
  * @author mhunsicker
  */
 public class CommandLineAssistant {
-    private final DefaultCommandLineConverter commandLineConverter;
     private final LoggingCommandLineConverter loggingCommandLineConverter = new LoggingCommandLineConverter();
-
-    public CommandLineAssistant() {
-        commandLineConverter = new DefaultCommandLineConverter();
-    }
-
-    public DefaultCommandLineConverter getCommandLineConverter() {
-        return commandLineConverter;
-    }
 
     public LoggingCommandLineConverter getLoggingCommandLineConverter() {
         return loggingCommandLineConverter;
@@ -94,7 +84,7 @@ public class CommandLineAssistant {
     public boolean hasShowStacktraceDefined(String[] commandLineArguments) {
         return hasCommandLineOptionsDefined(commandLineArguments, new CommandLineSearch() {
             public boolean contains(String commandLine) {
-                return commandLineConverter.getShowStacktrace(commandLine) != null;
+                return loggingCommandLineConverter.getShowStacktrace(commandLine) != null;
             }
         });
     }

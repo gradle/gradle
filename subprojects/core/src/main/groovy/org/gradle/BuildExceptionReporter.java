@@ -23,7 +23,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
@@ -180,7 +179,7 @@ public class BuildExceptionReporter extends BuildAdapter {
     private void fillInFailureResolution(FailureDetails details) {
         if (details.exceptionStyle == ExceptionStyle.NONE) {
             details.resolution.text("Run with ");
-            details.resolution.withStyle(UserInput).format("--%s", DefaultCommandLineConverter.STACKTRACE_LONG);
+            details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.STACKTRACE_LONG);
             details.resolution.text(" option to get the stack trace. ");
         }
 

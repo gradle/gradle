@@ -77,9 +77,7 @@ public class SocketConnection<T> implements Connection<T> {
             if (isEndOfStream(e)) {
                 return null;
             }
-            MessageIOException exception = new MessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
-            exception.printStackTrace();
-            throw exception;
+            throw new MessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         }
     }
 
@@ -88,6 +86,9 @@ public class SocketConnection<T> implements Connection<T> {
             return true;
         }
         if (e instanceof IOException && e.getMessage() != null && e.getMessage().equals("An existing connection was forcibly closed by the remote host")) {
+            return true;
+        }
+        if (e instanceof IOException && e.getMessage() != null && e.getMessage().equals("An established connection was aborted by the software in your host machine")) {
             return true;
         }
         return false;

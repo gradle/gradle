@@ -35,9 +35,6 @@
                 <td>buildDependencies</td>
             </tr>
             <tr>
-                <td>buildArtifacts</td>
-            </tr>
-            <tr>
                 <td>dependencies</td>
             </tr>
             <tr>
@@ -48,9 +45,6 @@
             </tr>
             <tr>
                 <td>allArtifacts</td>
-            </tr>
-            <tr>
-                <td>allArtifactFiles</td>
             </tr>
             <tr>
                 <td>excludeRules</td>
@@ -76,21 +70,6 @@
             </tr>
             <tr>
                 <td>fileCollection</td>
-            </tr>
-            <tr>
-                <td>getDependencies</td>
-            </tr>
-            <tr>
-                <td>getAllDependencies</td>
-            </tr>
-            <tr>
-                <td>addDependency</td>
-            </tr>
-            <tr>
-                <td>addArtifact</td>
-            </tr>
-            <tr>
-                <td>removeArtifact</td>
             </tr>
             <tr>
                 <td>exclude</td>

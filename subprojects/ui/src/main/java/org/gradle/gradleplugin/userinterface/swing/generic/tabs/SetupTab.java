@@ -22,7 +22,6 @@ import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 import org.gradle.gradleplugin.userinterface.swing.generic.OutputUILord;
 import org.gradle.gradleplugin.userinterface.swing.generic.Utility;
-import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 import org.gradle.util.SystemProperties;
@@ -190,8 +189,6 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
 
     /**
      * Browses for a file using the text value from the text field as the current value.
-     *
-     * @param fileTextField where we get the current value
      */
     private File browseForDirectory(File initialFile) {
 
@@ -327,9 +324,9 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
         panel.setBorder(BorderFactory.createTitledBorder("Stack Trace Output"));
 
         showNoStackTraceRadioButton = new JRadioButton("Exceptions Only");
-        showStackTrackRadioButton = new JRadioButton("Standard Stack Trace (-" + DefaultCommandLineConverter.STACKTRACE
+        showStackTrackRadioButton = new JRadioButton("Standard Stack Trace (-" + LoggingCommandLineConverter.STACKTRACE
                 + ")");  //add the command line character to the end (so if an error message says use a stack trace level, you can easily translate)
-        showFullStackTrackRadioButton = new JRadioButton("Full Stack Trace (-" + DefaultCommandLineConverter.FULL_STACKTRACE + ")");
+        showFullStackTrackRadioButton = new JRadioButton("Full Stack Trace (-" + LoggingCommandLineConverter.FULL_STACKTRACE + ")");
 
         showNoStackTraceRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, ShowStacktrace.INTERNAL_EXCEPTIONS);
         showStackTrackRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, ShowStacktrace.ALWAYS);

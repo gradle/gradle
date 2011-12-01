@@ -19,7 +19,6 @@ package org.gradle;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
@@ -27,7 +26,7 @@ import org.gradle.initialization.BuildFileProjectSpec;
 import org.gradle.initialization.DefaultProjectSpec;
 import org.gradle.initialization.ProjectDirectoryProjectSpec;
 import org.gradle.initialization.ProjectSpec;
-import org.gradle.logging.ShowStacktrace;
+import org.gradle.logging.LoggingConfiguration;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.SystemProperties;
@@ -48,7 +47,7 @@ import java.util.*;
  * @author Hans Dockter
  * @see GradleLauncher
  */
-public class StartParameter implements Serializable {
+public class StartParameter extends LoggingConfiguration implements Serializable {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     /**
      * The default user home directory.
@@ -68,13 +67,10 @@ public class StartParameter implements Serializable {
     private ScriptSource buildScriptSource;
     private ScriptSource settingsScriptSource;
     private ProjectSpec defaultProjectSelector;
-    private LogLevel logLevel = LogLevel.LIFECYCLE;
-    private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private File buildFile;
     private List<File> initScripts = new ArrayList<File>();
     private boolean dryRun;
     private boolean noOpt;
-    private boolean colorOutput = true;
     private boolean profile;
     private boolean continueOnFailure;
     private File projectCacheDir;
@@ -134,9 +130,9 @@ public class StartParameter implements Serializable {
         startParameter.settingsScriptSource = settingsScriptSource;
         startParameter.initScripts = new ArrayList<File>(initScripts); 
         startParameter.defaultProjectSelector = defaultProjectSelector;
-        startParameter.logLevel = logLevel;
-        startParameter.colorOutput = colorOutput;
-        startParameter.showStacktrace = showStacktrace;
+        startParameter.setLogLevel(getLogLevel());
+        startParameter.setColorOutput(isColorOutput());
+        startParameter.setShowStacktrace(getShowStacktrace());
         startParameter.dryRun = dryRun;
         startParameter.noOpt = noOpt;
         startParameter.profile = profile;
@@ -156,8 +152,9 @@ public class StartParameter implements Serializable {
         StartParameter startParameter = new StartParameter();
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
         startParameter.cacheUsage = cacheUsage;
-        startParameter.logLevel = logLevel;
-        startParameter.colorOutput = colorOutput;
+        startParameter.setLogLevel(getLogLevel());
+        startParameter.setColorOutput(isColorOutput());
+        startParameter.setShowStacktrace(getShowStacktrace());
         startParameter.profile = profile;
         startParameter.continueOnFailure = continueOnFailure;
         return startParameter;
@@ -442,22 +439,6 @@ public class StartParameter implements Serializable {
         return Collections.unmodifiableList(initScripts);
     }
 
-    public LogLevel getLogLevel() {
-        return logLevel;
-    }
-
-    public void setLogLevel(LogLevel logLevel) {
-        this.logLevel = logLevel;
-    }
-
-    public ShowStacktrace getShowStacktrace() {
-        return showStacktrace;
-    }
-
-    public void setShowStacktrace(ShowStacktrace showStacktrace) {
-        this.showStacktrace = showStacktrace;
-    }
-
     /**
      * Returns the selector used to choose the default project of the build. This is the project used as the starting
      * point for resolving task names, and for determining the default tasks.
@@ -491,25 +472,6 @@ public class StartParameter implements Serializable {
             currentDir = canonicalFile;
             defaultProjectSelector = new ProjectDirectoryProjectSpec(canonicalFile);
         }
-    }
-
-    /**
-     * Returns true if logging output should be displayed in color when Gradle is running in a terminal which supports
-     * color output. The default value is true.
-     *
-     * @return true if logging output should be displayed in color.
-     */
-    public boolean isColorOutput() {
-        return colorOutput;
-    }
-
-    /**
-     * Specifies whether logging output should be displayed in color.
-     *
-     * @param colorOutput true if logging output should be displayed in color.
-     */
-    public void setColorOutput(boolean colorOutput) {
-        this.colorOutput = colorOutput;
     }
 
     /**
@@ -555,8 +517,8 @@ public class StartParameter implements Serializable {
                 + ", buildScriptSource=" + buildScriptSource
                 + ", settingsScriptSource=" + settingsScriptSource
                 + ", defaultProjectSelector=" + defaultProjectSelector
-                + ", logLevel=" + logLevel
-                + ", showStacktrace=" + showStacktrace
+                + ", logLevel=" + getLogLevel()
+                + ", showStacktrace=" + getShowStacktrace()
                 + ", buildFile=" + buildFile
                 + ", initScripts=" + initScripts
                 + ", dryRun=" + dryRun

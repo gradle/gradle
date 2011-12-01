@@ -271,7 +271,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
 
         //add the stack trace level if its not present
         if (!commandLineAssistant.hasShowStacktraceDefined(individualCommandLineArguments)) {
-            String stackTraceLevelText = commandLineAssistant.getCommandLineConverter().getShowStacktraceCommandLine(stackTraceLevel);
+            String stackTraceLevelText = commandLineAssistant.getLoggingCommandLineConverter().getShowStacktraceCommandLine(stackTraceLevel);
             if (stackTraceLevelText != null) {
                 executionCommandLine.add('-' + stackTraceLevelText);
             }
