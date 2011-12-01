@@ -45,7 +45,6 @@ public class DaemonClientInputForwarder implements Stoppable {
 
     private final Lock lifecycleLock = new ReentrantLock();
     private boolean started;
-    private boolean stopped;
 
     private final InputStream inputStream;
     private final BuildClientMetaData clientMetadata;
@@ -102,10 +101,14 @@ public class DaemonClientInputForwarder implements Stoppable {
     public void stop() {
         lifecycleLock.lock();
         try {
-            if (!stopped) {
+            if (started) {
                 LOGGER.debug("input forwarder stop requested");
-                forwarder.stop();
-                stopped = true;
+                try {
+                    forwarder.stop();
+                } finally {
+                    forwarder = null;
+                    started = false;
+                }
             }
         } finally {
             lifecycleLock.unlock();
