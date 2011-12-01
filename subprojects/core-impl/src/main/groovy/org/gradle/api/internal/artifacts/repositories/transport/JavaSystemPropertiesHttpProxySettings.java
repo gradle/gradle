@@ -18,25 +18,30 @@ package org.gradle.api.internal.artifacts.repositories.transport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class JavaSystemPropertiesHttpProxySettings implements HttpProxySettings {
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaSystemPropertiesHttpProxySettings.class);
     private static final int DEFAULT_PROXY_PORT = 80;
 
-    private final String proxyHost;
-    private final int proxyPort;
-    private final List<String> nonProxyHosts;
+    private final HttpProxy proxy;
+    private final List<Pattern> nonProxyHosts;
 
     public JavaSystemPropertiesHttpProxySettings() {
-        this(System.getProperty("http.proxyHost"), System.getProperty("http.proxyPort"), System.getProperty("http.nonProxyHosts"));
+        this(System.getProperty("http.proxyHost"), System.getProperty("http.proxyPort"), 
+                System.getProperty("http.proxyUser"), System.getProperty("http.proxyPassword"), 
+                System.getProperty("http.nonProxyHosts"));
     }
 
-    JavaSystemPropertiesHttpProxySettings(String proxyHost, String proxyPortString, String nonProxyHostsString) {
-        this.proxyHost = proxyHost;
-        this.proxyPort = initProxyPort(proxyPortString);
+    JavaSystemPropertiesHttpProxySettings(String proxyHost, String proxyPortString, String proxyUser, String proxyPassword, String nonProxyHostsString) {
+        if (proxyHost == null) {
+            this.proxy = null;
+        } else {
+            this.proxy = new HttpProxy(proxyHost, initProxyPort(proxyPortString), proxyUser, proxyPassword);
+        }
         this.nonProxyHosts = initNonProxyHosts(nonProxyHostsString);
     }
 
@@ -53,23 +58,42 @@ public class JavaSystemPropertiesHttpProxySettings implements HttpProxySettings 
         }
     }
 
-    private List<String> initNonProxyHosts(String nonProxyHostsString) {
+    private List<Pattern> initNonProxyHosts(String nonProxyHostsString) {
         if (nonProxyHostsString == null) {
             return Collections.emptyList();
         }
+
         LOGGER.debug("Found java system property 'http.nonProxyHosts': {}. Will ignore proxy settings for these hosts.", nonProxyHostsString);
-        return Arrays.asList(nonProxyHostsString.split("\\|"));
+        List<Pattern> patterns = new ArrayList<Pattern>();
+        for (String nonProxyHost : nonProxyHostsString.split("\\|")) {
+            patterns.add(createHostMatcher(nonProxyHost));
+        }
+        return patterns;
     }
 
-    public boolean isProxyConfigured(String host) {
-        return proxyHost != null && !nonProxyHosts.contains(host);
+    private Pattern createHostMatcher(String nonProxyHost) {
+        if (nonProxyHost.startsWith("*")) {
+            return Pattern.compile(".*" + Pattern.quote(nonProxyHost.substring(1)));
+        }
+        if (nonProxyHost.endsWith("*")) {
+            return Pattern.compile(Pattern.quote(nonProxyHost.substring(0, nonProxyHost.length() - 1)) + ".*");
+        }
+        return Pattern.compile(Pattern.quote(nonProxyHost));
     }
 
-    public String getProxyHost() {
-        return proxyHost;
+    public HttpProxy getProxy(String host) {
+        if (proxy == null || isNonProxyHost(host)) {
+            return null;
+        }
+        return proxy;
     }
 
-    public int getProxyPort() {
-        return proxyPort;
+    private boolean isNonProxyHost(String host) {        
+        for (Pattern nonProxyHost : nonProxyHosts) {
+            if (nonProxyHost.matcher(host).matches()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -20,33 +20,44 @@ import spock.lang.Specification;
 class JavaSystemPropertiesHttpProxySettingsTest extends Specification {
     def "proxy is not configured when proxyHost property not set"() {
         expect:
-        def settings = new JavaSystemPropertiesHttpProxySettings(null, proxyPort, nonProxyHosts)
-        !settings.isProxyConfigured(host)
+        def settings = settings(null, proxyPort, nonProxyHosts)
+        settings.getProxy(requestHost) == null
 
         where:
-        proxyPort | nonProxyHosts | host
+        proxyPort | nonProxyHosts | requestHost
         null      | null          | null
         null      | null          | "foo"
         "111"     | null          | "foo"
         null      | "foo|bar|baz" | "foo"
     }
 
+    private JavaSystemPropertiesHttpProxySettings settings(host, proxyPort, nonProxyHosts) {
+        return new JavaSystemPropertiesHttpProxySettings(host, proxyPort, null, null, nonProxyHosts)
+    }
+
     def "proxy is not configured when host is in list of nonproxy hosts"() {
         expect:
-        new JavaSystemPropertiesHttpProxySettings("proxyHost", "111", nonProxyHosts).isProxyConfigured(host) == isProxyConfigured
+        settings("proxyHost", "111", nonProxyHosts).getProxy(host)?.host == proxyHost
 
         where:
-        nonProxyHosts | host     | isProxyConfigured
-        null          | "foo"    | true
-        ""            | "foo"    | true
-        "bar"         | "foo"    | true
-        "foo"         | "foo"    | false
-        "foo|bar|baz" | "foo"    | false
+        nonProxyHosts | host     | proxyHost
+        null          | "foo"    | "proxyHost"
+        ""            | "foo"    | "proxyHost"
+        "bar"         | "foo"    | "proxyHost"
+        "foo"         | "foo"    | null
+        "fo"          | "foo"    | "proxyHost"
+        "foo|bar|baz" | "foo"    | null
+        "foo.*"       | "foo.bar"| null
+        "*.bar"       | "foo.bar"| null
+        "*.ba"        | "foo.bar"| "proxyHost"
+        "*"           | "foo"    | null
+        "*"           | "foo"    | null
+        "foo.*|baz"   | "foo.bar"| null
     }
 
     def "uses specified port property and default port when port property not set or invalid"() {
         expect:
-        new JavaSystemPropertiesHttpProxySettings("proxyHost", prop, null).proxyPort == value
+       settings("proxyHost", prop, null).getProxy("host").port == value
 
         where:
         prop     | value
@@ -55,5 +66,19 @@ class JavaSystemPropertiesHttpProxySettingsTest extends Specification {
         "notInt" | 80
         "0"      | 0
         "111"    | 111
+    }
+
+    def "uses specified proxy user and password"() {
+        expect:
+        def proxy = new JavaSystemPropertiesHttpProxySettings("proxyHost", null, user, password, null).getProxy("host")
+        proxy.username == proxyUser
+        proxy.password == proxyPassword
+
+        where:
+        user     | password  | proxyUser | proxyPassword
+        "user"   | "password"| "user"    | "password"
+        "user"   | ""        | "user"    | ""
+        ""       | "password"| null      | null
+        null     | "anything"| null      | null
     }
 }

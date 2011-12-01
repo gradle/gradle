@@ -56,7 +56,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         PasswordCredentials credentials = httpSettings.getCredentials();
         if (GUtil.isTrue(credentials.getUsername())) {
             client.getParams().setAuthenticationPreemptive(true);
-            client.getState().setCredentials(new AuthScope(null, -1, null), new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword()));
+            client.getState().setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword()));
         }
         this.proxySettings = httpSettings.getProxySettings();
     }
@@ -158,13 +158,22 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
     }
 
     private void configureProxyIfRequired(HttpMethod method) throws URIException {
-        if (proxySettings.isProxyConfigured(method.getURI().getHost())) {
-            // Only set proxy host once
-            if (client.getHostConfiguration().getProxyHost() == null) {
-                client.getHostConfiguration().setProxy(proxySettings.getProxyHost(), proxySettings.getProxyPort());
-            }
+        HttpProxySettings.HttpProxy proxy = proxySettings.getProxy(method.getURI().getHost());
+        if (proxy != null) {
+            setProxyForClient(client, proxy);
         } else {
             client.getHostConfiguration().setProxyHost(null);
+        }
+    }
+
+    private void setProxyForClient(HttpClient httpClient, HttpProxySettings.HttpProxy proxy) {
+        // Only set proxy host once
+        if (client.getHostConfiguration().getProxyHost() != null) {
+            return;
+        }
+        httpClient.getHostConfiguration().setProxy(proxy.host, proxy.port);
+        if (proxy.username != null) {
+            httpClient.getState().setProxyCredentials(AuthScope.ANY, new UsernamePasswordCredentials(proxy.username, proxy.password));
         }
     }
 

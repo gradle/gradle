@@ -16,9 +16,25 @@
 package org.gradle.api.internal.artifacts.repositories.transport;
 
 public interface HttpProxySettings {
-    boolean isProxyConfigured(String host);
     
-    String getProxyHost();
-    
-    int getProxyPort();
+    HttpProxy getProxy(String host);
+
+    public class HttpProxy {
+        public final String host;
+        public final int port;
+        public final String username;
+        public final String password;
+
+        public HttpProxy(String host, int port, String username, String password) {
+            this.host = host;
+            this.port = port;
+            if (username == null || username.length() == 0) {
+                this.username = null;
+                this.password = null;
+            } else {
+                this.username = username;
+                this.password = password;
+            }
+        }
+    }
 }
