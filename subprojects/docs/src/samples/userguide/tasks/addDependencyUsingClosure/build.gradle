@@ -1,3 +1,5 @@
+throw new Exception("log level: $project.logging.level std out capture level: $project.logging.standardOutputCaptureLevel std error capture level: $project.logging.standardErrorCaptureLevel")
+
 task taskX << {
     println 'taskX'
 }
