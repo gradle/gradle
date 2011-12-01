@@ -203,9 +203,14 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
             return method.invoke(delegate, args);
         }
 
-        private Resource init() throws IOException {
+        private Resource init() {
             LOGGER.info("Attempting to GET resource {}.", source);
-            int result = executeMethod(method);
+            int result;
+            try {
+                result = executeMethod(method);
+            } catch (IOException e) {
+                throw new UncheckedIOException(String.format("Could not GET '%s'.", source), e);
+            }
             if (result == 404) {
                 LOGGER.debug("Resource missing: {}.", source);
                 return new MissingResource(source);
