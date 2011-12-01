@@ -59,7 +59,7 @@ class UnitOfWorkCacheManagerTest extends Specification {
     def "locks cache dir on first access after start of unit of work"() {
         when:
         def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
-        manager.onStartWork()
+        manager.onStartWork("<some-operation>")
 
         then:
         0 * _._
@@ -69,7 +69,7 @@ class UnitOfWorkCacheManagerTest extends Specification {
         cache.put("key", 12)
 
         then:
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "<some-operation>") >> lock
         _ * backingCache._
         _ * lock.writeToFile(!null) >> {Runnable action -> action.run() }
         _ * lock.readFromFile(!null) >> {Factory action -> action.create() }
@@ -79,7 +79,7 @@ class UnitOfWorkCacheManagerTest extends Specification {
     def "closes caches and unlocks cache dir at end of unit of work"() {
         given:
         def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
-        manager.onStartWork()
+        manager.onStartWork("<some-operation>")
         cacheOpenedAndLocked(cache)
 
         when:
@@ -99,7 +99,7 @@ class UnitOfWorkCacheManagerTest extends Specification {
         def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
 
         when:
-        manager.onStartWork()
+        manager.onStartWork("<some-operation>")
         manager.onEndWork()
 
         then:
@@ -121,7 +121,7 @@ class UnitOfWorkCacheManagerTest extends Specification {
     def "cannot use cache after unit of work completed"() {
         given:
         def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
-        manager.onStartWork()
+        manager.onStartWork("<some-operation>")
         cacheOpenedAndLocked(cache)
         manager.onEndWork()
 
@@ -139,7 +139,7 @@ class UnitOfWorkCacheManagerTest extends Specification {
     }
 
     def cacheOpenedAndLocked(def cache) {
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", !null) >> lock
         expectLockUsed()
 
         cache.put("key", 12)

@@ -15,13 +15,25 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.internal.Factory;
 import org.gradle.cache.PersistentIndexedCache;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
+@ThreadSafe
 public interface CacheLockingManager {
-    <T> T withCacheLock(String operationDisplayName, Callable<? extends T> action);
+    /**
+     * Performs some work against the cache. Acquires exclusive locks the appropriate resources, so that the given action is the only
+     * action to execute across all processes (including this one).
+     */
+    <T> T useCache(String operationDisplayName, Factory<? extends T> action);
+
+    /**
+     * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.api.internal.Factory)}. Releases all
+     * locks while the operation is running, and then reacquires the locks.
+     */
+    <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action);
 
     /**
      * Creates a cache implementation that is managed by this locking manager.

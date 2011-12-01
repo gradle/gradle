@@ -36,8 +36,8 @@ class CacheLockingArtifactDependencyResolverTest extends Specification {
         result == resolvedConfiguration
 
         and:
-        1 * lockingManager.withCacheLock("resolve $configuration", !null) >> {
-            it[1].call()
+        1 * lockingManager.useCache("resolve $configuration", !null) >> {
+            it[1].create()
         }
         1 * target.resolve(configuration) >> resolvedConfiguration
     }

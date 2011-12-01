@@ -58,7 +58,7 @@ public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentI
         });
     }
 
-    public void onStartWork() {
+    public void onStartWork(String operationDisplayName) {
     }
 
     public void onEndWork() {

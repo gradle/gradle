@@ -17,10 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-
-import java.util.concurrent.Callable;
 
 public class CacheLockingArtifactDependencyResolver implements ArtifactDependencyResolver {
     private final CacheLockingManager lockingManager;
@@ -32,8 +31,8 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
     }
 
     public ResolvedConfiguration resolve(final ConfigurationInternal configuration) throws ResolveException {
-        return lockingManager.withCacheLock(String.format("resolve %s", configuration), new Callable<ResolvedConfiguration>() {
-            public ResolvedConfiguration call() throws Exception {
+        return lockingManager.useCache(String.format("resolve %s", configuration), new Factory<ResolvedConfiguration>() {
+            public ResolvedConfiguration create() {
                 return resolver.resolve(configuration);
             }
         });

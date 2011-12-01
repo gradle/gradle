@@ -15,15 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import java.util.concurrent.Callable
+import org.gradle.api.internal.Factory
 import org.gradle.cache.internal.FileLock
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.FileLockManager.LockMode
+import org.gradle.util.ConcurrentSpecification
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
-import spock.lang.Specification
 
-class DefaultCacheLockingManagerTest extends Specification {
+class DefaultCacheLockingManagerTest extends ConcurrentSpecification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     final FileLockManager fileLockManager = Mock()
     final ArtifactCacheMetaData metaData = Mock()
@@ -36,36 +36,130 @@ class DefaultCacheLockingManagerTest extends Specification {
         lockingManager = new DefaultCacheLockingManager(fileLockManager, metaData)
     }
 
-    def "executes action and returns result"() {
-        Callable<String> action = Mock()
+    def "executes cache action and returns result"() {
+        Factory<String> action = Mock()
 
         when:
-        def result = lockingManager.withCacheLock("some operation", action)
+        def result = lockingManager.useCache("some operation", action)
 
         then:
         result == 'result'
 
         and:
-        1 * action.call() >> 'result'
+        1 * action.create() >> 'result'
         0 * _._
     }
 
-    def "locks metadata file when metadata cache is used and releases lock at the end of the action"() {
-        Callable<String> action = Mock()
+    def "locks cache directory when a cache is used and releases lock at the end of the cache action"() {
+        Factory<String> action = Mock()
         FileLock lock = Mock()
         def cache = lockingManager.createCache(cacheFile, String, Integer)
 
         when:
-        lockingManager.withCacheLock("some operation", action)
+        lockingManager.useCache("some operation", action)
 
         then:
-        1 * action.call() >> {
+        1 * action.create() >> {
             cache.get("key")
         }
-        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact cache '$cacheDir'") >> lock
+        1 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact cache '$cacheDir'", "some operation") >> lock
         _ * lock.readFromFile(_)
+
+        and:
         _ * lock.writeToFile(_)
         1 * lock.close()
+        0 * _._
+    }
+
+    def "unlocks metadata file during long running operation"() {
+        Factory<String> action = Mock()
+        Factory<String> longRunningAction = Mock()
+        FileLock lock = Mock()
+        def cache = lockingManager.createCache(cacheFile, String, Integer)
+
+        when:
+        lockingManager.useCache("some operation", action)
+
+        then:
+        1 * action.create() >> {
+            cache.get("key")
+            lockingManager.longRunningOperation("nested", longRunningAction)
+            cache.get("key")
+        }
+        1 * longRunningAction.create()
+        2 * fileLockManager.lock(cacheDir, LockMode.Exclusive, "artifact cache '$cacheDir'", "some operation") >> lock
+        _ * lock.readFromFile(_)
+        _ * lock.writeToFile(_)
+        2 * lock.close()
+        0 * _._
+    }
+
+    def "cannot run long running operation from outside cache action"() {
+        when:
+        lockingManager.longRunningOperation("operation", Mock(Factory))
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot start long running operation, as the artifact cache has not been locked.'
+    }
+
+    def "cannot use cache from within long running operation"() {
+        Factory<String> action = Mock()
+        Factory<String> longRunningAction = Mock()
+
+        when:
+        lockingManager.useCache("some operation", action)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot lock the artifact cache, as it is already locked by this thread.'
+
+        and:
+        1 * action.create() >> {
+            lockingManager.longRunningOperation("nested", longRunningAction)
+        }
+        1 * longRunningAction.create() >> {
+            lockingManager.useCache("nested 2", Mock(Factory))
+        }
+        0 * _._
+    }
+
+    def "cannot execute cache action from within long running operation"() {
+        Factory<String> action = Mock()
+        Factory<String> longRunningAction = Mock()
+        def cache = lockingManager.createCache(cacheFile, String, Integer)
+
+        when:
+        lockingManager.useCache("some operation", action)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot use cache outside a unit of work.'
+
+        and:
+        1 * action.create() >> {
+            lockingManager.longRunningOperation("nested", longRunningAction)
+        }
+        1 * longRunningAction.create() >> {
+            cache.get("key")
+        }
+        0 * _._
+    }
+
+    def "cannot execute cache action from within cache action"() {
+        Factory<String> action = Mock()
+
+        when:
+        lockingManager.useCache("some operation", action)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot lock the artifact cache, as it is already locked by this thread.'
+
+        and:
+        1 * action.create() >> {
+            lockingManager.useCache("nested", Mock(Factory))
+        }
         0 * _._
     }
 }

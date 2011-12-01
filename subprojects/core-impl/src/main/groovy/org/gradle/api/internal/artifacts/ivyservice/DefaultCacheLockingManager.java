@@ -15,47 +15,85 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.UnitOfWorkCacheManager;
 import org.gradle.util.UncheckedException;
 
 import java.io.File;
-import java.util.concurrent.Callable;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultCacheLockingManager implements CacheLockingManager {
     private final Lock lock = new ReentrantLock();
+    private final Condition condition = lock.newCondition();
     private final UnitOfWorkCacheManager cacheManager;
-
-    private boolean locked;
+    private Thread owner;
     private String operationDisplayName;
 
     public DefaultCacheLockingManager(FileLockManager fileLockManager, ArtifactCacheMetaData metaData) {
         this.cacheManager = new UnitOfWorkCacheManager(String.format("artifact cache '%s'", metaData.getCacheDir()), metaData.getCacheDir(), fileLockManager);
     }
 
-    public <T> T withCacheLock(String operationDisplayName, Callable<? extends T> action) {
+    public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
         lockCache(operationDisplayName);
         try {
-            return action.call();
-        } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            cacheManager.onStartWork(operationDisplayName);
+            try {
+                return action.create();
+            } finally {
+                cacheManager.onEndWork();
+            }
         } finally {
             unlockCache();
         }
     }
 
+    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
+        startLongRunningOperation();
+        try {
+            cacheManager.onEndWork();
+            try {
+                return action.create();
+            } finally {
+                cacheManager.onStartWork(this.operationDisplayName);
+            }
+        } finally {
+            finishLongRunningOperation();
+        }
+    }
+
+    private void startLongRunningOperation() {
+        lock.lock();
+        try {
+            if (owner != Thread.currentThread()) {
+                throw new IllegalStateException("Cannot start long running operation, as the artifact cache has not been locked.");
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void finishLongRunningOperation() {
+    }
+
     private void lockCache(String operationDisplayName) {
         lock.lock();
         try {
-            if (locked) {
-                throw new IllegalStateException("Cannot lock the artifact cache, as it is already locked by this process.");
+            if (owner == Thread.currentThread()) {
+                throw new IllegalStateException("Cannot lock the artifact cache, as it is already locked by this thread.");
+            }
+            while (owner != null) {
+                try {
+                    condition.await();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.asUncheckedException(e);
+                }
             }
             this.operationDisplayName = operationDisplayName;
-            cacheManager.onStartWork();
-            locked = true;
+            owner = Thread.currentThread();
         } finally {
             lock.unlock();
         }
@@ -64,9 +102,9 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
     private void unlockCache() {
         lock.lock();
         try {
-            cacheManager.onEndWork();
+            owner = null;
+            condition.signalAll();
         } finally {
-            locked = false;
             lock.unlock();
         }
     }

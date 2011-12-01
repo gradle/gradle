@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import java.util.concurrent.Callable
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.internal.Factory
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import spock.lang.Specification
 
@@ -42,8 +42,8 @@ class ResolvedArtifactFactoryTest extends Specification {
         resolvedArtifact.file
 
         then:
-        1 * lockingManager.withCacheLock(!null, !null) >> {String displayName, Callable action ->
-            return action.call()
+        1 * lockingManager.useCache(!null, !null) >> {String displayName, Factory<?> action ->
+            return action.create()
         }
         1 * resolver.resolve(artifact) >> file
         0 * _._

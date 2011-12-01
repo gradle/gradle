@@ -33,6 +33,7 @@ public class UnitOfWorkCacheManager implements UnitOfWorkParticipant {
     private final Set<MultiProcessSafePersistentIndexedCache<?, ?>> caches = new HashSet<MultiProcessSafePersistentIndexedCache<?, ?>>();
     private FileLock lock;
     private boolean working;
+    private String operationDisplayName;
 
     public UnitOfWorkCacheManager(String cacheDiplayName, File lockFile, FileLockManager lockManager) {
         this.cacheDiplayName = cacheDiplayName;
@@ -48,7 +49,9 @@ public class UnitOfWorkCacheManager implements UnitOfWorkParticipant {
         };
         MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new MultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
         caches.add(indexedCache);
-        indexedCache.onStartWork();
+        if (working) {
+            indexedCache.onStartWork(operationDisplayName);
+        }
         return indexedCache;
     }
 
@@ -56,13 +59,14 @@ public class UnitOfWorkCacheManager implements UnitOfWorkParticipant {
         return new BTreePersistentIndexedCache<K, V>(cacheFile, keyType, valueType);
     }
 
-    public void onStartWork() {
+    public void onStartWork(String operationDisplayName) {
         if (working) {
             throw new IllegalStateException("Unit of work has already been started.");
         }
         working = true;
+        this.operationDisplayName = operationDisplayName;
         for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
-            cache.onStartWork();
+            cache.onStartWork(operationDisplayName);
         }
     }
 
@@ -80,30 +84,26 @@ public class UnitOfWorkCacheManager implements UnitOfWorkParticipant {
         } finally {
             lock = null;
             working = false;
+            operationDisplayName = null;
         }
     }
 
     private FileLock getLock() {
+        if (!working) {
+            throw new IllegalStateException("Cannot use cache outside a unit of work.");
+        }
         if (lock == null) {
-            lock = lockManager.lock(lockFile, Exclusive, cacheDiplayName);
+            lock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operationDisplayName);
         }
         return lock;
     }
 
-    private void assertInUnitOfWork() {
-        if (!working) {
-            throw new IllegalStateException("Cannot use cache outside a unit of work.");
-        }
-    }
-
     private class UnitOfWorkFileAccess extends AbstractFileAccess {
         public <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException {
-            assertInUnitOfWork();
             return getLock().readFromFile(action);
         }
 
         public void writeToFile(Runnable action) throws LockTimeoutException {
-            assertInUnitOfWork();
             getLock().writeToFile(action);
         }
     }

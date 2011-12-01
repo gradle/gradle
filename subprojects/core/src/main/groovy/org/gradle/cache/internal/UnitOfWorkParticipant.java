@@ -16,7 +16,7 @@
 package org.gradle.cache.internal;
 
 public interface UnitOfWorkParticipant {
-    void onStartWork();
+    void onStartWork(String operationDisplayName);
 
     void onEndWork();
 }
