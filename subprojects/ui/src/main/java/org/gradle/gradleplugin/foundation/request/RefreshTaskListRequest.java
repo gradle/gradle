@@ -15,7 +15,6 @@
  */
 package org.gradle.gradleplugin.foundation.request;
 
-import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
@@ -23,6 +22,7 @@ import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
 import org.gradle.foundation.ipc.gradle.TaskListServerProtocol;
 import org.gradle.foundation.queue.ExecutionQueue;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
+import org.gradle.logging.ShowStacktrace;
 
 import java.io.File;
 import java.util.List;
@@ -55,7 +55,7 @@ public class RefreshTaskListRequest extends AbstractRequest {
      * @param customGradleExecutor the path to a custom gradle executable. May be null.
      * @return a protocol that our server will use to communicate with the launched gradle process.
      */
-    public ProcessLauncherServer.Protocol createServerProtocol(LogLevel logLevel, StartParameter.ShowStacktrace stackTraceLevel, File currentDirectory, File gradleHomeDirectory,
+    public ProcessLauncherServer.Protocol createServerProtocol(LogLevel logLevel, ShowStacktrace stackTraceLevel, File currentDirectory, File gradleHomeDirectory,
                                                                File customGradleExecutor) {
         executionInteraction.reportExecutionStarted();  //go ahead and fire off that the execution has started. It has from the user's standpoint.
 

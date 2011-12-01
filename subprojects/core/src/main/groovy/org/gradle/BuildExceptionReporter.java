@@ -24,6 +24,7 @@ import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.logging.ShowStacktrace;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.internal.AbstractStyledTextOutput;
@@ -133,10 +134,10 @@ public class BuildExceptionReporter extends BuildAdapter {
     }
 
     private void reportBuildFailure(GradleException failure, FailureDetails details) {
-        if (startParameter.getShowStacktrace() == StartParameter.ShowStacktrace.ALWAYS || startParameter.getLogLevel() == LogLevel.DEBUG) {
+        if (startParameter.getShowStacktrace() == ShowStacktrace.ALWAYS || startParameter.getLogLevel() == LogLevel.DEBUG) {
             details.exceptionStyle = ExceptionStyle.SANITIZED;
         }
-        if (startParameter.getShowStacktrace() == StartParameter.ShowStacktrace.ALWAYS_FULL) {
+        if (startParameter.getShowStacktrace() == ShowStacktrace.ALWAYS_FULL) {
             details.exceptionStyle = ExceptionStyle.FULL;
         }
 

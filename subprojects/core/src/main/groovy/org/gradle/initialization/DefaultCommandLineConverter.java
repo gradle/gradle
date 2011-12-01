@@ -33,6 +33,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.logging.LoggingConfiguration;
+import org.gradle.logging.ShowStacktrace;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 
 import java.util.Collection;
@@ -68,7 +69,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String CONTINUE = "continue";
     private static final String PROJECT_CACHE_DIR = "project-cache-dir";
 
-    private static BiMap<String, StartParameter.ShowStacktrace> showStacktraceMap = HashBiMap.create();
+    private static BiMap<String, ShowStacktrace> showStacktraceMap = HashBiMap.create();
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
 
@@ -76,8 +77,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     //object representation.
 
     static {
-        showStacktraceMap.put(FULL_STACKTRACE, StartParameter.ShowStacktrace.ALWAYS_FULL);
-        showStacktraceMap.put(STACKTRACE, StartParameter.ShowStacktrace.ALWAYS);
+        showStacktraceMap.put(FULL_STACKTRACE, ShowStacktrace.ALWAYS_FULL);
+        showStacktraceMap.put(STACKTRACE, ShowStacktrace.ALWAYS);
         //showStacktraceMap.put( , StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS ); there is no command argument for this. Rather, the lack of an argument means 'default to this'.
     }
 
@@ -186,9 +187,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
                         "Error: The -%s option can't be used together with the -%s option.", FULL_STACKTRACE,
                         STACKTRACE));
             }
-            startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS_FULL);
+            startParameter.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
         } else if (options.hasOption(STACKTRACE)) {
-            startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS);
+            startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
         }
 
         if (options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
@@ -229,8 +230,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
      * @return the corresponding stack trace level or null if it doesn't match any.
      * @author mhunsicker
      */
-    public StartParameter.ShowStacktrace getShowStacktrace(String commandLineArgument) {
-        StartParameter.ShowStacktrace showStacktrace = showStacktraceMap.get(commandLineArgument);
+    public ShowStacktrace getShowStacktrace(String commandLineArgument) {
+        ShowStacktrace showStacktrace = showStacktraceMap.get(commandLineArgument);
         if (showStacktrace == null) {
             return null;
         }
@@ -245,7 +246,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
      * @return the command line argument or null if this level cannot be represented on the command line.
      * @author mhunsicker
      */
-    public String getShowStacktraceCommandLine(StartParameter.ShowStacktrace showStacktrace) {
+    public String getShowStacktraceCommandLine(ShowStacktrace showStacktrace) {
         String commandLine = showStacktraceMap.inverse().get(showStacktrace);
         if (commandLine == null) {
             return null;
@@ -260,7 +261,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
      * @return a collection of available ShowStacktrace levels
      * @author mhunsicker
      */
-    public Collection<StartParameter.ShowStacktrace> getShowStacktrace() {
+    public Collection<ShowStacktrace> getShowStacktrace() {
         return Collections.unmodifiableCollection(showStacktraceMap.values());
     }
 }

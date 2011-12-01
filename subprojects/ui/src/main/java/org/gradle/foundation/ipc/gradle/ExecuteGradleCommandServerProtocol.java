@@ -15,9 +15,9 @@
  */
 package org.gradle.foundation.ipc.gradle;
 
-import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.foundation.ipc.basic.MessageObject;
+import org.gradle.logging.ShowStacktrace;
 
 import java.io.File;
 
@@ -62,7 +62,7 @@ public class ExecuteGradleCommandServerProtocol extends AbstractGradleServerProt
     }
 
     public ExecuteGradleCommandServerProtocol(File currentDirectory, File gradleHomeDirectory, File customGradleExecutor, String fullCommandLine, LogLevel logLevel,
-                                              StartParameter.ShowStacktrace stackTraceLevel, ExecutionInteraction executionInteraction) {
+                                              ShowStacktrace stackTraceLevel, ExecutionInteraction executionInteraction) {
         super(currentDirectory, gradleHomeDirectory, customGradleExecutor, fullCommandLine, logLevel, stackTraceLevel);
         this.executionInteraction = executionInteraction;
     }

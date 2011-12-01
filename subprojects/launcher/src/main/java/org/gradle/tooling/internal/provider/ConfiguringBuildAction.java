@@ -20,6 +20,7 @@ import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.exec.InitializationAware;
+import org.gradle.logging.ShowStacktrace;
 
 import java.io.File;
 import java.io.Serializable;
@@ -45,7 +46,7 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
         if (searchUpwards != null) {
             startParameter.setSearchUpwards(searchUpwards);
         }
-        startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS);
+        startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
         if (action instanceof InitializationAware) {
             InitializationAware initializationAware = (InitializationAware) action;
             initializationAware.configureStartParameter(startParameter);

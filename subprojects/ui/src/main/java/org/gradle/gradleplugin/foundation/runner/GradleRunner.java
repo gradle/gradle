@@ -15,10 +15,10 @@
  */
 package org.gradle.gradleplugin.foundation.runner;
 
-import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
+import org.gradle.logging.ShowStacktrace;
 
 import java.io.File;
 
@@ -39,7 +39,7 @@ public class GradleRunner {
         this.customGradleExecutor = customGradleExecutor;
     }
 
-    public synchronized void executeCommand(String commandLine, LogLevel logLevel, StartParameter.ShowStacktrace stackTraceLevel,
+    public synchronized void executeCommand(String commandLine, LogLevel logLevel, ShowStacktrace stackTraceLevel,
                                             ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction) {
         //the protocol manages the command line and messaging observers
         ExecuteGradleCommandServerProtocol serverProtocol = new ExecuteGradleCommandServerProtocol(currentDirectory, gradleHomeDirectory, customGradleExecutor, commandLine, logLevel, stackTraceLevel,

@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.logging.ShowStacktrace;
 import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
@@ -60,7 +61,7 @@ public class DefaultCommandLineConverterTest {
     private CacheUsage expectedCacheUsage = CacheUsage.ON;
     private boolean expectedSearchUpwards = true;
     private boolean expectedDryRun;
-    private StartParameter.ShowStacktrace expectedShowStackTrace = StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS;
+    private ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private String expectedEmbeddedScript = "somescript";
     private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
     private boolean expectedColorOutput = true;
@@ -224,13 +225,13 @@ public class DefaultCommandLineConverterTest {
 
     @Test
     public void withShowFullStacktrace() {
-        expectedShowStackTrace = StartParameter.ShowStacktrace.ALWAYS_FULL;
+        expectedShowStackTrace = ShowStacktrace.ALWAYS_FULL;
         checkConversion("-S");
     }
 
     @Test
     public void withShowStacktrace() {
-        expectedShowStackTrace = StartParameter.ShowStacktrace.ALWAYS;
+        expectedShowStackTrace = ShowStacktrace.ALWAYS;
         checkConversion("-s");
     }
 

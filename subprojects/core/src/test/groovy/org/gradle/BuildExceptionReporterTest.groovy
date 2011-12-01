@@ -15,7 +15,6 @@
  */
 package org.gradle
 
-import org.gradle.StartParameter.ShowStacktrace
 import org.gradle.api.GradleException
 import org.gradle.api.LocationAwareException
 import org.gradle.api.logging.LogLevel
@@ -25,6 +24,7 @@ import org.gradle.logging.StyledTextOutputFactory
 import org.gradle.logging.internal.TestStyledTextOutput
 import spock.lang.Specification
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.logging.ShowStacktrace
 
 class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()

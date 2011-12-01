@@ -27,6 +27,7 @@ import org.gradle.initialization.BuildFileProjectSpec;
 import org.gradle.initialization.DefaultProjectSpec;
 import org.gradle.initialization.ProjectDirectoryProjectSpec;
 import org.gradle.initialization.ProjectSpec;
+import org.gradle.logging.ShowStacktrace;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.SystemProperties;
@@ -53,13 +54,6 @@ public class StartParameter implements Serializable {
      * The default user home directory.
      */
     public static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getUserHome() + "/.gradle");
-
-    /**
-     * Specifies the detail to include in stacktraces.
-     */
-    public enum ShowStacktrace {
-        INTERNAL_EXCEPTIONS, ALWAYS, ALWAYS_FULL
-    }
 
     private List<String> taskNames = new ArrayList<String>();
     private Set<String> excludedTaskNames = new HashSet<String>();

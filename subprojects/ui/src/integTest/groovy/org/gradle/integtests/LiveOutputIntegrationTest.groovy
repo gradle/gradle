@@ -33,6 +33,7 @@ import org.junit.Test
 import org.gradle.foundation.output.LiveOutputParser
 import org.gradle.foundation.output.FileLinkDefinitionLord
 import org.gradle.foundation.output.FileLink
+import org.gradle.logging.ShowStacktrace
 
 /**
 This tests the that live output is gathered while executing a task.
@@ -105,7 +106,7 @@ that's likely to change over time. This version executes the command via GradleR
         //execute a command. We don't really care what the command is, just something that generates output
         def cl = new ExtraTestCommandLineOptionsListener(dist.userHomeDir).getAdditionalCommandLineArguments('') + ' tasks'
         gradleRunner.executeCommand(cl, org.gradle.api.logging.LogLevel.LIFECYCLE,
-                                            org.gradle.StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS,
+                                            ShowStacktrace.INTERNAL_EXCEPTIONS,
                                             executionInteraction);
 
         executionInteraction.waitForCompletion(100, TimeUnit.SECONDS)

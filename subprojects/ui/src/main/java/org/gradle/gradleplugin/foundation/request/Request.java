@@ -15,12 +15,12 @@
  */
 package org.gradle.gradleplugin.foundation.request;
 
-import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
 import org.gradle.foundation.queue.ExecutionQueue;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
+import org.gradle.logging.ShowStacktrace;
 
 import java.io.File;
 
@@ -66,7 +66,7 @@ public interface Request extends ExecutionQueue.Request {
      * @param customGradleExecutor the path to a custom gradle executable. May be null.
      * @return a protocol that our server will use to communicate with the launched gradle process.
      */
-    public ProcessLauncherServer.Protocol createServerProtocol(LogLevel logLevel, StartParameter.ShowStacktrace stackTraceLevel, File currentDirectory, File gradleHomeDirectory,
+    public ProcessLauncherServer.Protocol createServerProtocol(LogLevel logLevel, ShowStacktrace stackTraceLevel, File currentDirectory, File gradleHomeDirectory,
                                                                File customGradleExecutor);
 
     public void executeAgain(GradlePluginLord gradlePluginLord);

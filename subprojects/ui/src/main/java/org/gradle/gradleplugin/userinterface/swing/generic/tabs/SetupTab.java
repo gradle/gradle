@@ -15,7 +15,6 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic.tabs;
 
-import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -24,6 +23,7 @@ import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 import org.gradle.gradleplugin.userinterface.swing.generic.OutputUILord;
 import org.gradle.gradleplugin.userinterface.swing.generic.Utility;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.logging.ShowStacktrace;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 import org.gradle.util.SystemProperties;
 
@@ -331,9 +331,9 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
                 + ")");  //add the command line character to the end (so if an error message says use a stack trace level, you can easily translate)
         showFullStackTrackRadioButton = new JRadioButton("Full Stack Trace (-" + DefaultCommandLineConverter.FULL_STACKTRACE + ")");
 
-        showNoStackTraceRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS);
-        showStackTrackRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, StartParameter.ShowStacktrace.ALWAYS);
-        showFullStackTrackRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, StartParameter.ShowStacktrace.ALWAYS_FULL);
+        showNoStackTraceRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, ShowStacktrace.INTERNAL_EXCEPTIONS);
+        showStackTrackRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, ShowStacktrace.ALWAYS);
+        showFullStackTrackRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, ShowStacktrace.ALWAYS_FULL);
 
         stackTraceButtonGroup = new ButtonGroup();
         stackTraceButtonGroup.add(showNoStackTraceRadioButton);
@@ -359,7 +359,7 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
         String stackTraceLevel = settingsNode.getValueOfChild(STACK_TRACE_LEVEL, getSelectedStackTraceLevel().name());
         if (stackTraceLevel != null) {
             try {
-                setSelectedStackTraceLevel(StartParameter.ShowStacktrace.valueOf(stackTraceLevel));
+                setSelectedStackTraceLevel(ShowStacktrace.valueOf(stackTraceLevel));
                 updateStackTraceSetting(false);   //false because we're serializing this in
             } catch (Exception e) {  //this can happen if the stack trace levels change because you're moving between versions.
                 logger.error("Converting stack trace level text to stack trace level enum '" + stackTraceLevel + "'", e);
@@ -373,7 +373,7 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
      * This stores the current stack trace setting (based on the UI controls) in the plugin.
      */
     private void updateStackTraceSetting(boolean saveSetting) {
-        StartParameter.ShowStacktrace stackTraceLevel = getSelectedStackTraceLevel();
+        ShowStacktrace stackTraceLevel = getSelectedStackTraceLevel();
         gradlePluginLord.setStackTraceLevel(stackTraceLevel);
 
         if (saveSetting) {
@@ -387,11 +387,11 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
      *
      * @param newStackTraceLevel the new stack trace level.
      */
-    private void setSelectedStackTraceLevel(StartParameter.ShowStacktrace newStackTraceLevel) {
+    private void setSelectedStackTraceLevel(ShowStacktrace newStackTraceLevel) {
         Enumeration<AbstractButton> buttonEnumeration = stackTraceButtonGroup.getElements();
         while (buttonEnumeration.hasMoreElements()) {
             JRadioButton radioButton = (JRadioButton) buttonEnumeration.nextElement();
-            StartParameter.ShowStacktrace level = (StartParameter.ShowStacktrace) radioButton.getClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY);
+            ShowStacktrace level = (ShowStacktrace) radioButton.getClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY);
             if (newStackTraceLevel == level) {
                 radioButton.setSelected(true);
                 return;
@@ -405,20 +405,20 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
      *
      * @return the selected stack trace level
      */
-    private StartParameter.ShowStacktrace getSelectedStackTraceLevel() {
+    private ShowStacktrace getSelectedStackTraceLevel() {
         ButtonModel selectedButtonModel = stackTraceButtonGroup.getSelection();
         if (selectedButtonModel != null) {
             Enumeration<AbstractButton> buttonEnumeration = stackTraceButtonGroup.getElements();
             while (buttonEnumeration.hasMoreElements()) {
                 JRadioButton radioButton = (JRadioButton) buttonEnumeration.nextElement();
                 if (radioButton.getModel() == selectedButtonModel) {
-                    StartParameter.ShowStacktrace level = (StartParameter.ShowStacktrace) radioButton.getClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY);
+                    ShowStacktrace level = (ShowStacktrace) radioButton.getClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY);
                     return level;
                 }
             }
         }
 
-        return StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS;
+        return ShowStacktrace.INTERNAL_EXCEPTIONS;
     }
 
     private Component createOptionsPanel() {
