@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.os.FileSystems;
+import org.gradle.os.OperatingSystem;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -58,11 +59,14 @@ public abstract class AbstractFileResolver implements FileResolver {
         return file;
     }
 
+    // normalizes a path in similar ways as File.getCanonicalFile(), except that it
+    // does NOT resolve symlinks (by design)
     private File normalise(File file) {
         try {
             assert file.isAbsolute() : String.format("Cannot normalize a relative file: '%s'", file);
 
-            if (!FileSystems.getDefault().canResolveSymbolicLink()) {
+            if (OperatingSystem.current().isWindows()) {
+                // on Windows, File.getCanonicalFile() doesn't resolve symlinks
                 return file.getCanonicalFile();
             }
 
