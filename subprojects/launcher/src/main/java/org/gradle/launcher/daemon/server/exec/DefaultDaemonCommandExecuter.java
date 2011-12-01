@@ -21,7 +21,6 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.internal.Connection;
@@ -32,13 +31,11 @@ import org.gradle.messaging.remote.internal.DisconnectAwareConnectionDecorator;
  */
 public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
 
-    final private ServiceRegistry loggingServices;
     private final ExecutorFactory executorFactory;
     final private LoggingManagerInternal loggingManager;
     final private GradleLauncherFactory launcherFactory;
 
     public DefaultDaemonCommandExecuter(ServiceRegistry loggingServices, ExecutorFactory executorFactory) {
-        this.loggingServices = loggingServices;
         this.executorFactory = executorFactory;
         this.loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
         this.launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
@@ -60,7 +57,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new ForwardClientInput(executorFactory),
             new ReturnResult(),
             new ResetDeprecationLogger(),
-            new ReportExceptions(loggingServices.get(StyledTextOutputFactory.class)),
+            new CatchAndForwardDaemonFailureAsResult(),
             new WatchForDisconnection(),
             new ExecuteBuild(launcherFactory)
         ).proceed();

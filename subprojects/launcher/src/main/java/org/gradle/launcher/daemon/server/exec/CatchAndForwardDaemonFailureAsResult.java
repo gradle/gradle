@@ -15,14 +15,15 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-public class StopConnectionAfterExecution implements DaemonCommandAction {
-
-    public void execute(DaemonCommandExecution execution) {
+/**
+ * Reports the execution exception if it exists after execution.
+ */
+public class CatchAndForwardDaemonFailureAsResult implements DaemonCommandAction {
+    public void execute(final DaemonCommandExecution execution) {
         try {
             execution.proceed();
-        } finally {
-            execution.getConnection().stop();
+        } catch(Throwable throwable) {
+            execution.setException(throwable);
         }
     }
-
 }

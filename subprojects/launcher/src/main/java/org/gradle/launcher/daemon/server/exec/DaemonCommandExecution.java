@@ -86,7 +86,7 @@ public class DaemonCommandExecution {
     /**
      * The currently nominated result for the execution.
      * <p>
-     * If {@link getException()} returns non null, the actual “result” of executing the command should be considered
+     * If {@link #getException()} returns non null, the actual “result” of executing the command should be considered
      * to be that exception and not what is returned by this method.
      * <p>
      * May be null if no action has set the result yet.

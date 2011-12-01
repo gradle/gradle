@@ -30,8 +30,11 @@ public class UpdateDaemonStateAndHandleBusyDaemon implements DaemonCommandAction
         if (existingExecution != null) {
             execution.getConnection().dispatch(new DaemonBusy(existingExecution.getCommand()));
         } else {
-            execution.proceed();
-            stateCoordinator.onFinishCommand();
+            try {
+                execution.proceed();
+            } finally {
+                stateCoordinator.onFinishCommand();
+            }
         }
     }
 
