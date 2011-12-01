@@ -297,8 +297,8 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
             boolean didFail = execResult.getExitValue() != 0;
             if (didFail != expectFailure) {
-                String message = String.format("Gradle execution %s in %s with: %s",
-                        expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand());
+                String message = String.format("Gradle execution %s in %s with: %s %nError:%n%s%n-----%n",
+                        expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), error);
                 throw new RuntimeException(message);
             }
 
