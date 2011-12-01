@@ -210,7 +210,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    public static class InProcessExecutionResult extends AbstractExecutionResult {
+    public static class InProcessExecutionResult implements ExecutionResult {
         private final List<String> plannedTasks;
         private final Set<String> skippedTasks;
         private final String output;

@@ -32,7 +32,10 @@ import org.gradle.util.TestFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -82,7 +85,15 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         gradleOpts.addAll(Arrays.asList(opts));
     }
 
-    public ExecHandleBuilder createExecHandleBuilder() {
+    @Override
+    protected List<String> getAllArgs() {
+        List<String> args = new ArrayList<String>();
+        args.addAll(super.getAllArgs());
+        args.add("--stacktrace");
+        return args;
+    }
+
+    private ExecHandleBuilder createExecHandleBuilder() {
         if (!gradleHomeDir.isDirectory()) {
             fail(gradleHomeDir + " is not a directory.\n"
                     + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
@@ -192,33 +203,28 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    protected static class ForkingGradleHandle extends OutputScrapingGradleHandle {
+    private static class MultiplexingOutputStream extends OutputStream {
+        final OutputStream systemOut;
+        final OutputStream nonSystemOut;
+
+        public MultiplexingOutputStream(OutputStream systemOut, OutputStream nonSystemOut) {
+            this.systemOut = systemOut;
+            this.nonSystemOut = nonSystemOut;
+        }
+
+        public void write(int b) throws IOException {
+            nonSystemOut.write(b);
+            systemOut.write(b);
+        }
+    }
+
+    private static class ForkingGradleHandle extends OutputScrapingGradleHandle {
         private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleHandle.class);
 
         final private ForkingGradleExecuter executer;
-        private boolean passthrough;
-
-        private class MultiplexingOutputStream extends OutputStream {
-            OutputStream systemOut;
-            OutputStream nonSystemOut;
-
-            public MultiplexingOutputStream(OutputStream systemOut, OutputStream nonSystemOut) {
-                this.systemOut = systemOut;
-                this.nonSystemOut = nonSystemOut;
-            }
-
-            public void write(int b) throws IOException {
-                nonSystemOut.write(b);
-                if (passthrough) {
-                    systemOut.write(b);
-                }
-            }
-        }
-
 
         final private ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
         final private ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
-        private InputStream inputStream;
 
         private ExecHandle execHandle;
 
@@ -230,22 +236,12 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             return executer;
         }
 
-        public GradleHandle passthroughOutput() {
-            passthrough = true;
-            return this;
-        }
-
         public String getStandardOutput() {
             return standardOutput.toString();
         }
 
         public String getErrorOutput() {
             return errorOutput.toString();
-        }
-
-        public GradleHandle setStandardInput(InputStream inputStream) {
-            this.inputStream = inputStream;
-            return this;
         }
 
         public GradleHandle start() {
@@ -278,9 +274,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             ExecHandleBuilder execBuilder = getExecuter().createExecHandleBuilder();
             execBuilder.setStandardOutput(new MultiplexingOutputStream(System.out, standardOutput));
             execBuilder.setErrorOutput(new MultiplexingOutputStream(System.err, errorOutput));
-            if (inputStream != null) {
-                execBuilder.setStandardInput(inputStream);
-            }
             execHandle = execBuilder.build();
 
             return execHandle;
@@ -302,14 +295,10 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             String output = getStandardOutput();
             String error = getErrorOutput();
 
-            LOG.info("OUTPUT: " + output);
-            LOG.info("ERROR: " + error);
-
             boolean didFail = execResult.getExitValue() != 0;
             if (didFail != expectFailure) {
-                String message = String.format("Gradle execution %s in %s with: %s %nOutput:%n%s%nError:%n%s%n-----%n",
-                        expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), output, error);
-                System.out.println(message);
+                String message = String.format("Gradle execution %s in %s with: %s",
+                        expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand());
                 throw new RuntimeException(message);
             }
 

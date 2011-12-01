@@ -15,23 +15,18 @@
  */
 package org.gradle.integtests.fixtures;
 
-import java.io.InputStream;
-
 public interface GradleHandle {
 
     GradleExecuter getExecuter();
 
     String getStandardOutput();
     String getErrorOutput();
-    GradleHandle setStandardInput(InputStream input);
-    
+
     GradleHandle start();
     GradleHandle abort();
 
     ExecutionResult waitForFinish();
     ExecutionFailure waitForFailure();
-
-    GradleHandle passthroughOutput();
 
     boolean isRunning();
 

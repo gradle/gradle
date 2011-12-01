@@ -20,29 +20,18 @@ import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.util.Jvm
-import org.gradle.util.PreconditionVerifier
-import org.gradle.util.TestPrecondition
-import org.gradle.util.Requires
-import org.gradle.util.AntUtil
-import org.gradle.util.TestFile
-import org.gradle.os.OperatingSystem
 import org.gradle.os.FileSystems
-import org.junit.Before
+import org.gradle.os.OperatingSystem
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.gradle.util.*
 
 public class CommandLineIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter(GradleDistributionExecuter.Executer.forking)
     @Rule public final TestResources resources = new TestResources()
     @Rule public final PreconditionVerifier verifier = new PreconditionVerifier()
-
-    @Before
-    public void setup() {
-        executer.type = GradleDistributionExecuter.Executer.forking
-    }
 
     @Test
     public void hasNonZeroExitCodeOnBuildFailure() {

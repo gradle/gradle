@@ -82,7 +82,7 @@ class DaemonLifecycleSpec extends Specification {
                         println 'noticed stop file, finishing'
                     }
                 """)
-            }.passthroughOutput().start()
+            }.start()
         }
     }
 
@@ -104,7 +104,7 @@ class DaemonLifecycleSpec extends Specification {
             if (javaHome) {
                 withJavaHome(javaHome)
             }
-        }.passthroughOutput().start().waitForFinish()
+        }.start().waitForFinish()
     }
 
     void startForegroundDaemon() {
@@ -125,7 +125,7 @@ class DaemonLifecycleSpec extends Specification {
                 withJavaHome(javaHome)
             }
             withArguments("--foreground", "--info")
-        }.passthroughOutput().start()
+        }.start()
     }
 
     void killForegroundDaemon(int num = 0) {

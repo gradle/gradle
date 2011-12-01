@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 
 public interface GradleExecuter {
+    /**
+     * Sets the working directory to use. Defaults to the test's temporary directory.
+     */
     GradleExecuter inDirectory(File directory);
 
     /**

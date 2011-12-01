@@ -20,18 +20,14 @@ import org.gradle.api.Action;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertThat;
 
-public class OutputScrapingExecutionResult extends AbstractExecutionResult {
+public class OutputScrapingExecutionResult implements ExecutionResult {
     private final String output;
     private final String error;
     

@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TestFile;
+import org.gradle.util.TextUtil;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -24,6 +25,9 @@ import org.junit.runners.model.Statement;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.gradle.util.Matchers.containsLine;
+import static org.gradle.util.Matchers.matchesRegexp;
 
 /**
  * A Junit rule which provides a {@link GradleExecuter} implementation that executes Gradle using a given {@link
@@ -34,14 +38,13 @@ import java.util.List;
  * Gradle in the current process.
  */
 public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter implements MethodRule {
-    private static final String IGNORE_SYS_PROP = "org.gradle.integtest.ignore";
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
 
     private GradleDistribution dist;
     private boolean workingDirSet;
     private boolean userHomeSet;
     private boolean deprecationChecksOn = true;
-    private Executer executerType;
+    private final Executer executerType;
 
     public enum Executer {
         embedded(false),
@@ -82,20 +85,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         return executerType;
     }
 
-    public void setType(Executer executerType) {
-        this.executerType = executerType;
-    }
-
     public Statement apply(Statement base, final FrameworkMethod method, Object target) {
-        if (System.getProperty(IGNORE_SYS_PROP) != null) {
-            return new Statement() {
-                @Override
-                public void evaluate() throws Throwable {
-                    System.out.println(String.format("Skipping test '%s'", method.getName()));
-                }
-            };
-        }
-
         if (dist == null) {
             dist = RuleHelper.getField(target, GradleDistribution.class);
         }
@@ -134,10 +124,10 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     protected <T extends ExecutionResult> T checkResult(T result) {
         // Assert that nothing unexpected was logged
-        result.assertOutputHasNoStackTraces();
-        result.assertErrorHasNoStackTraces();
+        assertOutputHasNoStackTraces(result);
+        assertErrorHasNoStackTraces(result);
         if (deprecationChecksOn) {
-            result.assertOutputHasNoDeprecationWarnings();
+            assertOutputHasNoDeprecationWarnings(result);
         }
 
         if (getExecutable() == null) {
@@ -161,6 +151,40 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         */
 
         return result;
+    }
+
+    private void assertOutputHasNoStackTraces(ExecutionResult result) {
+        assertNoStackTraces(result.getOutput(), "Standard output");
+    }
+
+    public void assertErrorHasNoStackTraces(ExecutionResult result) {
+        String error = result.getError();
+        if (result instanceof ExecutionFailure) {
+            // Snip everything after the expected exception
+            int pos = error.lastIndexOf("* Exception is:" + TextUtil.getPlatformLineSeparator());
+            assert pos >= 0;
+            error = error.substring(0, pos);
+        }
+        assertNoStackTraces(error, "Standard error");
+    }
+
+    public void assertOutputHasNoDeprecationWarnings(ExecutionResult result) {
+        assertNoDeprecationWarnings(result.getOutput(), "Standard output");
+        assertNoDeprecationWarnings(result.getError(), "Standard error");
+    }
+
+    private void assertNoDeprecationWarnings(String output, String displayName) {
+        boolean javacWarning = containsLine(matchesRegexp(".*use(s)? or override(s)? a deprecated API\\.")).matches(output);
+        boolean deprecationWarning = containsLine(matchesRegexp(".*deprecated.*")).matches(output);
+        if (deprecationWarning && !javacWarning) {
+            throw new RuntimeException(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n", displayName, output));
+        }
+    }
+
+    private void assertNoStackTraces(String output, String displayName) {
+        if (containsLine(matchesRegexp("\\s+at [\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
+            throw new RuntimeException(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n", displayName, output));
+        }
     }
 
     protected GradleExecuter configureExecuter() {
