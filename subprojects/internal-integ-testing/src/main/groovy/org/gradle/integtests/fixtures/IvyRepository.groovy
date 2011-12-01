@@ -87,7 +87,7 @@ class IvyModule {
     /**
      * Publishes ivy.xml plus all artifacts with different content to previous publication.
      */
-    void publishWithChangedContent() {
+    IvyModule publishWithChangedContent() {
         publishCount++
         publish()
     }
@@ -95,7 +95,7 @@ class IvyModule {
     /**
      * Publishes ivy.xml plus all artifacts
      */
-    void publish() {
+    IvyModule publish() {
         moduleDir.createDir()
 
         ivyFile.text = """<?xml version="1.0" encoding="UTF-8"?>
@@ -135,6 +135,8 @@ class IvyModule {
     </dependencies>
 </ivy-module>
         """
+
+        return this
     }
 
     private File file(def artifact) {

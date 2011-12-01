@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.CachingDirectedGraphWalker;
 import org.gradle.api.internal.DirectedGraphWithEdgeValues;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -90,6 +91,14 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
     }
 
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
+        return getFiles(dependencySpec, new LenientArtifactToFileResolver());
+    }
+    
+    public Set<File> getFilesStrict(Spec<? super Dependency> dependencySpec) {
+        return getFiles(dependencySpec, new ArtifactFileResolver());
+    }
+
+    private Set<File> getFiles(Spec<? super Dependency> dependencySpec, ArtifactFileResolver artifactFileResolver) {
         Set<ResolvedDependency> firstLevelModuleDependencies = getFirstLevelModuleDependencies(dependencySpec);
 
         Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
@@ -103,7 +112,7 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
 
         Set<File> files = new LinkedHashSet<File>();
         for (ResolvedArtifact artifact : artifacts) {
-            File depFile = artifact.getFile();
+            File depFile = artifactFileResolver.getFile(artifact);
             if (depFile != null) {
                 files.add(depFile);
             }
@@ -123,4 +132,19 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
         }
     }
 
+    private static class ArtifactFileResolver {
+        public File getFile(ResolvedArtifact artifact) {
+            return artifact.getFile();
+        }
+    }
+    
+    private static class LenientArtifactToFileResolver extends ArtifactFileResolver {
+        public File getFile(ResolvedArtifact artifact) {
+            try {
+                return super.getFile(artifact);
+            } catch (ArtifactNotFoundException e) {
+                return null;
+            }
+        }
+    }    
 }

@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.util.SetSystemProperties
 import org.hamcrest.Matchers
 import org.junit.Rule
+import static org.hamcrest.Matchers.containsString
 
 class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -105,42 +106,48 @@ task listJars << {
         server.start()
         given:
         def repo = ivyRepo()
-        def module1 = repo.module('group', 'projectA', '1.2')
-        module1.publish()
-        def module2 = repo.module('group', 'projectB', '1.3')
-        module2.publish()
+        def moduleA = repo.module('group', 'projectA').publish()
+        def moduleB = repo.module('group', 'projectB').publish()
+        def moduleC = repo.module('group', 'projectC').publish()
 
         and:
         buildFile << """
 repositories {
-    ivy { url "http://localhost:${server.port}/repo" }
+    ivy { url "http://localhost:${server.port}/repo1" }
     ivy { url "http://localhost:${server.port}/repo2" }
 }
 configurations { compile }
 dependencies {
-    compile 'group:projectA:1.2', 'group:projectB:1.3'
+    compile 'group:projectA:1.0', 'group:projectB:1.0', 'group:projectC:1.0'
 }
 task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.3.jar']
+    assert configurations.compile.collect { it.name } == ['projectA-1.0.jar', 'projectB-1.0.jar', 'projectC-1.0.jar']
 }
 """
 
         when:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module1.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module1.jarFile)
+        server.expectGet('/repo1/group/projectA/1.0/ivy-1.0.xml', moduleA.ivyFile)
+        server.expectGet('/repo1/group/projectA/1.0/projectA-1.0.jar', moduleA.jarFile)
 
-        server.expectGetMissing('/repo/group/projectB/1.3/ivy-1.3.xml')
+        // Handles missing in repo1
+        server.expectGetMissing('/repo1/group/projectB/1.0/ivy-1.0.xml')
         // TODO - this shouldn't happen - resolver is trying to generate metadata based on presence of jar
-        server.expectGetMissing('/repo/group/projectB/1.3/projectB-1.3.jar')
+        server.expectGetMissing('/repo1/group/projectB/1.0/projectB-1.0.jar')
 
-        server.expectGet('/repo2/group/projectB/1.3/ivy-1.3.xml', module2.ivyFile)
-        server.expectGet('/repo2/group/projectB/1.3/projectB-1.3.jar', module2.jarFile)
+        server.expectGet('/repo2/group/projectB/1.0/ivy-1.0.xml', moduleB.ivyFile)
+        server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.jar', moduleB.jarFile)
+
+        // Handles from broken url in repo1 (but does not cache)
+        server.addBroken('/repo1/group/projectC')
+        server.expectGet('/repo2/group/projectC/1.0/ivy-1.0.xml', moduleC.ivyFile)
+        server.expectGet('/repo2/group/projectC/1.0/projectC-1.0.jar', moduleC.jarFile)
 
         then:
         succeeds('listJars')
 
         when:
         server.resetExpectations()
+        server.addBroken('/repo1/group/projectC') // Will always re-attempt a broken repository
         // No extra calls for cached dependencies
 
         then:
@@ -308,7 +315,7 @@ task showBroken << { println configurations.broken.files }
         succeeds("showBroken")
     }
 
-    public void "caches missing artifacts until changing module cache expiry"() {
+    public void "reports and caches missing artifacts until changing module cache expiry"() {
         server.start()
 
         given:
@@ -326,7 +333,6 @@ if (project.hasProperty('doNotCacheChangingModules')) {
 }
 dependencies {
     compile 'group:projectA:1.2'
-    compile 'group:projectA:1.2@zip'
 }
 task retrieve(type: Sync) {
     from configurations.compile
@@ -340,32 +346,30 @@ task retrieve(type: Sync) {
 
         when:
         server.expectGet('/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
+        server.expectGetMissing('/group/projectA/1.2/projectA-1.2.jar')
+
+        then:
+        fails "retrieve"
+        failure.assertThatCause(containsString("Artifact 'group:projectA:1.2@jar' not found"))
+
+        when:
+        server.resetExpectations()
+
+        then:
+        fails "retrieve"
+        failure.assertThatCause(containsString("Artifact 'group:projectA:1.2@jar' not found"))
+
+        when:
+        server.resetExpectations()
         server.expectGet('/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
-        server.expectGetMissing('/group/projectA/1.2/projectA-1.2.zip')
 
         then:
-        // TODO:DAZ This build should fail, as the artifact is missing GRADLE-1961!!!
-        succeeds("retrieve")
+        executer.withArguments("-PdoNotCacheChangingModules")
+        succeeds 'retrieve'
         file('libs').assertHasDescendants('projectA-1.2.jar')
-
-        when:
-        server.resetExpectations()
-
-        then:
-        // TODO:DAZ This build should fail, as the artifact is missing GRADLE-1961!!!
-        succeeds("retrieve")
-        file('libs').assertHasDescendants('projectA-1.2.jar')
-
-        when:
-        server.resetExpectations()
-        server.expectGet('/group/projectA/1.2/projectA-1.2.zip', module.jarFile)
-
-        then:
-        executer.withArguments("-PdoNotCacheChangingModules").withTasks('retrieve').run()
-        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectA-1.2.zip')
     }
 
-    public void "recovers from failed artifact download"() {
+    public void "reports and recovers from failed artifact download"() {
         server.start()
 
         given:
@@ -378,7 +382,6 @@ repositories {
 configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
-    compile 'group:projectA:1.2@zip'
 }
 task retrieve(type: Sync) {
     from configurations.compile
@@ -392,21 +395,19 @@ task retrieve(type: Sync) {
 
         when:
         server.expectGet('/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGet('/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
-        server.addBroken('/group/projectA/1.2/projectA-1.2.zip')
+        server.addBroken('/group/projectA/1.2/projectA-1.2.jar')
 
         then:
-        // TODO:DAZ This build should fail, as the artifact is missing GRADLE-1961!!!
-        succeeds("retrieve")
-        file('libs').assertHasDescendants('projectA-1.2.jar')
+        fails "retrieve"
+        failure.assertThatCause(containsString("Download failed for artifact 'group:projectA:1.2@jar': Could not GET"))
 
         when:
         server.resetExpectations()
-        server.expectGet('/group/projectA/1.2/projectA-1.2.zip', module.jarFile)
+        server.expectGet('/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
 
         then:
-        succeeds("retrieve")
-        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectA-1.2.zip')
+        succeeds "retrieve"
+        file('libs').assertHasDescendants('projectA-1.2.jar')
     }
 
     public void "uses all configured patterns to resolve artifacts and caches result"() {

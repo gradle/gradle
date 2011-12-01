@@ -42,7 +42,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException {
         rethrowFailure();
-        return configuration.getFiles(dependencySpec);
+        return configuration.getFilesStrict(dependencySpec);
     }
 
     public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {

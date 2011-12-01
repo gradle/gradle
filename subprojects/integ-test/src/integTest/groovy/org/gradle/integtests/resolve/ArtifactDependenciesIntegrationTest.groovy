@@ -99,6 +99,35 @@ project(':b') {
     }
 
     @Test
+    public void resolutionFailsForMissingArtifact() {
+        testFile('build.gradle') << """
+repositories {
+    maven { url '${repo.uri}' }
+}
+configurations {
+    compile; missingExt; missingClassifier
+}
+dependencies {
+    compile "org.gradle.test:lib:1.0"
+    missingExt "org.gradle.test:lib:1.0@zip"
+    missingClassifier "org.gradle.test:lib:1.0:classifier1"
+}
+task listJar << { configurations.compile.each { } }
+task listMissingExt << { configurations.missingExt.each { } }
+task listMissingClassifier << { configurations.missingClassifier.each { } }
+"""
+        repo.module('org.gradle.test', 'lib', '1.0').publish()
+
+        inTestDirectory().withTasks('listJar').run()
+
+        def result = inTestDirectory().withTasks('listMissingExt').runWithFailure()
+        result.assertThatCause(containsString("Artifact 'org.gradle.test:lib:1.0@zip' not found"))
+
+        result = inTestDirectory().withTasks('listMissingClassifier').runWithFailure()
+        result.assertThatCause(containsString("Artifact 'org.gradle.test:lib:1.0:classifier1@jar' not found"))
+    }
+
+    @Test
     @Issue("GRADLE-1342")
     public void resolutionDoesNotUseCachedArtifactFromDifferentRepository() {
         def repo1 = new MavenRepository(testFile('repo1'))
