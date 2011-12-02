@@ -27,10 +27,7 @@ import org.apache.ivy.util.Message;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LoopbackDependencyResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.UserResolverChain;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -126,7 +123,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
             DependencyResolver sharedResolver = resolversById.get(resolverId);
             if (sharedResolver == null) {
                 initializeResolvers(resolveSettings, WrapUtil.toList(resolver));
-                sharedResolver = resolver;
+                sharedResolver = new DependencyResolverAdapter(resolverId, resolver);
                 resolversById.put(resolverId, sharedResolver);
             }
             resolveSettings.addResolver(sharedResolver);

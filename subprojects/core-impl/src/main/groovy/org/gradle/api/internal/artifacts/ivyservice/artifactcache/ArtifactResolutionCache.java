@@ -16,16 +16,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.artifactcache;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 
 import java.io.File;
 
 public interface ArtifactResolutionCache {
-    File storeArtifactFile(DependencyResolver resolver, ArtifactRevisionId artifact, File artifactFile);
+    File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifact, File artifactFile);
 
-    void expireCachedArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifact);
+    void expireCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifact);
 
-    CachedArtifactResolution getCachedArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifact);
+    CachedArtifactResolution getCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifact);
 
     interface CachedArtifactResolution {
         ArtifactRevisionId getArtifactId();

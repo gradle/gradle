@@ -19,9 +19,8 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
-import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 
 import java.io.File;
 import java.util.Collections;
@@ -36,13 +35,13 @@ public class ModuleDescriptorFileStore {
         this.cacheMetaData = cacheMetaData;
     }
     
-    public File getModuleDescriptorFile(DependencyResolver dependencyResolver, ModuleRevisionId moduleRevisionId) {
-        String filePath = getFilePath(dependencyResolver, moduleRevisionId);
+    public File getModuleDescriptorFile(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
+        String filePath = getFilePath(repository, moduleRevisionId);
         return new File(cacheMetaData.getCacheDir(), filePath);
     }
 
-    private String getFilePath(DependencyResolver dependencyResolver, ModuleRevisionId moduleRevisionId) {
-        String resolverId = new WharfResolverMetadata(dependencyResolver).getId();
+    private String getFilePath(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
+        String resolverId = repository.getId();
         Artifact artifact = new DefaultArtifact(moduleRevisionId, null, "ivy", "ivy", "xml", Collections.singletonMap("resolverId", resolverId));
         return IvyPatternHelper.substitute(DESCRIPTOR_ARTIFACT_PATTERN, artifact);
     }

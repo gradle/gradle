@@ -16,12 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.artifactcache;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.util.TimeProvider;
-import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 
 import java.io.File;
 import java.io.Serializable;
@@ -52,34 +51,34 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
         return cacheLockingManager.createCache(artifactResolutionCacheFile, RevisionKey.class, ArtifactResolutionCacheEntry.class);
     }
 
-    public CachedArtifactResolution getCachedArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifactId) {
-         ArtifactResolutionCacheEntry artifactResolutionCacheEntry = getCache().get(createKey(resolver, artifactId));
+    public CachedArtifactResolution getCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
+         ArtifactResolutionCacheEntry artifactResolutionCacheEntry = getCache().get(createKey(repository, artifactId));
         if (artifactResolutionCacheEntry == null) {
             return null;
         }
         return new DefaultCachedArtifactResolution(artifactId, artifactResolutionCacheEntry, timeProvider);
     }
 
-    public File storeArtifactFile(DependencyResolver resolver, ArtifactRevisionId artifactId, File artifactFile) {
+    public File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File artifactFile) {
         if (artifactFile == null) {
-            artifactFileStore.removeArtifactFile(resolver, artifactId);
-            getCache().put(createKey(resolver, artifactId), createEntry(null));
+            artifactFileStore.removeArtifactFile(repository, artifactId);
+            getCache().put(createKey(repository, artifactId), createEntry(null));
             return null;
         } else {
-            File cacheFile = artifactFileStore.storeArtifactFile(resolver, artifactId, artifactFile);
-            getCache().put(createKey(resolver, artifactId), createEntry(cacheFile));
+            File cacheFile = artifactFileStore.storeArtifactFile(repository, artifactId, artifactFile);
+            getCache().put(createKey(repository, artifactId), createEntry(cacheFile));
             return cacheFile;
         }
     }
 
-    public void expireCachedArtifactResolution(DependencyResolver resolver, ArtifactRevisionId artifact) {
-        getCache().remove(createKey(resolver, artifact));
-        artifactFileStore.removeArtifactFile(resolver, artifact);
+    public void expireCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifact) {
+        getCache().remove(createKey(repository, artifact));
+        artifactFileStore.removeArtifactFile(repository, artifact);
     }
 
-    private RevisionKey createKey(DependencyResolver resolver, ArtifactRevisionId artifactId) {
+    private RevisionKey createKey(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
         String artifactPath = artifactFileStore.getArtifactPath(artifactId);
-        return new RevisionKey(resolver, artifactPath);
+        return new RevisionKey(repository, artifactPath);
     }
 
     private ArtifactResolutionCacheEntry createEntry(File artifactFile) {
@@ -90,8 +89,8 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
         private final String resolverId;
         private final String artifactId;
 
-        private RevisionKey(DependencyResolver resolver, String artifactPath) {
-            this.resolverId = new WharfResolverMetadata(resolver).getId();
+        private RevisionKey(ModuleVersionRepository repository, String artifactPath) {
+            this.resolverId = repository.getId();
             this.artifactId = artifactPath;
         }
 

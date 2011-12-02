@@ -20,7 +20,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.util.UncheckedException;
 
 import java.io.File;
@@ -35,8 +35,8 @@ public class ModuleDescriptorStore {
         this.moduleDescriptorFileStore = moduleDescriptorFileStore;
     }
 
-    public ModuleDescriptor getModuleDescriptor(DependencyResolver dependencyResolver, ModuleRevisionId moduleRevisionId, IvySettings ivySettings) {
-        File moduleDescriptorFile = moduleDescriptorFileStore.getModuleDescriptorFile(dependencyResolver, moduleRevisionId);
+    public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId, IvySettings ivySettings) {
+        File moduleDescriptorFile = moduleDescriptorFileStore.getModuleDescriptorFile(repository, moduleRevisionId);
         return parseModuleDescriptorFile(moduleDescriptorFile, ivySettings);
     }
 
@@ -49,8 +49,8 @@ public class ModuleDescriptorStore {
         }
     }
 
-    public void putModuleDescriptor(DependencyResolver dependencyResolver, ModuleDescriptor moduleDescriptor) {
-        File moduleDescriptorFile = moduleDescriptorFileStore.getModuleDescriptorFile(dependencyResolver, moduleDescriptor.getModuleRevisionId());
+    public void putModuleDescriptor(ModuleVersionRepository repository, ModuleDescriptor moduleDescriptor) {
+        File moduleDescriptorFile = moduleDescriptorFileStore.getModuleDescriptorFile(repository, moduleDescriptor.getModuleRevisionId());
         try {
             XmlModuleDescriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
         } catch (Exception e) {

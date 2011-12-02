@@ -19,9 +19,8 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.util.UncheckedException;
-import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 import org.jfrog.wharf.ivy.util.WharfUtils;
 
 import java.io.File;
@@ -37,8 +36,8 @@ public class LinkingArtifactFileStore implements ArtifactFileStore {
         this.baseDir = baseDir;
     }
 
-    public File storeArtifactFile(DependencyResolver dependencyResolver, ArtifactRevisionId artifactId, File contentFile) {
-        File cacheFile = getArtifactFileLocation(dependencyResolver, artifactId);
+    public File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File contentFile) {
+        File cacheFile = getArtifactFileLocation(repository, artifactId);
         try {
             WharfUtils.linkCacheFileToStorage(contentFile, cacheFile);
         } catch (IOException e) {
@@ -47,8 +46,8 @@ public class LinkingArtifactFileStore implements ArtifactFileStore {
         return cacheFile;
     }
 
-    public void removeArtifactFile(DependencyResolver dependencyResolver, ArtifactRevisionId artifactId) {
-        File cacheFile = getArtifactFileLocation(dependencyResolver, artifactId);
+    public void removeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
+        File cacheFile = getArtifactFileLocation(repository, artifactId);
         cacheFile.delete();
     }
     
@@ -57,8 +56,8 @@ public class LinkingArtifactFileStore implements ArtifactFileStore {
         return IvyPatternHelper.substitute(DEFAULT_ARTIFACT_PATTERN, dummyArtifact);
     }
 
-    private File getArtifactFileLocation(DependencyResolver dependencyResolver, ArtifactRevisionId artifactId) {
-        String resolverId = new WharfResolverMetadata(dependencyResolver).getId();
+    private File getArtifactFileLocation(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
+        String resolverId = repository.getId();
         String artifactPath = getArtifactPath(artifactId);
         return new File(baseDir, resolverId + "/" + artifactPath);
     }

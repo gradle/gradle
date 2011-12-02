@@ -19,13 +19,12 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.util.TimeProvider;
-import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,49 +71,49 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         return cacheLockingManager.createCache(artifactResolutionCacheFile, RevisionKey.class, ModuleDescriptorCacheEntry.class);
     }
 
-    public CachedModuleDescriptor getCachedModuleDescriptor(DependencyResolver resolver, ModuleRevisionId moduleRevisionId) {
-        ModuleDescriptorCacheEntry moduleDescriptorCacheEntry = getCache().get(createKey(resolver, moduleRevisionId));
+    public CachedModuleDescriptor getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
+        ModuleDescriptorCacheEntry moduleDescriptorCacheEntry = getCache().get(createKey(repository, moduleRevisionId));
         if (moduleDescriptorCacheEntry == null) {
             return null;
         }
         ModuleDescriptor descriptor = null;
         if (!moduleDescriptorCacheEntry.isMissing) {
-            descriptor = moduleDescriptorStore.getModuleDescriptor(resolver, moduleRevisionId, ivySettings);
+            descriptor = moduleDescriptorStore.getModuleDescriptor(repository, moduleRevisionId, ivySettings);
         }
         return new DefaultCachedModuleDescriptor(moduleDescriptorCacheEntry, descriptor, timeProvider);
     }
 
-    public void cacheModuleDescriptor(DependencyResolver resolver, ModuleRevisionId moduleRevisionId, ModuleDescriptor moduleDescriptor, boolean isChanging) {
+    public void cacheModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId, ModuleDescriptor moduleDescriptor, boolean isChanging) {
         if (moduleDescriptor == null) {
             LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", moduleRevisionId, isChanging);
-            getCache().put(createKey(resolver, moduleRevisionId), createMissingEntry(isChanging));
+            getCache().put(createKey(repository, moduleRevisionId), createMissingEntry(isChanging));
         } else {
             LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), isChanging);
-            expireArtifactsForChangingModuleIfRequired(resolver, moduleDescriptor);
+            expireArtifactsForChangingModuleIfRequired(repository, moduleDescriptor);
     
             // TODO:DAZ Cache will already be locked, due to prior call to getCachedModuleDescriptor. This locking should be more explicit
-            moduleDescriptorStore.putModuleDescriptor(resolver, moduleDescriptor);
-            getCache().put(createKey(resolver, moduleRevisionId), createEntry(isChanging));
+            moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
+            getCache().put(createKey(repository, moduleRevisionId), createEntry(isChanging));
         }
     }
 
-    private void expireArtifactsForChangingModuleIfRequired(DependencyResolver resolver, ModuleDescriptor newDescriptor) {
-        CachedModuleDescriptor cachedModuleDescriptor = getCachedModuleDescriptor(resolver, newDescriptor.getModuleRevisionId());
+    private void expireArtifactsForChangingModuleIfRequired(ModuleVersionRepository repository, ModuleDescriptor newDescriptor) {
+        CachedModuleDescriptor cachedModuleDescriptor = getCachedModuleDescriptor(repository, newDescriptor.getModuleRevisionId());
         if (cachedModuleDescriptor != null && cachedModuleDescriptor.isChangingModule()) {
             ModuleDescriptor oldDescriptor = cachedModuleDescriptor.getModuleDescriptor();
             if (oldDescriptor.getResolvedPublicationDate().getTime() != newDescriptor.getResolvedPublicationDate().getTime()) {
-                expireArtifacts(resolver, oldDescriptor);
+                expireArtifacts(repository, oldDescriptor);
             }
         }
     }
 
-    private void expireArtifacts(DependencyResolver resolver, ModuleDescriptor descriptor) {
+    private void expireArtifacts(ModuleVersionRepository repository, ModuleDescriptor descriptor) {
         for (Artifact artifact : descriptor.getAllArtifacts()) {
-            artifactResolutionCache.expireCachedArtifactResolution(resolver, artifact.getId());
+            artifactResolutionCache.expireCachedArtifactResolution(repository, artifact.getId());
         }
     }
 
-    private RevisionKey createKey(DependencyResolver resolver, ModuleRevisionId moduleRevisionId) {
+    private RevisionKey createKey(ModuleVersionRepository resolver, ModuleRevisionId moduleRevisionId) {
         return new RevisionKey(resolver, moduleRevisionId);
     }
 
@@ -130,8 +129,8 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         private final String resolverId;
         private final String moduleRevisionId;
 
-        private RevisionKey(DependencyResolver resolver, ModuleRevisionId moduleRevisionId) {
-            this.resolverId = new WharfResolverMetadata(resolver).getId();
+        private RevisionKey(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
+            this.resolverId = repository.getId();
             this.moduleRevisionId = moduleRevisionId == null ? null : moduleRevisionId.encodeToString();
         }
 

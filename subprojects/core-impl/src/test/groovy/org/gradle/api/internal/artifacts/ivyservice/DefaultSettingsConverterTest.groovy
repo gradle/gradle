@@ -22,11 +22,11 @@ import org.gradle.api.internal.Factory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
 import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LoopbackDependencyResolver
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.UserResolverChain
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.UserResolverChain
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LoopbackDependencyResolver
 
 class DefaultSettingsConverterTest extends Specification {
     final IBiblioResolver testResolver = new IBiblioResolver()
@@ -61,14 +61,17 @@ class DefaultSettingsConverterTest extends Specification {
         assert settings.is(ivySettings)
 
         UserResolverChain chainResolver = settings.getResolver(DefaultSettingsConverter.USER_RESOLVER_CHAIN_NAME)
-        assert chainResolver.resolvers == [testResolver, testResolver2]
         assert chainResolver.returnFirst
+        assert chainResolver.resolvers.size() == 2
+
         assert settings.defaultResolver instanceof LoopbackDependencyResolver
         assert settings.defaultResolver.resolver == chainResolver
 
-        [testResolver.name, testResolver2.name].each {
-            assert settings.getResolver(it)
-            assert settings.getResolver(it).repositoryCacheManager.settings == settings
+        [testResolver, testResolver2].each { resolver ->
+            assert chainResolver.resolvers.any { it.resolver == resolver }
+            assert settings.getResolver(resolver.name).resolver == resolver
+            assert resolver.settings == settings
+            assert resolver.repositoryCacheManager.settings == settings
         }
     }
 
@@ -85,7 +88,10 @@ class DefaultSettingsConverterTest extends Specification {
         assert settings.is(ivySettings)
 
         UserResolverChain chainResolver = settings.defaultResolver.resolver
-        assert chainResolver.resolvers == [testResolver, testResolver2]
+        assert chainResolver.resolvers.size() == 2
+        [testResolver, testResolver2].each { resolver ->
+            assert chainResolver.resolvers.any { it.resolver == resolver }
+        }
 
         when:
         settings = converter.convertForResolve([testResolver], resolutionStrategy)
@@ -94,8 +100,13 @@ class DefaultSettingsConverterTest extends Specification {
         assert settings.is(ivySettings)
 
         UserResolverChain secondChainResolver = settings.getResolver(DefaultSettingsConverter.USER_RESOLVER_CHAIN_NAME)
-        assert secondChainResolver.resolvers == [testResolver]
-        assert !ivySettings.resolvers.contains(testResolver2)
+        assert secondChainResolver.resolvers.size() == 1
+        [testResolver].each { resolver ->
+            assert secondChainResolver.resolvers.any { it.resolver == resolver }
+            assert settings.getResolver(resolver.name).resolver == resolver
+            assert resolver.settings == settings
+            assert resolver.repositoryCacheManager.settings == settings
+        }
     }
 
     public void testConvertForPublish() {

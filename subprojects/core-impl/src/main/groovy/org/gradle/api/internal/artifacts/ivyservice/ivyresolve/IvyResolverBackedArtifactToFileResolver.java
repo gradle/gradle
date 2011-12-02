@@ -50,10 +50,10 @@ class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileResolver 
     public File resolve(Artifact artifact) {
         ArtifactResolutionExceptionBuilder exceptionBuilder = new ArtifactResolutionExceptionBuilder(artifact);
 
-        List<DependencyResolver> artifactResolvers = dependencyResolvers.getArtifactResolversForModule(artifact.getModuleRevisionId());
+        List<ModuleVersionRepository> artifactRepositories = dependencyResolvers.getArtifactResolversForModule(artifact.getModuleRevisionId());
         DownloadOptions downloadOptions = new DownloadOptions();
-        LOGGER.debug("Attempting to download {} using resolvers {}", artifact, artifactResolvers);
-        for (DependencyResolver resolver : artifactResolvers) {
+        LOGGER.debug("Attempting to download {} using resolvers {}", artifact, artifactRepositories);
+        for (ModuleVersionRepository resolver : artifactRepositories) {
             try {
                 File artifactDownload = downloadWithCache(resolver, artifact, downloadOptions);
                 if (artifactDownload != null) {
@@ -68,13 +68,13 @@ class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileResolver 
         throw exceptionBuilder.buildException();
     }
 
-    private File downloadWithCache(DependencyResolver artifactResolver, Artifact artifact, DownloadOptions options) {
-        if (dependencyResolvers.isLocalResolver(artifactResolver)) {
-            return downloadFromResolver(artifactResolver, artifact, options).getLocalFile();
+    private File downloadWithCache(ModuleVersionRepository artifactRepository, Artifact artifact, DownloadOptions options) {
+        if (dependencyResolvers.isLocalResolver(artifactRepository)) {
+            return downloadFromResolver(artifactRepository, artifact, options).getLocalFile();
         }
 
         // Look in the cache for this resolver
-        ArtifactResolutionCache.CachedArtifactResolution cachedArtifactResolution = artifactResolutionCache.getCachedArtifactResolution(artifactResolver, artifact.getId());
+        ArtifactResolutionCache.CachedArtifactResolution cachedArtifactResolution = artifactResolutionCache.getCachedArtifactResolution(artifactRepository, artifact.getId());
         if (cachedArtifactResolution != null) {
             if (cachedArtifactResolution.getArtifactFile() == null) {
                 if (!cachePolicy.mustRefreshMissingArtifact(cachedArtifactResolution.getAgeMillis())) {
@@ -89,15 +89,15 @@ class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileResolver 
             }
         }
 
-        return downloadArtifact(artifactResolver, artifact, options);
+        return downloadArtifact(artifactRepository, artifact, options);
     }
 
-    private File downloadArtifact(DependencyResolver artifactResolver, Artifact artifact, DownloadOptions options) {
+    private File downloadArtifact(ModuleVersionRepository artifactRepository, Artifact artifact, DownloadOptions options) {
         // Otherwise, do the actual download
-        ArtifactDownloadReport artifactReport = downloadFromResolver(artifactResolver, artifact, options);
+        ArtifactDownloadReport artifactReport = downloadFromResolver(artifactRepository, artifact, options);
         File artifactFile = artifactReport.getLocalFile();
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), artifactFile);
-        return artifactResolutionCache.storeArtifactFile(artifactResolver, artifact.getId(), artifactFile);
+        return artifactResolutionCache.storeArtifactFile(artifactRepository, artifact.getId(), artifactFile);
     }
 
     private ArtifactDownloadReport downloadFromResolver(DependencyResolver artifactResolver, Artifact artifact, DownloadOptions options) {

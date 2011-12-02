@@ -16,12 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 
 import java.util.List;
 
 interface DependencyResolvers {
-    List<DependencyResolver> getArtifactResolversForModule(ModuleRevisionId moduleRevisionId);
+    List<ModuleVersionRepository> getArtifactResolversForModule(ModuleRevisionId moduleRevisionId);
 
-    boolean isLocalResolver(DependencyResolver resolver);
+    boolean isLocalResolver(ModuleVersionRepository resolver);
 }
