@@ -15,9 +15,6 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.project.ServiceRegistry;
