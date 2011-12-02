@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.context
 import spock.lang.*
 import org.gradle.util.ConfigureUtil
 
-class DaemonCompatibilitySpecFactorySpec extends Specification {
+class DaemonCompatibilitySpecSpec extends Specification {
 
     def clientConfigure = {}
     def serverConfigure = {}
@@ -43,26 +43,37 @@ class DaemonCompatibilitySpecFactorySpec extends Specification {
         createContext(serverConfigure)
     }
 
-    boolean isIsCompatible() {
-        new DaemonCompatibilitySpecFactory(clientContext).create().isSatisfiedBy(serverContext)
+    boolean isCompatible() {
+        new DaemonCompatibilitySpec(clientContext).isSatisfiedBy(serverContext)
     }
 
-    boolean isIsNotCompatible() {
-        !isCompatible
-    }
-
-    def "identical contexts are compatible"() {
+    def "default contexts are compatible"() {
         expect:
-        isCompatible
+        compatible
     }
 
     def "contexts with different java homes are incompatible"() {
-        when:
         client { javaHome = new File("a") }
         server { javaHome = new File("b") }
 
-        then:
-        isNotCompatible
+        expect:
+        !compatible
+    }
+
+    def "contexts with same daemon opts are compatible"() {
+        client { daemonOpts = ["-Xmx256m", "-Dfoo=foo"] }
+        server { daemonOpts = ["-Xmx256m", "-Dfoo=foo"] }
+
+        expect:
+        compatible
+    }
+
+    def "contexts with different daemon opts are incompatible"() {
+        client { daemonOpts = ["-Xmx256m", "-Dfoo=foo"] }
+        server { daemonOpts = ["-Xmx256m", "-Dfoo=bar"] }
+
+        expect:
+        !compatible
     }
 
 }

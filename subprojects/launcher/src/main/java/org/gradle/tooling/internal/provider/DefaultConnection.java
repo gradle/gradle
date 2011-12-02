@@ -28,6 +28,7 @@ import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
+import org.gradle.launcher.daemon.server.DaemonJvmOptions;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
@@ -89,16 +90,12 @@ public class DefaultConnection implements ConnectionVersion4 {
         } else {
             File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
             File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(System.getProperties(), gradleUserHomeDir);
-            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonBaseDir, getDaemonOpts(), getIdleTimeout(operationParameters));
+            List<String> daemonOpts = DaemonJvmOptions.getFromEnvironmentVariable();
+            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonBaseDir, daemonOpts, getIdleTimeout(operationParameters));
             DaemonClient client = clientServices.get(DaemonClient.class);
             executer = new DaemonGradleLauncherActionExecuter(client);
         }
         return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingServices.getFactory(LoggingManagerInternal.class));
-    }
-
-    private List<String> getDaemonOpts() {
-        String env = Strings.nullToEmpty(System.getenv("GRADLE_DAEMON_OPTS"));
-        return Lists.newArrayList(Splitter.onPattern("\\s").omitEmptyStrings().split(env));
     }
 
     private int getIdleTimeout(BuildOperationParametersVersion1 operationParameters) {

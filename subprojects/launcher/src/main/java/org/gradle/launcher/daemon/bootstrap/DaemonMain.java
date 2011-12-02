@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logging;
 
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.server.Daemon;
+import org.gradle.launcher.daemon.server.DaemonJvmOptions;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.DaemonStoppedException;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -28,6 +29,7 @@ import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingServiceRegistry;
 
 import java.io.*;
+import java.util.List;
 
 /**
  * The entry point for a daemon process.
@@ -43,6 +45,7 @@ public class DaemonMain extends EntryPoint {
     final private File daemonBaseDir;
     final private boolean redirectIo;
     final private int idleTimeoutMs;
+    final private List<String> daemonOpts;
 
     public static void main(String[] args) {
         if (args.length != 3) {
@@ -56,8 +59,10 @@ public class DaemonMain extends EntryPoint {
         } catch (NumberFormatException e) {
             invalidArgs("Second argument must be a whole number (i.e. daemon idle timeout in ms)");
         }
+
+        List<String> daemonOpts = DaemonJvmOptions.getFromEnvironmentVariable();
         
-        new DaemonMain(daemonBaseDir, idleTimeoutMs, true).run();
+        new DaemonMain(daemonBaseDir, idleTimeoutMs, true, daemonOpts).run();
     }
 
     private static void invalidArgs(String message) {
@@ -66,14 +71,15 @@ public class DaemonMain extends EntryPoint {
         System.exit(1);
     }
 
-    public DaemonMain(File daemonBaseDir, int idleTimeoutMs, boolean redirectIo) {
+    public DaemonMain(File daemonBaseDir, int idleTimeoutMs, boolean redirectIo, List<String> daemonOpts) {
         this.daemonBaseDir = daemonBaseDir;
         this.idleTimeoutMs = idleTimeoutMs;
         this.redirectIo = redirectIo;
+        this.daemonOpts = daemonOpts;
     }
 
     protected void doAction(ExecutionListener listener) {
-        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, LoggingServiceRegistry.newChildProcessLogging());
+        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, LoggingServiceRegistry.newChildProcessLogging(), daemonOpts);
 
         if (redirectIo) {
             try {

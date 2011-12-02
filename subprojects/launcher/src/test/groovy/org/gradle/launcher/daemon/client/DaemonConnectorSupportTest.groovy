@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.client
 
-import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.api.GradleException
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry

@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.context;
 
+import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.util.Jvm;
 import org.gradle.os.jna.NativeEnvironment;
@@ -23,6 +24,7 @@ import org.gradle.api.internal.Factory;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Builds a daemon context, reflecting the current environment.
@@ -32,15 +34,14 @@ import java.io.File;
  */
 public class DaemonContextBuilder implements Factory<DaemonContext> {
 
-    private final Jvm jvm = Jvm.current();
-
     private File javaHome;
     private File daemonRegistryDir;
     private Long pid;
     private Integer idleTimeout;
+    private List<String> daemonOpts = Lists.newArrayList();
 
     public DaemonContextBuilder() {
-        javaHome = canonicalise(jvm.getJavaHome());
+        javaHome = canonicalise(Jvm.current().getJavaHome());
         daemonRegistryDir = DaemonDir.getDirectoryInGradleUserHome(StartParameter.DEFAULT_GRADLE_USER_HOME);
         pid = NativeEnvironment.current().maybeGetPid();
     }
@@ -77,10 +78,18 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         this.idleTimeout = idleTimeout;
     }
 
+    public List<String> getDaemonOpts() {
+        return daemonOpts;
+    }
+
+    public void setDaemonOpts(List<String> daemonOpts) {
+        this.daemonOpts = daemonOpts;
+    }
+
     /**
      * Creates a new daemon context, based on the current state of this builder.
      */
     public DaemonContext create() {
-        return new DefaultDaemonContext(javaHome, daemonRegistryDir, pid, idleTimeout);
+        return new DefaultDaemonContext(javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts);
     }
 }

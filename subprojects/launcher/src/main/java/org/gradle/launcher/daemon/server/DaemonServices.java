@@ -26,6 +26,7 @@ import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
@@ -34,11 +35,13 @@ public class DaemonServices extends DefaultServiceRegistry {
     private final File daemonBaseDir;
     private final Integer idleTimeoutMs;
     private final ServiceRegistry loggingServices;
+    private final List<String> daemonOpts;
     
-    public DaemonServices(File daemonBaseDir, Integer idleTimeoutMs, ServiceRegistry loggingServices) {
+    public DaemonServices(File daemonBaseDir, Integer idleTimeoutMs, ServiceRegistry loggingServices, List<String> daemonOpts) {
         this.daemonBaseDir = daemonBaseDir;
         this.idleTimeoutMs = idleTimeoutMs;
         this.loggingServices = loggingServices;
+        this.daemonOpts = daemonOpts;
 
         add(new DaemonRegistryServices(daemonBaseDir));
     }
@@ -51,6 +54,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         DaemonContextBuilder builder = new DaemonContextBuilder();
         builder.setDaemonRegistryDir(daemonBaseDir);
         builder.setIdleTimeout(idleTimeoutMs);
+        builder.setDaemonOpts(daemonOpts);
         return builder.create();
     }
 

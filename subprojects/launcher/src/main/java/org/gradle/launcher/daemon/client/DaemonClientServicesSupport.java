@@ -19,7 +19,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
-import org.gradle.launcher.daemon.context.DaemonCompatibilitySpecFactory;
+import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
@@ -60,7 +60,7 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
     
     // not following convention because I don't want to name this method createSpec()
     public Spec<DaemonContext> makeDaemonCompatibilitySpec() {
-        return new DaemonCompatibilitySpecFactory(get(DaemonContext.class)).create();
+        return new DaemonCompatibilitySpec(get(DaemonContext.class));
     }
 
     protected DaemonClient createDaemonClient() {

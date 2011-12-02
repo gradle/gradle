@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.context;
 
 import java.io.Serializable;
 import java.io.File;
+import java.util.List;
 
 /**
  * A value object that describes a daemons environment/context.
@@ -29,7 +30,7 @@ import java.io.File;
  * but should also be immutable.
  *
  * @see DaemonContextBuilder
- * @see DaemonCompatibilitySpecFactory
+ * @see DaemonCompatibilitySpec
  */
 public interface DaemonContext extends Serializable {
 
@@ -39,7 +40,7 @@ public interface DaemonContext extends Serializable {
     File getJavaHome();
 
     /**
-     * The directory that the should be used for daemon storage (not including the gradle version number).
+     * The directory that should be used for daemon storage (not including the gradle version number).
      */
     File getDaemonRegistryDir();
 
@@ -52,4 +53,11 @@ public interface DaemonContext extends Serializable {
      * The daemon's idle timeout in milliseconds.
      */
     Integer getIdleTimeout();
+
+    /**
+     * Returns the JVM options that the daemon was started with.
+     *
+     * @return the JVM options that the daemon was started with
+     */
+    List<String> getDaemonOpts();
 }

@@ -16,30 +16,17 @@
 package org.gradle.launcher.daemon.context;
 
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.AndSpec;
-import org.gradle.api.internal.Factory;
 
-public class DaemonCompatibilitySpecFactory implements Factory<Spec<DaemonContext>> {
+public class DaemonCompatibilitySpec implements Spec<DaemonContext> {
 
     private final DaemonContext desiredContext;
     
-    public DaemonCompatibilitySpecFactory(DaemonContext desiredContext) {
+    public DaemonCompatibilitySpec(DaemonContext desiredContext) {
         this.desiredContext = desiredContext;
     }
-    
-    @SuppressWarnings("unchecked")
-    public Spec<DaemonContext> create() {
-        return new AndSpec<DaemonContext>(
-            new ExactSameJavaHome()
-        );
-    }
-    
-    // package scope for testing
-    
-    class ExactSameJavaHome implements Spec<DaemonContext> {
-        public boolean isSatisfiedBy(DaemonContext potentialContext) {
-            return potentialContext.getJavaHome().equals(desiredContext.getJavaHome());
-        }
-    }
 
+    public boolean isSatisfiedBy(DaemonContext potentialContext) {
+        return potentialContext.getJavaHome().equals(desiredContext.getJavaHome())
+                && potentialContext.getDaemonOpts().equals(desiredContext.getDaemonOpts());
+    }
 }
