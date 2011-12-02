@@ -28,18 +28,8 @@ class MacOsFileSystemTest extends Specification {
         !fs.caseSensitive
     }
 
-    def "can resolve symbolic link"() {
-        expect:
-        fs.canResolveSymbolicLink()
-    }
-
     def "can create symbolic link"() {
         expect:
         fs.canCreateSymbolicLink()
-    }
-
-    def "does not implicitly lock file on open"() {
-        expect:
-        !fs.locksFileOnOpen
     }
 }

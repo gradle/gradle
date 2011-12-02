@@ -28,18 +28,8 @@ class WindowsFileSystemTest extends Specification {
         !fs.caseSensitive
     }
 
-    def "can resolve symbolic link"() {
-        expect:
-        fs.canResolveSymbolicLink()
-    }
-
     def "cannot create symbolic link"() {
         expect:
         !fs.canCreateSymbolicLink()
-    }
-
-    def "does not implicitly lock file on open"() {
-        expect:
-        !fs.locksFileOnOpen
     }
 }

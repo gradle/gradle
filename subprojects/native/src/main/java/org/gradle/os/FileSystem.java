@@ -30,27 +30,12 @@ public interface FileSystem {
     boolean isCaseSensitive();
 
     /**
-     * Tells if the file system can resolve symbolic links. If the answer cannot be determined reliably,
-     * <tt>true</tt> is returned.
-     *
-     * @return <tt>true</tt> if the file system can resolve symbolic links, <tt>false</tt> otherwise
-     */
-    boolean canResolveSymbolicLink();
-
-    /**
      * Tells if the file system can create symbolic links. If the answer cannot be determined accurately,
      * <tt>false</tt> is returned.
      *
      * @return <tt>true</tt> if the file system can create symbolic links, <tt>false</tt> otherwise
      */
     boolean canCreateSymbolicLink();
-
-    /**
-     * Tells whether the file system implicitly locks a file when it is opened.
-     *
-     * @return <tt>true</tt> if the file system implicitly locks a file when it is opened, <tt>false</tt> otherwise
-     */
-    boolean getLocksFileOnOpen();
 
     /**
      * Creates a symbolic link to a target file.

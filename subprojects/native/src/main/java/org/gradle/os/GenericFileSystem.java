@@ -16,40 +16,27 @@
 package org.gradle.os;
 
 import com.google.common.base.Charsets;
-import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.UUID;
 
 class GenericFileSystem implements FileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericFileSystem.class);
 
     final boolean caseSensitive;
-    final boolean canResolveSymbolicLink;
     final boolean canCreateSymbolicLink;
-    final boolean locksFileOnOpen;
 
     public boolean isCaseSensitive() {
         return caseSensitive;
     }
 
-    public boolean canResolveSymbolicLink() {
-        return canResolveSymbolicLink;
-    }
-
     public boolean canCreateSymbolicLink() {
         return canCreateSymbolicLink;
-    }
-
-    public boolean getLocksFileOnOpen() {
-        return locksFileOnOpen;
     }
 
     public void createSymbolicLink(File link, File target) throws IOException {
@@ -80,9 +67,7 @@ class GenericFileSystem implements FileSystem {
             checkJavaIoTmpDirExists();
             file = createFile(content);
             caseSensitive = probeCaseSensitive(file, content);
-            canResolveSymbolicLink = probeCanResolveSymbolicLink(file, content);
             canCreateSymbolicLink = probeCanCreateSymbolicLink(file, content);
-            locksFileOnOpen = probeLocksFileOnOpen(file);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
@@ -113,24 +98,6 @@ class GenericFileSystem implements FileSystem {
         }
     }
 
-    private boolean probeCanResolveSymbolicLink(File file, String content) {
-        File link = null;
-        try {
-            link = generateUniqueTempFileName();
-            int returnCode = doCreateSymbolicLink(link, file);
-            if (returnCode != 0) {
-                LOGGER.info("Failed to determine if file system can resolve symbolic links. Assuming it can.");
-                return true;
-            }
-            return hasContent(link, content);
-        } catch (IOException e) {
-            LOGGER.info("Failed to determine if file system can resolve symbolic links. Assuming it can.");
-            return true;
-        } finally {
-            FileUtils.deleteQuietly(link);
-        }
-    }
-
     private boolean probeCanCreateSymbolicLink(File file, String content) {
         File link = null;
         try {
@@ -142,19 +109,6 @@ class GenericFileSystem implements FileSystem {
             return false;
         } finally {
             FileUtils.deleteQuietly(link);
-        }
-    }
-
-    private boolean probeLocksFileOnOpen(File file) {
-        FileChannel channel = null;
-        try {
-            channel = new FileOutputStream(file).getChannel();
-            return channel.tryLock() == null;
-        } catch (IOException e) {
-            LOGGER.info("Failed to determine if file system implicitly locks file on open. Assuming it doesn't.");
-            return false;
-        } finally {
-            Closeables.closeQuietly(channel);
         }
     }
 
