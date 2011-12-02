@@ -200,7 +200,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         get(ArtifactCacheMetaData.class),
                         get(FileStore.class)),
                 get(ModuleResolutionCache.class),
-                get(ModuleDescriptorCache.class)
+                get(ModuleDescriptorCache.class),
+                get(CacheLockingManager.class)
         );
     }
 

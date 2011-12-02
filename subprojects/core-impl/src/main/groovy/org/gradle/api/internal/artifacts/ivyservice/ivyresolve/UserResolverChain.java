@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptor
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.ParseException;
 import java.util.*;
 
 public class UserResolverChain extends ChainResolver implements DependencyResolvers {
@@ -164,10 +163,6 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
         return getResolvers();
     }
 
-    public boolean isLocalResolver(ModuleVersionRepository resolver) {
-        return resolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager;
-    }
-
     @Override
     public List<ModuleVersionRepository> getResolvers() {
         return super.getResolvers();
@@ -262,27 +257,23 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
             }
 
             LOGGER.debug("Using cached module metadata for '{}'", resolvedModuleVersionId);
-            resolvedModule = new ResolvedModuleRevision(repository, repository, cachedModuleDescriptor.getModuleDescriptor(), null);
+            resolvedModule = new ResolvedModuleRevision((DependencyResolver) repository, (DependencyResolver) repository, cachedModuleDescriptor.getModuleDescriptor(), null);
             return true;
         }
 
         public void resolveModule() {
-            try {
-                resolvedModule = repository.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDependencyDescriptor, true), resolveData);
+            resolvedModule = repository.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDependencyDescriptor, true), resolveData);
 
-                // No caching for local resolvers
-                if (bypassCache()) {
-                    return;
-                }
+            // No caching for local resolvers
+            if (bypassCache()) {
+                return;
+            }
 
-                if (resolvedModule == null) {
-                    moduleDescriptorCache.cacheModuleDescriptor(repository, resolvedDependencyDescriptor.getDependencyRevisionId(), null, requestedDependencyDescriptor.isChanging());
-                } else {
-                    moduleResolutionCache.cacheModuleResolution(repository, requestedDependencyDescriptor.getDependencyRevisionId(), resolvedModule.getId());
-                    moduleDescriptorCache.cacheModuleDescriptor(repository, resolvedModule.getId(), resolvedModule.getDescriptor(), isChangingDependency(requestedDependencyDescriptor, resolvedModule));
-                }
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
+            if (resolvedModule == null) {
+                moduleDescriptorCache.cacheModuleDescriptor(repository, resolvedDependencyDescriptor.getDependencyRevisionId(), null, requestedDependencyDescriptor.isChanging());
+            } else {
+                moduleResolutionCache.cacheModuleResolution(repository, requestedDependencyDescriptor.getDependencyRevisionId(), resolvedModule.getId());
+                moduleDescriptorCache.cacheModuleDescriptor(repository, resolvedModule.getId(), resolvedModule.getDescriptor(), isChangingDependency(requestedDependencyDescriptor, resolvedModule));
             }
         }
 
@@ -307,7 +298,7 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
         }
 
         private boolean bypassCache() {
-            return isLocalResolver(repository);
+            return repository.isLocal();
         }
     }
 }

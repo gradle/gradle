@@ -26,14 +26,26 @@ public interface CacheLockingManager {
     /**
      * Performs some work against the cache. Acquires exclusive locks the appropriate resources, so that the given action is the only
      * action to execute across all processes (including this one).
+     *
+     * <p>This method is re-entrant.</p>
      */
     <T> T useCache(String operationDisplayName, Factory<? extends T> action);
 
     /**
      * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.api.internal.Factory)}. Releases all
      * locks while the operation is running, and then reacquires the locks.
+     *
+     * <p>This method is re-entrant.</p>
      */
     <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action);
+
+    /**
+     * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.api.internal.Factory)}. Releases all
+     * locks while the operation is running, and then reacquires the locks.
+     *
+     * <p>This method is re-entrant.</p>
+     */
+    void longRunningOperation(String operationDisplayName, Runnable action);
 
     /**
      * Creates a cache implementation that is managed by this locking manager.

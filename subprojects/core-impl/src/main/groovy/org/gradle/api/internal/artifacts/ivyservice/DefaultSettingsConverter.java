@@ -47,16 +47,19 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
+    private final CacheLockingManager cacheLockingManager;
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private UserResolverChain userResolverChain;
 
     public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory,
-                                    ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache) {
+                                    ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
+                                    CacheLockingManager cacheLockingManager) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.settingsFactory = settingsFactory;
         this.moduleResolutionCache = moduleResolutionCache;
         this.moduleDescriptorCache = moduleDescriptorCache;
+        this.cacheLockingManager = cacheLockingManager;
         Message.setDefaultLogger(new IvyLoggingAdaper());
     }
 
@@ -92,7 +95,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
             resolveSettings = settingsFactory.create();
             userResolverChain = createUserResolverChain();
             resolveSettings.addResolver(userResolverChain);
-            LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(LOOPBACK_RESOLVER_NAME, userResolverChain);
+            LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(LOOPBACK_RESOLVER_NAME, userResolverChain, cacheLockingManager);
             resolveSettings.addResolver(loopbackDependencyResolver);
             resolveSettings.setDefaultResolver(LOOPBACK_RESOLVER_NAME);
         }
@@ -123,7 +126,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
             DependencyResolver sharedResolver = resolversById.get(resolverId);
             if (sharedResolver == null) {
                 initializeResolvers(resolveSettings, WrapUtil.toList(resolver));
-                sharedResolver = new DependencyResolverAdapter(resolverId, resolver);
+                sharedResolver = new DependencyResolverAdapter(resolverId, resolver, cacheLockingManager);
                 resolversById.put(resolverId, sharedResolver);
             }
             resolveSettings.addResolver(sharedResolver);

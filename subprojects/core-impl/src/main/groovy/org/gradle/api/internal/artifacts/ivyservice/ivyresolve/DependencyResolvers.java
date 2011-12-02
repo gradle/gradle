@@ -21,6 +21,4 @@ import java.util.List;
 
 interface DependencyResolvers {
     List<ModuleVersionRepository> getArtifactResolversForModule(ModuleRevisionId moduleRevisionId);
-
-    boolean isLocalResolver(ModuleVersionRepository resolver);
 }

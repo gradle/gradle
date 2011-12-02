@@ -35,6 +35,7 @@ class DefaultSettingsConverterTest extends Specification {
     ResolutionStrategyInternal resolutionStrategy = Mock()
     ModuleResolutionCache dynamicRevisionCache = Mock()
     ModuleDescriptorCache moduleDescriptorCache = Mock()
+    CacheLockingManager cacheLockingManager = Mock()
     FileStore fileStore = Mock()
 
     File testGradleUserHome = new File('gradleUserHome')
@@ -42,7 +43,7 @@ class DefaultSettingsConverterTest extends Specification {
     final Factory<IvySettings> ivySettingsFactory = Mock()
     final IvySettings ivySettings = new IvySettings()
 
-    DefaultSettingsConverter converter = new DefaultSettingsConverter(Mock(ProgressLoggerFactory), ivySettingsFactory, dynamicRevisionCache, moduleDescriptorCache)
+    DefaultSettingsConverter converter = new DefaultSettingsConverter(Mock(ProgressLoggerFactory), ivySettingsFactory, dynamicRevisionCache, moduleDescriptorCache, cacheLockingManager)
 
     public void setup() {
         testResolver.name = 'resolver'

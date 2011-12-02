@@ -32,78 +32,116 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
     private final UnitOfWorkCacheManager cacheManager;
     private Thread owner;
     private String operationDisplayName;
+    private boolean started;
+    private int depth;
 
     public DefaultCacheLockingManager(FileLockManager fileLockManager, ArtifactCacheMetaData metaData) {
         this.cacheManager = new UnitOfWorkCacheManager(String.format("artifact cache '%s'", metaData.getCacheDir()), metaData.getCacheDir(), fileLockManager);
     }
 
+    public void longRunningOperation(String operationDisplayName, final Runnable action) {
+        longRunningOperation(operationDisplayName, new Factory<Object>() {
+            public Object create() {
+                action.run();
+                return null;
+            }
+        });
+    }
+
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        lockCache(operationDisplayName);
+        boolean wasStarted = lockCache(operationDisplayName);
         try {
-            cacheManager.onStartWork(operationDisplayName);
+            if (!wasStarted) {
+                cacheManager.onStartWork(operationDisplayName);
+            }
             try {
                 return action.create();
             } finally {
-                cacheManager.onEndWork();
+                if (!wasStarted) {
+                    cacheManager.onEndWork();
+                }
             }
         } finally {
-            unlockCache();
+            unlockCache(wasStarted);
         }
     }
 
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        startLongRunningOperation();
+        boolean wasStarted = startLongRunningOperation();
         try {
-            cacheManager.onEndWork();
+            if (wasStarted) {
+                cacheManager.onEndWork();
+            }
             try {
                 return action.create();
             } finally {
-                cacheManager.onStartWork(this.operationDisplayName);
+                if (wasStarted) {
+                    cacheManager.onStartWork(this.operationDisplayName);
+                }
             }
         } finally {
-            finishLongRunningOperation();
+            finishLongRunningOperation(wasStarted);
         }
     }
 
-    private void startLongRunningOperation() {
+    private boolean startLongRunningOperation() {
         lock.lock();
         try {
             if (owner != Thread.currentThread()) {
                 throw new IllegalStateException("Cannot start long running operation, as the artifact cache has not been locked.");
             }
+            boolean wasStarted = started;
+            started = false;
+            return wasStarted;
         } finally {
             lock.unlock();
         }
     }
 
-    private void finishLongRunningOperation() {
-    }
-
-    private void lockCache(String operationDisplayName) {
+    private void finishLongRunningOperation(boolean wasStarted) {
         lock.lock();
         try {
-            if (owner == Thread.currentThread()) {
-                throw new IllegalStateException("Cannot lock the artifact cache, as it is already locked by this thread.");
+            started = wasStarted;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private boolean lockCache(String operationDisplayName) {
+        lock.lock();
+        try {
+            if (owner != Thread.currentThread()) {
+                while (owner != null) {
+                    try {
+                        condition.await();
+                    } catch (InterruptedException e) {
+                        throw UncheckedException.asUncheckedException(e);
+                    }
+                }
+                this.operationDisplayName = operationDisplayName;
+                owner = Thread.currentThread();
             }
-            while (owner != null) {
-                try {
-                    condition.await();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.asUncheckedException(e);
+            boolean wasStarted = started;
+            started = true;
+            depth++;
+            return wasStarted;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void unlockCache(boolean wasStarted) {
+        lock.lock();
+        try {
+            depth--;
+            if (!wasStarted) {
+                started = false;
+                if (depth <= 0) {
+                    owner = null;
+                    operationDisplayName = null;
+                    condition.signalAll();
                 }
             }
-            this.operationDisplayName = operationDisplayName;
-            owner = Thread.currentThread();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void unlockCache() {
-        lock.lock();
-        try {
-            owner = null;
-            condition.signalAll();
         } finally {
             lock.unlock();
         }

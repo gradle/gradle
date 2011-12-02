@@ -19,7 +19,6 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
@@ -31,7 +30,7 @@ import java.util.List;
 
 /**
  * An {@link org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver} implementation that uses
- * Ivy {@link DependencyResolver} instances from the {@link UserResolverChain} to download the artifact.
+ * {@link ModuleVersionRepository} instances from the {@link UserResolverChain} to download the artifact.
  */
 class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileResolver {
 
@@ -69,7 +68,7 @@ class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileResolver 
     }
 
     private File downloadWithCache(ModuleVersionRepository artifactRepository, Artifact artifact, DownloadOptions options) {
-        if (dependencyResolvers.isLocalResolver(artifactRepository)) {
+        if (artifactRepository.isLocal()) {
             return downloadFromResolver(artifactRepository, artifact, options).getLocalFile();
         }
 
@@ -100,8 +99,8 @@ class IvyResolverBackedArtifactToFileResolver implements ArtifactToFileResolver 
         return artifactResolutionCache.storeArtifactFile(artifactRepository, artifact.getId(), artifactFile);
     }
 
-    private ArtifactDownloadReport downloadFromResolver(DependencyResolver artifactResolver, Artifact artifact, DownloadOptions options) {
-        ArtifactDownloadReport artifactDownloadReport = artifactResolver.download(new Artifact[]{artifact}, options).getArtifactReport(artifact);
+    private ArtifactDownloadReport downloadFromResolver(ModuleVersionRepository repository, Artifact artifact, DownloadOptions options) {
+        ArtifactDownloadReport artifactDownloadReport = repository.download(new Artifact[]{artifact}, options).getArtifactReport(artifact);
         if (downloadFailed(artifactDownloadReport)) {
             throw ArtifactResolutionExceptionBuilder.downloadFailure(artifactDownloadReport.getArtifact(), artifactDownloadReport.getDownloadDetails());
         }
