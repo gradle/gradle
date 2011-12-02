@@ -28,6 +28,7 @@ import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LoopbackDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.UserResolverChain;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
@@ -42,6 +43,7 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class DefaultSettingsConverter implements SettingsConverter {
+    static final String LOOPBACK_RESOLVER_NAME = "main";
     private final ProgressLoggerFactory progressLoggerFactory;
     private final Factory<IvySettings> settingsFactory;
     private final Map<String, DependencyResolver> resolversById = new HashMap<String, DependencyResolver>();
@@ -93,7 +95,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
             resolveSettings = settingsFactory.create();
             userResolverChain = createUserResolverChain();
             resolveSettings.addResolver(userResolverChain);
-            resolveSettings.setDefaultResolver(USER_RESOLVER_CHAIN_NAME);
+            LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(LOOPBACK_RESOLVER_NAME, userResolverChain);
+            resolveSettings.addResolver(loopbackDependencyResolver);
+            resolveSettings.setDefaultResolver(LOOPBACK_RESOLVER_NAME);
         }
 
         moduleDescriptorCache.setSettings(resolveSettings);
@@ -122,18 +126,18 @@ public class DefaultSettingsConverter implements SettingsConverter {
             DependencyResolver sharedResolver = resolversById.get(resolverId);
             if (sharedResolver == null) {
                 initializeResolvers(resolveSettings, WrapUtil.toList(resolver));
-                assert resolveSettings.getResolver(resolver.getName()) == resolver;
-                resolversById.put(resolverId, resolver);
                 sharedResolver = resolver;
+                resolversById.put(resolverId, sharedResolver);
             }
             resolveSettings.addResolver(sharedResolver);
+            assert resolveSettings.getResolver(resolver.getName()) == sharedResolver;
             chainResolver.add(sharedResolver);
         }
     }
 
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
         for (DependencyResolver dependencyResolver : allResolvers) {
-            ivySettings.addResolver(dependencyResolver);
+            dependencyResolver.setSettings(ivySettings);
             RepositoryCacheManager existingCacheManager = dependencyResolver.getRepositoryCacheManager();
             // Ensure that each resolver is sharing the same cache instance (ignoring caches which don't actually cache anything)
             if (!(existingCacheManager instanceof NoOpRepositoryCacheManager) && !(existingCacheManager instanceof LocalFileRepositoryCacheManager)) {

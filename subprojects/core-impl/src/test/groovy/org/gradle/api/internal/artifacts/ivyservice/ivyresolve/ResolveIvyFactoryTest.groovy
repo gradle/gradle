@@ -50,7 +50,7 @@ class ResolveIvyFactoryTest extends Specification {
         1 * settingsConverter.convertForResolve([resolver1, resolver2], resolutionStrategy) >> ivySettings
         1 * ivyFactory.createIvy(ivySettings) >> ivy
         2 * ivy.getSettings() >> ivySettings
-        1 * ivySettings.getDefaultResolver() >> userResolverChain
+        1 * ivySettings.getResolver(SettingsConverter.USER_RESOLVER_CHAIN_NAME) >> userResolverChain
         1 * ivySettings.getVersionMatcher() >> versionMatcher
         0 * _._
 

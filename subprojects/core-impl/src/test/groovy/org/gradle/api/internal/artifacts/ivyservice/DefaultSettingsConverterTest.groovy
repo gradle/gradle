@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptor
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.UserResolverChain
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LoopbackDependencyResolver
 
 class DefaultSettingsConverterTest extends Specification {
     final IBiblioResolver testResolver = new IBiblioResolver()
@@ -62,7 +63,8 @@ class DefaultSettingsConverterTest extends Specification {
         UserResolverChain chainResolver = settings.getResolver(DefaultSettingsConverter.USER_RESOLVER_CHAIN_NAME)
         assert chainResolver.resolvers == [testResolver, testResolver2]
         assert chainResolver.returnFirst
-        assert settings.defaultResolver.is(chainResolver)
+        assert settings.defaultResolver instanceof LoopbackDependencyResolver
+        assert settings.defaultResolver.resolver == chainResolver
 
         [testResolver.name, testResolver2.name].each {
             assert settings.getResolver(it)
@@ -82,7 +84,7 @@ class DefaultSettingsConverterTest extends Specification {
 
         assert settings.is(ivySettings)
 
-        UserResolverChain chainResolver = settings.defaultResolver
+        UserResolverChain chainResolver = settings.defaultResolver.resolver
         assert chainResolver.resolvers == [testResolver, testResolver2]
 
         when:
@@ -101,17 +103,17 @@ class DefaultSettingsConverterTest extends Specification {
         IvySettings settings = converter.convertForPublish([testResolver, testResolver2])
 
         then:
-        1 * ivySettingsFactory.create() >> ivySettings
-        0 * _._
-
         settings.is(ivySettings)
 
-        settings.resolvers as Set == [testResolver, testResolver2] as Set
-        settings.resolvers.each {
-            settings.resolvers.contains(it)
-            settings.getResolver(it.name).is(it)
-            settings.getResolver(it.name).repositoryCacheManager.settings == settings
+        and:
+        [testResolver, testResolver2].each {
+            it.settings == settings
+            it.repositoryCacheManager.settings == settings
         }
+
+        and:
+        1 * ivySettingsFactory.create() >> ivySettings
+        0 * _._
     }
 
     public void reusesPublishSettings() {
@@ -119,12 +121,11 @@ class DefaultSettingsConverterTest extends Specification {
         IvySettings settings = converter.convertForPublish([testResolver])
 
         then:
+        settings.is(ivySettings)
+
+        and:
         1 * ivySettingsFactory.create() >> ivySettings
         0 * _._
-
-        settings.is(ivySettings)
-        
-        settings.resolvers as Set == [testResolver] as Set
 
         when:
         settings = converter.convertForPublish([testResolver, testResolver2])
@@ -132,11 +133,10 @@ class DefaultSettingsConverterTest extends Specification {
         then:
         settings.is(ivySettings)
 
-        settings.resolvers as Set == [testResolver, testResolver2] as Set
-        settings.resolvers.each {
-            settings.resolvers.contains(it)
-            settings.getResolver(it.name).is(it)
-            settings.getResolver(it.name).repositoryCacheManager.settings == settings
+        and:
+            [testResolver, testResolver2].each {
+            it.settings == settings
+            it.repositoryCacheManager.settings == settings
         }
     }
 }

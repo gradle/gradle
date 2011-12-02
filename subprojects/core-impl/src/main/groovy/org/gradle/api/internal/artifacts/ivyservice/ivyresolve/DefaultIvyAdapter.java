@@ -22,6 +22,7 @@ import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.util.WrapUtil;
 
@@ -36,7 +37,7 @@ class DefaultIvyAdapter implements IvyAdapter {
         this.ivy = ivy;
         this.artifactResolutionCache = artifactResolutionCache;
         this.resolutionStrategy = resolutionStrategy;
-        userResolver = (UserResolverChain) ivy.getSettings().getDefaultResolver();
+        userResolver = (UserResolverChain) ivy.getSettings().getResolver(SettingsConverter.USER_RESOLVER_CHAIN_NAME);
         versionMatcher = ivy.getSettings().getVersionMatcher();
     }
 

@@ -26,8 +26,6 @@ import java.util.List;
  */
 public interface SettingsConverter {
     String USER_RESOLVER_CHAIN_NAME = "userResolverChain";
-    String TOP_LEVEL_RESOLVER_CHAIN_NAME = "topLevelResolverChain";
-    String CLIENT_MODULE_RESOLVER_NAME = "clientModuleResolver";
 
     IvySettings convertForPublish(List<DependencyResolver> publishResolvers);
 
