@@ -33,7 +33,7 @@ dependencies {
 
     runtime module("com.puppycrawl.tools:checkstyle:5.5") {
         dependency libraries.antlr
-        dependency 'commons-cli:commons-cli:1.2@jar'
+        dependency libraries.commons_cli
         dependency libraries.guava
         dependency libraries.ant
         module("commons-beanutils:commons-beanutils-core:1.8.3") {

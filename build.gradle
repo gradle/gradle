@@ -43,6 +43,7 @@ libraries = [
         dependency 'org.apache.ant:ant-launcher:1.8.2@jar'
     },
     asm: 'asm:asm-all:3.3.1@jar',
+    commons_cli: 'commons-cli:commons-cli:1.2@jar',
     commons_io: 'commons-io:commons-io:1.4@jar',
     commons_lang: 'commons-lang:commons-lang:2.6@jar',
     commons_collections: 'commons-collections:commons-collections:3.2.1@jar',
