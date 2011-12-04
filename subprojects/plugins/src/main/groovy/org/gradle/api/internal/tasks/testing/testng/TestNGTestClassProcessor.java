@@ -29,6 +29,7 @@ import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.ReflectionUtil;
+import org.testng.ITestListener;
 import org.testng.TestNG;
 
 import java.io.File;
@@ -80,7 +81,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             testNg.setSourcePath(GUtil.join(options.getTestResources(), File.pathSeparator));
         }
         testNg.setUseDefaultListeners(options.getUseDefaultListeners());
-        testNg.addListener(testResultProcessor);
+        testNg.addListener((Object) adaptListener(testResultProcessor));
         testNg.setVerbose(0);
         testNg.setGroups(GUtil.join(options.getIncludeGroups(), ","));
         testNg.setExcludedGroups(GUtil.join(options.getExcludeGroups(), ","));
@@ -100,5 +101,10 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         }
 
         testNg.run();
+    }
+
+    private ITestListener adaptListener(ITestListener listener) {
+        TestNGListenerAdapterFactory factory = new TestNGListenerAdapterFactory(applicationClassLoader);
+        return factory.createAdapter(listener);
     }
 }

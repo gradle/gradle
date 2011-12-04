@@ -24,13 +24,12 @@ import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
-import org.testng.internal.IConfigurationListener;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
-public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigurationListener {
+public class TestNGTestResultProcessorAdapter implements ITestListener, TestNGConfigurationListener {
     private final TestResultProcessor resultProcessor;
     private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
@@ -129,7 +128,7 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
 
     public void onConfigurationFailure(ITestResult testResult) {
         if (failedConfigurations.put(testResult, true) != null) {
-            // work around for bug in TestNG 6.2+: method is called twice per event
+            // work around for bug in TestNG 6.2+: listener is notified twice per event
             return;
         }
         // Synthesise a test for the broken configuration method
@@ -138,5 +137,8 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
         resultProcessor.started(test, new TestStartEvent(testResult.getStartMillis()));
         resultProcessor.failure(test.getId(), testResult.getThrowable());
         resultProcessor.completed(test.getId(), new TestCompleteEvent(testResult.getEndMillis(), TestResult.ResultType.FAILURE));
+    }
+
+    public void beforeConfiguration(ITestResult tr) {
     }
 }

@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.gradle.testing.testng
 
 import org.junit.Rule
@@ -28,13 +26,13 @@ import static org.junit.Assert.assertThat
 /**
  * @author Tom Eyckmans
  */
-public class TestNGIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final TestResources resources = new TestResources()
+class TestNGIntegrationTest {
+    @Rule public GradleDistribution dist = new GradleDistribution()
+    @Rule public GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public TestResources resources = new TestResources()
 
     @Test
-    public void executesTestsInCorrectEnvironment() {
+    void executesTestsInCorrectEnvironment() {
         ExecutionResult result = executer.withTasks('test').run();
 
         assertThat(result.output, not(containsString('stdout')))
@@ -45,7 +43,7 @@ public class TestNGIntegrationTest {
     }
 
     @Test
-    public void canListenForTestResults() {
+    void canListenForTestResults() {
         ExecutionResult result = executer.withTasks("test").run();
 
         assertThat(result.getOutput(), containsLine("START [tests] []"));
@@ -65,7 +63,7 @@ public class TestNGIntegrationTest {
     }
 
     @Test
-    public void groovyJdk15Failing() {
+    void groovyJdk15Failing() {
         executer.withTasks("test").runWithFailure().assertThatCause(startsWith('There were failing tests'))
 
         def result = new TestNGExecutionResult(dist.testDir)
@@ -74,7 +72,7 @@ public class TestNGIntegrationTest {
     }
 
     @Test
-    public void groovyJdk15Passing() {
+    void groovyJdk15Passing() {
         executer.withTasks("test").run()
 
         def result = new TestNGExecutionResult(dist.testDir)
@@ -83,7 +81,7 @@ public class TestNGIntegrationTest {
     }
 
     @Test
-    public void javaJdk14Failing() {
+    void javaJdk14Failing() {
         executer.withTasks("test").runWithFailure().assertThatCause(startsWith('There were failing tests'))
 
         def result = new TestNGExecutionResult(dist.testDir)
@@ -91,9 +89,15 @@ public class TestNGIntegrationTest {
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('broken'))
     }
 
+    @Issue("GRADLE-1822")
     @Test
-    public void javaJdk15Failing() {
-        def execution = executer.withTasks("test").runWithFailure().assertThatCause(startsWith('There were failing tests'))
+    void javaJdk15Failing() {
+        doJavaJdk15Failing("5.14.10")
+        doJavaJdk15Failing("6.3.1")
+    }
+
+    private doJavaJdk15Failing(String testNGVersion) {
+        def execution = executer.withTasks("test").withArguments("-PtestNGVersion=$testNGVersion").runWithFailure().assertThatCause(startsWith('There were failing tests'))
 
         def result = new TestNGExecutionResult(dist.testDir)
         result.assertTestClassesExecuted('org.gradle.BadTest', 'org.gradle.TestWithBrokenSetup', 'org.gradle.BrokenAfterSuite', 'org.gradle.TestWithBrokenMethodDependency')

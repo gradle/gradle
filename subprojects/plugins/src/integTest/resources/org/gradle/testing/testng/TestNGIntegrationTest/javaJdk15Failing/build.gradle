@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    testCompile 'org.testng:testng:6.3.1'
+    testCompile "org.testng:testng:$testNGVersion"
 }
 
 test {
