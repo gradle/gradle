@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import groovy.lang.MissingMethodException;
+
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -26,6 +28,7 @@ import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.IdGenerator;
+import org.gradle.util.ReflectionUtil;
 import org.testng.TestNG;
 
 import java.io.File;
@@ -68,7 +71,11 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
         testNg.setDefaultSuiteName(options.getSuiteName());
         testNg.setDefaultTestName(options.getTestName());
-        testNg.setAnnotations(options.getAnnotations());
+        try {
+            ReflectionUtil.invoke(testNg, "setAnnotations", options.getAnnotations());
+        } catch (MissingMethodException e) {
+            /* do nothing; method has been removed in TestNG 6.3 */
+        }
         if (options.getJavadocAnnotations()) {
             testNg.setSourcePath(GUtil.join(options.getTestResources(), File.pathSeparator));
         }
