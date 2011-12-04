@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.integtests.testing.testng
+package org.gradle.testing.testng
 
 import org.junit.Rule
 import org.junit.Test
