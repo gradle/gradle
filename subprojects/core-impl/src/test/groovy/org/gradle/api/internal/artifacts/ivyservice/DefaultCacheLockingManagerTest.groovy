@@ -41,6 +41,7 @@ class DefaultCacheLockingManagerTest extends ConcurrentSpecification {
         DirectoryCacheBuilder cacheBuilder = Mock()
         _ * cacheRepository.store("artifacts-7") >> cacheBuilder
         1 * cacheBuilder.withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache) >> cacheBuilder
+        1 * cacheBuilder.withLockMode(LockMode.None) >> cacheBuilder
         1 * cacheBuilder.open() >> cache
         _ * cache.baseDir >> cacheDir
         lockingManager = new DefaultCacheLockingManager(fileLockManager, cacheRepository)

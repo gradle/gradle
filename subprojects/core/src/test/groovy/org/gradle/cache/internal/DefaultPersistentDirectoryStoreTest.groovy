@@ -23,7 +23,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
 
-    def "creates directory and cache.properties file if it does not exist"() {
+    def "creates directory if it does not exist"() {
         given:
         def dir = tmpDir.file('dir')
         dir.assertDoesNotExist()
@@ -33,14 +33,12 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
 
         then:
         dir.assertIsDir()
-        dir.file('cache.properties').assertIsFile()
     }
 
-    def "does nothing when directory and cache.properties file already exist"() {
+    def "does nothing when directory already exists"() {
         given:
         def dir = tmpDir.dir
         dir.assertIsDir()
-        dir.file('cache.properties').createFile()
 
         when:
         def store = new DefaultPersistentDirectoryStore(dir)

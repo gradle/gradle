@@ -41,7 +41,11 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
     private int depth;
 
     public DefaultCacheLockingManager(FileLockManager fileLockManager, CacheRepository cacheRepository) {
-        cache = cacheRepository.store(String.format("artifacts-%d", CACHE_LAYOUT_VERSION)).withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).open();
+        cache = cacheRepository
+                .store(String.format("artifacts-%d", CACHE_LAYOUT_VERSION))
+                .withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache)
+                .withLockMode(FileLockManager.LockMode.None) // We'll do our own
+                .open();
         this.cacheManager = new UnitOfWorkCacheManager(String.format("artifact cache '%s'", getCacheDir()), getCacheDir(), fileLockManager);
     }
 

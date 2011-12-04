@@ -16,10 +16,8 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.PersistentCache;
-import org.gradle.util.UncheckedException;
 
 import java.io.File;
-import java.io.IOException;
 
 public class DefaultPersistentDirectoryStore implements PersistentCache {
     private final File dir;
@@ -27,15 +25,6 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
     public DefaultPersistentDirectoryStore(File dir) {
         this.dir = dir;
         dir.mkdirs();
-
-        // Create an empty cache.properties file. This is because Gradle 1.0-milestone-4 will delete the store if it does not find this marker file.
-        // TODO - Remove this file when we no longer care about 1.0-milestone-4
-        try {
-            File markerFile = new File(dir, "cache.properties");
-            markerFile.createNewFile();
-        } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
     }
 
     public File getBaseDir() {

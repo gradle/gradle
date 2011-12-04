@@ -69,6 +69,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         DirectoryCacheBuilder cacheBuilder = Mock()
         _ * cacheRepository.store(_) >> cacheBuilder
         _ * cacheBuilder.withVersionStrategy(_) >> cacheBuilder
+        _ * cacheBuilder.withLockMode(_) >> cacheBuilder
         PersistentCache cache = Mock()
         _ * cacheBuilder.open() >> cache
         cache.baseDir >> new File("cache")

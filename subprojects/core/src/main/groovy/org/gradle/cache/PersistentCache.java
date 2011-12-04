@@ -18,9 +18,9 @@ package org.gradle.cache;
 import java.io.File;
 
 /**
- * Represents a directory which can be used for caching.
+ * Represents a directory that can be used for caching.
  *
- * A shared lock is held on this cache by this process, to prevent it being removed or rebuilt by another process while it is in use.
+ * <p>A shared lock is held on this cache by this process, to prevent it being removed or rebuilt by another process while it is in use.
  * However, it is the caller's responsibility to deal with concurrent access to the contents of the cache. You can use
  * {@link DirectoryCacheBuilder#withInitializer(org.gradle.api.Action)} to provide an action to initialize the contents of the
  * cache, for building a read-only cache. An exclusive lock is held by this process while the initializer is running.

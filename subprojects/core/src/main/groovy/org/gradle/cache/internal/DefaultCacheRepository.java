@@ -130,6 +130,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
     private class PersistentCacheBuilder extends AbstractCacheBuilder<PersistentCache> implements DirectoryCacheBuilder {
         Action<? super PersistentCache> initializer;
+        LockMode lockMode = LockMode.Shared;
 
         protected PersistentCacheBuilder(String key) {
             super(key);
@@ -158,9 +159,14 @@ public class DefaultCacheRepository implements CacheRepository {
             return this;
         }
 
+        public DirectoryCacheBuilder withLockMode(LockMode lockMode) {
+            this.lockMode = lockMode;
+            return this;
+        }
+
         @Override
         protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties) {
-            return factory.open(cacheDir, cacheUsage, properties, LockMode.Shared, getCrossVersionMode(), initializer);
+            return factory.open(cacheDir, cacheUsage, properties, lockMode, getCrossVersionMode(), initializer);
         }
     }
 
@@ -174,7 +180,7 @@ public class DefaultCacheRepository implements CacheRepository {
             if (!properties.isEmpty()) {
                 throw new UnsupportedOperationException("Properties are not supported for stores.");
             }
-            return factory.openStore(cacheDir, LockMode.Shared, getCrossVersionMode(), initializer);
+            return factory.openStore(cacheDir, lockMode, getCrossVersionMode(), initializer);
         }
     }
 

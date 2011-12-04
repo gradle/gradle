@@ -53,7 +53,7 @@ class DefaultCacheFactoryTest extends Specification {
     public void "creates directory backed store instance"() {
         when:
         def factory = factoryFactory.create()
-        def cache = factory.openStore(tmpDir.dir, FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, null)
+        def cache = factory.openStore(tmpDir.dir, FileLockManager.LockMode.None, CrossVersionMode.VersionSpecific, null)
 
         then:
         cache instanceof DefaultPersistentDirectoryStore

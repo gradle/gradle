@@ -192,4 +192,12 @@ class DefaultCacheRepositoryTest extends Specification {
         then:
         1 * cacheFactory.open(sharedCacheDir.file(version, "a"), CacheUsage.ON, [:], FileLockManager.LockMode.Shared, CrossVersionMode.VersionSpecific, action) >> cache
     }
+
+    public void canSpecifyLockModeForDirectoryCache() {
+        when:
+        repository.cache("a").withLockMode(FileLockManager.LockMode.None).open()
+
+        then:
+        1 * cacheFactory.open(sharedCacheDir.file(version, "a"), CacheUsage.ON, [:], FileLockManager.LockMode.None, CrossVersionMode.VersionSpecific, null) >> cache
+    }
 }

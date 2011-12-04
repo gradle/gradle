@@ -80,8 +80,8 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
         }
 
         public PersistentCache openStore(File storeDir, LockMode lockMode, CrossVersionMode crossVersionMode, Action<? super PersistentCache> initializer) throws CacheOpenException {
-            if (lockMode == LockMode.Exclusive) {
-                throw new UnsupportedOperationException("No exclusive mode directory store implementation currently available.");
+            if (lockMode != LockMode.None) {
+                throw new UnsupportedOperationException(String.format("No %s mode directory store implementation currently available.", lockMode));
             }
             if (initializer != null) {
                 throw new UnsupportedOperationException("Initializer actions are not currently supported by the directory store implementation.");
@@ -101,8 +101,8 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
         }
 
         public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode, Serializer<V> serializer) {
-            if (lockMode == LockMode.Shared) {
-                throw new UnsupportedOperationException("No indexed cache implementation is available that can be shared by multiple processes.");
+            if (lockMode != LockMode.Exclusive) {
+                throw new UnsupportedOperationException(String.format("No %s mode indexed cache implementation is available.", lockMode));
             }
             if (crossVersionMode == CrossVersionMode.CrossVersion) {
                 throw new UnsupportedOperationException("No indexed cache implementation is available that can be used by multiple Gradle versions.");
