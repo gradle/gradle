@@ -21,34 +21,42 @@ import org.gradle.cache.PersistentIndexedCache;
 
 import java.io.File;
 
+/**
+ * Provides synchronized access to the artifact cache.
+ */
 @ThreadSafe
 public interface CacheLockingManager extends ArtifactCacheMetaData {
     /**
      * Performs some work against the cache. Acquires exclusive locks the appropriate resources, so that the given action is the only
-     * action to execute across all processes (including this one).
+     * action to execute across all processes (including this one). Releases the locks and all resources at the end of the action.
      *
-     * <p>This method is re-entrant.</p>
+     * <p>This method is re-entrant, so that an action can call back into this method.</p>
      */
     <T> T useCache(String operationDisplayName, Factory<? extends T> action);
 
     /**
      * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.api.internal.Factory)}. Releases all
-     * locks while the operation is running, and then reacquires the locks.
+     * locks while the operation is running, and reacquires the locks at the end of the long running operation.
      *
-     * <p>This method is re-entrant.</p>
+     * <p>This method is re-entrant, so that an action can call back into this method.</p>
      */
     <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action);
 
     /**
      * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.api.internal.Factory)}. Releases all
-     * locks while the operation is running, and then reacquires the locks.
+     * locks while the operation is running, and reacquires the locks at the end of the long running operation.
      *
-     * <p>This method is re-entrant.</p>
+     * <p>This method is re-entrant, so that an action can call back into this method.</p>
      */
     void longRunningOperation(String operationDisplayName, Runnable action);
 
     /**
-     * Creates a cache implementation that is managed by this locking manager.
+     * Creates a cache implementation that is managed by this locking manager. This method may be used at any time.
+     *
+     * <p>The returned cache may only be used by an action being run from {@link #useCache(String, Factory)}. In this instance, an exclusive lock
+     * will be held on the cache.
+     *
+     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, Factory)}.
      */
     <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType);
 }
