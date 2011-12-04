@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.IdGenerator;
@@ -27,6 +28,7 @@ import org.testng.internal.IConfigurationListener;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigurationListener {
     private final TestResultProcessor resultProcessor;
@@ -35,6 +37,7 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
     private Map<String, Object> suites = new HashMap<String, Object>();
     private Map<ITestResult, Object> tests = new HashMap<ITestResult, Object>();
     private Map<ITestNGMethod, Object> testMethodToSuiteMapping = new HashMap<ITestNGMethod, Object>();
+    private ConcurrentMap<ITestResult, Boolean> failedConfigurations = Maps.newConcurrentMap();
 
     public TestNGTestResultProcessorAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
@@ -125,6 +128,10 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
     }
 
     public void onConfigurationFailure(ITestResult testResult) {
+        if (failedConfigurations.put(testResult, true) != null) {
+            // work around for bug in TestNG 6.2+: method is called twice per event
+            return;
+        }
         // Synthesise a test for the broken configuration method
         TestDescriptorInternal test = new DefaultTestMethodDescriptor(idGenerator.generateId(),
                 testResult.getMethod().getTestClass().getName(), testResult.getMethod().getMethodName());
