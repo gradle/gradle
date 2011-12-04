@@ -15,25 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentCache;
-
 import java.io.File;
 
-public class ArtifactCacheMetaData {
-    public static final int CACHE_LAYOUT_VERSION = 7;
-    private PersistentCache cache;
-    private final CacheRepository cacheRepository;
-
-    public ArtifactCacheMetaData(CacheRepository cacheRepository) {
-        this.cacheRepository = cacheRepository;
-    }
-
-    public File getCacheDir() {
-        if (cache == null) {
-            cache = cacheRepository.store(String.format("artifacts-%d", CACHE_LAYOUT_VERSION)).withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).open();
-        }
-        return cache.getBaseDir();
-    }
+public interface ArtifactCacheMetaData {
+    public File getCacheDir();
 }

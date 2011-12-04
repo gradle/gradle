@@ -22,7 +22,7 @@ import org.gradle.cache.PersistentIndexedCache;
 import java.io.File;
 
 @ThreadSafe
-public interface CacheLockingManager {
+public interface CacheLockingManager extends ArtifactCacheMetaData {
     /**
      * Performs some work against the cache. Acquires exclusive locks the appropriate resources, so that the given action is the only
      * action to execute across all processes (including this one).

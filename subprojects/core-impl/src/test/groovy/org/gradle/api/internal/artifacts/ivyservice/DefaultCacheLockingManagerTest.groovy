@@ -22,19 +22,28 @@ import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.util.ConcurrentSpecification
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
+import org.gradle.cache.CacheRepository
+import org.gradle.cache.DirectoryCacheBuilder
+import org.gradle.cache.CacheBuilder
+import org.gradle.cache.PersistentCache
 
 class DefaultCacheLockingManagerTest extends ConcurrentSpecification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     final FileLockManager fileLockManager = Mock()
-    final ArtifactCacheMetaData metaData = Mock()
+    final PersistentCache cache = Mock()
+    final CacheRepository cacheRepository = Mock()
     final File cacheDir = tmpDir.file("cache-dir")
     final File cacheFile = cacheDir.file("cache-file.bin")
     final FileLock lock = Mock()
     DefaultCacheLockingManager lockingManager
 
     def setup() {
-        _ * metaData.cacheDir >> cacheDir
-        lockingManager = new DefaultCacheLockingManager(fileLockManager, metaData)
+        DirectoryCacheBuilder cacheBuilder = Mock()
+        _ * cacheRepository.store("artifacts-7") >> cacheBuilder
+        1 * cacheBuilder.withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache) >> cacheBuilder
+        1 * cacheBuilder.open() >> cache
+        _ * cache.baseDir >> cacheDir
+        lockingManager = new DefaultCacheLockingManager(fileLockManager, cacheRepository)
     }
 
     def "executes cache action and returns result"() {

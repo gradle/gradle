@@ -152,14 +152,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 projectDependencyFactory);
     }
 
-    protected ArtifactCacheMetaData createArtifactCacheMetaData() {
-        return new ArtifactCacheMetaData(get(CacheRepository.class));
-    }
-
-    protected DefaultCacheLockingManager createCacheLockingManager() {
+    protected CacheLockingManager createCacheLockingManager() {
         return new DefaultCacheLockingManager(
                 get(FileLockManager.class),
-                get(ArtifactCacheMetaData.class)
+                get(CacheRepository.class)
         );
     }
     

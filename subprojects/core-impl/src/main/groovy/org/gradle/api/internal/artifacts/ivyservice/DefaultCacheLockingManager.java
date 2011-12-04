@@ -16,6 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.Factory;
+import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.UnitOfWorkCacheManager;
@@ -27,16 +30,23 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultCacheLockingManager implements CacheLockingManager {
+    public static final int CACHE_LAYOUT_VERSION = 7;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final UnitOfWorkCacheManager cacheManager;
+    private final PersistentCache cache;
     private Thread owner;
     private String operationDisplayName;
     private boolean started;
     private int depth;
 
-    public DefaultCacheLockingManager(FileLockManager fileLockManager, ArtifactCacheMetaData metaData) {
-        this.cacheManager = new UnitOfWorkCacheManager(String.format("artifact cache '%s'", metaData.getCacheDir()), metaData.getCacheDir(), fileLockManager);
+    public DefaultCacheLockingManager(FileLockManager fileLockManager, CacheRepository cacheRepository) {
+        cache = cacheRepository.store(String.format("artifacts-%d", CACHE_LAYOUT_VERSION)).withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache).open();
+        this.cacheManager = new UnitOfWorkCacheManager(String.format("artifact cache '%s'", getCacheDir()), getCacheDir(), fileLockManager);
+    }
+
+    public File getCacheDir() {
+        return cache.getBaseDir();
     }
 
     public void longRunningOperation(String operationDisplayName, final Runnable action) {
