@@ -180,7 +180,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 repositories { mavenCentral() }
-dependencies { testCompile 'org.testng:testng:5.14' }
+dependencies { testCompile 'org.testng:testng:6.3.1' }
 
 test {
     useTestNG()

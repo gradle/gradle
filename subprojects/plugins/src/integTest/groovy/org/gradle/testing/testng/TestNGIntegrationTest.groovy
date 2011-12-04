@@ -132,7 +132,7 @@ repositories {
 }
 
 dependencies {
-	testCompile 'org.testng:testng:5.14'
+	testCompile 'org.testng:testng:6.3.1'
 }
 
 test {
