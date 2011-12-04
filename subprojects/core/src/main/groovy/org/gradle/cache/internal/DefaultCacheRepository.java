@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.gradle.cache.internal.CacheFactory.CrossVersionMode;
 import static org.gradle.cache.internal.FileLockManager.LockMode;
 
 public class DefaultCacheRepository implements CacheRepository {
@@ -122,10 +121,6 @@ public class DefaultCacheRepository implements CacheRepository {
             }
             return new File(potentialParentDir, ".gradle");
         }
-
-        protected CrossVersionMode getCrossVersionMode() {
-            return versionStrategy == VersionStrategy.CachePerVersion ? CrossVersionMode.VersionSpecific : CrossVersionMode.CrossVersion;
-        }
     }
 
     private class PersistentCacheBuilder extends AbstractCacheBuilder<PersistentCache> implements DirectoryCacheBuilder {
@@ -166,7 +161,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
         @Override
         protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties) {
-            return factory.open(cacheDir, cacheUsage, properties, lockMode, getCrossVersionMode(), initializer);
+            return factory.open(cacheDir, cacheUsage, properties, lockMode, initializer);
         }
     }
 
@@ -180,7 +175,7 @@ public class DefaultCacheRepository implements CacheRepository {
             if (!properties.isEmpty()) {
                 throw new UnsupportedOperationException("Properties are not supported for stores.");
             }
-            return factory.openStore(cacheDir, lockMode, getCrossVersionMode(), initializer);
+            return factory.openStore(cacheDir, lockMode, initializer);
         }
     }
 
@@ -222,7 +217,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
         @Override
         protected PersistentStateCache<E> doOpen(File cacheDir, Map<String, ?> properties) {
-            return factory.openStateCache(cacheDir, cacheUsage, properties, LockMode.Exclusive, getCrossVersionMode(), serializer);
+            return factory.openStateCache(cacheDir, cacheUsage, properties, LockMode.Exclusive, serializer);
         }
     }
 
@@ -233,7 +228,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
         @Override
         protected PersistentIndexedCache<K, V> doOpen(File cacheDir, Map<String, ?> properties) {
-            return factory.openIndexedCache(cacheDir, cacheUsage, properties, LockMode.Exclusive, getCrossVersionMode(), serializer);
+            return factory.openIndexedCache(cacheDir, cacheUsage, properties, LockMode.Exclusive, serializer);
         }
     }
 }
