@@ -16,19 +16,63 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.internal.Factory;
+import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 
 import java.io.File;
+import java.io.IOException;
 
 public class DefaultPersistentDirectoryStore implements PersistentCache {
     private final File dir;
+    private final FileLockManager.LockMode lockMode;
+    private final FileLockManager lockManager;
     private final String displayName;
+    private FileLock lock;
 
-    public DefaultPersistentDirectoryStore(File dir, String displayName) {
+    public DefaultPersistentDirectoryStore(File dir, String displayName, FileLockManager.LockMode lockMode, FileLockManager fileLockManager) {
         this.dir = dir;
+        this.lockMode = lockMode;
+        this.lockManager = fileLockManager;
         this.displayName = displayName != null ? displayName : String.format("cache directory %s", dir);
+    }
+
+    public DefaultPersistentDirectoryStore open() {
         dir.mkdirs();
+        try {
+            lock = lockManager.lock(getLockTarget(), lockMode, toString());
+            try {
+                init();
+            } catch (Throwable throwable) {
+                lock.close();
+                lock = null;
+                throw throwable;
+            }
+        } catch (Throwable e) {
+            throw new CacheOpenException(String.format("Could not open %s.", this), e);
+        }
+        return this;
+    }
+
+    protected File getLockTarget() {
+        return dir;
+    }
+
+    protected void init() throws IOException {
+    }
+
+    public void close() {
+        if (lock != null) {
+            try {
+                lock.close();
+            } finally {
+                lock = null;
+            }
+        }
+    }
+
+    protected FileLock getLock() {
+        return lock;
     }
 
     public File getBaseDir() {

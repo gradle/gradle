@@ -52,12 +52,18 @@ class DefaultCacheFactoryTest extends Specification {
     public void "creates directory backed store instance"() {
         when:
         def factory = factoryFactory.create()
-        def cache = factory.openStore(tmpDir.dir, "<display>", FileLockManager.LockMode.None, null)
+        def cache = factory.openStore(tmpDir.dir, "<display>", FileLockManager.LockMode.Shared, null)
 
         then:
         cache instanceof DefaultPersistentDirectoryStore
         cache.baseDir == tmpDir.dir
         cache.toString() == "<display>"
+
+        when:
+        factory.close()
+
+        then:
+        1 * closed.execute(cache)
     }
 
     public void "creates directory backed cache instance"() {
@@ -69,6 +75,12 @@ class DefaultCacheFactoryTest extends Specification {
         cache instanceof DefaultPersistentDirectoryCache
         cache.baseDir == tmpDir.dir
         cache.toString() == "<display>"
+
+        when:
+        factory.close()
+
+        then:
+        1 * closed.execute(cache)
     }
 
     public void "creates indexed cache instance"() {
@@ -106,6 +118,29 @@ class DefaultCacheFactoryTest extends Specification {
         def factory2 = factoryFactory.create()
         def ref1 = factory1.open(tmpDir.dir, null, CacheUsage.ON, [prop: 'value'], FileLockManager.LockMode.Exclusive, null)
         def ref2 = factory2.open(tmpDir.dir, null, CacheUsage.ON, [prop: 'value'], FileLockManager.LockMode.Exclusive, null)
+
+        then:
+        ref1.is(ref2)
+        0 * closed._
+    }
+
+    public void "reuses directory backed store instances"() {
+        when:
+        def factory = factoryFactory.create()
+        def ref1 = factory.openStore(tmpDir.dir, null, FileLockManager.LockMode.Exclusive, null)
+        def ref2 = factory.openStore(tmpDir.dir, null, FileLockManager.LockMode.Exclusive, null)
+
+        then:
+        ref1.is(ref2)
+        0 * closed._
+    }
+
+    public void "reuses directory backed store instances across multiple sessions"() {
+        when:
+        def factory1 = factoryFactory.create()
+        def factory2 = factoryFactory.create()
+        def ref1 = factory1.openStore(tmpDir.dir, null, FileLockManager.LockMode.Exclusive, null)
+        def ref2 = factory2.openStore(tmpDir.dir, null, FileLockManager.LockMode.Exclusive, null)
 
         then:
         ref1.is(ref2)

@@ -15,28 +15,33 @@
  */
 package org.gradle.cache.internal
 
-import spock.lang.Specification
+import org.gradle.os.jna.NativeEnvironment
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
+import spock.lang.Specification
 
 class DefaultPersistentDirectoryStoreTest extends Specification {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
+    final lockManager = new DefaultFileLockManager(new DefaultProcessMetaDataProvider(NativeEnvironment.current()))
+    final dir = tmpDir.file("dir")
+    final store = new DefaultPersistentDirectoryStore(dir, "<display>", FileLockManager.LockMode.Shared, lockManager)
+
+    def cleanup() {
+        store.close()
+    }
 
     def "has useful toString() implementation"() {
-        def store = new DefaultPersistentDirectoryStore(tmpDir.dir, "<display>")
-
         expect:
         store.toString() == "<display>"
     }
 
     def "creates directory if it does not exist"() {
         given:
-        def dir = tmpDir.file('dir')
         dir.assertDoesNotExist()
 
         when:
-        def store = new DefaultPersistentDirectoryStore(dir, "<display>")
+        store.open()
 
         then:
         dir.assertIsDir()
@@ -44,11 +49,10 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
 
     def "does nothing when directory already exists"() {
         given:
-        def dir = tmpDir.dir
-        dir.assertIsDir()
+        dir.createDir()
 
         when:
-        def store = new DefaultPersistentDirectoryStore(dir, "<display>")
+        store.open()
 
         then:
         notThrown(RuntimeException)

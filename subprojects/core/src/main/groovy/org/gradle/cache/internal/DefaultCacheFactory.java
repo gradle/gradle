@@ -59,6 +59,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
             DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
             if (dirCacheReference == null) {
                 DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, usage, properties, lockMode, action, lockManager);
+                cache.open();
                 dirCacheReference = new DirCacheReference(cache, properties, lockMode);
                 dirCaches.put(canonicalDir, dirCacheReference);
             } else {
@@ -80,13 +81,19 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
         }
 
         public PersistentCache openStore(File storeDir, String displayName, LockMode lockMode, Action<? super PersistentCache> initializer) throws CacheOpenException {
-            if (lockMode != LockMode.None) {
-                throw new UnsupportedOperationException(String.format("No %s mode directory store implementation currently available.", lockMode));
-            }
             if (initializer != null) {
                 throw new UnsupportedOperationException("Initializer actions are not currently supported by the directory store implementation.");
             }
-            return new DefaultPersistentDirectoryStore(storeDir, displayName);
+            File canonicalDir = GFileUtils.canonicalise(storeDir);
+            DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
+            if (dirCacheReference == null) {
+                DefaultPersistentDirectoryStore cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockMode, lockManager);
+                cache.open();
+                dirCacheReference = new DirCacheReference(cache, Collections.<String, Object>emptyMap(), lockMode);
+                dirCaches.put(canonicalDir, dirCacheReference);
+            }
+            dirCacheReference.addReference(this);
+            return dirCacheReference.getCache();
         }
 
         public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initializer) {
@@ -153,14 +160,14 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
         }
     }
 
-    private class DirCacheReference extends BasicCacheReference<DefaultPersistentDirectoryCache> {
+    private class DirCacheReference extends BasicCacheReference<DefaultPersistentDirectoryStore> {
         private final Map<String, ?> properties;
         private final FileLockManager.LockMode lockMode;
         IndexedCacheReference indexedCache;
         StateCacheReference stateCache;
         CacheFactoryImpl rebuiltBy;
 
-        public DirCacheReference(DefaultPersistentDirectoryCache cache, Map<String, ?> properties, FileLockManager.LockMode lockMode) {
+        public DirCacheReference(DefaultPersistentDirectoryStore cache, Map<String, ?> properties, FileLockManager.LockMode lockMode) {
             super(cache);
             this.properties = properties;
             this.lockMode = lockMode;
