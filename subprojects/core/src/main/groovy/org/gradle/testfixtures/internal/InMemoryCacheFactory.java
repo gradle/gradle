@@ -77,6 +77,10 @@ public class InMemoryCacheFactory implements CacheFactory {
             return new InMemoryIndexedCache<K, V>();
         }
 
+        public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
+            return new InMemoryIndexedCache<K, V>();
+        }
+
         public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
             // The contract of useCache() means we have to provide some basic synchronization.
             synchronized (this) {

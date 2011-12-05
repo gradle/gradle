@@ -19,6 +19,7 @@ import org.gradle.api.internal.Factory;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.Serializer;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,6 +92,11 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
     public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
         assertCanUseCacheAccessMethods();
         return cacheAccess.newCache(cacheFile, keyType, valueType);
+    }
+
+    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
+        assertCanUseCacheAccessMethods();
+        return cacheAccess.newCache(cacheFile, keyType, valueSerializer);
     }
 
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {

@@ -33,7 +33,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
                 .store(String.format("artifacts-%d", CACHE_LAYOUT_VERSION))
                 .withDisplayName("artifact cache")
                 .withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache)
-                .withLockMode(FileLockManager.LockMode.None) // We'll do our own
+                .withLockMode(FileLockManager.LockMode.None) // Don't need to lock anything until we use the caches
                 .open();
     }
 

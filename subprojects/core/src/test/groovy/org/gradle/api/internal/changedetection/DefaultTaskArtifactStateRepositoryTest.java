@@ -64,9 +64,10 @@ public class DefaultTaskArtifactStateRepositoryTest {
     @Before
     public void setup() {
         CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.createDir("user-home"), null, CacheUsage.ON, new InMemoryCacheFactory());
+        TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository);
         FileSnapshotter inputFilesSnapshotter = new DefaultFileSnapshotter(new DefaultHasher());
-        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheRepository, gradle);
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheRepository, new CacheBackedFileSnapshotRepository(cacheRepository, gradle), gradle);
+        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheAccess);
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess));
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, inputFilesSnapshotter, outputFilesSnapshotter);
     }
 

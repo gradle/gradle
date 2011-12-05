@@ -15,15 +15,13 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.api.invocation.Gradle;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 
 public class CacheBackedFileSnapshotRepository implements FileSnapshotRepository {
     private final PersistentIndexedCache<Object, Object> cache;
 
-    public CacheBackedFileSnapshotRepository(CacheRepository repository, Gradle gradle) {
-        cache = repository.indexedCache(Object.class, Object.class, "fileSnapshots").forObject(gradle).open();
+    public CacheBackedFileSnapshotRepository(TaskArtifactStateCacheAccess cacheAccess) {
+        cache = cacheAccess.createCache("fileSnapshots", Object.class, Object.class);
     }
 
     public Long add(FileCollectionSnapshot snapshot) {

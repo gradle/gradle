@@ -17,7 +17,9 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.internal.Factory;
 import org.gradle.cache.CacheAccess;
+import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.Serializer;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 
 import java.io.File;
@@ -96,9 +98,13 @@ public class DefaultCacheAccess implements CacheAccess {
     }
 
     public <K, V> PersistentIndexedCache<K, V> newCache(final File cacheFile, final Class<K> keyType, final Class<V> valueType) {
+        return newCache(cacheFile, keyType, new DefaultSerializer<V>(valueType.getClassLoader()));
+    }
+    
+    public <K, V> PersistentIndexedCache<K, V> newCache(final File cacheFile, final Class<K> keyType, final Serializer<V> valueSerializer) {
         Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
             public BTreePersistentIndexedCache<K, V> create() {
-                return doCreateCache(cacheFile, keyType, valueType);
+                return doCreateCache(cacheFile, new DefaultSerializer<K>(keyType.getClassLoader()), valueSerializer);
             }
         };
         MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new MultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
@@ -114,8 +120,8 @@ public class DefaultCacheAccess implements CacheAccess {
         return indexedCache;
     }
 
-    <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(final File cacheFile, final Class<K> keyType, final Class<V> valueType) {
-        return new BTreePersistentIndexedCache<K, V>(cacheFile, keyType, valueType);
+    <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(final File cacheFile, final Serializer<K> keySerializer, final Serializer<V> valueSerializer) {
+        return new BTreePersistentIndexedCache<K, V>(cacheFile, keySerializer, valueSerializer);
     }
 
     private void lockCache(String operationDisplayName) {

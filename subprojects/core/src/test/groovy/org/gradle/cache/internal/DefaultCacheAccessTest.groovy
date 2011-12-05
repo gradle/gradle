@@ -21,6 +21,7 @@ import org.junit.Rule
 import static org.gradle.cache.internal.FileLockManager.LockMode.*
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.api.internal.Factory
+import org.gradle.cache.Serializer
 
 class DefaultCacheAccessTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -31,7 +32,7 @@ class DefaultCacheAccessTest extends Specification {
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
     final DefaultCacheAccess manager = new DefaultCacheAccess("<display-name>", lockFile, lockManager) {
         @Override
-        def <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
+        def <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
             return backingCache
         }
     }
