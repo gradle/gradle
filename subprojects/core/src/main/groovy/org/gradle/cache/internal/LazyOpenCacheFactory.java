@@ -32,19 +32,19 @@ public class LazyOpenCacheFactory implements CacheFactory {
         this.cacheFactory = cacheFactory;
     }
 
-    public PersistentCache openStore(final File storeDir, final FileLockManager.LockMode lockMode, final Action<? super PersistentCache> initializer) throws CacheOpenException {
+    public PersistentCache openStore(final File storeDir, final String displayName, final FileLockManager.LockMode lockMode, final Action<? super PersistentCache> initializer) throws CacheOpenException {
         Factory<PersistentCache> factory = new Factory<PersistentCache>() {
             public PersistentCache create() {
-                return cacheFactory.openStore(storeDir, lockMode, initializer);
+                return cacheFactory.openStore(storeDir, displayName, lockMode, initializer);
             }
         };
         return new LazyCreationProxy<PersistentCache>(PersistentCache.class, factory).getSource();
     }
 
-    public PersistentCache open(final File cacheDir, final CacheUsage usage, final Map<String, ?> properties, final FileLockManager.LockMode lockMode, final Action<? super PersistentCache> initializer) throws CacheOpenException {
+    public PersistentCache open(final File cacheDir, final String displayName, final CacheUsage usage, final Map<String, ?> properties, final FileLockManager.LockMode lockMode, final Action<? super PersistentCache> initializer) throws CacheOpenException {
         Factory<PersistentCache> factory = new Factory<PersistentCache>() {
             public PersistentCache create() {
-                return cacheFactory.open(cacheDir, usage, new HashMap<String, Object>(properties), lockMode, initializer);
+                return cacheFactory.open(cacheDir, displayName, usage, new HashMap<String, Object>(properties), lockMode, initializer);
             }
         };
         return new LazyCreationProxy<PersistentCache>(PersistentCache.class, factory).getSource();

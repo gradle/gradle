@@ -27,11 +27,11 @@ import java.util.Collections;
 import java.util.Map;
 
 public class InMemoryCacheFactory implements CacheFactory {
-    public PersistentCache openStore(File storeDir, FileLockManager.LockMode lockMode, Action<? super PersistentCache> initializer) throws CacheOpenException {
-        return open(storeDir, CacheUsage.ON, Collections.<String, Object>emptyMap(), lockMode, initializer);
+    public PersistentCache openStore(File storeDir, String displayName, FileLockManager.LockMode lockMode, Action<? super PersistentCache> initializer) throws CacheOpenException {
+        return open(storeDir, displayName, CacheUsage.ON, Collections.<String, Object>emptyMap(), lockMode, initializer);
     }
 
-    public PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, Action<? super PersistentCache> initializer) {
+    public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, Action<? super PersistentCache> initializer) {
         cacheDir.mkdirs();
         InMemoryCache cache = new InMemoryCache(cacheDir);
         if (initializer != null) {
@@ -71,6 +71,22 @@ public class InMemoryCacheFactory implements CacheFactory {
 
         public File getBaseDir() {
             return cacheDir;
+        }
+
+        public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
+            throw new UnsupportedOperationException();
+        }
+
+        public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void longRunningOperation(String operationDisplayName, Runnable action) {
+            throw new UnsupportedOperationException();
         }
     }
 }

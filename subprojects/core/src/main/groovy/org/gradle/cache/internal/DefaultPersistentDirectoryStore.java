@@ -15,19 +15,43 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentIndexedCache;
 
 import java.io.File;
 
 public class DefaultPersistentDirectoryStore implements PersistentCache {
     private final File dir;
+    private final String displayName;
 
-    public DefaultPersistentDirectoryStore(File dir) {
+    public DefaultPersistentDirectoryStore(File dir, String displayName) {
         this.dir = dir;
+        this.displayName = displayName != null ? displayName : String.format("cache directory %s", dir);
         dir.mkdirs();
     }
 
     public File getBaseDir() {
         return dir;
+    }
+    @Override
+    public String toString() {
+        return displayName;
+    }
+
+    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
+        throw new UnsupportedOperationException();
+    }
+
+    public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
+        throw new UnsupportedOperationException();
+    }
+
+    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void longRunningOperation(String operationDisplayName, Runnable action) {
+        throw new UnsupportedOperationException();
     }
 }

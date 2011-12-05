@@ -31,24 +31,20 @@ import java.util.Properties;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode;
 
-public class DefaultPersistentDirectoryCache implements PersistentCache {
+public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
-    private final File dir;
     private final File propertiesFile;
     private final Properties properties = new Properties();
     private final FileLock lock;
 
-    public DefaultPersistentDirectoryCache(File dir, CacheUsage cacheUsage, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initAction, FileLockManager lockManager) {
-        this.dir = dir;
+    public DefaultPersistentDirectoryCache(File dir, String displayName, CacheUsage cacheUsage, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initAction, FileLockManager lockManager) {
+        super(dir, displayName);
         propertiesFile = new File(dir, "cache.properties");
         this.properties.putAll(properties);
         lock = init(cacheUsage, properties, initAction, lockMode, lockManager);
     }
 
     private FileLock init(CacheUsage cacheUsage, Map<String, ?> properties, final Action<? super PersistentCache> initAction, LockMode lockMode, FileLockManager lockManager) {
-        if (!dir.isDirectory()) {
-            dir.mkdirs();
-        }
         try {
             // Start with desired lock mode and check if cache is valid or not
             final FileLock lock = lockManager.lock(propertiesFile, lockMode, toString());
@@ -76,13 +72,8 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
         lock.close();
     }
 
-    @Override
-    public String toString() {
-        return String.format("cache directory %s", dir);
-    }
-
     private void buildCacheDir(Action<? super PersistentCache> initAction, FileLock fileLock) {
-        for (File file : dir.listFiles()) {
+        for (File file : getBaseDir().listFiles()) {
             if (fileLock.isLockFile(file) || file.equals(propertiesFile)) {
                 continue;
             }
@@ -115,10 +106,6 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
 
     public Properties getProperties() {
         return properties;
-    }
-
-    public File getBaseDir() {
-        return dir;
     }
 
     public FileLock getLock() {

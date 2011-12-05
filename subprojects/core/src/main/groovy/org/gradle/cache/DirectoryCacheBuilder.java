@@ -28,6 +28,11 @@ public interface DirectoryCacheBuilder extends CacheBuilder<PersistentCache> {
     DirectoryCacheBuilder forObject(Object target);
 
     /**
+     * Specifies the display name for this cache. This display name is used in logging and error messages.
+     */
+    DirectoryCacheBuilder withDisplayName(String displayName);
+
+    /**
      * Specifies the lock mode to use. Note that not every combination of cache type and lock mode is supported.
      */
     DirectoryCacheBuilder withLockMode(FileLockManager.LockMode lockMode);

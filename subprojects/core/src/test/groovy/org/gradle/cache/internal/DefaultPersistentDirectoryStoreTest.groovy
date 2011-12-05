@@ -23,13 +23,20 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
 
+    def "has useful toString() implementation"() {
+        def store = new DefaultPersistentDirectoryStore(tmpDir.dir, "<display>")
+
+        expect:
+        store.toString() == "<display>"
+    }
+
     def "creates directory if it does not exist"() {
         given:
         def dir = tmpDir.file('dir')
         dir.assertDoesNotExist()
 
         when:
-        def store = new DefaultPersistentDirectoryStore(dir)
+        def store = new DefaultPersistentDirectoryStore(dir, "<display>")
 
         then:
         dir.assertIsDir()
@@ -41,7 +48,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
         dir.assertIsDir()
 
         when:
-        def store = new DefaultPersistentDirectoryStore(dir)
+        def store = new DefaultPersistentDirectoryStore(dir, "<display>")
 
         then:
         notThrown(RuntimeException)

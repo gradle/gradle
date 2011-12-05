@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,19 @@ import java.io.File;
  * You can use {@link DirectoryCacheBuilder#withInitializer(org.gradle.api.Action)} to provide an action to initialize the contents
  * of the cache, for building a read-only cache. An exclusive lock is held by this process while the initializer is running.
  */
-public interface PersistentCache {
+public interface PersistentCache extends CacheAccess {
     /**
      * Returns the base directory for this cache.
      */
     File getBaseDir();
+
+    /**
+     * Creates an indexed cache implementation that is contained within this cache. This method may be used at any time.
+     *
+     * <p>The returned cache may only be used by an action being run from {@link #useCache(String, org.gradle.api.internal.Factory)}.
+     * In this instance, an exclusive lock will be held on the cache.
+     *
+     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.api.internal.Factory)}.
+     */
+    <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType);
 }

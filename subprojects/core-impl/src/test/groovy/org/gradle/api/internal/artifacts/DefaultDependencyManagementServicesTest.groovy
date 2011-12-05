@@ -70,6 +70,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * cacheRepository.store(_) >> cacheBuilder
         _ * cacheBuilder.withVersionStrategy(_) >> cacheBuilder
         _ * cacheBuilder.withLockMode(_) >> cacheBuilder
+        _ * cacheBuilder.withDisplayName(_) >> cacheBuilder
         PersistentCache cache = Mock()
         _ * cacheBuilder.open() >> cache
         cache.baseDir >> new File("cache")
