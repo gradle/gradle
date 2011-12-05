@@ -16,6 +16,10 @@
                 <td>webAppDir</td>
                 <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.webAppDirName}</replaceable></literal></td>
             </tr>
+            <tr>
+                <td>additionalWebAppDirs</td>
+                <td><literal><replaceable>${project.additionalWebAppDirs}</replaceable></literal></td>
+            </tr>
         </table>
     </section>
     <section>

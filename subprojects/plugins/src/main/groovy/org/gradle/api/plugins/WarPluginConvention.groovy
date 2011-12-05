@@ -22,11 +22,17 @@ public class WarPluginConvention {
      * The name of the web application directory, relative to the project directory.
      */
     String webAppDirName
+    /**
+     * Additional directories containing webapp html/jsp etc files. Optional.
+     */
+    Set<File> additionalWebAppDirs
+
     final Project project
 
     def WarPluginConvention(Project project) {
         this.project = project
         webAppDirName = 'src/main/webapp'
+        additionalWebAppDirs = []
     }
 
     /**
@@ -34,5 +40,12 @@ public class WarPluginConvention {
      */
     File getWebAppDir() {
         project.file(webAppDirName)
+    }
+
+    /**
+     * Returns additional directories containing webapp html/jsp etc files.
+     */
+    Set<File> getAdditionalWebAppDirs() {
+        additionalWebAppDirs
     }
 }
