@@ -39,17 +39,19 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
 
     public DefaultPersistentDirectoryStore open() {
         dir.mkdirs();
-        try {
-            lock = lockManager.lock(getLockTarget(), lockMode, toString());
+        if (lockMode != FileLockManager.LockMode.None) {
             try {
-                init();
-            } catch (Throwable throwable) {
-                lock.close();
-                lock = null;
-                throw throwable;
+                lock = lockManager.lock(getLockTarget(), lockMode, toString());
+                try {
+                    init();
+                } catch (Throwable throwable) {
+                    lock.close();
+                    lock = null;
+                    throw throwable;
+                }
+            } catch (Throwable e) {
+                throw new CacheOpenException(String.format("Could not open %s.", this), e);
             }
-        } catch (Throwable e) {
-            throw new CacheOpenException(String.format("Could not open %s.", this), e);
         }
         return this;
     }

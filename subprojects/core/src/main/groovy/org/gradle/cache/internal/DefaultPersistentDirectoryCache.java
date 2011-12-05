@@ -39,6 +39,9 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
 
     public DefaultPersistentDirectoryCache(File dir, String displayName, CacheUsage cacheUsage, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initAction, FileLockManager lockManager) {
         super(dir, displayName, lockMode, lockManager);
+        if (lockMode == LockMode.None) {
+            throw new UnsupportedOperationException("Locking mode None is not supported.");
+        }
         this.cacheUsage = cacheUsage;
         this.initAction = initAction;
         propertiesFile = new File(dir, "cache.properties");

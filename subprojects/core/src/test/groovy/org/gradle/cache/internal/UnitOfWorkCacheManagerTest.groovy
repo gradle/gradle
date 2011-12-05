@@ -26,6 +26,7 @@ class UnitOfWorkCacheManagerTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     final FileLockManager lockManager = Mock()
     final File lockFile = tmpDir.file('lock.bin')
+    final File targetFile = tmpDir.file('cache.bin')
     final FileLock lock = Mock()
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
     final UnitOfWorkCacheManager manager = new UnitOfWorkCacheManager("<display-name>", lockFile, lockManager) {
@@ -35,113 +36,197 @@ class UnitOfWorkCacheManagerTest extends Specification {
         }
     }
 
-    def "can create cache instance outside of unit of work"() {
-        when:
-        def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
-
-        then:
-        cache instanceof MultiProcessSafePersistentIndexedCache
-        0 * _._
-    }
-
-    def "can create cache instance inside of unit of work"() {
-        given:
-        manager.onStartWork()
+    def "executes cache action and returns result"() {
+        Factory<String> action = Mock()
 
         when:
-        def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
+        def result = manager.useCache("some operation", action)
 
         then:
-        cache instanceof MultiProcessSafePersistentIndexedCache
-        0 * _._
-    }
-
-    def "locks cache dir on first access after start of unit of work"() {
-        when:
-        def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
-        manager.onStartWork("<some-operation>")
-
-        then:
-        0 * _._
-
-        when:
-        cache.get("key")
-        cache.put("key", 12)
-
-        then:
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "<some-operation>") >> lock
-        _ * backingCache._
-        _ * lock.writeToFile(!null) >> {Runnable action -> action.run() }
-        _ * lock.readFromFile(!null) >> {Factory action -> action.create() }
-        0 * _._
-    }
-
-    def "closes caches and unlocks cache dir at end of unit of work"() {
-        given:
-        def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
-        manager.onStartWork("<some-operation>")
-        cacheOpenedAndLocked(cache)
-
-        when:
-        manager.onEndWork()
-
-        then:
-        1 * lock.writeToFile(!null) >> {Runnable action -> action.run()}
-        1 * backingCache.close()
+        result == 'result'
 
         and:
+        1 * action.create() >> 'result'
+        0 * _._
+    }
+
+    def "can create cache instance outside of cache action"() {
+        when:
+        def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
+
+        then:
+        cache instanceof MultiProcessSafePersistentIndexedCache
+        0 * _._
+    }
+
+    def "can create cache instance inside of cache action"() {
+        def cache
+        when:
+        manager.useCache("init", {
+            cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
+        } as Factory)
+
+        then:
+        cache instanceof MultiProcessSafePersistentIndexedCache
+        0 * _._
+    }
+
+    def "does not acquire lock when no caches used during unit of work"() {
+        given:
+        def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
+
+        when:
+        manager.useCache("some operation", {} as Factory)
+
+        then:
+        0 * _._
+    }
+
+    def "acquires lock when a cache is used and releases lock at the end of the cache action"() {
+        Factory<String> action = Mock()
+        def cache = manager.newCache(targetFile, String, Integer)
+
+        when:
+        manager.useCache("some operation", action)
+
+        then:
+        1 * action.create() >> {
+            cache.get("key")
+        }
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+        _ * lock.readFromFile(_)
+
+        and:
+        _ * lock.writeToFile(_)
         1 * lock.close()
         0 * _._
     }
 
-    def "does nothing if no caches used during unit of work"() {
-        given:
-        def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
+    def "releases lock during long running operation"() {
+        Factory<String> action = Mock()
+        Factory<String> longRunningAction = Mock()
+        def cache = manager.newCache(targetFile, String, Integer)
 
         when:
-        manager.onStartWork("<some-operation>")
-        manager.onEndWork()
+        manager.useCache("some operation", action)
 
         then:
+        1 * action.create() >> {
+            cache.get("key")
+            manager.longRunningOperation("nested", longRunningAction)
+            cache.get("key")
+        }
+        1 * longRunningAction.create()
+        2 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+        _ * lock.readFromFile(_)
+        _ * lock.writeToFile(_)
+        2 * lock.close()
         0 * _._
     }
 
-    def "cannot use cache before unit of work started"() {
-        given:
-        def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
-
+    def "cannot run long running operation from outside cache action"() {
         when:
-        cache.get("5")
+        manager.longRunningOperation("operation", Mock(Factory))
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'Cannot use cache outside a unit of work.'
+        e.message == 'Cannot start long running operation, as the artifact cache has not been locked.'
     }
 
-    def "cannot use cache after unit of work completed"() {
-        given:
-        def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
-        manager.onStartWork("<some-operation>")
-        cacheOpenedAndLocked(cache)
-        manager.onEndWork()
+    def "cannot use cache from within long running operation"() {
+        Factory<String> action = Mock()
+        Factory<String> longRunningAction = Mock()
+        def cache = manager.newCache(targetFile, String, Integer)
 
         when:
-        cache.get("5")
+        manager.useCache("some operation", action)
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'Cannot use cache outside a unit of work.'
+        e.message == 'The <display-name> has not been locked.'
+
+        and:
+        1 * action.create() >> {
+            manager.longRunningOperation("nested", longRunningAction)
+        }
+        1 * longRunningAction.create() >> {
+            cache.get("key")
+        }
+        0 * _._
     }
 
-    def expectLockUsed() {
-        _ * lock.writeToFile(!null) >> {Runnable action -> action.run() }
-        _ * lock.readFromFile(!null) >> {Factory action -> action.create() }
+    def "can execute cache action from within long running operation"() {
+        Factory<String> action = Mock()
+        Factory<String> longRunningAction = Mock()
+        Factory<String> nestedAction = Mock()
+        def cache = manager.newCache(targetFile, String, Integer)
+
+        when:
+        manager.useCache("some operation", action)
+
+        then:
+        1 * action.create() >> {
+            cache.get("key")
+            manager.longRunningOperation("nested", longRunningAction)
+        }
+        1 * longRunningAction.create() >> {
+            manager.useCache("nested 2", nestedAction)
+        }
+        1 * nestedAction.create() >> {
+            cache.get("key")
+        }
+        2 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+        _ * lock.readFromFile(_)
+        _ * lock.writeToFile(_)
+        2 * lock.close()
+        0 * _._
     }
 
-    def cacheOpenedAndLocked(def cache) {
-        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", !null) >> lock
-        expectLockUsed()
+    def "can execute long running operation from within long running operation"() {
+        Factory<String> action = Mock()
+        Factory<String> longRunningAction = Mock()
+        Factory<String> nestedAction = Mock()
+        def cache = manager.newCache(targetFile, String, Integer)
 
-        cache.put("key", 12)
+        when:
+        manager.useCache("some operation", action)
+
+        then:
+        1 * action.create() >> {
+            cache.get("key")
+            manager.longRunningOperation("nested", longRunningAction)
+        }
+        1 * longRunningAction.create() >> {
+            manager.longRunningOperation("nested 2", nestedAction)
+        }
+        1 * nestedAction.create()
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+        _ * lock.readFromFile(_)
+        _ * lock.writeToFile(_)
+        1 * lock.close()
+        0 * _._
+    }
+
+    def "can execute cache action from within cache action"() {
+        Factory<String> action = Mock()
+        Factory<String> nestedAction = Mock()
+        def cache = manager.newCache(targetFile, String, Integer)
+
+        when:
+        manager.useCache("some operation", action)
+
+        then:
+        1 * action.create() >> {
+            cache.get("key")
+            manager.useCache("nested", nestedAction)
+        }
+        1 * nestedAction.create() >> {
+            cache.get("key")
+        }
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+        _ * lock.readFromFile(_)
+        _ * lock.writeToFile(_)
+        1 * lock.close()
+        0 * _._
     }
 }

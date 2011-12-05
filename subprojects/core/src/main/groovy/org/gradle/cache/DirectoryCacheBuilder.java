@@ -33,7 +33,9 @@ public interface DirectoryCacheBuilder extends CacheBuilder<PersistentCache> {
     DirectoryCacheBuilder withDisplayName(String displayName);
 
     /**
-     * Specifies the lock mode to use. Note that not every combination of cache type and lock mode is supported.
+     * Specifies the <em>initial</em> lock mode to use. See {@link PersistentCache} for details.
+     *
+     * <p>Note that not every combination of cache type and lock mode is supported.
      */
     DirectoryCacheBuilder withLockMode(FileLockManager.LockMode lockMode);
 
