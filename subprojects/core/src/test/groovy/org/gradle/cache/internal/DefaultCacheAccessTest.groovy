@@ -22,14 +22,14 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.*
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.api.internal.Factory
 
-class UnitOfWorkCacheManagerTest extends Specification {
+class DefaultCacheAccessTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     final FileLockManager lockManager = Mock()
     final File lockFile = tmpDir.file('lock.bin')
     final File targetFile = tmpDir.file('cache.bin')
     final FileLock lock = Mock()
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
-    final UnitOfWorkCacheManager manager = new UnitOfWorkCacheManager("<display-name>", lockFile, lockManager) {
+    final DefaultCacheAccess manager = new DefaultCacheAccess("<display-name>", lockFile, lockManager) {
         @Override
         def <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
             return backingCache

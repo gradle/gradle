@@ -30,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
 
-public class UnitOfWorkCacheManager implements CacheAccess {
+public class DefaultCacheAccess implements CacheAccess {
     private final String cacheDiplayName;
     private final File lockFile;
     private final FileLockManager lockManager;
@@ -44,7 +44,7 @@ public class UnitOfWorkCacheManager implements CacheAccess {
     private boolean started;
     private int depth;
 
-    public UnitOfWorkCacheManager(String cacheDiplayName, File lockFile, FileLockManager lockManager) {
+    public DefaultCacheAccess(String cacheDiplayName, File lockFile, FileLockManager lockManager) {
         this.cacheDiplayName = cacheDiplayName;
         this.lockFile = lockFile;
         this.lockManager = lockManager;
