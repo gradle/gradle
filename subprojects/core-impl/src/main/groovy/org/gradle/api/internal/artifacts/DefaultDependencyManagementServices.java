@@ -58,7 +58,6 @@ import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.TimeProvider;
@@ -154,7 +153,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     protected CacheLockingManager createCacheLockingManager() {
         return new DefaultCacheLockingManager(
-                get(FileLockManager.class),
                 get(CacheRepository.class)
         );
     }

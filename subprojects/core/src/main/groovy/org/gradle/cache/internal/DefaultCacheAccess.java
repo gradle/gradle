@@ -19,12 +19,10 @@ import org.gradle.api.internal.Factory;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
-import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -37,10 +35,8 @@ public class DefaultCacheAccess implements CacheAccess {
     private final FileAccess fileAccess = new UnitOfWorkFileAccess();
     private final Set<MultiProcessSafePersistentIndexedCache<?, ?>> caches = new HashSet<MultiProcessSafePersistentIndexedCache<?, ?>>();
     private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
     private FileLock fileLock;
     private String operationDisplayName;
-    private Thread owner;
     private boolean started;
     private int depth;
 
@@ -51,38 +47,42 @@ public class DefaultCacheAccess implements CacheAccess {
     }
 
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        boolean wasStarted = lockCache(operationDisplayName);
+        lock.lock();
         try {
-            if (!wasStarted) {
-                onStartWork();
-            }
+            lockCache(operationDisplayName);
             try {
-                return action.create();
-            } finally {
-                if (!wasStarted) {
-                    onEndWork();
+                boolean wasStarted = onStartWork();
+                try {
+                    return action.create();
+                } finally {
+                    if (wasStarted) {
+                        onEndWork();
+                    }
                 }
+            } finally {
+                unlockCache();
             }
         } finally {
-            unlockCache(wasStarted);
+            lock.unlock();
         }
     }
 
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        boolean wasStarted = startLongRunningOperation();
+        lock.lock();
         try {
-            if (wasStarted) {
-                onEndWork();
+            if (depth == 0) {
+                throw new IllegalStateException("Cannot start long running operation, as the artifact cache has not been locked.");
             }
+            boolean wasEnded = onEndWork();
             try {
                 return action.create();
             } finally {
-                if (wasStarted) {
+                if (wasEnded) {
                     onStartWork();
                 }
             }
         } finally {
-            finishLongRunningOperation(wasStarted);
+            lock.unlock();
         }
     }
 
@@ -102,10 +102,10 @@ public class DefaultCacheAccess implements CacheAccess {
             }
         };
         MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new MultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
-        caches.add(indexedCache);
         lock.lock();
         try {
-            if (Thread.currentThread() == owner && started) {
+            caches.add(indexedCache);
+            if (started) {
                 indexedCache.onStartWork(operationDisplayName);
             }
         } finally {
@@ -118,76 +118,37 @@ public class DefaultCacheAccess implements CacheAccess {
         return new BTreePersistentIndexedCache<K, V>(cacheFile, keyType, valueType);
     }
 
-    private boolean startLongRunningOperation() {
-        lock.lock();
-        try {
-            if (owner != Thread.currentThread()) {
-                throw new IllegalStateException("Cannot start long running operation, as the artifact cache has not been locked.");
-            }
-            boolean wasStarted = started;
-            started = false;
-            return wasStarted;
-        } finally {
-            lock.unlock();
+    private void lockCache(String operationDisplayName) {
+        if (depth == 0) {
+            this.operationDisplayName = operationDisplayName;
+        }
+        depth++;
+    }
+
+    private void unlockCache() {
+        depth--;
+        if (depth <= 0) {
+            operationDisplayName = null;
         }
     }
 
-    private void finishLongRunningOperation(boolean wasStarted) {
-        lock.lock();
-        try {
-            started = wasStarted;
-        } finally {
-            lock.unlock();
+    private boolean onStartWork() {
+        if (started) {
+            return false;
         }
-    }
 
-    private boolean lockCache(String operationDisplayName) {
-        lock.lock();
-        try {
-            if (owner != Thread.currentThread()) {
-                while (owner != null) {
-                    try {
-                        condition.await();
-                    } catch (InterruptedException e) {
-                        throw UncheckedException.asUncheckedException(e);
-                    }
-                }
-                this.operationDisplayName = operationDisplayName;
-                owner = Thread.currentThread();
-            }
-            boolean wasStarted = started;
-            started = true;
-            depth++;
-            return wasStarted;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void unlockCache(boolean wasStarted) {
-        lock.lock();
-        try {
-            depth--;
-            if (!wasStarted) {
-                started = false;
-                if (depth <= 0) {
-                    owner = null;
-                    operationDisplayName = null;
-                    condition.signalAll();
-                }
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void onStartWork() {
+        started = true;
         for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
             cache.onStartWork(operationDisplayName);
         }
+        return true;
     }
 
-    private void onEndWork() {
+    private boolean onEndWork() {
+        if (!started) {
+            return false;
+        }
+
         try {
             for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
                 cache.onEndWork();
@@ -196,14 +157,16 @@ public class DefaultCacheAccess implements CacheAccess {
                 fileLock.close();
             }
         } finally {
+            started = false;
             fileLock = null;
         }
+        return true;
     }
 
     private FileLock getLock() {
         lock.lock();
         try {
-            if (owner != Thread.currentThread() || !started) {
+            if (!started) {
                 throw new IllegalStateException(String.format("The %s has not been locked.", cacheDiplayName));
             }
         } finally {

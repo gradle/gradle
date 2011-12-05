@@ -21,23 +21,20 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.cache.internal.DefaultCacheAccess;
 
 import java.io.File;
 
 public class DefaultCacheLockingManager implements CacheLockingManager {
     public static final int CACHE_LAYOUT_VERSION = 7;
-    private final DefaultCacheAccess cacheAccess;
     private final PersistentCache cache;
 
-    public DefaultCacheLockingManager(FileLockManager fileLockManager, CacheRepository cacheRepository) {
+    public DefaultCacheLockingManager(CacheRepository cacheRepository) {
         cache = cacheRepository
                 .store(String.format("artifacts-%d", CACHE_LAYOUT_VERSION))
                 .withDisplayName("artifact cache")
                 .withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache)
                 .withLockMode(FileLockManager.LockMode.None) // We'll do our own
                 .open();
-        this.cacheAccess = new DefaultCacheAccess(String.format("artifact cache '%s'", getCacheDir()), getCacheDir(), fileLockManager);
     }
 
     public File getCacheDir() {
@@ -45,18 +42,18 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
     }
 
     public void longRunningOperation(String operationDisplayName, final Runnable action) {
-        cacheAccess.longRunningOperation(operationDisplayName, action);
+        cache.longRunningOperation(operationDisplayName, action);
     }
 
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        return cacheAccess.useCache(operationDisplayName, action);
+        return cache.useCache(operationDisplayName, action);
     }
 
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        return cacheAccess.longRunningOperation(operationDisplayName, action);
+        return cache.longRunningOperation(operationDisplayName, action);
     }
 
     public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
-        return cacheAccess.newCache(cacheFile, keyType, valueType);
+        return cache.createCache(cacheFile, keyType, valueType);
     }
 }

@@ -28,6 +28,7 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
     private final FileLockManager.LockMode lockMode;
     private final FileLockManager lockManager;
     private final String displayName;
+    private DefaultCacheAccess cacheAccess;
     private FileLock lock;
 
     public DefaultPersistentDirectoryStore(File dir, String displayName, FileLockManager.LockMode lockMode, FileLockManager fileLockManager) {
@@ -39,6 +40,7 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
 
     public DefaultPersistentDirectoryStore open() {
         dir.mkdirs();
+        cacheAccess = new DefaultCacheAccess(displayName, getLockTarget(), lockManager);
         if (lockMode != FileLockManager.LockMode.None) {
             try {
                 lock = lockManager.lock(getLockTarget(), lockMode, toString());
@@ -80,24 +82,35 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
     public File getBaseDir() {
         return dir;
     }
+
     @Override
     public String toString() {
         return displayName;
     }
 
     public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
-        throw new UnsupportedOperationException();
+        assertCanUseCacheAccessMethods();
+        return cacheAccess.newCache(cacheFile, keyType, valueType);
     }
 
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        throw new UnsupportedOperationException();
+        assertCanUseCacheAccessMethods();
+        return cacheAccess.useCache(operationDisplayName, action);
     }
 
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        throw new UnsupportedOperationException();
+        assertCanUseCacheAccessMethods();
+        return cacheAccess.longRunningOperation(operationDisplayName, action);
     }
 
     public void longRunningOperation(String operationDisplayName, Runnable action) {
-        throw new UnsupportedOperationException();
+        assertCanUseCacheAccessMethods();
+        cacheAccess.longRunningOperation(operationDisplayName, action);
+    }
+
+    private void assertCanUseCacheAccessMethods() {
+        if (lockMode != FileLockManager.LockMode.None) {
+            throw new UnsupportedOperationException("Not implemented yet.");
+        }
     }
 }

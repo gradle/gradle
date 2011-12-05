@@ -50,4 +50,23 @@ class LazyCreationProxyTest extends Specification {
         0 * factory._
         0 * callable._
     }
+
+    def "rethrows checked exception thrown by method call on target object"() {
+        def failure = new IOException()
+        
+        given:
+        def proxy = new LazyCreationProxy<Callable<String>>(Callable, factory)
+        def source = proxy.source
+        _ * factory.create() >> callable
+
+        when:
+        source.call()
+
+        then:
+        Exception e = thrown(Exception)
+        e == failure
+
+        and:
+        _ * callable.call() >> { throw failure }
+    }
 }

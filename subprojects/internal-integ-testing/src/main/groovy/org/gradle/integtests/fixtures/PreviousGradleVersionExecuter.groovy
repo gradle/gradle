@@ -134,7 +134,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
                 zipFile.copyFrom(url)
                 zipFile.usingNativeTools().unzipTo(versionDir)
             }
-            cache = CACHE_FACTORY.open(versionDir, CacheUsage.ON, [:], LockMode.Shared, downloadAction as Action)
+            cache = CACHE_FACTORY.open(versionDir, version.toString(), CacheUsage.ON, [:], LockMode.Shared, downloadAction as Action)
         }
         zipFile.assertIsFile()
         homeDir.assertIsDir()

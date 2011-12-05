@@ -74,19 +74,22 @@ public class InMemoryCacheFactory implements CacheFactory {
         }
 
         public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
-            throw new UnsupportedOperationException();
+            return new InMemoryIndexedCache<K, V>();
         }
 
         public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-            throw new UnsupportedOperationException();
+            // The contract of useCache() means we have to provide some basic synchronization.
+            synchronized (this) {
+                return action.create();
+            }
         }
 
         public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-            throw new UnsupportedOperationException();
+            return action.create();
         }
 
         public void longRunningOperation(String operationDisplayName, Runnable action) {
-            throw new UnsupportedOperationException();
+            action.run();
         }
     }
 }
