@@ -16,11 +16,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.api.internal.project.SynchronizedServiceRegistry;
-import org.gradle.tooling.internal.consumer.ConnectionFactory;
-import org.gradle.tooling.internal.consumer.ConnectorServiceRegistry;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.gradle.tooling.internal.consumer.DistributionFactory;
+import org.gradle.tooling.internal.consumer.*;
 
 import java.io.File;
 import java.net.URI;
@@ -42,11 +38,13 @@ import java.net.URI;
  *
  * </ol>
  *
- * <p>{@code GradleConnector} instances are not thread-safe.</p>
+ * <p>{@code GradleConnector} instances are not thread-safe.
+ * If you want to use the tooling api concurrently you *must* always create new instances using {@link #newConnector()} </p>
  */
 public abstract class GradleConnector {
 
-    private static final ServiceRegistry SERVICES = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
+    //TODO SF refactor
+    private static final ToolingImplementationLoader TOOLING_API_LOADER = new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader());
 
     /**
      * Creates a new connector instance.
@@ -54,7 +52,10 @@ public abstract class GradleConnector {
      * @return The instance. Never returns null.
      */
     public static GradleConnector newConnector() {
-        return new DefaultGradleConnector(SERVICES.get(ConnectionFactory.class), SERVICES.get(DistributionFactory.class));
+        //TODO I'd like to add some coverage documenting what core instances are singletons
+        //(e.g. to document knowledge like 'single DefaultConnection per distro' etc.
+        ServiceRegistry services = new ConnectorServiceRegistry(TOOLING_API_LOADER);
+        return new DefaultGradleConnector(services.get(ConnectionFactory.class), services.get(DistributionFactory.class));
     }
 
     /**

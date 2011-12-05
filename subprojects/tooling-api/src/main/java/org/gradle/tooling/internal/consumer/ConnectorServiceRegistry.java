@@ -25,6 +25,12 @@ import org.gradle.logging.internal.ProgressListener;
 import org.gradle.util.TrueTimeProvider;
 
 public class ConnectorServiceRegistry extends DefaultServiceRegistry {
+    private final ToolingImplementationLoader toolingApiLoader;
+
+    public ConnectorServiceRegistry(ToolingImplementationLoader toolingApiLoader) {
+        this.toolingApiLoader = toolingApiLoader;
+    }
+
     protected ListenerManager createListenerManager() {
         return new DefaultListenerManager();
     }
@@ -38,7 +44,7 @@ public class ConnectorServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected ConnectionFactory createConnectionFactory() {
-        return new ConnectionFactory(get(ToolingImplementationLoader.class), get(ListenerManager.class), get(ProgressLoggerFactory.class));
+        return new ConnectionFactory(toolingApiLoader, get(ListenerManager.class), get(ProgressLoggerFactory.class));
     }
 
     protected DistributionFactory createDistributionFactory() {
