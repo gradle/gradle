@@ -1,5 +1,6 @@
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.consumer.loader;
 
+import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
 import java.util.concurrent.locks.Lock;

@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.consumer.loader;
 
 import org.gradle.api.internal.Factory;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.util.*;
 import org.slf4j.Logger;

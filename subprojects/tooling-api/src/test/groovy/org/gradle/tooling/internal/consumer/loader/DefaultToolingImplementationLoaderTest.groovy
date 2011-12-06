@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.consumer
+package org.gradle.tooling.internal.consumer.loader
 
 import org.gradle.messaging.actor.ActorFactory
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.internal.consumer.Distribution
+import org.gradle.tooling.internal.consumer.TestConnection
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.GradleVersion
 import org.gradle.util.TemporaryFolder

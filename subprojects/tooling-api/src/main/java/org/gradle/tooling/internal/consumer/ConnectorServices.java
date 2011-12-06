@@ -9,6 +9,10 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.logging.internal.ProgressListener;
 import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
+import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
+import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementationLoader;
+import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.util.TrueTimeProvider;
 
 /**
