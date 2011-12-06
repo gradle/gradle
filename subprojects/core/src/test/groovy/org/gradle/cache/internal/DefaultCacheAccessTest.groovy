@@ -111,7 +111,7 @@ class DefaultCacheAccessTest extends Specification {
         then:
         0 * _._
     }
-    
+
     def "does not acquire lock when no caches used during cache action"() {
         given:
         manager.open(None)
@@ -315,4 +315,51 @@ class DefaultCacheAccessTest extends Specification {
         1 * lock.close()
         0 * _._
     }
+
+    def "closes caches at the end of the cache action when initial lock mode is none"() {
+        Factory<String> action = Mock()
+
+        given:
+        manager.open(None)
+        def cache = manager.newCache(targetFile, String, Integer)
+
+        when:
+        manager.useCache("some operation", action)
+
+        then:
+        1 * action.create() >> {
+            cache.get("key")
+        }
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+        _ * lock.readFromFile(_)
+
+        and:
+        _ * lock.writeToFile(_) >> {Runnable runnable -> runnable.run()}
+        1 * backingCache.close()
+        1 * lock.close()
+        0 * _._
+    }
+
+    def "closes caches on close when initial lock mode is not none"() {
+        given:
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>") >> lock
+        _ * lock.readFromFile(_) >> {Factory factory -> factory.create()}
+        _ * lock.writeToFile(_) >> {Runnable runnable -> runnable.run()}
+
+        and:
+        manager.open(Exclusive)
+        def cache = manager.newCache(targetFile, String, Integer)
+        cache.get("key")
+
+        when:
+        manager.close()
+
+        then:
+        _ * lock.readFromFile(_) >> {Factory factory -> factory.create()}
+        _ * lock.writeToFile(_) >> {Runnable runnable -> runnable.run()}
+        1 * backingCache.close()
+        1 * lock.close()
+        0 * _._
+    }
+
 }

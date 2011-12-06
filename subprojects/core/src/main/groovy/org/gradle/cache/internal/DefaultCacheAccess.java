@@ -85,6 +85,9 @@ public class DefaultCacheAccess implements CacheAccess {
             if (owner != null && owner != Thread.currentThread()) {
                 throw new IllegalStateException(String.format("Cannot close the %s, as it is still in use.", cacheDiplayName));
             }
+            for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
+                cache.close();
+            }
             operationStack.clear();
             started = false;
             lockMode = null;
@@ -195,13 +198,13 @@ public class DefaultCacheAccess implements CacheAccess {
     }
 
     public <K, V> PersistentIndexedCache<K, V> newCache(final File cacheFile, final Class<K> keyType, final Class<V> valueType) {
-        return newCache(cacheFile, keyType, new DefaultSerializer<V>());
+        return newCache(cacheFile, keyType, new DefaultSerializer<V>(valueType.getClassLoader()));
     }
 
     public <K, V> PersistentIndexedCache<K, V> newCache(final File cacheFile, final Class<K> keyType, final Serializer<V> valueSerializer) {
         Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
             public BTreePersistentIndexedCache<K, V> create() {
-                return doCreateCache(cacheFile, new DefaultSerializer<K>(), valueSerializer);
+                return doCreateCache(cacheFile, new DefaultSerializer<K>(keyType.getClassLoader()), valueSerializer);
             }
         };
         MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new MultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
