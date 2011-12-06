@@ -53,4 +53,8 @@ public class ConnectionFactory {
     ListenerManager getListenerManager() {
         return listenerManager;
     }
+
+    ProgressLoggerFactory getProgressLoggerFactory() {
+        return progressLoggerFactory;
+    }
 }

@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.api.internal.project.SynchronizedServiceRegistry;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -35,15 +36,14 @@ import org.gradle.util.TrueTimeProvider;
  */
 public class ConnectorServices {
 
-    private static final ToolingImplementationLoader TOOLING_API_LOADER =
-            new SynchronizedToolingImplementationLoader(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
+    private static final ServiceRegistry SINGLETON_REGISTRY = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
 
     public DefaultGradleConnector createConnector() {
         ServiceRegistry services = new ConnectorServiceRegistry();
-        return new DefaultGradleConnector(services.get(ConnectionFactory.class), services.get(DistributionFactory.class));
+        return new DefaultGradleConnector(services.get(ConnectionFactory.class), SINGLETON_REGISTRY.get(DistributionFactory.class));
     }
 
-    private class ConnectorServiceRegistry extends DefaultServiceRegistry {
+    private static class ConnectorServiceRegistry extends DefaultServiceRegistry {
 
         protected ListenerManager createListenerManager() {
             return new DefaultListenerManager();
@@ -53,8 +53,12 @@ public class ConnectorServices {
             return new DefaultProgressLoggerFactory(get(ListenerManager.class).getBroadcaster(ProgressListener.class), new TrueTimeProvider());
         }
 
+        protected ToolingImplementationLoader createToolingImplementationLoader() {
+            return new SynchronizedToolingImplementationLoader(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
+        }
+
         protected ConnectionFactory createConnectionFactory() {
-            return new ConnectionFactory(TOOLING_API_LOADER, get(ListenerManager.class), get(ProgressLoggerFactory.class));
+            return new ConnectionFactory(SINGLETON_REGISTRY.get(ToolingImplementationLoader.class), get(ListenerManager.class), get(ProgressLoggerFactory.class));
         }
 
         protected DistributionFactory createDistributionFactory() {

@@ -62,7 +62,7 @@ apply plugin: 'java'
                 //a bit more stress:
                 connection.newBuild().forTasks('tasks').run()
             } catch (Exception e) {
-                throw new RuntimeException("""Looks like we've hit a concurrency problem.
+                throw new RuntimeException("""We might have hit a concurrency problem.
 See the full stacktrace and the list of causes to investigate""", e);
             }
         }

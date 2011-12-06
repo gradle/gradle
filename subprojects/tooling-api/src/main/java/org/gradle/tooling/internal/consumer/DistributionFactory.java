@@ -182,4 +182,8 @@ public class DistributionFactory {
             return new DefaultModuleRegistry().getFullClasspath();
         }
     }
+
+    ProgressLoggerFactory getProgressLoggerFactory() {
+        return progressLoggerFactory;
+    }
 }
