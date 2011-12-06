@@ -30,7 +30,6 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
     private final FileLockManager lockManager;
     private final String displayName;
     private DefaultCacheAccess cacheAccess;
-    private FileLock lock;
 
     public DefaultPersistentDirectoryStore(File dir, String displayName, FileLockManager.LockMode lockMode, FileLockManager fileLockManager) {
         this.dir = dir;
@@ -42,20 +41,18 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
     public DefaultPersistentDirectoryStore open() {
         dir.mkdirs();
         cacheAccess = new DefaultCacheAccess(displayName, getLockTarget(), lockManager);
-        if (lockMode != FileLockManager.LockMode.None) {
+        try {
+            cacheAccess.open(lockMode);
             try {
-                lock = lockManager.lock(getLockTarget(), lockMode, toString());
-                try {
-                    init();
-                } catch (Throwable throwable) {
-                    lock.close();
-                    lock = null;
-                    throw throwable;
-                }
-            } catch (Throwable e) {
-                throw new CacheOpenException(String.format("Could not open %s.", this), e);
+                init();
+            } catch (Throwable throwable) {
+                cacheAccess.close();
+                throw throwable;
             }
+        } catch (Throwable e) {
+            throw new CacheOpenException(String.format("Could not open %s.", this), e);
         }
+
         return this;
     }
 
@@ -67,17 +64,18 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
     }
 
     public void close() {
-        if (lock != null) {
+        if (cacheAccess != null) {
             try {
-                lock.close();
+                cacheAccess.close();
             } finally {
-                lock = null;
+                cacheAccess = null;
             }
         }
+
     }
 
     protected FileLock getLock() {
-        return lock;
+        return cacheAccess.getFileLock();
     }
 
     public File getBaseDir() {
@@ -90,33 +88,22 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
     }
 
     public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
-        assertCanUseCacheAccessMethods();
         return cacheAccess.newCache(cacheFile, keyType, valueType);
     }
 
     public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
-        assertCanUseCacheAccessMethods();
         return cacheAccess.newCache(cacheFile, keyType, valueSerializer);
     }
 
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        assertCanUseCacheAccessMethods();
         return cacheAccess.useCache(operationDisplayName, action);
     }
 
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        assertCanUseCacheAccessMethods();
         return cacheAccess.longRunningOperation(operationDisplayName, action);
     }
 
     public void longRunningOperation(String operationDisplayName, Runnable action) {
-        assertCanUseCacheAccessMethods();
         cacheAccess.longRunningOperation(operationDisplayName, action);
-    }
-
-    private void assertCanUseCacheAccessMethods() {
-        if (lockMode != FileLockManager.LockMode.None) {
-            throw new UnsupportedOperationException("Not implemented yet.");
-        }
     }
 }

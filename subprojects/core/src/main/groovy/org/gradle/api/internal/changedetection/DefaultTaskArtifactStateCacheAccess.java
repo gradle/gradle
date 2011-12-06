@@ -17,30 +17,34 @@ package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.Serializer;
+import org.gradle.cache.internal.FileLockManager;
+
+import java.io.File;
 
 public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCacheAccess {
-    private final Gradle gradle;
-    private final CacheRepository cacheRepository;
+    private final PersistentCache cache;
 
     public DefaultTaskArtifactStateCacheAccess(Gradle gradle, CacheRepository cacheRepository) {
-        this.gradle = gradle;
-        this.cacheRepository = cacheRepository;
+       cache = cacheRepository
+                .cache("taskArtifacts")
+                .forObject(gradle)
+                .withDisplayName("task artifact state cache")
+                .withLockMode(FileLockManager.LockMode.Exclusive)
+                .open();
     }
 
     public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType) {
-        return cacheRepository
-                .indexedCache(keyType, valueType, cacheName)
-                .forObject(gradle)
-                .open();
+        return cache.createCache(cacheFile(cacheName), keyType, valueType);
     }
 
     public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType, Serializer<V> valueSerializer) {
-        return cacheRepository
-                .indexedCache(keyType, valueType, cacheName)
-                .forObject(gradle)
-                .withSerializer(valueSerializer)
-                .open();
+        return cache.createCache(cacheFile(cacheName), keyType, valueSerializer);
+    }
+
+    private File cacheFile(String cacheName) {
+        return new File(cache.getBaseDir(), cacheName + ".bin");
     }
 }

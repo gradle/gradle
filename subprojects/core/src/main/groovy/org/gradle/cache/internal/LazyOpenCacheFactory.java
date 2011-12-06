@@ -38,7 +38,7 @@ public class LazyOpenCacheFactory implements CacheFactory {
                 return cacheFactory.openStore(storeDir, displayName, lockMode, initializer);
             }
         };
-        return new LazyCreationProxy<PersistentCache>(PersistentCache.class, factory).getSource();
+        return new LazyPersistentCache(factory);
     }
 
     public PersistentCache open(final File cacheDir, final String displayName, final CacheUsage usage, final Map<String, ?> properties, final FileLockManager.LockMode lockMode, final Action<? super PersistentCache> initializer) throws CacheOpenException {
@@ -47,7 +47,7 @@ public class LazyOpenCacheFactory implements CacheFactory {
                 return cacheFactory.open(cacheDir, displayName, usage, new HashMap<String, Object>(properties), lockMode, initializer);
             }
         };
-        return new LazyCreationProxy<PersistentCache>(PersistentCache.class, factory).getSource();
+        return new LazyPersistentCache(factory);
     }
 
     public <E> PersistentStateCache<E> openStateCache(final File cacheDir, final CacheUsage usage, final Map<String, ?> properties, final FileLockManager.LockMode lockMode, final Serializer<E> serializer) throws CacheOpenException {
@@ -66,5 +66,55 @@ public class LazyOpenCacheFactory implements CacheFactory {
             }
         };
         return new LazyCreationProxy<PersistentIndexedCache>(PersistentIndexedCache.class, factory).getSource();
+    }
+
+    private static class LazyPersistentCache implements PersistentCache {
+        private PersistentCache cache;
+        private final Factory<PersistentCache> factory;
+
+        private LazyPersistentCache(Factory<PersistentCache> factory) {
+            this.factory = factory;
+        }
+
+        private PersistentCache getCache() {
+            if (cache == null) {
+                cache = factory.create();
+            }
+            return cache;
+        }
+
+        public <K, V> PersistentIndexedCache<K, V> createCache(final File cacheFile, final Class<K> keyType, final Serializer<V> valueSerializer) {
+            Factory<PersistentIndexedCache<K, V>> factory = new Factory<PersistentIndexedCache<K, V>>() {
+                public PersistentIndexedCache<K, V> create() {
+                    return getCache().createCache(cacheFile, keyType, valueSerializer);
+                }
+            };
+            return new LazyCreationProxy<PersistentIndexedCache>(PersistentIndexedCache.class, factory).getSource();
+        }
+
+        public <K, V> PersistentIndexedCache<K, V> createCache(final File cacheFile, final Class<K> keyType, final Class<V> valueType) {
+            Factory<PersistentIndexedCache<K, V>> factory = new Factory<PersistentIndexedCache<K, V>>() {
+                public PersistentIndexedCache<K, V> create() {
+                    return getCache().createCache(cacheFile, keyType, valueType);
+                }
+            };
+            return new LazyCreationProxy<PersistentIndexedCache>(PersistentIndexedCache.class, factory).getSource();
+        }
+
+        public File getBaseDir() {
+            return getCache().getBaseDir();
+        }
+
+        public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
+            return getCache().longRunningOperation(operationDisplayName, action);
+        }
+
+        public void longRunningOperation(String operationDisplayName, Runnable action) {
+            getCache().longRunningOperation(operationDisplayName, action);
+        }
+
+        public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
+            return getCache().useCache(operationDisplayName, action);
+        }
     }
 }

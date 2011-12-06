@@ -15,13 +15,13 @@
  */
 package org.gradle.cache.internal
 
-import spock.lang.Specification
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
-import static org.gradle.cache.internal.FileLockManager.LockMode.*
-import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.api.internal.Factory
 import org.gradle.cache.Serializer
+import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
+import spock.lang.Specification
+import static org.gradle.cache.internal.FileLockManager.LockMode.*
 
 class DefaultCacheAccessTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -40,6 +40,9 @@ class DefaultCacheAccessTest extends Specification {
     def "executes cache action and returns result"() {
         Factory<String> action = Mock()
 
+        given:
+        manager.open(None)
+
         when:
         def result = manager.useCache("some operation", action)
 
@@ -52,6 +55,9 @@ class DefaultCacheAccessTest extends Specification {
     }
 
     def "can create cache instance outside of cache action"() {
+        given:
+        manager.open(None)
+
         when:
         def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
 
@@ -62,6 +68,10 @@ class DefaultCacheAccessTest extends Specification {
 
     def "can create cache instance inside of cache action"() {
         def cache
+
+        given:
+        manager.open(None)
+
         when:
         manager.useCache("init", {
             cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
@@ -72,8 +82,39 @@ class DefaultCacheAccessTest extends Specification {
         0 * _._
     }
 
-    def "does not acquire lock when no caches used during unit of work"() {
+    def "acquires lock on open and releases on close when initial lock mode is not none"() {
+        when:
+        manager.open(Shared)
+
+        then:
+        1 * lockManager.lock(lockFile, Shared, "<display-name>") >> lock
+        0 * _._
+
+        when:
+        manager.close()
+
+        then:
+        1 * lock.close()
+        0 * _._
+    }
+
+    def "does not acquires lock on open when initial lock mode is none"() {
+        when:
+        manager.open(None)
+
+        then:
+        0 * _._
+
+        when:
+        manager.close()
+
+        then:
+        0 * _._
+    }
+    
+    def "does not acquire lock when no caches used during cache action"() {
         given:
+        manager.open(None)
         def cache = manager.newCache(tmpDir.file('cache.bin'), String.class, Integer.class)
 
         when:
@@ -83,8 +124,11 @@ class DefaultCacheAccessTest extends Specification {
         0 * _._
     }
 
-    def "acquires lock when a cache is used and releases lock at the end of the cache action"() {
+    def "acquires lock when a cache is used and releases lock at the end of the cache action when initial lock mode is none"() {
         Factory<String> action = Mock()
+
+        given:
+        manager.open(None)
         def cache = manager.newCache(targetFile, String, Integer)
 
         when:
@@ -103,9 +147,34 @@ class DefaultCacheAccessTest extends Specification {
         0 * _._
     }
 
-    def "releases lock during long running operation"() {
+    def "does not acquire lock at start of cache action when initial lock mode is exclusive"() {
+        Factory<String> action = Mock()
+
+        given:
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>") >> lock
+        manager.open(Exclusive)
+        def cache = manager.newCache(targetFile, String, Integer)
+
+        when:
+        manager.useCache("some operation", action)
+
+        then:
+        1 * action.create() >> {
+            cache.get("key")
+        }
+        _ * lock.readFromFile(_)
+        _ * lock.writeToFile(_)
+
+        and:
+        0 * _._
+    }
+
+    def "releases lock before long running operation and reacquires after"() {
         Factory<String> action = Mock()
         Factory<String> longRunningAction = Mock()
+
+        given:
+        manager.open(None)
         def cache = manager.newCache(targetFile, String, Integer)
 
         when:
@@ -126,17 +195,23 @@ class DefaultCacheAccessTest extends Specification {
     }
 
     def "cannot run long running operation from outside cache action"() {
+        given:
+        manager.open(None)
+
         when:
         manager.longRunningOperation("operation", Mock(Factory))
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'Cannot start long running operation, as the artifact cache has not been locked.'
+        e.message == 'Cannot start long running operation, as the <display-name> has not been locked.'
     }
 
     def "cannot use cache from within long running operation"() {
         Factory<String> action = Mock()
         Factory<String> longRunningAction = Mock()
+
+        given:
+        manager.open(None)
         def cache = manager.newCache(targetFile, String, Integer)
 
         when:
@@ -160,6 +235,9 @@ class DefaultCacheAccessTest extends Specification {
         Factory<String> action = Mock()
         Factory<String> longRunningAction = Mock()
         Factory<String> nestedAction = Mock()
+
+        given:
+        manager.open(None)
         def cache = manager.newCache(targetFile, String, Integer)
 
         when:
@@ -176,7 +254,8 @@ class DefaultCacheAccessTest extends Specification {
         1 * nestedAction.create() >> {
             cache.get("key")
         }
-        2 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "some operation") >> lock
+        1 * lockManager.lock(lockFile, Exclusive, "<display-name>", "nested 2") >> lock
         _ * lock.readFromFile(_)
         _ * lock.writeToFile(_)
         2 * lock.close()
@@ -187,6 +266,9 @@ class DefaultCacheAccessTest extends Specification {
         Factory<String> action = Mock()
         Factory<String> longRunningAction = Mock()
         Factory<String> nestedAction = Mock()
+
+        given:
+        manager.open(None)
         def cache = manager.newCache(targetFile, String, Integer)
 
         when:
@@ -211,6 +293,9 @@ class DefaultCacheAccessTest extends Specification {
     def "can execute cache action from within cache action"() {
         Factory<String> action = Mock()
         Factory<String> nestedAction = Mock()
+
+        given:
+        manager.open(None)
         def cache = manager.newCache(targetFile, String, Integer)
 
         when:
