@@ -35,7 +35,7 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
         this.dir = dir;
         this.lockMode = lockMode;
         this.lockManager = fileLockManager;
-        this.displayName = displayName != null ? displayName : String.format("cache directory %s", dir);
+        this.displayName = displayName != null ? String.format("%s (%s)", displayName, dir) : String.format("cache directory %s (%s)", dir.getName(), dir);
     }
 
     public DefaultPersistentDirectoryStore open() {

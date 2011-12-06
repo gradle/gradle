@@ -36,7 +36,6 @@ import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
-import org.gradle.cache.internal.LazyOpenCacheFactory;
 import org.gradle.configuration.*;
 import org.gradle.execution.*;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
@@ -123,7 +122,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected CacheRepository createCacheRepository() {
-        CacheFactory factory = new LazyOpenCacheFactory(get(CacheFactory.class));
+        CacheFactory factory = get(CacheFactory.class);
         return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(),
                 startParameter.getCacheUsage(), factory);
     }

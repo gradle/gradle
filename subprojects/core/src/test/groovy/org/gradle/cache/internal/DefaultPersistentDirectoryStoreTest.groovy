@@ -32,7 +32,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
 
     def "has useful toString() implementation"() {
         expect:
-        store.toString() == "<display>"
+        store.toString() == "<display> ($cacheDir)"
     }
 
     def "open creates directory if it does not exist"() {
@@ -64,7 +64,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
         store.open()
 
         then:
-        1 * lockManager.lock(cacheDir, Shared, "<display>") >> lock
+        1 * lockManager.lock(cacheDir, Shared, "<display> ($cacheDir)") >> lock
 
         when:
         store.close()

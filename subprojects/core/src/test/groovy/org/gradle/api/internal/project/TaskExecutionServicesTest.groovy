@@ -20,7 +20,6 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter
 import org.gradle.listener.ListenerManager
 import org.gradle.cache.CacheRepository
-import org.gradle.cache.ObjectCacheBuilder
 import org.gradle.StartParameter
 import org.gradle.api.invocation.Gradle
 import org.gradle.cache.DirectoryCacheBuilder

@@ -71,7 +71,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     @Override
     public String toString() {
-        return String.format("cache '%s'", cacheFile);
+        return String.format("cache %s (%s)", cacheFile.getName(), cacheFile);
     }
 
     private void open() throws Exception {

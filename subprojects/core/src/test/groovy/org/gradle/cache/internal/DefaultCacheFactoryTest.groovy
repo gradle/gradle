@@ -57,7 +57,7 @@ class DefaultCacheFactoryTest extends Specification {
         then:
         cache instanceof DefaultPersistentDirectoryStore
         cache.baseDir == tmpDir.dir
-        cache.toString() == "<display>"
+        cache.toString().startsWith "<display>"
 
         when:
         factory.close()
@@ -74,7 +74,7 @@ class DefaultCacheFactoryTest extends Specification {
         then:
         cache instanceof DefaultPersistentDirectoryCache
         cache.baseDir == tmpDir.dir
-        cache.toString() == "<display>"
+        cache.toString().startsWith "<display>"
 
         when:
         factory.close()

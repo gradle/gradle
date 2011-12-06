@@ -15,36 +15,59 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.Serializer;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.listener.LazyCreationProxy;
 
 import java.io.File;
 
 public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCacheAccess {
-    private final PersistentCache cache;
+    private final Gradle gradle;
+    private final CacheRepository cacheRepository;
+    private PersistentCache cache;
 
     public DefaultTaskArtifactStateCacheAccess(Gradle gradle, CacheRepository cacheRepository) {
-       cache = cacheRepository
-                .cache("taskArtifacts")
-                .forObject(gradle)
-                .withDisplayName("task artifact state cache")
-                .withLockMode(FileLockManager.LockMode.Exclusive)
-                .open();
+        this.gradle = gradle;
+        this.cacheRepository = cacheRepository;
     }
 
-    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType) {
-        return cache.createCache(cacheFile(cacheName), keyType, valueType);
+    private PersistentCache getCache() {
+        if (cache == null) {
+            cache = cacheRepository
+                    .cache("taskArtifacts")
+                    .forObject(gradle)
+                    .withDisplayName("task artifact state cache")
+                    .withLockMode(FileLockManager.LockMode.Exclusive)
+                    .open();
+        }
+        return cache;
     }
 
-    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType, Serializer<V> valueSerializer) {
-        return cache.createCache(cacheFile(cacheName), keyType, valueSerializer);
+    public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Class<V> valueType) {
+        Factory<PersistentIndexedCache> factory = new Factory<PersistentIndexedCache>() {
+            public PersistentIndexedCache create() {
+                return getCache().createCache(cacheFile(cacheName), keyType, valueType);
+            }
+        };
+        return new LazyCreationProxy<PersistentIndexedCache>(PersistentIndexedCache.class, factory).getSource();
+    }
+
+    public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Class<V> valueType, final Serializer<V> valueSerializer) {
+        Factory<PersistentIndexedCache> factory = new Factory<PersistentIndexedCache>() {
+            public PersistentIndexedCache create() {
+                return getCache().createCache(cacheFile(cacheName), keyType, valueSerializer);
+            }
+        };
+        return new LazyCreationProxy<PersistentIndexedCache>(PersistentIndexedCache.class, factory).getSource();
+
     }
 
     private File cacheFile(String cacheName) {
-        return new File(cache.getBaseDir(), cacheName + ".bin");
+        return new File(getCache().getBaseDir(), cacheName + ".bin");
     }
 }

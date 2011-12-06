@@ -47,6 +47,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
         String cacheName = String.format("scripts/%s/%s/%s", source.getClassName(), scriptBaseClass.getSimpleName(), transformer.getId());
         PersistentCache cache = cacheRepository.cache(cacheName)
                 .withProperties(properties)
+                .withDisplayName(String.format("%s class cache for %s", transformer.getId(), source.getDisplayName()))
                 .withInitializer(new CacheInitializer(source, classLoader, transformer, scriptBaseClass)).open();
 
         File classesDir = classesDir(cache);

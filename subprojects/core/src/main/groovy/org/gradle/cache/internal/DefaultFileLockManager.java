@@ -200,7 +200,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         private java.nio.channels.FileLock lock(FileLockManager.LockMode lockMode) throws Throwable {
-            LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode, displayName);
+            LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(), displayName);
             long timeout = System.currentTimeMillis() + LOCK_TIMEOUT;
 
             // Lock the state region, with the requested mode

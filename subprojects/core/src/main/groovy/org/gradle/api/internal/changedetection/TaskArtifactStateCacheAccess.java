@@ -19,7 +19,7 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.Serializer;
 
 public interface TaskArtifactStateCacheAccess {
-    <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType);
+    <K, V> PersistentIndexedCache createCache(String cacheName, Class<K> keyType, Class<V> valueType);
 
     <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType, Serializer<V> valueSerializer);
 }
