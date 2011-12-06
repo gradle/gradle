@@ -25,6 +25,7 @@ import static org.junit.Assert.*
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.junit.Ignore
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationTest {
     @Rule public final TestResources resource = new TestResources()
@@ -352,7 +353,7 @@ task b(dependsOn: a)
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a', ':b')
     }
 
-    @Test
+    @Test @Ignore
     public void canShareArtifactsBetweenBuilds() {
         def buildFile = testFile('build.gradle') << '''
 task otherBuild(type: GradleBuild) {
