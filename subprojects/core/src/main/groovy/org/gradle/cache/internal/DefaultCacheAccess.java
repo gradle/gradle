@@ -82,9 +82,6 @@ public class DefaultCacheAccess implements CacheAccess {
     public void close() {
         lock.lock();
         try {
-            if (owner != null && owner != Thread.currentThread()) {
-                throw new IllegalStateException(String.format("Cannot close the %s, as it is still in use.", cacheDiplayName));
-            }
             for (MultiProcessSafePersistentIndexedCache<?, ?> cache : caches) {
                 cache.close();
             }

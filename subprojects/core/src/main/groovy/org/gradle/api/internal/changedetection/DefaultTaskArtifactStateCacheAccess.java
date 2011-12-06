@@ -71,6 +71,10 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
         return new File(getCache().getBaseDir(), cacheName + ".bin");
     }
 
+    public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
+        return getCache().useCache(operationDisplayName, action);
+    }
+
     public void longRunningOperation(String operationDisplayName, Runnable action) {
         getCache().longRunningOperation(operationDisplayName, action);
     }

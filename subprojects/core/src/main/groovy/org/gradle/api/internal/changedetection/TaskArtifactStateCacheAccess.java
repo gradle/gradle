@@ -15,10 +15,19 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.Serializer;
 
 public interface TaskArtifactStateCacheAccess {
+    /**
+     * Performs some work against the cache. Acquires exclusive locks the appropriate resources, so that the given action is the only
+     * action to execute across all processes (including this one). Releases the locks and all resources at the end of the action.
+     *
+     * <p>This method is re-entrant, so that an action can call back into this method.</p>
+     */
+    <T> T useCache(String operationDisplayName, Factory<? extends T> action);
+
     /**
      * Performs some long running operation. Releases all locks while the operation is running, and reacquires the locks at the end of
      * the long running operation.
