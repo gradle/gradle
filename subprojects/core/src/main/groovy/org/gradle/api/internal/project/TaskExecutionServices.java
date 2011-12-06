@@ -40,9 +40,11 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
                                 new SkipEmptySourceFilesTaskExecuter(
                                         new ValidatingTaskExecuter(
                                                 new SkipUpToDateTaskExecuter(
-                                                        new PostExecutionAnalysisTaskExecuter(
-                                                                new ExecuteActionsTaskExecuter(
-                                                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
+                                                        new CacheLockHandlingTaskExecuter(
+                                                                new PostExecutionAnalysisTaskExecuter(
+                                                                        new ExecuteActionsTaskExecuter(
+                                                                                get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
+                                                                get(TaskArtifactStateCacheAccess.class)),
                                                         get(TaskArtifactStateRepository.class)))))));
     }
 

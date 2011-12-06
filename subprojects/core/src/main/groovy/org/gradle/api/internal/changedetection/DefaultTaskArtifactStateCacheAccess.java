@@ -70,4 +70,8 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
     private File cacheFile(String cacheName) {
         return new File(getCache().getBaseDir(), cacheName + ".bin");
     }
+
+    public void longRunningOperation(String operationDisplayName, Runnable action) {
+        getCache().longRunningOperation(operationDisplayName, action);
+    }
 }

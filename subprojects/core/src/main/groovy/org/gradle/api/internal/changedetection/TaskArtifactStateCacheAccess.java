@@ -19,6 +19,14 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.Serializer;
 
 public interface TaskArtifactStateCacheAccess {
+    /**
+     * Performs some long running operation. Releases all locks while the operation is running, and reacquires the locks at the end of
+     * the long running operation.
+     *
+     * <p>This method is re-entrant, so that an action can call back into this method.</p>
+     */
+    void longRunningOperation(String operationDisplayName, Runnable action);
+
     <K, V> PersistentIndexedCache createCache(String cacheName, Class<K> keyType, Class<V> valueType);
 
     <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Class<V> valueType, Serializer<V> valueSerializer);
