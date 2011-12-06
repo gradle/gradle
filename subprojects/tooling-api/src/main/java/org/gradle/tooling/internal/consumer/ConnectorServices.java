@@ -24,7 +24,6 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.logging.internal.ProgressListener;
-import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementationLoader;
@@ -39,9 +38,7 @@ public class ConnectorServices {
     private static final ToolingImplementationLoader TOOLING_API_LOADER =
             new SynchronizedToolingImplementationLoader(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
 
-    public GradleConnector createConnector() {
-        //TODO I'd like to add some coverage documenting what core instances are singletons
-        //(e.g. to document knowledge like 'single DefaultConnection per distro' etc.
+    public DefaultGradleConnector createConnector() {
         ServiceRegistry services = new ConnectorServiceRegistry();
         return new DefaultGradleConnector(services.get(ConnectionFactory.class), services.get(DistributionFactory.class));
     }

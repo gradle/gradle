@@ -15,9 +15,9 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ProjectConnection;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,4 +106,7 @@ public class DefaultGradleConnector extends GradleConnector {
         return connectionFactory.create(distribution, new DefaultConnectionParameters(projectDir, gradleUserHomeDir, searchUpwards, embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits));
     }
 
+    ConnectionFactory getConnectionFactory() {
+        return connectionFactory;
+    }
 }

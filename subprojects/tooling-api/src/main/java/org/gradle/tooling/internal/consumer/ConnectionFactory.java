@@ -45,4 +45,12 @@ public class ConnectionFactory {
         AsyncConnection asyncConnection = new DefaultAsyncConnection(connection, executorFactory);
         return new DefaultProjectConnection(asyncConnection, adapter, parameters);
     }
+
+    ToolingImplementationLoader getToolingImplementationLoader() {
+        return toolingImplementationLoader;
+    }
+
+    ListenerManager getListenerManager() {
+        return listenerManager;
+    }
 }
