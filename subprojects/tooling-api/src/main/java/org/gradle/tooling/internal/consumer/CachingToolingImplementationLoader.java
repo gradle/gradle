@@ -33,15 +33,13 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
 
     public ConnectionVersion4 create(Distribution distribution) {
         Set<File> classpath = new LinkedHashSet<File>(distribution.getToolingImplementationClasspath());
-        //TODO SF - improve. Instead, we can singletonize LazyConnection
-        synchronized (connections) {
-            ConnectionVersion4 connection = connections.get(classpath);
-            if (connection == null) {
-                connection = loader.create(distribution);
-                connections.put(classpath, connection);
-            }
 
-            return connection;
+        ConnectionVersion4 connection = connections.get(classpath);
+        if (connection == null) {
+            connection = loader.create(distribution);
+            connections.put(classpath, connection);
         }
+
+        return connection;
     }
 }

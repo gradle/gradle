@@ -16,7 +16,8 @@ import org.gradle.util.TrueTimeProvider;
  */
 public class ConnectorServices {
 
-    private static final ToolingImplementationLoader TOOLING_API_LOADER = new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader());
+    private static final ToolingImplementationLoader TOOLING_API_LOADER =
+            new SynchronizedToolingImplementationLoader(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
 
     public GradleConnector createConnector() {
         //TODO I'd like to add some coverage documenting what core instances are singletons
