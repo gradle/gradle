@@ -44,12 +44,31 @@ import spock.lang.Specification
  */
 class ConcurrentSpecification extends Specification {
     private static final Logger LOG = LoggerFactory.getLogger(ConcurrentSpecification.class)
-    private final Lock lock = new ReentrantLock()
-    private final Condition threadsChanged = lock.newCondition()
-    private final Set<TestThread> threads = [] as Set
+
+    private Lock lock
+    private Condition threadsChanged
+    private Set<TestThread> threads
     private Closure failureHandler
-    private final List<Throwable> failures = []
-    private long timeout = 5000
+    private List<Throwable> failures
+    private long timeout
+
+    /**
+     * Useful if one desires to use ConcurrentSpecification without extending it
+     *
+     * @return this specification
+     */
+    ConcurrentSpecification init() {
+        lock = new ReentrantLock()
+        threadsChanged = lock.newCondition()
+        threads = [] as Set
+        failures = []
+        timeout = 5000
+        return this
+    }
+
+    def setup() {
+        init()
+    }
 
     def cleanup() {
         finished()

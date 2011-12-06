@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling
+package org.gradle.integtests.tooling.next
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApi
@@ -24,13 +24,22 @@ import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.ConcurrentSpecification
 import spock.lang.Issue
+import spock.lang.Specification
 
-// TODO - this needs to cover cross-version compatibility (ie can run concurrent builds for any target gradle >= 1.0-milestone-7)
-// TODO - should cover concurrent builds each with a different target gradle version
-class ConcurrentToolingApiIntegrationTest extends ConcurrentSpecification {
+// TODO - after releasing the M7 the test needs to be updated to allow cross-version compatibility
+// (ie can run concurrent builds for any target gradle >= 1.0-milestone-7)
+// It should be as easy as commenting out below annotations and making sure it extends ToolingApiSpecification
+
+// TODO - should cover concurrent builds each with a different target gradle version. Needs to wait for the release of M8, though.
+
+//@MinToolingApiVersion('1.0-milestone-7')
+//@MinTargetGradleVersion('1.0-milestone-7')
+class ConcurrentToolingApiIntegrationTest extends Specification { //extends ToolingApiSpecification {
 
     def dist = new GradleDistribution()
     def toolingApi = new ToolingApi(dist)
+
+    def concurrent = new ConcurrentSpecification().init()
 
     def setup() {
         toolingApi.isEmbedded = false
@@ -43,15 +52,15 @@ apply plugin: 'java'
         """
 
         when:
-        shortTimeout = 30000
+        concurrent.shortTimeout = 30000
 
         3.times {
-            start { useToolingApi() }
+            concurrent.start { useToolingApi() }
         }
 
         then:
         //it deals with concurrency issues, may not fail every single time
-        finished()
+        concurrent.finished()
     }
 
     def useToolingApi() {
