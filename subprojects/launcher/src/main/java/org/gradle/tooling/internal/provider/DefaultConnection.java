@@ -17,10 +17,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.registry.DaemonDir;
@@ -40,15 +37,13 @@ import java.util.List;
 
 public class DefaultConnection implements ConnectionVersion4 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
-    private final ServiceRegistry loggingServices;
-    private final GradleLauncherFactory gradleLauncherFactory;
+    private final EmbeddedExecuterSupport embeddedExecuterSupport;
 
     public DefaultConnection() {
         LOGGER.debug("Using tooling API provider version {}.", GradleVersion.current().getVersion());
-
-        //below is only used for embedded use - TODO SF refactor the code to make it explicit through the design
-        loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-        gradleLauncherFactory = new DefaultGradleLauncherFactory(loggingServices);
+        //embedded use of the tooling api is not supported publicly so we don't care about its thread safety
+        //we can keep still keep this state:
+        embeddedExecuterSupport = new EmbeddedExecuterSupport();
     }
 
     public ConnectionMetaDataVersion1 getMetaData() {
@@ -82,24 +77,22 @@ public class DefaultConnection implements ConnectionVersion4 {
     }
 
     private GradleLauncherActionExecuter<BuildOperationParametersVersion1> createExecuter(BuildOperationParametersVersion1 operationParameters) {
-        GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer;
-        Factory<LoggingManagerInternal> loggingManagerFactory;
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
-            executer = new EmbeddedGradleLauncherActionExecuter(gradleLauncherFactory);
-            //for embedded daemon (internal use only), we will use the same logging services that were used to construct gradleLauncherFactory:
-            loggingManagerFactory = loggingServices.getFactory(LoggingManagerInternal.class);
+            return embeddedExecuterSupport.getExecuter();
         } else {
             File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
             File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(System.getProperties(), gradleUserHomeDir);
             List<String> daemonOpts = DaemonJvmOptions.getFromEnvironmentVariable();
-            //using 'fresh' logging services registry per operation to avoid concurrency issues
-            LoggingServiceRegistry freshLoggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-            DaemonClientServices clientServices = new DaemonClientServices(freshLoggingServices, daemonBaseDir, daemonOpts, getIdleTimeout(operationParameters));
+
+            LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+
+            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonBaseDir, daemonOpts, getIdleTimeout(operationParameters));
             DaemonClient client = clientServices.get(DaemonClient.class);
-            executer = new DaemonGradleLauncherActionExecuter(client);
-            loggingManagerFactory = freshLoggingServices.getFactory(LoggingManagerInternal.class);
+            GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer = new DaemonGradleLauncherActionExecuter(client);
+
+            Factory<LoggingManagerInternal> loggingManagerFactory = loggingServices.getFactory(LoggingManagerInternal.class);
+            return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingManagerFactory);
         }
-        return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingManagerFactory);
     }
 
     private int getIdleTimeout(BuildOperationParametersVersion1 operationParameters) {
