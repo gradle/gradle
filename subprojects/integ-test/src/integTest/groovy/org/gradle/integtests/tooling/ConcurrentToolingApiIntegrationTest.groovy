@@ -96,9 +96,14 @@ System.err.println 'this is stderr'
         progressMessages.size() >= 2
         progressMessages.pop() == ''
         progressMessages.every { it }
+
+        //Below may be very fragile as it depends on progress messages content
+        //However, when refactoring the logging code I found ways to break it silently
+        //Hence I want to make sure the functionality is not broken. We can remove the assertion later of find better ways of asserting it.
+        progressMessages == ['Load projects', 'Configure projects', "Resolve dependencies 'classpath'", 'Configure projects', "Resolve dependencies ':classpath'", "Configure projects", "Load projects"]
     }
 
-     def "receives progress and logging while the build is executing"() {
+    def "receives progress and logging while the build is executing"() {
         dist.testFile('build.gradle') << '''
 System.out.println 'this is stdout'
 System.err.println 'this is stderr'
@@ -126,5 +131,10 @@ System.err.println 'this is stderr'
         progressMessages.size() >= 2
         progressMessages.pop() == ''
         progressMessages.every { it }
+
+        //Below may be very fragile as it depends on progress messages content
+        //However, when refactoring the logging code I found ways to break it silently
+        //Hence I want to make sure the functionality is not broken. We can remove the assertion later of find better ways of asserting it.
+        progressMessages == ["Execute build", "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Execute build", "Execute tasks", "Execute :help", "Execute tasks", "Execute build"]
     }
 }
