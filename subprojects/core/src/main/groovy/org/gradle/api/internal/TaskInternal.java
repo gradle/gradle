@@ -19,7 +19,6 @@ package org.gradle.api.internal;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
-import org.gradle.api.internal.Factory;
 import org.gradle.api.specs.Spec;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.Configurable;
