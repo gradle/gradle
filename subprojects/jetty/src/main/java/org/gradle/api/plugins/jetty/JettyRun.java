@@ -439,7 +439,7 @@ public class JettyRun extends AbstractJettyRunTask {
     }
 
     /**
-     * Returns Set of additional directories containing webapp html/jsp etc files (additional to webAppSourceDirectory).
+     * <p>Returns Set of additional directories containing webapp html/jsp etc files (additional to webAppSourceDirectory).</p>
      */
     public Set<File> getAdditionalWebAppDirs() {
         return additionalWebAppDirs;
@@ -487,9 +487,22 @@ public class JettyRun extends AbstractJettyRunTask {
         this.classPathFiles = classPathFiles;
     }
     /**
-     * Returns list of directories with ant-style &lt;include&gt; and &lt;exclude&gt; patterns for extra targets to periodically
-     * scan for changes. Can be used instead of, or in conjunction with &lt;scanTargets&gt;.  scanIntervalSeconds must be non-zero and
-     * reload must be automatic for scanning to be enabled
+     * <p>Returns list of directories with ant-style &lt;include&gt; and &lt;exclude&gt; patterns for extra targets to periodically
+     * scan for changes. Can be used instead of, or in conjunction with &lt;scanTargets&gt;.</p>
+     *
+     * <p>scanIntervalSeconds must be non-zero and reload must be automatic for scanning to be enabled.</p>
+     *
+     * <p>Example usage:
+     * <code><pre>
+     * import org.gradle.api.plugins.jetty.*
+     * jettyRun {
+     *     def scanPattern = new ScanTargetPattern(
+     *     directory:file('extras'),
+     *     includes: ['*.html'],
+     *     excludes: ['Test*'])
+     *     scanPatterns = [scanPattern]
+     * }
+     * </pre></code></p>
      */
     public ScanTargetPattern[] getScanTargetPatterns() {
         return scanTargetPatterns;
