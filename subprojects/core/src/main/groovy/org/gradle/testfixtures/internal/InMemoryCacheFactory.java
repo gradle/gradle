@@ -88,6 +88,10 @@ public class InMemoryCacheFactory implements CacheFactory {
             }
         }
 
+        public void useCache(String operationDisplayName, Runnable action) {
+            action.run();
+        }
+
         public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
             return action.create();
         }

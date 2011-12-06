@@ -105,6 +105,15 @@ public class DefaultCacheAccess implements CacheAccess {
         return fileLock;
     }
 
+    public void useCache(String operationDisplayName, final Runnable action) {
+        useCache(operationDisplayName, new Factory<Object>() {
+            public Object create() {
+                action.run();
+                return null;
+            }
+        });
+    }
+
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
         if (lockMode == FileLockManager.LockMode.Shared) {
             throw new UnsupportedOperationException("Not implemented yet.");

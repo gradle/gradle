@@ -30,6 +30,14 @@ public interface CacheAccess {
     <T> T useCache(String operationDisplayName, Factory<? extends T> action);
 
     /**
+     * Performs some work against the cache. Acquires exclusive locks the appropriate resources, so that the given action is the only
+     * action to execute across all processes (including this one). Releases the locks and all resources at the end of the action.
+     *
+     * <p>This method is re-entrant, so that an action can call back into this method.</p>
+     */
+    void useCache(String operationDisplayName, Runnable action);
+
+    /**
      * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.api.internal.Factory)}. Releases all
      * locks while the operation is running, and reacquires the locks at the end of the long running operation.
      *

@@ -49,6 +49,10 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
         return cache.useCache(operationDisplayName, action);
     }
 
+    public void useCache(String operationDisplayName, Runnable action) {
+        cache.useCache(operationDisplayName, action);
+    }
+
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
         return cache.longRunningOperation(operationDisplayName, action);
     }

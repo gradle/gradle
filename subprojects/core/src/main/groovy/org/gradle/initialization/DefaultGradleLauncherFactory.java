@@ -141,7 +141,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 gradle.getBuildListenerBroadcaster(),
                 serviceRegistry.get(ExceptionAnalyser.class),
                 loggingManager,
-                serviceRegistry.get(BuildExecuter.class));
+                gradle.getServices().get(BuildExecuter.class));
     }
 
     public void setCommandLineConverter(

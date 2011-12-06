@@ -99,6 +99,10 @@ public class DefaultPersistentDirectoryStore implements PersistentCache {
         return cacheAccess.useCache(operationDisplayName, action);
     }
 
+    public void useCache(String operationDisplayName, Runnable action) {
+        cacheAccess.useCache(operationDisplayName, action);
+    }
+
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
         return cacheAccess.longRunningOperation(operationDisplayName, action);
     }

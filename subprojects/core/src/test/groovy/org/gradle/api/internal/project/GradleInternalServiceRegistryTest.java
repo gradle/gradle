@@ -21,6 +21,9 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.cache.CacheRepository;
+import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.DefaultBuildExecuter;
 import org.gradle.execution.DefaultTaskGraphExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ListenerBroadcast;
@@ -79,6 +82,17 @@ public class GradleInternalServiceRegistryTest {
     }
 
     @Test
+    public void providesABuildExecuter() {
+        context.checking(new Expectations(){{
+            allowing(parent).get(CacheRepository.class);
+            will(returnValue(context.mock(CacheRepository.class)));
+        }});
+
+        assertThat(registry.get(BuildExecuter.class), instanceOf(DefaultBuildExecuter.class));
+        assertThat(registry.get(BuildExecuter.class), sameInstance(registry.get(BuildExecuter.class)));
+    }
+
+    @Test
     public void providesATaskGraphExecuter() {
         context.checking(new Expectations() {{
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionGraphListener.class);
@@ -86,6 +100,7 @@ public class GradleInternalServiceRegistryTest {
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
         }});
+
         assertThat(registry.get(TaskGraphExecuter.class), instanceOf(DefaultTaskGraphExecuter.class));
         assertThat(registry.get(TaskGraphExecuter.class), sameInstance(registry.get(TaskGraphExecuter.class)));
     }
