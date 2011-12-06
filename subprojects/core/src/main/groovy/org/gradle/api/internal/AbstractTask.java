@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -409,6 +410,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return dir;
     }
 
+    // note: this method is on TaskInternal
+    public Factory<File> getTemporaryDirFactory() {
+        return new Factory<File>() {
+            public File create() {
+                return getTemporaryDir();
+            }
+        };
+    }
+    
     public void addValidator(TaskValidator validator) {
         validators.add(validator);
     }

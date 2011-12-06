@@ -20,6 +20,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.Factory;
 
 import java.io.File;
 import java.io.InputStream;
@@ -35,10 +36,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
     private final Map<RelativePath, Closure> elements = new LinkedHashMap<RelativePath, Closure>();
-    private final File tmpDir;
+    private final Factory<File> tmpDirSource;
 
-    public MapFileTree(File tmpDir) {
-        this.tmpDir = tmpDir;
+    public MapFileTree(final File tmpDir) {
+        this(new Factory<File>() { public File create() { return tmpDir; }});
+    }
+
+    public MapFileTree(Factory<File> tmpDirSource) {
+        this.tmpDirSource = tmpDirSource;
+    }
+
+    private File getTmpDir() {
+        return tmpDirSource.create();
     }
 
     public String getDisplayName() {
@@ -46,7 +55,7 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     }
 
     public DirectoryFileTree getMirror() {
-        return new DirectoryFileTree(tmpDir);
+        return new DirectoryFileTree(getTmpDir());
     }
 
     public void visit(FileVisitor visitor) {
@@ -120,7 +129,7 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
         public File getFile() {
             if (file == null) {
-                file = path.getFile(tmpDir);
+                file = path.getFile(getTmpDir());
                 copyTo(file);
             }
             return file;
