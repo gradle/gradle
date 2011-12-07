@@ -28,7 +28,6 @@ import org.gradle.api.internal.file.copy.*;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.resources.ReadableResource;
-import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.DefaultExecAction;
@@ -49,7 +48,7 @@ public class DefaultFileOperations implements FileOperations {
     private final TaskResolver taskResolver;
     private final TemporaryFileProvider temporaryFileProvider;
     private DeleteAction deleteAction;
-    private final ResourceHandler resourceHandler;
+    private final DefaultResourceHandler resourceHandler;
 
     public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider) {
         this.fileResolver = fileResolver;
@@ -96,12 +95,8 @@ public class DefaultFileOperations implements FileOperations {
     }
 
     public FileTree tarTree(Object tarPath) {
-        ReadableResource res;
-        if (tarPath instanceof ReadableResource) {
-            res = (ReadableResource) tarPath;
-        } else {
-            res = new MaybeCompressedFileResource(file(tarPath));
-        }
+        ReadableResource res = getResources().maybeCompressed(tarPath);
+
         TarFileTree tarTree = new TarFileTree(res, getExpandDir());
         return new FileTreeAdapter(tarTree);
     }
@@ -159,7 +154,7 @@ public class DefaultFileOperations implements FileOperations {
         return execAction.execute();
     }
 
-    public ResourceHandler getResources() {
+    public DefaultResourceHandler getResources() {
         return resourceHandler;
     }
 }

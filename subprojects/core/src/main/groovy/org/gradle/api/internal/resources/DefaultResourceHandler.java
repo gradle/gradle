@@ -17,6 +17,7 @@
 package org.gradle.api.internal.resources;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.MaybeCompressedFileResource;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.resources.ReadableResource;
@@ -38,5 +39,14 @@ public class DefaultResourceHandler implements ResourceHandler {
 
     public ReadableResource bzip2(Object path) {
         return new Bzip2Archiver(resolver.resolveResource(path));
+    }
+
+    //this method is not on the interface, at least for now
+    public ReadableResource maybeCompressed(Object tarPath) {
+        if (tarPath instanceof ReadableResource) {
+            return (ReadableResource) tarPath;
+        } else {
+            return new MaybeCompressedFileResource(resolver.resolve(tarPath));
+        }
     }
 }
