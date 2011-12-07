@@ -22,6 +22,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.resources.ReadableResource;
 import org.gradle.os.FileSystems;
 import org.gradle.os.OperatingSystem;
 import org.gradle.util.GUtil;
@@ -283,5 +284,12 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     public FileTree resolveFilesAsTree(Object... paths) {
         return resolveFiles(paths).getAsFileTree();
+    }
+
+    public ReadableResource resolveResource(Object path) {
+        if (path instanceof ReadableResource) {
+            return (ReadableResource) path;
+        }
+        return new FileResource(resolve(path));
     }
 }

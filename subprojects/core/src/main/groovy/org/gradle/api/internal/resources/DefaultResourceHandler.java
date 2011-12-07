@@ -17,7 +17,6 @@
 package org.gradle.api.internal.resources;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.FileResource;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.resources.ReadableResource;
@@ -34,10 +33,10 @@ public class DefaultResourceHandler implements ResourceHandler {
     }
 
     public ReadableResource gzip(Object path) {
-        return new GzipArchiver(new FileResource(resolver.resolve(path)));
+        return new GzipArchiver(resolver.resolveResource(path));
     }
 
     public ReadableResource bzip2(Object path) {
-        return new Bzip2Archiver(new FileResource(resolver.resolve(path)));
+        return new Bzip2Archiver(resolver.resolveResource(path));
     }
 }
