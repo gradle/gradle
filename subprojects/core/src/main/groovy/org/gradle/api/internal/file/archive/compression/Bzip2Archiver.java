@@ -21,7 +21,10 @@ import org.apache.tools.bzip2.CBZip2OutputStream;
 import org.gradle.api.internal.DescribedReadableResource;
 import org.gradle.api.resources.ReadableResource;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * by Szczepan Faber, created at: 11/16/11
@@ -54,9 +57,8 @@ public class Bzip2Archiver implements ReadableResource {
     }
 
     public InputStream read() {
-        InputStream fileInputStream = resource.read();
+        InputStream is = resource.read();
         try {
-            InputStream is = new BufferedInputStream(fileInputStream);
             // CBZip2InputStream expects the opening "BZ" to be skipped
             byte[] skip = new byte[2];
             is.read(skip);

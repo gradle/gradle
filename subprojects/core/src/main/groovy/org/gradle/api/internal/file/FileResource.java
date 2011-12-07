@@ -20,10 +20,7 @@ import org.gradle.api.internal.DescribedReadableResource;
 import org.gradle.api.resources.ResourceDoesNotExist;
 import org.gradle.api.resources.ResourceIsAFolder;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.*;
 
 /**
  * by Szczepan Faber, created at: 11/22/11
@@ -39,7 +36,8 @@ public class FileResource extends AbstractFileResource implements DescribedReada
             throw new ResourceIsAFolder(String.format("Cannot read from file resource because %s is a folder.", file.getName()));
         }
         try {
-            return new FileInputStream(file);
+            FileInputStream fis = new FileInputStream(file);
+            return new BufferedInputStream(fis);
         } catch (FileNotFoundException e) {
             throw new ResourceDoesNotExist(String.format("Cannot read from file resource because the file %s does not exist", file.getName()));
         }
