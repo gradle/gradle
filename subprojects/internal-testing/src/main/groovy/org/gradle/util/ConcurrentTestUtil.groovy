@@ -23,6 +23,10 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import org.gradle.messaging.concurrent.ExecutorFactory
 import org.gradle.messaging.concurrent.StoppableExecutor
+import org.junit.Rule
+import org.junit.rules.TestRule
+import org.junit.runner.Description
+import org.junit.runners.model.Statement
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
@@ -42,8 +46,8 @@ import spock.lang.Specification
  * <li>An action starts another action asynchronously and waits for the result.</li>
  * </ul>
  */
-class ConcurrentSpecification extends Specification {
-    private static final Logger LOG = LoggerFactory.getLogger(ConcurrentSpecification.class)
+class ConcurrentTestUtil implements TestRule {
+    private static final Logger LOG = LoggerFactory.getLogger(ConcurrentTestUtil.class)
 
     private Lock lock = new ReentrantLock()
     private Condition threadsChanged = lock.newCondition()
@@ -52,26 +56,16 @@ class ConcurrentSpecification extends Specification {
     private List<Throwable> failures = []
     private timeout = 5000
 
-    /**
-     * Useful if one desires to use ConcurrentSpecification without extending it
-     *
-     * @return this specification
-     */
-    ConcurrentSpecification init() {
-        lock = new ReentrantLock()
-        threadsChanged = lock.newCondition()
-        threads = [] as Set
-        failures = []
-        timeout = 5000
-        return this
-    }
-
-    def setup() {
-        init()
-    }
-
-    def cleanup() {
-        finished()
+    Statement apply(Statement base, Description description) {
+        return new Statement() {
+            void evaluate() {
+                try {
+                    base.evaluate()
+                } finally {
+                    finished()
+                }
+            }
+        }
     }
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout
@@ -97,7 +91,7 @@ class ConcurrentSpecification extends Specification {
     ExecutorFactory getExecutorFactory() {
         return new ExecutorFactory() {
             StoppableExecutor create(String displayName) {
-                return new StoppableExecutorStub(ConcurrentSpecification.this)
+                return new StoppableExecutorStub(ConcurrentTestUtil.this)
             }
         }
     }
@@ -254,15 +248,19 @@ class ConcurrentSpecification extends Specification {
     }
 }
 
+class ConcurrentSpecification extends Specification {
+    @Rule @Delegate ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
+}
+
 class TestThread extends Thread {
     private static final Logger LOG = LoggerFactory.getLogger(TestThread.class)
-    private final ConcurrentSpecification owner
+    private final ConcurrentTestUtil owner
     private final Runnable action
     private final Lock lock
     private final Condition stateChanged
     private boolean complete
 
-    TestThread(ConcurrentSpecification owner, Lock lock, Runnable action) {
+    TestThread(ConcurrentTestUtil owner, Lock lock, Runnable action) {
         this.owner = owner
         this.action = action
         this.lock = lock
@@ -361,7 +359,7 @@ interface TestParticipant extends LongRunningAction {
 
 abstract class AbstractAction implements LongRunningAction {
     void completed() {
-        Date expiry = ConcurrentSpecification.shortTimeout()
+        Date expiry = ConcurrentTestUtil.shortTimeout()
         completesBefore(expiry)
     }
 
@@ -374,9 +372,9 @@ abstract class AbstractAction implements LongRunningAction {
 }
 
 abstract class AbstractTestParticipant extends AbstractAction implements TestParticipant {
-    private final ConcurrentSpecification owner
+    private final ConcurrentTestUtil owner
 
-    AbstractTestParticipant(ConcurrentSpecification owner) {
+    AbstractTestParticipant(ConcurrentTestUtil owner) {
         this.owner = owner
     }
 }
@@ -384,7 +382,7 @@ abstract class AbstractTestParticipant extends AbstractAction implements TestPar
 class TestParticipantImpl extends AbstractTestParticipant {
     private final TestThread thread
 
-    TestParticipantImpl(ConcurrentSpecification owner, TestThread thread) {
+    TestParticipantImpl(ConcurrentTestUtil owner, TestThread thread) {
         super(owner)
         this.thread = thread
     }
@@ -403,7 +401,7 @@ class CompositeTestParticipant extends AbstractTestParticipant {
     private final List<TestParticipant> participants
     private final Lock lock
 
-    CompositeTestParticipant(ConcurrentSpecification owner, Lock lock, List<TestParticipant> participants) {
+    CompositeTestParticipant(ConcurrentTestUtil owner, Lock lock, List<TestParticipant> participants) {
         super(owner)
         this.participants = participants
         this.lock = lock
@@ -430,10 +428,10 @@ class CompositeTestParticipant extends AbstractTestParticipant {
 }
 
 class StoppableExecutorStub implements StoppableExecutor {
-    final ConcurrentSpecification owner
+    final ConcurrentTestUtil owner
     final Set<TestThread> threads = new CopyOnWriteArraySet<TestThread>()
 
-    StoppableExecutorStub(ConcurrentSpecification owner) {
+    StoppableExecutorStub(ConcurrentTestUtil owner) {
         this.owner = owner
     }
 
@@ -456,12 +454,12 @@ class StoppableExecutorStub implements StoppableExecutor {
 }
 
 class AbstractAsyncAction {
-    protected final ConcurrentSpecification owner
+    protected final ConcurrentTestUtil owner
     private final Lock lock = new ReentrantLock()
     protected final Condition condition = lock.newCondition()
     protected Throwable failure
 
-    AbstractAsyncAction(ConcurrentSpecification owner) {
+    AbstractAsyncAction(ConcurrentTestUtil owner) {
         this.owner = owner
     }
 
@@ -491,7 +489,7 @@ class StartAsyncAction extends AbstractAsyncAction {
     private boolean completed
     private Thread startThread
 
-    StartAsyncAction(ConcurrentSpecification owner) {
+    StartAsyncAction(ConcurrentTestUtil owner) {
         super(owner)
     }
 
@@ -593,7 +591,7 @@ abstract class AbstractWaitAction extends AbstractAsyncAction {
     protected boolean started
     protected boolean completed
 
-    AbstractWaitAction(ConcurrentSpecification owner) {
+    AbstractWaitAction(ConcurrentTestUtil owner) {
         super(owner)
     }
 
@@ -646,7 +644,7 @@ class WaitForAsyncCallback extends AbstractWaitAction {
     private boolean callbackCompleted
     private Runnable callback
 
-    WaitForAsyncCallback(ConcurrentSpecification owner) {
+    WaitForAsyncCallback(ConcurrentTestUtil owner) {
         super(owner)
     }
 
@@ -728,7 +726,7 @@ class WaitForAsyncCallback extends AbstractWaitAction {
 class WaitForAsyncAction extends AbstractWaitAction {
     boolean asyncActionComplete
 
-    WaitForAsyncAction(ConcurrentSpecification owner) {
+    WaitForAsyncAction(ConcurrentTestUtil owner) {
         super(owner)
     }
 

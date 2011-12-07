@@ -22,7 +22,8 @@ import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.util.ConcurrentSpecification
+import org.gradle.util.ConcurrentTestUtil
+import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -39,7 +40,7 @@ class ConcurrentToolingApiIntegrationTest extends Specification { //extends Tool
     def dist = new GradleDistribution()
     def toolingApi = new ToolingApi(dist)
 
-    def concurrent = new ConcurrentSpecification().init()
+    @Rule def concurrent = new ConcurrentTestUtil()
 
     def setup() {
         toolingApi.isEmbedded = false
