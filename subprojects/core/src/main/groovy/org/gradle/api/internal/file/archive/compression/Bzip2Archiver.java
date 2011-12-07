@@ -20,6 +20,7 @@ import org.apache.tools.bzip2.CBZip2InputStream;
 import org.apache.tools.bzip2.CBZip2OutputStream;
 import org.gradle.api.internal.resources.DescribedReadableResource;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.ResourceException;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -65,7 +66,7 @@ public class Bzip2Archiver implements ReadableResource {
             return new CBZip2InputStream(is);
         } catch (Exception e) {
             String message = String.format("Unable to create bzip2 input stream for resource: %s due to: %s.", resource.getName(), e.getMessage());
-            throw new RuntimeException(message, e);
+            throw new ResourceException(message, e);
         }
     }
 }
