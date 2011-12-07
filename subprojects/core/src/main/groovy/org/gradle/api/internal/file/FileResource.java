@@ -33,13 +33,13 @@ public class FileResource extends AbstractFileResource implements DescribedReada
 
     public InputStream read() {
         if (file.isDirectory()) {
-            throw new ResourceIsAFolderException(String.format("Cannot read from file resource because %s is a folder.", file.getName()));
+            throw new ResourceIsAFolderException(String.format("Cannot read resource %s because it is a folder.", file.getName()));
         }
         try {
             FileInputStream fis = new FileInputStream(file);
             return new BufferedInputStream(fis);
         } catch (FileNotFoundException e) {
-            throw new MissingResourceException(String.format("Cannot read from file resource because the file %s does not exist", file.getName()));
+            throw new MissingResourceException(String.format("Cannot read the file resource because the file %s does not exist", file.getName()));
         }
     }
 }
