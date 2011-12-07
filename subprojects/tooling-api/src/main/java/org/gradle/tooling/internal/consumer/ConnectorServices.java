@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.SynchronizedServiceRegistry;
@@ -39,8 +40,7 @@ public class ConnectorServices {
     private static final ServiceRegistry SINGLETON_REGISTRY = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
 
     public DefaultGradleConnector createConnector() {
-        ServiceRegistry services = new ConnectorServiceRegistry();
-        return new DefaultGradleConnector(services.get(ConnectionFactory.class), SINGLETON_REGISTRY.get(DistributionFactory.class));
+        return new DefaultGradleConnector(SINGLETON_REGISTRY.newInstance(ConnectionFactory.class), SINGLETON_REGISTRY.get(DistributionFactory.class));
     }
 
     private static class ConnectorServiceRegistry extends DefaultServiceRegistry {
@@ -49,20 +49,25 @@ public class ConnectorServices {
             return new DefaultListenerManager();
         }
 
-        protected ProgressLoggerFactory createProgressLoggerFactory() {
-            return new DefaultProgressLoggerFactory(get(ListenerManager.class).getBroadcaster(ProgressListener.class), new TrueTimeProvider());
+        private ProgressLoggerFactory createProgressLoggerFactory(ListenerManager listenerManager) {
+            return new DefaultProgressLoggerFactory(listenerManager.getBroadcaster(ProgressListener.class), new TrueTimeProvider());
         }
 
         protected ToolingImplementationLoader createToolingImplementationLoader() {
             return new SynchronizedToolingImplementationLoader(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
         }
 
-        protected ConnectionFactory createConnectionFactory() {
-            return new ConnectionFactory(SINGLETON_REGISTRY.get(ToolingImplementationLoader.class), get(ListenerManager.class), get(ProgressLoggerFactory.class));
+        protected Factory<ConnectionFactory> createConnectionFactory() {
+            return new Factory<ConnectionFactory>() {
+                public ConnectionFactory create() {
+                    ListenerManager listenerManager = createListenerManager();
+                    return new ConnectionFactory(get(ToolingImplementationLoader.class), listenerManager, createProgressLoggerFactory(listenerManager));
+                }
+            };
         }
 
         protected DistributionFactory createDistributionFactory() {
-            ProgressLoggerFactory progressLoggerFactory = get(ProgressLoggerFactory.class);
+            ProgressLoggerFactory progressLoggerFactory = createProgressLoggerFactory(get(ListenerManager.class));
             return new DistributionFactory(StartParameter.DEFAULT_GRADLE_USER_HOME, progressLoggerFactory);
         }
     }
