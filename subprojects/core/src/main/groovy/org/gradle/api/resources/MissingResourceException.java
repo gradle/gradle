@@ -20,6 +20,14 @@ package org.gradle.api.resources;
  * Exception thrown when the resource does not exist
  */
 public class MissingResourceException extends ResourceException {
+
+    public MissingResourceException() {
+    }
+
+    public MissingResourceException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
     public MissingResourceException(String message) {
         super(message);
     }

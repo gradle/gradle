@@ -17,13 +17,15 @@
 package org.gradle.api.internal.resource;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.resources.MissingResourceException;
+import org.gradle.api.resources.ResourceException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
 
-import static org.gradle.util.GFileUtils.*;
+import static org.gradle.util.GFileUtils.canonicalise;
 
 public class UriResource implements Resource {
     private final File sourceFile;
@@ -58,7 +60,7 @@ public class UriResource implements Resource {
                 inputStream.close();
             }
         } catch (FileNotFoundException e) {
-            throw new ResourceNotFoundException(String.format(String.format("Could not read %s as it does not exist.", getDisplayName())));
+            throw new MissingResourceException(String.format(String.format("Could not read %s as it does not exist.", getDisplayName())));
         } catch (Exception e) {
             throw new ResourceException(String.format("Could not read %s.", getDisplayName()), e);
         }
