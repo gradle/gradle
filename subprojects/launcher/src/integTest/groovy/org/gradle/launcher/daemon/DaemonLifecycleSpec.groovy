@@ -30,7 +30,7 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
-import static org.gradle.util.ConcurrentSpecification.poll
+import static org.gradle.util.ConcurrentTestUtil.poll
 
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
