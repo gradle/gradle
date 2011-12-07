@@ -109,9 +109,10 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
 
         file('build.gradle') << '''
             def res = new ReadableResource() {
-                InputStream read() {
-                    new FileInputStream(file('test.tar'))
-                }
+                InputStream read() { new FileInputStream(file('test.tar')) }
+                String getBaseName() { "foo" }
+                URI getURI() { new java.net.URI("foo") }
+                String getDisplayName() { "The foo" }
             }
 
             task copy(type: Copy) {

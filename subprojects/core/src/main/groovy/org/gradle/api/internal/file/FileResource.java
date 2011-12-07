@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.resources.DescribedReadableResource;
 import org.gradle.api.internal.resources.ResourceIsAFolderException;
 import org.gradle.api.resources.MissingResourceException;
 
@@ -25,7 +24,7 @@ import java.io.*;
 /**
  * by Szczepan Faber, created at: 11/22/11
  */
-public class FileResource extends AbstractFileResource implements DescribedReadableResource {
+public class FileResource extends AbstractFileResource {
 
     public FileResource(File file) {
         super(file);

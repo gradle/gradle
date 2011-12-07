@@ -16,18 +16,32 @@
 
 package org.gradle.api.resources;
 
-import java.io.OutputStream;
+import java.net.URI;
 
 /**
- * A resource that can be read or written into. A simplest example can be writable file.
+ * A generic resource of some kind. Only describes the resource.
+ * There are more specific interface that extend this one and specify ways of accessing the resource's content.
  */
-public interface Resource extends ReadableResource {
+public interface Resource {
 
     /**
-     * Writes the resource to the specified output stream.
+     * Human readable name of this resource
      *
-     * @param output the target output to write to
+     * @return human readable name
      */
-    void write(OutputStream output);
+    String getDisplayName();
 
+    /**
+     * Uniform resource identifier that uniquely describes this resource
+     *
+     * @return unique URI
+     */
+    URI getURI();
+
+    /**
+     * Short name that concisely describes this resource
+     *
+     * @return concise base name
+     */
+    String getBaseName();
 }

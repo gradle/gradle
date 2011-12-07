@@ -18,7 +18,6 @@ package org.gradle.api.internal.file.archive.compression;
 
 import org.apache.tools.bzip2.CBZip2InputStream;
 import org.apache.tools.bzip2.CBZip2OutputStream;
-import org.gradle.api.internal.resources.DescribedReadableResource;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
 
@@ -26,15 +25,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 
 /**
  * by Szczepan Faber, created at: 11/16/11
  */
 public class Bzip2Archiver implements ReadableResource {
 
-    private DescribedReadableResource resource;
+    private ReadableResource resource;
 
-    public Bzip2Archiver(DescribedReadableResource resource) {
+    public Bzip2Archiver(ReadableResource resource) {
         assert resource != null;
         this.resource = resource;
     }
@@ -65,8 +65,20 @@ public class Bzip2Archiver implements ReadableResource {
             is.read(skip);
             return new CBZip2InputStream(is);
         } catch (Exception e) {
-            String message = String.format("Unable to create bzip2 input stream for resource: %s due to: %s.", resource.getName(), e.getMessage());
+            String message = String.format("Unable to create bzip2 input stream for resource: %s due to: %s.", resource.getBaseName(), e.getMessage());
             throw new ResourceException(message, e);
         }
+    }
+
+    public String getDisplayName() {
+        return resource.getDisplayName();
+    }
+
+    public URI getURI() {
+        return resource.getURI();
+    }
+
+    public String getBaseName() {
+        return resource.getBaseName();
     }
 }

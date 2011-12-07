@@ -26,8 +26,6 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.*;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
-import org.gradle.api.internal.resources.DescribedReadableResource;
-import org.gradle.api.internal.resources.DescribedReadableResourceAdapter;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
@@ -98,9 +96,9 @@ public class DefaultFileOperations implements FileOperations {
     }
 
     public FileTree tarTree(Object tarPath) {
-        DescribedReadableResource res;
+        ReadableResource res;
         if (tarPath instanceof ReadableResource) {
-            res = new DescribedReadableResourceAdapter((ReadableResource) tarPath);
+            res = (ReadableResource) tarPath;
         } else {
             res = new MaybeCompressedFileResource(file(tarPath));
         }
