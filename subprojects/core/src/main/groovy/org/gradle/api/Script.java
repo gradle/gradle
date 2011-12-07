@@ -24,6 +24,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
 
@@ -345,4 +346,11 @@ public interface Script {
      * @return The logger. Never returns null.
      */
     Logger getLogger();
+
+    /**
+     * Provides access to resource-specific utility methods, for example factory methods that create various resources.
+     *
+     * @return Returned instance contains various resource-specific utility methods.
+     */
+    ResourceHandler getResources();
 }

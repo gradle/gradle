@@ -35,6 +35,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
@@ -1587,4 +1588,11 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @return Returned instance allows adding DSL extensions to the project
      */
     ExtensionContainer getExtensions();
+
+    /**
+     * Provides access to resource-specific utility methods, for example factory methods that create various resources.
+     *
+     * @return Returned instance contains various resource-specific utility methods.
+     */
+    ResourceHandler getResources();
 }
