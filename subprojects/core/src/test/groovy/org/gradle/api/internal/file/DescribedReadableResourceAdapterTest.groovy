@@ -17,7 +17,8 @@
 package org.gradle.api.internal.file;
 
 
-import org.gradle.api.internal.DescribedReadableResource
+import org.gradle.api.internal.resources.DescribedReadableResource
+import org.gradle.api.internal.resources.DescribedReadableResourceAdapter
 import org.gradle.api.resources.ReadableResource
 import spock.lang.Specification
 

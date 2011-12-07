@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources;
+package org.gradle.api.internal.resources;
 
-import org.gradle.api.GradleException;
+import org.gradle.api.resources.ResourceException;
 
 /**
- * Exception thrown when the resource does not exist
+ * Exception thrown when one attempts to read a folder
  */
-public class ResourceDoesNotExist extends GradleException {
-    public ResourceDoesNotExist(String message) {
+public class ResourceIsAFolderException extends ResourceException {
+    public ResourceIsAFolderException(String message) {
         super(message);
     }
 }

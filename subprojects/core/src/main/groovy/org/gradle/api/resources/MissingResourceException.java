@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
-
-import org.gradle.api.Named;
-import org.gradle.api.resources.ReadableResource;
+package org.gradle.api.resources;
 
 /**
- * For now, this is an internal interface. If we find more use cases we can rationalize it and elect to the api.
- *
- * by Szczepan Faber, created at: 11/23/11
+ * Exception thrown when the resource does not exist
  */
-public interface DescribedReadableResource extends Named, ReadableResource {
-
-    String getUniqueName();
-
+public class MissingResourceException extends ResourceException {
+    public MissingResourceException(String message) {
+        super(message);
+    }
 }

@@ -18,7 +18,7 @@ package org.gradle.api.internal.file.archive.compression;
 
 import org.apache.tools.bzip2.CBZip2InputStream;
 import org.apache.tools.bzip2.CBZip2OutputStream;
-import org.gradle.api.internal.DescribedReadableResource;
+import org.gradle.api.internal.resources.DescribedReadableResource;
 import org.gradle.api.resources.ReadableResource;
 
 import java.io.File;

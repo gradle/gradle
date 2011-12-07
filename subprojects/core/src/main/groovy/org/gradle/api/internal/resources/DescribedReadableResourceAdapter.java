@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.resources;
 
-import org.gradle.api.internal.DescribedReadableResource;
 import org.gradle.api.resources.ReadableResource;
-import org.gradle.api.resources.ResourceDoesNotExist;
-import org.gradle.api.resources.ResourceIsAFolder;
 
 import java.io.InputStream;
 import java.util.UUID;
@@ -48,7 +45,7 @@ public class DescribedReadableResourceAdapter implements DescribedReadableResour
         return "anonymous_resource";
     }
 
-    public InputStream read() throws ResourceDoesNotExist, ResourceIsAFolder {
+    public InputStream read() {
         return resource.read();
     }
 }

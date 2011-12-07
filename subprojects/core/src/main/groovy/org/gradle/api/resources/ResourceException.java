@@ -19,10 +19,17 @@ package org.gradle.api.resources;
 import org.gradle.api.GradleException;
 
 /**
- * Exception thrown when one attempts to read a folder
+ * Generic resource exception that all other resource-related exceptions inherit from.
  */
-public class ResourceIsAFolder extends GradleException {
-    public ResourceIsAFolder(String message) {
+public class ResourceException extends GradleException {
+
+    public ResourceException() {}
+
+    public ResourceException(String message) {
         super(message);
+    }
+
+    public ResourceException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

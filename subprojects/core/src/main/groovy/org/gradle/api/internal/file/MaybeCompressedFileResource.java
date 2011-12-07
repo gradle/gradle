@@ -17,11 +17,11 @@
 package org.gradle.api.internal.file;
 
 import org.apache.commons.io.FilenameUtils;
-import org.gradle.api.internal.DescribedReadableResource;
 import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
+import org.gradle.api.internal.resources.DescribedReadableResource;
+import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ReadableResource;
-import org.gradle.api.resources.ResourceDoesNotExist;
 import org.gradle.api.tasks.bundling.Compression;
 
 import java.io.File;
@@ -48,7 +48,7 @@ public class MaybeCompressedFileResource extends AbstractFileResource implements
         }
     }
 
-    public InputStream read() throws ResourceDoesNotExist {
+    public InputStream read() throws MissingResourceException {
         return resource.read();
     }
 

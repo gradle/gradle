@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources;
+package org.gradle.api.internal.resources;
 
-import java.io.InputStream;
+import org.gradle.api.Named;
+import org.gradle.api.resources.ReadableResource;
 
 /**
- * A resource that can be read. The simplest example is a file.
+ * For now, this is an internal interface. If we find more use cases we can rationalize it and elect to the api.
+ *
+ * by Szczepan Faber, created at: 11/23/11
  */
-public interface ReadableResource {
+public interface DescribedReadableResource extends Named, ReadableResource {
 
-    /**
-     * Returns an input stream that provides means to read the resource
-     */
-    InputStream read() throws MissingResourceException, ResourceException;
+    String getUniqueName();
+
 }

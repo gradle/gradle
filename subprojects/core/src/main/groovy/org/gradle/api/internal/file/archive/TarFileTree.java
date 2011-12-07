@@ -22,13 +22,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.DescribedReadableResource;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
-import org.gradle.api.resources.ResourceDoesNotExist;
-import org.gradle.api.resources.ResourceIsAFolder;
+import org.gradle.api.internal.resources.DescribedReadableResource;
+import org.gradle.api.internal.resources.ResourceIsAFolderException;
+import org.gradle.api.resources.MissingResourceException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HashUtil;
 
@@ -60,9 +60,9 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         try {
             inputStream = resource.read();
             assert inputStream != null;
-        } catch (ResourceDoesNotExist e) {
+        } catch (MissingResourceException e) {
             return;
-        } catch (ResourceIsAFolder e) {
+        } catch (ResourceIsAFolderException e) {
             throw new InvalidUserDataException(String.format("Cannot expand %s as it is not a file.", getDisplayName()));
         }
 
