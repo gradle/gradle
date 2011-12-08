@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tests.fixtures.ConcurrentTestUtil
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.Project
@@ -34,6 +35,7 @@ import spock.lang.Issue
 class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
 
     @Rule def concurrent = new ConcurrentTestUtil()
+    int threads = 3
 
     def setup() {
         toolingApi.isEmbedded = false
@@ -46,7 +48,7 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         when:
         concurrent.shortTimeout = 30000
 
-        5.times {
+        threads.times {
             concurrent.start { useToolingApi() }
         }
 
@@ -62,8 +64,8 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         when:
         concurrent.shortTimeout = 30000
 
-        3.times { concurrent.start { useToolingApi() } }
-        3.times { concurrent.start { useToolingApi(dist.previousVersion("1.0-milestone-7"))} }
+        threads.times { concurrent.start { useToolingApi() } }
+        threads.times { concurrent.start { useToolingApi(dist.previousVersion("1.0-milestone-7"))} }
 
         then:
         concurrent.finished()
@@ -87,11 +89,9 @@ See the full stacktrace and the list of causes to investigate""", e);
         }
     }
 
-    //TODO SF DSLize
+    //TODO SF DSLize this and the other test
     def "receives progress and logging while the model is building"() {
         when:
-        int threads = 3
-
         //create build folders with slightly different builds
         threads.times { idx ->
             dist.file("build$idx/build.gradle") << """
@@ -115,7 +115,7 @@ System.err.println 'this is stderr: $idx'
         def stderr = new ByteArrayOutputStream()
         def progressMessages = []
 
-        def connector = toolingApi.connector()
+        GradleConnector connector = toolingApi.connector()
         connector.forProjectDirectory(new File(dist.testDir, "build$idx"))
         ProjectConnection connection = connector.connect()
         try {
@@ -141,17 +141,35 @@ System.err.println 'this is stderr: $idx'
     }
 
     def "receives progress and logging while the build is executing"() {
-        dist.testFile('build.gradle') << '''
-System.out.println 'this is stdout'
-System.err.println 'this is stderr'
-'''
+        when:
+        //create build folders with slightly different builds
+        threads.times { idx ->
+            dist.file("build$idx/build.gradle") << """
+System.out.println 'this is stdout: $idx'
+System.err.println 'this is stderr: $idx'
+"""
+        }
+
+        then:
+        threads.times { idx ->
+            concurrent.start {
+                assertReceivesProgressForBuild(idx)
+            }
+        }
+
+        concurrent.finished()
+    }
+
+    private def assertReceivesProgressForBuild(idx) {
         def stdout = new ByteArrayOutputStream()
         def stderr = new ByteArrayOutputStream()
         def progressMessages = []
         def events = []
 
-        when:
-        withConnection { connection ->
+        GradleConnector connector = toolingApi.connector()
+        connector.forProjectDirectory(new File(dist.testDir, "build$idx"))
+        ProjectConnection connection = connector.connect()
+        try {
             def build = connection.newBuild()
             build.standardOutput = stdout
             build.standardError = stderr
@@ -160,18 +178,19 @@ System.err.println 'this is stderr'
                 events << event
             } as ProgressListener)
             build.run()
+        } finally {
+            connection.close()
         }
 
-        then:
-        stdout.toString().contains('this is stdout')
-        stderr.toString().contains('this is stderr')
-        progressMessages.size() >= 2
-        progressMessages.pop() == ''
-        progressMessages.every { it }
+        assert stdout.toString().contains("this is stdout: $idx")
+        assert stderr.toString().contains("this is stderr: $idx")
+        assert progressMessages.size() >= 2
+        assert progressMessages.pop() == ''
+        assert progressMessages.every { it }
 
         //Below may be very fragile as it depends on progress messages content
         //However, when refactoring the logging code I found ways to break it silently
         //Hence I want to make sure the functionality is not broken. We can remove the assertion later of find better ways of asserting it.
-        progressMessages == ["Execute build", "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Execute build", "Execute tasks", "Execute :help", "Execute tasks", "Execute build"]
+        assert progressMessages == ["Execute build", "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Execute build", "Execute tasks", "Execute :help", "Execute tasks", "Execute build"]
     }
 }
