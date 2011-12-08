@@ -101,7 +101,7 @@ public class DefaultGradleConnector extends GradleConnector {
             throw new IllegalStateException("A project directory must be specified before creating a connection.");
         }
         if (distribution == null) {
-            distribution = distributionFactory.getDefaultDistribution(projectDir);
+            distribution = distributionFactory.getDefaultDistribution(projectDir, searchUpwards != null ? searchUpwards : true);
         }
         return connectionFactory.create(distribution, new DefaultConnectionParameters(projectDir, gradleUserHomeDir, searchUpwards, embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits));
     }

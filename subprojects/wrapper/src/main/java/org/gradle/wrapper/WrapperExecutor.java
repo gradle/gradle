@@ -36,21 +36,7 @@ public class WrapperExecutor {
     private final Appendable warningOutput;
 
     public static WrapperExecutor forProjectDirectory(File projectDir, Appendable warningOutput) {
-        return forProjectDirectory(projectDir, null, warningOutput);
-    }
-
-    static WrapperExecutor forProjectDirectory(File projectDir, File stopSearchAt, Appendable warningOutput) {
-        return new WrapperExecutor(findPropertiesFile(projectDir, stopSearchAt), new Properties(), warningOutput);
-    }
-
-    private static File findPropertiesFile(File projectDir, File stopSearchAt) {
-        for (File currentDir = projectDir; currentDir != null && !currentDir.equals(stopSearchAt); currentDir = currentDir.getParentFile()) {
-            File candidate = new File(currentDir, "gradle/wrapper/gradle-wrapper.properties");
-            if (candidate.isFile()) {
-                return candidate;
-            }
-        }
-        return new File(projectDir, "gradle/wrapper/gradle-wrapper.properties");
+        return new WrapperExecutor(new File(projectDir, "gradle/wrapper/gradle-wrapper.properties"), new Properties(), warningOutput);
     }
 
     public static WrapperExecutor forWrapperPropertiesFile(File propertiesFile, Appendable warningOutput) {

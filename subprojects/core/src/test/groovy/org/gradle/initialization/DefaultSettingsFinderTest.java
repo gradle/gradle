@@ -17,73 +17,55 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.WrapUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class DefaultSettingsFinderTest {
-    private static final StartParameter TEST_START_PARAMETER = new StartParameter();
-    private static final File TEST_SETTINGSFILE = new File("parent", "testFile1");
-    private DefaultSettingsFinder defaultSettingsFinder;
-    private ISettingsFileSearchStrategy searchStrategyMock1;
-    private ISettingsFileSearchStrategy searchStrategyMock2;
 
-    private JUnit4Mockery context = new JUnit4Mockery();
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
+    private BuildLayoutFactory layoutFactory = context.mock(BuildLayoutFactory.class);
+    private DefaultSettingsFinder defaultSettingsFinder = new DefaultSettingsFinder(layoutFactory);
 
-    @Before
-    public void setUp() {
-        searchStrategyMock1 = context.mock(ISettingsFileSearchStrategy.class, "strategy1");
-        searchStrategyMock2 = context.mock(ISettingsFileSearchStrategy.class, "strategy2");
-        defaultSettingsFinder = new DefaultSettingsFinder(WrapUtil.toList(searchStrategyMock1, searchStrategyMock2));
-    }
+    private final StartParameter startParameter = new StartParameter();
+    private File settingsFile = new File("parent", "testFile1");
+    private File settingsDir = new File("settings");
 
     @Test
-    public void testFindWithStrategy1() {
+    public void testSettingsFileFound() {
         context.checking(new Expectations() {{
-            allowing(searchStrategyMock1).find(TEST_START_PARAMETER);
-            will(returnValue(TEST_SETTINGSFILE));
+            one(layoutFactory).getLayoutFor(startParameter.getCurrentDir(), startParameter.isSearchUpwards());
+            will(returnValue(new BuildLayout(settingsDir, settingsDir, settingsFile)));
         }});
-        SettingsLocation settingsLocation = defaultSettingsFinder.find(TEST_START_PARAMETER);
-        assertEquals(TEST_SETTINGSFILE.getParentFile(), settingsLocation.getSettingsDir());
-        assertEquals(GFileUtils.canonicalise(TEST_SETTINGSFILE), settingsLocation.getSettingsScriptSource().getResource().getFile());
-    }
-
-    @Test
-    public void testFindWithStrategy2() {
-        context.checking(new Expectations() {{
-            allowing(searchStrategyMock1).find(TEST_START_PARAMETER);
-            will(returnValue(null));
-            allowing(searchStrategyMock2).find(TEST_START_PARAMETER);
-            will(returnValue(TEST_SETTINGSFILE));
-        }});
-        SettingsLocation settingsLocation = defaultSettingsFinder.find(TEST_START_PARAMETER);
-        assertEquals(TEST_SETTINGSFILE.getParentFile(), settingsLocation.getSettingsDir());
-        assertEquals(GFileUtils.canonicalise(TEST_SETTINGSFILE), settingsLocation.getSettingsScriptSource().getResource().getFile());
+        SettingsLocation settingsLocation = defaultSettingsFinder.find(startParameter);
+        assertEquals(settingsDir, settingsLocation.getSettingsDir());
+        assertEquals(GFileUtils.canonicalise(settingsFile), settingsLocation.getSettingsScriptSource().getResource().getFile());
     }
 
     @Test
     public void testNotFound() {
         context.checking(new Expectations() {{
-            allowing(searchStrategyMock1).find(TEST_START_PARAMETER);
-            will(returnValue(null));
-            allowing(searchStrategyMock2).find(TEST_START_PARAMETER);
-            will(returnValue(null));
+            one(layoutFactory).getLayoutFor(startParameter.getCurrentDir(), startParameter.isSearchUpwards());
+            will(returnValue(new BuildLayout(settingsDir, settingsDir, null)));
         }});
-        SettingsLocation settingsLocation = defaultSettingsFinder.find(TEST_START_PARAMETER);
-        assertEquals(TEST_START_PARAMETER.getCurrentDir(), settingsLocation.getSettingsDir());
+        SettingsLocation settingsLocation = defaultSettingsFinder.find(startParameter);
+        assertEquals(settingsDir, settingsLocation.getSettingsDir());
         assertThat(settingsLocation.getSettingsScriptSource(), instanceOf(StringScriptSource.class));
         assertThat(settingsLocation.getSettingsScriptSource().getResource().getText(), equalTo(""));
     }
