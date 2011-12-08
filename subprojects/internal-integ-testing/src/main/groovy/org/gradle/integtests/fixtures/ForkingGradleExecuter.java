@@ -20,9 +20,9 @@ import org.gradle.StartParameter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.CommandLineParserFactory;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
-import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
+import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.os.OperatingSystem;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
@@ -63,8 +63,10 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             userHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
         }
 
-        File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(getSystemPropertiesFromArgs(), userHome);
-        return new DaemonRegistryServices(daemonBaseDir).get(DaemonRegistry.class);
+        DaemonParameters parameters = new DaemonParameters();
+        parameters.useGradleUserHomeDir(userHome);
+        parameters.configureFromSystemProperties(getSystemPropertiesFromArgs());
+        return new DaemonRegistryServices(parameters.getBaseDir()).get(DaemonRegistry.class);
     }
 
     protected Map<String, String> getSystemPropertiesFromArgs() {

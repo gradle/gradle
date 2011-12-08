@@ -16,12 +16,12 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
-import org.gradle.launcher.daemon.context.DaemonContextBuilder;
+import org.gradle.launcher.daemon.server.DaemonParameters;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -32,15 +32,11 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
     private final int idleTimeout;
     private final ServiceRegistry registryServices;
 
-    public DaemonClientServices(ServiceRegistry loggingServices, File daemonBaseDir, List<String> daemonOpts, Integer idleTimeout) {
-        this(loggingServices, new DaemonRegistryServices(daemonBaseDir), daemonOpts, idleTimeout);
-    }
-
-    private DaemonClientServices(ServiceRegistry loggingServices, DaemonRegistryServices registryServices, List<String> daemonOpts, Integer idleTimeout) {
+    public DaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters) {
         super(loggingServices);
-        this.daemonOpts = daemonOpts;
-        this.idleTimeout = idleTimeout;
-        this.registryServices = registryServices;
+        this.daemonOpts = daemonParameters.getJvmArgs();
+        this.idleTimeout = daemonParameters.getIdleTimeout();
+        this.registryServices = new DaemonRegistryServices(daemonParameters.getBaseDir());
         add(registryServices);
     }
 

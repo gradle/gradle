@@ -15,9 +15,6 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,10 +41,10 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<String>();
         args.add("--daemon");
-        args.add(DaemonIdleTimeout.toCliArg(5 * 60 * 1000));
+        args.add("-Dorg.gradle.daemon.idletimeout=" + (5 * 60 * 1000));
         String customDaemonRegistryDir = System.getProperty(DAEMON_REGISTRY_SYS_PROP);
         if (customDaemonRegistryDir != null && !distribution.isUsingOwnUserHomeDir()) {
-            args.add(DaemonDir.toCliArg(customDaemonRegistryDir));
+            args.add("-Dorg.gradle.daemon.registry.base=" + customDaemonRegistryDir);
         }
         args.addAll(super.getAllArgs());
         return args;

@@ -17,16 +17,16 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 
 import java.io.File;
-import java.util.List;
+import java.lang.management.ManagementFactory;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
@@ -35,13 +35,11 @@ public class DaemonServices extends DefaultServiceRegistry {
     private final File daemonBaseDir;
     private final Integer idleTimeoutMs;
     private final ServiceRegistry loggingServices;
-    private final List<String> daemonOpts;
-    
-    public DaemonServices(File daemonBaseDir, Integer idleTimeoutMs, ServiceRegistry loggingServices, List<String> daemonOpts) {
+
+    public DaemonServices(File daemonBaseDir, Integer idleTimeoutMs, ServiceRegistry loggingServices) {
         this.daemonBaseDir = daemonBaseDir;
         this.idleTimeoutMs = idleTimeoutMs;
         this.loggingServices = loggingServices;
-        this.daemonOpts = daemonOpts;
 
         add(new DaemonRegistryServices(daemonBaseDir));
     }
@@ -54,7 +52,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         DaemonContextBuilder builder = new DaemonContextBuilder();
         builder.setDaemonRegistryDir(daemonBaseDir);
         builder.setIdleTimeout(idleTimeoutMs);
-        builder.setDaemonOpts(daemonOpts);
+        builder.setDaemonOpts(ManagementFactory.getRuntimeMXBean().getInputArguments());
         return builder.create();
     }
 

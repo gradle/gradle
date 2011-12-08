@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.GradleHandles
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
-import org.gradle.launcher.daemon.server.DaemonIdleTimeout
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.os.OperatingSystem
 import org.gradle.testing.AvailableJavaHomes
@@ -69,7 +68,7 @@ class DaemonLifecycleSpec extends Specification {
         run {
             builds << handles.createHandle {
                 withTasks("watch")
-                withArguments(DaemonIdleTimeout.toCliArg(daemonIdleTimeout * 1000), "--info")
+                withArguments("-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}", "--info")
                 if (javaHome) {
                     withJavaHome(javaHome)
                 }

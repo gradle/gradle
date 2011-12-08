@@ -58,7 +58,7 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
     }
 
     protected DaemonDir createDaemonDir() {
-        return new DaemonDir(daemonBaseDir, get(ProcessEnvironment.class));
+        return new DaemonDir(daemonBaseDir);
     }
 
     protected FileLockManager createFileLockManager() {

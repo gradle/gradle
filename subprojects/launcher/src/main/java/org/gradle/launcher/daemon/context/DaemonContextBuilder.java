@@ -16,15 +16,14 @@
 package org.gradle.launcher.daemon.context;
 
 import com.google.common.collect.Lists;
-import org.gradle.StartParameter;
-import org.gradle.util.Jvm;
-import org.gradle.os.jna.NativeEnvironment;
-import static org.gradle.util.GFileUtils.canonicalise;
 import org.gradle.api.internal.Factory;
-import org.gradle.launcher.daemon.registry.DaemonDir;
+import org.gradle.os.jna.NativeEnvironment;
+import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.util.List;
+
+import static org.gradle.util.GFileUtils.canonicalise;
 
 /**
  * Builds a daemon context, reflecting the current environment.
@@ -42,7 +41,6 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
 
     public DaemonContextBuilder() {
         javaHome = canonicalise(Jvm.current().getJavaHome());
-        daemonRegistryDir = DaemonDir.getDirectoryInGradleUserHome(StartParameter.DEFAULT_GRADLE_USER_HOME);
         pid = NativeEnvironment.current().maybeGetPid();
     }
 
@@ -90,6 +88,9 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
      * Creates a new daemon context, based on the current state of this builder.
      */
     public DaemonContext create() {
+        if (daemonRegistryDir == null) {
+            throw new IllegalStateException("Registry dir must be specified.");
+        }
         return new DefaultDaemonContext(javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts);
     }
 }
