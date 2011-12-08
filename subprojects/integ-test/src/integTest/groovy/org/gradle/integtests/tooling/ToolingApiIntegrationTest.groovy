@@ -59,6 +59,30 @@ task check << { assert gradle.gradleVersion == '${otherVersion.version}' }
         then:
         notThrown(Throwable)
     }
+    
+    def "tooling api searches up from the project directory to find the wrapper properties"() {
+        projectDir.file('settings.gradle') << "include 'child'"
+        projectDir.file('build.gradle') << """
+task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
+allprojects {
+    task check << { assert gradle.gradleVersion == '${otherVersion.version}' }
+}
+"""
+        projectDir.file('child').createDir()
+        dist.executer().withTasks('wrapper').run()
+
+        when:
+        toolingApi.withConnector { connector ->
+            connector.useDefaultDistribution()
+            connector.searchUpwards(true)
+            connector.forProjectDirectory(projectDir.file('child'))
+            maybeDisableDaemon(otherVersion, connector)
+        }
+        toolingApi.withConnection { connection -> connection.newBuild().forTasks('check').run() }
+
+        then:
+        notThrown(Throwable)
+    }
 
     def "can specify a gradle installation to use"() {
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version}'"

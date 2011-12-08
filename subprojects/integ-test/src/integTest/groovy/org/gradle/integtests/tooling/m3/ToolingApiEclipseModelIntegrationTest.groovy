@@ -295,7 +295,7 @@ project(':c') {
         when:
         toolingApi.withConnector { connector ->
             connector.searchUpwards(true)
-            connector.forProjectDirectory(new File(projectDir, 'child1'))
+            connector.forProjectDirectory(projectDir.file('child1'))
         }
         EclipseProject child = toolingApi.withConnection { connection -> connection.getModel(EclipseProject.class) }
 

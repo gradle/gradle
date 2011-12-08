@@ -30,8 +30,8 @@ class WrapperExecutorTest extends Specification {
     Properties properties = new Properties()
 
     def setup() {
-        projectDir = tmpDir.dir
-        propertiesFile = tmpDir.file('gradle/wrapper/gradle-wrapper.properties')
+        projectDir = tmpDir.file('project')
+        propertiesFile = projectDir.file('gradle/wrapper/gradle-wrapper.properties')
 
         properties.distributionUrl = 'http://server/test/gradle.zip'
         properties.distributionBase = 'testDistBase'
@@ -56,8 +56,15 @@ class WrapperExecutorTest extends Specification {
         wrapper.distribution == new URI('http://server/test/gradle.zip')
     }
 
+    def "searches upwards from project directory for properties file"() {
+        def wrapper = WrapperExecutor.forProjectDirectory(new File(projectDir, "child1/child2"), System.out)
+
+        expect:
+        wrapper.distribution == new URI('http://server/test/gradle.zip')
+    }
+
     def "can query for distribution when properties file does not exist in project directory"() {
-        def wrapper = WrapperExecutor.forProjectDirectory(tmpDir.file('unknown'), System.out)
+        def wrapper = WrapperExecutor.forProjectDirectory(tmpDir.file('unknown'), tmpDir.dir, System.out)
 
         expect:
         wrapper.distribution == null
@@ -110,10 +117,10 @@ class WrapperExecutorTest extends Specification {
         properties.zipStoreBase = 'testZipBase'
         properties.zipStorePath = 'testZipPath'
 
-        properties.urlRoot="http://gradle.artifactoryonline.com/gradle/distributions"
-        properties.distributionVersion="1.0-milestone-3"
-        properties.distributionName="gradle"
-        properties.distributionClassifier="bin"
+        properties.urlRoot = "http://gradle.artifactoryonline.com/gradle/distributions"
+        properties.distributionVersion = "1.0-milestone-3"
+        properties.distributionName = "gradle"
+        properties.distributionClassifier = "bin"
 
         propertiesFile.withOutputStream { properties.store(it, 'header') }
 
