@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.tooling.next
 
-import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tests.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.ProgressListener
@@ -27,17 +26,12 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
-
-// TODO - should cover concurrent builds each with a different target gradle version.
-//check if consumer is thread safe (should be able to turn that now)
 
 @MinToolingApiVersion(currentOnly = true)
 @MinTargetGradleVersion(currentOnly = true)
 class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
-
-    def dist = new GradleDistribution()
-    def toolingApi = new ToolingApi(dist)
 
     @Rule def concurrent = new ConcurrentTestUtil()
 
@@ -54,7 +48,7 @@ apply plugin: 'java'
         when:
         concurrent.shortTimeout = 30000
 
-        3.times {
+        5.times {
             concurrent.start { useToolingApi() }
         }
 
@@ -62,8 +56,29 @@ apply plugin: 'java'
         concurrent.finished()
     }
 
-    def useToolingApi() {
-        toolingApi.withConnection { ProjectConnection connection ->
+    @Ignore
+    //TODO SF enable this test after releasing 1.7
+    def "handles concurrent builds with different target Gradle version"() {
+        dist.file('build.gradle')  << """
+apply plugin: 'java'
+        """
+
+        when:
+        concurrent.shortTimeout = 30000
+
+        3.times { concurrent.start { useToolingApi() } }
+        3.times { concurrent.start { useToolingApi(dist.previousVersion("1.0-milestone-7"))} }
+
+        then:
+        concurrent.finished()
+    }
+
+    def useToolingApi(BasicGradleDistribution target = null) {
+        if (target != null) {
+            selectTargetDist(target)
+        }
+
+        withConnection { ProjectConnection connection ->
             try {
                 def model = connection.getModel(IdeaProject)
                 assert model != null
@@ -90,7 +105,7 @@ System.err.println 'this is stderr'
         def progressMessages = []
 
         when:
-        toolingApi.withConnection { connection ->
+        withConnection { connection ->
             def model = connection.model(Project.class)
             model.standardOutput = stdout
             model.standardError = stderr
@@ -122,7 +137,7 @@ System.err.println 'this is stderr'
         def events = []
 
         when:
-        toolingApi.withConnection { connection ->
+        withConnection { connection ->
             def build = connection.newBuild()
             build.standardOutput = stdout
             build.standardError = stderr

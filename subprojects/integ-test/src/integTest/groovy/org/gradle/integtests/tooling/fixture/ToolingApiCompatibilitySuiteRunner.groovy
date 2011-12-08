@@ -140,7 +140,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
         @Override
         protected void before() {
-            testClassLoader.loadClass(ToolingApiSpecification.name).select(gradle)
+            testClassLoader.loadClass(ToolingApiSpecification.name).selectTargetDist(gradle)
         }
     }
 }
