@@ -37,15 +37,13 @@ public class DefaultDaemonConnector implements DaemonConnector {
     public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
 
     private final DaemonRegistry daemonRegistry;
-    private final Spec<DaemonContext> contextCompatibilitySpec;
     private final OutgoingConnector<Object> connector;
     private final Runnable daemonStarter;
 
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, Spec<DaemonContext> contextCompatibilitySpec, OutgoingConnector<Object> connector, Runnable daemonStarter) {
+    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector<Object> connector, Runnable daemonStarter) {
         this.daemonRegistry = daemonRegistry;
-        this.contextCompatibilitySpec = contextCompatibilitySpec;
         this.connector = connector;
         this.daemonStarter = daemonStarter;
     }
@@ -58,13 +56,13 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return connectTimeout;
     }
 
-    public DaemonConnection maybeConnect() {
-        return findConnection(daemonRegistry.getAll());
+    public DaemonConnection maybeConnect(Spec<? super DaemonContext> constraint) {
+        return findConnection(daemonRegistry.getAll(), constraint);
     }
 
-    private DaemonConnection findConnection(List<DaemonInfo> daemonInfos) {
+    private DaemonConnection findConnection(List<DaemonInfo> daemonInfos, Spec<? super DaemonContext> constraint) {
         for (DaemonInfo daemonInfo : daemonInfos) {
-            if (!contextCompatibilitySpec.isSatisfiedBy(daemonInfo.getContext())) {
+            if (!constraint.isSatisfiedBy(daemonInfo.getContext())) {
                 continue;
             }
 
@@ -83,8 +81,8 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
-    public DaemonConnection connect() {
-        DaemonConnection connection = findConnection(daemonRegistry.getIdle());
+    public DaemonConnection connect(Spec<? super DaemonContext> constraint) {
+        DaemonConnection connection = findConnection(daemonRegistry.getIdle(), constraint);
         if (connection != null) {
             return connection;
         }
@@ -93,7 +91,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         daemonStarter.run();
         long expiry = System.currentTimeMillis() + connectTimeout;
         do {
-            connection = findConnection(daemonRegistry.getIdle());
+            connection = findConnection(daemonRegistry.getIdle(), constraint);
             if (connection != null) {
                 return connection;
             }

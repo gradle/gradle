@@ -17,9 +17,12 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.Factory;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.context.DaemonContextBuilder;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
 import org.gradle.launcher.daemon.server.Daemon;
+import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.daemon.server.DaemonServerConnector;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
@@ -69,6 +72,11 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
         } else {
             return new OutputEventListener() { public void onOutput(OutputEvent event) {} };
         }
+    }
+
+    @Override
+    protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
+        builder.setDaemonRegistryDir(new DaemonDir(new DaemonParameters().getBaseDir()).getRegistry());
     }
 
     protected ExecutorFactory createExecutorFactory() {

@@ -30,6 +30,8 @@ import spock.lang.IgnoreIf
 import spock.lang.Specification
 import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
 import static org.gradle.util.ConcurrentTestUtil.poll
+import org.slf4j.LoggerFactory
+import ch.qos.logback.classic.Level
 
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
@@ -67,6 +69,7 @@ class DaemonLifecycleSpec extends Specification {
     void startBuild() {
         run {
             builds << handles.createHandle {
+                withEnvironmentVars(GRADLE_DAEMON_OPTS: '-ea')
                 withTasks("watch")
                 withArguments("-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}", "--info")
                 if (javaHome) {
@@ -169,6 +172,7 @@ class DaemonLifecycleSpec extends Specification {
 
     def setup() {
         distribution.requireOwnUserHomeDir()
+        LoggerFactory.getLogger("org.gradle.cache.internal.DefaultFileLockManager").level = Level.INFO
     }
 
     def "daemons do some work - sit idle - then timeout and die"() {
@@ -367,6 +371,21 @@ class DaemonLifecycleSpec extends Specification {
         daemonContext {
             assert javaHome == Jvm.current().javaHome
         }
+    }
+    
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    def "can stop a daemon that using a different java home"() {
+        when:
+        startForegroundDaemonWithAlternateJavaHome()
+
+        then:
+        idle()
+
+        when:
+        stopDaemons()
+
+        then:
+        stopped()
     }
 
     def cleanup() {

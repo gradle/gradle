@@ -32,7 +32,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
     @Override
     public Map<String, String> getAllEnvironmentVars() {
         Map<String, String> vars = new HashMap<String, String>();
-        vars.put("GRADLE_DAEMON_OPTS", "-XX:MaxPermSize=256m");
+        vars.put("GRADLE_DAEMON_OPTS", "-ea -XX:MaxPermSize=256m");
         vars.putAll(super.getAllEnvironmentVars());
         return vars;
     }

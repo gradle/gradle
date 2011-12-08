@@ -27,6 +27,8 @@ import org.gradle.messaging.concurrent.ExecutorFactory;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
@@ -52,7 +54,17 @@ public class DaemonServices extends DefaultServiceRegistry {
         DaemonContextBuilder builder = new DaemonContextBuilder();
         builder.setDaemonRegistryDir(daemonBaseDir);
         builder.setIdleTimeout(idleTimeoutMs);
-        builder.setDaemonOpts(ManagementFactory.getRuntimeMXBean().getInputArguments());
+
+        List<String> jvmArgs = new ArrayList<String>();
+        for (String arg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
+            if (!arg.startsWith("-D")) {
+                jvmArgs.add(arg);
+            }
+        }
+        builder.setDaemonOpts(jvmArgs);
+
+        System.out.println("=> ADVERTISING OPTS " + builder.getDaemonOpts());
+
         return builder.create();
     }
 
