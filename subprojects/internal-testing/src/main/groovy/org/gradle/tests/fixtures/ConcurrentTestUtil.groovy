@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util
+package org.gradle.tests.fixtures
 
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.Executor
@@ -23,18 +23,16 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import org.gradle.messaging.concurrent.ExecutorFactory
 import org.gradle.messaging.concurrent.StoppableExecutor
-import org.junit.Rule
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import spock.lang.Specification
 
 /**
  * <p>A base class for writing specifications which exercise concurrent code.
  *
- * <p>See {@link ConcurrentSpecificationTest} for some examples.
+ * <p>See {@link org.gradle.util.ConcurrentSpecificationTest} for some examples.
  *
  * <p>Provides {@link Executor} and {@link ExecutorFactory} implementations for use during the test. These provide real concurrency.
  * The test threads are cleaned up at the end of the test, and any exceptions thrown by those tests are propagated.
@@ -246,10 +244,6 @@ class ConcurrentTestUtil implements TestRule {
             lock.unlock()
         }
     }
-}
-
-class ConcurrentSpecification extends Specification {
-    @Rule @Delegate ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 }
 
 class TestThread extends Thread {

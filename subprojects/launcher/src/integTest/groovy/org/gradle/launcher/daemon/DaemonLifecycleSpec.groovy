@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon
 
+import ch.qos.logback.classic.Level
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.GradleHandles
@@ -26,12 +27,11 @@ import org.gradle.os.OperatingSystem
 import org.gradle.testing.AvailableJavaHomes
 import org.gradle.util.Jvm
 import org.junit.Rule
+import org.slf4j.LoggerFactory
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
-import static org.gradle.util.ConcurrentTestUtil.poll
-import org.slf4j.LoggerFactory
-import ch.qos.logback.classic.Level
+import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
 
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.

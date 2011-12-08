@@ -21,11 +21,11 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.tests.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.util.ConcurrentTestUtil
 import org.junit.Rule
 import spock.lang.Issue
 

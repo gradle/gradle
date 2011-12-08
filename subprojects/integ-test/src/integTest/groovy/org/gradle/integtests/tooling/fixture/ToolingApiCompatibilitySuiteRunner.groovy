@@ -128,7 +128,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowClass(TestFile)
             sharedClassLoader.allowClass(SetSystemProperties)
             sharedClassLoader.allowPackage('org.gradle.integtests.fixtures')
-            sharedClassLoader.allowPackage('org.gradle.util')
+            sharedClassLoader.allowPackage('org.gradle.tests.fixtures')
 
             def parentClassLoader = new MultiParentClassLoader(toolingApiClassLoader, sharedClassLoader)
 
