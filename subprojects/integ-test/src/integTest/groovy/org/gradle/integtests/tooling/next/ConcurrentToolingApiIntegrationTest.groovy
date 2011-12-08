@@ -41,9 +41,7 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
 
     @Issue("GRADLE-1933")
     def "handles concurrent scenario"() {
-        dist.file('build.gradle')  << """
-apply plugin: 'java'
-        """
+        dist.file('build.gradle')  << "apply plugin: 'java'"
 
         when:
         concurrent.shortTimeout = 30000
@@ -59,9 +57,7 @@ apply plugin: 'java'
     @Ignore
     //TODO SF enable this test after releasing 1.7
     def "handles concurrent builds with different target Gradle version"() {
-        dist.file('build.gradle')  << """
-apply plugin: 'java'
-        """
+        dist.file('build.gradle')  << "apply plugin: 'java'"
 
         when:
         concurrent.shortTimeout = 30000
@@ -91,39 +87,57 @@ See the full stacktrace and the list of causes to investigate""", e);
         }
     }
 
-    //TODO SF - below tests are copied over from relevant tooling api integ tests
-    //they will grow into concurrent scenarios where I will check if the right build writes to the right listener
-
+    //TODO SF DSLize
     def "receives progress and logging while the model is building"() {
-        dist.testFile('build.gradle') << '''
-System.out.println 'this is stdout'
-System.err.println 'this is stderr'
-'''
+        when:
+        int threads = 3
 
+        //create build folders with slightly different builds
+        threads.times { idx ->
+            dist.file("build$idx/build.gradle") << """
+System.out.println 'this is stdout: $idx'
+System.err.println 'this is stderr: $idx'
+"""
+        }
+
+        then:
+        threads.times { idx ->
+            concurrent.start {
+                assertReceivesProgressForModel(idx)
+            }
+        }
+
+        concurrent.finished()
+    }
+
+    private assertReceivesProgressForModel(idx) {
         def stdout = new ByteArrayOutputStream()
         def stderr = new ByteArrayOutputStream()
         def progressMessages = []
 
-        when:
-        withConnection { connection ->
+        def connector = toolingApi.connector()
+        connector.forProjectDirectory(new File(dist.testDir, "build$idx"))
+        ProjectConnection connection = connector.connect()
+        try {
             def model = connection.model(Project.class)
             model.standardOutput = stdout
             model.standardError = stderr
             model.addProgressListener({ event -> progressMessages << event.description } as ProgressListener)
-            return model.get()
+            assert model.get()
+        } finally {
+            connection.close();
         }
 
-        then:
-        stdout.toString().contains('this is stdout')
-        stderr.toString().contains('this is stderr')
-        progressMessages.size() >= 2
-        progressMessages.pop() == ''
-        progressMessages.every { it }
+        assert stdout.toString().contains("this is stdout: $idx")
+        assert stderr.toString().contains("this is stderr: $idx")
+        assert progressMessages.size() >= 2
+        assert progressMessages.pop() == ''
+        assert progressMessages.every { it }
 
         //Below may be very fragile as it depends on progress messages content
         //However, when refactoring the logging code I found ways to break it silently
         //Hence I want to make sure the functionality is not broken. We can remove the assertion later of find better ways of asserting it.
-        progressMessages == ['Load projects', 'Configure projects', "Resolve dependencies 'classpath'", 'Configure projects', "Resolve dependencies ':classpath'", "Configure projects", "Load projects"]
+        assert progressMessages == ['Load projects', 'Configure projects', "Resolve dependencies 'classpath'", 'Configure projects', "Resolve dependencies ':classpath'", "Configure projects", "Load projects"]
     }
 
     def "receives progress and logging while the build is executing"() {
