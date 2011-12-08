@@ -17,7 +17,10 @@
 package org.gradle.integtests.tooling.next
 
 import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.Project
@@ -25,17 +28,13 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.ConcurrentTestUtil
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Specification
 
-// TODO - after releasing the M7 the test needs to be updated to allow cross-version compatibility
-// (ie can run concurrent builds for any target gradle >= 1.0-milestone-7)
-// It should be as easy as commenting out below annotations and making sure it extends ToolingApiSpecification
+// TODO - should cover concurrent builds each with a different target gradle version.
+//check if consumer is thread safe (should be able to turn that now)
 
-// TODO - should cover concurrent builds each with a different target gradle version. Needs to wait for the release of M8, though.
-
-//@MinToolingApiVersion('1.0-milestone-7')
-//@MinTargetGradleVersion('1.0-milestone-7')
-class ConcurrentToolingApiIntegrationTest extends Specification { //extends ToolingApiSpecification {
+@MinToolingApiVersion(currentOnly = true)
+@MinTargetGradleVersion(currentOnly = true)
+class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
 
     def dist = new GradleDistribution()
     def toolingApi = new ToolingApi(dist)
@@ -60,7 +59,6 @@ apply plugin: 'java'
         }
 
         then:
-        //it deals with concurrency issues, may not fail every single time
         concurrent.finished()
     }
 
