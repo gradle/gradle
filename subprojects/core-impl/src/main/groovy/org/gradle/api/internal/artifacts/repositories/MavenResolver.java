@@ -22,7 +22,6 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
@@ -144,7 +143,7 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
 
     private String findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {
         String metadataLocation = IvyPatternHelper.substitute(getMavenMetadataPattern(), moduleRevisionId);
-        MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation, getRepository());
+        MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
         
         if (mavenMetadata.timestamp != null) {
             // we have found a timestamp, so this is a snapshot unique version
@@ -160,8 +159,8 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
         return "pom";
     }
 
-    protected ResolvedResource[] listResources(Repository repository, ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
-        List<String> revisions = listRevisionsWithMavenMetadata(repository, moduleRevisionId.getModuleId().getAttributes());
+    protected ResolvedResource[] listResources(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
+        List<String> revisions = listRevisionsWithMavenMetadata(moduleRevisionId.getModuleId().getAttributes());
         if (revisions != null) {
             LOGGER.debug("Found revisions: {}", revisions);
             List<ResolvedResource> resources = new ArrayList<ResolvedResource>();
@@ -169,7 +168,7 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
                 String resolvedPattern = IvyPatternHelper.substitute(
                         pattern, ModuleRevisionId.newInstance(moduleRevisionId, revision), artifact);
                 try {
-                    Resource res = repository.getResource(resolvedPattern);
+                    Resource res = getResource(resolvedPattern, artifact);
                     if ((res != null) && res.exists()) {
                         resources.add(new ResolvedResource(res, revision));
                     }
@@ -181,13 +180,13 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
         } else {
             // maven metadata not available or something went wrong,
             // use default listing capability
-            return super.listResources(repository, moduleRevisionId, pattern, artifact);
+            return super.listResources(moduleRevisionId, pattern, artifact);
         }
     }
 
     protected void findTokenValues(Collection names, List patterns, Map tokenValues, String token) {
         if (IvyPatternHelper.REVISION_KEY.equals(token)) {
-            List<String> revisions = listRevisionsWithMavenMetadata(getRepository(), tokenValues);
+            List<String> revisions = listRevisionsWithMavenMetadata(tokenValues);
             if (revisions != null) {
                 names.addAll(filterNames(revisions));
                 return;
@@ -196,17 +195,17 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
         super.findTokenValues(names, patterns, tokenValues, token);
     }
 
-    private List<String> listRevisionsWithMavenMetadata(Repository repository, Map tokenValues) {
+    private List<String> listRevisionsWithMavenMetadata(Map tokenValues) {
         String metadataLocation = IvyPatternHelper.substituteTokens(root + "[organisation]/[module]/maven-metadata.xml", tokenValues);
-        MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation, repository);
+        MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
         return mavenMetadata.versions.isEmpty() ? null : mavenMetadata.versions;
     }
 
-    private MavenMetadata parseMavenMetadata(String metadataLocation, Repository repository) {
+    private MavenMetadata parseMavenMetadata(String metadataLocation) {
         final MavenMetadata mavenMetadata = new MavenMetadata();
 
         try {
-            Resource metadata = repository.getResource(metadataLocation);
+            Resource metadata = getResource(metadataLocation);
             if (metadata.exists()) {
                 LOGGER.debug("parsing maven-metadata: {}", metadata);
                 InputStream metadataStream = metadata.openStream();

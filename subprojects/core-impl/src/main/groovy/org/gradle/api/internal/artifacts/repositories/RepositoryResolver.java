@@ -21,12 +21,9 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.event.EventManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
-import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
-import org.apache.ivy.plugins.parser.ModuleDescriptorParserRegistry;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver;
@@ -43,12 +40,8 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.*;
 
-/**
- *
- */
 public class RepositoryResolver extends AbstractPatternsBasedResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryResolver.class);
 
@@ -82,57 +75,34 @@ public class RepositoryResolver extends AbstractPatternsBasedResolver {
         VersionMatcher versionMatcher = getSettings().getVersionMatcher();
         try {
             if (!versionMatcher.isDynamic(moduleRevisionId)) {
-                String resourceName = IvyPatternHelper.substitute(pattern, moduleRevisionId, artifact);
-                LOGGER.debug("Loading {}", resourceName);
-                logAttempt(resourceName);
-                Resource res = repository.getResource(resourceName);
-                boolean reachable = res.exists();
-                if (reachable) {
-                    String revision;
-                    if (!pattern.contains(IvyPatternHelper.REVISION_KEY)) {
-                        if ("ivy".equals(artifact.getType()) || "pom".equals(artifact.getType())) {
-                            // we can't determine the revision from the pattern, get it
-                            // from the module descriptor itself
-                            File temp = File.createTempFile("ivy", artifact.getExt());
-                            temp.deleteOnExit();
-                            repository.get(res.getName(), temp);
-                            ModuleDescriptorParser parser =
-                                    ModuleDescriptorParserRegistry.getInstance().getParser(res);
-                            ModuleDescriptor md =
-                                    parser.parseDescriptor(
-                                            getParserSettings(), temp.toURI().toURL(), res, false);
-                            revision = md.getRevision();
-                            if ((revision == null) || (revision.length() == 0)) {
-                                revision = "working@" + name;
-                            }
-                        } else {
-                            revision = "working@" + name;
-                        }
-                    } else {
-                        revision = moduleRevisionId.getRevision();
-                    }
-                    return new ResolvedResource(res, revision);
-                } else if (versionMatcher.isDynamic(moduleRevisionId)) {
-                    return findDynamicResourceUsingPattern(resourceParser, moduleRevisionId, pattern, artifact, date);
-                } else {
-                    LOGGER.debug("Resource not reachable for {}: res={}", moduleRevisionId, res);
-                    return null;
-                }
+                return findStaticResourceUsingPattern(moduleRevisionId, pattern, artifact);
             } else {
                 return findDynamicResourceUsingPattern(resourceParser, moduleRevisionId, pattern, artifact, date);
             }
         } catch (IOException ex) {
             throw new RuntimeException(name + ": unable to get resource for " + moduleRevisionId + ": res="
                     + IvyPatternHelper.substitute(pattern, moduleRevisionId, artifact) + ": " + ex, ex);
-        } catch (ParseException ex) {
-            throw new RuntimeException(name + ": unable to get resource for " + moduleRevisionId + ": res="
-                    + IvyPatternHelper.substitute(pattern, moduleRevisionId, artifact) + ": " + ex, ex);
+        }
+    }
+
+    private ResolvedResource findStaticResourceUsingPattern(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) throws IOException {
+        String resourceName = IvyPatternHelper.substitute(pattern, moduleRevisionId, artifact);
+        logAttempt(resourceName);
+
+        LOGGER.debug("Loading {}", resourceName);
+        Resource res = getResource(resourceName, artifact);
+        if (res.exists()) {
+            String revision = moduleRevisionId.getRevision();
+            return new ResolvedResource(res, revision);
+        } else {
+            LOGGER.debug("Resource not reachable for {}: res={}", moduleRevisionId, res);
+            return null;
         }
     }
 
     private ResolvedResource findDynamicResourceUsingPattern(ResourceMDParser resourceParser, ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, Date date) {
         logAttempt(IvyPatternHelper.substitute(pattern, ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY)), artifact));
-        ResolvedResource[] resourceResources = listResources(repository, moduleRevisionId, pattern, artifact);
+        ResolvedResource[] resourceResources = listResources(moduleRevisionId, pattern, artifact);
         if (resourceResources == null) {
             LOGGER.debug("Unable to list resources for {}: pattern={}", moduleRevisionId, pattern);
             return null;
@@ -148,18 +118,49 @@ public class RepositoryResolver extends AbstractPatternsBasedResolver {
     protected Resource getResource(String source) throws IOException {
         return repository.getResource(source);
     }
+    
+    protected Resource getResource(String source, Artifact target) throws IOException {
+        return repository.getResource(source);
+    }
 
     /**
      * List all revisions as resolved resources for the given artifact in the given repository using the given pattern, and using the given module id except its revision.
      *
-     * @param repository the repository in which revisions should be located
      * @param moduleRevisionId the module revision id to look for (except revision)
      * @param pattern the pattern to use to locate the revisions
      * @param artifact the artifact to find
      * @return an array of ResolvedResource, all pointing to a different revision of the given Artifact.
      */
-    protected ResolvedResource[] listResources(Repository repository, ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
-        return ResolverHelper.findAll(repository, moduleRevisionId, pattern, artifact);
+    protected ResolvedResource[] listResources(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
+        // substitute all but revision
+        ModuleRevisionId idWithoutRevision = ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY));
+        String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
+        LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
+
+        String[] revisions = ResolverHelper.listTokenValues(repository, partiallyResolvedPattern, IvyPatternHelper.REVISION_KEY);
+        if (revisions != null) {
+            LOGGER.debug("Found revisions: {}", Arrays.asList(revisions));
+            List<ResolvedResource> resources = new ArrayList<ResolvedResource>(revisions.length);
+            for (String revision : revisions) {
+                String resourcePath = IvyPatternHelper.substituteToken(partiallyResolvedPattern, IvyPatternHelper.REVISION_KEY, revision);
+                try {
+                    Resource resource = getResource(resourcePath, artifact);
+                    if (resource != null) {
+                        // we do not test if the resource actually exist here, it would cause
+                        // a lot of checks which are not always necessary depending on the usage
+                        // which is done of the returned ResolvedResource array
+                        resources.add(new ResolvedResource(resource, revision));
+                    }
+                } catch (IOException e) {
+                    LOGGER.warn("Could not get resource listed by repository:" + resourcePath, e);
+                }
+            }
+            if (revisions.length != resources.size()) {
+                LOGGER.debug("Found resolved resources: {}", resources);
+            }
+            return resources.toArray(new ResolvedResource[resources.size()]);
+        }
+        return null;
     }
 
     protected long get(Resource resource, File destination) throws IOException {
