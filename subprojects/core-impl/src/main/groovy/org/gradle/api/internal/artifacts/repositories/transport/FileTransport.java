@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.file.FileRepository;
+import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
 
 import java.io.File;
@@ -34,9 +34,9 @@ public class FileTransport implements RepositoryTransport {
         return new FileRepository();
     }
 
-    public RepositoryCacheManager getCacheManager() {
-        // TODO:DAZ Use the shared downloading cache manager, and remove this method
-        return new LocalFileRepositoryCacheManager(name);
+    public void configureCacheManager(AbstractResolver resolver) {
+        // TODO:DAZ Don't use this one ever
+        resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
     }
 
     public String convertToPath(URI uri) {

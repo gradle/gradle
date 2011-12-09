@@ -41,7 +41,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.*;
 
-public class MavenResolver extends RepositoryResolver {
+public class MavenResolver extends RepositoryResolver implements PatternBasedResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
 
     private static final String M2_PER_MODULE_PATTERN = "[revision]/[artifact]-[revision](-[classifier]).[ext]";
@@ -53,8 +53,8 @@ public class MavenResolver extends RepositoryResolver {
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport) {
         setName(name);
         setRepository(transport.getIvyRepository());
-        setRepositoryCacheManager(transport.getCacheManager());
-        
+        transport.configureCacheManager(this);
+
         this.transport = transport;
         this.root = transport.convertToPath(rootUri);
         addIvyPattern(getWholePattern());
@@ -67,9 +67,17 @@ public class MavenResolver extends RepositoryResolver {
         setChangingPattern(".*-SNAPSHOT");
     }
     
-    public void addArtifactUrl(URI uri) {
-        String newArtifactPattern = transport.convertToPath(uri) + M2_PATTERN;
+    public void addArtifactLocation(URI baseUri, String pattern) {
+        if (pattern != null && pattern.length() > 0) {
+            throw new IllegalArgumentException("Maven Resolver does not support patterns other than the standard M2 pattern");
+        }
+
+        String newArtifactPattern = transport.convertToPath(baseUri) + M2_PATTERN;
         addArtifactPattern(newArtifactPattern);
+    }
+
+    public void addDescriptorLocation(URI baseUri, String pattern) {
+        throw new UnsupportedOperationException("Cannot have multiple descriptor urls for MavenResolver");        
     }
 
     private String getWholePattern() {
@@ -245,7 +253,7 @@ public class MavenResolver extends RepositoryResolver {
         Message.debug("\t\troot: " + root);
         Message.debug("\t\tpattern: " + M2_PATTERN);
     }
-    
+
     private static class MavenMetadata {
         public String timestamp;
         public String buildNumber;

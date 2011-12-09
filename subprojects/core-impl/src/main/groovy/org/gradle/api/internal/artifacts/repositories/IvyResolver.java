@@ -15,19 +15,20 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 
 import java.net.URI;
 
-public class LocalFileSystemResolver extends FileSystemResolver implements PatternBasedResolver {
+public class IvyResolver extends RepositoryResolver implements PatternBasedResolver {
 
     private final RepositoryTransport transport;
 
-    public LocalFileSystemResolver(String name, RepositoryTransport transport) {
-        this.transport = transport;
+    public IvyResolver(String name, RepositoryTransport transport) {
         setName(name);
-        transport.configureCacheManager(this);
+        setRepository(transport.getIvyRepository());
+        this.transport = transport;
+        this.transport.configureCacheManager(this);
     }
 
     public void addArtifactLocation(URI baseUri, String pattern) {

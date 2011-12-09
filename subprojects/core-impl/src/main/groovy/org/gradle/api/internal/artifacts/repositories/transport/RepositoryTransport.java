@@ -15,15 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.repository.Repository;
+import org.apache.ivy.plugins.resolver.AbstractResolver;
 
 import java.net.URI;
 
 public interface RepositoryTransport {
     Repository getIvyRepository();
 
-    RepositoryCacheManager getCacheManager();
+    void configureCacheManager(AbstractResolver resolver);
 
     String convertToPath(URI uri);
 }

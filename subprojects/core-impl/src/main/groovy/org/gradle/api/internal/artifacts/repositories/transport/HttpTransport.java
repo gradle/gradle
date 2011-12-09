@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.repository.Repository;
+import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.repositories.CommonsHttpClientBackedRepository;
 
@@ -34,9 +34,8 @@ public class HttpTransport implements RepositoryTransport {
         return new CommonsHttpClientBackedRepository(httpSettings);
     }
 
-    public RepositoryCacheManager getCacheManager() {
+    public void configureCacheManager(AbstractResolver resolver) {
         // Use the shared downloading cache manager
-        return null;
     }
 
     public String convertToPath(URI uri) {

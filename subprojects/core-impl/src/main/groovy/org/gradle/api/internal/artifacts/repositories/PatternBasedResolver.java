@@ -15,11 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
-import org.gradle.api.internal.artifacts.repositories.transport.HttpSettings;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 
-public class CommonsHttpClientResolver extends RepositoryResolver {
-    public CommonsHttpClientResolver(HttpSettings httpSettings) {
-        setRepository(new CommonsHttpClientBackedRepository(httpSettings));
-    }
+import java.net.URI;
+import java.util.List;
+
+public interface PatternBasedResolver extends DependencyResolver {
+    void addArtifactLocation(URI baseUri, String pattern);
+
+    void addDescriptorLocation(URI baseUri, String pattern);
+
+    void setM2compatible(boolean b);
+
+    List getArtifactPatterns();
 }
