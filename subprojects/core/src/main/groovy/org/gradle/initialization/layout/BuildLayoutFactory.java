@@ -33,9 +33,6 @@ public class BuildLayoutFactory {
         if (settingsFile.isFile()) {
             return new BuildLayout(currentDir, currentDir, settingsFile);
         }
-        if (new File(currentDir, "gradle/wrapper/gradle-wrapper.properties").isFile()) {
-            return new BuildLayout(currentDir, currentDir, null);
-        }
         for (File candidate = currentDir.getParentFile(); candidate != null && !candidate.equals(stopAt); candidate = candidate.getParentFile()) {
             settingsFile = new File(candidate, "settings.gradle");
             if (settingsFile.isFile()) {
@@ -44,9 +41,6 @@ public class BuildLayoutFactory {
             settingsFile = new File(candidate, "master/settings.gradle");
             if (settingsFile.isFile()) {
                 return new BuildLayout(candidate, settingsFile.getParentFile(), settingsFile);
-            }
-            if (new File(candidate, "gradle/wrapper/gradle-wrapper.properties").isFile()) {
-                return new BuildLayout(candidate, candidate, null);
             }
         }
         return new BuildLayout(currentDir, currentDir, null);

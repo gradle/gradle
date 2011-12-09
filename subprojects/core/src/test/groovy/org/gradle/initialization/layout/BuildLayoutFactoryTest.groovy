@@ -34,17 +34,6 @@ class BuildLayoutFactoryTest extends Specification {
         layout.settingsFile == settingsFile
     }
 
-    def "returns current directory when it contains a wrapper properties file"() {
-        def currentDir = tmpDir.dir
-        currentDir.createFile("gradle/wrapper/gradle-wrapper.properties")
-
-        expect:
-        def layout = locator.getLayoutFor(currentDir, true)
-        layout.rootDirectory == currentDir
-        layout.settingsDir == currentDir
-        layout.settingsFile == null
-    }
-
     def "looks for sibling directory called 'master' that it contains a settings file"() {
         def currentDir = tmpDir.createDir("current")
         def masterDir = tmpDir.createDir("master")
@@ -69,10 +58,10 @@ class BuildLayoutFactoryTest extends Specification {
         layout.settingsFile == settingsFile
     }
 
-    def "ignores 'master' directory when it contains a wrapper properties file but no settings file"() {
+    def "ignores 'master' directory when it does not contain a settings file"() {
         def currentDir = tmpDir.createDir("sub/current")
         def masterDir = tmpDir.createDir("sub/master")
-        masterDir.createFile("gradle/wrapper/gradle-wrapper.properties")
+        masterDir.createFile("gradle.properties")
         def settingsFile = tmpDir.createFile("settings.gradle")
 
         expect:
@@ -93,19 +82,6 @@ class BuildLayoutFactoryTest extends Specification {
         layout.rootDirectory == subDir
         layout.settingsDir == subDir
         layout.settingsFile == settingsFile
-    }
-
-    def "returns closest ancestor directory that contains a wrapper properties file"() {
-        def currentDir = tmpDir.createDir("sub/current")
-        def subDir = tmpDir.createDir("sub")
-        subDir.createFile("gradle/wrapper/gradle-wrapper.properties")
-        tmpDir.createFile("settings.gradle")
-
-        expect:
-        def layout = locator.getLayoutFor(currentDir, true)
-        layout.rootDirectory == subDir
-        layout.settingsDir == subDir
-        layout.settingsFile == null
     }
 
     def "prefers the current directory as root directory"() {
