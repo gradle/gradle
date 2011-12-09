@@ -80,23 +80,21 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
 
-        MavenResolver resolver = new MavenResolver();
-        resolver.setName(name);
+        MavenResolver resolver;
 
         if (rootUri.getScheme().equalsIgnoreCase("file")) {
-            resolver.setRepository(new FileRepository());
+            String root = getFilePath(rootUri);
+            resolver = new MavenResolver(name, root, new FileRepository());
             resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
 
-            resolver.setRoot(getFilePath(rootUri));
-            
             Collection<URI> artifactUrls = getArtifactUrls();
             for (URI repoUrl : artifactUrls) {
                 resolver.addArtifactUrl(getFilePath(repoUrl));
             }
         } else {
             HttpSettings httpSettings = new DefaultHttpSettings(getCredentials());
-            resolver.setRepository(new CommonsHttpClientBackedRepository(httpSettings));
-            resolver.setRoot(getUriPath(rootUri));
+            String root = getUriPath(rootUri);
+            resolver = new MavenResolver(name, root, new CommonsHttpClientBackedRepository(httpSettings));
 
             Collection<URI> artifactUrls = getArtifactUrls();
             for (URI repoUrl : artifactUrls) {

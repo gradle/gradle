@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
-import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.file.FileResolver
@@ -43,7 +42,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         then:
         result.size() == 1
         def repo = result[0]
-        repo instanceof IBiblioResolver
+        repo instanceof MavenResolver
         repo.root == "${file.absolutePath}/"
     }
 
