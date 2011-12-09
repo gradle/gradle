@@ -24,7 +24,6 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.Resource;
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.apache.ivy.util.ContextualSAXHandler;
@@ -51,8 +50,7 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
     private final String root;
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport) {
-        setName(name);
-        setRepository(transport.getIvyRepository());
+        super(name, transport.getIvyRepository());
         transport.configureCacheManager(this);
 
         this.transport = transport;

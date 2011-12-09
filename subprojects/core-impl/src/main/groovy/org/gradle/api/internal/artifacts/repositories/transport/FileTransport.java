@@ -31,7 +31,9 @@ public class FileTransport implements RepositoryTransport {
     }
 
     public Repository getIvyRepository() {
-        return new FileRepository();
+        FileRepository fileRepository = new FileRepository();
+        fileRepository.setName(name);
+        return fileRepository;
     }
 
     public void configureCacheManager(AbstractResolver resolver) {

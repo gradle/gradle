@@ -23,15 +23,19 @@ import org.gradle.api.internal.artifacts.repositories.CommonsHttpClientBackedRep
 import java.net.URI;
 
 public class HttpTransport implements RepositoryTransport {
+    private final String name;
     private final PasswordCredentials credentials;
 
-    public HttpTransport(PasswordCredentials credentials) {
+    public HttpTransport(String name, PasswordCredentials credentials) {
+        this.name = name;
         this.credentials = credentials;
     }
 
     public Repository getIvyRepository() {
         HttpSettings httpSettings = new DefaultHttpSettings(credentials);
-        return new CommonsHttpClientBackedRepository(httpSettings);
+        CommonsHttpClientBackedRepository repository = new CommonsHttpClientBackedRepository(httpSettings);
+        repository.setName(name);
+        return repository;
     }
 
     public void configureCacheManager(AbstractResolver resolver) {

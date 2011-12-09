@@ -94,7 +94,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             throw new InvalidUserDataException("You may only specify 'file', 'http' and 'https' urls for an ivy repository.");
         }
         if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
-            return new IvyResolver(name, new HttpTransport(getCredentials()));
+            return new IvyResolver(name, new HttpTransport(name, getCredentials()));
         }
         if (WrapUtil.toSet("file").containsAll(schemes)) {
             return new LocalFileSystemResolver(name, new FileTransport(name));

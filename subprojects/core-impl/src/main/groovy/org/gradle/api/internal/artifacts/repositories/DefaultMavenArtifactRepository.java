@@ -89,7 +89,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         if (scheme.equalsIgnoreCase("file")) {
             return new FileTransport(name);
         } else {
-            return new HttpTransport(getCredentials());
+            return new HttpTransport(name, getCredentials());
         }
     }
 }

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.apache.ivy.plugins.resolver.FileSystemResolver
-import org.apache.ivy.plugins.resolver.RepositoryResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.file.FileResolver

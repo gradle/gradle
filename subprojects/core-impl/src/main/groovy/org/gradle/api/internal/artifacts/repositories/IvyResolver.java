@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 
 import java.net.URI;
@@ -25,8 +24,7 @@ public class IvyResolver extends RepositoryResolver implements PatternBasedResol
     private final RepositoryTransport transport;
 
     public IvyResolver(String name, RepositoryTransport transport) {
-        setName(name);
-        setRepository(transport.getIvyRepository());
+        super(name, transport.getIvyRepository());
         this.transport = transport;
         this.transport.configureCacheManager(this);
     }
