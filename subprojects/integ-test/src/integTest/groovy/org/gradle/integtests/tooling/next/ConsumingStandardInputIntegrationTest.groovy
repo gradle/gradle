@@ -51,6 +51,22 @@ description = System.in.text
     }
 
     @Timeout(10)
+    def "does not consume input when not explicitly provided"() {
+        given:
+        dist.file('build.gradle')  << """
+description = "empty" + System.in.text
+"""
+        when:
+        Project model = (Project) withConnection { ProjectConnection connection ->
+            def model = connection.model(Project.class)
+            model.get()
+        }
+
+        then:
+        model.description == 'empty'
+    }
+
+    @Timeout(10)
     def "consumes input when running tasks"() {
         given:
         dist.file('build.gradle') << """
