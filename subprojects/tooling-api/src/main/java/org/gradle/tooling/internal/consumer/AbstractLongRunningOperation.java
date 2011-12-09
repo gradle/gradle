@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
@@ -24,7 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 
-public class AbstractLongRunningOperation {
+public class AbstractLongRunningOperation implements LongRunningOperation {
     private OutputStream stdout;
     private OutputStream stderr;
     private InputStream stdin;

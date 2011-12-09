@@ -39,7 +39,7 @@ import java.io.OutputStream;
  *
  * <p>Instances of {@code BuildLauncher} are not thread-safe.
  */
-public interface BuildLauncher {
+public interface BuildLauncher extends LongRunningOperation {
     /**
      * Sets the tasks to be executed.
      *
@@ -65,34 +65,22 @@ public interface BuildLauncher {
     BuildLauncher forTasks(Iterable<? extends Task> tasks);
 
     /**
-     * Sets the {@link OutputStream} that should receive standard output logging from this build. The default is to discard the output.
-     *
-     * @param outputStream The output stream.
-     * @return this
+     * {@inheritDoc}
      */
     BuildLauncher setStandardOutput(OutputStream outputStream);
 
     /**
-     * Sets the {@link OutputStream} that should receive standard error logging from this build. The default is to discard the output.
-     *
-     * @param outputStream The output stream.
-     * @return this
+     * {@inheritDoc}
      */
     BuildLauncher setStandardError(OutputStream outputStream);
 
     /**
-     * Sets the {@link java.io.InputStream} that will be used by builds. Useful when the tooling api drives interactive builds.
-     *
-     * @param inputStream The input stream
-     * @return this
+     * {@inheritDoc}
      */
     BuildLauncher setStandardInput(InputStream inputStream);
 
     /**
-     * Adds a progress listener which will receive progress events as the build executes.
-     *
-     * @param listener The listener
-     * @return this
+     * {@inheritDoc}
      */
     BuildLauncher addProgressListener(ProgressListener listener);
 
