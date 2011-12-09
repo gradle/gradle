@@ -17,6 +17,7 @@ package org.gradle.tooling;
 
 import org.gradle.tooling.model.Task;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -78,6 +79,13 @@ public interface BuildLauncher {
      * @return this
      */
     BuildLauncher setStandardError(OutputStream outputStream);
+
+    /**
+     * Sets the {@link java.io.InputStream} that will be used by builds. Useful when the tooling api drives interactive builds.
+     *
+     * @param inputStream The input stream
+     */
+    void setStandardInput(InputStream inputStream);
 
     /**
      * Adds a progress listener which will receive progress events as the build executes.

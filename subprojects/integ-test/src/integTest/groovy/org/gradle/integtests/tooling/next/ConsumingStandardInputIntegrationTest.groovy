@@ -23,6 +23,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.Project
 import spock.lang.Timeout
 
+//TODO SF improve
 @MinToolingApiVersion(currentOnly = true)
 @MinTargetGradleVersion(currentOnly = true)
 class ConsumingStandardInputIntegrationTest extends ToolingApiSpecification {
@@ -32,7 +33,7 @@ class ConsumingStandardInputIntegrationTest extends ToolingApiSpecification {
     }
 
     @Timeout(10)
-    def "enables consuming input"() {
+    def "consumes input when building model"() {
         given:
         dist.file('build.gradle')  << """
 description = System.in.text
@@ -46,5 +47,25 @@ description = System.in.text
 
         then:
         model.description == 'Cool project'
+    }
+
+    @Timeout(10)
+    def "consumes input when running tasks"() {
+        given:
+        dist.file('build.gradle') << """
+task createFile << {
+    file('input.txt') << System.in.text
+}
+"""
+        when:
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.standardInput = new ByteArrayInputStream("Hello world!".bytes)
+            build.forTasks('createFile')
+            build.run()
+        }
+
+        then:
+        dist.file('input.txt').text == "Hello world!"
     }
 }
