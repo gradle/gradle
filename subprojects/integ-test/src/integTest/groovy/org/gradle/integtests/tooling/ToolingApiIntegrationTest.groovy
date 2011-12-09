@@ -140,7 +140,7 @@ allprojects {
 
     def "tooling api honours jvm args specified in gradle.properties"() {
         projectDir.file('build.gradle') << """
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains '-Xmx16m'
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
 assert System.getProperty('some-prop') == 'some-value'
 """
         projectDir.file('gradle.properties') << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx16m"
