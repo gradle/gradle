@@ -39,6 +39,7 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
 
     def setup() {
         toolingApi.isEmbedded = false
+        concurrent.shortTimeout = 20000
     }
 
     @Issue("GRADLE-1933")
@@ -46,8 +47,6 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         dist.file('build.gradle')  << "apply plugin: 'java'"
 
         when:
-        concurrent.shortTimeout = 30000
-
         threads.times {
             concurrent.start { useToolingApi() }
         }
@@ -62,8 +61,6 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         dist.file('build.gradle')  << "apply plugin: 'java'"
 
         when:
-        concurrent.shortTimeout = 30000
-
         threads.times { concurrent.start { useToolingApi() } }
         threads.times { concurrent.start { useToolingApi(dist.previousVersion("1.0-milestone-7"))} }
 
@@ -115,17 +112,12 @@ System.err.println 'this is stderr: $idx'
         def stderr = new ByteArrayOutputStream()
         def progressMessages = []
 
-        GradleConnector connector = toolingApi.connector()
-        connector.forProjectDirectory(new File(dist.testDir, "build$idx"))
-        ProjectConnection connection = connector.connect()
-        try {
+        withConnectionInDir("build$idx") { connection ->
             def model = connection.model(Project.class)
             model.standardOutput = stdout
             model.standardError = stderr
             model.addProgressListener({ event -> progressMessages << event.description } as ProgressListener)
             assert model.get()
-        } finally {
-            connection.close();
         }
 
         assert stdout.toString().contains("this is stdout: $idx")
@@ -166,10 +158,7 @@ System.err.println 'this is stderr: $idx'
         def progressMessages = []
         def events = []
 
-        GradleConnector connector = toolingApi.connector()
-        connector.forProjectDirectory(new File(dist.testDir, "build$idx"))
-        ProjectConnection connection = connector.connect()
-        try {
+        withConnectionInDir("build$idx") { connection ->
             def build = connection.newBuild()
             build.standardOutput = stdout
             build.standardError = stderr
@@ -178,8 +167,6 @@ System.err.println 'this is stderr: $idx'
                 events << event
             } as ProgressListener)
             build.run()
-        } finally {
-            connection.close()
         }
 
         assert stdout.toString().contains("this is stdout: $idx")
@@ -192,5 +179,40 @@ System.err.println 'this is stderr: $idx'
         //However, when refactoring the logging code I found ways to break it silently
         //Hence I want to make sure the functionality is not broken. We can remove the assertion later of find better ways of asserting it.
         assert progressMessages == ["Execute build", "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Execute build", "Execute tasks", "Execute :help", "Execute tasks", "Execute build"]
+    }
+
+    @Ignore
+    //TODO SF this test exposes various issues that need more work
+    def "handles standard input concurrently"() {
+        when:
+        2.times { idx ->
+            dist.file("build$idx/build.gradle") << "description = System.in.text"
+        }
+
+        then:
+        2.times { idx ->
+            concurrent.start {
+                withConnectionInDir("build$idx") { connection ->
+                    def model = connection.model(Project.class)
+                    model.standardInput = new ByteArrayInputStream("project $idx".toString().bytes)
+                    def project = model.get()
+                    System.out.println(project.description);
+                    assert project.description == "project $idx"
+                }
+            }
+        }
+
+        concurrent.finished()
+    }
+
+    def withConnectionInDir(String dir, Closure cl) {
+        GradleConnector connector = toolingApi.connector()
+        connector.forProjectDirectory(dist.file(dir))
+        ProjectConnection connection = connector.connect()
+        try {
+            return cl(connection)
+        } finally {
+            connection.close();
+        }
     }
 }
