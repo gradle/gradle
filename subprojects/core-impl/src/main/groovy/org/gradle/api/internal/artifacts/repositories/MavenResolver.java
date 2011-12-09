@@ -30,6 +30,7 @@ import org.apache.ivy.plugins.resolver.util.ResourceMDParser;
 import org.apache.ivy.util.ContextualSAXHandler;
 import org.apache.ivy.util.Message;
 import org.apache.ivy.util.XMLHelper;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -37,6 +38,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.*;
 
 public class MavenResolver extends RepositoryResolver {
@@ -45,15 +47,18 @@ public class MavenResolver extends RepositoryResolver {
     private static final String M2_PER_MODULE_PATTERN = "[revision]/[artifact]-[revision](-[classifier]).[ext]";
     private static final String M2_PATTERN = "[organisation]/[module]/" + M2_PER_MODULE_PATTERN;
 
+    private final RepositoryTransport transport;
     private final String root;
 
-    public MavenResolver(String name, String root, Repository repository) {
+    public MavenResolver(String name, URI rootUri, RepositoryTransport transport) {
         setName(name);
-        this.root = normaliseRoot(root);
-        setIvyPatterns(Collections.singletonList(getWholePattern()));
-        setArtifactPatterns(Collections.singletonList(getWholePattern()));
-
-        setRepository(repository);
+        setRepository(transport.getIvyRepository());
+        setRepositoryCacheManager(transport.getCacheManager());
+        
+        this.transport = transport;
+        this.root = transport.convertToPath(rootUri);
+        addIvyPattern(getWholePattern());
+        addArtifactPattern(getWholePattern());
 
         setDescriptor(DESCRIPTOR_OPTIONAL);
         setM2compatible(true);
@@ -61,12 +66,10 @@ public class MavenResolver extends RepositoryResolver {
         setChangingMatcher(PatternMatcher.REGEXP);
         setChangingPattern(".*-SNAPSHOT");
     }
-
-    public void addArtifactUrl(String url) {
-        String newArtifactPattern = url + M2_PATTERN;
-        List<String> artifactPatternList = new ArrayList<String>(getArtifactPatterns());
-        artifactPatternList.add(newArtifactPattern);
-        setArtifactPatterns(artifactPatternList);
+    
+    public void addArtifactUrl(URI uri) {
+        String newArtifactPattern = transport.convertToPath(uri) + M2_PATTERN;
+        addArtifactPattern(newArtifactPattern);
     }
 
     private String getWholePattern() {
@@ -75,14 +78,6 @@ public class MavenResolver extends RepositoryResolver {
 
     private String getMavenMetadataPattern() {
         return root + "[organisation]/[module]/[revision]/maven-metadata.xml";
-    }
-
-    private String normaliseRoot(String root) {
-        if (!root.endsWith("/")) {
-            return root + "/";
-        } else {
-            return root;
-        }
     }
 
     public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {

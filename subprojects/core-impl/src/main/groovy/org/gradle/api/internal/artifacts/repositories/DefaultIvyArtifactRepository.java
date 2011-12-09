@@ -22,13 +22,11 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
-import org.gradle.api.internal.artifacts.repositories.transport.DefaultHttpSettings;
-import org.gradle.api.internal.artifacts.repositories.transport.HttpSettings;
+import org.gradle.api.internal.artifacts.repositories.transport.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
-import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
 import java.net.URI;
 import java.util.Collection;
@@ -80,6 +78,9 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         layout.addSchemes(uri, schemes);
         additionalPatternsLayout.addSchemes(uri, schemes);
 
+        RepositoryTransport transport = createTransport(schemes);
+
+
         RepositoryResolver resolver = createResolver(schemes);
         resolver.setName(name);
         
@@ -99,11 +100,17 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         if (WrapUtil.toSet("file").containsAll(schemes)) {
             return file();
         }
-        return url();
+        throw new InvalidUserDataException("You cannot mix file and http(s) urls for a single ivy repository. Please declare 2 separate repositories");
     }
 
-    private RepositoryResolver url() {
-        return new UrlWharfResolver();
+    private RepositoryTransport createTransport(Set<String> schemes) {
+        if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
+            return new HttpTransport(getCredentials());
+        }
+        if (WrapUtil.toSet("file").containsAll(schemes)) {
+            return new FileTransport(name);
+        }
+        throw new InvalidUserDataException("You cannot mix file and http(s) urls for a single ivy repository. Please declare 2 separate repositories");
     }
 
     private RepositoryResolver file() {

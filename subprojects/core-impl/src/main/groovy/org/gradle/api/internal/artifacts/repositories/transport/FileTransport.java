@@ -1,0 +1,52 @@
+/*
+ * Copyright 2011 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.api.internal.artifacts.repositories.transport;
+
+import org.apache.ivy.core.cache.RepositoryCacheManager;
+import org.apache.ivy.plugins.repository.Repository;
+import org.apache.ivy.plugins.repository.file.FileRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
+
+import java.io.File;
+import java.net.URI;
+
+public class FileTransport implements RepositoryTransport {
+    private final String name;
+
+    public FileTransport(String name) {
+        this.name = name;
+    }
+
+    public Repository getIvyRepository() {
+        return new FileRepository();
+    }
+
+    public RepositoryCacheManager getCacheManager() {
+        // TODO:DAZ Use the shared downloading cache manager, and remove this method
+        return new LocalFileRepositoryCacheManager(name);
+    }
+
+    public String convertToPath(URI uri) {
+        return normalisePath(new File(uri).getAbsolutePath());
+    }
+
+    private String normalisePath(String path) {
+        if (path.endsWith("/")) {
+            return path;
+        }
+        return path + "/";
+    }
+}

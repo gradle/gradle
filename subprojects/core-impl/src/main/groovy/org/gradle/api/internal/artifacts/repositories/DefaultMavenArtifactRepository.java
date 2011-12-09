@@ -15,17 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.plugins.repository.file.FileRepository;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.repositories.transport.DefaultHttpSettings;
-import org.gradle.api.internal.artifacts.repositories.transport.HttpSettings;
+import org.gradle.api.internal.artifacts.repositories.transport.FileTransport;
+import org.gradle.api.internal.artifacts.repositories.transport.HttpTransport;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.file.FileResolver;
 
-import java.io.File;
 import java.net.URI;
 import java.util.*;
 
@@ -80,43 +78,18 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
 
-        MavenResolver resolver;
-
-        if (rootUri.getScheme().equalsIgnoreCase("file")) {
-            String root = getFilePath(rootUri);
-            resolver = new MavenResolver(name, root, new FileRepository());
-            resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
-
-            Collection<URI> artifactUrls = getArtifactUrls();
-            for (URI repoUrl : artifactUrls) {
-                resolver.addArtifactUrl(getFilePath(repoUrl));
-            }
-        } else {
-            HttpSettings httpSettings = new DefaultHttpSettings(getCredentials());
-            String root = getUriPath(rootUri);
-            resolver = new MavenResolver(name, root, new CommonsHttpClientBackedRepository(httpSettings));
-
-            Collection<URI> artifactUrls = getArtifactUrls();
-            for (URI repoUrl : artifactUrls) {
-                resolver.addArtifactUrl(getUriPath(repoUrl));
-            }
+        MavenResolver resolver = new MavenResolver(name, rootUri, getTransport(rootUri.getScheme()));
+        for (URI repoUrl : getArtifactUrls()) {
+            resolver.addArtifactUrl(repoUrl);
         }
         resolvers.add(resolver);
     }
-    
-    // TODO:DAZ Need to work out a way to mixin the CommonsHttp vs LocalFile stuff into Ivy vs Maven resolvers
-    private String getUriPath(URI uri) {
-        return normalisePath(uri.toString());
-    }
-    
-    private String getFilePath(URI fileUri) {
-        return normalisePath(new File(fileUri).getAbsolutePath());
-    }
-    
-    private String normalisePath(String path) {
-        if (path.endsWith("/")) {
-            return path;
+
+    private RepositoryTransport getTransport(String scheme) {
+        if (scheme.equalsIgnoreCase("file")) {
+            return new FileTransport(name);
+        } else {
+            return new HttpTransport(getCredentials());
         }
-        return path + "/";
     }
 }
