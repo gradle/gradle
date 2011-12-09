@@ -27,8 +27,12 @@ class DaemonParametersTest extends Specification {
 
     def "has reasonable default values"() {
         expect:
+        !parameters.enabled
         parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
         parameters.baseDir == new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon")
+        parameters.systemProperties.isEmpty()
+        // Not that reasonable
+        parameters.jvmArgs == ['-XX:MaxPermSize=256m', '-Xmx1024m']
     }
 
     def "determines base dir from user home dir"() {
@@ -113,7 +117,7 @@ class DaemonParametersTest extends Specification {
         parameters.idleTimeout == 1450
     }
 
-    def "can configure jvm args using gradle.properties in user home directory"() {
+    def "can configure parameters using gradle.properties in user home directory"() {
         given:
         tmpDir.file("gradle.properties").withOutputStream { outstr ->
             new Properties((DaemonParameters.JVM_ARGS_SYS_PROPERTY): '-Xmx1024m -Dprop=value').store(outstr, "HEADER")
@@ -127,4 +131,33 @@ class DaemonParametersTest extends Specification {
         parameters.systemProperties == [prop: 'value']
     }
 
+    def "can enable daemon using system property"() {
+        when:
+        parameters.configureFromSystemProperties((DaemonParameters.DAEMON_SYS_PROPERTY):  'true')
+
+        then:
+        parameters.enabled
+    }
+
+    def "can disable daemon using system property"() {
+        when:
+        parameters.configureFromSystemProperties((DaemonParameters.DAEMON_SYS_PROPERTY):  'no way')
+
+        then:
+        !parameters.enabled
+    }
+
+    def "can enable daemon using gradle.properties in root directory"() {
+        given:
+        tmpDir.createFile("settings.gradle")
+        tmpDir.file("gradle.properties").withOutputStream { outstr ->
+            new Properties((DaemonParameters.DAEMON_SYS_PROPERTY): 'true').store(outstr, "HEADER")
+        }
+
+        when:
+        parameters.configureFromBuildDir(tmpDir.dir, true)
+
+        then:
+        parameters.enabled
+    }
 }

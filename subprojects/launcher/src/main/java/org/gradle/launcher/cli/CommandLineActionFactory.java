@@ -133,7 +133,7 @@ public class CommandLineActionFactory {
         DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters);
         DaemonClient client = clientServices.get(DaemonClient.class);
 
-        boolean useDaemon = "true".equalsIgnoreCase(mergedSystemProperties.get("org.gradle.daemon"));
+        boolean useDaemon = daemonParameters.isEnabled();
         useDaemon = useDaemon || commandLine.hasOption(DAEMON);
         useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();

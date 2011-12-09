@@ -31,19 +31,26 @@ import org.gradle.util.GUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class DaemonParameters {
     public static final String IDLE_TIMEOUT_SYS_PROPERTY = "org.gradle.daemon.idletimeout";
     public static final String BASE_DIR_SYS_PROPERTY = "org.gradle.daemon.registry.base";
     public static final String JVM_ARGS_SYS_PROPERTY = "org.gradle.jvmargs";
+    public static final String DAEMON_SYS_PROPERTY = "org.gradle.daemon";
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     private File baseDir = new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon");
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
     private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
+    private boolean enabled;
+
+    public DaemonParameters() {
+        jvmOptions.setAllJvmArgs(Arrays.asList("-Xmx1024m", "-XX:MaxPermSize=256m"));
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
 
     public File getBaseDir() {
         return baseDir;
@@ -133,6 +140,10 @@ public class DaemonParameters {
         propertyValue = properties.get(JVM_ARGS_SYS_PROPERTY);
         if (propertyValue != null) {
             setJvmArgs(Lists.newArrayList(Splitter.onPattern("\\s").omitEmptyStrings().split(propertyValue.toString())));
+        }
+        propertyValue = properties.get(DAEMON_SYS_PROPERTY);
+        if (propertyValue != null) {
+            enabled = propertyValue.toString().equalsIgnoreCase("true");
         }
     }
 
