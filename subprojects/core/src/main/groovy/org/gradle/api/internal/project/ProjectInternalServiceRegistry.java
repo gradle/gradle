@@ -100,6 +100,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         return new DefaultConvention();
     }
 
+    //TODO SF what's going on here?
     protected Factory<ArtifactPublicationServices> createRepositoryHandlerFactory() {
         return get(DependencyResolutionServices.class).getPublishServicesFactory();
     }
