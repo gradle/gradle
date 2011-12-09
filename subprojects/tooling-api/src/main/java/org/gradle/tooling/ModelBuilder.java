@@ -17,6 +17,7 @@ package org.gradle.tooling;
 
 import org.gradle.tooling.model.Element;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -56,6 +57,13 @@ public interface ModelBuilder<T extends Element> {
      * @return this
      */
     ModelBuilder<T> setStandardError(OutputStream outputStream);
+
+    /**
+     * Sets the {@link InputStream} that will be used by builds. Useful when the tooling api drives interactive builds.
+     *
+     * @param inputStream The input stream
+     */
+    void setStandardInput(InputStream inputStream);
 
     /**
      * Adds a progress listener which will receive progress events as the model is being built.

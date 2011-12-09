@@ -30,7 +30,9 @@ import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 
 public class DefaultConnection implements ConnectionVersion4 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
@@ -89,12 +91,28 @@ public class DefaultConnection implements ConnectionVersion4 {
                 int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
                 parameters.setIdleTimeout(idleTimeout);
             }
-            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, parameters);
+            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, parameters, safeStandardInput(operationParameters));
             DaemonClient client = clientServices.get(DaemonClient.class);
             GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer = new DaemonGradleLauncherActionExecuter(client, parameters);
 
             Factory<LoggingManagerInternal> loggingManagerFactory = loggingServices.getFactory(LoggingManagerInternal.class);
             return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingManagerFactory);
         }
+    }
+
+    private InputStream safeStandardInput(BuildOperationParametersVersion1 operationParameters) {
+        try {
+            operationParameters.getClass().getDeclaredMethod("getStandardInput");
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+
+        if (operationParameters.getStandardInput() == null) {
+            //Hence we use a dummy input stream by default
+            //TODO SF make sure it is correct
+            //Tooling api means embedded use. We don't want to consume standard input if we don't control the process.
+            return new ByteArrayInputStream(new byte[0]);
+        }
+        return operationParameters.getStandardInput();
     }
 }

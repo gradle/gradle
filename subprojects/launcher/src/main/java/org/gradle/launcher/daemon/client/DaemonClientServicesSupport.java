@@ -29,6 +29,8 @@ import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 
+import java.io.InputStream;
+
 /**
  * Some support wiring for daemon clients.
  * 
@@ -38,9 +40,11 @@ import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry {
 
     private final ServiceRegistry loggingServices;
+    private final InputStream standardInput;
 
-    public DaemonClientServicesSupport(ServiceRegistry loggingServices) {
+    public DaemonClientServicesSupport(ServiceRegistry loggingServices, InputStream standardInput) {
         this.loggingServices = loggingServices;
+        this.standardInput = standardInput;
     }
 
     public ServiceRegistry getLoggingServices() {
@@ -64,7 +68,12 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
     }
 
     protected DaemonClient createDaemonClient() {
-        return new DaemonClient(get(DaemonConnector.class), get(BuildClientMetaData.class), get(OutputEventListener.class), makeDaemonCompatibilitySpec());
+        return new DaemonClient(get(DaemonConnector.class),
+                get(BuildClientMetaData.class),
+                get(OutputEventListener.class),
+                makeDaemonCompatibilitySpec(),
+                standardInput
+                );
     }
 
     protected OutputEventListener createOutputEventListener() {

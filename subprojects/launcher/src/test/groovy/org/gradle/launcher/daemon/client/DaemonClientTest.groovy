@@ -15,19 +15,19 @@
  */
 package org.gradle.launcher.daemon.client
 
+import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.GradleLauncherAction
-import org.gradle.launcher.exec.BuildActionParameters
+import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.protocol.Build
-import org.gradle.launcher.daemon.protocol.Success
 import org.gradle.launcher.daemon.protocol.CommandFailure
 import org.gradle.launcher.daemon.protocol.Stop
+import org.gradle.launcher.daemon.protocol.Success
+import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
 import spock.lang.Specification
-import org.gradle.launcher.daemon.context.DaemonContext
-import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 
 class DaemonClientTest extends Specification {
     final DaemonConnector connector = Mock()
@@ -36,7 +36,7 @@ class DaemonClientTest extends Specification {
     final BuildClientMetaData metaData = Mock()
     final OutputEventListener outputEventListener = Mock()
     final Spec<DaemonContext> compatibilitySpec = Mock()
-    final DaemonClient client = new DaemonClient(connector, metaData, outputEventListener, compatibilitySpec)
+    final DaemonClient client = new DaemonClient(connector, metaData, outputEventListener, compatibilitySpec, System.in)
 
     def setup() {
         daemonConnection.getConnection() >> connection

@@ -20,12 +20,15 @@ import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 
 public class AbstractLongRunningOperation {
     private OutputStream stdout;
     private OutputStream stderr;
+    private InputStream stdin;
+
     private final ProgressListenerAdapter progressListener = new ProgressListenerAdapter();
     private final ConnectionParameters parameters;
 
@@ -41,6 +44,10 @@ public class AbstractLongRunningOperation {
     public AbstractLongRunningOperation setStandardError(OutputStream outputStream) {
         stderr = outputStream;
         return this;
+    }
+
+    public void setStandardInput(InputStream inputStream) {
+        stdin = inputStream;
     }
 
     public AbstractLongRunningOperation addProgressListener(ProgressListener listener) {
@@ -93,6 +100,10 @@ public class AbstractLongRunningOperation {
 
         public ProgressListenerVersion1 getProgressListener() {
             return progressListener;
+        }
+
+        public InputStream getStandardInput() {
+            return stdin;
         }
     }
 
