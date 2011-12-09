@@ -36,7 +36,7 @@ class DaemonClientTest extends Specification {
     final BuildClientMetaData metaData = Mock()
     final OutputEventListener outputEventListener = Mock()
     final Spec<DaemonContext> compatibilitySpec = Mock()
-    final DaemonClient client = new DaemonClient(connector, metaData, outputEventListener, compatibilitySpec, System.in)
+    final DaemonClient client = new DaemonClient(connector, metaData, outputEventListener, compatibilitySpec, Mock(DaemonStandardInput))
 
     def setup() {
         daemonConnection.getConnection() >> connection

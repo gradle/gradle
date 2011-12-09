@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class DaemonClientServicesTest extends Specification {
     final DaemonParameters parameters = new DaemonParameters(baseDir: new File("user-home"))
-    final DaemonClientServices services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), parameters, System.in)
+    final DaemonClientServices services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), parameters, Mock(DaemonStandardInput))
 
     def "makes a DaemonRegistry available"() {
         expect:

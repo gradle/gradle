@@ -20,6 +20,7 @@ import org.gradle.api.internal.Factory;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
+import org.gradle.launcher.daemon.client.DaemonStandardInput;
 import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
@@ -101,19 +102,17 @@ public class DefaultConnection implements ConnectionVersion4 {
         }
     }
 
-    private InputStream safeStandardInput(BuildOperationParametersVersion1 operationParameters) {
-        if (!new CompatibilityChecker(operationParameters).supports("getStandardInput")) {
-            return null;
+    private DaemonStandardInput safeStandardInput(BuildOperationParametersVersion1 operationParameters) {
+        if (new CompatibilityChecker(operationParameters).supports("getStandardInput")) {
+            InputStream is = operationParameters.getStandardInput();
+            if (is != null) {
+                return new DaemonStandardInput(is);
+            }
         }
-
-        InputStream is = operationParameters.getStandardInput();
-
-        if (is == null) {
-            //TODO SF make sure it is correct
-            //Tooling api means embedded use. We don't want to consume standard input if we don't own the process.
-            //Hence we use a dummy input stream by default
-            return new ByteArrayInputStream(new byte[0]);
-        }
-        return is;
+        //TODO SF make sure it is correct
+        //Tooling api means embedded use. We don't want to consume standard input if we don't own the process.
+        //Hence we use a dummy input stream by default
+        InputStream dummy = new ByteArrayInputStream(new byte[0]);
+        return new DaemonStandardInput(dummy);
     }
 }

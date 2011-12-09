@@ -57,7 +57,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     }
 
     public EmbeddedDaemonClientServices(ServiceRegistry loggingServices, boolean displayOutput) {
-        super(loggingServices, System.in);
+        super(loggingServices, new DaemonStandardInput(System.in));
         this.displayOutput = displayOutput;
         add(EmbeddedDaemonFactory.class, new EmbeddedDaemonFactory());
     }
