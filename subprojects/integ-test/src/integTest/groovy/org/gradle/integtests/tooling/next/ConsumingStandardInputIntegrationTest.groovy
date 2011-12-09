@@ -29,6 +29,7 @@ import spock.lang.Timeout
 class ConsumingStandardInputIntegrationTest extends ToolingApiSpecification {
 
     def setup() {
+        //since this test treats with standard input I will not run it for embedded daemon for safety.
         toolingApi.isEmbedded = false
     }
 
