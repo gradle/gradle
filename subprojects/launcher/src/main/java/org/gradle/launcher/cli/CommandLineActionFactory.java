@@ -30,7 +30,6 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.daemon.bootstrap.DaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
-import org.gradle.launcher.daemon.server.DaemonJvmOptions;
 import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.exec.ExceptionReportingAction;
 import org.gradle.launcher.exec.ExecutionListener;
@@ -127,11 +126,10 @@ public class CommandLineActionFactory {
         final StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
         Map<String, String> mergedSystemProperties = startParameter.getMergedSystemProperties();
-        List<String> daemonOpts = DaemonJvmOptions.getFromEnvironmentVariable();
         DaemonParameters daemonParameters = new DaemonParameters();
-        daemonParameters.useGradleUserHomeDir(startParameter.getGradleUserHomeDir());
+        daemonParameters.configureFromBuildDir(startParameter.getCurrentDir(), startParameter.isSearchUpwards());
+        daemonParameters.configureFromGradleUserHome(startParameter.getGradleUserHomeDir());
         daemonParameters.configureFromSystemProperties(mergedSystemProperties);
-        daemonParameters.setJvmArgs(daemonOpts);
         DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters);
         DaemonClient client = clientServices.get(DaemonClient.class);
 
@@ -148,7 +146,7 @@ public class CommandLineActionFactory {
         }
         if (useDaemon) {
             return new ActionAdapter(
-                    new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData(), startTime, System.getProperties(), System.getenv()));
+                    new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData(), startTime, daemonParameters.getEffectiveSystemProperties(), System.getenv()));
         }
 
         return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData(), startTime));

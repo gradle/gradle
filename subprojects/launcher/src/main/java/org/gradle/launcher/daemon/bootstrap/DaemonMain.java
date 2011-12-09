@@ -19,13 +19,15 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.launcher.daemon.server.*;
+import org.gradle.launcher.daemon.server.Daemon;
+import org.gradle.launcher.daemon.server.DaemonParameters;
+import org.gradle.launcher.daemon.server.DaemonServices;
+import org.gradle.launcher.daemon.server.DaemonStoppedException;
 import org.gradle.launcher.exec.EntryPoint;
 import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingServiceRegistry;
 
 import java.io.*;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -56,11 +58,9 @@ public class DaemonMain extends EntryPoint {
             invalidArgs("Second argument must be a whole number (i.e. daemon idle timeout in ms)");
         }
 
-        List<String> daemonOpts = DaemonJvmOptions.getFromEnvironmentVariable();
         DaemonParameters parameters = new DaemonParameters();
         parameters.setBaseDir(daemonBaseDir);
         parameters.setIdleTimeout(idleTimeoutMs);
-        parameters.setJvmArgs(daemonOpts);
 
         new DaemonMain(parameters, true).run();
     }

@@ -69,9 +69,11 @@ class DaemonLifecycleSpec extends Specification {
     void startBuild() {
         run {
             builds << handles.createHandle {
-                withEnvironmentVars(GRADLE_DAEMON_OPTS: '-ea')
                 withTasks("watch")
-                withArguments("-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}", "--info")
+                withArguments(
+                        "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}",
+                        "--info",
+                        "-Dorg.gradle.jvmargs=-ea")
                 if (javaHome) {
                     withJavaHome(javaHome)
                 }
@@ -98,6 +100,11 @@ class DaemonLifecycleSpec extends Specification {
 
     void stopDaemons() {
         run { stopDaemonsNow() }
+    }
+
+    void buildSucceeds(String script) {
+        distribution.file('build.gradle') << script
+        executer.withArguments("--info", "-Dorg.gradle.jvmargs=").run()
     }
 
     void stopDaemonsNow() {
@@ -374,7 +381,7 @@ class DaemonLifecycleSpec extends Specification {
     }
     
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
-    def "can stop a daemon that using a different java home"() {
+    def "can stop a daemon that is using a different java home"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()
 
@@ -388,14 +395,22 @@ class DaemonLifecycleSpec extends Specification {
         stopped()
     }
 
+    def "honours jvm args specified in gradle.properties"() {
+        given:
+        distribution.file("gradle.properties") << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx16m"
+
+        expect:
+        buildSucceeds """
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
+assert System.getProperty('some-prop') == 'some-value'
+        """
+    }
+
     def cleanup() {
         try {
             sequenceBuilder.build(handles.daemonRegistry).run()
         } finally {
-            new DaemonEventSequenceBuilder().with {
-                stopDaemons()
-                build(handles.daemonRegistry)
-            }.run()
+            stopDaemonsNow()
         }
     }
 

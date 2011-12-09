@@ -16,9 +16,7 @@
 package org.gradle.integtests.fixtures;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
     private static final String DAEMON_REGISTRY_SYS_PROP = "org.gradle.integtest.daemon.registry";
@@ -30,15 +28,9 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
     }
 
     @Override
-    public Map<String, String> getAllEnvironmentVars() {
-        Map<String, String> vars = new HashMap<String, String>();
-        vars.put("GRADLE_DAEMON_OPTS", "-ea -XX:MaxPermSize=256m");
-        vars.putAll(super.getAllEnvironmentVars());
-        return vars;
-    }
-
-    @Override
     protected List<String> getAllArgs() {
+        List<String> originalArgs = super.getAllArgs();
+
         List<String> args = new ArrayList<String>();
         args.add("--daemon");
         args.add("-Dorg.gradle.daemon.idletimeout=" + (5 * 60 * 1000));
@@ -46,7 +38,15 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         if (customDaemonRegistryDir != null && !distribution.isUsingOwnUserHomeDir()) {
             args.add("-Dorg.gradle.daemon.registry.base=" + customDaemonRegistryDir);
         }
-        args.addAll(super.getAllArgs());
+        
+        args.addAll(originalArgs);
+
+        // TODO - clean this up. It's a workaround to provide some way for the client of this executer to
+        // specify that no jvm args should be provided
+        if(!args.remove("-Dorg.gradle.jvmargs=")){
+            args.add(0, "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m");
+        }
+        
         return args;
     }
 }

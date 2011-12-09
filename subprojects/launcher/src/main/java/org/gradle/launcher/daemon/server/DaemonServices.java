@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.server;
 
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -24,11 +25,10 @@ import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
+import org.gradle.process.internal.JvmOptions;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
@@ -55,15 +55,9 @@ public class DaemonServices extends DefaultServiceRegistry {
         builder.setDaemonRegistryDir(daemonBaseDir);
         builder.setIdleTimeout(idleTimeoutMs);
 
-        List<String> jvmArgs = new ArrayList<String>();
-        for (String arg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
-            if (!arg.startsWith("-D")) {
-                jvmArgs.add(arg);
-            }
-        }
-        builder.setDaemonOpts(jvmArgs);
-
-        System.out.println("=> ADVERTISING OPTS " + builder.getDaemonOpts());
+        JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
+        jvmOptions.setAllJvmArgs(ManagementFactory.getRuntimeMXBean().getInputArguments());
+        builder.setDaemonOpts(jvmOptions.getAllJvmArgsWithoutSystemProperties());
 
         return builder.create();
     }

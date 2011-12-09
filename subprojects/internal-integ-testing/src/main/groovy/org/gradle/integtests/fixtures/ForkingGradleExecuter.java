@@ -64,7 +64,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
 
         DaemonParameters parameters = new DaemonParameters();
-        parameters.useGradleUserHomeDir(userHome);
+        parameters.configureFromGradleUserHome(userHome);
         parameters.configureFromSystemProperties(getSystemPropertiesFromArgs());
         return new DaemonRegistryServices(parameters.getBaseDir()).get(DaemonRegistry.class);
     }

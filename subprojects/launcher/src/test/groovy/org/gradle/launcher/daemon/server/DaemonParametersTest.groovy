@@ -15,12 +15,14 @@
  */
 package org.gradle.launcher.daemon.server
 
-import spock.lang.Specification
-import org.gradle.api.GradleException
 import org.gradle.StartParameter
-
+import org.gradle.api.GradleException
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
+import spock.lang.Specification
 
 class DaemonParametersTest extends Specification {
+    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     final DaemonParameters parameters = new DaemonParameters()
 
     def "has reasonable default values"() {
@@ -29,11 +31,11 @@ class DaemonParametersTest extends Specification {
         parameters.baseDir == new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon")
     }
 
-    def "determines base dir from Gradle user home dir"() {
+    def "determines base dir from user home dir"() {
         def userHome = new File("some-dir")
 
         when:
-        parameters.useGradleUserHomeDir(userHome)
+        parameters.configureFromGradleUserHome(userHome)
 
         then:
         parameters.baseDir == new File(userHome, "daemon").canonicalFile
@@ -41,7 +43,7 @@ class DaemonParametersTest extends Specification {
 
     def "can configure base directory using system property"() {
         when:
-        parameters.configureFromSystemProperties((DaemonParameters.SYSTEM_PROPERTY_KEY):  'some-dir')
+        parameters.configureFromSystemProperties((DaemonParameters.BASE_DIR_SYS_PROPERTY): 'some-dir')
 
         then:
         parameters.baseDir == new File('some-dir').canonicalFile
@@ -49,7 +51,7 @@ class DaemonParametersTest extends Specification {
 
     def "can configure idle timeout using system property"() {
         when:
-        parameters.configureFromSystemProperties((DaemonParameters.IDLE_TIMEOUT_SYS_PROPERTY):  '4000')
+        parameters.configureFromSystemProperties((DaemonParameters.IDLE_TIMEOUT_SYS_PROPERTY): '4000')
 
         then:
         parameters.idleTimeout == 4000
@@ -57,7 +59,7 @@ class DaemonParametersTest extends Specification {
 
     def "nice message for invalid idle timeout"() {
         when:
-        parameters.configureFromSystemProperties((DaemonParameters.IDLE_TIMEOUT_SYS_PROPERTY):  'asdf')
+        parameters.configureFromSystemProperties((DaemonParameters.IDLE_TIMEOUT_SYS_PROPERTY): 'asdf')
 
         then:
         def ex = thrown(GradleException)
@@ -67,10 +69,62 @@ class DaemonParametersTest extends Specification {
 
     def "uses default idle timeout if prop not set"() {
         when:
-        parameters.configureFromSystemProperties(abc:  'def')
+        parameters.configureFromSystemProperties(abc: 'def')
 
         then:
         parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
+    }
+
+    def "can configure jvm args using system property"() {
+        when:
+        parameters.configureFromSystemProperties((DaemonParameters.JVM_ARGS_SYS_PROPERTY):  '-Xmx1024m -Dprop=value')
+
+        then:
+        parameters.jvmArgs == ['-Xmx1024m',]
+        parameters.systemProperties == [prop: 'value']
+    }
+
+    def "can configure jvm args using gradle.properties in root directory"() {
+        given:
+        tmpDir.createFile("settings.gradle")
+        tmpDir.file("gradle.properties").withOutputStream { outstr ->
+            new Properties((DaemonParameters.JVM_ARGS_SYS_PROPERTY): '-Xmx1024m -Dprop=value').store(outstr, "HEADER")
+        }
+
+        when:
+        parameters.configureFromBuildDir(tmpDir.dir, true)
+
+        then:
+        parameters.jvmArgs == ['-Xmx1024m']
+        parameters.systemProperties == [prop: 'value']
+    }
+
+    def "can configure idle timeout using gradle.properties in root directory"() {
+        given:
+        tmpDir.createFile("settings.gradle")
+        tmpDir.file("gradle.properties").withOutputStream { outstr ->
+            new Properties((DaemonParameters.IDLE_TIMEOUT_SYS_PROPERTY): '1450').store(outstr, "HEADER")
+        }
+
+        when:
+        parameters.configureFromBuildDir(tmpDir.dir, true)
+
+        then:
+        parameters.idleTimeout == 1450
+    }
+
+    def "can configure jvm args using gradle.properties in user home directory"() {
+        given:
+        tmpDir.file("gradle.properties").withOutputStream { outstr ->
+            new Properties((DaemonParameters.JVM_ARGS_SYS_PROPERTY): '-Xmx1024m -Dprop=value').store(outstr, "HEADER")
+        }
+
+        when:
+        parameters.configureFromGradleUserHome(tmpDir.dir)
+
+        then:
+        parameters.jvmArgs == ['-Xmx1024m']
+        parameters.systemProperties == [prop: 'value']
     }
 
 }

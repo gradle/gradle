@@ -77,6 +77,7 @@ class ToolingApi {
         connector.useGradleUserHomeDir(new File(dist.userHomeDir.absolutePath))
         connector.forProjectDirectory(new File(getProjectDir().absolutePath))
         connector.searchUpwards(false)
+        connector.daemonMaxIdleTime(300, TimeUnit.SECONDS)
         if (isEmbedded) {
             LOGGER.info("Using embedded tooling API provider");
             connector.useClasspathDistribution()
@@ -85,7 +86,6 @@ class ToolingApi {
             LOGGER.info("Using daemon tooling API provider");
             connector.useInstallation(new File(dist.gradleHomeDir.absolutePath))
             connector.embedded(false)
-            connector.daemonMaxIdleTime(300, TimeUnit.SECONDS)
         }
         connectorConfigurers.each {
             it.call(connector)
