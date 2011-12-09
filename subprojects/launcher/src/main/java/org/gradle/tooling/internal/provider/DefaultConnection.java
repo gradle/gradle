@@ -24,6 +24,7 @@ import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.tooling.internal.CompatibilityChecker;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
@@ -101,18 +102,18 @@ public class DefaultConnection implements ConnectionVersion4 {
     }
 
     private InputStream safeStandardInput(BuildOperationParametersVersion1 operationParameters) {
-        try {
-            operationParameters.getClass().getDeclaredMethod("getStandardInput");
-        } catch (NoSuchMethodException e) {
+        if (!new CompatibilityChecker(operationParameters).supports("getStandardInput")) {
             return null;
         }
 
-        if (operationParameters.getStandardInput() == null) {
-            //Hence we use a dummy input stream by default
+        InputStream is = operationParameters.getStandardInput();
+
+        if (is == null) {
             //TODO SF make sure it is correct
-            //Tooling api means embedded use. We don't want to consume standard input if we don't control the process.
+            //Tooling api means embedded use. We don't want to consume standard input if we don't own the process.
+            //Hence we use a dummy input stream by default
             return new ByteArrayInputStream(new byte[0]);
         }
-        return operationParameters.getStandardInput();
+        return is;
     }
 }
