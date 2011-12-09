@@ -81,7 +81,8 @@ public class DefaultConnection implements ConnectionVersion4 {
             File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
 
             DaemonParameters parameters = new DaemonParameters();
-            parameters.configureFromBuildDir(operationParameters.getProjectDir(), operationParameters.isSearchUpwards());
+            boolean searchUpwards = operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;
+            parameters.configureFromBuildDir(operationParameters.getProjectDir(), searchUpwards);
             parameters.configureFromGradleUserHome(gradleUserHomeDir);
             parameters.configureFromSystemProperties(System.getProperties());
             if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
