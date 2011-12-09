@@ -37,6 +37,8 @@ import org.apache.ivy.plugins.version.VersionMatcher;
 import org.apache.ivy.util.ChecksumHelper;
 import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -48,6 +50,7 @@ import java.util.*;
  *
  */
 public class RepositoryResolver extends AbstractPatternsBasedResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryResolver.class);
 
     private final Repository repository;
 
@@ -60,23 +63,36 @@ public class RepositoryResolver extends AbstractPatternsBasedResolver {
         return repository;
     }
 
-    protected ResolvedResource findResourceUsingPattern(ModuleRevisionId mrid, String pattern,
-                                                        Artifact artifact, ResourceMDParser rmdparser, Date date) {
+    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
+        EventManager eventManager = getEventManager();
+        try {
+            if (eventManager != null) {
+                repository.addTransferListener(eventManager);
+            }
+            return super.download(artifacts, options);
+        } finally {
+            if (eventManager != null) {
+                repository.removeTransferListener(eventManager);
+            }
+        }
+    }
+
+    protected ResolvedResource findResourceUsingPattern(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, ResourceMDParser resourceParser, Date date) {
         String name = getName();
         VersionMatcher versionMatcher = getSettings().getVersionMatcher();
         try {
-            if (!versionMatcher.isDynamic(mrid)) {
-                String resourceName = IvyPatternHelper.substitute(pattern, mrid, artifact);
-                Message.debug("\t trying " + resourceName);
+            if (!versionMatcher.isDynamic(moduleRevisionId)) {
+                String resourceName = IvyPatternHelper.substitute(pattern, moduleRevisionId, artifact);
+                LOGGER.debug("Loading {}", resourceName);
                 logAttempt(resourceName);
                 Resource res = repository.getResource(resourceName);
                 boolean reachable = res.exists();
                 if (reachable) {
                     String revision;
-                    if (pattern.indexOf(IvyPatternHelper.REVISION_KEY) == -1) {
+                    if (!pattern.contains(IvyPatternHelper.REVISION_KEY)) {
                         if ("ivy".equals(artifact.getType()) || "pom".equals(artifact.getType())) {
                             // we can't determine the revision from the pattern, get it
-                            // from the moduledescriptor itself
+                            // from the module descriptor itself
                             File temp = File.createTempFile("ivy", artifact.getExt());
                             temp.deleteOnExit();
                             repository.get(res.getName(), temp);
@@ -93,43 +109,37 @@ public class RepositoryResolver extends AbstractPatternsBasedResolver {
                             revision = "working@" + name;
                         }
                     } else {
-                        revision = mrid.getRevision();
+                        revision = moduleRevisionId.getRevision();
                     }
                     return new ResolvedResource(res, revision);
-                } else if (versionMatcher.isDynamic(mrid)) {
-                    return findDynamicResourceUsingPattern(rmdparser, mrid, pattern, artifact, date);
+                } else if (versionMatcher.isDynamic(moduleRevisionId)) {
+                    return findDynamicResourceUsingPattern(resourceParser, moduleRevisionId, pattern, artifact, date);
                 } else {
-                    Message.debug("\t" + name + ": resource not reachable for " + mrid + ": res=" + res);
+                    LOGGER.debug("Resource not reachable for {}: res={}", moduleRevisionId, res);
                     return null;
                 }
             } else {
-                return findDynamicResourceUsingPattern(rmdparser, mrid, pattern, artifact, date);
+                return findDynamicResourceUsingPattern(resourceParser, moduleRevisionId, pattern, artifact, date);
             }
         } catch (IOException ex) {
-            throw new RuntimeException(name + ": unable to get resource for " + mrid + ": res="
-                    + IvyPatternHelper.substitute(pattern, mrid, artifact) + ": " + ex, ex);
+            throw new RuntimeException(name + ": unable to get resource for " + moduleRevisionId + ": res="
+                    + IvyPatternHelper.substitute(pattern, moduleRevisionId, artifact) + ": " + ex, ex);
         } catch (ParseException ex) {
-            throw new RuntimeException(name + ": unable to get resource for " + mrid + ": res="
-                    + IvyPatternHelper.substitute(pattern, mrid, artifact) + ": " + ex, ex);
+            throw new RuntimeException(name + ": unable to get resource for " + moduleRevisionId + ": res="
+                    + IvyPatternHelper.substitute(pattern, moduleRevisionId, artifact) + ": " + ex, ex);
         }
     }
 
-    private ResolvedResource findDynamicResourceUsingPattern(
-            ResourceMDParser rmdparser, ModuleRevisionId mrid, String pattern, Artifact artifact,
-            Date date) {
-        String name = getName();
-        logAttempt(IvyPatternHelper.substitute(pattern, ModuleRevisionId.newInstance(mrid,
-                IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY)), artifact));
-        ResolvedResource[] rress = listResources(repository, mrid, pattern, artifact);
-        if (rress == null) {
-            Message.debug("\t" + name + ": unable to list resources for " + mrid + ": pattern="
-                    + pattern);
+    private ResolvedResource findDynamicResourceUsingPattern(ResourceMDParser resourceParser, ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, Date date) {
+        logAttempt(IvyPatternHelper.substitute(pattern, ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY)), artifact));
+        ResolvedResource[] resourceResources = listResources(repository, moduleRevisionId, pattern, artifact);
+        if (resourceResources == null) {
+            LOGGER.debug("Unable to list resources for {}: pattern={}", moduleRevisionId, pattern);
             return null;
         } else {
-            ResolvedResource found = findResource(rress, rmdparser, mrid, date);
+            ResolvedResource found = findResource(resourceResources, resourceParser, moduleRevisionId, date);
             if (found == null) {
-                Message.debug("\t" + name + ": no resource found for " + mrid + ": pattern="
-                        + pattern);
+                LOGGER.debug("No resource found for {}: pattern={}", moduleRevisionId, pattern);
             }
             return found;
         }
@@ -140,93 +150,77 @@ public class RepositoryResolver extends AbstractPatternsBasedResolver {
     }
 
     /**
-     * List all revisions as resolved resources for the given artifact in the given repository using the given pattern, and using the given mrid except its revision.
+     * List all revisions as resolved resources for the given artifact in the given repository using the given pattern, and using the given module id except its revision.
      *
      * @param repository the repository in which revisions should be located
-     * @param mrid the module revision id to look for (except revision)
+     * @param moduleRevisionId the module revision id to look for (except revision)
      * @param pattern the pattern to use to locate the revisions
      * @param artifact the artifact to find
      * @return an array of ResolvedResource, all pointing to a different revision of the given Artifact.
      */
-    protected ResolvedResource[] listResources(Repository repository, ModuleRevisionId mrid, String pattern, Artifact artifact) {
-        return ResolverHelper.findAll(repository, mrid, pattern, artifact);
+    protected ResolvedResource[] listResources(Repository repository, ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
+        return ResolverHelper.findAll(repository, moduleRevisionId, pattern, artifact);
     }
 
-    protected long get(Resource resource, File dest) throws IOException {
-        Message.verbose("\t" + getName() + ": downloading " + resource.getName());
-        Message.debug("\t\tto " + dest);
-        if (dest.getParentFile() != null) {
-            dest.getParentFile().mkdirs();
+    protected long get(Resource resource, File destination) throws IOException {
+        LOGGER.debug("Downloading {} to {}", resource.getName(), destination);
+        if (destination.getParentFile() != null) {
+            destination.getParentFile().mkdirs();
         }
-        repository.get(resource.getName(), dest);
-        return dest.length();
+        repository.get(resource.getName(), destination);
+        return destination.length();
     }
 
     public void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
-        String destPattern;
+        String destinationPattern;
         if ("ivy".equals(artifact.getType()) && !getIvyPatterns().isEmpty()) {
-            destPattern = (String) getIvyPatterns().get(0);
+            destinationPattern = (String) getIvyPatterns().get(0);
         } else if (!getArtifactPatterns().isEmpty()) {
-            destPattern = (String) getArtifactPatterns().get(0);
+            destinationPattern = (String) getArtifactPatterns().get(0);
         } else {
-            throw new IllegalStateException("impossible to publish " + artifact + " using " + this
-                    + ": no artifact pattern defined");
+            throw new IllegalStateException("impossible to publish " + artifact + " using " + this + ": no artifact pattern defined");
         }
         // Check for m2 compatibility
-        ModuleRevisionId mrid = artifact.getModuleRevisionId();
+        ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
         if (isM2compatible()) {
-            mrid = convertM2IdForResourceSearch(mrid);
+            moduleRevisionId = convertM2IdForResourceSearch(moduleRevisionId);
         }
 
-        String dest = getDestination(destPattern, artifact, mrid);
+        String destination = getDestination(destinationPattern, artifact, moduleRevisionId);
 
-        put(artifact, src, dest, overwrite);
-        Message.info("\tpublished " + artifact.getName() + " to " + hidePassword(dest));
+        put(artifact, src, destination, overwrite);
+        LOGGER.info("Published {} to {}", artifact.getName(), hidePassword(destination));
     }
 
-    protected String getDestination(String pattern, Artifact artifact, ModuleRevisionId mrid) {
-        return IvyPatternHelper.substitute(pattern, mrid, artifact);
+    protected String getDestination(String pattern, Artifact artifact, ModuleRevisionId moduleRevisionId) {
+        return IvyPatternHelper.substitute(pattern, moduleRevisionId, artifact);
     }
 
-    protected void put(Artifact artifact, File src, String dest, boolean overwrite) throws IOException {
+    protected void put(Artifact artifact, File src, String destination, boolean overwrite) throws IOException {
         // verify the checksum algorithms before uploading artifacts!
         String[] checksums = getChecksumAlgorithms();
-        for (int i = 0; i < checksums.length; i++) {
-            if (!ChecksumHelper.isKnownAlgorithm(checksums[i])) {
-                throw new IllegalArgumentException("Unknown checksum algorithm: " + checksums[i]);
+        for (String checksum : checksums) {
+            if (!ChecksumHelper.isKnownAlgorithm(checksum)) {
+                throw new IllegalArgumentException("Unknown checksum algorithm: " + checksum);
             }
         }
 
-        repository.put(artifact, src, dest, overwrite);
-        for (int i = 0; i < checksums.length; i++) {
-            putChecksum(artifact, src, dest, overwrite, checksums[i]);
+        repository.put(artifact, src, destination, overwrite);
+        for (String checksum : checksums) {
+            putChecksum(artifact, src, destination, overwrite, checksum);
         }
     }
 
-    protected void putChecksum(Artifact artifact, File src, String dest, boolean overwrite,
+    protected void putChecksum(Artifact artifact, File src, String destination, boolean overwrite,
                                String algorithm) throws IOException {
         File csFile = File.createTempFile("ivytemp", algorithm);
         try {
             FileUtil.copy(new ByteArrayInputStream(ChecksumHelper.computeAsString(src, algorithm)
                     .getBytes()), csFile, null);
             repository.put(DefaultArtifact.cloneWithAnotherTypeAndExt(artifact, algorithm,
-                    artifact.getExt() + "." + algorithm), csFile, dest + "." + algorithm, overwrite);
+                    artifact.getExt() + "." + algorithm), csFile, destination + "." + algorithm, overwrite);
         } finally {
             csFile.delete();
-        }
-    }
-
-    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
-        EventManager eventManager = getEventManager();
-        try {
-            if (eventManager != null) {
-                repository.addTransferListener(eventManager);
-            }
-            return super.download(artifacts, options);
-        } finally {
-            if (eventManager != null) {
-                repository.removeTransferListener(eventManager);
-            }
         }
     }
 
@@ -254,10 +248,6 @@ public class RepositoryResolver extends AbstractPatternsBasedResolver {
         } catch (IOException e) {
             return false;
         }
-    }
-
-    public String getTypeName() {
-        return "repository";
     }
 
     public void dumpSettings() {
