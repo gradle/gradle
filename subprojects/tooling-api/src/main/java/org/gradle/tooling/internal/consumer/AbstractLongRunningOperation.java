@@ -46,8 +46,9 @@ public class AbstractLongRunningOperation {
         return this;
     }
 
-    public void setStandardInput(InputStream inputStream) {
+    public AbstractLongRunningOperation setStandardInput(InputStream inputStream) {
         stdin = inputStream;
+        return this;
     }
 
     public AbstractLongRunningOperation addProgressListener(ProgressListener listener) {

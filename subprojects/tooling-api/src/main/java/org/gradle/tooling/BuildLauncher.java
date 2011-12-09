@@ -84,8 +84,9 @@ public interface BuildLauncher {
      * Sets the {@link java.io.InputStream} that will be used by builds. Useful when the tooling api drives interactive builds.
      *
      * @param inputStream The input stream
+     * @return this
      */
-    void setStandardInput(InputStream inputStream);
+    BuildLauncher setStandardInput(InputStream inputStream);
 
     /**
      * Adds a progress listener which will receive progress events as the build executes.

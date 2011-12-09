@@ -62,8 +62,9 @@ public interface ModelBuilder<T extends Element> {
      * Sets the {@link InputStream} that will be used by builds. Useful when the tooling api drives interactive builds.
      *
      * @param inputStream The input stream
+     * @return this
      */
-    void setStandardInput(InputStream inputStream);
+    ModelBuilder<T> setStandardInput(InputStream inputStream);
 
     /**
      * Adds a progress listener which will receive progress events as the model is being built.
