@@ -15,11 +15,11 @@
  */
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.cache.Cache;
-import org.gradle.api.internal.cache.MapBackedCache;
 import org.gradle.api.internal.cache.CacheAccessSerializer;
+import org.gradle.api.internal.cache.MapBackedCache;
+import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLockManager;
@@ -27,8 +27,8 @@ import org.gradle.os.ProcessEnvironment;
 import org.gradle.os.jna.NativeEnvironment;
 
 import java.io.File;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -43,7 +43,6 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
             new MapBackedCache<File, DaemonRegistry>(REGISTRY_STORAGE)
     );
 
-    //TODO SF - If possible I'd like to have an integration test that covers the necessity of separate registry storages
     public DaemonRegistryServices(File daemonBaseDir) {
         this(daemonBaseDir, REGISTRY_CACHE);
     }
