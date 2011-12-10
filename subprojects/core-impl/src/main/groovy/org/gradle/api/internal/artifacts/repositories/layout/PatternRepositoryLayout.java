@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.internal.artifacts.repositories.PatternBasedResolver;
 
 import java.net.URI;

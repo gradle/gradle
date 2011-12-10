@@ -220,7 +220,7 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
                                 mavenMetadata.buildNumber = getText();
                             }
                             if ("metadata/versioning/versions/version".equals(getContext())) {
-                                mavenMetadata.versions.add((getText().trim()));
+                                mavenMetadata.versions.add(getText().trim());
                             }
                             super.endElement(uri, localName, qName);
                         }
