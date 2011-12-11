@@ -406,7 +406,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository implem
 
         @Override
         public String toString() {
-            return "CachedResource: " + source + " = " + cacheFile;
+            return "CachedResource: " + cacheFile + " for " + source;
         }
 
         public String getName() {
@@ -426,7 +426,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository implem
         }
 
         public boolean isLocal() {
-            return false;
+            return true;
         }
 
         public Resource clone(String cloneName) {

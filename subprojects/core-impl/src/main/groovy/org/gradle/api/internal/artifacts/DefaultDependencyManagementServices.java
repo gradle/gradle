@@ -220,7 +220,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
-        return new RepositoryTransportFactory(get(ExternalArtifactCache.class));
+        return new RepositoryTransportFactory(get(ExternalArtifactCache.class), get(ProgressLoggerFactory.class));
     }
 
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
