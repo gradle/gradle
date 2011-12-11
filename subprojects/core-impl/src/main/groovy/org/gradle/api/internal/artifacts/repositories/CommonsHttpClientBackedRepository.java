@@ -73,12 +73,13 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository implem
     public Resource getResource(final String source, ArtifactRevisionId artifactId) throws IOException {
         LOGGER.debug("Constructing GET resource: {}", source);
 
-        List<CachedArtifact> artifacts = externalArtifactCache.getMatchingCachedArtifacts(artifactId);
+        List<CachedArtifact> cachedArtifacts = new ArrayList<CachedArtifact>();
+        externalArtifactCache.addMatchingCachedArtifacts(artifactId, cachedArtifacts);
 
         releasePriorResources();
         GetMethod method = new GetMethod(source);
         configureMethod(method);
-        Resource resource = createLazyResource(source, method, artifacts);
+        Resource resource = createLazyResource(source, method, cachedArtifacts);
         resources.put(source, resource);
         return resource;
     }

@@ -26,8 +26,6 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class PatternBasedExternalArtifactCache implements ExternalArtifactCache {
@@ -39,17 +37,15 @@ public class PatternBasedExternalArtifactCache implements ExternalArtifactCache 
         this.pattern = pattern;
     }
 
-    public List<CachedArtifact> getMatchingCachedArtifacts(ArtifactRevisionId artifact) {
-        if (artifact == null) {
-            return Collections.emptyList();
+    public void addMatchingCachedArtifacts(ArtifactRevisionId artifactId, final List<CachedArtifact> cachedArtifactList) {
+        if (artifactId == null) {
+            return;
         }
-        final List<CachedArtifact> matchingArtifacts = new ArrayList<CachedArtifact>();
-        getMatchingFiles(artifact).visit(new EmptyFileVisitor() {
+        getMatchingFiles(artifactId).visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
-                matchingArtifacts.add(new DefaultCachedArtifact(fileDetails.getFile()));
+                cachedArtifactList.add(new DefaultCachedArtifact(fileDetails.getFile()));
             }
         });
-        return matchingArtifacts;
     }
 
     private DirectoryFileTree getMatchingFiles(ArtifactRevisionId artifact) {

@@ -21,10 +21,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepo
 
 import java.io.File;
 
-public interface ArtifactFileStore extends ExternalArtifactCache {
+public interface ArtifactFileStore {
     String getArtifactPath(ArtifactRevisionId artifactId);
 
     File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File contentFile);
 
     void removeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId);
+
+    ExternalArtifactCache asExternalArtifactCache();
 }

@@ -17,8 +17,19 @@ package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public interface ExternalArtifactCache {
-    void addMatchingCachedArtifacts(ArtifactRevisionId artifactId, List<CachedArtifact> cachedArtifactList);
+public class CompositeExternalArtifactCache implements ExternalArtifactCache {
+    private final List<ExternalArtifactCache> delegates = new ArrayList<ExternalArtifactCache>();
+    
+    void addExternalArtifactCache(ExternalArtifactCache externalArtifactCache) {
+        delegates.add(externalArtifactCache);
+    }
+    
+    public void addMatchingCachedArtifacts(ArtifactRevisionId artifactId, List<CachedArtifact> cachedArtifactList) {
+        for (ExternalArtifactCache delegate : delegates) {
+            delegate.addMatchingCachedArtifacts(artifactId, cachedArtifactList);
+        }
+    }
 }
