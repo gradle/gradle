@@ -34,7 +34,9 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandl
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.LinkingArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.SingleFileBackedArtifactResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.DefaultClientModuleRegistry;
@@ -63,6 +65,7 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.WrapUtil;
 
+import java.io.File;
 import java.util.List;
 
 public class DefaultDependencyManagementServices extends DefaultServiceRegistry implements DependencyManagementServices {
@@ -173,14 +176,20 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 get(ArtifactResolutionCache.class));
     }
 
+    protected ArtifactFileStore createArtifactFileStore() {
+        File cacheDir = new File(get(ArtifactCacheMetaData.class).getCacheDir(), "artifacts");
+        return new LinkingArtifactFileStore(cacheDir);
+    }
+
     protected ArtifactResolutionCache createArtifactResolutionCache() {
         return new SingleFileBackedArtifactResolutionCache(
                 get(ArtifactCacheMetaData.class),
                 get(TimeProvider.class),
-                get(CacheLockingManager.class)
+                get(CacheLockingManager.class),
+                get(ArtifactFileStore.class)
         );
     }
-    
+
     protected FileStore createFileStore() {
         return new DefaultFileStore(
                 get(ArtifactCacheMetaData.class)
