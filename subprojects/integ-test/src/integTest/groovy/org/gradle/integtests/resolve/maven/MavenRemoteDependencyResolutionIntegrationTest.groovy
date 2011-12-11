@@ -86,6 +86,51 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
     }
 
+    def "do not re-download maven dependencies"() {
+        given:
+        server.start()
+
+        def projectB = repo().module('group', 'projectB').publish()
+
+        buildFile << """
+repositories {
+if (project.hasProperty('repository2')) {
+    maven { url 'http://localhost:${server.port}/repo2' }
+} else {
+    maven { url 'http://localhost:${server.port}/repo1' }
+}
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectB:1.0'
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when:
+        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        server.expectGet('/repo1/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+
+        then:
+        succeeds 'retrieve'
+        file('libs').assertHasDescendants('projectB-1.0.jar')
+
+        when:
+        server.resetExpectations()
+        server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.pom.sha1', projectB.moduleDir.file(projectB.pomFile.name + '.sha1'))
+        server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.jar.sha1', projectB.moduleDir.file(projectB.artifactFile.name + '.sha1'))
+
+        and:
+        executer.withArguments('-Prepository2')
+
+        then:
+        succeeds 'retrieve'
+    }
+
     def "can resolve and cache artifact-only dependencies from an HTTP Maven repository"() {
         server.start()
         given:
