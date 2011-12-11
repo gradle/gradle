@@ -19,6 +19,8 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.PatternBasedExternalArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.util.UncheckedException;
 import org.jfrog.wharf.ivy.util.WharfUtils;
@@ -26,13 +28,15 @@ import org.jfrog.wharf.ivy.util.WharfUtils;
 import java.io.File;
 import java.io.IOException;
 
-public class LinkingArtifactFileStore implements ArtifactFileStore {
+public class LinkingArtifactFileStore extends PatternBasedExternalArtifactCache implements ArtifactFileStore, ExternalArtifactCache {
     private static final String DEFAULT_ARTIFACT_PATTERN =
             "[organisation]/[module](/[branch])/[revision]/[type]/[artifact]-[revision](-[classifier])(.[ext])";
+    private static final String EXTERNAL_VIEW_PATTERN = "*/" + DEFAULT_ARTIFACT_PATTERN;
 
     private File baseDir;
 
     public LinkingArtifactFileStore(File baseDir) {
+        super(baseDir, EXTERNAL_VIEW_PATTERN);
         this.baseDir = baseDir;
     }
 
