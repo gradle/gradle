@@ -43,6 +43,7 @@ import org.gradle.api.internal.artifacts.ivyservice.clientmodule.DefaultClientMo
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.DefaultFileStore;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleDescriptorCache;
@@ -205,6 +206,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         get(FileStore.class)),
                 get(ModuleResolutionCache.class),
                 get(ModuleDescriptorCache.class),
+                get(ArtifactFileStore.class),
                 get(CacheLockingManager.class)
         );
     }
@@ -218,7 +220,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
-        return new RepositoryTransportFactory(get(ArtifactFileStore.class));
+        return new RepositoryTransportFactory(get(ExternalArtifactCache.class));
     }
 
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {

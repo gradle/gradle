@@ -26,6 +26,7 @@ import org.apache.ivy.plugins.resolver.*;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
@@ -47,18 +48,20 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final TransferListener transferListener = new ProgressLoggingTransferListener();
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
+    private final ArtifactFileStore artifactFileStore;
     private final CacheLockingManager cacheLockingManager;
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
     private UserResolverChain userResolverChain;
 
     public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory,
-                                    ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
+                                    ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache, ArtifactFileStore artifactFileStore,
                                     CacheLockingManager cacheLockingManager) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.settingsFactory = settingsFactory;
         this.moduleResolutionCache = moduleResolutionCache;
         this.moduleDescriptorCache = moduleDescriptorCache;
+        this.artifactFileStore = artifactFileStore;
         this.cacheLockingManager = cacheLockingManager;
         Message.setDefaultLogger(new IvyLoggingAdaper());
     }
@@ -107,7 +110,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     private UserResolverChain createUserResolverChain() {
-        UserResolverChain chainResolver = new UserResolverChain(moduleResolutionCache, moduleDescriptorCache);
+        UserResolverChain chainResolver = new UserResolverChain(moduleResolutionCache, moduleDescriptorCache, artifactFileStore);
         chainResolver.setName(USER_RESOLVER_CHAIN_NAME);
         chainResolver.setReturnFirst(true);
         chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));

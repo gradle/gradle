@@ -36,6 +36,8 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryAccess
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.UncheckedException;
+import org.jfrog.wharf.ivy.checksum.ChecksumType;
+import org.jfrog.wharf.ivy.util.WharfUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,15 +71,14 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository implem
     }
 
     public Resource getResource(final String source, ArtifactRevisionId artifactId) throws IOException {
+        LOGGER.debug("Constructing GET resource: {}", source);
+
         List<CachedArtifact> artifacts = externalArtifactCache.getMatchingCachedArtifacts(artifactId);
 
-        // TODO:DAZ use these cached artifacts to prevent re-download
-
         releasePriorResources();
-        LOGGER.debug("Attempting to get resource {}.", source);
         GetMethod method = new GetMethod(source);
         configureMethod(method);
-        Resource resource = createLazyResource(source, method);
+        Resource resource = createLazyResource(source, method, artifacts);
         resources.put(source, resource);
         return resource;
     }
@@ -93,8 +94,8 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository implem
         }
     }
 
-    private Resource createLazyResource(String source, GetMethod method) {
-        LazyResourceInvocationHandler invocationHandler = new LazyResourceInvocationHandler(source, method);
+    private Resource createLazyResource(String source, GetMethod method, List<CachedArtifact> artifacts) {
+        LazyResourceInvocationHandler invocationHandler = new LazyResourceInvocationHandler(source, method, artifacts);
         return Resource.class.cast(Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{Resource.class}, invocationHandler));
     }
 
@@ -168,6 +169,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository implem
     }
 
     private int executeMethod(HttpMethod method) throws IOException {
+        LOGGER.info("Performing HTTP GET: {}", method.getURI());
         configureProxyIfRequired(method);
         return client.executeMethod(method);
     }
@@ -213,11 +215,13 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository implem
     private class LazyResourceInvocationHandler implements InvocationHandler {
         private final String source;
         private final GetMethod method;
+        private final List<CachedArtifact> candidates;
         private Resource delegate;
 
-        private LazyResourceInvocationHandler(String source, GetMethod method) {
+        private LazyResourceInvocationHandler(String source, GetMethod method, List<CachedArtifact> candidates) {
             this.method = method;
             this.source = source;
+            this.candidates = candidates;
         }
 
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -228,7 +232,15 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository implem
         }
 
         private Resource init() {
-            LOGGER.info("Attempting to GET resource {}.", source);
+            // First see if we can use any of the candidates directly.
+            if (candidates.size() > 0) {
+                String sha1 = getSha1FromServer(source);
+                for (CachedArtifact candidate : candidates) {
+                    if (candidate.getSha1().equals(sha1)) {
+                        return new CachedResource(source, candidate);
+                    }
+                }
+            }
             int result;
             try {
                 result = executeMethod(method);
@@ -245,9 +257,28 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository implem
             return new HttpResource(source, method);
         }
 
+        private String getSha1FromServer(String artifactUrl) {
+            ChecksumType checksumType = ChecksumType.sha1;
+            String checksumUrl = artifactUrl + checksumType.ext();
+            LOGGER.info("Retrieving {} using: {}", checksumType, checksumUrl);
+
+            GetMethod get = new GetMethod(checksumUrl);
+            try {
+                executeMethod(get);
+                return WharfUtils.getCleanChecksum(get.getResponseBodyAsString());
+            } catch (IOException e) {
+                LOGGER.debug("Checksum not found at {} due to: {}", checksumUrl, e.getMessage());
+                return null;
+            } finally {
+                get.releaseConnection();
+            }
+        }
+
         public void release() {
             if (delegate != null && delegate.exists()) {
-                method.releaseConnection();
+                if (method != null) {
+                    method.releaseConnection();
+                }
                 delegate = null;
             }
         }
@@ -338,6 +369,44 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository implem
 
         public InputStream openStream() throws IOException {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class CachedResource implements Resource {
+        private String source;
+        private final File cacheFile;
+
+        public CachedResource(String source, CachedArtifact cachedArtifact) {
+            this.source = source;
+            this.cacheFile = cachedArtifact.getOrigin();
+        }
+
+        public String getName() {
+            return source;
+        }
+
+        public long getLastModified() {
+            return cacheFile.lastModified();
+        }
+
+        public long getContentLength() {
+            return cacheFile.length();
+        }
+
+        public boolean exists() {
+            return true;
+        }
+
+        public boolean isLocal() {
+            return false;
+        }
+
+        public Resource clone(String cloneName) {
+            throw new UnsupportedOperationException();
+        }
+
+        public InputStream openStream() throws IOException {
+            return new FileInputStream(cacheFile);
         }
     }
 
