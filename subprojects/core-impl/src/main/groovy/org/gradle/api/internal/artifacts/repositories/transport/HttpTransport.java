@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.CommonsHttpClientBackedRepository;
 
 import java.net.URI;
@@ -25,15 +25,17 @@ import java.net.URI;
 public class HttpTransport implements RepositoryTransport {
     private final String name;
     private final PasswordCredentials credentials;
+    private final ExternalArtifactCache externalArtifactCache;
 
-    public HttpTransport(String name, PasswordCredentials credentials) {
+    public HttpTransport(String name, PasswordCredentials credentials, ExternalArtifactCache externalArtifactCache) {
         this.name = name;
         this.credentials = credentials;
+        this.externalArtifactCache = externalArtifactCache;
     }
 
-    public Repository getIvyRepository() {
+    public RepositoryAccessor getRepositoryAccessor() {
         HttpSettings httpSettings = new DefaultHttpSettings(credentials);
-        CommonsHttpClientBackedRepository repository = new CommonsHttpClientBackedRepository(httpSettings);
+        CommonsHttpClientBackedRepository repository = new CommonsHttpClientBackedRepository(httpSettings, externalArtifactCache);
         repository.setName(name);
         return repository;
     }

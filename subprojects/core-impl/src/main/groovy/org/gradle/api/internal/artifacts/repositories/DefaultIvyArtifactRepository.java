@@ -21,8 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
-import org.gradle.api.internal.artifacts.repositories.transport.FileTransport;
-import org.gradle.api.internal.artifacts.repositories.transport.HttpTransport;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -39,10 +38,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private RepositoryLayout layout;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
     private final FileResolver fileResolver;
+    private final RepositoryTransportFactory transportFactory;
 
-    public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials) {
+    public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory) {
         super(credentials);
         this.fileResolver = fileResolver;
+        this.transportFactory = transportFactory;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
         this.layout = new GradleRepositoryLayout();
     }
@@ -83,21 +84,21 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         layout.apply(uri, resolver);
         additionalPatternsLayout.apply(uri, resolver);
 
-        if (resolver.getArtifactPatterns().isEmpty()) {
-            throw new InvalidUserDataException("You must specify a base url or at least one artifact pattern for an Ivy repository.");
-        }
         resolvers.add(resolver);
     }
 
     private PatternBasedResolver createResolver(Set<String> schemes) {
+        if (schemes.isEmpty()) {
+            throw new InvalidUserDataException("You must specify a base url or at least one artifact pattern for an Ivy repository.");
+        }
         if (!WrapUtil.toSet("http", "https", "file").containsAll(schemes)) {
             throw new InvalidUserDataException("You may only specify 'file', 'http' and 'https' urls for an ivy repository.");
         }
         if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
-            return new IvyResolver(name, new HttpTransport(name, getCredentials()));
+            return new IvyResolver(name, transportFactory.createHttpTransport(name, getCredentials()));
         }
         if (WrapUtil.toSet("file").containsAll(schemes)) {
-            return new LocalFileSystemResolver(name, new FileTransport(name));
+            return new LocalFileSystemResolver(name, transportFactory.createFileTransport(name));
         }
         throw new InvalidUserDataException("You cannot mix file and http(s) urls for a single ivy repository. Please declare 2 separate repositories.");
     }

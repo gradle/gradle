@@ -49,7 +49,7 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
     private final String root;
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport) {
-        super(name, transport.getIvyRepository());
+        super(name, transport.getRepositoryAccessor());
         transport.configureCacheManager(this);
 
         this.transport = transport;

@@ -18,13 +18,18 @@ package org.gradle.api.internal.artifacts.repositories
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache
+import org.gradle.api.internal.artifacts.repositories.transport.FileTransport
+import org.gradle.api.internal.artifacts.repositories.transport.HttpTransport
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
     final PasswordCredentials credentials = Mock()
-    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, credentials)
+    final RepositoryTransportFactory transportFactory = Mock()
+    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, credentials, transportFactory)
 
     def "cannot create a resolver for url with unknown scheme"() {
         repository.name = 'name'
@@ -69,6 +74,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
         fileResolver.resolveUri('http://other/') >> new URI('http://other/')
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
         def resolvers = []
@@ -93,6 +99,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('repo/') >> file
+        transportFactory.createFileTransport('name') >> new FileTransport('name')
 
         when:
         def resolvers = []
@@ -113,6 +120,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
         def resolvers = []
@@ -135,6 +143,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
         def resolvers = []
@@ -161,6 +170,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
         def resolvers = []
@@ -184,6 +194,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
         def resolvers = []
@@ -206,6 +217,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             artifact '[layoutPattern]'
         }
         repository.artifactPattern 'http://other/[additionalPattern]'
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host')
@@ -223,6 +235,9 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     }
 
     def "fails when no artifact patterns specified"() {
+        given:
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
+
         when:
         repository.createResolvers([])
 

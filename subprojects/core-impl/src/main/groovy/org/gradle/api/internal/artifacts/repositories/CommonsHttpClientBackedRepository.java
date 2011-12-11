@@ -22,13 +22,17 @@ import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.output.CloseShieldOutputStream;
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.repository.*;
 import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.url.ApacheURLLister;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.transport.HttpProxySettings;
 import org.gradle.api.internal.artifacts.repositories.transport.HttpSettings;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryAccessor;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.UncheckedException;
@@ -45,23 +49,30 @@ import java.util.*;
 /**
  * A repository which uses commons-httpclient to access resources using HTTP/HTTPS.
  */
-public class CommonsHttpClientBackedRepository extends AbstractRepository {
+public class CommonsHttpClientBackedRepository extends AbstractRepository implements RepositoryAccessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonsHttpClientBackedRepository.class);
     private final Map<String, Resource> resources = new HashMap<String, Resource>();
     private final HttpClient client = new HttpClient();
     private final HttpProxySettings proxySettings;
     private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
 
-    public CommonsHttpClientBackedRepository(HttpSettings httpSettings) {
+    private final ExternalArtifactCache externalArtifactCache;
+
+    public CommonsHttpClientBackedRepository(HttpSettings httpSettings, ExternalArtifactCache externalArtifactCache) {
         PasswordCredentials credentials = httpSettings.getCredentials();
         if (GUtil.isTrue(credentials.getUsername())) {
             client.getParams().setAuthenticationPreemptive(true);
             client.getState().setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword()));
         }
         this.proxySettings = httpSettings.getProxySettings();
+        this.externalArtifactCache = externalArtifactCache;
     }
 
-    public Resource getResource(final String source) throws IOException {
+    public Resource getResource(final String source, ArtifactRevisionId artifactId) throws IOException {
+        List<CachedArtifact> artifacts = externalArtifactCache.getMatchingCachedArtifacts(artifactId);
+
+        // TODO:DAZ use these cached artifacts to prevent re-download
+
         releasePriorResources();
         LOGGER.debug("Attempting to get resource {}.", source);
         GetMethod method = new GetMethod(source);
@@ -69,6 +80,10 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         Resource resource = createLazyResource(source, method);
         resources.put(source, resource);
         return resource;
+    }
+
+    public Resource getResource(final String source) throws IOException {
+        return getResource(source, null);
     }
 
     private void releasePriorResources() {

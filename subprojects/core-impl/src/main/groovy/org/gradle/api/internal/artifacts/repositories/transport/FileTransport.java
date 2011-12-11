@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.apache.ivy.plugins.repository.Repository;
-import org.apache.ivy.plugins.repository.file.FileRepository;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
 
@@ -30,8 +28,8 @@ public class FileTransport implements RepositoryTransport {
         this.name = name;
     }
 
-    public Repository getIvyRepository() {
-        FileRepository fileRepository = new FileRepository();
+    public RepositoryAccessor getRepositoryAccessor() {
+        FileRepositoryAccessor fileRepository = new FileRepositoryAccessor();
         fileRepository.setName(name);
         return fileRepository;
     }

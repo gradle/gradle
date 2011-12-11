@@ -22,7 +22,6 @@ import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
-import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
@@ -32,6 +31,7 @@ import org.apache.ivy.plugins.version.VersionMatcher;
 import org.apache.ivy.util.ChecksumHelper;
 import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.Message;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,14 +43,14 @@ import java.util.*;
 public class RepositoryResolver extends AbstractPatternsBasedResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryResolver.class);
 
-    private final Repository repository;
+    private final RepositoryAccessor repository;
 
-    public RepositoryResolver(String name, Repository repository) {
+    public RepositoryResolver(String name, RepositoryAccessor repository) {
         setName(name);
         this.repository = repository;
     }
 
-    protected Repository getRepository() {
+    protected RepositoryAccessor getRepository() {
         return repository;
     }
 
@@ -118,7 +118,7 @@ public class RepositoryResolver extends AbstractPatternsBasedResolver {
     }
     
     protected Resource getResource(String source, Artifact target) throws IOException {
-        return repository.getResource(source);
+        return repository.getResource(source, target.getId());
     }
 
     /**

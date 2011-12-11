@@ -24,7 +24,7 @@ public class IvyResolver extends RepositoryResolver implements PatternBasedResol
     private final RepositoryTransport transport;
 
     public IvyResolver(String name, RepositoryTransport transport) {
-        super(name, transport.getIvyRepository());
+        super(name, transport.getRepositoryAccessor());
         this.transport = transport;
         this.transport.configureCacheManager(this);
     }

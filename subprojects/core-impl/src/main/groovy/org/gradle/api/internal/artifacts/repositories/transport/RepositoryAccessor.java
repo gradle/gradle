@@ -15,14 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.apache.ivy.plugins.resolver.AbstractResolver;
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.apache.ivy.plugins.repository.Repository;
+import org.apache.ivy.plugins.repository.Resource;
 
-import java.net.URI;
+import java.io.IOException;
 
-public interface RepositoryTransport {
-    RepositoryAccessor getRepositoryAccessor();
-
-    void configureCacheManager(AbstractResolver resolver);
-
-    String convertToPath(URI uri);
+public interface RepositoryAccessor extends Repository {
+    Resource getResource(String source, ArtifactRevisionId artifactId) throws IOException;
 }

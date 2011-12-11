@@ -18,10 +18,11 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.internal.DirectInstantiator
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
 import org.hamcrest.Matchers
@@ -44,7 +45,8 @@ class DefaultResolverFactoryTest {
     final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     final LocalMavenCacheLocator localMavenCacheLocator = context.mock(LocalMavenCacheLocator.class)
     final FileResolver fileResolver = context.mock(FileResolver.class)
-    final DefaultResolverFactory factory = new DefaultResolverFactory(localMavenCacheLocator, fileResolver, new DirectInstantiator())
+    final RepositoryTransportFactory transportFactory = context.mock(RepositoryTransportFactory.class)
+    final DefaultResolverFactory factory = new DefaultResolverFactory(localMavenCacheLocator, fileResolver, new DirectInstantiator(), transportFactory)
 
     @Before public void setup() {
         context.checking {

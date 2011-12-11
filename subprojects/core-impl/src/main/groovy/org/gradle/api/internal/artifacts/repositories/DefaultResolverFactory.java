@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.repositories.*;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.ResolverFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
 
@@ -35,11 +36,13 @@ public class DefaultResolverFactory implements ResolverFactory {
     private final LocalMavenCacheLocator localMavenCacheLocator;
     private final FileResolver fileResolver;
     private final Instantiator instantiator;
+    private final RepositoryTransportFactory transportFactory;
 
-    public DefaultResolverFactory(LocalMavenCacheLocator localMavenCacheLocator, FileResolver fileResolver, Instantiator instantiator) {
+    public DefaultResolverFactory(LocalMavenCacheLocator localMavenCacheLocator, FileResolver fileResolver, Instantiator instantiator, RepositoryTransportFactory transportFactory) {
         this.localMavenCacheLocator = localMavenCacheLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
+        this.transportFactory = transportFactory;
     }
 
     public ArtifactRepository createRepository(Object userDescription) {
@@ -84,11 +87,11 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     public IvyArtifactRepository createIvyRepository() {
-        return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials());
+        return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory);
     }
 
     public MavenArtifactRepository createMavenRepository() {
-        return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials());
+        return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory);
     }
 
     private PasswordCredentials createPasswordCredentials() {

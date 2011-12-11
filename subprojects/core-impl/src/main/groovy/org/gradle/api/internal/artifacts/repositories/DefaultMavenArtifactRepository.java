@@ -19,9 +19,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.repositories.transport.FileTransport;
-import org.gradle.api.internal.artifacts.repositories.transport.HttpTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 
 import java.net.URI;
@@ -31,13 +30,15 @@ import static org.gradle.util.GUtil.toList;
 
 public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
+    private final RepositoryTransportFactory transportFactory;
     private String name;
     private Object url;
     private List<Object> additionalUrls = new ArrayList<Object>();
 
-    public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials) {
+    public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory) {
         super(credentials);
         this.fileResolver = fileResolver;
+        this.transportFactory = transportFactory;
     }
 
     public String getName() {
@@ -87,9 +88,10 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private RepositoryTransport getTransport(String scheme) {
         if (scheme.equalsIgnoreCase("file")) {
-            return new FileTransport(name);
+            return transportFactory.createFileTransport(name);
         } else {
-            return new HttpTransport(name, getCredentials());
+            return transportFactory.createHttpTransport(name, getCredentials());
         }
     }
+
 }

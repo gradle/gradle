@@ -53,6 +53,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProject
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDependencyResolver;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenCacheLocator;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.notations.*;
@@ -216,6 +217,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return new DefaultClientModuleRegistry();
     }
 
+    protected RepositoryTransportFactory createRepositoryTransportFactory() {
+        return new RepositoryTransportFactory(get(ArtifactFileStore.class));
+    }
+
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
         private final ServiceRegistry parent;
         private final FileResolver fileResolver;
@@ -247,7 +252,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             ResolverFactory resolverFactory = new DefaultResolverFactory(
                     new DefaultLocalMavenCacheLocator(),
                     fileResolver,
-                    instantiator);
+                    instantiator,
+                    get(RepositoryTransportFactory.class));
             return instantiator.newInstance(DefaultRepositoryHandler.class, resolverFactory, instantiator);
         }
 
