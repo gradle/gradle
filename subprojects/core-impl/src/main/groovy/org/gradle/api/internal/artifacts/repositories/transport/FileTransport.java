@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.repositories.transport;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
 
-import java.io.File;
 import java.net.URI;
 
 public class FileTransport implements RepositoryTransport {
+    private static final String FILE_URL_PREFIX = "file:";
     private final String name;
 
     public FileTransport(String name) {
@@ -40,7 +40,7 @@ public class FileTransport implements RepositoryTransport {
     }
 
     public String convertToPath(URI uri) {
-        return normalisePath(new File(uri).getAbsolutePath());
+        return normalisePath(getFilePath(uri.toString()));
     }
 
     private String normalisePath(String path) {
@@ -48,5 +48,12 @@ public class FileTransport implements RepositoryTransport {
             return path;
         }
         return path + "/";
+    }
+
+    private String getFilePath(String pattern) {
+        if (!pattern.startsWith(FILE_URL_PREFIX)) {
+            throw new IllegalArgumentException("Can only handle URIs of type file");
+        }
+        return pattern.substring(FILE_URL_PREFIX.length());
     }
 }
