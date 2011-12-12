@@ -47,6 +47,10 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
 
     private final RepositoryTransport transport;
     private final String root;
+    private final List<String> artifactRoots = new ArrayList<String>();
+    private String pattern = M2_PATTERN;
+    private boolean usepoms = true;
+    private boolean useMavenMetadata = true;
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport) {
         super(name, transport.getRepositoryAccessor());
@@ -54,31 +58,47 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
 
         this.transport = transport;
         this.root = transport.convertToPath(rootUri);
-        addIvyPattern(getWholePattern());
-        addArtifactPattern(getWholePattern());
 
         setDescriptor(DESCRIPTOR_OPTIONAL);
-        setM2compatible(true);
+        super.setM2compatible(true);
+
         // SNAPSHOT revisions are changing revisions
         setChangingMatcher(PatternMatcher.REGEXP);
         setChangingPattern(".*-SNAPSHOT");
+
+        updatePatterns();
     }
-    
+
     public void addArtifactLocation(URI baseUri, String pattern) {
         if (pattern != null && pattern.length() > 0) {
-            throw new IllegalArgumentException("Maven Resolver does not support patterns other than the standard M2 pattern");
+            throw new IllegalArgumentException("Maven Resolver only supports a single pattern. It cannot be provided on a per-location basis.");
         }
+        artifactRoots.add(transport.convertToPath(baseUri));
 
-        String newArtifactPattern = transport.convertToPath(baseUri) + M2_PATTERN;
-        addArtifactPattern(newArtifactPattern);
+        updatePatterns();
     }
 
     public void addDescriptorLocation(URI baseUri, String pattern) {
-        throw new UnsupportedOperationException("Cannot have multiple descriptor urls for MavenResolver");        
+        throw new UnsupportedOperationException("Cannot have multiple descriptor urls for MavenResolver");
     }
 
     private String getWholePattern() {
-        return root + M2_PATTERN;
+        return root + pattern;
+    }
+
+    private void updatePatterns() {
+        if (shouldResolveDependencyDescriptors()) {
+            setIvyPatterns(Collections.singletonList(getWholePattern()));
+        } else {
+            setIvyPatterns(Collections.EMPTY_LIST);
+        }
+
+        List<String> artifactPatterns = new ArrayList<String>();
+        artifactPatterns.add(getWholePattern());
+        for (String artifactRoot : artifactRoots) {
+            artifactPatterns.add(artifactRoot + pattern);
+        }
+        setArtifactPatterns(artifactPatterns);
     }
 
     private String getMavenMetadataPattern() {
@@ -86,18 +106,22 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
     }
 
     public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
-        ModuleRevisionId moduleRevisionId = convertM2IdForResourceSearch(dd.getDependencyRevisionId());
+        if (shouldResolveDependencyDescriptors()) {
+            ModuleRevisionId moduleRevisionId = convertM2IdForResourceSearch(dd.getDependencyRevisionId());
 
-        if (moduleRevisionId.getRevision().endsWith("SNAPSHOT")) {
-            ResolvedResource resolvedResource = findSnapshotDescriptor(dd, data, moduleRevisionId);
-            if (resolvedResource != null) {
-                return resolvedResource;
+            if (moduleRevisionId.getRevision().endsWith("SNAPSHOT")) {
+                ResolvedResource resolvedResource = findSnapshotDescriptor(dd, data, moduleRevisionId);
+                if (resolvedResource != null) {
+                    return resolvedResource;
+                }
             }
+
+            Artifact pomArtifact = DefaultArtifact.newPomArtifact(moduleRevisionId, data.getDate());
+            ResourceMDParser parser = getRMDParser(dd, data);
+            return findResourceUsingPatterns(moduleRevisionId, getIvyPatterns(), pomArtifact, parser, data.getDate());
         }
 
-        Artifact pomArtifact = DefaultArtifact.newPomArtifact(moduleRevisionId, data.getDate());
-        ResourceMDParser parser = getRMDParser(dd, data);
-        return findResourceUsingPatterns(moduleRevisionId, getIvyPatterns(), pomArtifact, parser, data.getDate());
+        return null;
     }
 
     private ResolvedResource findSnapshotDescriptor(DependencyDescriptor dd, ResolveData data, ModuleRevisionId moduleRevisionId) {
@@ -118,7 +142,11 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
     }
 
     protected ResolvedResource findArtifactRef(Artifact artifact, Date date) {
-        ModuleRevisionId moduleRevisionId = convertM2IdForResourceSearch(artifact.getModuleRevisionId());
+        ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
+        if (isM2compatible()) {
+            moduleRevisionId = convertM2IdForResourceSearch(moduleRevisionId);
+        }
+
         if (moduleRevisionId.getRevision().endsWith("SNAPSHOT")) {
             ResolvedResource resolvedResource = findSnapshotArtifact(artifact, date, moduleRevisionId);
             if (resolvedResource != null) {
@@ -144,7 +172,7 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
     private String findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {
         String metadataLocation = IvyPatternHelper.substitute(getMavenMetadataPattern(), moduleRevisionId);
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
-        
+
         if (mavenMetadata.timestamp != null) {
             // we have found a timestamp, so this is a snapshot unique version
             String rev = moduleRevisionId.getRevision();
@@ -204,6 +232,14 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
     private MavenMetadata parseMavenMetadata(String metadataLocation) {
         final MavenMetadata mavenMetadata = new MavenMetadata();
 
+        if (shouldUseMavenMetadata(pattern)) {
+            parseMavenMetadataInto(metadataLocation, mavenMetadata);
+        }
+
+        return mavenMetadata;
+    }
+
+    private void parseMavenMetadataInto(String metadataLocation, final MavenMetadata mavenMetadata) {
         try {
             Resource metadata = getResource(metadataLocation);
             if (metadata.exists()) {
@@ -242,13 +278,65 @@ public class MavenResolver extends RepositoryResolver implements PatternBasedRes
         } catch (ParserConfigurationException e) {
             LOGGER.warn("impossible to parse maven metadata file, ignored.", e);
         }
-        return mavenMetadata;
     }
 
     public void dumpSettings() {
         super.dumpSettings();
         Message.debug("\t\troot: " + root);
-        Message.debug("\t\tpattern: " + M2_PATTERN);
+        Message.debug("\t\tpattern: " + pattern);
+    }
+
+    // A bunch of configuration properties that we don't (yet) support in our model via the DSL. Users can still tweak these on the resolver using mavenRepo().
+    public boolean isUsepoms() {
+        return usepoms;
+    }
+
+    public void setUsepoms(boolean usepoms) {
+        this.usepoms = usepoms;
+        updatePatterns();
+    }
+
+    private boolean shouldResolveDependencyDescriptors() {
+        return isUsepoms() && isM2compatible();
+    }
+
+    public boolean isUseMavenMetadata() {
+        return useMavenMetadata;
+    }
+
+    public void setUseMavenMetadata(boolean useMavenMetadata) {
+        this.useMavenMetadata = useMavenMetadata;
+    }
+
+    private boolean shouldUseMavenMetadata(String pattern) {
+        return isUseMavenMetadata() && isM2compatible() && pattern.endsWith(M2_PATTERN);
+    }
+
+    public String getPattern() {
+        return pattern;
+    }
+
+    public void setPattern(String pattern) {
+        if (pattern == null) {
+            throw new NullPointerException("pattern must not be null");
+        }
+        this.pattern = pattern;
+        updatePatterns();
+    }
+
+    public String getRoot() {
+        return root;
+    }
+
+    public void setRoot(String root) {
+        throw new UnsupportedOperationException("Cannot configure root on mavenRepo. Use 'url' property instead.");
+    }
+
+    @Override
+    public void setM2compatible(boolean compatible) {
+        if (!compatible) {
+            throw new IllegalArgumentException("Cannot set m2compatible = false on mavenRepo.");
+        }
     }
 
     private static class MavenMetadata {
