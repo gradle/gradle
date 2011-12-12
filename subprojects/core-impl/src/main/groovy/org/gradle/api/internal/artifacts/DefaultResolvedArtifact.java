@@ -41,7 +41,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     }
 
     public ResolvedDependency getResolvedDependency() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("ResolvedArtifact.getResolvedDependency()");
+        DeprecationLogger.nagUserWith("ResolvedArtifact.getResolvedDependency() is deprecated. For version info use ResolvedArtifact.getModuleVersion(), to access the dependency graph use ResolvedConfiguration.getFirstLevelModuleDependencies()");
         return resolvedDependency;
     }
 
