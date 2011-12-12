@@ -63,7 +63,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         } catch (MissingResourceException e) {
             return;
         } catch (ResourceException e) {
-            throw new InvalidUserDataException(String.format("Cannot expand %s. %s", getDisplayName(), e.getMessage()));
+            throw new InvalidUserDataException(String.format("Cannot expand %s.", getDisplayName()), e);
         }
 
         try {
