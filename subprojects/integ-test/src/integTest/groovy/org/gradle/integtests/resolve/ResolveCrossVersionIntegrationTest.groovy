@@ -15,13 +15,9 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
-import org.junit.Rule
 
 class ResolveCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
-    @Rule public final HttpServer server = new HttpServer()
 
     def "can upgrade and downgrade Gradle version"() {
         given:
@@ -49,51 +45,4 @@ task check << {
         version current withTasks 'check' run()
         version previous withTasks 'check' run()
     }
-
-    def "uses cached artifacts from previous Gradle version"() {
-        given:
-        def projectB = new MavenRepository(file('repo')).module('group', 'projectB').publish()
-
-        server.start()
-        buildFile << """
-repositories {
-    maven { url 'http://localhost:${server.port}' }
-}
-configurations { compile }
-dependencies {
-    compile 'group:projectB:1.0'
-}
-
-task retrieve(type: Sync) {
-    into 'libs'
-    from configurations.compile
-}
-"""
-        and:
-        def userHome = file('user-home')
-
-        when:
-        server.expectGet("/group/projectB/1.0/projectB-1.0.pom", projectB.pomFile)
-        server.expectGet("/group/projectB/1.0/projectB-1.0.jar", projectB.artifactFile)
-
-        and:
-        version previous withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
-
-        then:
-        file('libs').assertHasDescendants('projectB-1.0.jar')
-        def snapshot = file('libs/projectB-1.0.jar').snapshot()
-
-        when:
-        server.resetExpectations()
-        server.expectGet("/group/projectB/1.0/projectB-1.0.pom.sha1", projectB.sha1File(projectB.pomFile))
-        server.expectGet("/group/projectB/1.0/projectB-1.0.jar.sha1", projectB.sha1File(projectB.artifactFile))
-
-        and:
-        version current withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
-
-        then:
-        file('libs').assertHasDescendants('projectB-1.0.jar')
-        file('libs/projectB-1.0.jar').assertContentsHaveNotChangedSince(snapshot)
-    }
-
 }
