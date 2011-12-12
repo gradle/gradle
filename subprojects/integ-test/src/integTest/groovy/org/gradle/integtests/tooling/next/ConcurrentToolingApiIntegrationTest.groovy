@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tests.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProgressEvent
 import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.Project
@@ -53,6 +54,44 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
 
         then:
         concurrent.finished()
+    }
+
+    def "receives distribution progress concurrently"() {
+        given:
+        3.times { idx ->
+            dist.file("build$idx/build.gradle") << "apply plugin: 'java'"
+        }
+
+        when:
+        3.times { idx ->
+            concurrent.start {
+                toolingApi.withConnection { connection ->
+                    def model = connection.model(Project)
+                    def listener = new AssertableListener()
+                    model.addProgressListener(listener)
+
+                    assert model.get()
+                    listener.assertProgressMessages(["Load projects", "Validate distribution", "Load projects", "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Load projects", ""])
+                }
+            }
+        }
+
+        then:
+        concurrent.finished()
+    }
+
+    static class AssertableListener implements ProgressListener {
+        def progressMessages = []
+        void statusChanged(ProgressEvent event) {
+            progressMessages << event.description
+        }
+
+        def assertProgressMessages(List messages) {
+            //Below may be fragile as it depends on progress messages content
+            //However, when refactoring the logging code I found ways to break it silently
+            //Hence I want to make sure the functionality is not broken. We can remove the assertion later of find better ways of asserting it.
+            assert progressMessages == messages
+        }
     }
 
     @Ignore
@@ -110,26 +149,20 @@ System.err.println 'this is stderr: $idx'
     private assertReceivesProgressForModel(idx) {
         def stdout = new ByteArrayOutputStream()
         def stderr = new ByteArrayOutputStream()
-        def progressMessages = []
+        def listener = new AssertableListener()
 
         withConnectionInDir("build$idx") { connection ->
             def model = connection.model(Project.class)
             model.standardOutput = stdout
             model.standardError = stderr
-            model.addProgressListener({ event -> progressMessages << event.description } as ProgressListener)
+            model.addProgressListener(listener)
             assert model.get()
         }
 
         assert stdout.toString().contains("this is stdout: $idx")
         assert stderr.toString().contains("this is stderr: $idx")
-        assert progressMessages.size() >= 2
-        assert progressMessages.pop() == ''
-        assert progressMessages.every { it }
 
-        //Below may be very fragile as it depends on progress messages content
-        //However, when refactoring the logging code I found ways to break it silently
-        //Hence I want to make sure the functionality is not broken. We can remove the assertion later of find better ways of asserting it.
-        assert progressMessages == ['Load projects', 'Configure projects', "Resolve dependencies 'classpath'", 'Configure projects', "Resolve dependencies ':classpath'", "Configure projects", "Load projects"]
+        listener.assertProgressMessages(['Load projects', 'Validate distribution', 'Load projects', 'Configure projects', "Resolve dependencies 'classpath'", 'Configure projects', "Resolve dependencies ':classpath'", "Configure projects", "Load projects", ''])
     }
 
     def "receives progress and logging while the build is executing"() {
@@ -155,30 +188,20 @@ System.err.println 'this is stderr: $idx'
     private def assertReceivesProgressForBuild(idx) {
         def stdout = new ByteArrayOutputStream()
         def stderr = new ByteArrayOutputStream()
-        def progressMessages = []
-        def events = []
+        def listener = new AssertableListener()
 
         withConnectionInDir("build$idx") { connection ->
             def build = connection.newBuild()
             build.standardOutput = stdout
             build.standardError = stderr
-            build.addProgressListener({ event ->
-                progressMessages << event.description
-                events << event
-            } as ProgressListener)
+            build.addProgressListener(listener)
             build.run()
         }
 
         assert stdout.toString().contains("this is stdout: $idx")
         assert stderr.toString().contains("this is stderr: $idx")
-        assert progressMessages.size() >= 2
-        assert progressMessages.pop() == ''
-        assert progressMessages.every { it }
 
-        //Below may be very fragile as it depends on progress messages content
-        //However, when refactoring the logging code I found ways to break it silently
-        //Hence I want to make sure the functionality is not broken. We can remove the assertion later of find better ways of asserting it.
-        assert progressMessages == ["Execute build", "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Execute build", "Execute tasks", "Execute :help", "Execute tasks", "Execute build"]
+        listener.assertProgressMessages(["Execute build", 'Validate distribution', 'Execute build', "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Execute build", "Execute tasks", "Execute :help", "Execute tasks", "Execute build", ""])
     }
 
     @Ignore

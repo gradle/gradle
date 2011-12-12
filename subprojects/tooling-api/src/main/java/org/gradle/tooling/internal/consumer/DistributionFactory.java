@@ -58,7 +58,8 @@ public class DistributionFactory {
      * Returns the distribution installed in the specified directory.
      */
     public Distribution getDistribution(File gradleHomeDir) {
-        return new InstalledDistribution(gradleHomeDir, String.format("Gradle installation '%s'", gradleHomeDir), String.format("Gradle installation directory '%s'", gradleHomeDir));
+        return new InstalledDistribution(gradleHomeDir, String.format("Gradle installation '%s'", gradleHomeDir),
+                String.format("Gradle installation directory '%s'", gradleHomeDir), progressLoggerFactory);
     }
 
     /**
@@ -115,7 +116,7 @@ public class DistributionFactory {
                 } catch (Exception e) {
                     throw new GradleConnectionException(String.format("Could not install Gradle distribution from '%s'.", gradleDistribution), e);
                 }
-                installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName());
+                installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName(), progressLoggerFactory);
             }
             return installedDistribution.getToolingImplementationClasspath();
         }
@@ -144,11 +145,13 @@ public class DistributionFactory {
         private final File gradleHomeDir;
         private final String displayName;
         private final String locationDisplayName;
+        private final ProgressLoggerFactory progressLoggerFactory;
 
-        public InstalledDistribution(File gradleHomeDir, String displayName, String locationDisplayName) {
+        public InstalledDistribution(File gradleHomeDir, String displayName, String locationDisplayName, ProgressLoggerFactory progressLoggerFactory) {
             this.gradleHomeDir = gradleHomeDir;
             this.displayName = displayName;
             this.locationDisplayName = locationDisplayName;
+            this.progressLoggerFactory = progressLoggerFactory;
         }
 
         public String getDisplayName() {
@@ -156,6 +159,17 @@ public class DistributionFactory {
         }
 
         public Set<File> getToolingImplementationClasspath() {
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionFactory.class);
+            progressLogger.setDescription("Validate distribution");
+            progressLogger.started();
+            try {
+                return getToolingImpl();
+            } finally {
+                progressLogger.completed();
+            }
+        }
+
+        private Set<File> getToolingImpl() {
             if (!gradleHomeDir.exists()) {
                 throw new IllegalArgumentException(String.format("The specified %s does not exist.", locationDisplayName));
             }

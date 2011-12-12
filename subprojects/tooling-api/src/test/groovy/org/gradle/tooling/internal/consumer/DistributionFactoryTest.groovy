@@ -17,12 +17,12 @@ package org.gradle.tooling.internal.consumer
 
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.util.DistributionLocator
+import org.gradle.util.GradleVersion
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.util.DistributionLocator
-import org.gradle.util.GradleVersion
 
 class DistributionFactoryTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -135,15 +135,23 @@ class DistributionFactoryTest extends Specification {
             }
         }
         def dist = factory.getDistribution(zipFile.toURI())
+        ProgressLogger loggerOne = Mock()
+        ProgressLogger loggerTwo = Mock()
 
         when:
         dist.toolingImplementationClasspath
 
         then:
-        1 * progressLoggerFactory.newOperation(DistributionFactory.class) >> progressLogger
-        1 * progressLogger.setDescription("Download ${zipFile.toURI()}")
-        1 * progressLogger.started()
-        1 * progressLogger.completed()
+        2 * progressLoggerFactory.newOperation(DistributionFactory.class) >>> [loggerOne, loggerTwo]
+
+        1 * loggerOne.setDescription("Download ${zipFile.toURI()}")
+        1 * loggerOne.started()
+        1 * loggerOne.completed()
+
+        1 * loggerTwo.setDescription("Validate distribution")
+        1 * loggerTwo.started()
+        1 * loggerTwo.completed()
+
         0 * _._
     }
 
