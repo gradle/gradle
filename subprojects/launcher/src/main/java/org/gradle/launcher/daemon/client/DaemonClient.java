@@ -57,14 +57,14 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     private final BuildClientMetaData clientMetaData;
     private final OutputEventListener outputEventListener;
     private final Spec<DaemonContext> compatibilitySpec;
-    private final InputStream standardInput;
+    private final InputStream daemonServerStandardInput;
 
-    public DaemonClient(DaemonConnector connector, BuildClientMetaData clientMetaData, OutputEventListener outputEventListener, Spec<DaemonContext> compatibilitySpec, InputStream standardInput) {
+    public DaemonClient(DaemonConnector connector, BuildClientMetaData clientMetaData, OutputEventListener outputEventListener, Spec<DaemonContext> compatibilitySpec, InputStream daemonServerStandardInput) {
         this.connector = connector;
         this.clientMetaData = clientMetaData;
         this.outputEventListener = outputEventListener;
         this.compatibilitySpec = compatibilitySpec;
-        this.standardInput = standardInput;
+        this.daemonServerStandardInput = daemonServerStandardInput;
     }
 
     /**
@@ -114,7 +114,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     }
 
     private <T> Result<T> runBuild(Build build, Connection<Object> connection) {
-        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(standardInput, build.getClientMetaData(), connection);
+        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(daemonServerStandardInput, build.getClientMetaData(), connection);
         try {
             //TODO - this may fail. We should handle it and have tests for that. It means the server is gone.
             connection.dispatch(build);

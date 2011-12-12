@@ -40,11 +40,11 @@ import java.io.InputStream;
 abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry {
 
     private final ServiceRegistry loggingServices;
-    private final InputStream standardInput;
+    private final InputStream deamonServerStandardInput;
 
-    public DaemonClientServicesSupport(ServiceRegistry loggingServices, InputStream standardInput) {
+    public DaemonClientServicesSupport(ServiceRegistry loggingServices, InputStream deamonServerStandardInput) {
         this.loggingServices = loggingServices;
-        this.standardInput = standardInput;
+        this.deamonServerStandardInput = deamonServerStandardInput;
     }
 
     public ServiceRegistry getLoggingServices() {
@@ -72,7 +72,7 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
                 get(BuildClientMetaData.class),
                 get(OutputEventListener.class),
                 makeDaemonCompatibilitySpec(),
-                standardInput
+                deamonServerStandardInput
                 );
     }
 
