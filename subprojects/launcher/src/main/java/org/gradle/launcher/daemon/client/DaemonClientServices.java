@@ -22,6 +22,7 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.DaemonParameters;
 
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -32,7 +33,7 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
     private final int idleTimeout;
     private final ServiceRegistry registryServices;
 
-    public DaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, DaemonStandardInput standardInput) {
+    public DaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream standardInput) {
         super(loggingServices, standardInput);
         this.daemonOpts = daemonParameters.getJvmArgs();
         this.idleTimeout = daemonParameters.getIdleTimeout();

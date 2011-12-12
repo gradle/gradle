@@ -29,6 +29,8 @@ import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
 
+import java.io.InputStream;
+
 /**
  * The client piece of the build daemon.
  * <p>
@@ -55,10 +57,9 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     private final BuildClientMetaData clientMetaData;
     private final OutputEventListener outputEventListener;
     private final Spec<DaemonContext> compatibilitySpec;
-    private final DaemonStandardInput standardInput;
+    private final InputStream standardInput;
 
-    public DaemonClient(DaemonConnector connector, BuildClientMetaData clientMetaData,
-                        OutputEventListener outputEventListener, Spec<DaemonContext> compatibilitySpec, DaemonStandardInput standardInput) {
+    public DaemonClient(DaemonConnector connector, BuildClientMetaData clientMetaData, OutputEventListener outputEventListener, Spec<DaemonContext> compatibilitySpec, InputStream standardInput) {
         this.connector = connector;
         this.clientMetaData = clientMetaData;
         this.outputEventListener = outputEventListener;
@@ -113,7 +114,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     }
 
     private <T> Result<T> runBuild(Build build, Connection<Object> connection) {
-        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(standardInput.getInputStream(), build.getClientMetaData(), connection);
+        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(standardInput, build.getClientMetaData(), connection);
         try {
             //TODO - this may fail. We should handle it and have tests for that. It means the server is gone.
             connection.dispatch(build);

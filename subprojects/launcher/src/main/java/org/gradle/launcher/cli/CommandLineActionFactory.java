@@ -30,7 +30,6 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.daemon.bootstrap.DaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
-import org.gradle.launcher.daemon.client.DaemonStandardInput;
 import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.exec.ExceptionReportingAction;
 import org.gradle.launcher.exec.ExecutionListener;
@@ -131,7 +130,7 @@ public class CommandLineActionFactory {
         daemonParameters.configureFromBuildDir(startParameter.getCurrentDir(), startParameter.isSearchUpwards());
         daemonParameters.configureFromGradleUserHome(startParameter.getGradleUserHomeDir());
         daemonParameters.configureFromSystemProperties(mergedSystemProperties);
-        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, new DaemonStandardInput(System.in));
+        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
 
         boolean useDaemon = daemonParameters.isEnabled();
