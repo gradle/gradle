@@ -16,6 +16,7 @@
 
 package org.gradle.messaging.remote.internal.inet;
 
+import com.google.common.base.Objects;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.remote.Address;
@@ -85,11 +86,16 @@ public class SocketConnection<T> implements Connection<T> {
         if (e instanceof EOFException) {
             return true;
         }
-        if (e instanceof IOException && e.getMessage() != null && e.getMessage().equals("An existing connection was forcibly closed by the remote host")) {
-            return true;
-        }
-        if (e instanceof IOException && e.getMessage() != null && e.getMessage().equals("An established connection was aborted by the software in your host machine")) {
-            return true;
+        if (e instanceof IOException) {
+            if (Objects.equal(e.getMessage(), "An existing connection was forcibly closed by the remote host")) {
+                return true;
+            }
+            if (Objects.equal(e.getMessage(), "An established connection was aborted by the software in your host machine")) {
+                return true;
+            }
+            if (Objects.equal(e.getMessage(), "Connection reset by peer")) {
+                return true;
+            }
         }
         return false;
     }
