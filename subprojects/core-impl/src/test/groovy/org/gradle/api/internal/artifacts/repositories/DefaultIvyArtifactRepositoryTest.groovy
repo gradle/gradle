@@ -95,10 +95,11 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.artifactPattern 'repo/[organisation]/[artifact]-[revision].[ext]'
         repository.artifactPattern 'repo/[organisation]/[module]/[artifact]-[revision].[ext]'
         repository.ivyPattern 'repo/[organisation]/[module]/ivy-[revision].xml'
-        def file = new File("test").toURI()
+        def file = new File("test")
+        def fileUri = file.toURI()
 
         given:
-        fileResolver.resolveUri('repo/') >> file
+        fileResolver.resolveUri('repo/') >> fileUri
         transportFactory.createFileTransport('name') >> new FileTransport('name')
 
         when:
@@ -110,8 +111,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def resolver = resolvers[0]
         resolver instanceof FileSystemResolver
         resolver.name == 'name'
-        resolver.artifactPatterns == ["${file.path}/[organisation]/[artifact]-[revision].[ext]", "${file.path}/[organisation]/[module]/[artifact]-[revision].[ext]"] as List
-        resolver.ivyPatterns == ["${file.path}/[organisation]/[module]/ivy-[revision].xml"] as List
+        resolver.artifactPatterns == ["${file.absolutePath}/[organisation]/[artifact]-[revision].[ext]", "${file.absolutePath}/[organisation]/[module]/[artifact]-[revision].[ext]"] as List
+        resolver.ivyPatterns == ["${file.absolutePath}/[organisation]/[module]/ivy-[revision].xml"] as List
     }
 
     def "uses gradle patterns with specified url and default layout"() {
