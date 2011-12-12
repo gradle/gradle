@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.archive;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.file.FileResource;
 import org.gradle.api.internal.file.MaybeCompressedFileResource;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
@@ -39,7 +40,7 @@ public class TarFileTreeTest {
     private final TestFile tarFile = tmpDir.getDir().file("test.tar");
     private final TestFile rootDir = tmpDir.getDir().file("root");
     private final TestFile expandDir = tmpDir.getDir().file("tmp");
-    private final TarFileTree tree = new TarFileTree(new MaybeCompressedFileResource(tarFile), expandDir);
+    private final TarFileTree tree = new TarFileTree(new MaybeCompressedFileResource(new FileResource(tarFile)), expandDir);
 
     @Test
     public void displayName() {
@@ -64,7 +65,7 @@ public class TarFileTreeTest {
         rootDir.file("subdir2/file2.txt").write("content");
         rootDir.tgzTo(tgz);
 
-        TarFileTree tree = new TarFileTree(new MaybeCompressedFileResource(tgz), expandDir);
+        TarFileTree tree = new TarFileTree(new MaybeCompressedFileResource(new FileResource(tgz)), expandDir);
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
@@ -78,7 +79,7 @@ public class TarFileTreeTest {
         rootDir.file("subdir2/file2.txt").write("content");
         rootDir.tbzTo(tbz2);
 
-        TarFileTree tree = new TarFileTree(new MaybeCompressedFileResource(tbz2), expandDir);
+        TarFileTree tree = new TarFileTree(new MaybeCompressedFileResource(new FileResource(tbz2)), expandDir);
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
