@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.resources;
+package org.gradle.api.internal.resource;
 
 /**
- * Exception thrown when the resource does not exist
+ * An exception thrown when attempting to access the content of a {@link Resource} which does not exist.
  */
-public class MissingResourceException extends ResourceException {
-    public MissingResourceException(String message) {
+public class ResourceNotFoundException extends ResourceException {
+    public ResourceNotFoundException(String message) {
         super(message);
     }
 }
