@@ -970,8 +970,13 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      *   from tarTree('someCompressedTar.gzip')
      *
      *   //tar tree attempts to guess the compression based on the file extension
-     *   //however if you must to specify the compression explicitly you can:
+     *   //however if you must specify the compression explicitly you can:
      *   from tarTree(resources.gzip('someTar.ext'))
+     *
+     *   //in case you work with unconventionally compressed tars
+     *   //you can provide your own implementation of a ReadableResource:
+     *   //from tarTree(yourOwnResource as ReadableResource)
+     *
      *   into 'dest'
      * }
      * </pre>
