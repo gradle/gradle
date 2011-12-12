@@ -31,7 +31,7 @@ import org.apache.ivy.plugins.version.VersionMatcher;
 import org.apache.ivy.util.ChecksumHelper;
 import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.Message;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryAccessor;
+import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,17 +40,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class RepositoryResolver extends AbstractPatternsBasedResolver {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryResolver.class);
+public class ResourceCollectionResolver extends AbstractPatternsBasedResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceCollectionResolver.class);
 
-    private final RepositoryAccessor repository;
+    private final ResourceCollection repository;
 
-    public RepositoryResolver(String name, RepositoryAccessor repository) {
+    public ResourceCollectionResolver(String name, ResourceCollection repository) {
         setName(name);
         this.repository = repository;
     }
 
-    protected RepositoryAccessor getRepository() {
+    protected ResourceCollection getRepository() {
         return repository;
     }
 

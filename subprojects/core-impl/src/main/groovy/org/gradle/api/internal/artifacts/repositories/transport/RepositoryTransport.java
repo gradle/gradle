@@ -20,7 +20,7 @@ import org.apache.ivy.plugins.resolver.AbstractResolver;
 import java.net.URI;
 
 public interface RepositoryTransport {
-    RepositoryAccessor getRepositoryAccessor();
+    ResourceCollection getRepositoryAccessor();
 
     void configureCacheManager(AbstractResolver resolver);
 

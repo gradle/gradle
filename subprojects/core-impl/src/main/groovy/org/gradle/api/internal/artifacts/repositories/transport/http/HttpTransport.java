@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport;
+package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
-import org.gradle.api.internal.artifacts.repositories.CommonsHttpClientBackedRepository;
+import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 
 import java.net.URI;
 
@@ -33,9 +34,9 @@ public class HttpTransport implements RepositoryTransport {
         this.externalArtifactCache = externalArtifactCache;
     }
 
-    public RepositoryAccessor getRepositoryAccessor() {
+    public ResourceCollection getRepositoryAccessor() {
         HttpSettings httpSettings = new DefaultHttpSettings(credentials);
-        CommonsHttpClientBackedRepository repository = new CommonsHttpClientBackedRepository(httpSettings, externalArtifactCache);
+        HttpResourceCollection repository = new HttpResourceCollection(httpSettings, externalArtifactCache);
         repository.setName(name);
         return repository;
     }

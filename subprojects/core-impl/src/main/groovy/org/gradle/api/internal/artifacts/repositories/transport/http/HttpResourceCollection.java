@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.auth.AuthScope;
@@ -30,9 +30,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
-import org.gradle.api.internal.artifacts.repositories.transport.HttpProxySettings;
-import org.gradle.api.internal.artifacts.repositories.transport.HttpSettings;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryAccessor;
+import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.UncheckedException;
@@ -51,8 +49,8 @@ import java.util.*;
 /**
  * A repository which uses commons-httpclient to access resources using HTTP/HTTPS.
  */
-public class CommonsHttpClientBackedRepository extends AbstractRepository implements RepositoryAccessor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CommonsHttpClientBackedRepository.class);
+public class HttpResourceCollection extends AbstractRepository implements ResourceCollection {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceCollection.class);
     private final Map<String, Resource> resources = new HashMap<String, Resource>();
     private final HttpClient client = new HttpClient();
     private final HttpProxySettings proxySettings;
@@ -60,7 +58,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository implem
 
     private final ExternalArtifactCache externalArtifactCache;
 
-    public CommonsHttpClientBackedRepository(HttpSettings httpSettings, ExternalArtifactCache externalArtifactCache) {
+    public HttpResourceCollection(HttpSettings httpSettings, ExternalArtifactCache externalArtifactCache) {
         PasswordCredentials credentials = httpSettings.getCredentials();
         if (GUtil.isTrue(credentials.getUsername())) {
             client.getParams().setAuthenticationPreemptive(true);
@@ -300,142 +298,6 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository implem
                 }
                 delegate = null;
             }
-        }
-    }
-
-    private class HttpResource implements Resource {
-        private final String source;
-        private final GetMethod method;
-
-        public HttpResource(String source, GetMethod method) {
-            this.source = source;
-            this.method = method;
-        }
-
-        public String getName() {
-            return source;
-        }
-
-        @Override
-        public String toString() {
-            return "HttpResource: " + getName();
-        }
-
-        public long getLastModified() {
-            Header responseHeader = method.getResponseHeader("last-modified");
-            if (responseHeader == null) {
-                return 0;
-            }
-            try {
-                return Date.parse(responseHeader.getValue());
-            } catch (Exception e) {
-                return 0;
-            }
-        }
-
-        public long getContentLength() {
-            return method.getResponseContentLength();
-        }
-
-        public boolean exists() {
-            return true;
-        }
-
-        public boolean isLocal() {
-            return false;
-        }
-
-        public Resource clone(String cloneName) {
-            throw new UnsupportedOperationException();
-        }
-
-        public InputStream openStream() throws IOException {
-            LOGGER.debug("Attempting to download resource {}.", source);
-            return method.getResponseBodyAsStream();
-        }
-    }
-
-    private static class MissingResource implements Resource {
-        private final String source;
-
-        public MissingResource(String source) {
-            this.source = source;
-        }
-
-        @Override
-        public String toString() {
-            return "MissingResource: " + getName();
-        }
-
-        public Resource clone(String cloneName) {
-            throw new UnsupportedOperationException();
-        }
-
-        public String getName() {
-            return source;
-        }
-
-        public long getLastModified() {
-            throw new UnsupportedOperationException();
-        }
-
-        public long getContentLength() {
-            throw new UnsupportedOperationException();
-        }
-
-        public boolean exists() {
-            return false;
-        }
-
-        public boolean isLocal() {
-            throw new UnsupportedOperationException();
-        }
-
-        public InputStream openStream() throws IOException {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    private static class CachedResource implements Resource {
-        private String source;
-        private final File cacheFile;
-
-        public CachedResource(String source, CachedArtifact cachedArtifact) {
-            this.source = source;
-            this.cacheFile = cachedArtifact.getOrigin();
-        }
-
-        @Override
-        public String toString() {
-            return "CachedResource: " + cacheFile + " for " + source;
-        }
-
-        public String getName() {
-            return source;
-        }
-
-        public long getLastModified() {
-            return cacheFile.lastModified();
-        }
-
-        public long getContentLength() {
-            return cacheFile.length();
-        }
-
-        public boolean exists() {
-            return true;
-        }
-
-        public boolean isLocal() {
-            return true;
-        }
-
-        public Resource clone(String cloneName) {
-            throw new UnsupportedOperationException();
-        }
-
-        public InputStream openStream() throws IOException {
-            return new FileInputStream(cacheFile);
         }
     }
 

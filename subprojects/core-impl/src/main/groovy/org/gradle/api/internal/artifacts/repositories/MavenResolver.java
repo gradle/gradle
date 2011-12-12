@@ -39,7 +39,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.*;
 
-public class MavenResolver extends RepositoryResolver implements PatternBasedResolver {
+public class MavenResolver extends ResourceCollectionResolver implements PatternBasedResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
 
     private static final String M2_PER_MODULE_PATTERN = "[revision]/[artifact]-[revision](-[classifier]).[ext]";

@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport;
+package org.gradle.api.internal.artifacts.repositories.transport.file;
 
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 
 import java.io.File;
 import java.net.URI;
@@ -28,8 +30,8 @@ public class FileTransport implements RepositoryTransport {
         this.name = name;
     }
 
-    public RepositoryAccessor getRepositoryAccessor() {
-        FileRepositoryAccessor fileRepository = new FileRepositoryAccessor();
+    public ResourceCollection getRepositoryAccessor() {
+        FileResourceCollection fileRepository = new FileResourceCollection();
         fileRepository.setName(name);
         return fileRepository;
     }

@@ -19,7 +19,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 
 import java.net.URI;
 
-public class IvyResolver extends RepositoryResolver implements PatternBasedResolver {
+public class IvyResolver extends ResourceCollectionResolver implements PatternBasedResolver {
 
     private final RepositoryTransport transport;
 

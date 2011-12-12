@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport;
+package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

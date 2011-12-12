@@ -16,13 +16,11 @@
 package org.gradle.api.internal.artifacts.repositories.transport;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.Resource;
-import org.apache.ivy.plugins.repository.file.FileRepository;
 
 import java.io.IOException;
 
-public class FileRepositoryAccessor extends FileRepository implements RepositoryAccessor {
-    public Resource getResource(String source, ArtifactRevisionId artifactId) throws IOException {
-        return getResource(source);
-    }
+public interface ResourceCollection extends Repository {
+    Resource getResource(String source, ArtifactRevisionId artifactId) throws IOException;
 }

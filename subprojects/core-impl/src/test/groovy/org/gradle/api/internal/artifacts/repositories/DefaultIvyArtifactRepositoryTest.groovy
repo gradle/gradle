@@ -19,11 +19,12 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache
-import org.gradle.api.internal.artifacts.repositories.transport.FileTransport
-import org.gradle.api.internal.artifacts.repositories.transport.HttpTransport
+import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport
+import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
+import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResourceCollection
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
@@ -83,8 +84,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         resolvers.size() == 1
         def resolver = resolvers[0]
-        resolver instanceof RepositoryResolver
-        resolver.repository instanceof CommonsHttpClientBackedRepository
+        resolver instanceof ResourceCollectionResolver
+        resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[artifact]-[revision].[ext]', 'http://other/[module]/[artifact]-[revision].[ext]'] as List
         resolver.ivyPatterns == ['http://host/[module]/ivy-[revision].xml'] as List
@@ -130,8 +131,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         resolvers.size() == 1
         def resolver = resolvers[0]
-        resolver instanceof RepositoryResolver
-        resolver.repository instanceof CommonsHttpClientBackedRepository
+        resolver instanceof ResourceCollectionResolver
+        resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'] as List
         resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml"] as List
@@ -153,8 +154,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         resolvers.size() == 1
         def resolver = resolvers[0]
-        resolver instanceof RepositoryResolver
-        resolver.repository instanceof CommonsHttpClientBackedRepository
+        resolver instanceof ResourceCollectionResolver
+        resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'] as List
         resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml"] as List
@@ -180,8 +181,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         resolvers.size() == 1
         def resolver = resolvers[0]
-        resolver instanceof RepositoryResolver
-        resolver.repository instanceof CommonsHttpClientBackedRepository
+        resolver instanceof ResourceCollectionResolver
+        resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[module]/[revision]/[artifact](.[ext])'] as List
         resolver.ivyPatterns == ["http://host/[module]/[revision]/ivy.xml"] as List
@@ -204,8 +205,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         resolvers.size() == 1
         def resolver = resolvers[0]
-        resolver instanceof RepositoryResolver
-        resolver.repository instanceof CommonsHttpClientBackedRepository
+        resolver instanceof ResourceCollectionResolver
+        resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])', 'http://host/[other]/artifact'] as List
         resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml", 'http://host/[other]/ivy'] as List

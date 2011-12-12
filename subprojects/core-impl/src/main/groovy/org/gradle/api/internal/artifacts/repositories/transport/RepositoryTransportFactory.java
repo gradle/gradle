@@ -20,6 +20,8 @@ import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.ProgressLoggingTransferListener;
+import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport;
+import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport;
 import org.gradle.logging.ProgressLoggerFactory;
 
 import java.net.URI;
@@ -57,12 +59,12 @@ public class RepositoryTransportFactory {
             delegate.configureCacheManager(resolver);
         }
 
-        public RepositoryAccessor getRepositoryAccessor() {
-            RepositoryAccessor repositoryAccessor = delegate.getRepositoryAccessor();
-            if (!repositoryAccessor.hasTransferListener(transferListener)) {
-                repositoryAccessor.addTransferListener(transferListener);
+        public ResourceCollection getRepositoryAccessor() {
+            ResourceCollection resourceCollection = delegate.getRepositoryAccessor();
+            if (!resourceCollection.hasTransferListener(transferListener)) {
+                resourceCollection.addTransferListener(transferListener);
             }
-            return repositoryAccessor;
+            return resourceCollection;
         }
 
         public String convertToPath(URI uri) {

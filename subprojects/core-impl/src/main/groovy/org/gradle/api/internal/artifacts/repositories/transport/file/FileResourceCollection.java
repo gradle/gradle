@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport;
+package org.gradle.api.internal.artifacts.repositories.transport.file;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.Resource;
+import org.apache.ivy.plugins.repository.file.FileRepository;
+import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
 
 import java.io.IOException;
 
-public interface RepositoryAccessor extends Repository {
-    Resource getResource(String source, ArtifactRevisionId artifactId) throws IOException;
+public class FileResourceCollection extends FileRepository implements ResourceCollection {
+    public Resource getResource(String source, ArtifactRevisionId artifactId) throws IOException {
+        return getResource(source);
+    }
 }
