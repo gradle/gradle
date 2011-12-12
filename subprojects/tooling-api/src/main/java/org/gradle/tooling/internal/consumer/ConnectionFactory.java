@@ -19,6 +19,7 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
 /**
@@ -43,5 +44,17 @@ public class ConnectionFactory {
         ConnectionVersion4 connection = new ProgressLoggingConnection(new LazyConnection(distribution, toolingImplementationLoader), progressLoggerFactory, listenerManager);
         AsyncConnection asyncConnection = new DefaultAsyncConnection(connection, executorFactory);
         return new DefaultProjectConnection(asyncConnection, adapter, parameters);
+    }
+
+    ToolingImplementationLoader getToolingImplementationLoader() {
+        return toolingImplementationLoader;
+    }
+
+    ListenerManager getListenerManager() {
+        return listenerManager;
+    }
+
+    ProgressLoggerFactory getProgressLoggerFactory() {
+        return progressLoggerFactory;
     }
 }

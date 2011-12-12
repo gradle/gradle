@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1
 import org.gradle.tooling.internal.protocol.ConnectionVersion4

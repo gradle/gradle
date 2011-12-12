@@ -15,37 +15,79 @@
  */
 package org.gradle.cache.internal
 
-import spock.lang.Specification
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
+import spock.lang.Specification
+import static org.gradle.cache.internal.FileLockManager.LockMode.None
+import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 
 class DefaultPersistentDirectoryStoreTest extends Specification {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
+    final FileLockManager lockManager = Mock()
+    final FileLock lock = Mock()
+    final cacheDir = tmpDir.file("dir")
+    final cacheFile = cacheDir.file("some-content.bin")
+    final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", None, lockManager)
 
-    def "creates directory and cache.properties file if it does not exist"() {
-        given:
-        def dir = tmpDir.file('dir')
-        dir.assertDoesNotExist()
-
-        when:
-        def store = new DefaultPersistentDirectoryStore(dir)
-
-        then:
-        dir.assertIsDir()
-        dir.file('cache.properties').assertIsFile()
+    def "has useful toString() implementation"() {
+        expect:
+        store.toString() == "<display> ($cacheDir)"
     }
 
-    def "does nothing when directory and cache.properties file already exist"() {
+    def "open creates directory if it does not exist"() {
         given:
-        def dir = tmpDir.dir
-        dir.assertIsDir()
-        dir.file('cache.properties').createFile()
+        cacheDir.assertDoesNotExist()
 
         when:
-        def store = new DefaultPersistentDirectoryStore(dir)
+        store.open()
+
+        then:
+        cacheDir.assertIsDir()
+    }
+
+    def "open does nothing when directory already exists"() {
+        given:
+        cacheDir.createDir()
+
+        when:
+        store.open()
 
         then:
         notThrown(RuntimeException)
     }
+
+    def "open locks cache directory with requested mode"() {
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", Shared, lockManager)
+
+        when:
+        store.open()
+
+        then:
+        1 * lockManager.lock(cacheDir, Shared, "<display> ($cacheDir)") >> lock
+
+        when:
+        store.close()
+
+        then:
+        1 * lock.close()
+        0 * _._
+    }
+
+    def "open does not lock cache directory when None mode requested"() {
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", None, lockManager)
+
+        when:
+        store.open()
+
+        then:
+        0 * _._
+
+        when:
+        store.close()
+
+        then:
+        0 * _._
+    }
+
 }

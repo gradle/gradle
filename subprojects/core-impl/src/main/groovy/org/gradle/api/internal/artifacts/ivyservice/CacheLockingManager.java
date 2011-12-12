@@ -16,39 +16,23 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.internal.Factory;
+import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
 
 import java.io.File;
 
+/**
+ * Provides synchronized access to the artifact cache.
+ */
 @ThreadSafe
-public interface CacheLockingManager {
+public interface CacheLockingManager extends ArtifactCacheMetaData, CacheAccess {
     /**
-     * Performs some work against the cache. Acquires exclusive locks the appropriate resources, so that the given action is the only
-     * action to execute across all processes (including this one).
+     * Creates a cache implementation that is managed by this locking manager. This method may be used at any time.
      *
-     * <p>This method is re-entrant.</p>
-     */
-    <T> T useCache(String operationDisplayName, Factory<? extends T> action);
-
-    /**
-     * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.api.internal.Factory)}. Releases all
-     * locks while the operation is running, and then reacquires the locks.
+     * <p>The returned cache may only be used by an action being run from {@link #useCache(String, org.gradle.api.internal.Factory)}.
+     * In this instance, an exclusive lock will be held on the cache.
      *
-     * <p>This method is re-entrant.</p>
-     */
-    <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action);
-
-    /**
-     * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.api.internal.Factory)}. Releases all
-     * locks while the operation is running, and then reacquires the locks.
-     *
-     * <p>This method is re-entrant.</p>
-     */
-    void longRunningOperation(String operationDisplayName, Runnable action);
-
-    /**
-     * Creates a cache implementation that is managed by this locking manager.
+     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.api.internal.Factory)}.
      */
     <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType);
 }

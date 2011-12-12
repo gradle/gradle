@@ -343,9 +343,9 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * 
      * @return The merged system properties
      */
-    public Properties getMergedSystemProperties() {
-        Properties merged = new Properties();
-        merged.putAll(System.getProperties());
+    public Map<String, String> getMergedSystemProperties() {
+        Map<String, String> merged = new HashMap<String, String>();
+        merged.putAll((Map)System.getProperties());
         merged.putAll(getSystemPropertiesArgs());
         return merged;
     }

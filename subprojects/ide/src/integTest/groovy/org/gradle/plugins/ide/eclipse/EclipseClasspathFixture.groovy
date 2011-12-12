@@ -15,9 +15,9 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.util.TestFile
 import java.util.regex.Pattern
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData
+import org.gradle.util.TestFile
+import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
 
 class EclipseClasspathFixture {
     final TestFile projectDir
@@ -103,7 +103,7 @@ class EclipseClasspathFixture {
         }
 
         private def getArtifactCacheVersion() {
-            return ArtifactCacheMetaData.CACHE_LAYOUT_VERSION;
+            return DefaultCacheLockingManager.CACHE_LAYOUT_VERSION;
         }
 
         void assertHasNoSource() {

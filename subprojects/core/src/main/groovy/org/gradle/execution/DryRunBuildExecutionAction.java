@@ -19,7 +19,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 
 /**
- * A {@link org.gradle.execution.BuildExecuter} which disables all selected tasks before they are executed.
+ * A {@link org.gradle.execution.BuildExecutionAction} that disables all selected tasks before they are executed.
  */
 public class DryRunBuildExecutionAction implements BuildExecutionAction {
     public void execute(BuildExecutionContext context) {

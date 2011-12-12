@@ -21,6 +21,7 @@ import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.model.Task;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,6 +64,12 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation implements Build
     @Override
     public DefaultBuildLauncher setStandardOutput(OutputStream outputStream) {
         super.setStandardOutput(outputStream);
+        return this;
+    }
+
+    @Override
+    public DefaultBuildLauncher setStandardInput(InputStream inputStream) {
+        super.setStandardInput(inputStream);
         return this;
     }
 

@@ -22,4 +22,5 @@ import java.lang.annotation.*;
 @Inherited
 public @interface MinTargetGradleVersion {
     String value();
+    boolean currentOnly() default false;
 }

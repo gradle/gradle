@@ -15,27 +15,17 @@
  */
 package org.gradle.api.internal.changedetection
 
-import spock.lang.Specification
-import org.gradle.cache.CacheRepository
-import org.gradle.cache.CacheBuilder
-import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
-import org.gradle.cache.ObjectCacheBuilder
-import org.gradle.api.invocation.Gradle
+import spock.lang.Specification
 
 class CacheBackedFileSnapshotRepositoryTest extends Specification {
-    final CacheRepository cacheRepository = Mock()
-    final Gradle gradle = Mock()
+    final TaskArtifactStateCacheAccess cacheAccess = Mock()
     final PersistentIndexedCache<Object, Object> indexedCache = Mock()
     FileSnapshotRepository repository
 
     def setup() {
-        ObjectCacheBuilder<Object, PersistentCache> builder = Mock()
-        1 * cacheRepository.indexedCache(Object, Object, "fileSnapshots") >> builder
-        1 * builder.forObject(gradle) >> builder
-        1 * builder.open() >> indexedCache
-
-        repository = new CacheBackedFileSnapshotRepository(cacheRepository, gradle)
+        1 * cacheAccess.createCache("fileSnapshots", Object, Object) >> indexedCache
+        repository = new CacheBackedFileSnapshotRepository(cacheAccess)
     }
 
     def "assigns an id when a snapshot is added"() {
@@ -71,11 +61,5 @@ class CacheBackedFileSnapshotRepositoryTest extends Specification {
         then:
         1 * indexedCache.remove(4)
         0 * _._
-    }
-
-    def expectCacheOpened() {
-        ObjectCacheBuilder<Object, PersistentCache> builder = Mock()
-        1 * cacheRepository.indexedCache(Object, Object, "fileSnapshots") >> builder
-        1 * builder.open() >> indexedCache
     }
 }

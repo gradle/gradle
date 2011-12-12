@@ -57,6 +57,9 @@ public class DefaultFileLockManager implements FileLockManager {
     }
 
     public FileLock lock(File target, LockMode mode, String targetDisplayName, String operationDisplayName) {
+        if (mode == LockMode.None) {
+            throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", mode));
+        }
         File canonicalTarget = GFileUtils.canonicalise(target);
         if (!lockedFiles.add(canonicalTarget)) {
             throw new IllegalStateException(String.format("Cannot lock %s as it has already been locked by this process.", targetDisplayName));
@@ -197,7 +200,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         private java.nio.channels.FileLock lock(FileLockManager.LockMode lockMode) throws Throwable {
-            LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode, displayName);
+            LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(), displayName);
             long timeout = System.currentTimeMillis() + LOCK_TIMEOUT;
 
             // Lock the state region, with the requested mode

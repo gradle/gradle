@@ -18,6 +18,7 @@ package org.gradle.listener;
 import org.gradle.api.internal.Factory;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
@@ -44,7 +45,11 @@ public class LazyCreationProxy<T> {
             if (target == null) {
                 target = factory.create();
             }
-            return method.invoke(target, args);
+            try {
+                return method.invoke(target, args);
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
         }
     }
 }

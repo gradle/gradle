@@ -22,16 +22,22 @@ import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.output.CloseShieldOutputStream;
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.repository.*;
 import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.url.ApacheURLLister;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.transport.HttpProxySettings;
 import org.gradle.api.internal.artifacts.repositories.transport.HttpSettings;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryAccessor;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.UncheckedException;
+import org.jfrog.wharf.ivy.checksum.ChecksumType;
+import org.jfrog.wharf.ivy.util.WharfUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,30 +51,41 @@ import java.util.*;
 /**
  * A repository which uses commons-httpclient to access resources using HTTP/HTTPS.
  */
-public class CommonsHttpClientBackedRepository extends AbstractRepository {
+public class CommonsHttpClientBackedRepository extends AbstractRepository implements RepositoryAccessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonsHttpClientBackedRepository.class);
     private final Map<String, Resource> resources = new HashMap<String, Resource>();
     private final HttpClient client = new HttpClient();
     private final HttpProxySettings proxySettings;
     private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
 
-    public CommonsHttpClientBackedRepository(HttpSettings httpSettings) {
+    private final ExternalArtifactCache externalArtifactCache;
+
+    public CommonsHttpClientBackedRepository(HttpSettings httpSettings, ExternalArtifactCache externalArtifactCache) {
         PasswordCredentials credentials = httpSettings.getCredentials();
         if (GUtil.isTrue(credentials.getUsername())) {
             client.getParams().setAuthenticationPreemptive(true);
             client.getState().setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword()));
         }
         this.proxySettings = httpSettings.getProxySettings();
+        this.externalArtifactCache = externalArtifactCache;
+    }
+
+    public Resource getResource(final String source, ArtifactRevisionId artifactId) throws IOException {
+        LOGGER.debug("Constructing GET resource: {}", source);
+
+        List<CachedArtifact> cachedArtifacts = new ArrayList<CachedArtifact>();
+        externalArtifactCache.addMatchingCachedArtifacts(artifactId, cachedArtifacts);
+
+        releasePriorResources();
+        GetMethod method = new GetMethod(source);
+        configureMethod(method);
+        Resource resource = createLazyResource(source, method, cachedArtifacts);
+        resources.put(source, resource);
+        return resource;
     }
 
     public Resource getResource(final String source) throws IOException {
-        releasePriorResources();
-        LOGGER.debug("Attempting to get resource {}.", source);
-        GetMethod method = new GetMethod(source);
-        configureMethod(method);
-        Resource resource = createLazyResource(source, method);
-        resources.put(source, resource);
-        return resource;
+        return getResource(source, null);
     }
 
     private void releasePriorResources() {
@@ -78,8 +95,8 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         }
     }
 
-    private Resource createLazyResource(String source, GetMethod method) {
-        LazyResourceInvocationHandler invocationHandler = new LazyResourceInvocationHandler(source, method);
+    private Resource createLazyResource(String source, GetMethod method, List<CachedArtifact> artifacts) {
+        LazyResourceInvocationHandler invocationHandler = new LazyResourceInvocationHandler(source, method, artifacts);
         return Resource.class.cast(Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{Resource.class}, invocationHandler));
     }
 
@@ -153,6 +170,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
     }
 
     private int executeMethod(HttpMethod method) throws IOException {
+        LOGGER.debug("Performing HTTP GET: {}", method.getURI());
         configureProxyIfRequired(method);
         return client.executeMethod(method);
     }
@@ -198,11 +216,13 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
     private class LazyResourceInvocationHandler implements InvocationHandler {
         private final String source;
         private final GetMethod method;
+        private final List<CachedArtifact> candidates;
         private Resource delegate;
 
-        private LazyResourceInvocationHandler(String source, GetMethod method) {
+        private LazyResourceInvocationHandler(String source, GetMethod method, List<CachedArtifact> candidates) {
             this.method = method;
             this.source = source;
+            this.candidates = candidates;
         }
 
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -213,7 +233,14 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
         }
 
         private Resource init() {
-            LOGGER.info("Attempting to GET resource {}.", source);
+            // First see if we can use any of the candidates directly.
+            if (candidates.size() > 0) {
+                CachedResource cachedResource = findCachedResource();
+                if (cachedResource != null) {
+                    return cachedResource;
+                }
+            }
+
             int result;
             try {
                 result = executeMethod(method);
@@ -221,18 +248,56 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
                 throw new UncheckedIOException(String.format("Could not GET '%s'.", source), e);
             }
             if (result == 404) {
-                LOGGER.debug("Resource missing: {}.", source);
+                LOGGER.info("Resource missing. [HTTP GET: {}]", source);
                 return new MissingResource(source);
             }
             if (!wasSuccessful(result)) {
                 throw new UncheckedIOException(String.format("Could not GET '%s'. Received status code %s from server: %s", source, result, method.getStatusText()));
             }
+            LOGGER.info("Resource found. [HTTP GET: {}]", source);
             return new HttpResource(source, method);
+        }
+
+        private CachedResource findCachedResource() {
+            ChecksumType checksumType = ChecksumType.sha1;
+            String checksumUrl = source + checksumType.ext();
+
+            String sha1 = downloadChecksum(checksumUrl);
+            if (sha1 == null) {
+                LOGGER.info("Checksum {} missing. [HTTP GET: {}]", checksumType, checksumUrl);
+            } else {
+                for (CachedArtifact candidate : candidates) {
+                    if (candidate.getSha1().equals(sha1)) {
+                        LOGGER.info("Checksum {} matched cached resource: [HTTP GET: {}]", checksumType, checksumUrl);
+                        return new CachedResource(source, candidate);
+                    }
+                }
+                LOGGER.info("Checksum {} did not match cached resources: [HTTP GET: {}]", checksumType, checksumUrl);
+            }
+            return null;
+        }
+
+        private String downloadChecksum(String checksumUrl) {
+            GetMethod get = new GetMethod(checksumUrl);
+            try {
+                int result = executeMethod(get);
+                if (result == 404) {
+                    return null;
+                }
+                return WharfUtils.getCleanChecksum(get.getResponseBodyAsString());
+            } catch (IOException e) {
+                LOGGER.warn("Checksum missing at {} due to: {}", checksumUrl, e.getMessage());
+                return null;
+            } finally {
+                get.releaseConnection();
+            }
         }
 
         public void release() {
             if (delegate != null && delegate.exists()) {
-                method.releaseConnection();
+                if (method != null) {
+                    method.releaseConnection();
+                }
                 delegate = null;
             }
         }
@@ -253,7 +318,7 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
 
         @Override
         public String toString() {
-            return getName();
+            return "HttpResource: " + getName();
         }
 
         public long getLastModified() {
@@ -297,6 +362,11 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
             this.source = source;
         }
 
+        @Override
+        public String toString() {
+            return "MissingResource: " + getName();
+        }
+
         public Resource clone(String cloneName) {
             throw new UnsupportedOperationException();
         }
@@ -323,6 +393,49 @@ public class CommonsHttpClientBackedRepository extends AbstractRepository {
 
         public InputStream openStream() throws IOException {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class CachedResource implements Resource {
+        private String source;
+        private final File cacheFile;
+
+        public CachedResource(String source, CachedArtifact cachedArtifact) {
+            this.source = source;
+            this.cacheFile = cachedArtifact.getOrigin();
+        }
+
+        @Override
+        public String toString() {
+            return "CachedResource: " + cacheFile + " for " + source;
+        }
+
+        public String getName() {
+            return source;
+        }
+
+        public long getLastModified() {
+            return cacheFile.lastModified();
+        }
+
+        public long getContentLength() {
+            return cacheFile.length();
+        }
+
+        public boolean exists() {
+            return true;
+        }
+
+        public boolean isLocal() {
+            return true;
+        }
+
+        public Resource clone(String cloneName) {
+            throw new UnsupportedOperationException();
+        }
+
+        public InputStream openStream() throws IOException {
+            return new FileInputStream(cacheFile);
         }
     }
 

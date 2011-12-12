@@ -22,13 +22,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.DescribedReadableResource;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
-import org.gradle.api.resources.ResourceDoesNotExist;
-import org.gradle.api.resources.ResourceIsAFolder;
+import org.gradle.api.resources.MissingResourceException;
+import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HashUtil;
 
@@ -38,17 +38,17 @@ import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
-    private final DescribedReadableResource resource;
+    private final ReadableResource resource;
     private final File tmpDir;
 
-    public TarFileTree(DescribedReadableResource resource, File tmpDir) {
+    public TarFileTree(ReadableResource resource, File tmpDir) {
         this.resource = resource;
-        String expandDirName = String.format("%s_%s", resource.getName(), HashUtil.createHash(resource.getUniqueName()));
+        String expandDirName = String.format("%s_%s", resource.getBaseName(), HashUtil.createHash(resource.getURI().toString()));
         this.tmpDir = new File(tmpDir, expandDirName);
     }
 
     public String getDisplayName() {
-        return String.format("TAR '%s'", resource.getUniqueName());
+        return String.format("TAR '%s'", resource.getDisplayName());
     }
 
     public DirectoryFileTree getMirror() {
@@ -60,10 +60,10 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         try {
             inputStream = resource.read();
             assert inputStream != null;
-        } catch (ResourceDoesNotExist e) {
+        } catch (MissingResourceException e) {
             return;
-        } catch (ResourceIsAFolder e) {
-            throw new InvalidUserDataException(String.format("Cannot expand %s as it is not a file.", getDisplayName()));
+        } catch (ResourceException e) {
+            throw new InvalidUserDataException(String.format("Cannot expand %s. %s", getDisplayName(), e.getMessage()));
         }
 
         try {
@@ -109,7 +109,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         public String getDisplayName() {
-            return String.format("tar entry %s!%s", resource.getUniqueName(), entry.getName());
+            return String.format("tar entry %s!%s", resource.getDisplayName(), entry.getName());
         }
 
         public void stopVisiting() {

@@ -40,23 +40,29 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
                                 new SkipEmptySourceFilesTaskExecuter(
                                         new ValidatingTaskExecuter(
                                                 new SkipUpToDateTaskExecuter(
-                                                        new PostExecutionAnalysisTaskExecuter(
-                                                                new ExecuteActionsTaskExecuter(
-                                                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
+                                                        new CacheLockHandlingTaskExecuter(
+                                                                new PostExecutionAnalysisTaskExecuter(
+                                                                        new ExecuteActionsTaskExecuter(
+                                                                                get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
+                                                                get(TaskArtifactStateCacheAccess.class)),
                                                         get(TaskArtifactStateRepository.class)))))));
     }
 
+    protected TaskArtifactStateCacheAccess createCacheAccess() {
+        return new DefaultTaskArtifactStateCacheAccess(gradle, get(CacheRepository.class));
+    }
+
     protected TaskArtifactStateRepository createTaskArtifactStateRepository() {
-        CacheRepository cacheRepository = get(CacheRepository.class);
+        TaskArtifactStateCacheAccess cacheAccess = get(TaskArtifactStateCacheAccess.class);
+
         FileSnapshotter fileSnapshotter = new DefaultFileSnapshotter(
                 new CachingHasher(
                         new DefaultHasher(),
-                        cacheRepository,
-                        gradle));
+                        cacheAccess));
 
-        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter, new RandomLongIdGenerator(), cacheRepository, gradle);
+        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter, new RandomLongIdGenerator(), cacheAccess);
 
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheRepository, new CacheBackedFileSnapshotRepository(cacheRepository, gradle), gradle);
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess));
 
         return new FileCacheBroadcastTaskArtifactStateRepository(
                 new ShortCircuitTaskArtifactStateRepository(

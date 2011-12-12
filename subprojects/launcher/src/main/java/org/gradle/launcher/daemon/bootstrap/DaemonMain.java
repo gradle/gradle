@@ -17,19 +17,18 @@ package org.gradle.launcher.daemon.bootstrap;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonJvmOptions;
+import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.DaemonStoppedException;
-import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.exec.EntryPoint;
 import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingServiceRegistry;
 
 import java.io.*;
-import java.util.List;
+import java.util.UUID;
 
 /**
  * The entry point for a daemon process.
@@ -45,7 +44,6 @@ public class DaemonMain extends EntryPoint {
     final private File daemonBaseDir;
     final private boolean redirectIo;
     final private int idleTimeoutMs;
-    final private List<String> daemonOpts;
 
     public static void main(String[] args) {
         if (args.length != 3) {
@@ -60,38 +58,39 @@ public class DaemonMain extends EntryPoint {
             invalidArgs("Second argument must be a whole number (i.e. daemon idle timeout in ms)");
         }
 
-        List<String> daemonOpts = DaemonJvmOptions.getFromEnvironmentVariable();
-        
-        new DaemonMain(daemonBaseDir, idleTimeoutMs, true, daemonOpts).run();
+        DaemonParameters parameters = new DaemonParameters();
+        parameters.setBaseDir(daemonBaseDir);
+        parameters.setIdleTimeout(idleTimeoutMs);
+
+        new DaemonMain(parameters, true).run();
     }
 
     private static void invalidArgs(String message) {
-        System.out.println("USAGE: «path to registry base dir» «idle timeout in milliseconds»");
+        System.out.println("USAGE: <gradle version> <path to registry base dir> <idle timeout in milliseconds>");
         System.out.println(message);
         System.exit(1);
     }
 
-    public DaemonMain(File daemonBaseDir, int idleTimeoutMs, boolean redirectIo, List<String> daemonOpts) {
-        this.daemonBaseDir = daemonBaseDir;
-        this.idleTimeoutMs = idleTimeoutMs;
+    public DaemonMain(DaemonParameters parameters, boolean redirectIo) {
+        this.daemonBaseDir = parameters.getBaseDir();
+        this.idleTimeoutMs = parameters.getIdleTimeout();
         this.redirectIo = redirectIo;
-        this.daemonOpts = daemonOpts;
     }
 
     protected void doAction(ExecutionListener listener) {
-        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, LoggingServiceRegistry.newChildProcessLogging(), daemonOpts);
+        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, LoggingServiceRegistry.newChildProcessLogging());
+        DaemonDir daemonDir = daemonServices.get(DaemonDir.class);
+        final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
+        final Long pid = daemonContext.getPid();
 
         if (redirectIo) {
             try {
-                redirectOutputsAndInput(daemonServices.get(DaemonDir.class));
+                redirectOutputsAndInput(daemonDir, pid);
             } catch (IOException e) {
                 listener.onFailure(e);
                 return;
             }
         }
-
-        final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
-        final Long pid = daemonContext.getPid();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
@@ -111,11 +110,13 @@ public class DaemonMain extends EntryPoint {
         }
     }
 
-    private static void redirectOutputsAndInput(DaemonDir daemonDir) throws IOException {
+    private static void redirectOutputsAndInput(DaemonDir daemonDir, Long pid) throws IOException {
         PrintStream originalOut = System.out;
         PrintStream originalErr = System.err;
 //        InputStream originalIn = System.in;
-        File logOutputFile = daemonDir.createUniqueLog();
+
+        //very simplistic, just making sure each damon has unique log file
+        File logOutputFile = new File(daemonDir.getVersionedDir(), String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid));
         logOutputFile.getParentFile().mkdirs();
         PrintStream printStream = new PrintStream(new FileOutputStream(logOutputFile), true);
         System.setOut(printStream);

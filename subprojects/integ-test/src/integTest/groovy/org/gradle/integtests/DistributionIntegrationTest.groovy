@@ -26,10 +26,14 @@ import org.junit.Test
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
+import org.gradle.util.PreconditionVerifier
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class DistributionIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final PreconditionVerifier preconditions = new PreconditionVerifier()
     private String version = GradleVersion.current().version
 
     @Test
@@ -130,7 +134,7 @@ class DistributionIntegrationTest {
         assertThat(jar.manifest.mainAttributes.getValue('Implementation-Title'), equalTo('Gradle'))
     }
 
-    @Test
+    @Test @Requires(TestPrecondition.NOT_WINDOWS)
     public void sourceZipContents() {
         TestFile srcZip = dist.distributionsDir.file("gradle-$version-src.zip")
         srcZip.usingNativeTools().unzipTo(dist.testDir)

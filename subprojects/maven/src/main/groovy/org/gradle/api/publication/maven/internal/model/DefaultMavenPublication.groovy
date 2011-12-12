@@ -15,12 +15,15 @@
  */
 package org.gradle.api.publication.maven.internal.model
 
-import org.gradle.util.ConfigureUtil
-import org.gradle.api.publication.maven.*
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
-import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
+import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.api.publication.maven.MavenArtifact
+import org.gradle.api.publication.maven.MavenDependency
+import org.gradle.api.publication.maven.MavenPomCustomizer
+import org.gradle.api.publication.maven.MavenPublication
+import org.gradle.util.ConfigureUtil
 
 class DefaultMavenPublication implements MavenPublication {
     String modelVersion
@@ -33,7 +36,7 @@ class DefaultMavenPublication implements MavenPublication {
     List<MavenArtifact> subArtifacts = []
     List<MavenDependency> dependencies = []
     MavenPomCustomizer pom
-    MavenArtifactRepository repository = new DefaultMavenArtifactRepository(new IdentityFileResolver(), new DefaultPasswordCredentials())
+    MavenArtifactRepository repository = new DefaultMavenArtifactRepository(new IdentityFileResolver(), new DefaultPasswordCredentials(), null)
 
     void repository(Closure c) {
         ConfigureUtil.configure(c, getRepository())

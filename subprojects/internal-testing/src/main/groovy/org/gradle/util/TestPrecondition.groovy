@@ -49,6 +49,9 @@ enum TestPrecondition {
     WINDOWS({
         OperatingSystem.current().windows
     }),
+    NOT_WINDOWS({
+        !OperatingSystem.current().windows
+    }),
     MAC_OS_X({
         OperatingSystem.current().macOsX
     }),

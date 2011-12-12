@@ -39,14 +39,23 @@ class DistributionFactoryTest extends Specification {
         tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI()}"
 
         expect:
-        factory.getDefaultDistribution(tmpDir.dir).displayName == "Gradle distribution '${zipFile.toURI()}'"
+        factory.getDefaultDistribution(tmpDir.dir, false).displayName == "Gradle distribution '${zipFile.toURI()}'"
+    }
+
+    def usesTheWrapperPropertiesToDetermineTheDefaultDistributionForASubprojectInAMultiProjectBuild() {
+        def zipFile = createZip { }
+        tmpDir.file('settings.gradle') << 'include "child"'
+        tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI()}"
+
+        expect:
+        factory.getDefaultDistribution(tmpDir.dir.createDir("child"), true).displayName == "Gradle distribution '${zipFile.toURI()}'"
     }
 
     def usesTheCurrentVersionAsTheDefaultDistributionWhenNoWrapperPropertiesFilePresent() {
         def uri = new DistributionLocator().getDistributionFor(GradleVersion.current())
 
         expect:
-        factory.getDefaultDistribution(tmpDir.dir).displayName == "Gradle distribution '${uri}'"
+        factory.getDefaultDistribution(tmpDir.dir, false).displayName == "Gradle distribution '${uri}'"
     }
 
     def createsADisplayNameForAnInstallation() {

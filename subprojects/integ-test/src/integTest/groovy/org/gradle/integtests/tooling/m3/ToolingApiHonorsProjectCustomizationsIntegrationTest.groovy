@@ -18,9 +18,7 @@ package org.gradle.integtests.tooling.m3
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
-import spock.lang.Ignore
 
-@Ignore
 class ToolingApiHonorsProjectCustomizationsIntegrationTest extends ToolingApiSpecification {
 
     def "should honour reconfigured project names"() {

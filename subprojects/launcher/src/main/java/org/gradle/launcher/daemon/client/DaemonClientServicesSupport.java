@@ -15,19 +15,19 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.context.DaemonContextBuilder;
-import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.messaging.remote.internal.OutgoingConnector;
-import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
-import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
-import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.api.specs.Spec;
+import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
+import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.context.DaemonContextBuilder;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
+import org.gradle.messaging.remote.internal.OutgoingConnector;
+import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 
 /**
  * Some support wiring for daemon clients.
@@ -38,9 +38,11 @@ import org.gradle.initialization.BuildClientMetaData;
 abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry {
 
     private final ServiceRegistry loggingServices;
+    private final DaemonStandardInput standardInput;
 
-    public DaemonClientServicesSupport(ServiceRegistry loggingServices) {
+    public DaemonClientServicesSupport(ServiceRegistry loggingServices, DaemonStandardInput standardInput) {
         this.loggingServices = loggingServices;
+        this.standardInput = standardInput;
     }
 
     public ServiceRegistry getLoggingServices() {
@@ -64,7 +66,12 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
     }
 
     protected DaemonClient createDaemonClient() {
-        return new DaemonClient(get(DaemonConnector.class), get(BuildClientMetaData.class), get(OutputEventListener.class));
+        return new DaemonClient(get(DaemonConnector.class),
+                get(BuildClientMetaData.class),
+                get(OutputEventListener.class),
+                makeDaemonCompatibilitySpec(),
+                standardInput
+                );
     }
 
     protected OutputEventListener createOutputEventListener() {
@@ -79,9 +86,8 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader()));
     }
 
-    @SuppressWarnings("unchecked")
     protected DaemonConnector createDaemonConnector() {
-        return new DefaultDaemonConnector(get(DaemonRegistry.class), makeDaemonCompatibilitySpec(), get(OutgoingConnector.class), makeDaemonStarter());
+        return new DefaultDaemonConnector(get(DaemonRegistry.class), get(OutgoingConnector.class), makeDaemonStarter());
     }
 
     abstract protected DaemonRegistry createDaemonRegistry();

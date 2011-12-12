@@ -30,16 +30,21 @@ public class ClientModuleDependenciesResolveIntegrationTest extends AbstractInte
 
     @Test
     public void testResolve() {
+        when:
         // the actual testing is done in the build script.
         File projectDir = new File(distribution.getSamplesDir(), "clientModuleDependencies/shared");
+        then:
         executer.inDirectory(projectDir).withTasks("testDeps").run();
 
+        when:
         projectDir = new File(distribution.getSamplesDir(), "clientModuleDependencies/api");
+        then:
         executer.inDirectory(projectDir).withTasks("testDeps").run();
     }
 
     @Test
     public void "uses metadata from Client Module and looks up artifact in declared repositories"() {
+        distribution.requireOwnUserHomeDir()
         given:
         def repo = ivyRepo()
         def projectA = repo.module('group', 'projectA', '1.2')

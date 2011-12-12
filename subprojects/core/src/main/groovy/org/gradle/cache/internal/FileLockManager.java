@@ -40,6 +40,17 @@ public interface FileLockManager {
     FileLock lock(File target, LockMode mode, String targetDisplayName, String operationDisplayName) throws LockTimeoutException;
 
     enum LockMode {
-        Shared, Exclusive
+        /**
+         * No synchronisation is done.
+         */
+        None,
+        /**
+         * Multiple readers, no writers.
+         */
+        Shared,
+        /**
+         * Single writer, no readers.
+         */
+        Exclusive,
     }
 }

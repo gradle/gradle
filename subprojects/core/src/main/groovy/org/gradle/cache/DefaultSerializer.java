@@ -27,7 +27,7 @@ public class DefaultSerializer<T> implements Serializer<T> {
     }
 
     public DefaultSerializer(ClassLoader classLoader) {
-        this.classLoader = classLoader;
+        this.classLoader = classLoader != null ? classLoader : getClass().getClassLoader();
     }
 
     public ClassLoader getClassLoader() {

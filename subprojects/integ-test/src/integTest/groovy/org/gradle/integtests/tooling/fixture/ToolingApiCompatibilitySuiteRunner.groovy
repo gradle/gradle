@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.fixture
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.util.*
-import static org.gradle.util.GradleVersion.version
 
 /**
  * Executes instances of {@link ToolingApiSpecification} against all compatible versions of tooling API consumer
@@ -71,14 +70,21 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         @Override
         protected boolean isEnabled() {
             MinToolingApiVersion minToolingApiVersion = target.getAnnotation(MinToolingApiVersion)
-            if (minToolingApiVersion && GradleVersion.version(toolingApi.version) < GradleVersion.version(minToolingApiVersion.value())) {
+            if (minToolingApiVersion && GradleVersion.version(toolingApi.version) < extractVersion(minToolingApiVersion)) {
                 return false
             }
             MinTargetGradleVersion minTargetGradleVersion = target.getAnnotation(MinTargetGradleVersion)
-            if (minTargetGradleVersion && GradleVersion.version(gradle.version) < GradleVersion.version(minTargetGradleVersion.value())) {
+            if (minTargetGradleVersion && GradleVersion.version(gradle.version) < extractVersion(minTargetGradleVersion)) {
                 return false
             }
             return true
+        }
+
+        private GradleVersion extractVersion(annotation) {
+            if (annotation.currentOnly()) {
+                return GradleVersion.current()
+            }
+            return GradleVersion.version(annotation.value())
         }
 
         @Override
@@ -122,6 +128,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowClass(TestFile)
             sharedClassLoader.allowClass(SetSystemProperties)
             sharedClassLoader.allowPackage('org.gradle.integtests.fixtures')
+            sharedClassLoader.allowPackage('org.gradle.tests.fixtures')
 
             def parentClassLoader = new MultiParentClassLoader(toolingApiClassLoader, sharedClassLoader)
 
@@ -133,7 +140,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
         @Override
         protected void before() {
-            testClassLoader.loadClass(ToolingApiSpecification.name).select(gradle)
+            testClassLoader.loadClass(ToolingApiSpecification.name).selectTargetDist(gradle)
         }
     }
 }

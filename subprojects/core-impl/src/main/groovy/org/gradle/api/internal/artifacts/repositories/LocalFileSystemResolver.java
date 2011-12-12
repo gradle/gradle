@@ -16,30 +16,27 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 
-public class LocalFileSystemResolver extends FileSystemResolver {
+import java.net.URI;
 
-    private static final String FILE_URL_PREFIX = "file:";
+public class LocalFileSystemResolver extends FileSystemResolver implements PatternBasedResolver {
 
-    public LocalFileSystemResolver(String name) {
-        setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
+    private final RepositoryTransport transport;
+
+    public LocalFileSystemResolver(String name, RepositoryTransport transport) {
+        this.transport = transport;
+        setName(name);
+        transport.configureCacheManager(this);
     }
 
-    @Override
-    public void addArtifactPattern(String pattern) {
-        super.addArtifactPattern(getFilePath(pattern));
+    public void addArtifactLocation(URI baseUri, String pattern) {
+        String artifactPattern = transport.convertToPath(baseUri) + pattern;
+        addArtifactPattern(artifactPattern);
     }
 
-    @Override
-    public void addIvyPattern(String pattern) {
-        super.addIvyPattern(getFilePath(pattern));
-    }
-
-    private String getFilePath(String pattern) {
-        if (!pattern.startsWith(FILE_URL_PREFIX)) {
-            throw new IllegalArgumentException("Can only handle URIs of type file");
-        }
-        return pattern.substring(FILE_URL_PREFIX.length());
+    public void addDescriptorLocation(URI baseUri, String pattern) {
+        String descriptorPattern = transport.convertToPath(baseUri) + pattern;
+        addIvyPattern(descriptorPattern);
     }
 }

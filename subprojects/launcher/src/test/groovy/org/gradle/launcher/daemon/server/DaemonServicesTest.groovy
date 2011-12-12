@@ -21,7 +21,7 @@ import org.gradle.os.ProcessEnvironment
 import spock.lang.Specification
 
 class DaemonServicesTest extends Specification {
-    final DaemonServices services = new DaemonServices(new File("daemon-base"), 100, LoggingServiceRegistry.newEmbeddableLogging(), [])
+    final DaemonServices services = new DaemonServices(new File("daemon-base"), 100, LoggingServiceRegistry.newEmbeddableLogging())
 
     def "makes a DaemonDir available"() {
         expect:

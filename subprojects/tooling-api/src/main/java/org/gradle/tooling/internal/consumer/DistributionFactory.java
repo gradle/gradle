@@ -16,6 +16,8 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnectionException;
@@ -43,8 +45,9 @@ public class DistributionFactory {
     /**
      * Returns the default distribution to use for the specified project.
      */
-    public Distribution getDefaultDistribution(File projectDir) {
-        WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(projectDir, System.out);
+    public Distribution getDefaultDistribution(File projectDir, boolean searchUpwards) {
+        BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
+        WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory(), System.out);
         if (wrapper.getDistribution() != null) {
             return getDistribution(wrapper.getDistribution());
         }
@@ -181,5 +184,9 @@ public class DistributionFactory {
         public Set<File> getToolingImplementationClasspath() {
             return new DefaultModuleRegistry().getFullClasspath();
         }
+    }
+
+    ProgressLoggerFactory getProgressLoggerFactory() {
+        return progressLoggerFactory;
     }
 }

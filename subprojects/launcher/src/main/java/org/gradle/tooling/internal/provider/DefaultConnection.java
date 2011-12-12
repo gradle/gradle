@@ -15,39 +15,36 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
-import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.api.internal.Factory;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
-import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
-import org.gradle.launcher.daemon.server.DaemonJvmOptions;
+import org.gradle.launcher.daemon.client.DaemonStandardInput;
+import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.tooling.internal.CompatibilityChecker;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.util.List;
+import java.io.InputStream;
 
 public class DefaultConnection implements ConnectionVersion4 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
-    private final ServiceRegistry loggingServices;
-    private final GradleLauncherFactory gradleLauncherFactory;
+    private final EmbeddedExecuterSupport embeddedExecuterSupport;
 
     public DefaultConnection() {
         LOGGER.debug("Using tooling API provider version {}.", GradleVersion.current().getVersion());
-        loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-        gradleLauncherFactory = new DefaultGradleLauncherFactory(loggingServices);
-        GradleLauncher.injectCustomFactory(gradleLauncherFactory);
+        //embedded use of the tooling api is not supported publicly so we don't care about its thread safety
+        //we can keep still keep this state:
+        embeddedExecuterSupport = new EmbeddedExecuterSupport();
     }
 
     public ConnectionMetaDataVersion1 getMetaData() {
@@ -81,25 +78,41 @@ public class DefaultConnection implements ConnectionVersion4 {
     }
 
     private GradleLauncherActionExecuter<BuildOperationParametersVersion1> createExecuter(BuildOperationParametersVersion1 operationParameters) {
-        GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer;
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
-            executer = new EmbeddedGradleLauncherActionExecuter(gradleLauncherFactory);
+            return embeddedExecuterSupport.getExecuter();
         } else {
+            LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
             File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
-            File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(System.getProperties(), gradleUserHomeDir);
-            List<String> daemonOpts = DaemonJvmOptions.getFromEnvironmentVariable();
-            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonBaseDir, daemonOpts, getIdleTimeout(operationParameters));
+
+            DaemonParameters parameters = new DaemonParameters();
+            boolean searchUpwards = operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;
+            parameters.configureFromBuildDir(operationParameters.getProjectDir(), searchUpwards);
+            parameters.configureFromGradleUserHome(gradleUserHomeDir);
+            parameters.configureFromSystemProperties(System.getProperties());
+            if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
+                int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
+                parameters.setIdleTimeout(idleTimeout);
+            }
+            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, parameters, safeStandardInput(operationParameters));
             DaemonClient client = clientServices.get(DaemonClient.class);
-            executer = new DaemonGradleLauncherActionExecuter(client);
+            GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer = new DaemonGradleLauncherActionExecuter(client, parameters);
+
+            Factory<LoggingManagerInternal> loggingManagerFactory = loggingServices.getFactory(LoggingManagerInternal.class);
+            return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingManagerFactory);
         }
-        return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingServices.getFactory(LoggingManagerInternal.class));
     }
 
-    private int getIdleTimeout(BuildOperationParametersVersion1 operationParameters) {
-        if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
-            return (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
-        } else {
-            return DaemonIdleTimeout.DEFAULT_IDLE_TIMEOUT;
+    private DaemonStandardInput safeStandardInput(BuildOperationParametersVersion1 operationParameters) {
+        if (new CompatibilityChecker(operationParameters).supports("getStandardInput")) {
+            InputStream is = operationParameters.getStandardInput();
+            if (is != null) {
+                return new DaemonStandardInput(is);
+            }
         }
+        //TODO SF make sure it is correct
+        //Tooling api means embedded use. We don't want to consume standard input if we don't own the process.
+        //Hence we use a dummy input stream by default
+        InputStream dummy = new ByteArrayInputStream(new byte[0]);
+        return new DaemonStandardInput(dummy);
     }
 }

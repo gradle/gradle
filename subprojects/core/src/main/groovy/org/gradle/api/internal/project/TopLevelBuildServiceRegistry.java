@@ -36,9 +36,7 @@ import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
-import org.gradle.cache.internal.LazyOpenCacheFactory;
 import org.gradle.configuration.*;
-import org.gradle.execution.*;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
@@ -55,8 +53,6 @@ import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.util.*;
-
-import static java.util.Arrays.asList;
 
 /**
  * Contains the singleton services which are shared by all builds executed by a single {@link org.gradle.GradleLauncher}
@@ -123,7 +119,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected CacheRepository createCacheRepository() {
-        CacheFactory factory = new LazyOpenCacheFactory(get(CacheFactory.class));
+        CacheFactory factory = get(CacheFactory.class);
         return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(),
                 startParameter.getCacheUsage(), factory);
     }
@@ -216,15 +212,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new ProjectEvaluationConfigurer(),
                 new ProjectDependencies2TaskResolver(),
                 new ImplicitTasksConfigurer());
-    }
-
-    protected BuildExecuter createBuildExecuter() {
-        return new DefaultBuildExecuter(
-                asList(new DefaultTasksBuildExecutionAction(),
-                        new ExcludedTaskFilteringBuildConfigurationAction(),
-                        new TaskNameResolvingBuildConfigurationAction()),
-                asList(new DryRunBuildExecutionAction(),
-                        new SelectedTaskExecutionAction()));
     }
 
     protected DependencyManagementServices createDependencyManagementServices() {

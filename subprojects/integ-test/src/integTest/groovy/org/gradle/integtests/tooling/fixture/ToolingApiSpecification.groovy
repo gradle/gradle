@@ -17,14 +17,14 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import org.junit.internal.AssumptionViolatedException
+import org.junit.runner.RunWith
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
-import org.gradle.util.GradleVersion
-import org.junit.internal.AssumptionViolatedException
-import org.junit.runner.RunWith
 
 @RunWith(ToolingApiCompatibilitySuiteRunner)
 abstract class ToolingApiSpecification extends Specification {
@@ -34,7 +34,7 @@ abstract class ToolingApiSpecification extends Specification {
     final ToolingApi toolingApi = new ToolingApi(dist)
     private static final ThreadLocal<BasicGradleDistribution> VERSION = new ThreadLocal<BasicGradleDistribution>()
 
-    static void select(BasicGradleDistribution version) {
+    static void selectTargetDist(BasicGradleDistribution version) {
         this.VERSION.set(version)
     }
 

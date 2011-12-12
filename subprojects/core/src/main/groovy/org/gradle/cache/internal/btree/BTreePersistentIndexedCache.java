@@ -16,7 +16,6 @@
 package org.gradle.cache.internal.btree;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.Serializer;
 import org.slf4j.Logger;
@@ -50,10 +49,6 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     private final StateCheckBlockStore store;
     private HeaderBlock header;
 
-    public BTreePersistentIndexedCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
-        this(cacheFile, new DefaultSerializer<K>(keyType.getClassLoader()), new DefaultSerializer<V>(valueType.getClassLoader()), (short) 512, 512);
-    }
-    
     public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         this(cacheFile, keySerializer, valueSerializer, (short) 512, 512);
     }
@@ -76,7 +71,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     @Override
     public String toString() {
-        return String.format("cache '%s'", cacheFile);
+        return String.format("cache %s (%s)", cacheFile.getName(), cacheFile);
     }
 
     private void open() throws Exception {

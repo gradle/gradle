@@ -28,8 +28,6 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultBuildConfigurer;
 import org.gradle.configuration.DefaultScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactory;
-import org.gradle.execution.BuildExecuter;
-import org.gradle.execution.DefaultBuildExecuter;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.initialization.*;
@@ -229,12 +227,6 @@ public class TopLevelBuildServiceRegistryTest {
 
         assertThat(registry.get(BuildLoader.class), instanceOf(ProjectPropertySettingBuildLoader.class));
         assertThat(registry.get(BuildLoader.class), sameInstance(registry.get(BuildLoader.class)));
-    }
-
-    @Test
-    public void providesABuildExecuter() {
-        assertThat(registry.get(BuildExecuter.class), instanceOf(DefaultBuildExecuter.class));
-        assertThat(registry.get(BuildExecuter.class), sameInstance(registry.get(BuildExecuter.class)));
     }
 
     private <T> T expectParentServiceLocated(final Class<T> type) {

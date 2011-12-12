@@ -17,11 +17,14 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.changedetection.TaskArtifactStateCacheAccess;
+import org.gradle.api.internal.changedetection.TaskCacheLockHandlingBuildExecuter;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.execution.DefaultTaskGraphExecuter;
-import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.execution.*;
 import org.gradle.listener.ListenerManager;
+
+import static java.util.Arrays.asList;
 
 /**
  * Contains the services for a given {@link GradleInternal} instance.
@@ -33,6 +36,16 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
         super(parent);
         this.gradle = gradle;
         add(new TaskExecutionServices(parent, gradle));
+    }
+
+    protected BuildExecuter createBuildExecuter() {
+        return new DefaultBuildExecuter(
+                asList(new DefaultTasksBuildExecutionAction(),
+                        new ExcludedTaskFilteringBuildConfigurationAction(),
+                        new TaskNameResolvingBuildConfigurationAction()),
+                asList(new DryRunBuildExecutionAction(),
+                        new TaskCacheLockHandlingBuildExecuter(get(TaskArtifactStateCacheAccess.class)),
+                        new SelectedTaskExecutionAction()));
     }
 
     protected ProjectFinder createProjectFinder() {

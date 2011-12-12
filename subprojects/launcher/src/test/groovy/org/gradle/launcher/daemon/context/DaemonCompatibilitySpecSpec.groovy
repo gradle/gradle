@@ -32,7 +32,9 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def createContext(Closure config) {
-        ConfigureUtil.configure(config, new DaemonContextBuilder()).create()
+        def builder = new DaemonContextBuilder()
+        builder.daemonRegistryDir = new File("dir")
+        ConfigureUtil.configure(config, builder).create()
     }
 
     def getClientContext() {

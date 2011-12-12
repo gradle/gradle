@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures
 import org.gradle.CacheUsage
 import org.gradle.api.Action
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.CacheFactory.CrossVersionMode
 import org.gradle.cache.internal.DefaultCacheFactory
 import org.gradle.cache.internal.DefaultFileLockManager
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider
@@ -135,7 +134,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
                 zipFile.copyFrom(url)
                 zipFile.usingNativeTools().unzipTo(versionDir)
             }
-            cache = CACHE_FACTORY.open(versionDir, CacheUsage.ON, [:], LockMode.Shared, CrossVersionMode.VersionSpecific, downloadAction as Action)
+            cache = CACHE_FACTORY.open(versionDir, version.toString(), CacheUsage.ON, [:], LockMode.Shared, downloadAction as Action)
         }
         zipFile.assertIsFile()
         homeDir.assertIsDir()

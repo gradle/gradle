@@ -24,22 +24,11 @@ import java.io.File;
 import java.util.Map;
 
 public interface CacheFactory {
-    enum CrossVersionMode {
-        VersionSpecific, CrossVersion
-    }
+    PersistentCache openStore(File storeDir, String displayName, LockMode lockMode, Action<? super PersistentCache> initializer) throws CacheOpenException;
 
-    PersistentCache openStore(File storeDir, LockMode lockMode, CrossVersionMode crossVersionMode, Action<? super PersistentCache> initializer) throws CacheOpenException;
+    PersistentCache open(File cacheDir, String displayName, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initializer) throws CacheOpenException;
 
-    PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode,
-                         Action<? super PersistentCache> initializer) throws CacheOpenException;
+    <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Serializer<E> serializer) throws CacheOpenException;
 
-    <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode,
-                                               Serializer<E> serializer) throws CacheOpenException;
-
-    <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, CrossVersionMode crossVersionMode,
-                                                         Serializer<V> serializer) throws CacheOpenException;
+    <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Serializer<V> serializer) throws CacheOpenException;
 }
-
-
-
-

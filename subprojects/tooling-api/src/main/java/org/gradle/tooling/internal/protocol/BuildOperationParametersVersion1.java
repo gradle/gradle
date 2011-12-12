@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface BuildOperationParametersVersion1 extends LongRunningOperationParametersVersion1 {
+public interface BuildOperationParametersVersion1 extends InternalLongRunningOperationParameters {
     File getProjectDir();
 
     /**

@@ -202,7 +202,7 @@ public class DefaultJavaForkOptionsTest {
         def bootstrapClasspath = [:] as FileCollection
         options.bootstrapClasspath = bootstrapClasspath
 
-        assertThat(options.bootstrapClasspath, sameInstance(bootstrapClasspath))
+        assertThat(options.bootstrapClasspath.from, equalTo([bootstrapClasspath] as Set))
     }
 
     @Test

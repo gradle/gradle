@@ -15,33 +15,25 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.specs.Spec;
+import org.gradle.launcher.daemon.context.DaemonContext;
+
 /**
  * A daemon connector establishes a connection to either an already running daemon, or a newly started daemon.
  */
 public interface DaemonConnector {
 
     /**
-     * Attempts to connect to the daemon, if it is running.
+     * Attempts to connect to a daemon that matches the given constraint.
      *
-     * @return The connection, or null if not running.
+     * @return A connection to a matching daemon, or null if none running.
      */
-    public DaemonConnection maybeConnect();
+    public DaemonConnection maybeConnect(Spec<? super DaemonContext> constraint);
 
     /**
-     * Connects to the daemon, starting it if required.
+     * Connects to a daemon that matches the given constraint, starting one if required.
      *
-     * @return The connection. Never returns null.
+     * @return A connection to a matching daemon. Never returns null.
      */
-    public DaemonConnection connect();
-
-    /**
-     * Sets the amount of time to wait for newly created daemons to become available.
-     */
-    void setConnectTimeout(long connectTimeout);
-
-    /**
-     * The amount of time the connector will wait for newly created daemons to become available.
-     */
-    long getConnectTimeout();
-
+    public DaemonConnection connect(Spec<? super DaemonContext> constraint);
 }

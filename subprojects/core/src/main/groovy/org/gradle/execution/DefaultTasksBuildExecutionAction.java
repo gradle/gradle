@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * A {@link BuildExecuter} which selects the default tasks for a project, or if none are defined, the 'help' task.
+ * A {@link BuildConfigurationAction} that selects the default tasks for a project, or if none are defined, the 'help' task.
  */
 public class DefaultTasksBuildExecutionAction implements BuildConfigurationAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTasksBuildExecutionAction.class);

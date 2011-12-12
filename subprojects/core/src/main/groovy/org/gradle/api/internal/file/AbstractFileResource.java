@@ -19,6 +19,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.resources.ReadableResource;
 
 import java.io.File;
+import java.net.URI;
 
 /**
  * by Szczepan Faber, created at: 11/23/11
@@ -32,11 +33,15 @@ public abstract class AbstractFileResource implements ReadableResource {
         this.file = file;
     }
 
-    public String getUniqueName() {
+    public String getDisplayName() {
         return file.getAbsolutePath();
     }
 
-    public String getName() {
+    public URI getURI() {
+        return file.toURI();
+    }
+
+    public String getBaseName() {
         return file.getName();
     }
 }

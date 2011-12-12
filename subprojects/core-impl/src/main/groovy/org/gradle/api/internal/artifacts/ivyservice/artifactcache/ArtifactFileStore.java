@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.artifactcache;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 
 import java.io.File;
@@ -26,4 +27,6 @@ public interface ArtifactFileStore {
     File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File contentFile);
 
     void removeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId);
+
+    ExternalArtifactCache asExternalArtifactCache();
 }

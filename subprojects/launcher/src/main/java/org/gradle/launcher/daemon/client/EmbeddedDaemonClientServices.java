@@ -16,19 +16,22 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.context.DaemonContextBuilder;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
 import org.gradle.launcher.daemon.server.Daemon;
+import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.daemon.server.DaemonServerConnector;
-import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
-import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
+import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.concurrent.ExecutorFactory;
 
 /**
  * Wires together the embedded daemon client.
@@ -54,7 +57,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     }
 
     public EmbeddedDaemonClientServices(ServiceRegistry loggingServices, boolean displayOutput) {
-        super(loggingServices);
+        super(loggingServices, new DaemonStandardInput(System.in));
         this.displayOutput = displayOutput;
         add(EmbeddedDaemonFactory.class, new EmbeddedDaemonFactory());
     }
@@ -69,6 +72,11 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
         } else {
             return new OutputEventListener() { public void onOutput(OutputEvent event) {} };
         }
+    }
+
+    @Override
+    protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
+        builder.setDaemonRegistryDir(new DaemonDir(new DaemonParameters().getBaseDir()).getRegistry());
     }
 
     protected ExecutorFactory createExecutorFactory() {

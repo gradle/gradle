@@ -71,6 +71,10 @@ public class TestFile extends File implements TestFileContext {
         return this;
     }
 
+    Object writeReplace() throws ObjectStreamException {
+        return new File(getAbsolutePath());
+    }
+
     private static URI toUri(URL url) {
         try {
             return url.toURI();

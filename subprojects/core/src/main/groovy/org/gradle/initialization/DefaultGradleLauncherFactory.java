@@ -25,17 +25,17 @@ import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.cli.CommandLineConverter;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.profile.ProfileListener;
-import org.gradle.util.WrapUtil;
 
 import java.util.Arrays;
 
@@ -128,9 +128,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 serviceRegistry.get(InitScriptHandler.class),
                 new SettingsHandler(
                         new EmbeddedScriptSettingsFinder(
-                                new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
-                                        new MasterDirSettingsFinderStrategy(),
-                                        new ParentDirSettingsFinderStrategy()))),
+                                new DefaultSettingsFinder(
+                                        new BuildLayoutFactory())),
                         serviceRegistry.get(SettingsProcessor.class),
                         new BuildSourceBuilder(
                                 this,
@@ -141,7 +140,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 gradle.getBuildListenerBroadcaster(),
                 serviceRegistry.get(ExceptionAnalyser.class),
                 loggingManager,
-                serviceRegistry.get(BuildExecuter.class));
+                gradle.getServices().get(BuildExecuter.class));
     }
 
     public void setCommandLineConverter(

@@ -21,10 +21,12 @@ import java.io.InputStream;
 /**
  * A resource that can be read. The simplest example is a file.
  */
-public interface ReadableResource {
+public interface ReadableResource extends Resource {
 
     /**
      * Returns an input stream that provides means to read the resource
+     *
+     * @return allows reading the resource
      */
-    InputStream read() throws ResourceDoesNotExist, ResourceIsAFolder;
+    InputStream read() throws MissingResourceException, ResourceException;
 }

@@ -42,7 +42,7 @@ public class Jar extends Zip {
         // Add these as separate specs, so they are not affected by the changes to the main spec
         metaInf = copyAction.rootSpec.addFirst().into('META-INF')
         metaInf.addChild().from {
-            MapFileTree manifestSource = new MapFileTree(temporaryDir)
+            MapFileTree manifestSource = new MapFileTree(temporaryDirFactory)
             manifestSource.add('MANIFEST.MF') {OutputStream outstr ->
                 Manifest manifest = getManifest() ?: new DefaultManifest(null)
                 manifest.writeTo(new OutputStreamWriter(outstr))

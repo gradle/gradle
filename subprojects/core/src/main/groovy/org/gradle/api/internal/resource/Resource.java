@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.resource;
 
+import org.gradle.api.resources.MissingResourceException;
+
 import java.io.File;
 import java.io.Serializable;
 import java.net.URI;
@@ -58,7 +60,7 @@ public interface Resource extends Serializable {
      * Returns the content of this resource, as a String.
      *
      * @return the content. Never returns null.
-     * @throws ResourceNotFoundException When this resource does not exist.
+     * @throws MissingResourceException When this resource does not exist.
      */
-    String getText() throws ResourceNotFoundException;
+    String getText() throws MissingResourceException;
 }

@@ -22,4 +22,5 @@ import java.lang.annotation.*;
 @Inherited
 public @interface MinToolingApiVersion {
     String value();
+    boolean currentOnly() default false;
 }

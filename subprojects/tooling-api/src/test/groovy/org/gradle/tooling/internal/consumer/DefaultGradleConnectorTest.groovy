@@ -34,7 +34,9 @@ class DefaultGradleConnectorTest extends Specification {
 
         then:
         result == connection
-        1 * distributionFactory.getDefaultDistribution(projectDir) >> distribution
+
+        and:
+        1 * distributionFactory.getDefaultDistribution(projectDir, true) >> distribution
         1 * connectionFactory.create(distribution, { it.projectDir == projectDir }) >> connection
     }
 
@@ -47,7 +49,9 @@ class DefaultGradleConnectorTest extends Specification {
 
         then:
         result == connection
-        1 * distributionFactory.getDefaultDistribution(projectDir) >> distribution
+
+        and:
+        1 * distributionFactory.getDefaultDistribution(projectDir, true) >> distribution
         1 * connectionFactory.create(distribution, { it.gradleUserHomeDir == userDir }) >> connection
     }
 
@@ -60,6 +64,8 @@ class DefaultGradleConnectorTest extends Specification {
 
         then:
         result == connection
+
+        and:
         1 * distributionFactory.getDistribution(gradleHome) >> distribution
         1 * connectionFactory.create(distribution, !null) >> connection
     }
@@ -73,6 +79,8 @@ class DefaultGradleConnectorTest extends Specification {
 
         then:
         result == connection
+
+        and:
         1 * distributionFactory.getDistribution(gradleDist) >> distribution
         1 * connectionFactory.create(distribution, !null) >> connection
     }
@@ -85,6 +93,8 @@ class DefaultGradleConnectorTest extends Specification {
 
         then:
         result == connection
+
+        and:
         1 * distributionFactory.getDistribution('1.0') >> distribution
         1 * connectionFactory.create(distribution, !null) >> connection
     }

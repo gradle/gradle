@@ -20,9 +20,10 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter
 import org.gradle.listener.ListenerManager
 import org.gradle.cache.CacheRepository
-import org.gradle.cache.ObjectCacheBuilder
 import org.gradle.StartParameter
 import org.gradle.api.invocation.Gradle
+import org.gradle.cache.DirectoryCacheBuilder
+import org.gradle.cache.PersistentCache
 
 class TaskExecutionServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -34,13 +35,16 @@ class TaskExecutionServicesTest extends Specification {
         ListenerManager listenerManager = Mock()
         StartParameter startParameter = Mock()
         CacheRepository cacheRepository = Mock()
-        ObjectCacheBuilder<?, ?> cacheBuilder = Mock()
+        DirectoryCacheBuilder cacheBuilder = Mock()
+        PersistentCache cache = Mock()
         _ * parent.get(ListenerManager) >> listenerManager
         _ * parent.get(StartParameter) >> startParameter
         _ * parent.get(CacheRepository) >> cacheRepository
-        _ * cacheRepository.indexedCache(!null, !null, !null) >> cacheBuilder
+        _ * cacheRepository.cache(!null) >> cacheBuilder
         _ * cacheBuilder.forObject(gradle) >> cacheBuilder
-        _ * cacheBuilder.withSerializer(!null) >> cacheBuilder
+        _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder
+        _ * cacheBuilder.withLockMode(!null) >> cacheBuilder
+        _ * cacheBuilder.open() >> cache
 
         expect:
         services.get(TaskExecuter) instanceof ExecuteAtMostOnceTaskExecuter

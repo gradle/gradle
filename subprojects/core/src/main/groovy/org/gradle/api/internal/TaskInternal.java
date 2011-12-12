@@ -24,6 +24,7 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.Configurable;
 
 import java.util.List;
+import java.io.File;
 
 public interface TaskInternal extends Task, Configurable<Task> {
     Spec<? super TaskInternal> getOnlyIf();
@@ -43,4 +44,11 @@ public interface TaskInternal extends Task, Configurable<Task> {
     List<TaskValidator> getValidators();
 
     void addValidator(TaskValidator validator);
+
+    /**
+     * The returned factory is expected to return the same file each time.
+     * <p>
+     * The getTemporaryDir() method creates the directory which can be problematic. Use this to delay that creation.
+     */
+    Factory<File> getTemporaryDirFactory();
 }

@@ -15,13 +15,15 @@
  */
 package org.gradle.launcher.daemon.client
 
-import spock.lang.Specification
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
+import org.gradle.launcher.daemon.server.DaemonParameters
 import org.gradle.logging.LoggingServiceRegistry
+import spock.lang.Specification
 
 class DaemonClientServicesTest extends Specification {
-    final DaemonClientServices services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), new File("user-home"), [], 100)
+    final DaemonParameters parameters = new DaemonParameters(baseDir: new File("user-home"))
+    final DaemonClientServices services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), parameters, Mock(DaemonStandardInput))
 
     def "makes a DaemonRegistry available"() {
         expect:

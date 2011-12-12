@@ -61,7 +61,7 @@ public class DaemonStarter implements Runnable {
 
         List<String> daemonArgs = new ArrayList<String>();
         daemonArgs.add(Jvm.current().getJavaExecutable().getAbsolutePath());
-        LOGGER.info("Setting GRADLE_DAEMON_OPTS: {}", daemonOpts);
+        LOGGER.debug("Using daemon opts: {}", daemonOpts);
         daemonArgs.addAll(daemonOpts);
         //Useful for debugging purposes - simply uncomment and connect to debug
 //        daemonArgs.add("-Xdebug");

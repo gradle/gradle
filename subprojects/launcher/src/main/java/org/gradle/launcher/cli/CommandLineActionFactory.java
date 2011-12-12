@@ -30,9 +30,8 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.daemon.bootstrap.DaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
-import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.launcher.daemon.server.DaemonIdleTimeout;
-import org.gradle.launcher.daemon.server.DaemonJvmOptions;
+import org.gradle.launcher.daemon.client.DaemonStandardInput;
+import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.exec.ExceptionReportingAction;
 import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingConfiguration;
@@ -45,7 +44,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.util.List;
-import java.util.Properties;
+import java.util.Map;
 
 /**
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
@@ -127,27 +126,28 @@ public class CommandLineActionFactory {
 
         final StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
-        Properties mergedSystemProperties = startParameter.getMergedSystemProperties();
-        int idleTimeout = DaemonIdleTimeout.calculateFromPropertiesOrUseDefault(mergedSystemProperties);
-        File daemonBaseDir = DaemonDir.calculateDirectoryViaPropertiesOrUseDefaultInGradleUserHome(mergedSystemProperties, startParameter.getGradleUserHomeDir());
-        List<String> daemonOpts = DaemonJvmOptions.getFromEnvironmentVariable();
-        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonBaseDir, daemonOpts, idleTimeout);
+        Map<String, String> mergedSystemProperties = startParameter.getMergedSystemProperties();
+        DaemonParameters daemonParameters = new DaemonParameters();
+        daemonParameters.configureFromBuildDir(startParameter.getCurrentDir(), startParameter.isSearchUpwards());
+        daemonParameters.configureFromGradleUserHome(startParameter.getGradleUserHomeDir());
+        daemonParameters.configureFromSystemProperties(mergedSystemProperties);
+        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, new DaemonStandardInput(System.in));
         DaemonClient client = clientServices.get(DaemonClient.class);
 
-        boolean useDaemon = mergedSystemProperties.getProperty("org.gradle.daemon", "false").equals("true");
+        boolean useDaemon = daemonParameters.isEnabled();
         useDaemon = useDaemon || commandLine.hasOption(DAEMON);
         useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
 
         if (commandLine.hasOption(FOREGROUND)) {
-            return new ActionAdapter(new DaemonMain(daemonBaseDir, idleTimeout, false, daemonOpts));
+            return new ActionAdapter(new DaemonMain(daemonParameters, false));
         }
         if (commandLine.hasOption(STOP)) {
             return new ActionAdapter(new StopDaemonAction(client));
         }
         if (useDaemon) {
             return new ActionAdapter(
-                    new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData(), startTime, System.getProperties(), System.getenv()));
+                    new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData(), startTime, daemonParameters.getEffectiveSystemProperties(), System.getenv()));
         }
 
         return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData(), startTime));

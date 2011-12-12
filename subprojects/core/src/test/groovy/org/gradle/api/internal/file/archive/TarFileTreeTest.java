@@ -107,7 +107,7 @@ public class TarFileTreeTest {
             tree.visit(null);
             fail();
         } catch (InvalidUserDataException e) {
-            assertThat(e.getMessage(), equalTo("Cannot expand TAR '" + tarFile + "' as it is not a file."));
+            assertThat(e.getMessage(), containsString("Cannot expand TAR '" + tarFile + "'"));
         }
     }
 

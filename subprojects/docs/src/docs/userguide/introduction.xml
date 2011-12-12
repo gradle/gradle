@@ -42,8 +42,7 @@
         </listitem>
         <listitem>
             <para>Support for transitive dependency management without the need for remote repositories or
-                <literal>pom.xml</literal> and <literal>ivy.xml</literal>
-                files.
+                <filename>pom.xml</filename> and <filename>ivy.xml</filename> files.
             </para>
         </listitem>
         <listitem>
