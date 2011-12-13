@@ -24,14 +24,14 @@ import java.io.IOException;
 public class DefaultCachedArtifact implements CachedArtifact {
     private final File origin;
     private final String sha1;
+    private final long contentLength;
+    private final long lastModified;
 
     public DefaultCachedArtifact(File origin) {
         this.origin = origin;
         this.sha1 = getChecksum(origin);
-    }
-
-    public void copyTo(File destination) {
-        throw new UnsupportedOperationException();
+        contentLength = origin.length();
+        lastModified = origin.lastModified();
     }
 
     public String getSha1() {
@@ -40,6 +40,14 @@ public class DefaultCachedArtifact implements CachedArtifact {
 
     public File getOrigin() {
         return origin;
+    }
+
+    public long getContentLength() {
+        return contentLength;
+    }
+
+    public long getLastModified() {
+        return lastModified;
     }
 
     private String getChecksum(File contentFile) {

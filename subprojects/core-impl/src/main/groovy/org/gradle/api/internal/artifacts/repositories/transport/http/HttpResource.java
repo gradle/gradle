@@ -15,66 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.ivy.plugins.repository.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.ivy.util.CopyProgressListener;
+import org.apache.ivy.util.FileUtil;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 
-class HttpResource implements Resource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpResource.class);
-
-    private final String source;
-    private final GetMethod method;
-
-    public HttpResource(String source, GetMethod method) {
-        this.source = source;
-        this.method = method;
-    }
-
-    public String getName() {
-        return source;
-    }
-
-    @Override
-    public String toString() {
-        return "HttpResource: " + getName();
-    }
-
-    public long getLastModified() {
-        Header responseHeader = method.getResponseHeader("last-modified");
-        if (responseHeader == null) {
-            return 0;
-        }
+public abstract class HttpResource implements Resource {
+    void writeTo(File destination, CopyProgressListener progress) throws IOException {
+        FileOutputStream output = new FileOutputStream(destination);
         try {
-            return Date.parse(responseHeader.getValue());
-        } catch (Exception e) {
-            return 0;
+            InputStream input = openStream();
+            try {
+                FileUtil.copy(input, output, progress);
+            } finally {
+                input.close();
+            }
+        } finally {
+            output.close();
         }
-    }
-
-    public long getContentLength() {
-        return method.getResponseContentLength();
-    }
-
-    public boolean exists() {
-        return true;
-    }
-
-    public boolean isLocal() {
-        return false;
-    }
-
-    public Resource clone(String cloneName) {
-        throw new UnsupportedOperationException();
-    }
-
-    public InputStream openStream() throws IOException {
-        LOGGER.debug("Attempting to download resource {}.", source);
-        return method.getResponseBodyAsStream();
     }
 }

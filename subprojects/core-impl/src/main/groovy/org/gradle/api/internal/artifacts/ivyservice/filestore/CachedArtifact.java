@@ -20,11 +20,9 @@ import java.io.File;
 public interface CachedArtifact {
     String getSha1();
 
-    /**
-     * @throws CachedArtifactInvalidatedException if the cached artifact has been deleted or changed underneath us.
-     */
-    void copyTo(File destination);
-
-    // TODO:DAZ Get rid of this, and use copyTo(), which will be safe for caches that may change during use.
     File getOrigin();
+
+    long getLastModified();
+
+    long getContentLength();
 }

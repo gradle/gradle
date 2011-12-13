@@ -51,7 +51,7 @@ import java.util.*;
  */
 public class HttpResourceCollection extends AbstractRepository implements ResourceCollection {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceCollection.class);
-    private final Map<String, Resource> resources = new HashMap<String, Resource>();
+    private final Map<String, HttpResource> resources = new HashMap<String, HttpResource>();
     private final HttpClient client = new HttpClient();
     private final HttpProxySettings proxySettings;
     private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
@@ -68,7 +68,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         this.externalArtifactCache = externalArtifactCache;
     }
 
-    public Resource getResource(final String source, ArtifactRevisionId artifactId) throws IOException {
+    public HttpResource getResource(final String source, ArtifactRevisionId artifactId) throws IOException {
         LOGGER.debug("Constructing GET resource: {}", source);
 
         List<CachedArtifact> cachedArtifacts = new ArrayList<CachedArtifact>();
@@ -77,12 +77,12 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         releasePriorResources();
         GetMethod method = new GetMethod(source);
         configureMethod(method);
-        Resource resource = createLazyResource(source, method, cachedArtifacts);
+        HttpResource resource = createLazyResource(source, method, cachedArtifacts);
         resources.put(source, resource);
         return resource;
     }
 
-    public Resource getResource(final String source) throws IOException {
+    public HttpResource getResource(final String source) throws IOException {
         return getResource(source, null);
     }
 
@@ -93,17 +93,17 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         }
     }
 
-    private Resource createLazyResource(String source, GetMethod method, List<CachedArtifact> artifacts) {
+    private HttpResource createLazyResource(String source, GetMethod method, List<CachedArtifact> artifacts) {
         LazyResourceInvocationHandler invocationHandler = new LazyResourceInvocationHandler(source, method, artifacts);
-        return Resource.class.cast(Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{Resource.class}, invocationHandler));
+        return HttpResource.class.cast(Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{HttpResource.class}, invocationHandler));
     }
 
     public void get(String source, File destination) throws IOException {
-        Resource resource = resources.get(source);
+        HttpResource resource = resources.get(source);
         fireTransferInitiated(resource, TransferEvent.REQUEST_GET);
         try {
             progress.setTotalLength(resource.getContentLength());
-            downloadResource(resource, destination);
+            resource.writeTo(destination, progress);
         } catch (IOException e) {
             fireTransferError(e);
             throw e;
@@ -112,20 +112,6 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
             throw UncheckedException.asUncheckedException(e);
         } finally {
             progress.setTotalLength(null);
-        }
-    }
-
-    public void downloadResource(Resource resource, File destination) throws IOException {
-        FileOutputStream output = new FileOutputStream(destination);
-        try {
-            InputStream input = resource.openStream();
-            try {
-                FileUtil.copy(input, output, progress);
-            } finally {
-                input.close();
-            }
-        } finally {
-            output.close();
         }
     }
 
@@ -233,7 +219,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         private Resource init() {
             // First see if we can use any of the candidates directly.
             if (candidates.size() > 0) {
-                CachedResource cachedResource = findCachedResource();
+                CachedHttpResource cachedResource = findCachedResource();
                 if (cachedResource != null) {
                     return cachedResource;
                 }
@@ -247,16 +233,16 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
             }
             if (result == 404) {
                 LOGGER.info("Resource missing. [HTTP GET: {}]", source);
-                return new MissingResource(source);
+                return new MissingHttpResource(source);
             }
             if (!wasSuccessful(result)) {
                 throw new UncheckedIOException(String.format("Could not GET '%s'. Received status code %s from server: %s", source, result, method.getStatusText()));
             }
             LOGGER.info("Resource found. [HTTP GET: {}]", source);
-            return new HttpResource(source, method);
+            return new HttpGetResource(source, method);
         }
 
-        private CachedResource findCachedResource() {
+        private CachedHttpResource findCachedResource() {
             ChecksumType checksumType = ChecksumType.sha1;
             String checksumUrl = source + checksumType.ext();
 
@@ -267,7 +253,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
                 for (CachedArtifact candidate : candidates) {
                     if (candidate.getSha1().equals(sha1)) {
                         LOGGER.info("Checksum {} matched cached resource: [HTTP GET: {}]", checksumType, checksumUrl);
-                        return new CachedResource(source, candidate);
+                        return new CachedHttpResource(source, candidate, HttpResourceCollection.this);
                     }
                 }
                 LOGGER.info("Checksum {} did not match cached resources: [HTTP GET: {}]", checksumType, checksumUrl);

@@ -15,38 +15,50 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.ivy.plugins.repository.Resource;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifact;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 
-class CachedResource implements Resource {
-    private String source;
-    private final File cacheFile;
+class HttpGetResource extends HttpResource {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpGetResource.class);
 
-    public CachedResource(String source, CachedArtifact cachedArtifact) {
+    private final String source;
+    private final GetMethod method;
+
+    public HttpGetResource(String source, GetMethod method) {
         this.source = source;
-        this.cacheFile = cachedArtifact.getOrigin();
-    }
-
-    @Override
-    public String toString() {
-        return "CachedResource: " + cacheFile + " for " + source;
+        this.method = method;
     }
 
     public String getName() {
         return source;
     }
 
+    @Override
+    public String toString() {
+        return "HttpResource: " + getName();
+    }
+
     public long getLastModified() {
-        return cacheFile.lastModified();
+        Header responseHeader = method.getResponseHeader("last-modified");
+        if (responseHeader == null) {
+            return 0;
+        }
+        try {
+            return Date.parse(responseHeader.getValue());
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     public long getContentLength() {
-        return cacheFile.length();
+        return method.getResponseContentLength();
     }
 
     public boolean exists() {
@@ -54,7 +66,7 @@ class CachedResource implements Resource {
     }
 
     public boolean isLocal() {
-        return true;
+        return false;
     }
 
     public Resource clone(String cloneName) {
@@ -62,6 +74,7 @@ class CachedResource implements Resource {
     }
 
     public InputStream openStream() throws IOException {
-        return new FileInputStream(cacheFile);
+        LOGGER.debug("Attempting to download resource {}.", source);
+        return method.getResponseBodyAsStream();
     }
 }
