@@ -20,7 +20,7 @@ import org.apache.ivy.plugins.repository.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 
-class MissingHttpResource extends HttpResource {
+class MissingHttpResource extends AbstractHttpResource {
     private final String source;
 
     public MissingHttpResource(String source) {

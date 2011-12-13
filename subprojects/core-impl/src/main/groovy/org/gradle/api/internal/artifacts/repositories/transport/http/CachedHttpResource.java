@@ -26,7 +26,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-class CachedHttpResource extends HttpResource {
+class CachedHttpResource extends AbstractHttpResource {
     private final String source;
     private final CachedArtifact cachedArtifact;
 

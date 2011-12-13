@@ -15,12 +15,26 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
-import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.util.CopyProgressListener;
+import org.apache.ivy.util.FileUtil;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
-public interface HttpResource extends Resource {
-    void writeTo(File destination, CopyProgressListener progress) throws IOException;
+public abstract class AbstractHttpResource implements HttpResource {
+    public void writeTo(File destination, CopyProgressListener progress) throws IOException {
+        FileOutputStream output = new FileOutputStream(destination);
+        try {
+            InputStream input = openStream();
+            try {
+                FileUtil.copy(input, output, progress);
+            } finally {
+                input.close();
+            }
+        } finally {
+            output.close();
+        }
+    }
 }

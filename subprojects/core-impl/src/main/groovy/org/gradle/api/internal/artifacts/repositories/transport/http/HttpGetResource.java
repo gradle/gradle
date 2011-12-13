@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 
-class HttpGetResource extends HttpResource {
+class HttpGetResource extends AbstractHttpResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpGetResource.class);
 
     private final String source;
