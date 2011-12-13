@@ -37,17 +37,16 @@ import java.io.InputStream;
  * Immediately upon forming a connection, the daemon may send {@link OutputEvent} messages back to the client and may do so
  * for as long as the connection is open.
  * <p>
- * The client is expected to send exactly one {@link Build} message as the first message it sends to the daemon. After this
- * it may send zero to many {@link ForwardInput} messages. If the client's stdin stream is closed before the connection to the
+ * The client is expected to send exactly one {@link Build} message as the first message it sends to the daemon. The daemon 
+ * may either return {@link DaemonBusy} or {@link BuildAccepted}. If the former is received, the client should not send any more
+ * messages to this daemon. If the latter is received, the client can assume the daemon is performing the build. The client may then
+ * send zero to many {@link ForwardInput} messages. If the client's stdin stream is closed before the connection to the
  * daemon is terminated, the client must send a {@link CloseInput} command to instruct the daemon that no more input is to be
  * expected.
  * <p>
- * After receiving the {@link Build} message from the client, the daemon will at some time return a {@link Result} message
- * indicating either that the daemon encountered an internal failure or that the build failed depending on the specific
- * type of the {@link Result} object returned.
- * <p>
- * After receiving the {@link Result} message, the client must send a {@link CloseInput} command if it has not already done so
- * due to the stdin stream being closed. At this point the client is expected to terminate the connection with the daemon.
+ * After receiving the {@link Result} message (after a {@link BuildAccepted} mesage), the client must send a {@link CloseInput} 
+ * command if it has not already done so due to the stdin stream being closed. At this point the client is expected to 
+ * terminate the connection with the daemon.
  * <p>
  * If the daemon returns a {@code null} message before returning a {@link Result} object, it has terminated unexpectedly for some reason.
  */
@@ -100,7 +99,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
             DaemonConnection daemonConnection = connector.connect(compatibilitySpec);
 
             Result<T> result = runBuild(new Build(action, parameters), daemonConnection.getConnection());
-            if (result instanceof DaemonBusy) {
+            if (result == null || result instanceof DaemonBusy) {
                 continue; // try a different daemon
             } else if (result instanceof Failure) {
                 // Could potentially distinguish between CommandFailure and DaemonFailure here.
@@ -114,34 +113,43 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     }
 
     private <T> Result<T> runBuild(Build build, Connection<Object> connection) {
-        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(daemonServerStandardInput, build.getClientMetaData(), connection);
-        try {
-            //TODO - this may fail. We should handle it and have tests for that. It means the server is gone.
-            connection.dispatch(build);
-            inputForwarder.start();
-            
-            int objectsReceived = 0;
-            
-            while (true) {
-                Object object = connection.receive();
-                
-                LOGGER.debug("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
+        connection.dispatch(build);
+        Object firstResult = connection.receive();
 
-                if (object == null) {
-                    throw new DaemonDisappearedException(build, connection);
-                } else if (object instanceof OutputEvent) {
-                    outputEventListener.onOutput((OutputEvent) object);
-                } else if (object instanceof Result) {
-                    @SuppressWarnings("unchecked")
-                    Result<T> result = (Result<T>) object;
-                    return result;
-                } else {
-                    throw new IllegalStateException(String.format("Daemon returned %s (type: %s) for which there is no strategy to handle", object, object.getClass()));
+        if (firstResult == null) {
+            return null;
+        } else if (firstResult instanceof BuildAccepted) {
+            DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(daemonServerStandardInput, build.getClientMetaData(), connection);
+            try {
+                inputForwarder.start();
+                int objectsReceived = 0;
+
+                while (true) {
+                    Object object = connection.receive();
+                    LOGGER.debug("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
+
+                    if (object == null) {
+                        throw new DaemonDisappearedException(build, connection);
+                    } else if (object instanceof OutputEvent) {
+                        outputEventListener.onOutput((OutputEvent) object);
+                    } else if (object instanceof Result) {
+                        @SuppressWarnings("unchecked")
+                        Result<T> result = (Result<T>) object;
+                        return result;
+                    } else {
+                        throw new IllegalStateException(String.format("Daemon returned %s (type: %s) as for which there is no strategy to handle", object, object.getClass()));
+                    }
                 }
+            } finally {
+                inputForwarder.stop();
+                connection.stop();
             }
-        } finally {
-            inputForwarder.stop();
-            connection.stop();
+        } else if (firstResult instanceof Result) {
+            @SuppressWarnings("unchecked")
+            Result<T> result = (Result<T>) firstResult;
+            return result;
+        } else {
+            throw new IllegalStateException(String.format("Daemon returned %s (type: %s) as first result for which there is no strategy to handle", firstResult, firstResult.getClass()));
         }
     }
 }
