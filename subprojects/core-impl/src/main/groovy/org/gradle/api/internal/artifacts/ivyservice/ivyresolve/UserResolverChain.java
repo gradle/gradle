@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
@@ -33,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptor
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.*;
 
 public class UserResolverChain extends ChainResolver implements DependencyResolvers {
@@ -200,7 +202,7 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
         public void findModule() {
             resolvedDependencyDescriptor = null;
             resolvedModule = null;
-            
+
             resolveModuleSelector();
             if (!lookupModuleInCache()) {
                 resolveModule();
@@ -275,9 +277,17 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
             if (resolvedModule == null) {
                 moduleDescriptorCache.cacheModuleDescriptor(repository, resolvedDependencyDescriptor.getDependencyRevisionId(), null, requestedDependencyDescriptor.isChanging());
             } else {
-                artifactFileStore.storeArtifactFile(repository, resolvedModule.getReport().getArtifactOrigin().getArtifact().getId(), resolvedModule.getReport().getOriginalLocalFile());
+                cacheArtifactFile();
                 moduleResolutionCache.cacheModuleResolution(repository, requestedDependencyDescriptor.getDependencyRevisionId(), resolvedModule.getId());
                 moduleDescriptorCache.cacheModuleDescriptor(repository, resolvedModule.getId(), resolvedModule.getDescriptor(), isChangingDependency(requestedDependencyDescriptor, resolvedModule));
+            }
+        }
+
+        private void cacheArtifactFile() {
+            ArtifactOrigin artifactOrigin = resolvedModule.getReport().getArtifactOrigin();
+            File artifactFile = resolvedModule.getReport().getOriginalLocalFile();
+            if (artifactOrigin != null && artifactFile != null) {
+                artifactFileStore.storeArtifactFile(repository, artifactOrigin.getArtifact().getId(), artifactFile);
             }
         }
 
