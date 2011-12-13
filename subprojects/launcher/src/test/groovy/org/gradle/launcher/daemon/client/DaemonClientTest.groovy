@@ -21,6 +21,7 @@ import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.GradleLauncherAction
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.protocol.Build
+import org.gradle.launcher.daemon.protocol.BuildAccepted
 import org.gradle.launcher.daemon.protocol.CommandFailure
 import org.gradle.launcher.daemon.protocol.Stop
 import org.gradle.launcher.daemon.protocol.Success
@@ -85,7 +86,7 @@ class DaemonClientTest extends Specification {
         result == '[result]'
         1 * connector.connect(compatibilitySpec) >> daemonConnection
         1 * connection.dispatch({it instanceof Build})
-        1 * connection.receive() >> new Success('[result]')
+        2 * connection.receive() >>> [new BuildAccepted(new Build(action, parameters)), new Success('[result]')]
         1 * connection.stop()
     }
 
@@ -102,7 +103,7 @@ class DaemonClientTest extends Specification {
         e == failure
         1 * connector.connect(compatibilitySpec) >> daemonConnection
         1 * connection.dispatch({it instanceof Build})
-        1 * connection.receive() >> new CommandFailure(failure)
+        2 * connection.receive() >>> [new BuildAccepted(new Build(action, parameters)), new CommandFailure(failure)]
         1 * connection.stop()
     }
 }
