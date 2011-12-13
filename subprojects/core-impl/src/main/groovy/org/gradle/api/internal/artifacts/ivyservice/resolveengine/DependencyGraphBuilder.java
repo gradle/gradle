@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 import org.apache.ivy.core.module.descriptor.*;
-import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.IvyNode;
@@ -298,7 +297,7 @@ public class DependencyGraphBuilder {
 
     private static class ConfigurationResolveState {
         final DefaultModuleRevisionResolveState moduleRevision;
-        final ModuleDescriptor descriptor;
+        final DefaultModuleDescriptor descriptor;
         final String configurationName;
         final Set<String> heirarchy = new LinkedHashSet<String>();
         final Set<ResolvePath> incomingPaths = new LinkedHashSet<ResolvePath>();
@@ -307,7 +306,7 @@ public class DependencyGraphBuilder {
 
         private ConfigurationResolveState(DefaultModuleRevisionResolveState moduleRevision, ModuleDescriptor descriptor, String configurationName, ResolveState container) {
             this.moduleRevision = moduleRevision;
-            this.descriptor = descriptor;
+            this.descriptor = (DefaultModuleDescriptor) descriptor;
             this.configurationName = configurationName;
             findAncestors(configurationName, container, heirarchy);
         }
@@ -331,7 +330,7 @@ public class DependencyGraphBuilder {
             for (DependencyDescriptor dependency : moduleRevision.getDependencies()) {
                 Set<String> targetConfigurations = getTargetConfigurations(dependency);
                 ModuleId targetModuleId = dependency.getDependencyRevisionId().getModuleId();
-                if (!targetConfigurations.isEmpty() && !excludes(targetModuleId) && !incomingPath.excludes(targetModuleId)) {
+                if (!targetConfigurations.isEmpty() && selects(targetModuleId) && incomingPath.selects(targetModuleId)) {
                     ModuleVersionSelectorResolveState selector = resolveState.getSelector(dependency);
                     DependencyResolvePath dependencyResolvePath = new DependencyResolvePath(incomingPath, this, selector, dependency, targetConfigurations);
                     queue.add(dependencyResolvePath);
@@ -360,15 +359,14 @@ public class DependencyGraphBuilder {
             return String.format("%s(%s)", moduleRevision, configurationName);
         }
 
-        public boolean excludes(ModuleId moduleId) {
+        public boolean selects(ModuleId moduleId) {
             String[] configurations = heirarchy.toArray(new String[heirarchy.size()]);
-            ArtifactId placeholderArtifact = new ArtifactId(moduleId, "ivy", "ivy", "ivy");
-            boolean excluded = descriptor.doesExclude(configurations, placeholderArtifact);
-            if (excluded) {
+            boolean selected = ModuleVersionSpec.forExcludes(descriptor.getExcludeRules(configurations)).isSatisfiedBy(moduleId);
+            if (!selected) {
                 LOGGER.debug("{} is excluded by {}.", moduleId, this);
-                return true;
+                return false;
             }
-            return false;
+            return true;
         }
 
         public Set<ResolvedArtifact> getArtifacts(ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver) {
@@ -414,7 +412,7 @@ public class DependencyGraphBuilder {
     private static abstract class ResolvePath {
         public abstract void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationBuilder result);
 
-        public abstract boolean excludes(ModuleId moduleId);
+        public abstract boolean selects(ModuleId moduleId);
 
         public abstract boolean canReach(ConfigurationResolveState configuration);
 
@@ -475,8 +473,8 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public boolean excludes(ModuleId moduleId) {
-            return false;
+        public boolean selects(ModuleId moduleId) {
+            return true;
         }
 
         @Override
@@ -684,21 +682,20 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public boolean excludes(ModuleId moduleId) {
+        public boolean selects(ModuleId moduleId) {
             String[] configurations = from.heirarchy.toArray(new String[from.heirarchy.size()]);
-            ArtifactId placeholderArtifact = new ArtifactId(moduleId, "ivy", "ivy", "ivy");
-            boolean excluded = dependency.doesExclude(configurations, placeholderArtifact);
-            if (excluded) {
+            boolean selected = ModuleVersionSpec.forExcludes(dependency.getExcludeRules(configurations)).isSatisfiedBy(moduleId);
+            if (!selected) {
                 LOGGER.debug("{} is excluded by {}.", moduleId, this);
-                return true;
+                return false;
             }
 
-            excluded = from.excludes(moduleId);
-            if (excluded) {
-                return true;
+            selected = from.selects(moduleId);
+            if (!selected) {
+                return false;
             }
 
-            return path.excludes(moduleId);
+            return path.selects(moduleId);
         }
 
         @Override
