@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.archive.compression;
 
 import org.apache.tools.bzip2.CBZip2InputStream;
 import org.apache.tools.bzip2.CBZip2OutputStream;
+import org.gradle.api.internal.resources.URIBuilder;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
 
@@ -32,11 +33,13 @@ import java.net.URI;
  */
 public class Bzip2Archiver implements ReadableResource {
 
-    private ReadableResource resource;
+    private final ReadableResource resource;
+    private final URI uri;
 
     public Bzip2Archiver(ReadableResource resource) {
         assert resource != null;
         this.resource = resource;
+        this.uri = new URIBuilder(resource.getURI()).schemePrefix("bzip2:").build();
     }
 
     public static Compressor getCompressor() {
@@ -75,7 +78,7 @@ public class Bzip2Archiver implements ReadableResource {
     }
 
     public URI getURI() {
-        return resource.getURI();
+        return uri;
     }
 
     public String getBaseName() {
