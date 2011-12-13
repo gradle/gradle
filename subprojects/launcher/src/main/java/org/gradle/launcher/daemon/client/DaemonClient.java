@@ -39,15 +39,15 @@ import java.io.InputStream;
  * <p>
  * The client is expected to send exactly one {@link Build} message as the first message it sends to the daemon. After this
  * it may send zero to many {@link ForwardInput} messages. If the client's stdin stream is closed before the connection to the
- * daemon is terminated, the client must send a {@link CloseInput} command to instruct that daemon that no more input is to be
+ * daemon is terminated, the client must send a {@link CloseInput} command to instruct the daemon that no more input is to be
  * expected.
  * <p>
  * After receiving the {@link Build} message from the client, the daemon will at some time return a {@link Result} message
- * indicating either that the daemon encountered an internal failure or that the build failed dependending on the specific
+ * indicating either that the daemon encountered an internal failure or that the build failed depending on the specific
  * type of the {@link Result} object returned.
  * <p>
  * After receiving the {@link Result} message, the client must send a {@link CloseInput} command if it has not already done so
- * due the stdin stream being closed. At this point the client is expected to terminate the connection with the daemon.
+ * due to the stdin stream being closed. At this point the client is expected to terminate the connection with the daemon.
  * <p>
  * If the daemon returns a {@code null} message before returning a {@link Result} object, it has terminated unexpectedly for some reason.
  */
@@ -119,9 +119,14 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
             //TODO - this may fail. We should handle it and have tests for that. It means the server is gone.
             connection.dispatch(build);
             inputForwarder.start();
+            
+            int objectsReceived = 0;
+            
             while (true) {
                 Object object = connection.receive();
                 
+                LOGGER.debug("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
+
                 if (object == null) {
                     throw new DaemonDisappearedException(build, connection);
                 } else if (object instanceof OutputEvent) {
