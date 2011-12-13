@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.resources;
 
+import org.gradle.util.GUtil;
+
 import java.net.URI;
 
 /**
@@ -30,15 +32,15 @@ public class URIBuilder {
     }
 
     public URIBuilder schemePrefix(String schemePrefix) {
-        assert schemePrefix != null;
+        assert GUtil.isTrue(schemePrefix);
         this.schemePrefix = schemePrefix;
         return this;
     }
 
     public URI build() {
-        String prefix = (schemePrefix.length() > 0) ? schemePrefix + ":" : "";
+        assert GUtil.isTrue(schemePrefix);
         try {
-            return new URI(prefix + uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+            return new URI(schemePrefix + ":" + uri.toString());
         } catch (Exception e) {
             throw new RuntimeException("Unable to build URI based on supplied URI: " + uri, e);
         }

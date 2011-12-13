@@ -26,7 +26,6 @@ public class URIBuilderTest extends Specification {
 
     def "builds URIs"() {
         expect:
-        new URIBuilder(new File("/some/path").toURI()).build().toString() == 'file:/some/path'
-        new URIBuilder(new File("/some/path").toURI()).schemePrefix("hey").build().toString() == 'hey:file:/some/path'
+        new URIBuilder(new URI("protocol:some/uri")).schemePrefix("hey").build().toString() == 'hey:protocol:some/uri'
     }
 }
