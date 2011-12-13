@@ -21,17 +21,23 @@ import java.io.Serializable;
 
 public class Command implements Serializable {
     private final BuildClientMetaData clientMetaData;
+    private final long identifier;
 
     public Command(BuildClientMetaData clientMetaData) {
         this.clientMetaData = clientMetaData;
+        this.identifier = System.identityHashCode(this);
     }
 
     public BuildClientMetaData getClientMetaData() {
         return clientMetaData;
     }
 
+    public long getIdentifier() {
+        return identifier;
+    }
+
     @Override
     public String toString() {
-        return String.format("%s[id=%s]", getClass().getSimpleName(), System.identityHashCode(this));
+        return String.format("%s[id=%s]", getClass().getSimpleName(), identifier);
     }
 }
