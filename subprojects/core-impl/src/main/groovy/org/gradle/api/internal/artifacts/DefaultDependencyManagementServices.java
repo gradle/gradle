@@ -223,6 +223,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         ExternalArtifactCacheBuilder cacheBuilder = new ExternalArtifactCacheBuilder(get(ArtifactCacheMetaData.class));
         cacheBuilder.addCurrent(get(ArtifactFileStore.class));
         cacheBuilder.addMilestone6();
+        cacheBuilder.addMilestone3();
         return new RepositoryTransportFactory(cacheBuilder.getExternalArtifactCache(), get(ProgressLoggerFactory.class));
     }
 

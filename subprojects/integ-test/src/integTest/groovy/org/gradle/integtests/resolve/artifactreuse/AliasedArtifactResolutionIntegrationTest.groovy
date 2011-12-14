@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve
+package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.junit.Rule
