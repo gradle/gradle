@@ -30,10 +30,10 @@ import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
  */
 public class ConnectorServices {
 
-    private static ServiceRegistry SINGLETON_REGISTRY = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
+    private static ServiceRegistry singletonRegistry = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
 
     public DefaultGradleConnector createConnector() {
-        ConnectionFactory connectionFactory = new ConnectionFactory(SINGLETON_REGISTRY.get(ToolingImplementationLoader.class));
+        ConnectionFactory connectionFactory = new ConnectionFactory(singletonRegistry.get(ToolingImplementationLoader.class));
         return new DefaultGradleConnector(connectionFactory, new DistributionFactory(StartParameter.DEFAULT_GRADLE_USER_HOME));
     }
 
@@ -41,7 +41,7 @@ public class ConnectorServices {
      * Resets the state of connector services. Meant to be used only for testing!
      */
     public void reset() {
-        SINGLETON_REGISTRY = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
+        singletonRegistry = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
     }
 
     private static class ConnectorServiceRegistry extends DefaultServiceRegistry {
