@@ -98,7 +98,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             return new IvyResolver(name, transportFactory.createHttpTransport(name, getCredentials()));
         }
         if (WrapUtil.toSet("file").containsAll(schemes)) {
-            return new LocalFileSystemResolver(name, transportFactory.createFileTransport(name));
+            return new IvyResolver(name, transportFactory.createFileTransport(name));
         }
         throw new InvalidUserDataException("You cannot mix file and http(s) urls for a single ivy repository. Please declare 2 separate repositories.");
     }

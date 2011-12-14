@@ -15,16 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
-import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache
-import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport
-import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport
+import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResourceCollection
+import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResourceCollection
+import org.gradle.api.internal.artifacts.repositories.transport.file.FileResourceCollection
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
@@ -110,7 +110,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         resolvers.size() == 1
         def resolver = resolvers[0]
-        resolver instanceof FileSystemResolver
+        resolver instanceof ResourceCollectionResolver
+        resolver.repository instanceof FileResourceCollection
         resolver.name == 'name'
         resolver.artifactPatterns == ["${file.absolutePath}/[organisation]/[artifact]-[revision].[ext]", "${file.absolutePath}/[organisation]/[module]/[artifact]-[revision].[ext]"] as List
         resolver.ivyPatterns == ["${file.absolutePath}/[organisation]/[module]/ivy-[revision].xml"] as List
