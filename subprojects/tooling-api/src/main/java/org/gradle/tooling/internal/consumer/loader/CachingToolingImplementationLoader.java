@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer.loader;
 
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
@@ -32,12 +33,12 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
         this.loader = loader;
     }
 
-    public ConnectionVersion4 create(Distribution distribution) {
-        Set<File> classpath = new LinkedHashSet<File>(distribution.getToolingImplementationClasspath());
+    public ConnectionVersion4 create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory) {
+        Set<File> classpath = new LinkedHashSet<File>(distribution.getToolingImplementationClasspath(progressLoggerFactory));
 
         ConnectionVersion4 connection = connections.get(classpath);
         if (connection == null) {
-            connection = loader.create(distribution);
+            connection = loader.create(distribution, progressLoggerFactory);
             connections.put(classpath, connection);
         }
 

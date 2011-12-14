@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
 
-import java.io.File;
-import java.util.Set;
-
-public interface Distribution {
-    String getDisplayName();
-
-    Set<File> getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory);
+/**
+ * by Szczepan Faber, created at: 12/14/11
+ */
+public interface LoggingProvider {
+    ListenerManager getListenerManager();
+    ProgressLoggerFactory getProgressLoggerFactory();
 }

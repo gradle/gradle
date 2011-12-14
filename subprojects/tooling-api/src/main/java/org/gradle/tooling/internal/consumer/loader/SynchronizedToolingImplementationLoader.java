@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.loader;
 
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
@@ -34,10 +35,10 @@ public class SynchronizedToolingImplementationLoader implements ToolingImplement
         this.delegate = delegate;
     }
 
-    public ConnectionVersion4 create(Distribution distribution) {
+    public ConnectionVersion4 create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory) {
         lock.lock();
         try {
-            return delegate.create(distribution);
+            return delegate.create(distribution, progressLoggerFactory);
         } finally {
             lock.unlock();
         }

@@ -35,11 +35,9 @@ import java.util.Set;
 
 public class DistributionFactory {
     private final File userHomeDir;
-    private final ProgressLoggerFactory progressLoggerFactory;
 
-    public DistributionFactory(File userHomeDir, ProgressLoggerFactory progressLoggerFactory) {
+    public DistributionFactory(File userHomeDir) {
         this.userHomeDir = userHomeDir;
-        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     /**
@@ -59,7 +57,7 @@ public class DistributionFactory {
      */
     public Distribution getDistribution(File gradleHomeDir) {
         return new InstalledDistribution(gradleHomeDir, String.format("Gradle installation '%s'", gradleHomeDir),
-                String.format("Gradle installation directory '%s'", gradleHomeDir), progressLoggerFactory);
+                String.format("Gradle installation directory '%s'", gradleHomeDir));
     }
 
     /**
@@ -105,7 +103,7 @@ public class DistributionFactory {
             return String.format("Gradle distribution '%s'", gradleDistribution);
         }
 
-        public Set<File> getToolingImplementationClasspath() {
+        public Set<File> getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
             if (installedDistribution == null) {
                 File installDir;
                 try {
@@ -116,9 +114,9 @@ public class DistributionFactory {
                 } catch (Exception e) {
                     throw new GradleConnectionException(String.format("Could not install Gradle distribution from '%s'.", gradleDistribution), e);
                 }
-                installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName(), progressLoggerFactory);
+                installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName());
             }
-            return installedDistribution.getToolingImplementationClasspath();
+            return installedDistribution.getToolingImplementationClasspath(progressLoggerFactory);
         }
     }
 
@@ -145,20 +143,18 @@ public class DistributionFactory {
         private final File gradleHomeDir;
         private final String displayName;
         private final String locationDisplayName;
-        private final ProgressLoggerFactory progressLoggerFactory;
 
-        public InstalledDistribution(File gradleHomeDir, String displayName, String locationDisplayName, ProgressLoggerFactory progressLoggerFactory) {
+        public InstalledDistribution(File gradleHomeDir, String displayName, String locationDisplayName) {
             this.gradleHomeDir = gradleHomeDir;
             this.displayName = displayName;
             this.locationDisplayName = locationDisplayName;
-            this.progressLoggerFactory = progressLoggerFactory;
         }
 
         public String getDisplayName() {
             return displayName;
         }
 
-        public Set<File> getToolingImplementationClasspath() {
+        public Set<File> getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionFactory.class);
             progressLogger.setDescription("Validate distribution");
             progressLogger.started();
@@ -195,12 +191,8 @@ public class DistributionFactory {
             return "Gradle classpath distribution";
         }
 
-        public Set<File> getToolingImplementationClasspath() {
+        public Set<File> getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
             return new DefaultModuleRegistry().getFullClasspath();
         }
-    }
-
-    ProgressLoggerFactory getProgressLoggerFactory() {
-        return progressLoggerFactory;
     }
 }

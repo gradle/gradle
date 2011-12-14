@@ -20,15 +20,10 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.SynchronizedServiceRegistry;
-import org.gradle.listener.DefaultListenerManager;
-import org.gradle.listener.ListenerManager;
-import org.gradle.logging.internal.DefaultProgressLoggerFactory;
-import org.gradle.logging.internal.ProgressListener;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
-import org.gradle.util.TrueTimeProvider;
 
 /**
  * by Szczepan Faber, created at: 12/6/11
@@ -38,10 +33,8 @@ public class ConnectorServices {
     private static ServiceRegistry SINGLETON_REGISTRY = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
 
     public DefaultGradleConnector createConnector() {
-        ListenerManager listenerManager = new DefaultListenerManager();
-        DefaultProgressLoggerFactory progressLoggerFactory = new DefaultProgressLoggerFactory(listenerManager.getBroadcaster(ProgressListener.class), new TrueTimeProvider());
-        ConnectionFactory connectionFactory = new ConnectionFactory(SINGLETON_REGISTRY.get(ToolingImplementationLoader.class), listenerManager, progressLoggerFactory);
-        return new DefaultGradleConnector(connectionFactory, new DistributionFactory(StartParameter.DEFAULT_GRADLE_USER_HOME, progressLoggerFactory));
+        ConnectionFactory connectionFactory = new ConnectionFactory(SINGLETON_REGISTRY.get(ToolingImplementationLoader.class));
+        return new DefaultGradleConnector(connectionFactory, new DistributionFactory(StartParameter.DEFAULT_GRADLE_USER_HOME));
     }
 
     /**

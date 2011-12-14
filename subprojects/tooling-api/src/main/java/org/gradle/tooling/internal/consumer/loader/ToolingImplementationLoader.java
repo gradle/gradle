@@ -15,9 +15,10 @@
  */
 package org.gradle.tooling.internal.consumer.loader;
 
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
 public interface ToolingImplementationLoader {
-    ConnectionVersion4 create(Distribution distribution);
+    ConnectionVersion4 create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory);
 }

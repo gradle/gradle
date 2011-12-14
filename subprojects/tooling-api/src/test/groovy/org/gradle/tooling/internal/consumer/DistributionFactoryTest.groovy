@@ -28,7 +28,7 @@ class DistributionFactoryTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ProgressLogger progressLogger = Mock()
-    final DistributionFactory factory = new DistributionFactory(tmpDir.file('userHome'), progressLoggerFactory)
+    final DistributionFactory factory = new DistributionFactory(tmpDir.file('userHome'))
 
     def setup() {
         _ * progressLoggerFactory.newOperation(!null) >> progressLogger
@@ -69,7 +69,7 @@ class DistributionFactoryTest extends Specification {
 
         expect:
         def dist = factory.getDistribution(tmpDir.dir)
-        dist.toolingImplementationClasspath == [libA, libB] as Set
+        dist.getToolingImplementationClasspath(progressLoggerFactory) == [libA, libB] as Set
     }
 
     def failsWhenInstallationDirectoryDoesNotExist() {
@@ -77,7 +77,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(distDir)
 
         when:
-        dist.toolingImplementationClasspath
+        dist.getToolingImplementationClasspath(progressLoggerFactory)
 
         then:
         IllegalArgumentException e = thrown()
@@ -89,7 +89,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(distDir)
 
         when:
-        dist.toolingImplementationClasspath
+        dist.getToolingImplementationClasspath(progressLoggerFactory)
 
         then:
         IllegalArgumentException e = thrown()
@@ -101,7 +101,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(distDir)
 
         when:
-        dist.toolingImplementationClasspath
+        dist.getToolingImplementationClasspath(progressLoggerFactory)
 
         then:
         IllegalArgumentException e = thrown()
@@ -125,7 +125,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(zipFile.toURI())
 
         expect:
-        dist.toolingImplementationClasspath.collect { it.name } as Set == ['a.jar', 'b.jar'] as Set
+        dist.getToolingImplementationClasspath(progressLoggerFactory).collect { it.name } as Set == ['a.jar', 'b.jar'] as Set
     }
 
     def reportsZipDownload() {
@@ -139,7 +139,7 @@ class DistributionFactoryTest extends Specification {
         ProgressLogger loggerTwo = Mock()
 
         when:
-        dist.toolingImplementationClasspath
+        dist.getToolingImplementationClasspath(progressLoggerFactory)
 
         then:
         2 * progressLoggerFactory.newOperation(DistributionFactory.class) >>> [loggerOne, loggerTwo]
@@ -160,7 +160,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(zipFile)
 
         when:
-        dist.toolingImplementationClasspath
+        dist.getToolingImplementationClasspath(progressLoggerFactory)
 
         then:
         IllegalArgumentException e = thrown()
@@ -172,7 +172,7 @@ class DistributionFactoryTest extends Specification {
         def dist = factory.getDistribution(zipFile.toURI())
 
         when:
-        dist.toolingImplementationClasspath
+        dist.getToolingImplementationClasspath(progressLoggerFactory)
 
         then:
         IllegalArgumentException e = thrown()
