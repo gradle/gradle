@@ -21,7 +21,7 @@ class MessageTest extends Specification {
     GroovyClassLoader source = new GroovyClassLoader(getClass().classLoader)
     GroovyClassLoader dest = new GroovyClassLoader(getClass().classLoader)
 
-    def replacesUnserializableExceptionWithPlaceholder() {
+    def "replaces unserializable exception with placeholder"() {
         def cause = new RuntimeException("nested")
         def original = new UnserializableException("message", cause)
 
@@ -38,7 +38,7 @@ class MessageTest extends Specification {
         transported.cause.stackTrace == cause.getStackTrace()
     }
 
-    def replacesNestedUnserializableExceptionWithPlaceholder() {
+    def "replaces nested unserializable exception with placeholder"() {
         def cause = new IOException("nested")
         def original = new UnserializableException("message", cause)
         def outer = new RuntimeException("message", original)
@@ -61,7 +61,7 @@ class MessageTest extends Specification {
         transported.cause.cause.stackTrace == cause.stackTrace
     }
 
-    def replacesUndeserializableExceptionWithPlaceholder() {
+    def "replaces undeserializable exception with placeholder"() {
         def cause = new RuntimeException("nested")
         def original = new UndeserializableException("message", cause)
 
@@ -78,7 +78,7 @@ class MessageTest extends Specification {
         transported.cause.stackTrace == cause.stackTrace
     }
 
-    def replacesNestedUndeserializableExceptionWithPlaceholder() {
+    def "replaces nested undeserializable exception with placeholder"() {
         def cause = new RuntimeException("nested")
         def original = new UndeserializableException("message", cause)
         def outer = new RuntimeException("message", original)
@@ -101,7 +101,7 @@ class MessageTest extends Specification {
         transported.cause.cause.stackTrace == cause.stackTrace
     }
 
-    def replacesUnserializableExceptionFieldWithPlaceholder() {
+    def "replaces unserializable exception field with placeholder"() {
         def cause = new RuntimeException()
         def original = new UndeserializableException("message", cause)
         def outer = new ExceptionWithExceptionField("nested", original)
@@ -119,7 +119,7 @@ class MessageTest extends Specification {
         transported.throwable == transported.cause
     }
 
-    def replacesIncompatibleExceptionWithLocalVersion() {
+    def "replaces incompatible exception with local version"() {
         def cause = new RuntimeException("nested")
         def sourceExceptionType = source.parseClass(
                 "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }")
@@ -142,7 +142,7 @@ class MessageTest extends Specification {
         transported.cause.stackTrace == cause.stackTrace
     }
 
-    def usesPlaceholderWhenLocalExceptionCannotBeConstructed() {
+    def "uses placeholder when local exception cannot be constructed"() {
         def cause = new RuntimeException("nested")
         def sourceExceptionType = source.parseClass(
                 "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }")
