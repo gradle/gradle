@@ -40,30 +40,80 @@ class ModuleVersionSpecTest extends Specification {
         spec.isSatisfiedBy(ModuleId.newInstance("org", "other"))
     }
 
-    def "accepts all module versions when merged with empty set of exclude rules"() {
+    def "union accepts all module versions when one spec has empty set of exclude rules"() {
         def rule1 = excludeRule("org", "module")
         def rule2 = excludeRule("org", "module2")
         def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
+        def spec2 = ModuleVersionSpec.forExcludes()
 
         expect:
-        def union = spec.union()
-        !spec.isSatisfiedBy(ModuleId.newInstance("org", "module"))
-        union.isSatisfiedBy(ModuleId.newInstance("org", "module2"))
+        spec.union(spec2) == spec2
+        spec2.union(spec) == spec2
     }
 
-    def "does not accept module versions that are not accepted by any merged exclude rules"() {
+    def "union of a spec with itself returns the original spec"() {
         def rule1 = excludeRule("org", "module")
         def rule2 = excludeRule("org", "module2")
         def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
 
         expect:
-        def union = spec.union(rule1)
+        spec.union(spec) == spec
+    }
+
+    def "union accept module version that is accepted by any merged exclude rule"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = excludeRule("org", "module2")
+        def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
+        def spec2 = ModuleVersionSpec.forExcludes(rule1)
+
+        expect:
+        def union = spec.union(spec2)
 
         !spec.isSatisfiedBy(ModuleId.newInstance("org", "module"))
         !union.isSatisfiedBy(ModuleId.newInstance("org", "module"))
 
         !spec.isSatisfiedBy(ModuleId.newInstance("org", "module2"))
         union.isSatisfiedBy(ModuleId.newInstance("org", "module2"))
+    }
+
+    def "intersection accepts those module versions accepted by other spec when one spec has empty set of exclude rules"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = excludeRule("org", "module2")
+        def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
+        def spec2 = ModuleVersionSpec.forExcludes()
+
+        expect:
+        spec.intersect(spec2) == spec
+        spec2.intersect(spec) == spec
+    }
+
+    def "intersection of a spec with itself returns the original spec"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = excludeRule("org", "module2")
+        def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
+
+        expect:
+        spec.intersect(spec) == spec
+    }
+
+    def "intersection does not accept module version that is not accepted by any merged exclude rules"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = excludeRule("org", "module2")
+        def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
+        def spec2 = ModuleVersionSpec.forExcludes(rule1)
+
+        expect:
+        def intersect = spec.intersect(spec2)
+
+        !spec.isSatisfiedBy(ModuleId.newInstance("org", "module"))
+        !intersect.isSatisfiedBy(ModuleId.newInstance("org", "module"))
+
+        !spec.isSatisfiedBy(ModuleId.newInstance("org", "module2"))
+        !intersect.isSatisfiedBy(ModuleId.newInstance("org", "module2"))
+
+        spec.isSatisfiedBy(ModuleId.newInstance("org", "module3"))
+        spec2.isSatisfiedBy(ModuleId.newInstance("org", "module3"))
+        intersect.isSatisfiedBy(ModuleId.newInstance("org", "module3"))
     }
 
     def excludeRule(String org, String module) {

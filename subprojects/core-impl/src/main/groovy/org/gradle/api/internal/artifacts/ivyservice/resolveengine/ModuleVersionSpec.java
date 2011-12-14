@@ -22,21 +22,55 @@ import org.apache.ivy.plugins.matcher.MatcherHelper;
 import org.gradle.api.specs.Spec;
 
 public abstract class ModuleVersionSpec implements Spec<ModuleId> {
+    private static final AcceptAllSpec ALL_SPEC = new AcceptAllSpec();
 
     public static ModuleVersionSpec forExcludes(ExcludeRule... excludeRules) {
+        if (excludeRules.length == 0) {
+            return ALL_SPEC;
+        }
         return new ExcludeRuleBackedSpec(excludeRules);
     }
 
     /**
-     * Returns a spec which is accepts the union of those module versions that are accepted by this spec, and a spec with the given exclude rules.
+     * Returns a spec which accepts the union of those module versions that are accepted by this spec, and a spec with the given exclude rules.
      *
      * @return The new spec. Returns this if the union == the set of module versions that are accepted by this spec.
      */
-    public ModuleVersionSpec union(ExcludeRule... excludeRules) {
-        if (excludeRules.length == 0) {
-            return forExcludes();
+    public ModuleVersionSpec union(ModuleVersionSpec other) {
+        if (other == this) {
+            return this;
         }
-        return new UnionSpec(this, forExcludes(excludeRules));
+        if (other == ALL_SPEC) {
+            return other;
+        }
+        if (this == ALL_SPEC) {
+            return this;
+        }
+        return new UnionSpec(this, other);
+    }
+
+    /**
+     * Returns a spec which is accepts the intersection of those module versions that are accepted by this spec, and a spec with the given exclude rules.
+     *
+     * @return The new spec. Returns this if the intersection == the set of module versions that are accepted by this spec.
+     */
+    public ModuleVersionSpec intersect(ModuleVersionSpec other) {
+        if (other == this) {
+            return this;
+        }
+        if (other == ALL_SPEC) {
+            return this;
+        }
+        if (this == ALL_SPEC) {
+            return other;
+        }
+        return new IntersectSpec(this, other);
+    }
+
+    private static class AcceptAllSpec extends ModuleVersionSpec {
+        public boolean isSatisfiedBy(ModuleId element) {
+            return true;
+        }
     }
 
     private static class ExcludeRuleBackedSpec extends ModuleVersionSpec {
@@ -57,7 +91,7 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
             return true;
         }
     }
-    
+
     private static class UnionSpec extends ModuleVersionSpec {
         private final ModuleVersionSpec[] specs;
 
@@ -74,5 +108,22 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
 
             return false;
         }
-    } 
+    }
+    
+    private static class IntersectSpec extends ModuleVersionSpec {
+        private final ModuleVersionSpec[] specs;
+
+        private IntersectSpec(ModuleVersionSpec... specs) {
+            this.specs = specs;
+        }
+
+        public boolean isSatisfiedBy(ModuleId element) {
+            for (ModuleVersionSpec spec : specs) {
+                if (!spec.isSatisfiedBy(element)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
 }

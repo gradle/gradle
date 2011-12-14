@@ -344,7 +344,7 @@ class DependencyGraphBuilderTest extends Specification {
         artifacts(result) == ids(a, b, d)
     }
 
-    def "includes union of included artifacts of all paths to a given module version"() {
+    def "includes a module version when there is a path to the version that does not exclude it"() {
         given:
         def a = revision('a')
         def b = revision('b')
@@ -363,6 +363,67 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         modules(result) == ids(a, b, c, d)
         artifacts(result) == ids(a, b, c, d)
+    }
+
+    def "ignores a new incoming path that includes a subset of those already included"() {
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def c = revision('c')
+        traverses root, a
+        traverses a, b
+        traverses root, c, exclude: b
+        doesNotResolve c, a
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+        result.rethrowFailure()
+
+        then:
+        modules(result) == ids(a, b, c)
+        artifacts(result) == ids(a, b, c)
+    }
+
+    def "ignores a new incoming path that includes the same set of module versions"() {
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def c = revision('c')
+        def d = revision('d')
+        def e = revision('e')
+        traverses root, a, exclude: e
+        traverses a, b
+        traverses a, c
+        traverses b, d
+        doesNotResolve c, d
+        doesNotResolve d, e
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+        result.rethrowFailure()
+
+        then:
+        modules(result) == ids(a, b, c, d)
+        artifacts(result) == ids(a, b, c, d)
+    }
+
+    def "restarts traversal when new incoming path excludes fewer module versions"() {
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def c = revision('c')
+        traverses root, a, exclude: b
+        traverses root, c
+        doesNotResolve c, a
+        traverses a, b
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+        result.rethrowFailure()
+
+        then:
+        modules(result) == ids(a, b, c)
+        artifacts(result) == ids(a, b, c)
     }
 
     def "does not traverse outgoing paths of a non-transitive dependency"() {
