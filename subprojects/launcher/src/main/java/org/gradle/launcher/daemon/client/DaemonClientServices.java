@@ -33,8 +33,8 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
     private final int idleTimeout;
     private final ServiceRegistry registryServices;
 
-    public DaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream daemonServerStdandardInput) {
-        super(loggingServices, daemonServerStdandardInput);
+    public DaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream buildStandardInput) {
+        super(loggingServices, buildStandardInput);
         this.daemonOpts = daemonParameters.getJvmArgs();
         this.idleTimeout = daemonParameters.getIdleTimeout();
         this.registryServices = new DaemonRegistryServices(daemonParameters.getBaseDir());

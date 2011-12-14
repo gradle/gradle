@@ -56,14 +56,14 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     private final BuildClientMetaData clientMetaData;
     private final OutputEventListener outputEventListener;
     private final Spec<DaemonContext> compatibilitySpec;
-    private final InputStream daemonServerStandardInput;
+    private final InputStream buildStandardInput;
 
-    public DaemonClient(DaemonConnector connector, BuildClientMetaData clientMetaData, OutputEventListener outputEventListener, Spec<DaemonContext> compatibilitySpec, InputStream daemonServerStandardInput) {
+    public DaemonClient(DaemonConnector connector, BuildClientMetaData clientMetaData, OutputEventListener outputEventListener, Spec<DaemonContext> compatibilitySpec, InputStream buildStandardInput) {
         this.connector = connector;
         this.clientMetaData = clientMetaData;
         this.outputEventListener = outputEventListener;
         this.compatibilitySpec = compatibilitySpec;
-        this.daemonServerStandardInput = daemonServerStandardInput;
+        this.buildStandardInput = buildStandardInput;
     }
 
     /**
@@ -119,7 +119,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         if (firstResult == null) {
             return null;
         } else if (firstResult instanceof BuildAccepted) {
-            DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(daemonServerStandardInput, build.getClientMetaData(), connection);
+            DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, build.getClientMetaData(), connection);
             try {
                 inputForwarder.start();
                 int objectsReceived = 0;
