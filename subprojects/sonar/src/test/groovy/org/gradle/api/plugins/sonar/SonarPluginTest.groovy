@@ -26,6 +26,7 @@ import org.gradle.util.HelperUtil
 import org.gradle.util.Jvm
 
 import spock.lang.Specification
+import spock.lang.Issue
 
 class SonarPluginTest extends Specification {
     def "adds model and task to root project"() {
@@ -83,10 +84,10 @@ class SonarPluginTest extends Specification {
         !sonarProject.skip
         sonarProject.baseDir == project.projectDir
         sonarProject.workDir == new File(project.buildDir, "sonar")
-        sonarProject.dynamicAnalysis == "false"
+        sonarProject.dynamicAnalysis == "reuseReports"
 
         where:
-        project << createRootAndChildProject()
+        project << createMultiProject().allprojects
     }
 
     def "provides additional defaults for project configuration if java-base plugin is present"(Project project) {
@@ -97,7 +98,7 @@ class SonarPluginTest extends Specification {
         sonarProject.java.targetCompatibility == project.targetCompatibility as String
 
         where:
-        project << createRootAndChildProject { plugins.apply(JavaBasePlugin) }
+        project << createMultiProject { plugins.apply(JavaBasePlugin) }.allprojects
     }
 
     def "provides additional defaults for project configuration if java plugin is present"(Project project) {
@@ -109,25 +110,34 @@ class SonarPluginTest extends Specification {
         sonarProject.binaryDirs == [project.sourceSets.main.output.classesDir]
         sonarProject.libraries.files as List == [Jvm.current().runtimeJar]
 
-        sonarProject.dynamicAnalysis == "reuseReports"
         sonarProject.testReportPath == project.test.testResultsDir
         sonarProject.language == "java"
 
         where:
-        project << createRootAndChildProject { plugins.apply(JavaPlugin) }
+        project << createMultiProject { plugins.apply(JavaPlugin) }.allprojects
     }
 
-    private createRootAndChildProject(Closure config = {}) {
+    @Issue("http://forums.gradle.org/gradle/topics/gradle_multi_project_build_with_sonar_and_cobertura")
+    def "'dynamicAnalysis' always defaults to 'reuseReports', even for root project and if Java plugin isn't applied"() {
+        def project = createMultiProject()
+        def childProject = project.subprojects.iterator().next()
+
+        expect:
+        project.sonar.project.dynamicAnalysis == "reuseReports"
+        childProject.sonar.project.dynamicAnalysis == "reuseReports"
+    }
+
+    private Project createMultiProject(Closure commonConfig = {}) {
         def root = HelperUtil.createRootProject()
-        ConfigureUtil.configure(config, root)
+        ConfigureUtil.configure(commonConfig, root)
         root.group = "group"
 
         def child = HelperUtil.createChildProject(root, "child")
-        ConfigureUtil.configure(config, child)
+        ConfigureUtil.configure(commonConfig, child)
         child.group = "group"
 
         root.plugins.apply(SonarPlugin)
 
-        [root, child]
+        root
     }
 }
