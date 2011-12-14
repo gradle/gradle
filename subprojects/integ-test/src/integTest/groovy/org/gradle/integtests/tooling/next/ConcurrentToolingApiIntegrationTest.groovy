@@ -43,6 +43,30 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         concurrent.shortTimeout = 20000
     }
 
+
+    @Ignore
+    def "handles standard input concurrently"() {
+        when:
+        threads.times { idx ->
+            dist.file("build$idx/build.gradle") << "description = System.in.text"
+        }
+
+        then:
+        threads.times { idx ->
+            concurrent.start {
+                withConnectionInDir("build$idx") { connection ->
+                    def model = connection.model(Project.class)
+                    model.standardInput = new ByteArrayInputStream("project $idx".toString().bytes)
+                    model.addProgressListener( { println it.description } as ProgressListener )
+                    def project = model.get()
+                    assert project.description == "project $idx"
+                }
+            }
+        }
+
+        concurrent.finished()
+    }
+
     @Issue("GRADLE-1933")
     def "handles concurrent scenario"() {
         dist.file('build.gradle')  << "apply plugin: 'java'"
@@ -69,7 +93,6 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
                     def model = connection.model(Project)
                     def listener = new AssertableListener()
                     model.addProgressListener(listener)
-
                     assert model.get()
                     listener.assertProgressMessages(["Load projects", "Validate distribution", "Load projects", "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Load projects", ""])
                 }
@@ -202,30 +225,6 @@ System.err.println 'this is stderr: $idx'
         assert stderr.toString().contains("this is stderr: $idx")
 
         listener.assertProgressMessages(["Execute build", 'Validate distribution', 'Execute build', "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Execute build", "Execute tasks", "Execute :help", "Execute tasks", "Execute build", ""])
-    }
-
-    @Ignore
-    //TODO SF this test exposes various issues that need more work
-    def "handles standard input concurrently"() {
-        when:
-        2.times { idx ->
-            dist.file("build$idx/build.gradle") << "description = System.in.text"
-        }
-
-        then:
-        2.times { idx ->
-            concurrent.start {
-                withConnectionInDir("build$idx") { connection ->
-                    def model = connection.model(Project.class)
-                    model.standardInput = new ByteArrayInputStream("project $idx".toString().bytes)
-                    def project = model.get()
-                    System.out.println(project.description);
-                    assert project.description == "project $idx"
-                }
-            }
-        }
-
-        concurrent.finished()
     }
 
     def withConnectionInDir(String dir, Closure cl) {
