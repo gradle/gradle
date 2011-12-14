@@ -33,6 +33,7 @@ import spock.lang.Issue
 
 @MinToolingApiVersion(currentOnly = true)
 @MinTargetGradleVersion(currentOnly = true)
+@Issue("GRADLE-1933")
 class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
 
     @Rule def concurrent = new ConcurrentTestUtil()
@@ -43,31 +44,6 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         concurrent.shortTimeout = 20000
     }
 
-
-    @Ignore
-    def "handles standard input concurrently"() {
-        when:
-        threads.times { idx ->
-            dist.file("build$idx/build.gradle") << "description = System.in.text"
-        }
-
-        then:
-        threads.times { idx ->
-            concurrent.start {
-                withConnectionInDir("build$idx") { connection ->
-                    def model = connection.model(Project.class)
-                    model.standardInput = new ByteArrayInputStream("project $idx".toString().bytes)
-                    model.addProgressListener( { println it.description } as ProgressListener )
-                    def project = model.get()
-                    assert project.description == "project $idx"
-                }
-            }
-        }
-
-        concurrent.finished()
-    }
-
-    @Issue("GRADLE-1933")
     def "handles concurrent scenario"() {
         dist.file('build.gradle')  << "apply plugin: 'java'"
 
@@ -80,14 +56,59 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         concurrent.finished()
     }
 
+    def "handles standard input concurrently when getting model"() {
+        when:
+        threads.times { idx ->
+            dist.file("build$idx/build.gradle") << "description = System.in.text"
+        }
+
+        then:
+        threads.times { idx ->
+            concurrent.start {
+                withConnectionInDir("build$idx") { connection ->
+                    def model = connection.model(Project.class)
+                    model.standardInput = new ByteArrayInputStream("project $idx".toString().bytes)
+                    def project = model.get()
+                    assert project.description == "project $idx"
+                }
+            }
+        }
+
+        concurrent.finished()
+    }
+
+    def "handles standard input concurrently when running build"() {
+        when:
+        threads.times { idx ->
+            dist.file("build$idx/build.gradle") << "task show << { println System.in.text}"
+        }
+
+        then:
+        threads.times { idx ->
+            concurrent.start {
+                withConnectionInDir("build$idx") { connection ->
+                    def out = new ByteArrayOutputStream()
+                    def build = connection.newBuild()
+                    build.standardInput = new ByteArrayInputStream("hasta la vista $idx".toString().bytes)
+                    build.forTasks('show')
+                    build.standardOutput = out
+                    build.run()
+                    assert out.toString().contains("hasta la vista $idx")
+                }
+            }
+        }
+
+        concurrent.finished()
+    }
+
     def "receives distribution progress concurrently"() {
         given:
-        3.times { idx ->
+        threads.times { idx ->
             dist.file("build$idx/build.gradle") << "apply plugin: 'java'"
         }
 
         when:
-        3.times { idx ->
+        threads.times { idx ->
             concurrent.start {
                 toolingApi.withConnection { connection ->
                     def model = connection.model(Project)
