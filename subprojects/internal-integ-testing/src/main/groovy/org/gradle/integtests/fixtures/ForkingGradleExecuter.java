@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 import static org.junit.Assert.fail;
 
@@ -115,7 +116,16 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.environment("GRADLE_HOME", "");
         builder.environment("JAVA_HOME", getJavaHome());
         builder.environment("GRADLE_OPTS", formatGradleOpts());
-        builder.environment(getAllEnvironmentVars());
+
+        Map<String, String> envVars = new HashMap<String, String>(getAllEnvironmentVars());
+
+        // If the user's environment has JAVA_OPTS set, it will be inherited by the forked process.
+        // If we don't have explicit settings, explicit “null” it out to prevent env pollution.
+        if (!envVars.containsKey("JAVA_OPTS")) {
+            envVars.put("JAVA_OPTS", "");
+        }
+
+        builder.environment(envVars);
         builder.workingDir(getWorkingDir());
         builder.setStandardInput(getStdin());
 
