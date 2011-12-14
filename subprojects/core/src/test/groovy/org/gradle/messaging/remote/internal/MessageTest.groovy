@@ -18,19 +18,19 @@ package org.gradle.messaging.remote.internal
 import spock.lang.Specification
 
 class MessageTest extends Specification {
-    private final GroovyClassLoader source = new GroovyClassLoader(getClass().getClassLoader());
-    private final GroovyClassLoader dest = new GroovyClassLoader(getClass().getClassLoader());
+    GroovyClassLoader source = new GroovyClassLoader(getClass().classLoader)
+    GroovyClassLoader dest = new GroovyClassLoader(getClass().classLoader)
 
     def replacesUnserializableExceptionWithPlaceholder() {
-        RuntimeException cause = new RuntimeException("nested");
-        UnserializableException original = new UnserializableException("message", cause);
+        def cause = new RuntimeException("nested")
+        def original = new UnserializableException("message", cause)
 
         when:
-        Object transported = transport(original);
+        def transported = transport(original)
 
         then:
         transported instanceof PlaceholderException
-        transported.message == UnserializableException.class.name + ": " + original.message
+        transported.message == original.message
         transported.stackTrace == original.stackTrace
 
         transported.cause.class == RuntimeException.class
@@ -39,20 +39,21 @@ class MessageTest extends Specification {
     }
 
     def replacesNestedUnserializableExceptionWithPlaceholder() {
-        Exception cause = new IOException("nested");
-        UnserializableException original = new UnserializableException("message", cause);
-        RuntimeException outer = new RuntimeException('message', original)
+        def cause = new IOException("nested")
+        def original = new UnserializableException("message", cause)
+        def outer = new RuntimeException("message", original)
 
         when:
-        Object transported = transport(outer);
+        def transported = transport(outer)
 
         then:
+        transported instanceof RuntimeException
         transported.class == RuntimeException.class
-        transported.message == 'message'
+        transported.message == "message"
         transported.stackTrace == outer.stackTrace
 
         transported.cause instanceof PlaceholderException
-        transported.cause.message == UnserializableException.class.name + ": " + original.message
+        transported.cause.message == original.message
         transported.cause.stackTrace == original.stackTrace
 
         transported.cause.cause.class == IOException
@@ -61,15 +62,15 @@ class MessageTest extends Specification {
     }
 
     def replacesUndeserializableExceptionWithPlaceholder() {
-        RuntimeException cause = new RuntimeException("nested");
-        UndeserializableException original = new UndeserializableException("message", cause);
+        def cause = new RuntimeException("nested")
+        def original = new UndeserializableException("message", cause)
 
         when:
-        Object transported = transport(original);
+        def transported = transport(original)
 
         then:
         transported instanceof PlaceholderException
-        transported.message == UndeserializableException.class.name + ": " + original.message
+        transported.message == original.message
         transported.stackTrace == original.stackTrace
 
         transported.cause.class == RuntimeException.class
@@ -78,20 +79,21 @@ class MessageTest extends Specification {
     }
 
     def replacesNestedUndeserializableExceptionWithPlaceholder() {
-        RuntimeException cause = new RuntimeException("nested");
-        UndeserializableException original = new UndeserializableException("message", cause);
-        RuntimeException outer = new RuntimeException('message', original)
+        def cause = new RuntimeException("nested")
+        def original = new UndeserializableException("message", cause)
+        def outer = new RuntimeException("message", original)
 
         when:
-        Object transported = transport(outer);
+        def transported = transport(outer)
 
         then:
+        transported instanceof RuntimeException
         transported.class == RuntimeException
-        transported.message == 'message'
+        transported.message == "message"
         transported.stackTrace == outer.stackTrace
 
         transported.cause instanceof PlaceholderException
-        transported.cause.message == UndeserializableException.class.name + ": " + original.message
+        transported.cause.message == original.message
         transported.cause.stackTrace == original.stackTrace
 
         transported.cause.cause.class == RuntimeException.class
@@ -100,36 +102,37 @@ class MessageTest extends Specification {
     }
 
     def replacesUnserializableExceptionFieldWithPlaceholder() {
-        RuntimeException cause = new RuntimeException()
-        UndeserializableException original = new UndeserializableException("message", cause);
-        ExceptionWithExceptionField outer = new ExceptionWithExceptionField("nested", original)
+        def cause = new RuntimeException()
+        def original = new UndeserializableException("message", cause)
+        def outer = new ExceptionWithExceptionField("nested", original)
 
         when:
-        Object transported = transport(outer);
+        def transported = transport(outer)
 
         then:
         transported instanceof ExceptionWithExceptionField
 
         transported.throwable instanceof PlaceholderException
-        transported.throwable.message == UndeserializableException.class.name + ": " + original.message
+        transported.throwable.message == original.message
         transported.throwable.stackTrace == original.stackTrace
 
         transported.throwable == transported.cause
     }
 
     def replacesIncompatibleExceptionWithLocalVersion() {
-        RuntimeException cause = new RuntimeException("nested");
-        Class<? extends RuntimeException> sourceExceptionType = source.parseClass(
-                "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }");
-        Class<? extends RuntimeException> destExceptionType = dest.parseClass(
-                "package org.gradle; public class TestException extends RuntimeException { private String someField; public TestException(String msg) { super(msg); } }");
+        def cause = new RuntimeException("nested")
+        def sourceExceptionType = source.parseClass(
+                "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }")
+        def destExceptionType = dest.parseClass(
+                "package org.gradle; public class TestException extends RuntimeException { private String someField; public TestException(String msg) { super(msg); } }")
 
-        RuntimeException original = sourceExceptionType.newInstance("message", cause);
+        def original = sourceExceptionType.newInstance("message", cause)
 
         when:
-        RuntimeException transported = transport(original);
+        def transported = transport(original)
 
         then:
+        transported instanceof RuntimeException
         transported.class == destExceptionType
         transported.message == original.message
         transported.stackTrace == original.stackTrace
@@ -140,19 +143,19 @@ class MessageTest extends Specification {
     }
 
     def usesPlaceholderWhenLocalExceptionCannotBeConstructed() {
-        RuntimeException cause = new RuntimeException("nested");
-        Class<? extends RuntimeException> sourceExceptionType = source.parseClass(
-                "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }");
-        dest.parseClass("package org.gradle; public class TestException extends RuntimeException { private String someField; }");
+        def cause = new RuntimeException("nested")
+        def sourceExceptionType = source.parseClass(
+                "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }")
+        dest.parseClass("package org.gradle; public class TestException extends RuntimeException { private String someField; }")
 
-        RuntimeException original = sourceExceptionType.newInstance("message", cause);
+        def original = sourceExceptionType.newInstance("message", cause)
 
         when:
-        Object transported = transport(original);
+        def transported = transport(original)
 
         then:
-        transported  instanceof PlaceholderException
-        transported.message == original.toString()
+        transported instanceof PlaceholderException
+        transported.message == original.message
         transported.stackTrace == original.stackTrace
 
         transported.cause.class == RuntimeException.class
@@ -161,11 +164,11 @@ class MessageTest extends Specification {
     }
 
     private Object transport(Object arg) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        Message.send(new TestPayloadMessage(payload: arg), outputStream);
+        def outputStream = new ByteArrayOutputStream()
+        Message.send(new TestPayloadMessage(payload: arg), outputStream)
 
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-        def message = Message.receive(inputStream, dest);
+        def inputStream = new ByteArrayInputStream(outputStream.toByteArray())
+        def message = Message.receive(inputStream, dest)
         return message.payload
     }
 }
@@ -175,30 +178,30 @@ private class TestPayloadMessage extends Message {
 }
 
 private class ExceptionWithExceptionField extends RuntimeException {
-    def Throwable throwable
+    Throwable throwable
 
-    def ExceptionWithExceptionField(String message, Throwable cause) {
+    ExceptionWithExceptionField(String message, Throwable cause) {
         super(message, cause)
         throwable = cause
     }
 }
 
 private class UnserializableException extends RuntimeException {
-    public UnserializableException(String message, Throwable cause) {
-        super(message, cause);
+    UnserializableException(String message, Throwable cause) {
+        super(message, cause)
     }
 
     private void writeObject(ObjectOutputStream outstr) throws IOException {
-        outstr.writeObject(new Object());
+        outstr.writeObject(new Object())
     }
 }
 
 private class UndeserializableException extends RuntimeException {
-    public UndeserializableException(String message, Throwable cause) {
-        super(message, cause);
+    UndeserializableException(String message, Throwable cause) {
+        super(message, cause)
     }
 
     private void readObject(ObjectInputStream outstr) throws ClassNotFoundException {
-        throw new ClassNotFoundException();
+        throw new ClassNotFoundException()
     }
 }
