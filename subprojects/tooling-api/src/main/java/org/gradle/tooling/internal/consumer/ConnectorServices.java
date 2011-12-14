@@ -35,13 +35,20 @@ import org.gradle.util.TrueTimeProvider;
  */
 public class ConnectorServices {
 
-    private static final ServiceRegistry SINGLETON_REGISTRY = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
+    private static ServiceRegistry SINGLETON_REGISTRY = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
 
     public DefaultGradleConnector createConnector() {
         ListenerManager listenerManager = new DefaultListenerManager();
         DefaultProgressLoggerFactory progressLoggerFactory = new DefaultProgressLoggerFactory(listenerManager.getBroadcaster(ProgressListener.class), new TrueTimeProvider());
         ConnectionFactory connectionFactory = new ConnectionFactory(SINGLETON_REGISTRY.get(ToolingImplementationLoader.class), listenerManager, progressLoggerFactory);
         return new DefaultGradleConnector(connectionFactory, new DistributionFactory(StartParameter.DEFAULT_GRADLE_USER_HOME, progressLoggerFactory));
+    }
+
+    /**
+     * Resets the state of connector services. Meant to be used only for testing!
+     */
+    public void reset() {
+        SINGLETON_REGISTRY = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
     }
 
     private static class ConnectorServiceRegistry extends DefaultServiceRegistry {

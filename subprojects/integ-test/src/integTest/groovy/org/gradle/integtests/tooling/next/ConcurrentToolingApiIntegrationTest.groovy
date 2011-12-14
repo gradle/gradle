@@ -25,6 +25,7 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProgressEvent
 import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
@@ -37,11 +38,12 @@ import spock.lang.Issue
 class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
 
     @Rule def concurrent = new ConcurrentTestUtil()
-    int threads = 3
+    int threads = 1
 
     def setup() {
         toolingApi.isEmbedded = false
         concurrent.shortTimeout = 20000
+        new ConnectorServices().reset()
     }
 
     def "handles concurrent scenario"() {
@@ -115,7 +117,7 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
                     def listener = new AssertableListener()
                     model.addProgressListener(listener)
                     assert model.get()
-                    listener.assertProgressMessages(["Load projects", "Validate distribution", "Load projects", "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Load projects", ""])
+                    listener.assertProgressMessages(["Load projects", "Validate distribution", "Load projects", "Validate distribution", "Load projects", "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Load projects", ""])
                 }
             }
         }
@@ -183,30 +185,26 @@ System.err.println 'this is stderr: $idx'
         then:
         threads.times { idx ->
             concurrent.start {
-                assertReceivesProgressForModel(idx)
+                withConnectionInDir("build$idx") { connection ->
+                    def stdout = new ByteArrayOutputStream()
+                    def stderr = new ByteArrayOutputStream()
+                    def listener = new AssertableListener()
+
+                    def model = connection.model(Project.class)
+                    model.standardOutput = stdout
+                    model.standardError = stderr
+                    model.addProgressListener(listener)
+                    assert model.get()
+
+                    assert stdout.toString().contains("this is stdout: $idx")
+                    assert stderr.toString().contains("this is stderr: $idx")
+
+                    listener.assertProgressMessages(['Load projects', 'Validate distribution', 'Load projects', 'Validate distribution', 'Load projects', 'Configure projects', "Resolve dependencies 'classpath'", 'Configure projects', "Resolve dependencies ':classpath'", "Configure projects", "Load projects", ''])
+                }
             }
         }
 
         concurrent.finished()
-    }
-
-    private assertReceivesProgressForModel(idx) {
-        def stdout = new ByteArrayOutputStream()
-        def stderr = new ByteArrayOutputStream()
-        def listener = new AssertableListener()
-
-        withConnectionInDir("build$idx") { connection ->
-            def model = connection.model(Project.class)
-            model.standardOutput = stdout
-            model.standardError = stderr
-            model.addProgressListener(listener)
-            assert model.get()
-        }
-
-        assert stdout.toString().contains("this is stdout: $idx")
-        assert stderr.toString().contains("this is stderr: $idx")
-
-        listener.assertProgressMessages(['Load projects', 'Validate distribution', 'Load projects', 'Configure projects', "Resolve dependencies 'classpath'", 'Configure projects', "Resolve dependencies ':classpath'", "Configure projects", "Load projects", ''])
     }
 
     def "receives progress and logging while the build is executing"() {
@@ -222,30 +220,26 @@ System.err.println 'this is stderr: $idx'
         then:
         threads.times { idx ->
             concurrent.start {
-                assertReceivesProgressForBuild(idx)
+                withConnectionInDir("build$idx") { connection ->
+                    def stdout = new ByteArrayOutputStream()
+                    def stderr = new ByteArrayOutputStream()
+                    def listener = new AssertableListener()
+
+                    def build = connection.newBuild()
+                    build.standardOutput = stdout
+                    build.standardError = stderr
+                    build.addProgressListener(listener)
+                    build.run()
+
+                    assert stdout.toString().contains("this is stdout: $idx")
+                    assert stderr.toString().contains("this is stderr: $idx")
+
+                    listener.assertProgressMessages(["Execute build", 'Validate distribution', "Execute build", 'Validate distribution', 'Execute build', "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Execute build", "Execute tasks", "Execute :help", "Execute tasks", "Execute build", ""])
+                }
             }
         }
 
         concurrent.finished()
-    }
-
-    private def assertReceivesProgressForBuild(idx) {
-        def stdout = new ByteArrayOutputStream()
-        def stderr = new ByteArrayOutputStream()
-        def listener = new AssertableListener()
-
-        withConnectionInDir("build$idx") { connection ->
-            def build = connection.newBuild()
-            build.standardOutput = stdout
-            build.standardError = stderr
-            build.addProgressListener(listener)
-            build.run()
-        }
-
-        assert stdout.toString().contains("this is stdout: $idx")
-        assert stderr.toString().contains("this is stderr: $idx")
-
-        listener.assertProgressMessages(["Execute build", 'Validate distribution', 'Execute build', "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Execute build", "Execute tasks", "Execute :help", "Execute tasks", "Execute build", ""])
     }
 
     def withConnectionInDir(String dir, Closure cl) {
