@@ -22,6 +22,7 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class DistributionFactoryTest extends Specification {
@@ -155,6 +156,7 @@ class DistributionFactoryTest extends Specification {
         0 * _._
     }
 
+    @Ignore
     def failsWhenDistributionZipDoesNotExist() {
         URI zipFile = new URI("http://gradle.org/does-not-exist/gradle-1.0.zip")
         def dist = factory.getDistribution(zipFile)
