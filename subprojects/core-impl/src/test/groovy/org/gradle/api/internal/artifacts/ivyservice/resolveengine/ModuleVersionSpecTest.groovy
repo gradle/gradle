@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import spock.lang.Specification
+import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
 
 class ModuleVersionSpecTest extends Specification {
     def "accepts all module versions by default"() {
@@ -60,6 +61,65 @@ class ModuleVersionSpecTest extends Specification {
         spec.union(spec) == spec
     }
 
+    def "union of two specs with exact matching exclude rules is the intersection of the exclude rules"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = excludeRule("org", "module2")
+        def rule3 = excludeRule("org", "module3")
+        def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
+        def spec2 = ModuleVersionSpec.forExcludes(rule1, rule3)
+
+        expect:
+        def union = spec.union(spec2)
+        union instanceof ModuleVersionSpec.ExcludeRuleBackedSpec
+        union.excludeRules.length == 1
+        union.excludeRules[0] == rule1
+    }
+
+    def "union of two specs with disjoint exact matching exclude rules matches all module versions"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = excludeRule("org", "module2")
+        def spec = ModuleVersionSpec.forExcludes(rule1)
+        def spec2 = ModuleVersionSpec.forExcludes(rule2)
+
+        expect:
+        def union = spec.union(spec2)
+        union == ModuleVersionSpec.forExcludes()
+    }
+
+    def "union of two specs with non-exact matching exclude rules is a union spec"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = regExpExcludeRule("org", "module2")
+        def spec = ModuleVersionSpec.forExcludes(rule1)
+        def spec2 = ModuleVersionSpec.forExcludes(rule2)
+
+        expect:
+        def union = spec.union(spec2)
+        union instanceof ModuleVersionSpec.UnionSpec
+        union.specs.size() == 2
+        union.specs[0] == spec
+        union.specs[1] == spec2
+    }
+
+    def "union of union specs is the union of the original specs"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = excludeRule("org", "module2")
+        def rule3 = regExpExcludeRule("org", "module2")
+        def spec = ModuleVersionSpec.forExcludes(rule1)
+        def spec2 = ModuleVersionSpec.forExcludes(rule1, rule2)
+        def spec3 = ModuleVersionSpec.forExcludes(rule3)
+
+        expect:
+        def union1 = spec.union(spec3)
+        def union = union1.union(spec2)
+        
+        union instanceof ModuleVersionSpec.UnionSpec
+        union.specs.size() == 2
+        union.specs[0] instanceof ModuleVersionSpec.ExcludeRuleBackedSpec
+        union.specs[0].excludeRules.length == 1
+        union.specs[0].excludeRules[0] == rule1
+        union.specs[1] == spec3
+    }
+
     def "union accept module version that is accepted by any merged exclude rule"() {
         def rule1 = excludeRule("org", "module")
         def rule2 = excludeRule("org", "module2")
@@ -87,15 +147,6 @@ class ModuleVersionSpecTest extends Specification {
         spec2.intersect(spec) == spec
     }
 
-    def "intersection of a spec with itself returns the original spec"() {
-        def rule1 = excludeRule("org", "module")
-        def rule2 = excludeRule("org", "module2")
-        def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
-
-        expect:
-        spec.intersect(spec) == spec
-    }
-
     def "intersection does not accept module version that is not accepted by any merged exclude rules"() {
         def rule1 = excludeRule("org", "module")
         def rule2 = excludeRule("org", "module2")
@@ -116,7 +167,35 @@ class ModuleVersionSpecTest extends Specification {
         intersect.isSatisfiedBy(ModuleId.newInstance("org", "module3"))
     }
 
+    def "intersection of a spec with itself returns the original spec"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = excludeRule("org", "module2")
+        def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
+
+        expect:
+        spec.intersect(spec) == spec
+    }
+
+    def "intersection of two specs with exclude rules is the union of the exclude rules"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = excludeRule("org", "module2")
+        def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
+        def spec2 = ModuleVersionSpec.forExcludes(rule1)
+
+        expect:
+        def intersection = spec.intersect(spec2)
+        intersection instanceof ModuleVersionSpec.ExcludeRuleBackedSpec
+        intersection.excludeRules.length == 3
+        intersection.excludeRules[0] == rule1
+        intersection.excludeRules[1] == rule2
+        intersection.excludeRules[2] == rule1
+    }
+
     def excludeRule(String org, String module) {
         return new DefaultExcludeRule(new ArtifactId(ModuleId.newInstance(org, module), "ivy", "ivy", "ivy"), ExactPatternMatcher.INSTANCE, [:])
+    }
+
+    def regExpExcludeRule(String org, String module) {
+        return new DefaultExcludeRule(new ArtifactId(ModuleId.newInstance(org, module), "ivy", "ivy", "ivy"), RegexpPatternMatcher.INSTANCE, [:])
     }
 }

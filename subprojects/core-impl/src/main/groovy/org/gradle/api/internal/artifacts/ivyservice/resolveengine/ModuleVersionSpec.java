@@ -16,11 +16,17 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
+import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.MatcherHelper;
+import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.specs.Spec;
 
+import java.util.*;
+
+/**
+ * Manages sets of exclude rules, allowing union and intersection operations on the rules.
+ */
 public abstract class ModuleVersionSpec implements Spec<ModuleId> {
     private static final AcceptAllSpec ALL_SPEC = new AcceptAllSpec();
 
@@ -29,6 +35,13 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
             return ALL_SPEC;
         }
         return new ExcludeRuleBackedSpec(excludeRules);
+    }
+
+    public static ModuleVersionSpec forExcludes(Collection<ExcludeRule> excludeRules) {
+        if (excludeRules.isEmpty()) {
+            return ALL_SPEC;
+        }
+        return new ExcludeRuleBackedSpec(excludeRules.toArray(new ExcludeRule[excludeRules.size()]));
     }
 
     /**
@@ -46,7 +59,37 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
         if (this == ALL_SPEC) {
             return this;
         }
-        return new UnionSpec(this, other);
+        List<ModuleVersionSpec> specs = new ArrayList<ModuleVersionSpec>();
+        unpackUnion(specs);
+        other.unpackUnion(specs);
+        for (int i = 0; i < specs.size(); ) {
+            ModuleVersionSpec spec = specs.get(i);
+            ModuleVersionSpec merged = null;
+            for (int j = i + 1; j < specs.size(); j++) {
+                merged = spec.doUnion(specs.get(j));
+                if (merged != null) {
+                    specs.remove(j);
+                    break;
+                }
+            }
+            if (merged != null) {
+                specs.set(i, merged);
+            } else {
+                i++;
+            }
+        }
+        if (specs.size() == 1) {
+            return specs.get(0);
+        }
+        return new UnionSpec(specs);
+    }
+
+    protected void unpackUnion(Collection<ModuleVersionSpec> specs) {
+        specs.add(this);
+    }
+
+    protected ModuleVersionSpec doUnion(ModuleVersionSpec other) {
+        return null;
     }
 
     /**
@@ -64,6 +107,10 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
         if (this == ALL_SPEC) {
             return other;
         }
+        return doIntersection(other);
+    }
+
+    protected ModuleVersionSpec doIntersection(ModuleVersionSpec other) {
         return new IntersectSpec(this, other);
     }
 
@@ -73,7 +120,7 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
         }
     }
 
-    private static class ExcludeRuleBackedSpec extends ModuleVersionSpec {
+    static class ExcludeRuleBackedSpec extends ModuleVersionSpec {
         private final ExcludeRule[] excludeRules;
 
         private ExcludeRuleBackedSpec(ExcludeRule[] excludeRules) {
@@ -81,22 +128,73 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
         }
 
         public boolean isSatisfiedBy(ModuleId element) {
-            ArtifactId dummyArtifact = new ArtifactId(element, "ivy", "ivy", "ivy");
             for (ExcludeRule excludeRule : excludeRules) {
-                if (MatcherHelper.matches(excludeRule.getMatcher(), excludeRule.getId(), dummyArtifact)) {
+                if (MatcherHelper.matches(excludeRule.getMatcher(), excludeRule.getId().getModuleId(), element)) {
                     return false;
                 }
             }
 
             return true;
         }
+
+        @Override
+        protected ModuleVersionSpec doUnion(ModuleVersionSpec other) {
+            if (!(other instanceof ExcludeRuleBackedSpec)) {
+                return super.doUnion(other);
+            }
+
+            // Can't merge things other than exact patterns and can't merge wildcards, yet.
+            Map<ModuleId, ExcludeRule> thisRules = new HashMap<ModuleId, ExcludeRule>();
+            for (ExcludeRule rule : excludeRules) {
+                ModuleId moduleId = rule.getId().getModuleId();
+                if (rule.getMatcher() != ExactPatternMatcher.INSTANCE
+                        || moduleId.getOrganisation().equals(PatternMatcher.ANY_EXPRESSION)
+                        || moduleId.getName().equals(PatternMatcher.ANY_EXPRESSION)) {
+                    return super.doUnion(other);
+                }
+                thisRules.put(moduleId, rule);
+            }
+
+            ExcludeRuleBackedSpec otherExcludeRuleSpec = (ExcludeRuleBackedSpec) other;
+            Map<ModuleId, ExcludeRule> otherRules = new HashMap<ModuleId, ExcludeRule>();
+            for (ExcludeRule rule : otherExcludeRuleSpec.excludeRules) {
+                ModuleId moduleId = rule.getId().getModuleId();
+                if (rule.getMatcher() != ExactPatternMatcher.INSTANCE
+                        || moduleId.getOrganisation().equals(PatternMatcher.ANY_EXPRESSION)
+                        || moduleId.getName().equals(PatternMatcher.ANY_EXPRESSION)) {
+                    return super.doUnion(other);
+                }
+                otherRules.put(moduleId, rule);
+            }
+
+            thisRules.keySet().retainAll(otherRules.keySet());
+            return forExcludes(thisRules.values());
+        }
+
+        @Override
+        protected ModuleVersionSpec doIntersection(ModuleVersionSpec other) {
+            if (!(other instanceof ExcludeRuleBackedSpec)) {
+                return super.doIntersection(other);
+            }
+            
+            ExcludeRuleBackedSpec otherExcludeRuleSpec = (ExcludeRuleBackedSpec) other;
+            List<ExcludeRule> rules = new ArrayList<ExcludeRule>();
+            rules.addAll(Arrays.asList(excludeRules));
+            rules.addAll(Arrays.asList(otherExcludeRuleSpec.excludeRules));
+            return forExcludes(rules);
+        }
     }
 
-    private static class UnionSpec extends ModuleVersionSpec {
-        private final ModuleVersionSpec[] specs;
+    static class UnionSpec extends ModuleVersionSpec {
+        private final List<ModuleVersionSpec> specs;
 
-        public UnionSpec(ModuleVersionSpec... specs) {
+        public UnionSpec(List<ModuleVersionSpec> specs) {
             this.specs = specs;
+        }
+
+        @Override
+        protected void unpackUnion(Collection<ModuleVersionSpec> specs) {
+            specs.addAll(this.specs);
         }
 
         public boolean isSatisfiedBy(ModuleId element) {
