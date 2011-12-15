@@ -178,13 +178,13 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         boolean javacWarning = containsLine(matchesRegexp(".*use(s)? or override(s)? a deprecated API\\.")).matches(output);
         boolean deprecationWarning = containsLine(matchesRegexp(".*deprecated.*")).matches(output);
         if (deprecationWarning && !javacWarning) {
-            throw new RuntimeException(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n", displayName, output));
+            throw new AssertionError(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n", displayName, output));
         }
     }
 
     private void assertNoStackTraces(String output, String displayName) {
         if (containsLine(matchesRegexp("\\s+at [\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
-            throw new RuntimeException(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n", displayName, output));
+            throw new AssertionError(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n", displayName, output));
         }
     }
 
