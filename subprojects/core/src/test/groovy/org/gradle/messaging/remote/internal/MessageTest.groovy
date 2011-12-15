@@ -16,6 +16,8 @@
 package org.gradle.messaging.remote.internal
 
 import spock.lang.Specification
+import spock.lang.Issue
+import spock.lang.Ignore
 
 class MessageTest extends Specification {
     GroovyClassLoader source = new GroovyClassLoader(getClass().classLoader)
@@ -163,6 +165,20 @@ class MessageTest extends Specification {
         transported.cause.stackTrace == cause.stackTrace
     }
 
+    @Ignore
+    @Issue("GRADLE-1996")
+    def "can transport exception that implements writeReplace()"() {
+        def original = new WriteReplaceException("original")
+
+        when:
+        def transported = transport(original)
+
+        then:
+        noExceptionThrown()
+        transported instanceof WriteReplaceException
+        transported.message == "replaced"
+    }
+
     private Object transport(Object arg) {
         def outputStream = new ByteArrayOutputStream()
         Message.send(new TestPayloadMessage(payload: arg), outputStream)
@@ -171,37 +187,48 @@ class MessageTest extends Specification {
         def message = Message.receive(inputStream, dest)
         return message.payload
     }
-}
 
-private class TestPayloadMessage extends Message {
-    def payload
-}
+    static class TestPayloadMessage extends Message {
+        def payload
+    }
 
-private class ExceptionWithExceptionField extends RuntimeException {
-    Throwable throwable
+    static class ExceptionWithExceptionField extends RuntimeException {
+        Throwable throwable
 
-    ExceptionWithExceptionField(String message, Throwable cause) {
-        super(message, cause)
-        throwable = cause
+        ExceptionWithExceptionField(String message, Throwable cause) {
+            super(message, cause)
+            throwable = cause
+        }
+    }
+
+    static class UnserializableException extends RuntimeException {
+        UnserializableException(String message, Throwable cause) {
+            super(message, cause)
+        }
+
+        private void writeObject(ObjectOutputStream outstr) throws IOException {
+            outstr.writeObject(new Object())
+        }
+    }
+
+    static class UndeserializableException extends RuntimeException {
+        UndeserializableException(String message, Throwable cause) {
+            super(message, cause)
+        }
+
+        private void readObject(ObjectInputStream outstr) throws ClassNotFoundException {
+            throw new ClassNotFoundException()
+        }
+    }
+
+    static class WriteReplaceException extends Exception {
+        WriteReplaceException(String message) {
+            super(message)
+        }
+
+        private Object writeReplace() {
+            return new WriteReplaceException("replaced")
+        }
     }
 }
 
-private class UnserializableException extends RuntimeException {
-    UnserializableException(String message, Throwable cause) {
-        super(message, cause)
-    }
-
-    private void writeObject(ObjectOutputStream outstr) throws IOException {
-        outstr.writeObject(new Object())
-    }
-}
-
-private class UndeserializableException extends RuntimeException {
-    UndeserializableException(String message, Throwable cause) {
-        super(message, cause)
-    }
-
-    private void readObject(ObjectInputStream outstr) throws ClassNotFoundException {
-        throw new ClassNotFoundException()
-    }
-}
