@@ -89,7 +89,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
             getCache().put(createKey(repository, moduleRevisionId), createMissingEntry(isChanging));
         } else {
             LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), isChanging);
-            expireArtifactsForChangingModuleIfRequired(repository, moduleDescriptor);
+            expireArtifactsForChangingModuleIfRequired(repository, moduleDescriptor, isChanging);
     
             // TODO:DAZ Cache will already be locked, due to prior call to getCachedModuleDescriptor. This locking should be more explicit
             moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
@@ -97,10 +97,17 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         }
     }
 
-    private void expireArtifactsForChangingModuleIfRequired(ModuleVersionRepository repository, ModuleDescriptor newDescriptor) {
+    private void expireArtifactsForChangingModuleIfRequired(ModuleVersionRepository repository, ModuleDescriptor newDescriptor, boolean newDescriptorIsChanging) {
+        // Expire all cached artifacts if either the cached module descriptor was changing, or the new module descriptor is changing
         CachedModuleDescriptor cachedModuleDescriptor = getCachedModuleDescriptor(repository, newDescriptor.getModuleRevisionId());
-        if (cachedModuleDescriptor != null && cachedModuleDescriptor.isChangingModule()) {
+        if (cachedModuleDescriptor == null) {
+            return;
+        }
+        if (cachedModuleDescriptor.isChangingModule() || newDescriptorIsChanging) {
             ModuleDescriptor oldDescriptor = cachedModuleDescriptor.getModuleDescriptor();
+            // Only do this if the publication date has changed
+            // TODO:DAZ Get rid of this and rely on sha1 files to prevent re-download.
+            // Will then be able to do before resolving the module, rather than waiting until we have the new descriptor to compare
             if (oldDescriptor.getResolvedPublicationDate().getTime() != newDescriptor.getResolvedPublicationDate().getTime()) {
                 expireArtifacts(repository, oldDescriptor);
             }

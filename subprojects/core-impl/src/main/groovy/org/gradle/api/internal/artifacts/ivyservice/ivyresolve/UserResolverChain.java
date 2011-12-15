@@ -253,8 +253,9 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
                 LOGGER.debug("Detected non-existence of module '{}' in resolver cache", resolvedModuleVersionId);
                 return true;
             }
-            if (cachedModuleDescriptor.isChangingModule()) {
+            if (cachedModuleDescriptor.isChangingModule() || resolvedDependencyDescriptor.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
+                    // TODO:DAZ Move expiring of changing module artifacts into here, once we can rely on sha1 comparison to prevent re-download
                     LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}'", resolvedModuleVersionId);
                     return false;
                 }

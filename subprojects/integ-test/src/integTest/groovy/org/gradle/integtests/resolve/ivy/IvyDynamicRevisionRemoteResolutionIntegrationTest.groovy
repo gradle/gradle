@@ -148,7 +148,7 @@ task retrieve(type: Sync) {
         then: "Version 1.2 is used"
         file('libs').assertHasDescendants('projectA-1.2.jar')
     }
-    
+
     def "uses and caches latest of versions obtained from multiple HTTP repositories"() {
         server.start()
 
@@ -190,11 +190,11 @@ task retrieve(type: Sync) {
 
         then: "Version 1.2 is used"
         file('libs').assertHasDescendants('projectA-1.2.jar')
-        
+
         when: "Run again with cached dependencies"
         server.resetExpectations()
         def result = run 'retrieve'
-        
+
         then: "No server requests, task skipped"
         result.assertTaskSkipped(':retrieve')
     }
@@ -421,6 +421,51 @@ task retrieve(type: Copy) {
 
         then: "We get all artifacts, including the new ones"
         file('build').assertHasDescendants('projectA-1.1.jar', 'other-1.1.jar', 'projectB-2.0.jar')
+    }
+
+    def "can mark a module as changing after first retrieval"() {
+        server.start()
+
+        given:
+        buildFile << """
+def isChanging = project.hasProperty('isChanging') ? true : false
+repositories {
+    ivy { url "http://localhost:${server.port}/repo" }
+}
+
+configurations { compile }
+configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+
+dependencies {
+    compile group: "group", name: "projectA", version: "1.1", changing: isChanging
+}
+
+task retrieve(type: Copy) {
+    into 'build'
+    from configurations.compile
+}
+"""
+        and:
+        def module = ivyRepo().module("group", "projectA", "1.1")
+        module.publish()
+        server.allowGet('/repo', ivyRepo().rootDir)
+
+        when: 'original retrieve'
+        run 'retrieve'
+
+        then:
+        def jarSnapshot = file('build/projectA-1.1.jar').snapshot()
+
+        when:
+        waitOneSecondSoThatPublicationDateWillHaveChanged()
+        module.publishWithChangedContent()
+
+        and:
+        executer.withArguments('-PisChanging')
+        run 'retrieve'
+
+        then:
+        file('build/projectA-1.1.jar').assertHasChangedSince(jarSnapshot)
     }
 
     def "detects changed artifact when flagged as changing"() {
