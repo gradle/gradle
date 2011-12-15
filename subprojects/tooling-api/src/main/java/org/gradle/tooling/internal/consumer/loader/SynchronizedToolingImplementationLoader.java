@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.loader;
 
+import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
@@ -28,7 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class SynchronizedToolingImplementationLoader implements ToolingImplementationLoader {
 
-    private final Lock lock = new ReentrantLock();
+    Lock lock = new ReentrantLock();
     private final ToolingImplementationLoader delegate;
 
     public SynchronizedToolingImplementationLoader(ToolingImplementationLoader delegate) {
@@ -36,11 +37,22 @@ public class SynchronizedToolingImplementationLoader implements ToolingImplement
     }
 
     public ConnectionVersion4 create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory) {
+        if (lock.tryLock()) {
+            try {
+                return delegate.create(distribution, progressLoggerFactory);
+            } finally {
+                lock.unlock();
+            }
+        }
+        ProgressLogger logger = progressLoggerFactory.newOperation(SynchronizedToolingImplementationLoader.class);
+        logger.setDescription("Wait for the other thread to finish acquiring the distribution");
+        logger.started();
         lock.lock();
         try {
             return delegate.create(distribution, progressLoggerFactory);
         } finally {
             lock.unlock();
+            logger.completed();
         }
     }
 }

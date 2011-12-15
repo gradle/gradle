@@ -105,7 +105,66 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         concurrent.finished()
     }
 
-    def "receives distribution progress concurrently"() {
+    def "during task execution receives distribution progress including waiting for the other thread"() {
+        given:
+        dist.file("build1/build.gradle") << "task foo1"
+        dist.file("build2/build.gradle") << "task foo2"
+
+        when:
+        def allProgress = []
+
+        concurrent.start {
+            def connector = new ConfigurableConnector(connector: toolingApi.connector())
+                .distributionOperation( { it.description = "download for 1"; Thread.sleep(500) } )
+                .forProjectDirectory(dist.file("build1"))
+
+            connector.forProjectDirectory(dist.file("build1"))
+            def connection = connector.connect()
+
+            try {
+                def build = connection.newBuild()
+                def listener = new ProgressTrackingListener()
+                build.addProgressListener(listener)
+                build.forTasks('foo1')
+                build.run()
+                assert listener.progressMessages.contains("download for 1")
+                assert !listener.progressMessages.contains("download for 2")
+                allProgress << listener.progressMessages
+            } finally {
+                connection.close()
+            }
+        }
+
+        concurrent.start {
+            def connector = new ConfigurableConnector(connector: toolingApi.connector())
+                .distributionOperation( { it.description = "download for 2"; Thread.sleep(500) } )
+                .forProjectDirectory(dist.file("build2"))
+
+            def connection = connector.connect()
+
+            try {
+                def build = connection.newBuild()
+                def listener = new ProgressTrackingListener()
+                build.addProgressListener(listener)
+                build.forTasks('foo2')
+                build.run()
+                assert listener.progressMessages.contains("download for 2")
+                assert !listener.progressMessages.contains("download for 1")
+                allProgress << listener.progressMessages
+            } finally {
+                connection.close()
+            }
+        }
+
+        then:
+        concurrent.finished()
+        //only one thread should log that progress message
+        1 == allProgress.count {
+            it.contains("Wait for the other thread to finish acquiring the distribution")
+        }
+    }
+
+    def "during model building receives distribution progress"() {
         given:
         threads.times { idx ->
             dist.file("build$idx/build.gradle") << "apply plugin: 'java'"
@@ -114,8 +173,9 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         when:
         threads.times { idx ->
             concurrent.start {
-                def connector = toolingApi.connector()
-                connector.distribution = new ProgressLoggingDistro(message: "download for $idx", delegate: connector.distribution)
+                def connector = new ConfigurableConnector(connector: toolingApi.connector())
+                    .distributionProgressMessage("download for " + idx)
+
                 def connection = connector.connect()
 
                 try {
@@ -135,10 +195,24 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         concurrent.finished()
     }
 
-    static class ProgressLoggingDistro implements Distribution {
+    static class ConfigurableConnector extends GradleConnector {
+        @Delegate GradleConnector connector
+
+        ConfigurableConnector distributionProgressMessage(String message) {
+            connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: { it.description = message} )
+            this
+        }
+
+        ConfigurableConnector distributionOperation(Closure operation) {
+            connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: operation )
+            this
+        }
+    }
+
+    static class ConfigurableDistribution implements Distribution {
 
         Distribution delegate
-        String message
+        Closure operation
 
         String getDisplayName() {
             return 'mock'
@@ -146,7 +220,7 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
 
         Set<File> getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
             def o = progressLoggerFactory.newOperation("mock")
-            o.description = message
+            operation(o)
             o.started()
             o.completed()
             return delegate.getToolingImplementationClasspath(progressLoggerFactory)
