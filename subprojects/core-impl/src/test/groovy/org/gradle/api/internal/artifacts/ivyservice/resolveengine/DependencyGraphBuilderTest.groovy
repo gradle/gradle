@@ -283,7 +283,18 @@ class DependencyGraphBuilderTest extends Specification {
 
         and:
         modules(result) == ids(selectedA, c, selectedB)
+    }
 
+    def "does not include module version that is excluded after conflict resolution has been applied"() {
+        expect: false
+    }
+
+    def "does not include dependencies of module version that is not transitive after conflict resolution has been applied"() {
+        expect: false
+    }
+
+    def "does not use selected module version that is no longer in conflict after conflict resolution has been applied"() {
+        expect: false
     }
 
     def "does not attempt to resolve a dependency whose target module is excluded earlier in the path"() {
@@ -666,6 +677,10 @@ class DependencyGraphBuilderTest extends Specification {
 
         and:
         modules(result) == ids(selected, c)
+    }
+
+    def "direct dependency can force a particular version"() {
+        expect: false
     }
 
     def revision(String name, String revision = '1.0') {

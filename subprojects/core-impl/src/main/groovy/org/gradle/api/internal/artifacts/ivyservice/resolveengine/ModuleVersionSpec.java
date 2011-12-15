@@ -34,14 +34,14 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
         if (excludeRules.length == 0) {
             return ALL_SPEC;
         }
-        return new ExcludeRuleBackedSpec(excludeRules);
+        return new ExcludeRuleBackedSpec(new HashSet<ExcludeRule>(Arrays.asList(excludeRules)));
     }
 
     public static ModuleVersionSpec forExcludes(Collection<ExcludeRule> excludeRules) {
         if (excludeRules.isEmpty()) {
             return ALL_SPEC;
         }
-        return new ExcludeRuleBackedSpec(excludeRules.toArray(new ExcludeRule[excludeRules.size()]));
+        return new ExcludeRuleBackedSpec(new HashSet<ExcludeRule>(excludeRules));
     }
 
     /**
@@ -93,6 +93,23 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
     }
 
     /**
+     * Determines if this spec accepts the same set of modules as the given spec.
+     *
+     * @return true if the specs accept the same set of modules. Returns false if they may not, or if it is
+     * unknown.
+     */
+    public boolean acceptsSameModulesAs(ModuleVersionSpec other) {
+        if (other == this) {
+            return true;
+        }
+        return doAcceptsSameModulesAs(other);
+    }
+
+    private boolean doAcceptsSameModulesAs(ModuleVersionSpec other) {
+        return false;
+    }
+
+    /**
      * Returns a spec which is accepts the intersection of those module versions that are accepted by this spec, and a spec with the given exclude rules.
      *
      * @return The new spec. Returns this if the intersection == the set of module versions that are accepted by this spec.
@@ -121,9 +138,9 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
     }
 
     static class ExcludeRuleBackedSpec extends ModuleVersionSpec {
-        private final ExcludeRule[] excludeRules;
+        private final Set<ExcludeRule> excludeRules;
 
-        private ExcludeRuleBackedSpec(ExcludeRule[] excludeRules) {
+        private ExcludeRuleBackedSpec(Set<ExcludeRule> excludeRules) {
             this.excludeRules = excludeRules;
         }
 
@@ -135,6 +152,15 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
             }
 
             return true;
+        }
+
+        @Override
+        public boolean acceptsSameModulesAs(ModuleVersionSpec other) {
+            if (!(other instanceof ExcludeRuleBackedSpec)) {
+                return false;
+            }
+            ExcludeRuleBackedSpec spec = (ExcludeRuleBackedSpec) other;
+            return excludeRules.equals(spec.excludeRules);
         }
 
         @Override
@@ -178,9 +204,9 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
             }
             
             ExcludeRuleBackedSpec otherExcludeRuleSpec = (ExcludeRuleBackedSpec) other;
-            List<ExcludeRule> rules = new ArrayList<ExcludeRule>();
-            rules.addAll(Arrays.asList(excludeRules));
-            rules.addAll(Arrays.asList(otherExcludeRuleSpec.excludeRules));
+            Set<ExcludeRule> rules = new HashSet<ExcludeRule>();
+            rules.addAll(excludeRules);
+            rules.addAll(otherExcludeRuleSpec.excludeRules);
             return forExcludes(rules);
         }
     }
@@ -190,6 +216,31 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
 
         public UnionSpec(List<ModuleVersionSpec> specs) {
             this.specs = specs;
+        }
+
+        @Override
+        public boolean acceptsSameModulesAs(ModuleVersionSpec other) {
+            if (!(other instanceof UnionSpec)) {
+                return false;
+            }
+            UnionSpec spec = (UnionSpec) other;
+            return implies(spec) && spec.implies(this);
+        }
+
+        private boolean implies(UnionSpec spec) {
+            for (ModuleVersionSpec thisSpec : specs) {
+                boolean found = false;
+                for (ModuleVersionSpec otherSpec : spec.specs) {
+                    if (thisSpec.acceptsSameModulesAs(otherSpec)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         @Override
@@ -215,6 +266,32 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
             this.specs = specs;
         }
 
+        @Override
+        public boolean acceptsSameModulesAs(ModuleVersionSpec other) {
+            if (!(other instanceof IntersectSpec)) {
+                return false;
+            }
+            
+            IntersectSpec spec = (IntersectSpec) other;
+            return implies(spec) && spec.implies(this);
+        }
+
+        private boolean implies(IntersectSpec spec) {
+            for (ModuleVersionSpec thisSpec : specs) {
+                boolean found = false;
+                for (ModuleVersionSpec otherSpec : spec.specs) {
+                    if (thisSpec.acceptsSameModulesAs(otherSpec)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
         public boolean isSatisfiedBy(ModuleId element) {
             for (ModuleVersionSpec spec : specs) {
                 if (!spec.isSatisfiedBy(element)) {
