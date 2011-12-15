@@ -20,12 +20,14 @@ import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tests.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProgressEvent
 import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
+import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
@@ -112,14 +114,19 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         when:
         threads.times { idx ->
             concurrent.start {
-                toolingApi.withConnection { connection ->
+                def connector = toolingApi.connector()
+                connector.distribution = new ProgressLoggingDistro(message: "download for $idx", delegate: connector.distribution)
+                def connection = connector.connect()
+
+                try {
                     def model = connection.model(Project)
-                    def listener = new AssertableListener()
+                    def listener = new ProgressTrackingListener()
                     model.addProgressListener(listener)
                     assert model.get()
-                    //TODO SF find a different way of testing that
-                    assert (listener.actualProgressMessages == ["Load projects", "Validate distribution", "Load projects", "Validate distribution", "Load projects", "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Load projects", ""]
-                        || listener.actualProgressMessages == ["Load projects", "Validate distribution", "Load projects", "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Load projects", ""])
+                    assert listener.progressMessages.contains("download for " + idx)
+                    assert !listener.progressMessages.contains("download for " + ++idx)
+                } finally {
+                    connection.close()
                 }
             }
         }
@@ -128,17 +135,29 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         concurrent.finished()
     }
 
-    static class AssertableListener implements ProgressListener {
-        def actualProgressMessages = []
-        void statusChanged(ProgressEvent event) {
-            actualProgressMessages << event.description
+    static class ProgressLoggingDistro implements Distribution {
+
+        Distribution delegate
+        String message
+
+        String getDisplayName() {
+            return 'mock'
         }
 
-        def assertProgressMessages(List messages) {
-            //Below may be fragile as it depends on progress messages content
-            //However, when refactoring the logging code I found ways to break it silently
-            //Hence I want to make sure the functionality is not broken. We can remove the assertion later of find better ways of asserting it.
-            assert actualProgressMessages == messages
+        Set<File> getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
+            def o = progressLoggerFactory.newOperation("mock")
+            o.description = message
+            o.started()
+            o.completed()
+            return delegate.getToolingImplementationClasspath(progressLoggerFactory)
+        }
+
+    }
+
+    static class ProgressTrackingListener implements ProgressListener {
+        def progressMessages = []
+        void statusChanged(ProgressEvent event) {
+            progressMessages << event.description
         }
     }
 
@@ -157,7 +176,7 @@ project.description = text
                 concurrent.start {
                     def stdout = new ByteArrayOutputStream()
                     def stderr = new ByteArrayOutputStream()
-                    def listener = new AssertableListener()
+                    def listener = new ProgressTrackingListener()
 
                     def model = connection.model(Project.class)
                     model.standardInput = new ByteArrayInputStream("hasta la vista $idx".toString().bytes)
@@ -227,7 +246,7 @@ System.err.println 'this is stderr: $idx'
                 withConnectionInDir("build$idx") { connection ->
                     def stdout = new ByteArrayOutputStream()
                     def stderr = new ByteArrayOutputStream()
-                    def listener = new AssertableListener()
+                    def listener = new ProgressTrackingListener()
 
                     def model = connection.model(Project.class)
                     model.standardOutput = stdout
@@ -263,7 +282,7 @@ System.err.println 'this is stderr: $idx'
                 withConnectionInDir("build$idx") { connection ->
                     def stdout = new ByteArrayOutputStream()
                     def stderr = new ByteArrayOutputStream()
-                    def listener = new AssertableListener()
+                    def listener = new ProgressTrackingListener()
 
                     def build = connection.newBuild()
                     build.standardOutput = stdout
