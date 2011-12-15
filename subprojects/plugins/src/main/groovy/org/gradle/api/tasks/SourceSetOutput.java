@@ -42,9 +42,9 @@ import java.util.Map;
  * <p>
  * In general, we recommend generating resources into folders different than the regular resourcesDir and classesDir.
  * Usually, it makes the build easier to understand and maintain. Also it gives some additional benefits
- * because other gradle plugins can take advantage of the output dirs 'registered' in the SourceSet.output.
- * For example: java plugin will use those dirs in calculating classpaths and for jarring the content;
- * idea and eclipse plugins will put those folders on relevant classpath.
+ * because other Gradle plugins can take advantage of the output dirs 'registered' in the SourceSet.output.
+ * For example: Java plugin will use those dirs in calculating class paths and for jarring the content;
+ * IDEA and Eclipse plugins will put those folders on relevant classpath.
  * <p>
  * An example how to work with generated resources:
  *
@@ -56,7 +56,7 @@ import java.util.Map;
  * sourceSets {
  *   main {
  *     //let's register an output folder on the main SourceSet:
- *     output.dir(generatedResources, buildBy: 'generateMyResources')
+ *     output.dir(generatedResources, builtBy: 'generateMyResources')
  *     //it is now a part of the 'main' classpath and will be a part of the jar
  *   }
  * }
@@ -69,10 +69,10 @@ import java.util.Map;
  *   }
  * }
  *
- * //java plugin task 'classes' and 'testClasses' will automatically depend on relevant tasks registered by 'buildBy'
+ * //Java plugin task 'classes' and 'testClasses' will automatically depend on relevant tasks registered with 'builtBy'
  *
- * //eclipse/idea plugins will automatically depend on 'generateMyResources'
- * //because the output dir was registered with 'buildBy' information
+ * //Eclipse/IDEA plugins will automatically depend on 'generateMyResources'
+ * //because the output dir was registered with 'builtBy' information
  * apply plugin: 'idea'; apply plugin: 'eclipse'
  * </pre>
  *
@@ -117,11 +117,11 @@ public interface SourceSetOutput extends FileCollection {
     void setResourcesDir(Object resourcesDir);
 
     /**
-     * Registers an extra output dir and the buildBy information. Useful for generated resources.
+     * Registers an extra output dir and the builtBy information. Useful for generated resources.
      * <p>
      * See example at {@link SourceSetOutput}
      *
-     * @param options - use 'buildBy' key to configure the 'buildBy' task of the dir
+     * @param options - use 'builtBy' key to configure the 'builtBy' task of the dir
      * @param dir - will be resolved as {@link org.gradle.api.Project#file(Object)}
      */
     void dir(Map<String, Object> options, Object dir);

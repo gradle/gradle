@@ -546,14 +546,14 @@ sourceSets.test.output.dir "$buildDir/generated/test"
     }
 
     @Test
-    void theBuildByTaskBeExecuted() {
+    void theBuiltByTaskBeExecuted() {
         //when
         def result = runEclipseTask('''
 apply plugin: "java"
 apply plugin: "eclipse"
 
-sourceSets.main.output.dir "$buildDir/generated/main", buildBy: 'generateForMain'
-sourceSets.test.output.dir "$buildDir/generated/test", buildBy: 'generateForTest'
+sourceSets.main.output.dir "$buildDir/generated/main", builtBy: 'generateForMain'
+sourceSets.test.output.dir "$buildDir/generated/test", builtBy: 'generateForTest'
 
 task generateForMain << {}
 task generateForTest << {}
