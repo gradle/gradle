@@ -16,23 +16,62 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional;
 
 /**
+ * Compilation options to be passed to the Groovy compiler.
+ *
  * @author Hans Dockter
  */
 public class GroovyCompileOptions extends AbstractOptions {
+    /**
+     * Tells whether the compilation task should fail if compile errors occurred. Defaults to <tt>true</tt>.
+     */
     boolean failOnError = true
+
+    /**
+     * Tells whether to turn on verbose output. Defaults to <tt>false</tt>.
+     */
     boolean verbose = false
+
+    /**
+     * Tells whether to print which source files are to be compiled. Defaults to <tt>false</tt>.
+     */
     boolean listFiles = false
-    @Input @Optional
-    String encoding = null
+
+    /**
+     * The source encoding. Defaults to <tt>UTF-8</tt>.
+     */
+    @Input
+    String encoding = 'UTF-8'
+
+    /**
+     * Tells whether to run the Groovy compiler in a separate process. Defaults to <tt>true</tt>.
+     */
     boolean fork = true
+
+    /**
+     * Options for running the Groovy compiler in a separate process. These options only take effect
+     * if <tt>fork</tt> is set to <tt>true</tt>.
+     */
     GroovyForkOptions forkOptions = new GroovyForkOptions()
+
+    /**
+     * Tells whether the Java runtime should be put on the compiler's compile class path. Defaults to <tt>false</tt>.
+     */
     @Input
     boolean includeJavaRuntime = false
-    boolean stacktrace
 
+    /**
+     * Tells whether to print a stack trace when the compiler hits a problem (like a compile error).
+     * Defaults to <tt>false</tt>.
+     */
+    boolean stacktrace = false
+
+    /**
+     * Shortcut for setting both <tt>fork</tt> and <tt>forkOptions</tt>.
+     *
+     * @param forkArgs fork options in map notation
+     */
     GroovyCompileOptions fork(Map forkArgs) {
         fork = true
         forkOptions.define(forkArgs)
@@ -46,7 +85,7 @@ public class GroovyCompileOptions extends AbstractOptions {
     Map fieldName2AntMap() {
         [
                 failOnError: 'failonerror',
-                listFiles: 'listfiles',
+                listFiles: 'listfiles'
         ]
     }
 
