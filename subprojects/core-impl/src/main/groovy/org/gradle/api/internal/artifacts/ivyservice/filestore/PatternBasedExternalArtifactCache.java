@@ -57,7 +57,10 @@ public class PatternBasedExternalArtifactCache implements ExternalArtifactCache 
 
     private String getArtifactPattern(ArtifactRevisionId artifactId) {
         Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
-        return IvyPatternHelper.substitute(pattern, dummyArtifact);
+        String substitute = IvyPatternHelper.substitute(pattern, dummyArtifact);
+        String organisationPath = artifactId.getModuleRevisionId().getOrganisation().replace('.', '/');
+        substitute = IvyPatternHelper.substituteToken(substitute, "organisation-path", organisationPath);
+        return substitute;
     }
     
 }

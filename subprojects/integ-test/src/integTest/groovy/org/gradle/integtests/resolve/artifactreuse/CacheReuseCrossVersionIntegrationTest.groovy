@@ -48,8 +48,7 @@ task retrieve(type: Sync) {
         def userHome = file('user-home')
 
         when:
-        server.expectGet("/group/projectB/1.0/projectB-1.0.pom", projectB.pomFile)
-        server.expectGet("/group/projectB/1.0/projectB-1.0.jar", projectB.artifactFile)
+        server.allowGet('/group', file('repo/group'))
 
         and:
         version previous withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()

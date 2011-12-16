@@ -17,15 +17,18 @@ package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator;
 
 import java.io.File;
 
 public class ExternalArtifactCacheBuilder {
     private final CompositeExternalArtifactCache composite = new CompositeExternalArtifactCache();
     private final File rootCachesDirectory;
+    private final LocalMavenCacheLocator localMavenCacheLocator;
 
-    public ExternalArtifactCacheBuilder(ArtifactCacheMetaData artifactCacheMetaData) {
+    public ExternalArtifactCacheBuilder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenCacheLocator localMavenCacheLocator) {
         this.rootCachesDirectory = artifactCacheMetaData.getCacheDir().getParentFile();
+        this.localMavenCacheLocator = localMavenCacheLocator;
     }
 
     public void addCurrent(ArtifactFileStore artifactFileStore) {
@@ -41,13 +44,20 @@ public class ExternalArtifactCacheBuilder {
         addExternalCache(new File(rootCachesDirectory, "../cache"), "[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])");
     }
 
+    public void addMavenLocal() {
+        File localMavenCache = localMavenCacheLocator.getLocalMavenCache();
+        if (localMavenCache.exists()) {
+            composite.addExternalArtifactCache(new PatternBasedExternalArtifactCache(localMavenCache, "[organisation-path]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"));
+        }
+    }
+
     private void addExternalCache(File baseDir, String pattern) {
         if (baseDir.exists()) {
             composite.addExternalArtifactCache(new PatternBasedExternalArtifactCache(baseDir, pattern));
         }
     }
 
-    public  ExternalArtifactCache getExternalArtifactCache() {
+    public ExternalArtifactCache getExternalArtifactCache() {
         return composite;
     }
 }

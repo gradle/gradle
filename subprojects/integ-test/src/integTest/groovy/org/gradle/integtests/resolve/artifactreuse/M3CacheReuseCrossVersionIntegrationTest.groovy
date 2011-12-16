@@ -49,13 +49,7 @@ task retrieve(type: Sync) {
         def userHome = file('user-home')
 
         when:
-        server.expectHead("/group/projectB/1.0/projectB-1.0.pom", projectB.pomFile)
-        server.expectGet("/group/projectB/1.0/projectB-1.0.pom", projectB.pomFile)
-        server.expectHead("/group/projectB/1.0/projectB-1.0.jar", projectB.artifactFile)
-        server.expectGet("/group/projectB/1.0/projectB-1.0.jar", projectB.artifactFile)
-        server.expectHeadMissing("/group/projectB/1.0/projectB-1.0-sources.jar")
-        server.expectHeadMissing("/group/projectB/1.0/projectB-1.0-src.jar")
-        server.expectHeadMissing("/group/projectB/1.0/projectB-1.0-javadoc.jar")
+        server.allowGet("/group", file('repo/group'));
 
         and:
         version previous withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
