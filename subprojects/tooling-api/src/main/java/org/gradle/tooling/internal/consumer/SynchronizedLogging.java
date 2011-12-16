@@ -16,6 +16,9 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.Operation;
+import org.gradle.api.internal.Synchronizer;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.internal.DefaultProgressLoggerFactory;
@@ -32,21 +35,36 @@ public class SynchronizedLogging implements LoggingProvider {
     private final ThreadLocal<ListenerManager> listenerManager = new ThreadLocal<ListenerManager>();
     private final ThreadLocal<DefaultProgressLoggerFactory> progressLoggerFactory = new ThreadLocal<DefaultProgressLoggerFactory>();
 
-    //TODO SF refactor / cover
-    public synchronized ListenerManager getListenerManager() {
-        assertInitialized();
-        return listenerManager.get();
+    //even though we use thread locals we need to synchronize a bit
+    //to avoid partial initialization / race conditions like listenerManager initialized but not yet progressLoggerFactory
+    private final Synchronizer synchronizer = new Synchronizer();
+
+    public ListenerManager getListenerManager() {
+        return synchronizer.synchronize(new Factory<ListenerManager>() {
+            public ListenerManager create() {
+                assertInitialized();
+                return listenerManager.get();
+            }
+        });
     }
 
-    public synchronized DefaultProgressLoggerFactory getProgressLoggerFactory() {
-        assertInitialized();
-        return progressLoggerFactory.get();
+    public DefaultProgressLoggerFactory getProgressLoggerFactory() {
+        return synchronizer.synchronize(new Factory<DefaultProgressLoggerFactory>() {
+            public DefaultProgressLoggerFactory create() {
+                assertInitialized();
+                return progressLoggerFactory.get();
+            }
+        });
     }
 
-    public synchronized void init() {
-        DefaultListenerManager manager = new DefaultListenerManager();
-        listenerManager.set(manager);
-        progressLoggerFactory.set(new DefaultProgressLoggerFactory(manager.getBroadcaster(ProgressListener.class), new TrueTimeProvider()));
+    public void init() {
+        synchronizer.synchronize(new Operation() {
+            public void execute() {
+                DefaultListenerManager manager = new DefaultListenerManager();
+                listenerManager.set(manager);
+                progressLoggerFactory.set(new DefaultProgressLoggerFactory(manager.getBroadcaster(ProgressListener.class), new TrueTimeProvider()));
+            }
+        });
     }
 
     private void assertInitialized() {

@@ -16,28 +16,11 @@
 
 package org.gradle.api.internal;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-public class Synchronizer {
-
-    private final Lock lock = new ReentrantLock();
-
-    public <T> T synchronize(Factory<T> factory) {
-        lock.lock();
-        try {
-            return factory.create();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public void synchronize(Operation operation) {
-        lock.lock();
-        try {
-            operation.execute();
-        } finally {
-            lock.unlock();
-        }
-    }
+/**
+ * Generic, parameter-less and void returning operation of some kind.
+ * <p>
+ * by Szczepan Faber, created at: 12/16/11
+ */
+public interface Operation {
+    void execute();
 }
