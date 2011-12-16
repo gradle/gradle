@@ -103,6 +103,7 @@ public class DependencyGraphBuilder {
                             conflicts.add(moduleId);
 
                             // Deselect the currently selected version, and remove all outgoing edges from the version
+                            // This will propagate through the graph and prune configurations that are no longer required
                             DefaultModuleRevisionResolveState previouslySelected = resolveState.clearSelection(moduleId);
                             if (previouslySelected != null) {
                                 System.out.println("  Removing outgoing edges from " + previouslySelected);
@@ -111,24 +112,9 @@ public class DependencyGraphBuilder {
                                     configuration.removeOutgoingEdges();
                                 }
                             }
-                            continue;
                         }
                     }
 
-                    if (conflicts.contains(moduleId)) {
-                        // This dependency refers to a conflicted version, park it for later conflict resolution
-                        System.out.println("  Dependency refers to module " + moduleId + " with conflicts. Parking");
-                        continue;
-                    }
-
-                    DefaultModuleRevisionResolveState selectedVersion = resolveState.getSelected(moduleId);
-                    if (selectedVersion != moduleRevision) {
-                        // This dependency refers to a version that has been evicted. Restart it, referring to the selected version
-                        System.out.println("  Version has been evicted. Restarting with target " + selectedVersion);
-                        continue;
-                    }
-
-                    dependency.resolveMetaData();
                     dependency.attachToTargetConfigurations();
                 }
             } else {
@@ -140,17 +126,15 @@ public class DependencyGraphBuilder {
                 System.out.println("=> Selected " + selected + " from conflicting modules " + candidates);
                 resolveState.select(selected);
 
-                // For each evicted configuration, move the incoming edges across to the selected version
+                // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the
+                // matching selected configuration. For the select configuration, this mean traversing its dependencies.
                 for (DefaultModuleRevisionResolveState candidate : candidates) {
-                    if (candidate != selected) {
-                        for (ConfigurationNode evictedConfiguration : candidate.configurations) {
-                            System.out.println("  * restarting " + evictedConfiguration);
-                        }
+                    candidate.restart(selected);
+                    for (ConfigurationNode conflictConfiguration : candidate.configurations) {
+                        System.out.println("  * restarting " + conflictConfiguration);
+                        conflictConfiguration.restart(selected);
                     }
                 }
-
-                // Traverse the configurations of the selected version again
-                resolveState.queue.addAll(selected.configurations);
             }
         }
     }
@@ -170,24 +154,24 @@ public class DependencyGraphBuilder {
     private static class DependencyEdge {
         private final ConfigurationNode from;
         private final DependencyDescriptor dependencyDescriptor;
-        private final Set<String> targetConfigurations;
+        private final Set<String> targetConfigurationRules;
         private final ResolveState resolveState;
         private final ModuleVersionSpec selectorSpec;
-        private final ModuleVersionSelectorResolveState selector;
+        private final Set<ConfigurationNode> targetConfigurations = new LinkedHashSet<ConfigurationNode>();
+        private ModuleVersionSelectorResolveState selector;
         private DefaultModuleRevisionResolveState targetModuleRevision;
 
-        public DependencyEdge(ConfigurationNode from, DependencyDescriptor dependencyDescriptor, Set<String> targetConfigurations, ModuleVersionSpec selectorSpec, ModuleVersionSelectorResolveState selector, ResolveState resolveState) {
+        public DependencyEdge(ConfigurationNode from, DependencyDescriptor dependencyDescriptor, Set<String> targetConfigurationRules, ModuleVersionSpec selectorSpec, ResolveState resolveState) {
             this.from = from;
             this.dependencyDescriptor = dependencyDescriptor;
-            this.targetConfigurations = targetConfigurations;
+            this.targetConfigurationRules = targetConfigurationRules;
             this.selectorSpec = selectorSpec;
-            this.selector = selector;
             this.resolveState = resolveState;
         }
 
         @Override
         public String toString() {
-            return String.format("%s -> %s(%s)", from.toString(), dependencyDescriptor.getDependencyRevisionId(), targetConfigurations);
+            return String.format("%s -> %s(%s)", from.toString(), dependencyDescriptor.getDependencyRevisionId(), targetConfigurationRules);
         }
 
         public ModuleId getModuleId() {
@@ -200,13 +184,10 @@ public class DependencyGraphBuilder {
 
         public void resolveModuleRevisionId() {
             if (targetModuleRevision == null) {
-                selector.resolveModuleRevisionId(resolveState.resolver, resolveState);
+                selector = resolveState.getSelector(dependencyDescriptor);
+                selector.resolveModuleRevisionId();
                 targetModuleRevision = selector.targetModuleRevision;
             }
-        }
-
-        public void resolveMetaData() {
-            selector.resolve(resolveState);
         }
 
         public boolean isTransitive() {
@@ -214,30 +195,43 @@ public class DependencyGraphBuilder {
         }
 
         public void attachToTargetConfigurations() {
-            for (ConfigurationNode targetConfiguration : getTargetConfigurations()) {
+            if (!targetModuleRevision.selected) {
+                System.out.println("   refers to unselected revision " + this);
+                targetModuleRevision.addUnattachedDependency(this);
+                return;
+            }
+            calculateTargetConfigurations();
+            for (ConfigurationNode targetConfiguration : targetConfigurations) {
                 targetConfiguration.addIncomingEdge(this);
             }
         }
 
         public void removeFromTargetConfigurations() {
-            for (ConfigurationNode targetConfiguration : getTargetConfigurations()) {
+            for (ConfigurationNode targetConfiguration : targetConfigurations) {
                 targetConfiguration.removeIncomingEdge(this);
             }
+            targetConfigurations.clear();
         }
 
-        private Set<ConfigurationNode> getTargetConfigurations() {
-            ModuleDescriptor targetDescriptor = targetModuleRevision.descriptor;
+        public void restart(DefaultModuleRevisionResolveState selected) {
+            System.out.println("    -> restarting " + this + " to point to " + selected);
+            targetModuleRevision = selected;
+            attachToTargetConfigurations();
+        }
+
+        private void calculateTargetConfigurations() {
+            targetConfigurations.clear();
+            ModuleDescriptor targetDescriptor = targetModuleRevision.getDescriptor();
             if (targetDescriptor == null) {
                 throw new IllegalStateException(String.format("No descriptor for %s.", targetModuleRevision));
             }
 
             IvyNode node = new IvyNode(resolveState.resolveData, targetDescriptor);
             Set<String> targets = new LinkedHashSet<String>();
-            for (String targetConfiguration : targetConfigurations) {
+            for (String targetConfiguration : targetConfigurationRules) {
                 Collections.addAll(targets, node.getRealConfs(targetConfiguration));
             }
 
-            Set<ConfigurationNode> nodes = new LinkedHashSet<ConfigurationNode>();
             for (String targetConfigurationName : targets) {
                 // TODO - this is the wrong spot for this check
                 if (targetDescriptor.getConfiguration(targetConfigurationName) == null) {
@@ -246,9 +240,8 @@ public class DependencyGraphBuilder {
                             targetConfigurationName, targetModuleRevision.id.getOrganisation(), targetModuleRevision.id.getName(), targetModuleRevision.id.getRevision()));
                 }
                 ConfigurationNode targetConfiguration = resolveState.getConfigurationNode(targetDescriptor, targetConfigurationName);
-                nodes.add(targetConfiguration);
+                targetConfigurations.add(targetConfiguration);
             }
-            return nodes;
         }
 
         private Set<ResolvedArtifact> getArtifacts(ConfigurationNode childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver) {
@@ -311,6 +304,7 @@ public class DependencyGraphBuilder {
             this.resolver = resolver;
             this.resolveData = resolveData;
             root = getConfigurationNode(rootModule, rootConfigurationName);
+            select(root.moduleRevision);
         }
 
         public DefaultModuleRevisionResolveState getRevision(ModuleRevisionId moduleRevisionId) {
@@ -367,7 +361,7 @@ public class DependencyGraphBuilder {
             ModuleRevisionId selectorId = ModuleRevisionId.newInstance(original.getOrganisation(), original.getName(), original.getRevision());
             ModuleVersionSelectorResolveState resolveState = selectors.get(selectorId);
             if (resolveState == null) {
-                resolveState = new ModuleVersionSelectorResolveState(dependencyDescriptor, resolver.create(dependencyDescriptor));
+                resolveState = new ModuleVersionSelectorResolveState(dependencyDescriptor, resolver.create(dependencyDescriptor), this);
                 selectors.put(selectorId, resolveState);
             }
             return resolveState;
@@ -392,10 +386,6 @@ public class DependencyGraphBuilder {
             return version;
         }
 
-        public DefaultModuleRevisionResolveState getSelected(ModuleId moduleId) {
-            return selectedVersions.get(moduleId);
-        }
-
         /**
          * Called when a change is made to a ConfigurationNode, such that its dependency graph <em>may</em> now be larger than it previously was, and the node should be visited.
          */
@@ -418,9 +408,11 @@ public class DependencyGraphBuilder {
         final ModuleRevisionId id;
         final Set<DependencyResolvePath> incomingPaths = new LinkedHashSet<DependencyResolvePath>();
         final Set<ConfigurationNode> configurations = new LinkedHashSet<ConfigurationNode>();
+        final Set<DependencyEdge> unattachedDependencies = new LinkedHashSet<DependencyEdge>();
         List<DependencyDescriptor> dependencies;
         ModuleDescriptor descriptor;
         boolean selected;
+        private ModuleVersionSelectorResolveState resolver;
 
         private DefaultModuleRevisionResolveState(ModuleRevisionId id) {
             this.id = id;
@@ -437,7 +429,7 @@ public class DependencyGraphBuilder {
 
         public Iterable<DependencyDescriptor> getDependencies() {
             if (dependencies == null) {
-                dependencies = Arrays.asList(descriptor.getDependencies());
+                dependencies = Arrays.asList(getDescriptor().getDependencies());
             }
             return dependencies;
         }
@@ -452,6 +444,33 @@ public class DependencyGraphBuilder {
 
         public String getId() {
             return String.format("%s:%s:%s", id.getOrganisation(), id.getName(), id.getRevision());
+        }
+
+        public void addUnattachedDependency(DependencyEdge dependency) {
+            unattachedDependencies.add(dependency);
+        }
+
+        public void restart(DefaultModuleRevisionResolveState selected) {
+            for (DependencyEdge dependency : unattachedDependencies) {
+                dependency.restart(selected);
+            }
+            unattachedDependencies.clear();
+        }
+
+        public void addResolver(ModuleVersionSelectorResolveState resolver) {
+            if (this.resolver == null) {
+                this.resolver = resolver;
+            }
+        }
+
+        public ModuleDescriptor getDescriptor() {
+            if (descriptor == null) {
+                if (resolver == null) {
+                    throw new IllegalStateException(String.format("No resolver for %s.", this));
+                }
+                resolver.resolve();
+            }
+            return descriptor;
         }
     }
 
@@ -517,11 +536,17 @@ public class DependencyGraphBuilder {
         }
 
         public void visitOutgoingDependencies(Collection<DependencyEdge> target) {
+            // If this configuration's version is in conflict, don't do anything
             // If not traversed before, add all selected outgoing edges
             // If traversed before, and the selected modules have changed, remove previous outgoing edges and add outgoing edges again with
             //    the new selections.
             // If traversed before, and the selected modules have not changed, ignore
             // If none of the incoming edges is transitive, then the node has no outgoing edges
+
+            if (!moduleRevision.selected) {
+                System.out.println("    -> version is not selected " + this + ". ignoring.");
+                return;
+            }
 
             List<DependencyEdge> transitiveIncoming = new ArrayList<DependencyEdge>();
             for (DependencyEdge edge : incomingEdges) {
@@ -554,8 +579,7 @@ public class DependencyGraphBuilder {
                     if (!selectorSpec.isSatisfiedBy(targetModuleId)) {
                         System.out.println("    " + targetModuleId + " is excluded from " + this);
                     } else {
-                        ModuleVersionSelectorResolveState selector = resolveState.getSelector(dependency);
-                        DependencyEdge dependencyEdge = new DependencyEdge(this, dependency, targetConfigurations, selectorSpec, selector, resolveState);
+                        DependencyEdge dependencyEdge = new DependencyEdge(this, dependency, targetConfigurations, selectorSpec, resolveState);
                         outgoingEdges.add(dependencyEdge);
                         target.add(dependencyEdge);
                     }
@@ -624,52 +648,29 @@ public class DependencyGraphBuilder {
             outgoingEdges.clear();
             previousTraversal = null;
         }
+
+        public void restart(DefaultModuleRevisionResolveState state) {
+            // Restarting this configuration after conflict resolution.
+            // If this configuration belongs to the select version, queue ourselves up for traversal.
+            // If not, then move our incoming edges across to the selected configuration
+            if (moduleRevision == state) {
+                resolveState.onMoreSelected(this);
+            } else {
+                for (DependencyEdge dependency : incomingEdges) {
+                    dependency.restart(state);
+                }
+                incomingEdges.clear();
+            }
+        }
     }
 
     private static class ConfigurationResolveState extends ConfigurationNode {
-        final Set<ResolvePath> incomingPaths = new LinkedHashSet<ResolvePath>();
-
         private ConfigurationResolveState(DefaultModuleRevisionResolveState moduleRevision, ModuleDescriptor descriptor, String configurationName, ResolveState container) {
             super(moduleRevision, descriptor, configurationName, container);
-        }
-
-        void addIncomingPath(DependencyResolvePath path) {
-            incomingPaths.add(path);
-        }
-
-        void addOutgoingDependencies(ResolvePath incomingPath, ResolveState resolveState, Collection<? super DependencyResolvePath> queue) {
-            /*
-            if (incomingPath.canReach(this)) {
-                LOGGER.debug("Skipping {} as it already traverses {}.", incomingPath, this);
-                return;
-            }
-            for (DependencyDescriptor dependency : moduleRevision.getDependencies()) {
-                Set<String> targetConfigurations = getTargetConfigurations(dependency);
-                ModuleId targetModuleId = dependency.getDependencyRevisionId().getModuleId();
-                if (!targetConfigurations.isEmpty() && getSelector().isSatisfiedBy(targetModuleId) && incomingPath.selects(targetModuleId)) {
-                    ModuleVersionSelectorResolveState selector = resolveState.getSelector(dependency);
-                    DependencyResolvePath dependencyResolvePath = new DependencyResolvePath(incomingPath, this, selector, dependency, targetConfigurations);
-                    queue.add(dependencyResolvePath);
-                }
-            }*/
-        }
-
-        public void attachToParents(ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationBuilder result) {
-            if (moduleRevision.selected) {
-                LOGGER.debug("Attaching {} to its parents.", this);
-                for (ResolvePath incomingPath : incomingPaths) {
-                    incomingPath.attachToParents(this, resolvedArtifactFactory, resolver, result);
-                }
-            } else {
-                LOGGER.debug("Skipping evicted {}.", this);
-            }
         }
     }
 
     private static abstract class ResolvePath {
-        public abstract void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationBuilder result);
-
-        public abstract boolean selects(ModuleId moduleId);
 
         public abstract boolean canReach(ConfigurationResolveState configuration);
 
@@ -677,23 +678,13 @@ public class DependencyGraphBuilder {
 
         public abstract void buildPathFromRoot(Collection<ModuleRevisionId> modules);
 
-        public abstract void resolveModuleRevisionId(DependencyToModuleResolver dependencyResolver, ResolveState resolveState);
-
         /**
          * Returns this path with any of the given candidates substituted with the given target. Returns this if no substitutions required. Truncates the path at the first substitution, if a
          * substitution is required.
          */
         public abstract ResolvePath restart(ResolveState resolveState, Collection<DefaultModuleRevisionResolveState> candidates, DefaultModuleRevisionResolveState moduleRevision);
 
-        public abstract ResolvePath restart(ResolveState resolveState, DefaultModuleRevisionResolveState selectedVersion);
-
         public abstract ModuleId getModuleId();
-
-        public abstract DefaultModuleRevisionResolveState getTargetModuleRevision();
-
-        public abstract void resolveMetaData(ResolveState resolveState);
-
-        public abstract void addOutgoingDependencies(ResolveData resolveData, ResolveState resolveState, List<ResolvePath> queue);
 
         public abstract boolean isSelected();
     }
@@ -702,13 +693,15 @@ public class DependencyGraphBuilder {
         final DependencyDescriptor descriptor;
         final Set<DependencyResolvePath> incomingPaths = new LinkedHashSet<DependencyResolvePath>();
         final ModuleVersionResolver resolver;
+        final ResolveState resolveState;
         ModuleVersionResolveException failure;
         DefaultModuleRevisionResolveState targetModuleRevision;
         boolean resolved;
 
-        private ModuleVersionSelectorResolveState(DependencyDescriptor descriptor, ModuleVersionResolver resolver) {
+        private ModuleVersionSelectorResolveState(DependencyDescriptor descriptor, ModuleVersionResolver resolver, ResolveState resolveState) {
             this.descriptor = descriptor;
             this.resolver = resolver;
+            this.resolveState = resolveState;
         }
 
         @Override
@@ -716,7 +709,7 @@ public class DependencyGraphBuilder {
             return descriptor.toString();
         }
 
-        public void resolveModuleRevisionId(DependencyToModuleResolver resolver, ResolveState resolveState) {
+        public void resolveModuleRevisionId() {
             if (targetModuleRevision != null) {
                 return;
             }
@@ -730,9 +723,10 @@ public class DependencyGraphBuilder {
                 failure = e;
                 throw e;
             }
+            targetModuleRevision.addResolver(this);
         }
 
-        public void resolve(ResolveState resolveState) {
+        public void resolve() {
             if (resolved) {
                 return;
             }
@@ -812,80 +806,9 @@ public class DependencyGraphBuilder {
             return targetModuleRevision.id.getModuleId();
         }
 
-        @Override
-        public DefaultModuleRevisionResolveState getTargetModuleRevision() {
-            return targetModuleRevision;
-        }
-
-        /**
-         * Resolves the module revision id for this path.
-         */
-        public void resolveModuleRevisionId(DependencyToModuleResolver resolver, ResolveState resolveState) {
-            if (targetModuleRevision == null) {
-                selector.resolveModuleRevisionId(resolver, resolveState);
-                referTo(selector.targetModuleRevision);
-            }
-        }
-
-        /**
-         * Resolves the meta-data for this path.
-         */
-        public void resolveMetaData(ResolveState resolveState) {
-            selector.resolve(resolveState);
-        }
-
         private void referTo(DefaultModuleRevisionResolveState targetModuleRevision) {
             this.targetModuleRevision = targetModuleRevision;
             targetModuleRevision.addIncomingPath(this);
-        }
-
-        @Override
-        public void addOutgoingDependencies(ResolveData resolveData, ResolveState resolveState, List<ResolvePath> queue) {
-            ModuleDescriptor targetDescriptor = targetModuleRevision.descriptor;
-            if (targetDescriptor == null) {
-                throw new IllegalStateException(String.format("No descriptor for %s.", targetModuleRevision));
-            }
-
-            IvyNode node = new IvyNode(resolveData, targetDescriptor);
-            Set<String> targets = new LinkedHashSet<String>();
-            for (String targetConfiguration : targetConfigurations) {
-                Collections.addAll(targets, node.getRealConfs(targetConfiguration));
-            }
-
-            for (String targetConfigurationName : targets) {
-                // TODO - this is the wrong spot for this check
-                if (targetDescriptor.getConfiguration(targetConfigurationName) == null) {
-                    throw new RuntimeException(String.format("Module version group:%s, module:%s, version:%s, configuration:%s declares a dependency on configuration '%s' which is not declared in the module descriptor for group:%s, module:%s, version:%s",
-                            from.moduleRevision.id.getOrganisation(), from.moduleRevision.id.getName(), from.moduleRevision.id.getRevision(), from.configurationName,
-                            targetConfigurationName, targetModuleRevision.id.getOrganisation(), targetModuleRevision.id.getName(), targetModuleRevision.id.getRevision()));
-                }
-                ConfigurationResolveState targetConfiguration = resolveState.getConfiguration(targetDescriptor, targetConfigurationName);
-                LOGGER.debug("{} is outgoing to {}.", this, targetConfiguration);
-                targetConfiguration.addIncomingPath(this);
-                if (from.isTransitive() && dependency.isTransitive()) {
-                    targetConfiguration.addOutgoingDependencies(this, resolveState, queue);
-                }
-            }
-        }
-
-        @Override
-        public boolean selects(ModuleId moduleId) {
-            /*
-            String[] configurations = from.heirarchy.toArray(new String[from.heirarchy.size()]);
-            boolean selected = ModuleVersionSpec.forExcludes(dependency.getExcludeRules(configurations)).isSatisfiedBy(moduleId);
-            if (!selected) {
-                LOGGER.debug("{} is excluded by {}.", moduleId, this);
-                return false;
-            }
-
-            selected = from.getSelector().isSatisfiedBy(moduleId);
-            if (!selected) {
-                return false;
-            }
-
-            return path.selects(moduleId);
-            */
-            return false;
         }
 
         @Override
@@ -935,8 +858,7 @@ public class DependencyGraphBuilder {
             return restart(resolveState, moduleRevision);
         }
 
-        @Override
-        public ResolvePath restart(ResolveState resolveState, DefaultModuleRevisionResolveState moduleRevision) {
+        private ResolvePath restart(ResolveState resolveState, DefaultModuleRevisionResolveState moduleRevision) {
             LOGGER.debug("Restarting {} on conflict, now refers to {}.", this, moduleRevision);
             if (targetModuleRevision != null) {
                 targetModuleRevision.removeIncomingPath(this);
@@ -945,44 +867,6 @@ public class DependencyGraphBuilder {
             DependencyResolvePath newPath = new DependencyResolvePath(path, from, newSelector, dependency, targetConfigurations);
             newPath.referTo(moduleRevision);
             return newPath;
-        }
-
-        private Set<ResolvedArtifact> getArtifacts(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver) {
-            String[] targetConfigurations = from.heirarchy.toArray(new String[from.heirarchy.size()]);
-            DependencyArtifactDescriptor[] dependencyArtifacts = dependency.getDependencyArtifacts(targetConfigurations);
-            if (dependencyArtifacts.length == 0) {
-                return Collections.emptySet();
-            }
-            Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-            for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
-                MDArtifact artifact = new MDArtifact(childConfiguration.descriptor, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
-                artifacts.add(resolvedArtifactFactory.create(childConfiguration.getResult(), artifact, resolver));
-            }
-            return artifacts;
-        }
-
-        @Override
-        public void attachToParents(ConfigurationResolveState childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver, ResolvedConfigurationBuilder result) {
-            DefaultResolvedDependency parent = from.getResult();
-            DefaultResolvedDependency child = childConfiguration.getResult();
-            parent.addChild(child);
-
-            Set<ResolvedArtifact> artifacts = getArtifacts(childConfiguration, resolvedArtifactFactory, resolver);
-            if (!artifacts.isEmpty()) {
-                child.addParentSpecificArtifacts(parent, artifacts);
-            }
-
-            if (artifacts.isEmpty()) {
-                child.addParentSpecificArtifacts(parent, childConfiguration.getArtifacts(resolvedArtifactFactory, resolver));
-            }
-            for (ResolvedArtifact artifact : child.getParentArtifacts(parent)) {
-                result.addArtifact(artifact);
-            }
-
-            if (parent == result.getRoot()) {
-                EnhancedDependencyDescriptor enhancedDependencyDescriptor = (EnhancedDependencyDescriptor) dependency;
-                result.addFirstLevelDependency(enhancedDependencyDescriptor.getModuleDependency(), child);
-            }
         }
 
         public boolean isSelected() {

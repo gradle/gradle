@@ -95,7 +95,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses root, c
         traverses a, d, revision: 'latest'
         doesNotResolve b, d, revision: 'latest'
-        traverses c, d
+        doesNotResolve c, d
 
         when:
         def result = builder.resolve(configuration, resolveData)
