@@ -58,7 +58,10 @@ public class AbstractLongRunningOperation implements LongRunningOperation {
     }
 
     protected BuildOperationParametersVersion1 operationParameters() {
-        return new OperationParameters();
+        ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
+        OperationParameters params = new OperationParameters();
+        BuildOperationParametersVersion1 adapted = adapter.adapt(BuildOperationParametersVersion1.class, params);
+        return adapted;
     }
 
     private class OperationParameters implements BuildOperationParametersVersion1 {

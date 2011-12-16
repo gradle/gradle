@@ -16,9 +16,17 @@
 
 package org.gradle.tooling.internal;
 
+import org.gradle.tooling.model.IncompatibleVersionException;
+
 /**
- * Very simple tool for finding out if instance of a protocol class supports given method
+ * Very simple tool for finding out if instance of a protocol class supports given method.
  * <p>
+ * It is useful when the target instance of the protocol object was created without
+ * wrapping it in a decorating proxy ({@link org.gradle.tooling.internal.consumer.ProtocolToModelAdapter})
+ * that normally throws the {@link IncompatibleVersionException}.
+ * This also applies to older versions of Gradle, e.g. the protocol object was
+ * created without proxy in one of the older versions of Gradle, even though currently it is wrapped in a decorating proxy.
+ *
  * by Szczepan Faber, created at: 12/9/11
  */
 public class CompatibilityChecker {
@@ -29,12 +37,11 @@ public class CompatibilityChecker {
         this.target = target;
     }
 
-    public boolean supports(String methodName) {
+    public void assertSupports(String methodName) throws IncompatibleVersionException {
         try {
             target.getClass().getDeclaredMethod(methodName, new Class[0]);
-            return true;
         } catch (NoSuchMethodException e) {
-            return false;
+            throw new IncompatibleVersionException("The method: " + methodName + " is not supported on instance: " + target + ".\n", e);
         }
     }
 }

@@ -26,6 +26,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.tooling.internal.CompatibilityChecker;
 import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.model.IncompatibleVersionException;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -102,11 +103,13 @@ public class DefaultConnection implements ConnectionVersion4 {
     }
 
     private InputStream safeStandardInput(BuildOperationParametersVersion1 operationParameters) {
-        if (!new CompatibilityChecker(operationParameters).supports("getStandardInput")) {
+        InputStream is;
+        try {
+            new CompatibilityChecker(operationParameters).assertSupports("getStandardInput");
+            is = operationParameters.getStandardInput();
+        } catch (IncompatibleVersionException e) {
             return null;
         }
-
-        InputStream is = operationParameters.getStandardInput();
 
         if (is == null) {
             //Tooling api means embedded use. We don't want to consume standard input if we don't own the process.
