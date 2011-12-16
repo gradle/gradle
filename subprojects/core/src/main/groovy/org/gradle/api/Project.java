@@ -67,7 +67,7 @@ import java.util.Set;
  * <code>Project</code> instances.</li>
  *
  * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
- * present, against the project. The project are evaulated in breadth-wise order, such that a project is evaulated
+ * present, against the project. The project are evaluated in breadth-wise order, such that a project is evaluated
  * before its child projects. This order can be overridden by adding an evaluation dependency.</li>
  *
  * </ul>
@@ -683,7 +683,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     void dependsOn(String path, boolean evaluateDependsOnProject) throws UnknownProjectException;
 
     /**
-     * <p>Declares that this project has an evaulation dependency on the project with the given path.</p>
+     * <p>Declares that this project has an evaluation dependency on the project with the given path.</p>
      *
      * @param path The path of the project which this project depends on.
      * @return The project which this project depends on.
@@ -699,14 +699,14 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     Project childrenDependOnMe();
 
     /**
-     * <p>Declares that this project have an execution dependency on each of its child projects.</p>
+     * <p>Declares that this project has an execution dependency on each of its child projects.</p>
      *
      * @return this project.
      */
     Project dependsOnChildren();
 
     /**
-     * <p>Declares that this project have an execution dependency on each of its child projects.</p>
+     * <p>Declares that this project has an execution dependency on each of its child projects.</p>
      *
      * @param evaluateDependsOnProject If true, adds an evaluation dependency.
      * @return this project.
