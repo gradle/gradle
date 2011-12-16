@@ -109,7 +109,6 @@ public class DefaultConnection implements ConnectionVersion4 {
         InputStream is = operationParameters.getStandardInput();
 
         if (is == null) {
-            //TODO SF make sure it is correct
             //Tooling api means embedded use. We don't want to consume standard input if we don't own the process.
             //Hence we use a dummy input stream by default
             return new ByteArrayInputStream(new byte[0]);
