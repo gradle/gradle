@@ -72,7 +72,7 @@ version = '1.0'
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file://${repoFile.absolutePath}")
+            repository(url: "${repoFile.toURI().toURL()}")
         }
     }
 }
