@@ -60,7 +60,7 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
         then:
         1 * logger.completed()
         1 * loader.lock.unlock()
-        0 * _._
+        0 * _
     }
 
     def "does not report progress when appropriate"() {
@@ -73,7 +73,7 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
         1 * loader.delegate.create(distro, factory)
         then:
         1 * loader.lock.unlock()
-        0 * _._
+        0 * _
     }
 
     def concurrent = new ConcurrentTestUtil()
@@ -95,6 +95,7 @@ public class SynchronizedToolingImplementationLoaderTest extends Specification {
     @Ignore
     //below demonstrates somewhat inconvenient interference between spock and ConcurrentTestUtil
     //if you remove @Ignore the test will pass only when used with @IgnoreRest
+    //this test lives only to demonstrate the issue. If you remove this test no coverage is lost.
     def "safely delegates creation of distro"() {
         given:
         loader.lock = new ReentrantLock()
