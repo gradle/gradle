@@ -17,11 +17,11 @@
 package org.gradle.launcher.daemon.protocol;
 
 /**
- * Returned when the daemon accepts a build command, signifying that it has begun processing it.
+ * Returned when the daemon starts a build command, signifying that it has begun processing it.
  */
-public class BuildAccepted extends Result<Command> {
+public class BuildStarted extends Result<Command> {
 
-    public BuildAccepted(Command value) {
+    public BuildStarted(Command value) {
         super(value);
     }
 }
