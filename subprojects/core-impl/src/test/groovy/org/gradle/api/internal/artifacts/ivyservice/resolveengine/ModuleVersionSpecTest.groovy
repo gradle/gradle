@@ -80,6 +80,16 @@ class ModuleVersionSpecTest extends Specification {
         spec.union(spec) == spec
     }
 
+    def "union of two specs with the same exclude rule instances returns one of the original specs"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = regExpExcludeRule("org", "module2")
+        def spec = ModuleVersionSpec.forExcludes(rule1, rule2)
+        def spec2 = ModuleVersionSpec.forExcludes(rule2, rule1)
+
+        expect:
+        spec.union(spec2) == spec
+    }
+
     def "union of two specs with exact matching exclude rules is the intersection of the exclude rules"() {
         def rule1 = excludeRule("org", "module")
         def rule2 = excludeRule("org", "module2")

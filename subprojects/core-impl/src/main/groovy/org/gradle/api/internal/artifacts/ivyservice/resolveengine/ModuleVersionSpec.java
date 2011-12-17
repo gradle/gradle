@@ -132,6 +132,11 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
     }
 
     private static class AcceptAllSpec extends ModuleVersionSpec {
+        @Override
+        public String toString() {
+            return "{accept-all}";
+        }
+
         public boolean isSatisfiedBy(ModuleId element) {
             return true;
         }
@@ -142,6 +147,18 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
 
         private ExcludeRuleBackedSpec(Set<ExcludeRule> excludeRules) {
             this.excludeRules = excludeRules;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("{exclude-rules");
+            for (ExcludeRule excludeRule : excludeRules) {
+                builder.append(' ');
+                builder.append(excludeRule);
+            }
+            builder.append("}");
+            return builder.toString();
         }
 
         public boolean isSatisfiedBy(ModuleId element) {
@@ -168,7 +185,23 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
             if (!(other instanceof ExcludeRuleBackedSpec)) {
                 return super.doUnion(other);
             }
+            ExcludeRuleBackedSpec otherExcludeRuleSpec = (ExcludeRuleBackedSpec) other;
 
+            // If both specs have the same rule instances, then the union is just one of the two specs
+            // Can't use equals(), as DefaultExcludeRule doesn't consider the pattern matcher 
+            IdentityHashMap<ExcludeRule, ExcludeRule> thisRulesByIdentity = new IdentityHashMap<ExcludeRule, ExcludeRule>();
+            for (ExcludeRule excludeRule : excludeRules) {
+                thisRulesByIdentity.put(excludeRule, excludeRule);
+            }
+            IdentityHashMap<ExcludeRule, ExcludeRule> otherRulesByIdentity = new IdentityHashMap<ExcludeRule, ExcludeRule>();
+            for (ExcludeRule excludeRule : otherExcludeRuleSpec.excludeRules) {
+                otherRulesByIdentity.put(excludeRule, excludeRule);
+            }
+            if (thisRulesByIdentity.keySet().equals(otherRulesByIdentity.keySet())) {
+                return this;
+            }
+
+            // Attempt to merge the exclude rules.
             // Can't merge things other than exact patterns and can't merge wildcards, yet.
             Map<ModuleId, ExcludeRule> thisRules = new HashMap<ModuleId, ExcludeRule>();
             for (ExcludeRule rule : excludeRules) {
@@ -181,7 +214,6 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
                 thisRules.put(moduleId, rule);
             }
 
-            ExcludeRuleBackedSpec otherExcludeRuleSpec = (ExcludeRuleBackedSpec) other;
             Map<ModuleId, ExcludeRule> otherRules = new HashMap<ModuleId, ExcludeRule>();
             for (ExcludeRule rule : otherExcludeRuleSpec.excludeRules) {
                 ModuleId moduleId = rule.getId().getModuleId();
@@ -216,6 +248,18 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
 
         public UnionSpec(List<ModuleVersionSpec> specs) {
             this.specs = specs;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("{union");
+            for (ModuleVersionSpec spec : specs) {
+                builder.append(' ');
+                builder.append(spec);
+            }
+            builder.append("}");
+            return builder.toString();
         }
 
         @Override
@@ -264,6 +308,18 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
 
         private IntersectSpec(ModuleVersionSpec... specs) {
             this.specs = specs;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("{intersect");
+            for (ModuleVersionSpec spec : specs) {
+                builder.append(' ');
+                builder.append(spec);
+            }
+            builder.append("}");
+            return builder.toString();
         }
 
         @Override

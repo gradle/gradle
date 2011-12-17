@@ -484,6 +484,10 @@ class DependencyGraphBuilderTest extends Specification {
         e.cause.message.contains "group:root:1.0 > group:b:1.0 > group:a:1.0"
     }
 
+    def "reports failure to resolve version selector to module version"() {
+        expect: false
+    }
+
     def "merges all failures for all dependencies with a given module version selector"() {
         given:
         def a = revision('a')
