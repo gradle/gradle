@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.Factory;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
@@ -24,6 +25,7 @@ import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.tooling.internal.CompatibilityChecker;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.model.IncompatibleVersionException;
@@ -73,8 +75,19 @@ public class DefaultConnection implements ConnectionVersion4 {
 
     private <T> T run(GradleLauncherAction<T> action, BuildOperationParametersVersion1 operationParameters) {
         GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer = createExecuter(operationParameters);
-        ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters.getGradleUserHomeDir(), operationParameters.getProjectDir(), operationParameters.isSearchUpwards(), action);
+        ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters.getGradleUserHomeDir(),
+                operationParameters.getProjectDir(), operationParameters.isSearchUpwards(), getVerboseLogging(operationParameters), action);
         return executer.execute(configuringAction, operationParameters);
+    }
+
+    private boolean getVerboseLogging(BuildOperationParametersVersion1 operationParameters) {
+        try {
+            //TODO SF don't like it at all. We need a better strategy.
+            new CompatibilityChecker(operationParameters).assertSupports("getVerboseLogging");
+            return operationParameters.getVerboseLogging();
+        } catch (IncompatibleVersionException e) {
+            return false;
+        }
     }
 
     private GradleLauncherActionExecuter<BuildOperationParametersVersion1> createExecuter(BuildOperationParametersVersion1 operationParameters) {
@@ -83,6 +96,10 @@ public class DefaultConnection implements ConnectionVersion4 {
         } else {
             LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
             File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
+
+            if (getVerboseLogging(operationParameters)) {
+                loggingServices.get(OutputEventRenderer.class).configure(LogLevel.DEBUG);
+            }
 
             DaemonParameters parameters = new DaemonParameters();
             boolean searchUpwards = operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;

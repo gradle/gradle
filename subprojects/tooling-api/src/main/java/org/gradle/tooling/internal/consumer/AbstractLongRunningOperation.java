@@ -71,6 +71,10 @@ public class AbstractLongRunningOperation implements LongRunningOperation {
             return startTime;
         }
 
+        public boolean getVerboseLogging() {
+            return parameters.getVerboseLogging();
+        }
+
         public File getGradleUserHomeDir() {
             return parameters.getGradleUserHomeDir();
         }
@@ -111,5 +115,4 @@ public class AbstractLongRunningOperation implements LongRunningOperation {
             return stdin;
         }
     }
-
 }

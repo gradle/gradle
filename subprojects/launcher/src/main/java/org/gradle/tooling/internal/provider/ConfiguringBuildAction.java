@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.exec.InitializationAware;
 import org.gradle.logging.ShowStacktrace;
@@ -26,15 +27,17 @@ import java.io.File;
 import java.io.Serializable;
 
 class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, InitializationAware, Serializable {
+    private final boolean verboseLogging;
     private final GradleLauncherAction<T> action;
     private final File projectDirectory;
     private final File gradleUserHomeDir;
     private final Boolean searchUpwards;
 
-    ConfiguringBuildAction(File gradleUserHomeDir, File projectDirectory, Boolean searchUpwards, GradleLauncherAction<T> action) {
+    ConfiguringBuildAction(File gradleUserHomeDir, File projectDirectory, Boolean searchUpwards, boolean verboseLogging, GradleLauncherAction<T> action) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.projectDirectory = projectDirectory;
         this.searchUpwards = searchUpwards;
+        this.verboseLogging = verboseLogging;
         this.action = action;
     }
 
@@ -50,6 +53,9 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
         if (action instanceof InitializationAware) {
             InitializationAware initializationAware = (InitializationAware) action;
             initializationAware.configureStartParameter(startParameter);
+        }
+        if (this.verboseLogging) {
+            startParameter.setLogLevel(LogLevel.DEBUG);
         }
     }
 

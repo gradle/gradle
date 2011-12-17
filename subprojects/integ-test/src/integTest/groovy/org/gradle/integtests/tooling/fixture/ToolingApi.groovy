@@ -78,6 +78,9 @@ class ToolingApi {
         connector.forProjectDirectory(new File(getProjectDir().absolutePath))
         connector.searchUpwards(false)
         connector.daemonMaxIdleTime(300, TimeUnit.SECONDS)
+        if (connector.metaClass.hasProperty(connector, 'verboseLogging')) {
+            connector.verboseLogging = true
+        }
         if (isEmbedded) {
             LOGGER.info("Using embedded tooling API provider");
             connector.useClasspathDistribution()
