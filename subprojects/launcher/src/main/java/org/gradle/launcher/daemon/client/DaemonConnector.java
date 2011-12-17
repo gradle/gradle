@@ -15,8 +15,8 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.api.specs.Spec;
+import org.gradle.launcher.daemon.context.DaemonContext;
 
 /**
  * A daemon connector establishes a connection to either an already running daemon, or a newly started daemon.
@@ -24,24 +24,16 @@ import org.gradle.messaging.remote.internal.Connection;
 public interface DaemonConnector {
 
     /**
-     * Attempts to connect to the daemon, if it is running.
+     * Attempts to connect to a daemon that matches the given constraint.
      *
-     * @return The connection, or null if not running.
+     * @return A connection to a matching daemon, or null if none running.
      */
-    public Connection<Object> maybeConnect();
+    public DaemonConnection maybeConnect(Spec<? super DaemonContext> constraint);
 
     /**
-     * Connects to the daemon, starting it if required.
+     * Connects to a daemon that matches the given constraint, starting one if required.
      *
-     * @return The connection. Never returns null.
+     * @return A connection to a matching daemon. Never returns null.
      */
-    public Connection<Object> connect();
-
-    /**
-     * The registry that this connector is using.
-     *
-     * @return The registry. Never returns null.
-     */
-    public DaemonRegistry getDaemonRegistry();
-
+    public DaemonConnection connect(Spec<? super DaemonContext> constraint);
 }

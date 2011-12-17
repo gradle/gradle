@@ -15,22 +15,10 @@
  */
 package org.gradle.testfixtures;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Project;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.IProjectFactory;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ServiceRegistryFactory;
-import org.gradle.initialization.DefaultProjectDescriptor;
-import org.gradle.initialization.DefaultProjectDescriptorRegistry;
-import org.gradle.invocation.DefaultGradle;
-import org.gradle.testfixtures.internal.GlobalTestServices;
-import org.gradle.testfixtures.internal.TestTopLevelBuildServiceRegistry;
-import org.gradle.util.GFileUtils;
+import org.gradle.testfixtures.internal.ProjectBuilderImpl;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * <p>Creates dummy instances of {@link org.gradle.api.Project} which you can use in testing custom task and plugin
@@ -51,8 +39,11 @@ import java.io.IOException;
  * <p>You can reuse a builder to create multiple {@code Project} instances.</p>
  */
 public class ProjectBuilder {
-    private static final GlobalTestServices GLOBAL_SERVICES = new GlobalTestServices();
+
     private File projectDir;
+    private String name = "test";
+    private Project parent;
+    private ProjectBuilderImpl impl = new ProjectBuilderImpl();
 
     /**
      * Creates a project builder.
@@ -67,10 +58,32 @@ public class ProjectBuilder {
      * Specifies the project directory for the project to build.
      *
      * @param dir The project directory
-     * @return A new ProjectBuilder.
+     * @return The builder
      */
     public ProjectBuilder withProjectDir(File dir) {
-        projectDir = GFileUtils.canonicalise(dir);
+        projectDir = dir;
+        return this;
+    }
+
+    /**
+     * Specifies the name for the project
+     *
+     * @param name project name
+     * @return The builder
+     */
+    public ProjectBuilder withName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    /**
+     * Specifies the parent project. Use it to create multi-module projects.
+     *
+     * @param parent parent project
+     * @return The builder
+     */
+    public ProjectBuilder withParent(Project parent) {
+        this.parent = parent;
         return this;
     }
 
@@ -80,32 +93,9 @@ public class ProjectBuilder {
      * @return The project
      */
     public Project build() {
-        if (projectDir == null) {
-            try {
-                projectDir = GFileUtils.canonicalise(File.createTempFile("gradle", "projectDir"));
-                projectDir.delete();
-                projectDir.mkdir();
-                projectDir.deleteOnExit();
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
+        if (parent != null) {
+            return impl.createChildProject(name, parent, projectDir);
         }
-
-        final File homeDir = new File(projectDir, "gradleHome");
-
-        StartParameter startParameter = new StartParameter();
-        startParameter.setGradleUserHomeDir(new File(projectDir, "userHome"));
-
-        ServiceRegistryFactory topLevelRegistry = new TestTopLevelBuildServiceRegistry(GLOBAL_SERVICES, startParameter, homeDir);
-        GradleInternal gradle = new DefaultGradle(null, startParameter, topLevelRegistry);
-
-        DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, "test", projectDir, new DefaultProjectDescriptorRegistry());
-        ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle);
-
-        gradle.setRootProject(project);
-        gradle.setDefaultProject(project);
-
-        return project;
+        return impl.createProject(name, projectDir);
     }
-
 }

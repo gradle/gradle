@@ -16,16 +16,19 @@
 package org.gradle.api;
 
 /**
- * <p>A {@code Transformer} transforms objects of type T.</p>
+ * <p>A {@code Transformer} transforms objects of type.</p>
+ * 
+ * <p>Implementations are free to return new objects or mutate the incoming value.</p>
  *
- * @param <T> The type of object which this transformer can transform.
+ * @param <R> The type the value is transformed to.
+ * @param <I> The type of the value to be transformed.
  */
-public interface Transformer<T> {
+public interface Transformer<R, I> {
     /**
      * Transforms the given object, and returns the transformed value.
      *
      * @param original The object to transform.
      * @return The transformed object.
      */
-    T transform(T original);
+    R transform(I original);
 }

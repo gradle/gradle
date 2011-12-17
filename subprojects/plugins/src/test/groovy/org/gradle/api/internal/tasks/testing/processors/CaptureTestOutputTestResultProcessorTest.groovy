@@ -16,14 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing.processors
 
+import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.logging.StandardOutputRedirector
 import spock.lang.Specification
 import org.gradle.api.internal.tasks.testing.*
 
 class CaptureTestOutputTestResultProcessorTest extends Specification {
-    private final TestResultProcessor target = Mock()
-    private final StandardOutputRedirector redirector = Mock()
-    private final CaptureTestOutputTestResultProcessor processor = new CaptureTestOutputTestResultProcessor(target, redirector)
+    def TestResultProcessor target = Mock()
+    def StandardOutputRedirector redirector = Mock()
+    def processor = new CaptureTestOutputTestResultProcessor(target, redirector)
 
     def capturesStdOutputAndStdErrorWhileTestIsExecuting() {
         TestDescriptorInternal test = Mock()
@@ -60,5 +61,51 @@ class CaptureTestOutputTestResultProcessorTest extends Specification {
         then:
         1 * redirector.stop()
         1 * target.completed(testId, completeEvent)
+    }
+
+    def "configures redirector for suite and test"() {
+        //this test is not beautiful and it is also very strict.
+        //it's to avoid tricky bugs related to not having correct test ids passed onto the 'output' events
+        //it is covered in the integration tests but I decided to have hardcore mocking test for this algorithm as well :)
+        given:
+        def suite = new DefaultTestClassDescriptor("1", "DogTest");
+        def test = new DefaultTestClassDescriptor("1.1", "shouldBark");
+
+        when:
+        processor.started(suite, Mock(TestStartEvent))
+
+        then:
+        1 * redirector.start()
+
+        1 * redirector.redirectStandardErrorTo({ it.testId == '1' })
+        1 * redirector.redirectStandardOutputTo({ it.testId == '1' })
+
+        0 * redirector._
+
+        when:
+        processor.started(test, Mock(TestStartEvent))
+
+        then:
+        1 * redirector.redirectStandardErrorTo({ it.testId == '1.1' })
+        1 * redirector.redirectStandardOutputTo({ it.testId == '1.1' })
+
+        0 * redirector._
+
+        when:
+        processor.completed('1.1', Mock(TestCompleteEvent))
+
+        then:
+        1 * redirector.redirectStandardErrorTo({ it.testId == '1' })
+        1 * redirector.redirectStandardOutputTo({ it.testId == '1' })
+
+        0 * redirector._
+
+        when:
+        processor.completed('1', Mock(TestCompleteEvent))
+
+        then:
+
+        1 * redirector.stop()
+        0 * redirector._
     }
 }

@@ -31,6 +31,7 @@ import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -128,5 +129,9 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     public IvyArtifactRepository ivy(Closure closure) {
         return addRepository(getResolverFactory().createIvyRepository(), closure, "ivy");
+    }
+
+    public File getMavenPomDir() {
+        return null;
     }
 }

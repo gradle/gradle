@@ -59,7 +59,7 @@ public class JettyRunWar extends AbstractJettyRunTask {
         scanList.add(getWebApp());
         getScanner().setScanDirs(scanList);
 
-        ArrayList listeners = new ArrayList();
+        List<Scanner.Listener> listeners = new ArrayList<Scanner.Listener>();
         listeners.add(new Scanner.BulkListener() {
             public void filesChanged(List changes) {
                 try {

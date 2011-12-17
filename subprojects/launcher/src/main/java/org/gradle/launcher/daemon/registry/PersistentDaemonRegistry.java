@@ -18,14 +18,17 @@ package org.gradle.launcher.daemon.registry;
 
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.internal.DefaultFileLockManager;
-import org.gradle.cache.internal.OnDemandFileLock;
+import org.gradle.cache.internal.FileLockManager;
+import org.gradle.cache.internal.OnDemandFileAccess;
 import org.gradle.cache.internal.SimpleStateCache;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.messaging.remote.Address;
 
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Access to daemon registry files. Useful also for testing.
@@ -33,96 +36,139 @@ import java.util.List;
  * @author: Szczepan Faber, created at: 8/18/11
  */
 public class PersistentDaemonRegistry implements DaemonRegistry {
+    private final SimpleStateCache<DaemonRegistryContent> cache;
+    private final Lock lock = new ReentrantLock();
+    private final File registryFile;
 
-    final DaemonDir daemonDir;
-    final SimpleStateCache<DaemonRegistryContent> cache;
-
-    public PersistentDaemonRegistry(File baseFolder) {
-        this.daemonDir = new DaemonDir(baseFolder);
-        cache = new SimpleStateCache<DaemonRegistryContent>(daemonDir.registryFile,
-                new OnDemandFileLock(daemonDir.getRegistry(), "daemon addresses registry", new DefaultFileLockManager()),
+    public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager) {
+        this.registryFile = registryFile;
+        cache = new SimpleStateCache<DaemonRegistryContent>(
+                registryFile,
+                new OnDemandFileAccess(
+                        registryFile,
+                        "daemon addresses registry",
+                        fileLockManager),
                 new DefaultSerializer<DaemonRegistryContent>());
     }
 
-    public synchronized List<DaemonStatus> getAll() {
-        DaemonRegistryContent content = cache.get();
-        if (content == null) {
-            //when no daemon process has started yet
-            return new LinkedList<DaemonStatus>();
+    public List<DaemonInfo> getAll() {
+        lock.lock();
+        try {
+            DaemonRegistryContent content = cache.get();
+            if (content == null) {
+                //when no daemon process has started yet
+                return new LinkedList<DaemonInfo>();
+            }
+            return content.getInfos();
+        } finally {
+            lock.unlock();
         }
-        return content.getStatuses();
     }
 
-    public synchronized List<DaemonStatus> getIdle() {
-        List<DaemonStatus> out = new LinkedList<DaemonStatus>();
-        List<DaemonStatus> all = getAll();
-        for (DaemonStatus d : all) {
-            if (d.isIdle()) {
-                out.add(d);
+    public List<DaemonInfo> getIdle() {
+        lock.lock();
+        try {
+            List<DaemonInfo> out = new LinkedList<DaemonInfo>();
+            List<DaemonInfo> all = getAll();
+            for (DaemonInfo d : all) {
+                if (d.isIdle()) {
+                    out.add(d);
+                }
             }
+            return out;
+        } finally {
+            lock.unlock();
         }
-        return out;
     }
 
-    public synchronized List<DaemonStatus> getBusy() {
-        List<DaemonStatus> out = new LinkedList<DaemonStatus>();
-        List<DaemonStatus> all = getAll();
-        for (DaemonStatus d : all) {
-            if (!d.isIdle()) {
-                out.add(d);
+    public List<DaemonInfo> getBusy() {
+        lock.lock();
+        try {
+            List<DaemonInfo> out = new LinkedList<DaemonInfo>();
+            List<DaemonInfo> all = getAll();
+            for (DaemonInfo d : all) {
+                if (!d.isIdle()) {
+                    out.add(d);
+                }
             }
+            return out;
+        } finally {
+            lock.unlock();
         }
-        return out;
     }
 
-    public synchronized void remove(final Address address) {
-        cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
-            public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                assertCacheNotEmpty(oldValue);
-                oldValue.removeStatus(address);
-                return oldValue;
-            }
-        });
+    public void remove(final Address address) {
+        lock.lock();
+        try {
+            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+                public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
+                    assertCacheNotEmpty(oldValue);
+                    oldValue.removeInfo(address);
+                    return oldValue;
+                }
+            });
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public synchronized void markBusy(final Address address) {
-        cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
-            public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                assertCacheNotEmpty(oldValue);
-                DaemonStatus status = oldValue.getStatus(address);
-                status.setIdle(false);
-                return oldValue;
-            }
-        });
+    public void markBusy(final Address address) {
+        lock.lock();
+        try {
+            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+                public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
+                    assertCacheNotEmpty(oldValue);
+                    DaemonInfo daemonInfo = oldValue.getInfo(address);
+                    daemonInfo.setIdle(false);
+                    return oldValue;
+                }
+            });
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public synchronized void markIdle(final Address address) {
-        cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
-            public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                assertCacheNotEmpty(oldValue);
-                oldValue.getStatus(address).setIdle(true);
-                return oldValue;
-            }
-        });
+    public void markIdle(final Address address) {
+        lock.lock();
+        try {
+            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+                public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
+                    assertCacheNotEmpty(oldValue);
+                    oldValue.getInfo(address).setIdle(true);
+                    return oldValue;
+                }
+            });
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public synchronized void store(final Address address, final DaemonContext daemonContext, final String password) {
+        lock.lock();
+        try {
+            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+                public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
+                    if (oldValue == null) {
+                        //it means the registry didn't exist yet
+                        oldValue = new DaemonRegistryContent();
+                    }
+                    DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, password).setIdle(true);
+                    oldValue.setStatus(address, daemonInfo);
+                    return oldValue;
+                }
+            });
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public String toString() {
+        return String.format("PersistentDaemonRegistry[file=%s]", registryFile);
     }
 
     private void assertCacheNotEmpty(Object value) {
         if (value == null) {
             throw new EmptyRegistryException("Registry is empty!");
         }
-    }
-
-    public synchronized void store(final Address address) {
-        cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
-            public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                if (oldValue == null) {
-                    //it means the registry didn't exist yet
-                    oldValue = new DaemonRegistryContent();
-                }
-                DaemonStatus status = new DaemonStatus(address).setIdle(true);
-                oldValue.setStatus(address, status);
-                return oldValue;
-            }
-        });
     }
 }

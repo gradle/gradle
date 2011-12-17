@@ -16,20 +16,19 @@
 package org.gradle.api.plugins.sonar.internal
 
 import org.apache.commons.configuration.MapConfiguration
+import org.gradle.api.plugins.sonar.model.ModelToPropertiesConverter
+import org.gradle.api.plugins.sonar.model.SonarRootModel
+import org.gradle.api.plugins.sonar.model.SonarModel
 import org.sonar.api.batch.bootstrap.ProjectDefinition
 import org.sonar.api.batch.bootstrap.ProjectReactor
 import org.sonar.batch.Batch
 import org.sonar.batch.bootstrapper.EnvironmentInformation
-import org.gradle.api.plugins.sonar.model.SonarProject
-
-import org.gradle.api.plugins.sonar.model.ModelToPropertiesConverter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.plugins.sonar.model.SonarRootModel
-import org.gradle.api.plugins.sonar.model.SonarModel
 
 /**
  * Runs Sonar code analysis for a project hierarchy.
+ * This class lives on the Sonar bootstrapper's class loader.
  */
 class SonarCodeAnalyzer {
     private static final Logger LOGGER = LoggerFactory.getLogger(SonarCodeAnalyzer)
@@ -37,10 +36,13 @@ class SonarCodeAnalyzer {
     SonarRootModel rootModel
 
     void execute() {
+        if (skipped(rootModel)) {
+            return
+        }
+
         def projectDef = configureProject(rootModel)
         def reactor = new ProjectReactor(projectDef)
         def globalProperties = extractProperties(rootModel)
-        configureAdditionalGlobalProperties(globalProperties)
         for (prop in globalProperties) {
             LOGGER.info("adding global property $prop")
         }
@@ -89,6 +91,9 @@ class SonarCodeAnalyzer {
         }
 
         for (childModel in sonarModel.childModels) {
+            if (skipped(childModel)) {
+                continue
+            }
             def childProjectDef = configureProject(childModel)
             projectDef.addSubProject(childProjectDef)
         }
@@ -96,23 +101,17 @@ class SonarCodeAnalyzer {
         projectDef
     }
 
+    private boolean skipped(SonarModel model) {
+        if (model.project.skip) {
+            LOGGER.info("Skipping Sonar analysis for project '{}' and its subprojects because 'sonar.project.skip' is 'true'", model.project.name)
+            return true
+        }
+        false
+    }
+
     private Map<String, String> extractProperties(model) {
         def converter = new ModelToPropertiesConverter(model)
         converter.propertyProcessors = model.propertyProcessors
         converter.convert()
-    }
-
-    private void configureAdditionalGlobalProperties(Map<String, String> globalProperties) {
-        globalProperties.skippedModules = getSkippedProjects(rootModel)*.key.join(",")
-    }
-
-    private List<SonarProject> getSkippedProjects(SonarModel sonarModel, List<SonarProject> skipped = []) {
-        if (sonarModel.project.skip) {
-            skipped << sonarModel.project
-        }
-        for (childModel in sonarModel.childModels) {
-            getSkippedProjects(childModel, skipped)
-        }
-        skipped
     }
 }

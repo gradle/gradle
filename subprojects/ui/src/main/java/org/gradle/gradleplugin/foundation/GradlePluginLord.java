@@ -16,7 +16,6 @@
 package org.gradle.gradleplugin.foundation;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
-import org.gradle.StartParameter;
 import org.gradle.api.LocationAwareException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.LogLevel;
@@ -34,6 +33,7 @@ import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
 import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
+import org.gradle.logging.ShowStacktrace;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -63,7 +63,7 @@ public class GradlePluginLord {
 
     private boolean isStarted;  //this flag is mostly to prevent initialization from firing off repeated refresh requests.
 
-    private StartParameter.ShowStacktrace stackTraceLevel = StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS;
+    private ShowStacktrace stackTraceLevel = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 
     private ObserverLord<GeneralPluginObserver> generalObserverLord = new ObserverLord<GeneralPluginObserver>();
@@ -214,7 +214,7 @@ public class GradlePluginLord {
     /**
      * this allows you to change how much information is given when an error occurs.
      */
-    public void setStackTraceLevel(StartParameter.ShowStacktrace stackTraceLevel) {
+    public void setStackTraceLevel(ShowStacktrace stackTraceLevel) {
         if (areEqual(this.stackTraceLevel, stackTraceLevel))    //already set to this. This prevents recursive notifications.
         {
             return;
@@ -223,7 +223,7 @@ public class GradlePluginLord {
         notifySettingsChanged();
     }
 
-    public StartParameter.ShowStacktrace getStackTraceLevel() {
+    public ShowStacktrace getStackTraceLevel() {
         return stackTraceLevel;
     }
 
@@ -585,7 +585,7 @@ public class GradlePluginLord {
      * This code was copied from BuildExceptionReporter.reportBuildFailure in gradle's source, then modified slightly to compensate for the fact that we're not driven by options or logging things to a
      * logger object.
      */
-    public static String getGradleExceptionMessage(Throwable failure, StartParameter.ShowStacktrace stackTraceLevel) {
+    public static String getGradleExceptionMessage(Throwable failure, ShowStacktrace stackTraceLevel) {
         if (failure == null) {
             return "";
         }
@@ -594,7 +594,7 @@ public class GradlePluginLord {
 
         formatter.format("%nBuild failed.%n");
 
-        if (stackTraceLevel == StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS) {
+        if (stackTraceLevel == ShowStacktrace.INTERNAL_EXCEPTIONS) {
             formatter.format("Use the stack trace options to get more details.");
         }
 
@@ -613,9 +613,9 @@ public class GradlePluginLord {
                 formatter.format("%s", getMessage(failure));
             }
 
-            if (stackTraceLevel != StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS) {
+            if (stackTraceLevel != ShowStacktrace.INTERNAL_EXCEPTIONS) {
                 formatter.format("%n%nException is:\n");
-                if (stackTraceLevel == StartParameter.ShowStacktrace.ALWAYS_FULL) {
+                if (stackTraceLevel == ShowStacktrace.ALWAYS_FULL) {
                     return formatter.toString() + getStackTraceAsText(failure);
                 }
 

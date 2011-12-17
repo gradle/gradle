@@ -23,7 +23,8 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.logging.LoggingConfiguration;
+import org.gradle.logging.ShowStacktrace;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.internal.AbstractStyledTextOutput;
@@ -45,12 +46,12 @@ public class BuildExceptionReporter extends BuildAdapter {
     }
 
     private final StyledTextOutputFactory textOutputFactory;
-    private final StartParameter startParameter;
+    private final LoggingConfiguration loggingConfiguration;
     private final BuildClientMetaData clientMetaData;
 
-    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, StartParameter startParameter, BuildClientMetaData clientMetaData) {
+    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData) {
         this.textOutputFactory = textOutputFactory;
-        this.startParameter = startParameter;
+        this.loggingConfiguration = loggingConfiguration;
         this.clientMetaData = clientMetaData;
     }
 
@@ -124,7 +125,7 @@ public class BuildExceptionReporter extends BuildAdapter {
         details.summary.text("Build aborted because of an internal error.");
         details.details.text("Build aborted because of an unexpected internal error. Please file an issue at: http://www.gradle.org.");
 
-        if (startParameter.getLogLevel() != LogLevel.DEBUG) {
+        if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
             details.resolution.text("Run with ");
             details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.DEBUG_LONG);
             details.resolution.text(" option to get additional debug info.");
@@ -133,10 +134,10 @@ public class BuildExceptionReporter extends BuildAdapter {
     }
 
     private void reportBuildFailure(GradleException failure, FailureDetails details) {
-        if (startParameter.getShowStacktrace() == StartParameter.ShowStacktrace.ALWAYS || startParameter.getLogLevel() == LogLevel.DEBUG) {
+        if (loggingConfiguration.getShowStacktrace() == ShowStacktrace.ALWAYS || loggingConfiguration.getLogLevel() == LogLevel.DEBUG) {
             details.exceptionStyle = ExceptionStyle.SANITIZED;
         }
-        if (startParameter.getShowStacktrace() == StartParameter.ShowStacktrace.ALWAYS_FULL) {
+        if (loggingConfiguration.getShowStacktrace() == ShowStacktrace.ALWAYS_FULL) {
             details.exceptionStyle = ExceptionStyle.FULL;
         }
 
@@ -179,13 +180,13 @@ public class BuildExceptionReporter extends BuildAdapter {
     private void fillInFailureResolution(FailureDetails details) {
         if (details.exceptionStyle == ExceptionStyle.NONE) {
             details.resolution.text("Run with ");
-            details.resolution.withStyle(UserInput).format("--%s", DefaultCommandLineConverter.STACKTRACE_LONG);
+            details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.STACKTRACE_LONG);
             details.resolution.text(" option to get the stack trace. ");
         }
 
-        if (startParameter.getLogLevel() != LogLevel.DEBUG) {
+        if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
             details.resolution.text("Run with ");
-            if (startParameter.getLogLevel() != LogLevel.INFO) {
+            if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
                 details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.INFO_LONG);
                 details.resolution.text(" or ");
             }

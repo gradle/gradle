@@ -15,51 +15,38 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.util.TestFile;
-
-import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
-    private static final Set<File> DAEMONS = new HashSet<File>();
+    private static final String DAEMON_REGISTRY_SYS_PROP = "org.gradle.integtest.daemon.registry";
+    private final GradleDistribution distribution;
 
-    public DaemonGradleExecuter(TestFile gradleHomeDir) {
-        super(gradleHomeDir);
-    }
-
-    @Override
-    protected Map doRun(boolean expectFailure) {
-        registerDaemon(getUserHomeDir());
-        Map result = super.doRun(expectFailure);
-        String output = (String) result.get("output");
-        output = output.replace(String.format("Note: the Gradle build daemon is an experimental feature.%n"), "");
-        output = output.replace(String.format("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.%n"), "");
-        result.put("output", output);
-        return result;
-    }
-
-    public static void registerDaemon(final File userHomeDir) {
-//        assert userHomeDir != null;
-//        if (!DAEMONS.add(userHomeDir)) {
-//            return;
-//        }
-//        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-//            public void run() {
-//                ExecHandleBuilder builder = new ExecHandleBuilder();
-//                builder.workingDir(new File(".").getAbsolutePath());
-//                builder.executable(Jvm.current().getJpsExecutable());
-//                builder.args("-lm");
-//                builder.setStandardOutput(new ByteArrayOutputStream());
-//                builder.build().start().waitForFinish();
-//            }
-//        }));
+    public DaemonGradleExecuter(GradleDistribution distribution) {
+        super(distribution.getGradleHomeDir());
+        this.distribution = distribution;
     }
 
     @Override
     protected List<String> getAllArgs() {
+        List<String> originalArgs = super.getAllArgs();
+
         List<String> args = new ArrayList<String>();
         args.add("--daemon");
-        args.addAll(super.getAllArgs());
+        args.add("-Dorg.gradle.daemon.idletimeout=" + (5 * 60 * 1000));
+        String customDaemonRegistryDir = System.getProperty(DAEMON_REGISTRY_SYS_PROP);
+        if (customDaemonRegistryDir != null && !distribution.isUsingIsolatedDaemons()) {
+            args.add("-Dorg.gradle.daemon.registry.base=" + customDaemonRegistryDir);
+        }
+        
+        args.addAll(originalArgs);
+
+        // TODO - clean this up. It's a workaround to provide some way for the client of this executer to
+        // specify that no jvm args should be provided
+        if(!args.remove("-Dorg.gradle.jvmargs=")){
+            args.add(0, "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m");
+        }
+        
         return args;
     }
 }

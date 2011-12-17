@@ -1,0 +1,7 @@
+if (project.hasProperty("testWithUnknownOS")) {
+    tasks.withType(Test) {
+        systemProperty "os.arch", "unknown architecture"
+        systemProperty "os.name", "unknown operating system"
+        systemProperty "os.version", "unknown version"
+    }
+}

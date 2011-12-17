@@ -110,24 +110,26 @@ class IdeDependenciesExtractor {
             out << new IdeRepoFileDependency( file: binaryFile, sourceFile: sourceFile, javadocFile: javadocFile, declaredConfiguration: conf)
         }
 
-        unresolvedExternalDependencies(plusConfigurations, minusConfigurations).each {
-            out << new UnresolvedIdeRepoFileDependency(problem: it.problem, file: new File("unresolved dependency - $it.id"), declaredConfiguration: it.gradleConfiguration)
+        unresolvedExternalDependencies(plusConfigurations, minusConfigurations) { config, dep ->
+            out << new UnresolvedIdeRepoFileDependency(problem: dep.problem, file: new File("unresolved dependency - $dep.id"), declaredConfiguration: config)
         }
 
         out
     }
 
-    Collection<UnresolvedDependency> unresolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        def out = []
+    private void unresolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, Closure action) {
+        def unresolved = new LinkedHashMap<String, Map>()
         for (c in plusConfigurations) {
-            def deps = c.resolvedConfiguration.lenientConfiguration.getUnresolvedModuleDependencies()
-            out.addAll(deps)
+            def deps = c.resolvedConfiguration.lenientConfiguration.unresolvedModuleDependencies
+            deps.each { unresolved[it.id] = [dep: it, config: c] }
         }
         for (c in minusConfigurations) {
-            def deps = c.resolvedConfiguration.lenientConfiguration.getUnresolvedModuleDependencies()
-            out.removeAll { deps*.id.contains(it.id) } //remove by id
+            def deps = c.resolvedConfiguration.lenientConfiguration.unresolvedModuleDependencies
+            deps.each { unresolved.remove(it.id) }
         }
-        out
+        unresolved.values().each {
+            action.call(it.config, it.dep)
+        }
     }
 
     List<IdeLocalFileDependency> extractLocalFileDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {

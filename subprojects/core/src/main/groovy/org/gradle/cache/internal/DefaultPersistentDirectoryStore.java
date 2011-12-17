@@ -15,30 +15,99 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.api.internal.Factory;
+import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentCache;
-import org.gradle.util.UncheckedException;
+import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.Serializer;
 
 import java.io.File;
 import java.io.IOException;
 
 public class DefaultPersistentDirectoryStore implements PersistentCache {
     private final File dir;
+    private final FileLockManager.LockMode lockMode;
+    private final FileLockManager lockManager;
+    private final String displayName;
+    private DefaultCacheAccess cacheAccess;
 
-    public DefaultPersistentDirectoryStore(File dir) {
+    public DefaultPersistentDirectoryStore(File dir, String displayName, FileLockManager.LockMode lockMode, FileLockManager fileLockManager) {
         this.dir = dir;
-        dir.mkdirs();
+        this.lockMode = lockMode;
+        this.lockManager = fileLockManager;
+        this.displayName = displayName != null ? String.format("%s (%s)", displayName, dir) : String.format("cache directory %s (%s)", dir.getName(), dir);
+    }
 
-        // Create an empty cache.properties file. This is because Gradle 1.0-milestone-4 will delete the store if it does not find this marker file.
-        // TODO - Remove this file when we no longer care about 1.0-milestone-4
+    public DefaultPersistentDirectoryStore open() {
+        dir.mkdirs();
+        cacheAccess = new DefaultCacheAccess(displayName, getLockTarget(), lockManager);
         try {
-            File markerFile = new File(dir, "cache.properties");
-            markerFile.createNewFile();
-        } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
+            cacheAccess.open(lockMode);
+            try {
+                init();
+            } catch (Throwable throwable) {
+                cacheAccess.close();
+                throw throwable;
+            }
+        } catch (Throwable e) {
+            throw new CacheOpenException(String.format("Could not open %s.", this), e);
         }
+
+        return this;
+    }
+
+    protected File getLockTarget() {
+        return dir;
+    }
+
+    protected void init() throws IOException {
+    }
+
+    public void close() {
+        if (cacheAccess != null) {
+            try {
+                cacheAccess.close();
+            } finally {
+                cacheAccess = null;
+            }
+        }
+
+    }
+
+    protected FileLock getLock() {
+        return cacheAccess.getFileLock();
     }
 
     public File getBaseDir() {
         return dir;
+    }
+
+    @Override
+    public String toString() {
+        return displayName;
+    }
+
+    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
+        return cacheAccess.newCache(cacheFile, keyType, valueType);
+    }
+
+    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
+        return cacheAccess.newCache(cacheFile, keyType, valueSerializer);
+    }
+
+    public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
+        return cacheAccess.useCache(operationDisplayName, action);
+    }
+
+    public void useCache(String operationDisplayName, Runnable action) {
+        cacheAccess.useCache(operationDisplayName, action);
+    }
+
+    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
+        return cacheAccess.longRunningOperation(operationDisplayName, action);
+    }
+
+    public void longRunningOperation(String operationDisplayName, Runnable action) {
+        cacheAccess.longRunningOperation(operationDisplayName, action);
     }
 }

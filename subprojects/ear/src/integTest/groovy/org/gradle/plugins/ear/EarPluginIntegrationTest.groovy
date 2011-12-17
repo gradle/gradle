@@ -19,6 +19,7 @@ package org.gradle.plugins.ear
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.junit.Before
 import org.junit.Test
+import spock.lang.Issue
 
 /**
  * @author: Szczepan Faber, created at: 6/3/11
@@ -65,12 +66,10 @@ dependencies {
 }
 
 ear {
-    //TODO SF for some awkard reason, setting this property won't work...
     libDirName 'CUSTOM/lib'
 
     deploymentDescriptor {
         applicationName = "cool ear"
-//        TODO SF: cover some other fields as well
     }
 }
 
@@ -82,25 +81,6 @@ ear {
         //then
         file("unzipped/CUSTOM/lib/earLib.jar").assertExists()
         assert file("unzipped/META-INF/application.xml").text.contains('cool ear')
-    }
-
-    @Test
-    void "enables jar"() {
-        file("build.gradle").write("""
-apply plugin: 'ear'
-apply plugin: 'java'
-
-dependencies {
-    earlib files('earLib.jar')
-}
-
-jar.enabled = true
-""")
-        //when
-        executer.withTasks('assemble').run()
-        //then
-        file("build/libs/root.ear").assertExists()
-        file("build/libs/root.jar").assertExists()
     }
 
     @Test
@@ -161,4 +141,13 @@ ear {
         assert file("unzipped/META-INF/stuff/yetAnotherFile.txt").assertExists()
         assert file("unzipped/META-INF/application.xml").text == applicationXml
     }
+    
+    @Test
+    @Issue("http://issues.gradle.org/browse/GRADLE-1885")
+    void "existence of war task should not create build directory"() {
+        file("build.gradle") << "apply plugin: 'ear'"
+        executer.withTasks('tasks').run()
+        assert !file("build").exists()
+    }
+    
 }

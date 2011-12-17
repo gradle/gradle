@@ -87,7 +87,7 @@ public class SyncCopySpecVisitorTest {
         Set visited = (Set) field.get(visitor);
         assert visited.contains(new RelativePath(true, "included.txt"));
         assert !visited.contains(new RelativePath(true, "extra", "extra.txt"));
-        final Set actual = new HashSet();
+        final Set<RelativePath> actual = new HashSet<RelativePath>();
         new DirectoryFileTree(destDir).depthFirst().visit(new FileVisitor() {
             public void visitDir(FileVisitDetails dirDetails) {
             }

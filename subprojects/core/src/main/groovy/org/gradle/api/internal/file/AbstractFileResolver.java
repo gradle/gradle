@@ -22,6 +22,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.resources.ReadableResource;
+import org.gradle.os.FileSystems;
 import org.gradle.os.OperatingSystem;
 import org.gradle.util.GUtil;
 
@@ -58,11 +60,14 @@ public abstract class AbstractFileResolver implements FileResolver {
         return file;
     }
 
+    // normalizes a path in similar ways as File.getCanonicalFile(), except that it
+    // does NOT resolve symlinks (by design)
     private File normalise(File file) {
         try {
-            assert file.isAbsolute() : String.format("Cannot normalise a relative file: '%s'", file);
+            assert file.isAbsolute() : String.format("Cannot normalize a relative file: '%s'", file);
 
-            if (!OperatingSystem.current().getFileSystem().isSymlinkAware()) {
+            if (OperatingSystem.current().isWindows()) {
+                // on Windows, File.getCanonicalFile() doesn't resolve symlinks
                 return file.getCanonicalFile();
             }
 
@@ -84,7 +89,7 @@ public abstract class AbstractFileResolver implements FileResolver {
                 resolvedPath = File.separator + resolvedPath;
             }
             File candidate = new File(resolvedPath);
-            if (OperatingSystem.current().getFileSystem().isCaseSensitive()) {
+            if (FileSystems.getDefault().isCaseSensitive()) {
                 return candidate;
             }
 
@@ -107,7 +112,7 @@ public abstract class AbstractFileResolver implements FileResolver {
             }
             return current;
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not normalise path for file '%s'.", file), e);
+            throw new UncheckedIOException(String.format("Could not normalize path for file '%s'.", file), e);
         }
     }
 
@@ -189,7 +194,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         for (File file : File.listRoots()) {
             String rootPath = file.getAbsolutePath();
             String normalisedStr = str;
-            if (!OperatingSystem.current().getFileSystem().isCaseSensitive()) {
+            if (!FileSystems.getDefault().isCaseSensitive()) {
                 rootPath = rootPath.toLowerCase();
                 normalisedStr = normalisedStr.toLowerCase();
             }
@@ -279,5 +284,12 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     public FileTree resolveFilesAsTree(Object... paths) {
         return resolveFiles(paths).getAsFileTree();
+    }
+
+    public ReadableResource resolveResource(Object path) {
+        if (path instanceof ReadableResource) {
+            return (ReadableResource) path;
+        }
+        return new FileResource(resolve(path));
     }
 }

@@ -36,8 +36,6 @@ defaultTasks 'assemble'
 
 apply plugin: 'java-base'
 
-startScriptsDir = new File("$buildDir/startScripts")
-
 archivesBaseName = 'gradle'
 
 libraries = [
@@ -45,6 +43,7 @@ libraries = [
         dependency 'org.apache.ant:ant-launcher:1.8.2@jar'
     },
     asm: 'asm:asm-all:3.3.1@jar',
+    commons_cli: 'commons-cli:commons-cli:1.2@jar',
     commons_io: 'commons-io:commons-io:1.4@jar',
     commons_lang: 'commons-lang:commons-lang:2.6@jar',
     commons_collections: 'commons-collections:commons-collections:3.2.1@jar',
@@ -53,18 +52,18 @@ libraries = [
 ]
 
 // Logging
-libraries.slf4j_api = 'org.slf4j:slf4j-api:1.6.2@jar'
-libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.6.2') {
+libraries.slf4j_api = 'org.slf4j:slf4j-api:1.6.4@jar'
+libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.6.4') {
     dependency libraries.slf4j_api
 }
-libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.6.2') {
+libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.6.4') {
     dependency libraries.slf4j_api
 }
-libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.6.2') {
+libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.6.4') {
     dependency libraries.slf4j_api
 }
-libraries.logback_core = 'ch.qos.logback:logback-core:0.9.29@jar'
-libraries.logback_classic = dependencies.module('ch.qos.logback:logback-classic:0.9.29') {
+libraries.logback_core = 'ch.qos.logback:logback-core:1.0.0@jar'
+libraries.logback_classic = dependencies.module('ch.qos.logback:logback-classic:1.0.0') {
     dependency libraries.logback_core
     dependency libraries.slf4j_api
 }
@@ -93,18 +92,18 @@ libraries += [
         ant_junit: 'org.apache.ant:ant-junit:1.8.2@jar',
         ant_antlr: 'org.apache.ant:ant-antlr:1.8.2@jar',
         antlr: 'antlr:antlr:2.7.7@jar',
-        commons_cli: 'commons-cli:commons-cli:1.2@jar',
         dom4j: 'dom4j:dom4j:1.6.1@jar',
-        guava: 'com.google.guava:guava:r09@jar',
-        groovy: 'org.codehaus.groovy:groovy-all:1.7.10@jar',
+        guava: 'com.google.guava:guava:10.0.1@jar',
+        groovy: 'org.codehaus.groovy:groovy-all:1.8.4@jar',
         jaxen: 'jaxen:jaxen:1.1@jar',
         jcip: "net.jcip:jcip-annotations:1.0",
         jna: 'net.java.dev.jna:jna:3.2.2@jar',
-        junit: 'junit:junit:4.8.2',
+        junit: 'junit:junit:4.10',
         xmlunit: 'xmlunit:xmlunit:1.3',
 ]
 
-libraries.spock = ['org.spockframework:spock-core:0.5-groovy-1.7',
+libraries.spock = ['org.spockframework:spock-core:0.6-groovy-1.8-SNAPSHOT@jar',
+        libraries.groovy,
         'org.objenesis:objenesis:1.2',
         'cglib:cglib-nodep:2.2']
 libraries.jmock = ['org.jmock:jmock:2.5.1',
@@ -125,14 +124,26 @@ allprojects {
 
     repositories {
         mavenRepo(url: 'http://repo.gradle.org/gradle/libs')
+        mavenRepo(url: 'http://repository.codehaus.org/')
+        mavenRepo(url: 'http://m2repo.spockframework.org/snapshots/')
         ivy {
-            artifactPattern('http://repo.jfrog.org/artifactory/gradle-plugins-snapshots/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]')
-//        artifactPattern('http://repo.jfrog.org/artifactory/gradle-ivy-local/[organisation]/[module]/ivy-[revision].xml')
+            artifactPattern 'http://repo.jfrog.org/artifactory/gradle-plugins-snapshots/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
+            ivyPattern 'http://repo.jfrog.org/artifactory/gradle-ivy-local/[organisation]/[module]/ivy-[revision].xml'
         }
     }
 
+	configurations {
+		all {
+			resolutionStrategy {
+                //we cannot use 'hours' for now due to java 1.5 problem
+			    cacheDynamicVersionsFor 24*60*60, 'seconds'
+			    cacheChangingModulesFor 24*60*60, 'seconds'
+			}
+		}
+	}
+
     version = this.version
-    
+
     apply from: "$rootDir/gradle/conventions-dsl.gradle"
 }
 
@@ -146,6 +157,7 @@ configure(publishedProjects()) {
 
 allprojects {
     apply from: "$rootDir/gradle/codeQuality.gradle"
+    apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
 }
 
 apply from: "gradle/idea.gradle"
@@ -186,29 +198,10 @@ task test(overwrite: true, dependsOn: groovyProjects()*.test)
 task uploadArchives(dependsOn: publishedProjects()*.uploadArchives)
 task publishLocalArchives(dependsOn: publishedProjects()*.publishLocalArchives)
 
-task aggregateTestResults {
+task aggregateTestReports(type: TestReportAggregator) {
     testReportDir = file("${reportsDir}/tests")
     testResultsDir = file("${buildDir}/test-results")
-
-    doFirst {
-        assert (!testReportDir.exists() || testReportDir.deleteDir()) && testReportDir.mkdirs()
-
-        copy {
-            into testResultsDir
-            subprojects.each { subproject ->
-                subproject.tasks.withType(Test).each { task ->
-                    if (task.testResultsDir.exists()) {
-                        from (task.testResultsDir) {
-                            include "TEST-*.xml"
-                        }
-                    }
-                }
-            }
-        }
-
-        def report = new org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport(testReportDir: testReportDir, testResultsDir: testResultsDir)
-        report.generateReport()
-    }
+    projects = subprojects
 }
 
 zipRootFolder = "$archivesBaseName-${-> version}"
@@ -217,9 +210,9 @@ binDistImage = copySpec {
     from('src/toplevel') {
         expand(version: version)
     }
-    from project(':docs').distDocs.destFile
+    from project(':docs').outputs.distDocs
     into('bin') {
-        from startScriptsDir
+        from { project(':launcher').startScripts.outputs.files }
         fileMode = 0755
     }
     into('lib') {
@@ -236,21 +229,21 @@ allDistImage = copySpec {
         from groovyProjects().collect {project -> project.sourceSets.main.allSource }
     }
     into('docs') {
-        from project(':docs').docsDir
+        from project(':docs').outputs.docs
     }
     into('samples') {
-        from project(':docs').samplesDir
+        from project(':docs').outputs.samples
     }
 }
 
-task allZip(type: Zip, dependsOn: ['launcher:startScripts', 'docs:docs', 'docs:samples']) {
+task allZip(type: Zip) {
     classifier = 'all'
     into(zipRootFolder) {
         with allDistImage
     }
 }
 
-task binZip(type: Zip, dependsOn: ['launcher:startScripts', 'docs:distDocs']) {
+task binZip(type: Zip) {
     classifier = 'bin'
     into(zipRootFolder) {
         with binDistImage
@@ -338,7 +331,6 @@ uploadDists {
     doFirst {
         repositories {
             ivy {
-                name = 'gradleReleases'
                 artifactPattern "${version.distributionUrl}/[artifact]-[revision](-[classifier]).[ext]"
                 userName = artifactoryUserName
                 password = artifactoryUserPassword
@@ -381,20 +373,9 @@ gradle.taskGraph.whenReady {graph ->
 task releaseVersion
 //TODO SF - this task name is inconsistent because other releaseXxx tasks actually upload some content somewhere. Should be called something like 'markReleaseVersion'
 
-def tagNow() {
-    def git = new Git(project)
-    git.checkNoModifications()
-    git.tag("REL_$version", "Release $version")
-    git.branch("RB_$version")
-}
+task tag(type: Tag)
 
-task tag << {
-    tagNow()
-}
-
-task testedTag(dependsOn: testedDists) << {
-    tagNow()
-}
+task testedTag(type: Tag, dependsOn: testedDists)
 
 task releaseArtifacts {
     description = 'Builds the release artifacts'
@@ -403,10 +384,14 @@ task releaseArtifacts {
     dependsOn releaseVersion, assemble, ':docs:websiteDocs'
 }
 
+task checkJavaVersion << {
+    assert Jvm.current().java6Compatible : "Must use a Java 6 compatible JVM to perform the release. Current JVM is ${Jvm.current()}"
+}
+
 task release {
     description = 'Builds, tests and uploads the release artifacts'
     group = 'release'
-    dependsOn releaseVersion, testedTag, releaseArtifacts, testedDists, 'uploadAll'
+    dependsOn releaseVersion, checkJavaVersion, testedTag, releaseArtifacts, testedDists, 'uploadAll'
     doLast {
         releases.incrementNextVersion()
     }
@@ -436,6 +421,47 @@ def publishedProjects() {
 def pluginProjects() {
     ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear'].collect {
         project(it)
+    }
+}
+
+class TestReportAggregator extends Copy {
+    def projects
+
+    File testResultsDir
+
+    @OutputDirectory
+    File testReportDir
+
+    def TestReportAggregator() {
+        dependsOn { testTasks }
+        from { inputTestResultDirs }
+        into { testResultsDir }
+    }
+
+    @TaskAction
+    def aggregate() {
+        def report = new org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport(testReportDir: testReportDir, testResultsDir: testResultsDir)
+        report.generateReport()
+    }
+
+    def getTestTasks() {
+        projects.collect { it.tasks.withType(Test) }.flatten()
+    }
+
+    def getInputTestResultDirs() {
+        testTasks*.testResultsDir
+    }
+
+}
+
+class Tag extends DefaultTask {
+    @TaskAction
+    def tagNow() {
+        def version = project.version
+        def git = new Git(project)
+        git.checkNoModifications()
+        git.tag("REL_$version", "Release $version")
+        git.branch("RB_$version")
     }
 }
 

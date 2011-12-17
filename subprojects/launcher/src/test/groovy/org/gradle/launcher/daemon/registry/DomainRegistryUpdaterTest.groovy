@@ -16,19 +16,21 @@
 
 package org.gradle.launcher.daemon.registry
 
+import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonRegistry.EmptyRegistryException
+import org.gradle.launcher.daemon.server.DomainRegistryUpdater
 import org.gradle.messaging.remote.Address
 import spock.lang.Specification
-import org.gradle.launcher.daemon.server.DomainRegistryUpdater
 
 /**
  * @author: Szczepan Faber, created at: 9/12/11
  */
 public class DomainRegistryUpdaterTest extends Specification {
 
-    def registry = Mock(DaemonRegistry)
-    def address = {} as Address
-    def updater = new DomainRegistryUpdater(registry, address)
+    final DaemonRegistry registry = Mock()
+    final Address address = Mock()
+    final DaemonContext context = Mock()
+    final updater = new DomainRegistryUpdater(registry, context, "password", address)
 
     def "marks idle"() {
         when:

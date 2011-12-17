@@ -17,19 +17,51 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.ArtifactBuilder
 import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.util.TestFile
-import org.junit.Test
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.util.TextUtil
 
-class InitScriptExecutionIntegrationTest extends AbstractIntegrationTest {
-    @Test
-    public void executesInitScriptWithCorrectEnvironment() {
+class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
+    def "executes init.gradle from user home dir"() {
+        given:
+        distribution.requireOwnUserHomeDir()
+        
+        and:
+        distribution.userHomeDir.file('init.gradle') << 'println "greetings from user home"'
+
+        when:
+        run()
+
+        then:
+        output.contains("greetings from user home")
+    }
+
+    def "executes init scripts from init.d directory in user home dir in alphabetical order"() {
+        given:
+        distribution.requireOwnUserHomeDir()
+
+        and:
+        distribution.userHomeDir.file('init.d/a.gradle') << 'println "init a"'
+        distribution.userHomeDir.file('init.d/b.gradle') << 'println "init b"'
+        distribution.userHomeDir.file('init.d/c.gradle') << 'println "init c"'
+
+        when:
+        run()
+
+        then:
+        output.contains TextUtil.toPlatformLineSeparators('''init a
+init b
+init c
+''')
+    }
+
+    def "executes init script with correct environment"() {
+        given:
         def implClassName = 'com.google.common.collect.Multimap'
         createExternalJar();
 
-        TestFile initScript = testFile('init.gradle')
+        and:
+        TestFile initScript = file('init.gradle')
         initScript << """
 initscript {
     dependencies { classpath files('repo/test-1.3.jar') }
@@ -50,27 +82,33 @@ try {
     // expected
 }
 """
-        testFile('build.gradle') << 'task doStuff'
 
-        ExecutionResult result = inTestDirectory().usingInitScript(initScript).withTasks('doStuff').run()
-        assertThat(result.output, containsString('quiet message'))
-        assertThat(result.output, not(containsString('error message')))
-        assertThat(result.error, containsString('error message'))
-        assertThat(result.error, not(containsString('quiet message')))
+        and:
+        buildFile << 'task doStuff'
+
+        when:
+        ExecutionResult result = executer.usingInitScript(initScript).withTasks('doStuff').run()
+
+        then:
+        result.output.contains('quiet message')
+        !result.output.contains('error message')
+        result.error.contains('error message')
+        !result.error.contains('quiet message')
     }
 
-    @Test
-    public void eachScriptHasIndependentClassLoader() {
+    def "each init script has independent ClassLoader"() {
+        given:
         createExternalJar()
 
-        TestFile initScript1 = testFile('init1.gradle')
+        and:
+        TestFile initScript1 = file('init1.gradle')
         initScript1 << '''
 initscript {
     dependencies { classpath files('repo/test-1.3.jar') }
 }
 new org.gradle.test.BuildClass()
 '''
-        TestFile initScript2 = testFile('init2.gradle')
+        TestFile initScript2 = file('init2.gradle')
         initScript2 << '''
 try {
     Class.forName('org.gradle.test.BuildClass')
@@ -79,9 +117,35 @@ try {
 }
 '''
 
-        testFile('build.gradle') << 'task doStuff'
+        buildFile << 'task doStuff'
 
-       inTestDirectory().usingInitScript(initScript1).usingInitScript(initScript2)
+        when:
+        executer.usingInitScript(initScript1).usingInitScript(initScript2)
+
+        then:
+        notThrown(Throwable)
+    }
+    
+    def "init script can inject configuration into the root project and all projects"() {
+        given:
+        settingsFile << "include 'a', 'b'"
+
+        and:
+        file("init.gradle") << """
+allprojects {
+    task worker
+}
+rootProject {
+    task root(dependsOn: allprojects*.worker)
+}
+        """
+        
+        when:
+        executer.withArguments("-I", "init.gradle")
+        run "root"
+
+        then:
+        executedTasks == [':worker', ':a:worker', ':b:worker', ':root']
     }
 
     private def createExternalJar() {
@@ -90,6 +154,6 @@ try {
             package org.gradle.test;
             public class BuildClass { }
 '''
-        builder.buildJar(testFile("repo/test-1.3.jar"))
+        builder.buildJar(file("repo/test-1.3.jar"))
     }
 }

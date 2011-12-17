@@ -23,17 +23,18 @@ class Snarl implements Announcer {
     private static final String HEAD = "type=SNP#?version=" + SNP_VERSION
 
     public void send(String title, String message) {
-        send("localhost", title, message)
+        send(InetAddress.getByName(null), title, message)
     }
 
-    public void send(Collection hosts, String title, String message) {
-        hosts.each { host ->
-            send(host, title, message)
+    public void send(InetAddress host, String title, String message) {
+        Socket socket
+        try {
+            socket = new Socket(host, 9887)
+        } catch (ConnectException e) {
+            // Snarl is not running
+            throw new AnnouncerUnavailableException("Snarl is not running on host $host.", e)
         }
-    }
-
-    public void send(String host, String title, String message) {
-        with(new Socket(InetAddress.getByName(host), 9887)) { sock ->
+        with(socket) { sock ->
             with(new PrintWriter(sock.getOutputStream(), true)) { out ->
                 out.println(formatMessage(title, message))
             }

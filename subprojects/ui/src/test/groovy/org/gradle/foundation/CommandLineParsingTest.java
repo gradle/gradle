@@ -16,7 +16,7 @@
 package org.gradle.foundation;
 
 import junit.framework.TestCase;
-import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.logging.internal.LoggingCommandLineConverter;
 
 /**
  * This tests aspects of command line parsing that the UI does.
@@ -70,24 +70,24 @@ public class CommandLineParsingTest extends TestCase {
      */
     public void testOverridingStackTraceLevel() {
         //first try it with the stack trace level at the end
-        String commandLine = ":build:something -" + DefaultCommandLineConverter.FULL_STACKTRACE;
+        String commandLine = ":build:something -" + LoggingCommandLineConverter.FULL_STACKTRACE;
 
         CommandLineAssistant commandLineAssistant = new CommandLineAssistant();
         String[] arguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         assertTrue(commandLineAssistant.hasShowStacktraceDefined(arguments));
 
         //now try it with the stack trace level in the middle
-        commandLine = ":build:something -" + DefaultCommandLineConverter.FULL_STACKTRACE + " :clean";
+        commandLine = ":build:something -" + LoggingCommandLineConverter.FULL_STACKTRACE + " :clean";
         arguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         assertTrue(commandLineAssistant.hasShowStacktraceDefined(arguments));
 
         //now try it with the stack trace level at the beginning
-        commandLine = "-" + DefaultCommandLineConverter.FULL_STACKTRACE + " :clean";
+        commandLine = "-" + LoggingCommandLineConverter.FULL_STACKTRACE + " :clean";
         arguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         assertTrue(commandLineAssistant.hasShowStacktraceDefined(arguments));
 
         //now try it with a different stack trace level
-        commandLine = "-" + DefaultCommandLineConverter.STACKTRACE + " :clean";
+        commandLine = "-" + LoggingCommandLineConverter.STACKTRACE + " :clean";
         arguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         assertTrue(commandLineAssistant.hasShowStacktraceDefined(arguments));
 

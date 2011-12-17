@@ -26,10 +26,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import static org.gradle.util.GUtil.toSet;
 import static org.junit.Assert.*;
 
 /**
@@ -39,8 +39,10 @@ import static org.junit.Assert.*;
 public class BasePomFilterContainerTest {
     private static final String TEST_NAME = "testName";
     
+    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private BasePomFilterContainer pomFilterContainer;
-    protected Factory<MavenPom> mavenPomFactoryMock;
+    @SuppressWarnings("unchecked")
+    protected Factory<MavenPom> mavenPomFactoryMock = context.mock(Factory.class);
     protected MavenPom pomMock;
     protected PomFilter pomFilterMock;
     protected PublishFilter publishFilterMock;
@@ -50,12 +52,10 @@ public class BasePomFilterContainerTest {
         return new BasePomFilterContainer(mavenPomFactoryMock);
     }
 
-    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery();
 
     @Before
     public void setUp() {
         pomFilterMock = context.mock(PomFilter.class);
-        mavenPomFactoryMock = context.mock(Factory.class);
         pomMock = context.mock(MavenPom.class);
         publishFilterMock = context.mock(PublishFilter.class);
         context.checking(new Expectations() {
@@ -151,7 +151,7 @@ public class BasePomFilterContainerTest {
         String testName2 = "name2";
         pomFilterContainer.addFilter(testName1, filter1);
         pomFilterContainer.addFilter(testName2, filter2);
-        Set actualActiveFilters = getSetFromIterator(pomFilterContainer.getActivePomFilters());
+        Set<PomFilter> actualActiveFilters = toSet(pomFilterContainer.getActivePomFilters());
         assertEquals(2, actualActiveFilters.size());
         checkIfInSet(testName1, filter1, actualActiveFilters);
         checkIfInSet(testName2, filter2, actualActiveFilters);
@@ -165,15 +165,6 @@ public class BasePomFilterContainerTest {
         }
         fail("Not in Set");
     }
-
-    private Set getSetFromIterator(Iterable<PomFilter> pomFilterIterable) {
-        HashSet<PomFilter> filters = new HashSet<PomFilter>();
-        for (PomFilter pomFilter : pomFilterIterable) {
-            filters.add(pomFilter);
-        }
-        return filters;
-    }
-
 
     private boolean areEqualPomFilter(String expectedName, PublishFilter expectedPublishFilter, PomFilter pomFilter) {
         if (!expectedName.equals(pomFilter.getName())) {

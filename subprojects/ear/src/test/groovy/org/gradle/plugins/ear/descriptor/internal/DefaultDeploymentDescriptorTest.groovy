@@ -16,9 +16,9 @@
 
 package org.gradle.plugins.ear.descriptor.internal
 
+import javax.xml.parsers.DocumentBuilderFactory
 import spock.lang.Specification
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
-import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * @author: Szczepan Faber, created at: 6/3/11
@@ -99,7 +99,5 @@ class DefaultDeploymentDescriptorTest extends Specification {
   <data-source>my/data/source</data-source>
 </application>
 """)
-
-        //TODO SF make sure it is also able to parse such input (plus custom xml elements)
     }
 }

@@ -16,17 +16,16 @@
 
 package org.gradle.api.publication.maven.internal.ant
 
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.internal.file.DefaultTemporaryFileProvider
+import org.gradle.api.internal.file.FileSource
 import org.gradle.api.publication.maven.internal.model.DefaultMavenArtifact
-import org.gradle.api.publication.maven.internal.model.DefaultMavenAuthentication
 import org.gradle.api.publication.maven.internal.model.DefaultMavenPublication
-import org.gradle.api.publication.maven.internal.model.DefaultMavenRepository
 import org.gradle.util.Resources
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.internal.file.DefaultTemporaryFileProvider
-import org.gradle.api.internal.file.FileSource
 
 /**
  * @author: Szczepan Faber, created at: 5/12/11
@@ -67,9 +66,7 @@ class DefaultMavenPublisherTest extends Specification {
     }
 
     def "deploys artifact"() {
-        def fakeRemoteRepo = new DefaultMavenRepository(url: new File("$dir.testDir/remote-repository").toURI())
-        //auth is not used in fakeRemote repo but I wanted to stress the test a tiny bit:
-        fakeRemoteRepo.authentication = new DefaultMavenAuthentication(userName: 'szczepiq', password: 'secret')
+        def fakeRemoteRepo = repo(new File("$dir.testDir/remote-repository"))
 
         def publication = new DefaultMavenPublication(groupId: "gradleware.test", artifactId: "fooArtifact", version: "1.1")
         def artifact = new DefaultMavenArtifact(classifier: "", extension: "jar", file: sampleJar())
@@ -85,7 +82,7 @@ class DefaultMavenPublisherTest extends Specification {
     }
 
     def "deploys snapshot along with maven stuff"() {
-        def fakeRemoteRepo = new DefaultMavenRepository(url: new File("$dir.testDir/remote-repository").toURI())
+        def fakeRemoteRepo = repo(new File("$dir.testDir/remote-repository"))
 
         def publication = new DefaultMavenPublication(groupId: "gradleware.test", artifactId: "fooArtifact", version: "1.1-SNAPSHOT")
         def artifact = new DefaultMavenArtifact(classifier: "", extension: "jar", file: sampleJar())
@@ -106,7 +103,7 @@ class DefaultMavenPublisherTest extends Specification {
     }
 
     def "deploys artifact with classifier"() {
-        def fakeRemoteRepo = new DefaultMavenRepository(url: new File("$dir.testDir/remote-repository").toURI())
+        def fakeRemoteRepo = repo(new File("$dir.testDir/remote-repository"))
 
         def publication = new DefaultMavenPublication(groupId: "gradleware.test", artifactId: "fooArtifact", version: "1.1")
         def artifact = new DefaultMavenArtifact(classifier: "jdk15", extension: "jar", file: sampleJar())
@@ -122,7 +119,7 @@ class DefaultMavenPublisherTest extends Specification {
     }
 
     def "deals with multiple artifacts"() {
-        def fakeRemoteRepo = new DefaultMavenRepository(url: new File("$dir.testDir/remote-repository").toURI())
+        def fakeRemoteRepo = repo(new File("$dir.testDir/remote-repository"))
         def publication = new DefaultMavenPublication(groupId: "gradleware.test", artifactId: "fooArtifact", version: "1.1")
         def artifact = new DefaultMavenArtifact(classifier: "", extension: "jar", file: sampleJar())
         publication.mainArtifact = artifact
@@ -145,5 +142,11 @@ class DefaultMavenPublisherTest extends Specification {
 
     String dir() {
         return dir.testDir
+    }
+    
+    MavenArtifactRepository repo(File dir) {
+        MavenArtifactRepository repo = Mock()
+        _ * repo.url >> dir.toURI()
+        return repo
     }
 }

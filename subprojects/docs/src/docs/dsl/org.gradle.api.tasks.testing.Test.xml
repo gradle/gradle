@@ -100,6 +100,10 @@
                 <td>excludes</td>
                 <td>[]</td>
             </tr>
+            <tr>
+                <td>testLogging</td>
+                <td/>
+            </tr>
         </table>
     </section>
     <section>
@@ -115,6 +119,12 @@
             </tr>
             <tr>
                 <td>removeTestListener</td>
+            </tr>
+            <tr>
+                <td>addTestOutputListener</td>
+            </tr>
+            <tr>
+                <td>removeTestOutputListener</td>
             </tr>
             <tr>
                 <td>beforeSuite</td>
@@ -160,6 +170,12 @@
             </tr>
             <tr>
                 <td>copyTo</td>
+            </tr>
+            <tr>
+                <td>onOutput</td>
+            </tr>
+            <tr>
+                <td>testLogging</td>
             </tr>
         </table>
     </section>

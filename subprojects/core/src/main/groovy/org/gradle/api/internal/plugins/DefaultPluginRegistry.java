@@ -97,10 +97,15 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
 
         try {
-            implClass = classLoader.loadClass(implClassName).asSubclass(Plugin.class);
+            Class<?> rawClass = classLoader.loadClass(implClassName);
+            if (!Plugin.class.isAssignableFrom(rawClass)) {
+                throw new PluginInstantiationException(String.format("Implementation class '%s' specified for plugin '%s' does not implement the Plugin interface. Specified in %s.",
+                        implClassName, pluginId, resource));
+            }
+            implClass = rawClass.asSubclass(Plugin.class);
         } catch (ClassNotFoundException e) {
             throw new PluginInstantiationException(String.format(
-                    "Could not find implementation class '%s' for plugin '%s' specified in %s.", implClass, pluginId,
+                    "Could not find implementation class '%s' for plugin '%s' specified in %s.", implClassName, pluginId,
                     resource), e);
         }
 

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.resource;
 
 import java.io.File;
+import java.io.Serializable;
 import java.net.URI;
 
 /**
@@ -24,7 +25,7 @@ import java.net.URI;
  *
  * <p>Implementations are not required to be thread-safe.</p>
  */
-public interface Resource {
+public interface Resource extends Serializable {
     /**
      * Returns a display name for this resource. This can be used in log and error messages.
      *

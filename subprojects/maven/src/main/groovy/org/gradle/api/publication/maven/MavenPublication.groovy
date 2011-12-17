@@ -15,8 +15,10 @@
  */
 package org.gradle.api.publication.maven
 
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+
 interface MavenPublication {
-    MavenRepository getRepository()
+    MavenArtifactRepository getRepository()
     String getModelVersion()
     String getGroupId()
     String getArtifactId()

@@ -18,6 +18,7 @@ package org.gradle.logging.internal
 import org.gradle.api.logging.LogLevel
 import org.gradle.logging.LoggingConfiguration
 import spock.lang.Specification
+import org.gradle.logging.ShowStacktrace
 
 class LoggingCommandLineConverterTest extends Specification {
     final LoggingCommandLineConverter converter = new LoggingCommandLineConverter()
@@ -59,9 +60,26 @@ class LoggingCommandLineConverterTest extends Specification {
         checkConversion(['--no-color'])
     }
 
+    def convertsShowStacktrace() {
+        expectedConfig.showStacktrace = ShowStacktrace.ALWAYS;
+
+        expect:
+        checkConversion(['-s'])
+        checkConversion(['--stacktrace'])
+    }
+
+    def convertsShowFullStacktrace() {
+        expectedConfig.showStacktrace = ShowStacktrace.ALWAYS_FULL;
+
+        expect:
+        checkConversion(['-S'])
+        checkConversion(['--full-stacktrace'])
+    }
+
     void checkConversion(List<String> args) {
         def actual = converter.convert(args)
         assert actual.logLevel == expectedConfig.logLevel
         assert actual.colorOutput == expectedConfig.colorOutput
+        assert actual.showStacktrace == expectedConfig.showStacktrace
     }
 }

@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.HashSet;
 
 public class CommandLineOption {
-    private final Set<String> options = new HashSet();
+    private final Set<String> options = new HashSet<String>();
     private Class<?> argumentType = Void.TYPE;
     private String description;
     private String subcommand;

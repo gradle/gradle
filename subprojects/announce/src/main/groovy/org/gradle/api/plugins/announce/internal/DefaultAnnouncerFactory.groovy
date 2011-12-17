@@ -15,22 +15,37 @@
  */
 package org.gradle.api.plugins.announce.internal
 
-import org.gradle.api.plugins.announce.AnnouncePluginConvention
 import org.gradle.api.plugins.announce.Announcer
 import org.gradle.api.InvalidUserDataException
+import org.gradle.os.OperatingSystem
+import org.gradle.api.plugins.announce.AnnouncePluginExtension
+import org.gradle.util.Jvm
 
 /**
  * @author Hans Dockter
  */
 class DefaultAnnouncerFactory implements AnnouncerFactory {
-    private final AnnouncePluginConvention announcePluginConvention
+    private final AnnouncePluginExtension announcePluginConvention
 
     DefaultAnnouncerFactory(announcePluginConvention) {
         this.announcePluginConvention = announcePluginConvention
     }
 
     Announcer createAnnouncer(String type) {
+        def announcer = createActualAnnouncer(type)
+        return announcer ? new IgnoreUnavailableAnnouncer(announcer) : new UnknownAnnouncer()
+    }
+
+    private Announcer createActualAnnouncer(String type) {
         switch (type) {
+            case "local":
+                if (OperatingSystem.current().windows) {
+                    return createActualAnnouncer("snarl")
+                } else if (OperatingSystem.current().macOsX) {
+                    return createActualAnnouncer("growl")
+                } else {
+                    return createActualAnnouncer("notify-send")
+                }
             case "twitter":
                 String username = announcePluginConvention.username
                 String password = announcePluginConvention.password
@@ -40,9 +55,16 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
             case "snarl":
                 return new Snarl()
             case "growl":
-                return new Growl(announcePluginConvention.project)
+                if (Jvm.current().supportsAppleScript) {
+                    try {
+                        return getClass().getClassLoader().loadClass("org.gradle.api.plugins.announce.internal.AppleScriptBackedGrowlAnnouncer").newInstance()
+                    } catch (ClassNotFoundException e) {
+                        // Ignore and fall back to growl notify
+                    }
+                }
+                return new GrowlNotifyBackedAnnouncer(announcePluginConvention.project)
             default:
-                return new UnknownAnnouncer()
+                return null
         }
     }
 }

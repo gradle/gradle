@@ -1,1 +1,1 @@
-apply plugin: org.gradle.samples.ProductModulePlugin
+apply plugin: 'product-module'

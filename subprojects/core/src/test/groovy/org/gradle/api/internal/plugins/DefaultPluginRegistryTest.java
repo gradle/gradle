@@ -23,13 +23,13 @@ import org.gradle.api.internal.project.TestPlugin2;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.util.GUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +41,8 @@ import java.net.URL;
 import java.util.Properties;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * @author Hans Dockter
@@ -50,9 +51,7 @@ import static org.junit.Assert.*;
 public class DefaultPluginRegistryTest {
     private String pluginId = "test";
     private DefaultPluginRegistry pluginRegistry;
-    private JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
     @Rule
     public TemporaryFolder testDir = new TemporaryFolder();
     private ClassLoader classLoader;
@@ -133,6 +132,29 @@ public class DefaultPluginRegistryTest {
     }
 
     @Test
+    public void failsWhenImplementationClassSpecifiedInPropertiesFileDoesNotImplementPlugin() throws MalformedURLException, ClassNotFoundException {
+        Properties properties = new Properties();
+        final TestFile propertiesFile = testDir.file("prop");
+        properties.setProperty("implementation-class", String.class.getName());
+        GUtil.saveProperties(properties, propertiesFile);
+        final URL url = propertiesFile.toURI().toURL();
+
+        context.checking(new Expectations() {{
+            allowing(classLoader).getResource("META-INF/gradle-plugins/brokenImpl.properties");
+            will(returnValue(url));
+            allowing(classLoader).loadClass("java.lang.String");
+            will(returnValue(String.class));
+        }});
+
+        try {
+            pluginRegistry.getTypeForId("brokenImpl");
+            fail();
+        } catch (PluginInstantiationException e) {
+            assertThat(e.getMessage(), equalTo("Implementation class 'java.lang.String' specified for plugin 'brokenImpl' does not implement the Plugin interface. Specified in " + url + "."));
+        }
+    }
+
+    @Test
     public void wrapsPluginInstantiationFailure() {
         try {
             pluginRegistry.loadPlugin(BrokenPlugin.class);
@@ -140,6 +162,19 @@ public class DefaultPluginRegistryTest {
         } catch (PluginInstantiationException e) {
             assertThat(e.getMessage(), equalTo("Could not create plugin of type 'BrokenPlugin'."));
             assertThat(e.getCause(), Matchers.<Object>nullValue());
+        }
+    }
+
+    @Test
+    public void wrapsFailureToLoadImplementationClass() throws ClassNotFoundException {
+        expectClassesNotFound(classLoader);
+
+        try {
+            pluginRegistry.getTypeForId(pluginId);
+            fail();
+        } catch (PluginInstantiationException e) {
+            assertThat(e.getMessage(), startsWith("Could not find implementation class '" + TestPlugin1.class.getName() + "' for plugin 'test' specified in "));
+            assertThat(e.getCause(), instanceOf(ClassNotFoundException.class));
         }
     }
 

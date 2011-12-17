@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.logging.StandardOutputRedirector;
 
 /**
@@ -27,7 +28,7 @@ import org.gradle.logging.StandardOutputRedirector;
 public class CaptureTestOutputTestResultProcessor implements TestResultProcessor {
     private final TestResultProcessor processor;
     private final StandardOutputRedirector outputRedirector;
-    private Object suite;
+    private Object suiteId;
 
     public CaptureTestOutputTestResultProcessor(TestResultProcessor processor, StandardOutputRedirector outputRedirector) {
         this.processor = processor;
@@ -36,32 +37,37 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
 
     public void started(final TestDescriptorInternal test, TestStartEvent event) {
         processor.started(test, event);
-        if (suite != null) {
+
+        //should redirect output for every particular test
+        redirectOutputFor(test.getId());
+
+        //currently our test reports include std out/err per test class (aka suite) not per test method (aka test)
+        //for historical reasons. Therefore we only start/stop redirector per suite.
+        if (suiteId != null) {
             return;
         }
-        suite = test.getId();
-        outputRedirector.redirectStandardOutputTo(new StandardOutputListener() {
-            public void onOutput(CharSequence output) {
-                processor.output(suite, new TestOutputEvent(TestOutputEvent.Destination.StdOut, output.toString()));
-            }
-        });
-        outputRedirector.redirectStandardErrorTo(new StandardOutputListener() {
-            public void onOutput(CharSequence output) {
-                processor.output(suite, new TestOutputEvent(TestOutputEvent.Destination.StdErr, output.toString()));
-            }
-        });
+        suiteId = test.getId();
         outputRedirector.start();
     }
 
     public void completed(Object testId, TestCompleteEvent event) {
-        if (testId.equals(suite)) {
+        if (testId.equals(suiteId)) {
+            //when suite is completed we no longer redirect for this suite
             try {
                 outputRedirector.stop();
             } finally {
-                suite = null;
+                suiteId = null;
             }
+        } else {
+            //when test is completed, should redirect output for the 'suite' to log things like @AfterSuite, etc.
+            redirectOutputFor(suiteId);
         }
         processor.completed(testId, event);
+    }
+
+    private void redirectOutputFor(final Object testId) {
+        outputRedirector.redirectStandardOutputTo(new StdOutForwarder(testId));
+        outputRedirector.redirectStandardErrorTo(new StdErrForwarder(testId));
     }
 
     public void output(Object testId, TestOutputEvent event) {
@@ -70,5 +76,30 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
 
     public void failure(Object testId, Throwable result) {
         processor.failure(testId, result);
+    }
+
+
+    class StdOutForwarder implements StandardOutputListener {
+        private final Object testId;
+
+        public StdOutForwarder(Object testId) {
+            this.testId = testId;
+        }
+
+        public void onOutput(CharSequence output) {
+            processor.output(testId, new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, output.toString()));
+        }
+    }
+
+    class StdErrForwarder implements StandardOutputListener {
+        private final Object testId;
+
+        public StdErrForwarder(Object testId) {
+            this.testId = testId;
+        }
+
+        public void onOutput(CharSequence output) {
+            processor.output(testId, new DefaultTestOutputEvent(TestOutputEvent.Destination.StdErr, output.toString()));
+        }
     }
 }

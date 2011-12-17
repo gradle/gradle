@@ -19,23 +19,25 @@ package org.gradle.plugins.ear
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.WarPlugin
 import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test
 import static org.gradle.util.Matchers.dependsOn
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 /**
  * @author David Gileadi
  */
 class EarPluginTest {
-    private Project project
+    private ProjectInternal project
     private EarPlugin earPlugin
     private static final String TEST_APP_XML = toPlatformLineSeparators('<?xml version="1.0" encoding="UTF-8"?>\n' +
         '<application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:application="http://java.sun.com/xml/ns/javaee/application_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_5.xsd" version="5">\n' +
@@ -98,7 +100,7 @@ class EarPluginTest {
         assertThat(task.destinationDir, equalTo(project.libsDir))
 
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
-        assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME, EarPlugin.EAR_TASK_NAME))
+        assertThat(task, dependsOn(EarPlugin.EAR_TASK_NAME))
     }
 
     @Test public void dependsOnEarlibConfig() {
@@ -121,8 +123,6 @@ class EarPluginTest {
 
         def task = project.task(type: Ear, 'customEar')
         assertThat(task.destinationDir, equalTo(project.libsDir))
-
-        assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn(EarPlugin.EAR_TASK_NAME, 'customEar'))
     }
 
     @Test public void appliesMappingsToArchiveTasksForJavaProject() {
@@ -134,12 +134,29 @@ class EarPluginTest {
         }
         assertThat(task.destinationDir, equalTo(project.libsDir))
 
-        assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn(JavaPlugin.JAR_TASK_NAME, EarPlugin.EAR_TASK_NAME, 'customEar'))
         assertThat(task, dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME)))
     }
 
-    @Test public void addsDefaultEarToArchiveConfiguration() {
+    @Test public void addsEarAsPublication() {
         earPlugin.apply(project)
+
+        Configuration archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
+        assertThat(archiveConfiguration.getAllArtifacts().size(), equalTo(1));
+        assertThat(archiveConfiguration.getAllArtifacts().iterator().next().getType(), equalTo("ear"));
+    }
+
+    @Test public void replacesWarAsPublication() {
+        earPlugin.apply(project)
+        new WarPlugin().apply(project)
+
+        Configuration archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
+        assertThat(archiveConfiguration.getAllArtifacts().size(), equalTo(1));
+        assertThat(archiveConfiguration.getAllArtifacts().iterator().next().getType(), equalTo("ear"));
+    }
+
+    @Test public void replacesJarAsPublication() {
+        earPlugin.apply(project)
+        new JavaPlugin().apply(project)
 
         Configuration archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
         assertThat(archiveConfiguration.getAllArtifacts().size(), equalTo(1));

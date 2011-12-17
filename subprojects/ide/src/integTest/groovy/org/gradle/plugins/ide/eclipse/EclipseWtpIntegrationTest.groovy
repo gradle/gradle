@@ -106,8 +106,8 @@ dependencies {
 
     private prepareWebProject() {
         def repoDir = file("repo")
-        publishArtifact(repoDir, "mygroup", "myartifact", "myartifactdep")
-        publishArtifact(repoDir, "mygroup", "myartifactdep")
+        maven(repoDir).module("mygroup", "myartifact").dependsOn("myartifactdep").publish()
+        maven(repoDir).module("mygroup", "myartifactdep").publish()
 
         def settingsFile = file("settings.gradle")
         settingsFile << """

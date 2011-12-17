@@ -18,8 +18,6 @@ package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.*;
-import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
@@ -122,12 +120,6 @@ public class TopLevelBuildServiceRegistryTest {
     }
 
     @Test
-    public void providesAPublishArtifactFactory() {
-        assertThat(registry.get(PublishArtifactFactory.class), instanceOf(DefaultPublishArtifactFactory.class));
-        assertThat(registry.get(PublishArtifactFactory.class), sameInstance(registry.get(PublishArtifactFactory.class)));
-    }
-
-    @Test
     public void providesAScriptCompilerFactory() {
         expectListenerManagerCreated();
         assertThat(registry.get(ScriptCompilerFactory.class), instanceOf(DefaultScriptCompilerFactory.class));
@@ -151,6 +143,7 @@ public class TopLevelBuildServiceRegistryTest {
         allowGetCoreImplClassLoader();
         expectScriptClassLoaderCreated();
         expectListenerManagerCreated();
+        allowGetGradleDistributionLocator();
 
         assertThat(registry.get(InitScriptHandler.class), instanceOf(InitScriptHandler.class));
         assertThat(registry.get(InitScriptHandler.class), sameInstance(registry.get(InitScriptHandler.class)));
@@ -269,6 +262,13 @@ public class TopLevelBuildServiceRegistryTest {
             allowing(classLoaderRegistry).getCoreImplClassLoader();
             will(returnValue(new ClassLoader() {
             }));
+        }});
+    }
+
+    private void allowGetGradleDistributionLocator() {
+        context.checking(new Expectations() {{
+            allowing(parent).get(GradleDistributionLocator.class);
+            will(returnValue(context.mock(GradleDistributionLocator.class)));
         }});
     }
 

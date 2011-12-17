@@ -15,23 +15,24 @@
  */
 package org.gradle
 
-import org.gradle.StartParameter.ShowStacktrace
 import org.gradle.api.GradleException
 import org.gradle.api.LocationAwareException
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.TaskSelectionException
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.BuildClientMetaData
+import org.gradle.logging.LoggingConfiguration
+import org.gradle.logging.ShowStacktrace
 import org.gradle.logging.StyledTextOutputFactory
 import org.gradle.logging.internal.TestStyledTextOutput
 import spock.lang.Specification
-import org.gradle.groovy.scripts.ScriptSource
 
 class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()
     final StyledTextOutputFactory factory = Mock()
     final BuildClientMetaData clientMetaData = Mock()
-    final StartParameter startParameter = new StartParameter()
-    final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, startParameter, clientMetaData)
+    final LoggingConfiguration configuration = new LoggingConfiguration()
+    final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, configuration, clientMetaData)
 
     def setup() {
         factory.create(BuildExceptionReporter.class, LogLevel.ERROR) >> output
@@ -158,7 +159,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
     }
 
     def showsStacktraceOfCauseOfLocationAwareException() {
-        startParameter.showStacktrace = ShowStacktrace.ALWAYS
+        configuration.showStacktrace = ShowStacktrace.ALWAYS
 
         Throwable exception = exception("<location>", "<message>", new GradleException('<failure>'))
 
@@ -200,7 +201,7 @@ Run {userinput}[gradle tasks]{normal} to get a list of available tasks.
     }
 
     def reportsBuildFailureWhenShowStacktraceEnabled() {
-        startParameter.showStacktrace = ShowStacktrace.ALWAYS
+        configuration.showStacktrace = ShowStacktrace.ALWAYS
 
         GradleException exception = new GradleException('<message>')
 
@@ -222,7 +223,7 @@ org.gradle.api.GradleException: <message>
     }
 
     def reportsBuildFailureWhenShowFullStacktraceEnabled() {
-        startParameter.showStacktrace = ShowStacktrace.ALWAYS_FULL
+        configuration.showStacktrace = ShowStacktrace.ALWAYS_FULL
 
         GradleException exception = new GradleException('<message>')
 
@@ -244,7 +245,7 @@ org.gradle.api.GradleException: <message>
     }
 
     def reportsBuildFailureWhenDebugLoggingEnabled() {
-        startParameter.logLevel = LogLevel.DEBUG
+        configuration.logLevel = LogLevel.DEBUG
 
         GradleException exception = new GradleException('<message>')
 

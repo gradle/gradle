@@ -46,7 +46,7 @@ class ApplicationPluginConvention {
      * }
      * </pre>
      * <p>
-     * Note that the application plugin pre configures this spec to; include the contents of "{@code src/dir}",
+     * Note that the application plugin pre configures this spec to; include the contents of "{@code src/dist}",
      * copy the application start scripts into the "{@code bin}" directory, and copy the built jar and its dependencies
      * into the "{@code lib}" directory.
      */

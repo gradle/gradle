@@ -1,10 +1,6 @@
-
-configurations {
-    getByName('default').extendsFrom(compile)
-}
-
 dependencies {
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+    "default" configurations.runtime
 }
 
 task jar(type: Jar) {
@@ -12,6 +8,5 @@ task jar(type: Jar) {
 }
 
 artifacts {
-    archives jar
+    runtime jar
 }
-

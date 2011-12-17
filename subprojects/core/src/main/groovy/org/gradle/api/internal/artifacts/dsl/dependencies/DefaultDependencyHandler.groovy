@@ -53,6 +53,15 @@ class DefaultDependencyHandler implements DependencyHandler {
     }
 
     private Dependency doAdd(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
+        if (dependencyNotation instanceof Configuration) {
+            Configuration other = (Configuration) dependencyNotation;
+            if (!configurationContainer.contains(other)) {
+                throw new UnsupportedOperationException("Currently you can only declare dependencies on configurations from the same project.")
+            }
+            configuration.extendsFrom(other)
+            return
+        }
+
         def dependency = create(dependencyNotation, configureClosure)
         configuration.dependencies << dependency
         dependency
@@ -86,7 +95,7 @@ class DefaultDependencyHandler implements DependencyHandler {
             }
         }
 
-        Object[] normalizedArgs = GUtil.flatten(args as List, false)
+        Object[] normalizedArgs = GUtil.collectionize(args)
         if (normalizedArgs.length == 2 && normalizedArgs[1] instanceof Closure) {
             return doAdd(configuration, normalizedArgs[0], (Closure) normalizedArgs[1])
         } else if (normalizedArgs.length == 1) {

@@ -22,10 +22,10 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
-import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -58,6 +58,7 @@ public class DefaultConfigurationTest {
     private ConfigurationsProvider configurationContainer;
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
+    private DefaultResolutionStrategy resolutionStrategy = new DefaultResolutionStrategy();
     private DefaultConfiguration configuration;
 
     @Before
@@ -253,13 +254,13 @@ public class DefaultConfigurationTest {
     }
 
 
-    @SuppressWarnings("unchecked")
     @Test
     public void fileCollectionWithSpec() {
+        @SuppressWarnings("unchecked")
         Spec<Dependency> spec = context.mock(Spec.class);
         DefaultConfiguration.ConfigurationFileCollection fileCollection = (DefaultConfiguration.ConfigurationFileCollection)
                 configuration.fileCollection(spec);
-        assertThat(fileCollection.getDependencySpec(), sameInstance(spec));
+        assertThat(fileCollection.getDependencySpec(), sameInstance((Object)spec));
     }
 
     @Test
@@ -307,7 +308,6 @@ public class DefaultConfigurationTest {
         }});
     }
 
-    @SuppressWarnings("unchecked")
     private void makeResolveReturnFileSet(final Set<File> fileSet) {
         final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
         context.checking(new Expectations() {{
@@ -346,11 +346,11 @@ public class DefaultConfigurationTest {
     }
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
-        return new DefaultConfiguration(confName, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider);
+        return new DefaultConfiguration(confName, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategy);
     }
     
     private DefaultConfiguration createNamedConfiguration(String path, String confName) {
-        return new DefaultConfiguration(path, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider);
+        return new DefaultConfiguration(path, confName, configurationContainer, dependencyResolver, listenerManager, metaDataProvider, resolutionStrategy);
     }
 
     @SuppressWarnings("unchecked")
@@ -360,11 +360,10 @@ public class DefaultConfigurationTest {
         final Task artifactTaskMock = context.mock(Task.class, "artifactTask");
         final Configuration otherConfiguration = context.mock(Configuration.class);
         final TaskDependency otherArtifactTaskDependencyMock = context.mock(TaskDependency.class, "otherConfTaskDep");
-        final TaskDependency artifactTaskDependencyMock = context.mock(TaskDependency.class, "artifactTaskDep");
         final PublishArtifact otherArtifact = context.mock(PublishArtifact.class, "otherArtifact");
         final PublishArtifactSet inheritedArtifacts = new DefaultPublishArtifactSet("artifacts", toDomainObjectSet(PublishArtifact.class, otherArtifact));
         DefaultPublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
-        artifact.setTaskDependency(artifactTaskDependencyMock);
+        artifact.builtBy(artifactTaskMock);
         configuration.addArtifact(artifact);
 
         context.checking(new Expectations() {{
@@ -381,9 +380,6 @@ public class DefaultConfigurationTest {
             
             allowing(otherArtifactTaskDependencyMock).getDependencies(with(any(Task.class)));
             will(returnValue(toSet(otherConfTaskMock)));
-
-            allowing(artifactTaskDependencyMock).getDependencies(with(any(Task.class)));
-            will(returnValue(toSet(artifactTaskMock)));
         }});
         configuration.setExtendsFrom(toSet(otherConfiguration));
         assertThat((Set<Task>) configuration.getBuildArtifacts().getDependencies(context.mock(Task.class, "caller")),

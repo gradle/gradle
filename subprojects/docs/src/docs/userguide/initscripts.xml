@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='init_scripts' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='init_scripts'>
     <title>Initialization Scripts</title>
     <para>Gradle provides a powerful mechanism to allow customizing the build based on the current environment.  This
         mechanism also supports tools that wish to integrate with Gradle.
@@ -24,12 +24,15 @@
             These scripts, however, are run before the build starts.  Here are several possible uses:
             <itemizedlist>
                 <listitem>
-                    <para>Set up properties based on the current environment (such as a developer's machine vs. a
-                        continuous integration server).
+                    <para>Set up enterprise-wide configuration, such as where to find custom plugins.</para>
+                </listitem>
+                <listitem>
+                    <para>Set up properties based on the current environment, such as a developer's machine vs. a
+                        continuous integration server.
                     </para>
                 </listitem>
                 <listitem>
-                    <para>Supply personal information about the user to the build, such as repository or database
+                    <para>Supply personal information about the user that is required by the build, such as repository or database
                         authentication credentials.
                     </para>
                 </listitem>
@@ -50,33 +53,57 @@
             One main limitation of init scripts is that they cannot access classes in the buildSrc project (see
             <xref linkend='sec:build_sources'/> for details of this feature).
         </para>
-        <para>There are two ways to use init scripts.  Either put a file called <filename>init.gradle</filename> in
-            <filename><replaceable>USER_HOME</replaceable>/.gradle</filename>,
-            or specify the file on the command line.  The command line option is <option>-I</option> or
-            <option>--init-script</option> followed by the path to the script.  The command line option can appear
-            more than once, each time adding another init script. If more than one init script is found they will all be
-            executed. This allows for a tool to specify an init script and the user to put home in their home directory
-            for defining the environment and both scripts will run when gradle is executed.
+    </section>
+    <section>
+        <title>Using an init script</title>
+        <para>There are several ways to use an init script:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>Specify a file on the command line.  The command line option is <option>-I</option> or <option>--init-script</option> followed
+                    by the path to the script.  The command line option can appear more than once, each time adding another init script.</para>
+            </listitem>
+            <listitem>
+                <para>Put a file called <filename>init.gradle</filename> in the <filename><replaceable>USER_HOME</replaceable>/.gradle/</filename> directory.</para>
+            </listitem>
+            <listitem>
+                <para>Put a file that ends with <filename>.gradle</filename> in the <filename><replaceable>USER_HOME</replaceable>/.gradle/init.d/</filename> directory.</para>
+            </listitem>
+            <listitem>
+                <para>Put a file that ends with <filename>.gradle</filename> in the <filename><replaceable>GRADLE_HOME</replaceable>/init.d/</filename>
+                    directory, in the Gradle distribution. This allows you to package up a custom Gradle distribution containing some custom build logic and plugins. You can
+                    combine this with the <link linkend="gradle_wrapper">Gradle wrapper</link> as a way to make custom logic available to all builds
+                    in your enterprise.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>
+            If more than one init script is found they will all be executed, in the order specified above. Scripts in a given directory are executed
+            in alphabetical order.
+            This allows, for example, a tool to specify an init script on the command line and the user to put one in their home directory for defining
+            the environment and both scripts will run when gradle is executed.
         </para>
     </section>
     <section>
         <title>Writing an init script</title>
-        <para>
-            <para>Similar to a Gradle build script, an init script is a groovy script. Each init script has a
-                <apilink class="org.gradle.api.invocation.Gradle"/> instance associated with it. Any property reference
-                and method call in the init script will delegate to this <classname>Gradle</classname> instance.
+        <para>Similar to a Gradle build script, an init script is a groovy script. Each init script has a
+            <apilink class="org.gradle.api.invocation.Gradle"/> instance associated with it. Any property reference
+            and method call in the init script will delegate to this <classname>Gradle</classname> instance.
+        </para>
+        <para>Each init script also implements the <apilink class="org.gradle.api.Script"/> interface.</para>
+        <section>
+            <title>Configuring projects from an init script</title>
+            <para>You can use an init script to configure the projects in the build. This works in a similar way to configuring projects in a
+                multi-project build.
+                The following sample shows how to perform extra configuration from an init script <emphasis>before</emphasis> the projects are evaluated.
+                This sample uses this feature to configure an extra repository to be used only for certain environments.
             </para>
-            <para>Each init script also implements the <apilink class="org.gradle.api.Script"/> interface.</para>
-            <para>Below sample shows how to perform extra configuration from an init script after the project is evaluated.
-                One of the teams was using this feature to configure a certain repository only for their local environments.
-                They didn't want to check-in this repository configuration into the VCS so they kept it configured in an init script.
-            </para>
-            <sample id="afterEvaluateInInitScript" dir="userguide/initScripts/afterEvaluate" title="Using init script to perform extra configuration after project is evaluated">
+            <sample id="initScriptConfiguration" dir="userguide/initScripts/configurationInjection" title="Using init script to perform extra configuration before projects are evaluated">
                 <sourcefile file="build.gradle"/>
                 <sourcefile file="init.gradle"/>
                 <output args="--init-script init.gradle -q showRepos"/>
             </sample>
-        </para>
+        </section>
     </section>
     <section id='sec:custom_classpath'>
         <title>External dependencies for the init script</title>

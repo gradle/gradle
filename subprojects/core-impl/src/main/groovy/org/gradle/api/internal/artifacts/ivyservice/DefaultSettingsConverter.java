@@ -16,17 +16,19 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.repository.Repository;
-import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.*;
+import org.apache.ivy.util.Message;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
-import org.gradle.logging.ProgressLogger;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore;
+import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
+import org.gradle.api.internal.artifacts.repositories.ProgressLoggingTransferListener;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
@@ -37,35 +39,28 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class DefaultSettingsConverter implements SettingsConverter {
-    private final ProgressLoggerFactory progressLoggerFactory;
+    static final String LOOPBACK_RESOLVER_NAME = "main";
     private final Factory<IvySettings> settingsFactory;
     private final Map<String, DependencyResolver> resolversById = new HashMap<String, DependencyResolver>();
-    private final TransferListener transferListener = new ProgressLoggingTransferListener();
+    private final TransferListener transferListener;
+    private final ModuleResolutionCache moduleResolutionCache;
+    private final ModuleDescriptorCache moduleDescriptorCache;
+    private final ArtifactFileStore artifactFileStore;
+    private final CacheLockingManager cacheLockingManager;
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
-    private ChainResolver userResolverChain;
-    private DependencyResolver outerChain;
+    private UserResolverChain userResolverChain;
 
-    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory) {
-        this.progressLoggerFactory = progressLoggerFactory;
+    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory,
+                                    ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache, ArtifactFileStore artifactFileStore,
+                                    CacheLockingManager cacheLockingManager) {
         this.settingsFactory = settingsFactory;
-    }
-
-    private static String getLengthText(TransferEvent evt) {
-        return getLengthText(evt.isTotalLengthSet() ? evt.getTotalLength() : null);
-    }
-
-    private static String getLengthText(Long bytes) {
-        if (bytes == null) {
-            return "unknown size";
-        }
-        if (bytes < 1024) {
-            return bytes + " B";
-        } else if (bytes < 1048576) {
-            return (bytes / 1024) + " KB";
-        } else {
-            return String.format("%.2f MB", bytes / 1048576.0);
-        }
+        this.moduleResolutionCache = moduleResolutionCache;
+        this.moduleDescriptorCache = moduleDescriptorCache;
+        this.artifactFileStore = artifactFileStore;
+        this.cacheLockingManager = cacheLockingManager;
+        Message.setDefaultLogger(new IvyLoggingAdaper());
+        transferListener = new ProgressLoggingTransferListener(progressLoggerFactory, DefaultSettingsConverter.class);
     }
 
     public IvySettings convertForPublish(List<DependencyResolver> publishResolvers) {
@@ -78,37 +73,25 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return publishSettings;
     }
 
-    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, Map<String, ModuleDescriptor> clientModuleRegistry) {
+    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, ResolutionStrategyInternal resolutionStrategy) {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
             userResolverChain = createUserResolverChain();
-            DependencyResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
-            outerChain = createOuterChain(WrapUtil.toLinkedSet(clientModuleResolver, userResolverChain));
-            initializeResolvers(resolveSettings, WrapUtil.toList(userResolverChain, clientModuleResolver, outerChain));
+            resolveSettings.addResolver(userResolverChain);
+            LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(LOOPBACK_RESOLVER_NAME, userResolverChain, cacheLockingManager);
+            resolveSettings.addResolver(loopbackDependencyResolver);
+            resolveSettings.setDefaultResolver(LOOPBACK_RESOLVER_NAME);
         }
+
+        moduleDescriptorCache.setSettings(resolveSettings);
+        userResolverChain.setCachePolicy(resolutionStrategy.getCachePolicy());
         replaceResolvers(dependencyResolvers, userResolverChain);
-        resolveSettings.setDefaultResolver(outerChain.getName());
         return resolveSettings;
     }
 
-    private DependencyResolver createOuterChain(Collection<DependencyResolver> resolvers) {
-        ChainResolver clientModuleChain = new ChainResolver();
-        clientModuleChain.setName(CLIENT_MODULE_CHAIN_NAME);
-        clientModuleChain.setReturnFirst(true);
-        clientModuleChain.setRepositoryCacheManager(new NoOpRepositoryCacheManager(clientModuleChain.getName()));
-        for (DependencyResolver resolver : resolvers) {
-            clientModuleChain.add(resolver);
-        }
-        return clientModuleChain;
-    }
-
-    private DependencyResolver createClientModuleResolver(Map<String, ModuleDescriptor> clientModuleRegistry, DependencyResolver userResolverChain) {
-        return new ClientModuleResolver(CLIENT_MODULE_NAME, clientModuleRegistry, userResolverChain);
-    }
-
-    private ChainResolver createUserResolverChain() {
-        ChainResolver chainResolver = new ChainResolver();
-        chainResolver.setName(CHAIN_RESOLVER_NAME);
+    private UserResolverChain createUserResolverChain() {
+        UserResolverChain chainResolver = new UserResolverChain(moduleResolutionCache, moduleDescriptorCache, artifactFileStore);
+        chainResolver.setName(USER_RESOLVER_CHAIN_NAME);
         chainResolver.setReturnFirst(true);
         chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));
         return chainResolver;
@@ -122,30 +105,25 @@ public class DefaultSettingsConverter implements SettingsConverter {
         }
         for (DependencyResolver resolver : resolvers) {
             resolver.setSettings(resolveSettings);
-            DependencyResolver sharedResolver;
-            if (resolver instanceof InternalRepository) {
-                sharedResolver = resolver;
-            } else {
-                String id = new WharfResolverMetadata(resolver).getId();
-                sharedResolver = resolversById.get(id);
-                if (sharedResolver == null) {
-                    initializeResolvers(resolveSettings, WrapUtil.toList(resolver));
-                    assert resolveSettings.getResolver(resolver.getName()) == resolver;
-                    resolversById.put(id, resolver);
-                    sharedResolver = resolver;
-                }
+            String resolverId = new WharfResolverMetadata(resolver).getId();
+            DependencyResolver sharedResolver = resolversById.get(resolverId);
+            if (sharedResolver == null) {
+                initializeResolvers(resolveSettings, WrapUtil.toList(resolver));
+                sharedResolver = new DependencyResolverAdapter(resolverId, resolver, cacheLockingManager);
+                resolversById.put(resolverId, sharedResolver);
             }
             resolveSettings.addResolver(sharedResolver);
+            assert resolveSettings.getResolver(resolver.getName()) == sharedResolver;
             chainResolver.add(sharedResolver);
         }
     }
 
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
         for (DependencyResolver dependencyResolver : allResolvers) {
-            ivySettings.addResolver(dependencyResolver);
-            RepositoryCacheManager cacheManager = dependencyResolver.getRepositoryCacheManager();
+            dependencyResolver.setSettings(ivySettings);
+            RepositoryCacheManager existingCacheManager = dependencyResolver.getRepositoryCacheManager();
             // Ensure that each resolver is sharing the same cache instance (ignoring caches which don't actually cache anything)
-            if (!(cacheManager instanceof NoOpRepositoryCacheManager) && !(cacheManager instanceof LocalFileRepositoryCacheManager)) {
+            if (!(existingCacheManager instanceof NoOpRepositoryCacheManager) && !(existingCacheManager instanceof LocalFileRepositoryCacheManager)) {
                 ((AbstractResolver) dependencyResolver).setRepositoryCacheManager(ivySettings.getDefaultRepositoryCacheManager());
             }
             attachListener(dependencyResolver);
@@ -173,37 +151,4 @@ public class DefaultSettingsConverter implements SettingsConverter {
         }
     }
 
-    private class ProgressLoggingTransferListener implements TransferListener {
-        private ProgressLogger logger;
-        private long total;
-
-        public void transferProgress(TransferEvent evt) {
-            if (evt.getResource().isLocal()) {
-                return;
-            }
-            if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
-                total = 0;
-                logger = progressLoggerFactory.newOperation(DefaultSettingsConverter.class);
-                String description = String.format("%s %s", StringUtils.capitalize(getRequestType(evt)), evt.getResource().getName());
-                logger.setDescription(description);
-                logger.setLoggingHeader(description);
-                logger.started();
-            }
-            if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
-                total += evt.getLength();
-                logger.progress(String.format("%s/%s %sed", getLengthText(total), getLengthText(evt), getRequestType(evt)));
-            }
-            if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED) {
-                logger.completed();
-            }
-        }
-
-        private String getRequestType(TransferEvent evt) {
-            if (evt.getRequestType() == TransferEvent.REQUEST_PUT) {
-                return "upload";
-            } else {
-                return "download";
-            }
-        }
-    }
 }

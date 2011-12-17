@@ -15,17 +15,23 @@
  */
 package org.gradle.integtests.openapi;
 
-
 import java.awt.Font
 import java.util.concurrent.TimeUnit
 import javax.swing.UIManager
+
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.openapi.external.ui.OutputUILordVersion1
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1
+import org.gradle.util.TestPrecondition
+import org.gradle.util.Requires
+import org.gradle.util.PreconditionVerifier
+
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import org.junit.ClassRule
+
 import static org.hamcrest.Matchers.startsWith
 
 /**
@@ -33,95 +39,90 @@ import static org.hamcrest.Matchers.startsWith
  *
  * @author mhunsicker
  */
-public class OutputUILordTest  {
-  @Rule public final GradleDistribution dist = new GradleDistribution()
-  @Rule public final OpenApiFixture openApi = new OpenApiFixture()
-  @Rule public final TestResources resources = new TestResources('testProject')
+@Requires(TestPrecondition.SWING)
+class OutputUILordTest {
+    @Rule public GradleDistribution dist = new GradleDistribution()
+    @Rule public OpenApiFixture openApi = new OpenApiFixture()
+    @Rule public TestResources resources = new TestResources('testProject')
+    @ClassRule public static PreconditionVerifier verifier = new PreconditionVerifier()
 
-  /**
-  * This verifies that you can add file extension to the output lord. This is for
-  * highlighting file links in the output. Here, we're just interested in whether
-  * or not the functions work via/exists in the Open API. The actual functionality
-  * is tested elsewhere.
-  */
-  @Test
-  public void testAddingFileExtension()
-  {
-    SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
-    OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
+    /**
+     * This verifies that you can add file extension to the output lord. This is for
+     * highlighting file links in the output. Here, we're just interested in whether
+     * or not the functions work via/exists in the Open API. The actual functionality
+     * is tested elsewhere.
+     */
+    @Test
+    void testAddingFileExtension() {
+        SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
+        OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
 
-    outputUILord.addFileExtension( '.txt', ':' )
-    List extensions = outputUILord.getFileExtensions()
-    Assert.assertTrue( extensions.contains( '.txt' ) )
-  }
-
-  /**
-  * This verifies that you can add prefixed file extensions to the output lord. This
-  * is for highlighting file links in the output. Here, we're just interested in whether
-  * or not the functions work via/exists in the Open API. The actual functionality is tested elsewhere.
-  */
-  @Test
-  public void testAddingPrefixedFileLink()
-  {
-    SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
-    OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
-
-    outputUILord.addPrefixedFileLink( "Error Text", "The error is:", ".txt", ":" )
-  }
-
-  /**
-  * This tests setting the font. There's not much here to do other than set it and then
-  * get it, making sure its the same. This isn't worried so much about the font itself as
-  * much as the open API doesn't have a problem with setting the font.
-  */
-  @Test
-  public void testFont()
-  {
-    if ( java.awt.GraphicsEnvironment.isHeadless() ) {
-       return;  // Can't run this test in headless mode!
+        outputUILord.addFileExtension('.txt', ':')
+        List extensions = outputUILord.getFileExtensions()
+        Assert.assertTrue(extensions.contains('.txt'))
     }
 
-    SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
-    OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
-    Font font = UIManager.getFont( "Button.font" )  //this specific font is not important
+    /**
+     * This verifies that you can add prefixed file extensions to the output lord. This
+     * is for highlighting file links in the output. Here, we're just interested in whether
+     * or not the functions work via/exists in the Open API. The actual functionality is tested elsewhere.
+     */
+    @Test
+    void testAddingPrefixedFileLink() {
+        SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
+        OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
 
-    //make sure that the above font doesn't happen to be the default font for the output lord. If it
-    //is, this test will silently succeed even if it should fail.
-    Assert.assertNotSame( "Fonts are the same. This test is not setup correctly.", font, outputUILord.getOutputTextFont() )
+        outputUILord.addPrefixedFileLink("Error Text", "The error is:", ".txt", ":")
+    }
 
-    //now set the new font and then make sure it worked
-    outputUILord.setOutputTextFont( font )
-  }
+    /**
+     * This tests setting the font. There's not much here to do other than set it and then
+     * get it, making sure its the same. This isn't worried so much about the font itself as
+     * much as the open API doesn't have a problem with setting the font.
+     */
+    @Test
+    void testFont() {
+        if (java.awt.GraphicsEnvironment.isHeadless()) {
+            return;  // Can't run this test in headless mode!
+        }
 
-  /**
-  *
-  */
-  @Test
-  public void testReExecute()
-  {
-    SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
-    OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
+        SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
+        OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
+        Font font = UIManager.getFont("Button.font")  //this specific font is not important
 
-    //this starts the execution queue. This also initiates a refresh that we'll ignore later.
-    singlePane.aboutToShow()
+        //make sure that the above font doesn't happen to be the default font for the output lord. If it
+        //is, this test will silently succeed even if it should fail.
+        Assert.assertNotSame("Fonts are the same. This test is not setup correctly.", font, outputUILord.getOutputTextFont())
 
-    BlockingRequestObserver testRequestObserver = new BlockingRequestObserver()
-    singlePane.getGradleInterfaceVersion1().addRequestObserver( testRequestObserver )
+        //now set the new font and then make sure it worked
+        outputUILord.setOutputTextFont(font)
+    }
 
-    //now execute a command
-    singlePane.executeCommand( "build", "test build")
+    @Test
+    void testReExecute() {
+        SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
+        OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
 
-    //wait for it to complete
-    testRequestObserver.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
-    testRequestObserver.reset()
+        //this starts the execution queue. This also initiates a refresh that we'll ignore later.
+        singlePane.aboutToShow()
 
-    //now the single command we're trying to test
-    outputUILord.reExecuteLastCommand();
+        BlockingRequestObserver testRequestObserver = new BlockingRequestObserver()
+        singlePane.getGradleInterfaceVersion1().addRequestObserver(testRequestObserver)
 
-    //wait again for it exit
-    testRequestObserver.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
+        //now execute a command
+        singlePane.executeCommand("build", "test build")
 
-    //make sure it executed the correct request
-    Assert.assertThat( testRequestObserver.request.getFullCommandLine(), startsWith('build') )
-  }
+        //wait for it to complete
+        testRequestObserver.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
+        testRequestObserver.reset()
+
+        //now the single command we're trying to test
+        outputUILord.reExecuteLastCommand();
+
+        //wait again for it exit
+        testRequestObserver.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
+
+        //make sure it executed the correct request
+        Assert.assertThat(testRequestObserver.request.getFullCommandLine(), startsWith('build'))
+    }
 }

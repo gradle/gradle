@@ -75,7 +75,6 @@ class SourceFolder extends AbstractClasspathEntry {
         if (nativeLibraryLocation != that.nativeLibraryLocation) { return false }
         if (output != that.output) { return false }
         if (path != that.path) { return false }
-        if (dir != that.dir) { return false }
 
         return true
     }

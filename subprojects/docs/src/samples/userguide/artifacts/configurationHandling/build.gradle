@@ -1,22 +1,19 @@
-import org.apache.ivy.plugins.resolver.FileSystemResolver
-
 repositories {
-    add(new FileSystemResolver()) {
-        name = "repo"
-        addArtifactPattern("$projectDir/repo/[organization]/[module]-[revision].[ext]")
-        addIvyPattern("$projectDir/repo/[organization]/ivy-[module]-[revision].xml")
-        checkmodified = true
+    ivy {
+        artifactPattern "$projectDir/repo/[organization]/[module]-[revision].[ext]"
+        ivyPattern "$projectDir/repo/[organization]/ivy-[module]-[revision].xml"
     }
 }
 
 //START SNIPPET setup
 configurations {
     sealife
-    alllife.extendsFrom sealife
+    alllife
 }
 
 dependencies {
     sealife "sea.mammals:orca:1.0", "sea.fish:shark:1.0", "sea.fish:tuna:1.0"
+    alllife configurations.sealife
     alllife "air.birds:albatros:1.0"
 }
 //END SNIPPET setup

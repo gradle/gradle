@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.os.OperatingSystem;
 import org.gradle.util.*;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -34,8 +35,11 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     private static final TestFile USER_GUIDE_INFO_DIR;
     private static final TestFile DISTS_DIR;
     private static final TestFile LIBS_REPO;
+
     private final TemporaryFolder temporaryFolder = new TemporaryFolder();
     private TestFile userHome;
+    private boolean usingOwnUserHomeDir;
+    private boolean usingIsolatedDaemons;
 
     static {
         USER_HOME_DIR = file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
@@ -62,8 +66,19 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
         return jvm.isJava5Compatible();
     }
 
+    public boolean worksWith(OperatingSystem os) {
+        return true;
+    }
+
     public boolean daemonSupported() {
-        // More or less
+        return true;
+    }
+
+    public boolean isOpenApiSupported() {
+        return true;
+    }
+
+    public boolean isToolingApiSupported() {
         return true;
     }
 
@@ -72,8 +87,22 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
         return GradleVersion.version(version).compareTo(GradleVersion.version("0.8")) > 0;
     }
 
+    public boolean isUsingOwnUserHomeDir() {
+        return usingOwnUserHomeDir;
+    }
+
     public void requireOwnUserHomeDir() {
+        usingOwnUserHomeDir = true;
         userHome = getTestDir().file("user-home");
+    }
+
+    public boolean isUsingIsolatedDaemons() {
+        return usingIsolatedDaemons;
+    }
+
+    public void requireIsolatedDaemons() {
+        requireOwnUserHomeDir();
+        this.usingIsolatedDaemons = true;
     }
 
     public Statement apply(Statement base, FrameworkMethod method, Object target) {

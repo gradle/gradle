@@ -119,7 +119,7 @@ public class ObserverLord<E> {
      *
      * @param notification in,  notification sent to the observer
      */
-    private void notifyObserversInEventQueueThread(final ObserverNotification notification) {
+    private void notifyObserversInEventQueueThread(final ObserverNotification<E> notification) {
         if (eventQueueObservers.size() == 0) //if we have no event queue observsers, we're done
         {
             return;
@@ -149,7 +149,7 @@ public class ObserverLord<E> {
      * @param observers in,  objects that changed (observable)
      * @param notification in,  notification sent to the observer
      */
-    private void notifyObserversInternal(List<E> observers, ObserverNotification notification) {
+    private void notifyObserversInternal(List<E> observers, ObserverNotification<E> notification) {
         Iterator<E> iterator = observers.iterator();
         while (iterator.hasNext()) {
             E observer = iterator.next();

@@ -182,7 +182,7 @@
             as a compile-time dependency.
         </para>
 
-        <sample id="customPluginStandalone" dir="customPlugin" title="A build for a custom plugin" includeLocation="true">
+        <sample id="customPluginStandalone" dir="customPlugin/plugin" title="A build for a custom plugin" includeLocation="true">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
 
@@ -191,7 +191,7 @@
 	    <filename>META-INF/gradle-plugins</filename> directory that matches the name of your plugin.
 	</para>
 
-        <sample id="customPluginStandalone" dir="customPlugin" title="Wiring for a custom plugin">
+        <sample id="customPluginStandalone" dir="customPlugin/plugin" title="Wiring for a custom plugin">
             <sourcefile file="src/main/resources/META-INF/gradle-plugins/greeting.properties"/>
         </sample>	
 
@@ -207,8 +207,10 @@
                 The following example shows how you might do this when the JAR containing the plugin has been published
                 to a local repository:
             </para>
-            <sample id="customPluginStandalone" dir="customPlugin" title="Using a custom plugin in another project">
-                <sourcefile file="usesCustomPlugin.gradle" snippet="use-plugin"/>
+            <sample id="customPluginStandalone" dir="customPlugin/consumer" title="Using a custom plugin in another project">
+                <test args="-p../plugin uploadArchives"/>
+                <test args="hello"/>
+                <sourcefile file="build.gradle" snippet="use-plugin"/>
             </sample>
         </section>
         <section>
@@ -216,7 +218,7 @@
             <para>You can use the <apilink class="org.gradle.testfixtures.ProjectBuilder"/> class to create
                 <apilink class="org.gradle.api.Project"/> instances to use when you test your plugin implementation.
             </para>
-            <sample id="customPluginStandalone" dir="customPlugin" title="Testing a custom plugin">
+            <sample id="customPluginStandalone" dir="customPlugin/plugin" title="Testing a custom plugin">
                 <sourcefile file="src/test/groovy/org/gradle/GreetingPluginTest.groovy" snippet="test-plugin"/>
             </sample>
         </section>

@@ -17,9 +17,13 @@
 package org.gradle.integtests.environment
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.os.OperatingSystem
+import org.gradle.testing.AvailableJavaHomes
+import org.gradle.util.Jvm
+import org.gradle.os.FileSystems
+
 import org.junit.Test
 import spock.lang.Issue
-import org.gradle.os.OperatingSystem
 
 /**
  * @author: Szczepan Faber, created at: 8/11/11
@@ -36,7 +40,7 @@ assert file('.') == new File(new URI('${projectDir.toURI()}'))
         File relativeDir = new File(distribution.testDir, 'java/multiproject/../quickstart')
         executer.inDirectory(relativeDir).run()
 
-        if (!OperatingSystem.current().fileSystem.caseSensitive) {
+        if (!FileSystems.default.caseSensitive) {
             File mixedCaseDir = new File(distribution.testDir, "JAVA/QuickStart")
             executer.inDirectory(mixedCaseDir).run()
         }
@@ -61,7 +65,7 @@ println System.getenv('foo')
     }
 
     @Test
-    public void "build is executed with working directory set to where the build was launched"() {
+    public void "build is executed with working directory set to where the build was launched from"() {
         def project1 = distribution.testFile("project1")
         def project2 = distribution.testFile("project2")
 
@@ -89,4 +93,29 @@ assert classesDir.directory
         executer.inDirectory(project2).run()
     }
 
+    @Test
+    void "system properties should be made available to build"() {
+        file('build.gradle') << """
+    assert System.properties['foo'] == 'bar'
+"""
+        executer.withArguments("-Dfoo=bar").run()
+    }
+
+    @Test
+    void "specified java home should be used to run build"() {
+        def alternateJavaHome = AvailableJavaHomes.bestAlternative
+        if (alternateJavaHome == null) {
+            return
+        }
+
+        file('build.gradle') << """
+            println "javaHome=" + org.gradle.util.Jvm.current().javaHome.canonicalPath
+        """
+
+        def out = executer.run().output
+        assert out.contains("javaHome=" + Jvm.current().javaHome.canonicalPath)
+
+        out = executer.withJavaHome(alternateJavaHome).run().output
+        assert out.contains("javaHome=" + alternateJavaHome.canonicalPath)
+    }
 }

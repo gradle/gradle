@@ -22,6 +22,8 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.listener.ContextClassLoaderProxy;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.WorkerProcessContext;
@@ -39,6 +41,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     private CountDownLatch completed;
     private TestClassProcessor processor;
     private TestResultProcessor resultProcessor;
+    private StoppableExecutor testExecutor;
 
     public TestWorker(WorkerTestClassProcessorFactory factory) {
         this.factory = factory;
@@ -47,6 +50,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     public void execute(WorkerProcessContext workerProcessContext) {
         LOGGER.info("{} executing tests.", workerProcessContext.getDisplayName());
 
+        testExecutor = new DefaultExecutorFactory().create(workerProcessContext.getDisplayName() + " test executor"); 
         completed = new CountDownLatch(1);
 
         System.setProperty(WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
@@ -82,8 +86,38 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         processor.startProcessing(resultProcessor);
     }
 
-    public void processTestClass(TestClassRunInfo testClass) {
-        processor.processTestClass(testClass);
+    static private class ExceptionHolder {
+        public Throwable thrown;
+    }
+    
+    public void processTestClass(final TestClassRunInfo testClass) {
+        final CountDownLatch executionFinishedLatch = new CountDownLatch(1);
+        final ExceptionHolder exceptionHolder = new ExceptionHolder();
+        
+        // Execute the tests in a separate thread to protect against the tests affecting
+        // our current thread (which is reused for future messages)
+        // http://issues.gradle.org/browse/GRADLE-1948
+        testExecutor.execute(new Runnable() {
+            public void run() {
+                try {
+                    processor.processTestClass(testClass);
+                } catch (Throwable e) {
+                    exceptionHolder.thrown = e;
+                } finally {
+                    executionFinishedLatch.countDown();
+                }
+            }
+        });
+        
+        try {
+            executionFinishedLatch.await();
+        } catch (InterruptedException e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
+        
+        if (exceptionHolder.thrown != null) {
+            throw UncheckedException.asUncheckedException(exceptionHolder.thrown);
+        }
     }
 
     public void stop() {

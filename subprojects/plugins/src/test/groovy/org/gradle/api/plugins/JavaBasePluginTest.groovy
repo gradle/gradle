@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
- 
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
@@ -28,6 +25,7 @@ import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import spock.lang.Specification
 import static org.gradle.util.WrapUtil.toLinkedSet
+import static org.gradle.util.Matchers.*
 import org.gradle.api.tasks.testing.Test
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -84,6 +82,50 @@ class JavaBasePluginTest extends Specification {
         classes instanceof DefaultTask
         Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
         classes.dependsOn.contains project.sourceSets.custom.output.dirs
+    }
+    
+    void tasksReflectChangesToSourceSetConfiguration() {
+        def classesDir = project.file('target/classes')
+        def resourcesDir = project.file('target/resources')
+
+        when:
+        javaBasePlugin.apply(project)
+        project.sourceSets.add('custom')
+        project.sourceSets.custom.output.classesDir = classesDir
+        project.sourceSets.custom.output.resourcesDir = resourcesDir
+
+        then:
+        def processResources = project.tasks['processCustomResources']
+        processResources.destinationDir == resourcesDir
+
+        def compileJava = project.tasks['compileCustomJava']
+        compileJava.destinationDir == classesDir
+    }
+
+    void createsConfigurationsForNewSourceSet() {
+        when:
+        javaBasePlugin.apply(project)
+        def sourceSet = project.sourceSets.add('custom')
+
+        then:
+        def compile = project.configurations.customCompile
+        compile.transitive
+        !compile.visible
+        compile.extendsFrom == [] as Set
+        compile.description == 'Classpath for compiling the custom sources.'
+
+        and:
+        def runtime = project.configurations.customRuntime
+        runtime.transitive
+        !runtime.visible
+        runtime.extendsFrom == [compile] as Set
+        runtime.description == 'Classpath for running the compiled custom classes.'
+
+        and:
+        def runtimeClasspath = sourceSet.runtimeClasspath
+        def compileClasspath = sourceSet.compileClasspath
+        compileClasspath == compile
+        runtimeClasspath sameCollection(sourceSet.output + runtime)
     }
 
     void appliesMappingsToTasksDefinedByBuildScript() {

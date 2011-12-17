@@ -2,25 +2,28 @@ repositories {
     mavenCentral()
 }
 
-//START SNIPPET define-dependency
 configurations {
     compile
+    runtime
 }
 
+//START SNIPPET define-dependency
 dependencies {
-    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+    compile group: 'org.hibernate', name: 'hibernate-core', version: '3.6.7.Final'
 }
 //END SNIPPET define-dependency
+
+//START SNIPPET define-dependency-shortcut
+dependencies {
+    compile 'org.hibernate:hibernate-core:3.6.7.Final'
+}
+//END SNIPPET define-dependency-shortcut
 
 //START SNIPPET use-configuration
 task listJars << {
     configurations.compile.each { File file -> println file.name }
 }
 //END SNIPPET use-configuration
-
-configurations {
-    runtime
-}
 
 //START SNIPPET module-dependencies
 dependencies {

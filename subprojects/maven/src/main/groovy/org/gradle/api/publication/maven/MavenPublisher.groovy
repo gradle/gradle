@@ -15,7 +15,9 @@
  */
 package org.gradle.api.publication.maven
 
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+
 public interface MavenPublisher {
     void install(MavenPublication publication)
-    void deploy(MavenPublication publication, MavenRepository repository)
+    void deploy(MavenPublication publication, MavenArtifactRepository repository)
 }

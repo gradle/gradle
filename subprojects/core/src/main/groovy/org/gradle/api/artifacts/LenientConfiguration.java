@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.Set;
 
 /**
- * Resolved configuration that does not fail eagerly when some dependencies are not resolved.
+ * Resolved configuration that does not fail eagerly when some dependencies are not resolved, or some artifacts do not exist.
  */
 public interface LenientConfiguration {
 
@@ -32,7 +32,7 @@ public interface LenientConfiguration {
      * @param dependencySpec dependency spec
      * @return only resolved dependencies
      */
-    public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec);
+    public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec);
 
     /**
      * returns dependencies that were attempted to resolve but failed.
@@ -43,11 +43,11 @@ public interface LenientConfiguration {
     public Set<UnresolvedDependency> getUnresolvedModuleDependencies();
 
     /**
-     * returns files for successfully resolved dependencies
+     * returns successfully resolved files for successfully resolved dependencies
      *
      * @param dependencySpec dependency spec
      * @return resolved dependencies files
      */
-    public Set<File> getFiles(Spec<Dependency> dependencySpec);
+    public Set<File> getFiles(Spec<? super Dependency> dependencySpec);
 
 }

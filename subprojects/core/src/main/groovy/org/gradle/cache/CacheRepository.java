@@ -16,9 +16,9 @@
 package org.gradle.cache;
 
 /**
- * A repository of persistent caches and stores. A <em>store</em> is a store for persistent data. A <em>cache</em> is a store for persistent cache data. The only real difference
- * between the two is that a store cannot be invalidated, whereas a cache can be invalidated when things change. For example, running with {@code --cache rebuild} will invalidate
- * the contents of all caches, but not the contents of any stores.
+ * A repository of persistent caches and stores. A <em>store</em> is a store for persistent data. A <em>cache</em> is a store for persistent
+ * cache data. The only real difference between the two is that a store cannot be invalidated, whereas a cache can be invalidated when things
+ * change. For example, running with {@code --cache rebuild} will invalidate the contents of all caches, but not the contents of any stores.
  *
  * <p>There are 3 types of caches and stores:
  *
@@ -26,17 +26,19 @@ package org.gradle.cache;
  *
  * <li>A directory backed store, represented by {@link PersistentCache}. The caller is responsible for managing the contents of this directory.</li>
  *
- * <li>An indexed store, essentially a persistent Map, represented by {@link PersistentIndexedCache}.</li>
+ * <li>An indexed store, essentially a persistent {@link java.util.Map}, represented by {@link PersistentIndexedCache}.</li>
  *
- * <li>A state store, containing a single persistent value, represented by {@link PersistentStateCache}.</li>
+ * <li>A state store, essentially a persistent {@link java.util.concurrent.atomic.AtomicReference}, represented by {@link PersistentStateCache}.</li>
  *
  * </ul>
  */
 public interface CacheRepository {
     /**
-     * Returns a builder for the store with the given key. Default is a Gradle version-specific store shared by all builds, though this can be changed using the given builder.
+     * Returns a builder for the store with the given key. Default is a Gradle version-specific store shared by all builds, though this can be
+     * changed using the given builder.
      *
-     * <p>A store is always opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility to coordinate access to the cache.</p>
+     * <p>A store is always opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility to
+     * coordinate access to the cache.</p>
      *
      * @param key The cache key.
      * @return The builder.
@@ -44,9 +46,11 @@ public interface CacheRepository {
     DirectoryCacheBuilder store(String key);
 
     /**
-     * Returns a builder for the cache with the given key. Default is a Gradle version-specific cache shared by all builds, though this can be changed using the given builder.
+     * Returns a builder for the cache with the given key. Default is a Gradle version-specific cache shared by all builds, though this can be
+     * changed using the given builder.
      *
-     * <p>A state cache is always opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility to coordinate access to the cache.</p>
+     * <p>A state cache is always opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility
+     * to coordinate access to the cache.</p>
      *
      * @param key The cache key.
      * @return The builder.
@@ -54,7 +58,8 @@ public interface CacheRepository {
     DirectoryCacheBuilder cache(String key);
 
     /**
-     * Returns a builder for the state cache with the given key. Default is a Gradle version-specific cache shared by all builds, though this can be changed using the given
+     * Returns a builder for the state cache with the given key. Default is a Gradle version-specific cache shared by all builds, though this
+     * can be changed using the given
      * builder.
      *
      * <p>A state cache is always opened with an exclusive lock, so that it can be accessed only by this process.</p>
@@ -66,8 +71,8 @@ public interface CacheRepository {
     <E> ObjectCacheBuilder<E, PersistentStateCache<E>> stateCache(Class<E> elementType, String key);
 
     /**
-     * Returns a builder for the indexed cache with the given key. Default is a Gradle version-specific cache shared by all builds, though this can be changed using the given
-     * builder.
+     * Returns a builder for the indexed cache with the given key. Default is a Gradle version-specific cache shared by all builds, though this
+     * can be changed using the given builder.
      *
      * <p>An indexed cache is always opened with an exclusive lock, so that it can be accessed only by this process.</p>
      *

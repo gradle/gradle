@@ -1,0 +1,10 @@
+println "hi from custom plugin init script."
+
+// Make the plugin visible to all projects, by including it in the build script classpath.
+rootProject {
+    buildscript {
+        dependencies {
+            classpath fileTree(dir: "${initscript.sourceFile.parentFile}/libs", include: '*.jar')
+        }
+    }
+}

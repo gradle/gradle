@@ -15,17 +15,21 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 
-public class AbstractLongRunningOperation {
+public class AbstractLongRunningOperation implements LongRunningOperation {
     private OutputStream stdout;
     private OutputStream stderr;
+    private InputStream stdin;
+
     private final ProgressListenerAdapter progressListener = new ProgressListenerAdapter();
     private final ConnectionParameters parameters;
 
@@ -43,13 +47,21 @@ public class AbstractLongRunningOperation {
         return this;
     }
 
+    public AbstractLongRunningOperation setStandardInput(InputStream inputStream) {
+        stdin = inputStream;
+        return this;
+    }
+
     public AbstractLongRunningOperation addProgressListener(ProgressListener listener) {
         progressListener.add(listener);
         return this;
     }
 
     protected BuildOperationParametersVersion1 operationParameters() {
-        return new OperationParameters();
+        ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
+        OperationParameters params = new OperationParameters();
+        BuildOperationParametersVersion1 adapted = adapter.adapt(BuildOperationParametersVersion1.class, params);
+        return adapted;
     }
 
     private class OperationParameters implements BuildOperationParametersVersion1 {
@@ -57,6 +69,10 @@ public class AbstractLongRunningOperation {
 
         public long getStartTime() {
             return startTime;
+        }
+
+        public boolean getVerboseLogging() {
+            return parameters.getVerboseLogging();
         }
 
         public File getGradleUserHomeDir() {
@@ -94,6 +110,9 @@ public class AbstractLongRunningOperation {
         public ProgressListenerVersion1 getProgressListener() {
             return progressListener;
         }
-    }
 
+        public InputStream getStandardInput() {
+            return stdin;
+        }
+    }
 }

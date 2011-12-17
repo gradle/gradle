@@ -57,7 +57,7 @@ public class ConventionAwareHelper implements ConventionMapping {
         return property;
     }
 
-    public MappedProperty map(String propertyName, final Closure value) {
+    public MappedProperty map(String propertyName, final Closure<?> value) {
         return map(propertyName, new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 switch (value.getMaximumNumberOfParameters()) {
@@ -66,7 +66,7 @@ public class ConventionAwareHelper implements ConventionMapping {
                     case 1:
                         return value.call(convention);
                     default:
-                        return value.call(new Object[]{convention, conventionAwareObject});
+                        return value.call(convention, conventionAwareObject);
                 }
             }
         });

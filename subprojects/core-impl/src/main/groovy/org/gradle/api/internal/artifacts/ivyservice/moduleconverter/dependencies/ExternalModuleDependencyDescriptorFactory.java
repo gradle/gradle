@@ -15,11 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
@@ -37,11 +34,15 @@ public class ExternalModuleDependencyDescriptorFactory extends AbstractDependenc
         return IvyUtil.createModuleRevisionId(dependency);
     }
 
-    public DefaultDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
+    public EnhancedDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
                                                            ModuleRevisionId moduleRevisionId) {
-        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent,
-                moduleRevisionId, getExternalModuleDependency(dependency).isForce(),
-                getExternalModuleDependency(dependency).isChanging(), getExternalModuleDependency(dependency).isTransitive());
+        EnhancedDependencyDescriptor dependencyDescriptor = new EnhancedDependencyDescriptor(
+                dependency,
+                parent,
+                moduleRevisionId,
+                getExternalModuleDependency(dependency).isForce(),
+                getExternalModuleDependency(dependency).isChanging(),
+                getExternalModuleDependency(dependency).isTransitive());
         addExcludesArtifactsAndDependencies(configuration, getExternalModuleDependency(dependency), dependencyDescriptor);
         return dependencyDescriptor;
     }
@@ -52,24 +53,5 @@ public class ExternalModuleDependencyDescriptorFactory extends AbstractDependenc
 
     public boolean canConvert(ModuleDependency dependency) {
         return dependency instanceof ExternalModuleDependency;
-    }
-
-    protected void workAroundIvyLimitationsByCopyingDefaultIncludesForExtendedDependencies(Configuration configuration,
-                                                                                           DefaultDependencyDescriptor dependencyDescriptor,
-                                                                                           ModuleDependency dependency) {
-        if (!canConvert(dependency)) {
-            return;
-        }
-        // If anywhere in the inherited dependencies for the configuration, we have another dependency with the same "id" and no defined artifacts, need to add the default include rule
-        for (ExternalDependency extendedDependency : configuration.getAllDependencies().withType(ExternalDependency.class)) {
-            ModuleRevisionId extendedRevisionId = createModuleRevisionId(extendedDependency);
-            if (extendedRevisionId.equals(dependencyDescriptor.getDependencyRevisionId())) {
-                if (extendedDependency.getArtifacts().isEmpty()) {
-                    if (dependency != extendedDependency) {
-                        includeDefaultArtifacts(configuration.getName(), dependencyDescriptor);
-                    }
-                }
-            }
-        }
     }
 }

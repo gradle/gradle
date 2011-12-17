@@ -36,4 +36,9 @@ public interface ConnectionParameters {
     Integer getDaemonMaxIdleTimeValue();
 
     TimeUnit getDaemonMaxIdleTimeUnits();
+
+    /**
+     * Whether to log debug statements eagerly
+     */
+    boolean getVerboseLogging();
 }

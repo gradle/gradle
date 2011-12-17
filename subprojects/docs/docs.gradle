@@ -46,7 +46,6 @@ srcDocsDir = file('src/docs')
 userguideSrcDir = new File(srcDocsDir, 'userguide')
 cssSrcDir = new File(srcDocsDir, 'css')
 dslSrcDir = new File(srcDocsDir, 'dsl')
-
 docsDir = file("$buildDir/docs")
 userguideDir = new File(docsDir, 'userguide')
 distDocsDir = new File(buildDir, 'distDocs')
@@ -54,6 +53,18 @@ samplesDir = file("$buildDir/samples")
 docbookSrc = new File(project.buildDir, 'src')
 samplesSrcDir = file('src/samples')
 websiteDocs = new File(buildDir, 'websiteDocs')
+
+outputs = [:]
+outputs.samples = files(samplesDir) {
+    builtBy 'samples'
+}
+outputs.distDocs = files(distDocsDir) {
+    builtBy 'distDocs'
+}
+outputs.docs = files(docsDir) {
+    builtBy 'javadoc', 'groovydoc', 'userguide', 'dslHtml'
+}
+
 
 tasks.withType(Docbook2Xhtml) {
     dependsOn userguideStyleSheets
@@ -114,7 +125,7 @@ task samplesDocs(type: Docbook2Xhtml, dependsOn: samplesDocbook) {
     stylesheetName = 'standaloneHtml.xsl'
 }
 
-task dslMetaData(type: ExtractDslMetaDataTask) {
+task dslMetaData(type: ExtractDslMetaDataTask) {  //TODO SF: parseSourceCode
     source { groovydoc.source }
     destFile = new File(docbookSrc, 'dsl-meta-data.bin')
 }
@@ -239,7 +250,7 @@ task javadoc(type: Javadoc) {
     include 'org/gradle/testfixtures/**'
     include 'org/gradle/tooling/**'
     exclude '**/internal/**'
-    options.links("http://download.oracle.com/javase/1.5.0/docs/api", "http://groovy.codehaus.org/gapi/", "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
+    options.links("http://docs.oracle.com/javase/1.5.0/docs/api/", "http://groovy.codehaus.org/gapi/", "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")
     doFirst {
         title = "Gradle API $version"
@@ -253,6 +264,7 @@ task checkstyleApi(type: Checkstyle) {
     resultFile = file("$checkstyleResultsDir/checkstyle-api.xml")
 }
 
+//TODO SF - generates for java as well, rename to codedoc?
 task groovydoc(type: Groovydoc) {
     group = 'documentation'
     source groovyProjects().collect {project -> project.sourceSets.main.groovy + project.sourceSets.main.java }

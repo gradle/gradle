@@ -1,5 +1,7 @@
 apply plugin: 'java'
 
+if (hasProperty('showOutput')) {
+
 // START SNIPPET access-source-set
 // Various ways to access the main source set
 println sourceSets.main.output.classesDir
@@ -14,10 +16,12 @@ sourceSets {
 }
 
 // Iterate over the source sets
-sourceSets.each {SourceSet set ->
-    println set.name
+sourceSets.all {
+    println name
 }
 // END SNIPPET access-source-set
+
+}
 
 // START SNIPPET define-source-set
 sourceSets {
@@ -29,19 +33,16 @@ repositories {
     mavenCentral()
 }
 
-// START SNIPPET classpath-using-configurations
-configurations {
-    intTestCompile { extendsFrom compile }
-    intTestRuntime { extendsFrom intTestCompile, runtime }
+// START SNIPPET source-set-dependencies
+sourceSets {
+    intTest
 }
 
-sourceSets {
-    intTest {
-        compileClasspath = sourceSets.main.output + configurations.intTestCompile
-        runtimeClasspath = output + sourceSets.main.output + configurations.intTestRuntime
-    }
+dependencies {
+    intTestCompile 'junit:junit:4.8.2'
+    intTestRuntime 'asm:asm-all:3.3.1'
 }
-// END SNIPPET classpath-using-configurations
+// END SNIPPET source-set-dependencies
 
 // START SNIPPET jar
 task intTestJar(type: Jar) {

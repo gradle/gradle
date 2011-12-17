@@ -32,11 +32,14 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
-import org.gradle.launcher.env.LenientEnvHacker;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.os.ProcessEnvironment;
+import org.gradle.os.jna.NativeEnvironment;
+import org.gradle.util.Jvm;
 import org.hamcrest.Matcher;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.*;
 
@@ -45,7 +48,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
-    private final ProcessEnvironment envHacker = new LenientEnvHacker();
+    private final ProcessEnvironment processEnvironment = NativeEnvironment.current();
 
     @Override
     protected ExecutionResult doRun() {
@@ -76,6 +79,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                               BuildListenerImpl listener) {
         assertCanExecute();
 
+        InputStream originalStdIn = System.in;
+        System.setIn(getStdin());
+        
         File userDir = new File(System.getProperty("user.dir"));
         StartParameter parameter = new StartParameter();
         parameter.setLogLevel(LogLevel.INFO);
@@ -89,11 +95,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         Properties originalSysProperties = new Properties();
         originalSysProperties.putAll(System.getProperties());
-        envHacker.setProcessDir(getWorkingDir());
+        processEnvironment.maybeSetProcessDir(getWorkingDir());
         Map<String, String> previousEnv = new HashMap<String, String>();
         for (Map.Entry<String, String> entry : getEnvironmentVars().entrySet()) {
             previousEnv.put(entry.getKey(), System.getenv(entry.getKey()));
-            envHacker.setenv(entry.getKey(), entry.getValue());
+            processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), entry.getValue());
         }
 
         DefaultGradleLauncherFactory factory = (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
@@ -105,21 +111,27 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return gradleLauncher.run();
         } finally {
             System.setProperties(originalSysProperties);
-            envHacker.setProcessDir(userDir);
+            processEnvironment.maybeSetProcessDir(userDir);
             for (Map.Entry<String, String> entry : previousEnv.entrySet()) {
                 String oldValue = entry.getValue();
                 if (oldValue != null) {
-                    envHacker.setenv(entry.getKey(), oldValue);
+                    processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), oldValue);
                 } else {
-                    envHacker.unsetenv(entry.getKey());
+                    processEnvironment.maybeRemoveEnvironmentVariable(entry.getKey());
                 }
             }
             factory.removeListener(listener);
+            System.setIn(originalStdIn);
         }
+    }
+
+    public DaemonRegistry getDaemonRegistry() {
+        throw new UnsupportedOperationException();
     }
 
     public void assertCanExecute() {
         assertNull(getExecutable());
+        assertEquals(getJavaHome(), Jvm.current().getJavaHome());
     }
 
     public boolean canExecute() {
@@ -198,7 +210,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    public static class InProcessExecutionResult extends AbstractExecutionResult {
+    public static class InProcessExecutionResult implements ExecutionResult {
         private final List<String> plannedTasks;
         private final Set<String> skippedTasks;
         private final String output;
@@ -221,7 +233,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public List<String> getExecutedTasks() {
-            return new ArrayList(plannedTasks);
+            return new ArrayList<String>(plannedTasks);
         }
 
         public ExecutionResult assertTasksExecuted(String... taskPaths) {
@@ -231,7 +243,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public Set<String> getSkippedTasks() {
-            return new HashSet(skippedTasks);
+            return new HashSet<String>(skippedTasks);
         }
 
         public ExecutionResult assertTasksSkipped(String... taskPaths) {

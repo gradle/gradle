@@ -17,3 +17,9 @@ plugins.withType(GroovyBasePlugin) {
         }
     }
 }
+
+task codeQuality {
+    dependsOn tasks.matching { task ->
+        [org.gradle.api.plugins.quality.CodeNarc, org.gradle.api.plugins.quality.Checkstyle].any { it.isInstance(task) }
+    }
+}

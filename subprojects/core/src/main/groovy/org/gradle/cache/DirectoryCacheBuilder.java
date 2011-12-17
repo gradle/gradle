@@ -16,6 +16,7 @@
 package org.gradle.cache;
 
 import org.gradle.api.Action;
+import org.gradle.cache.internal.FileLockManager;
 
 import java.util.Map;
 
@@ -25,6 +26,18 @@ public interface DirectoryCacheBuilder extends CacheBuilder<PersistentCache> {
     DirectoryCacheBuilder withProperties(Map<String, ?> properties);
 
     DirectoryCacheBuilder forObject(Object target);
+
+    /**
+     * Specifies the display name for this cache. This display name is used in logging and error messages.
+     */
+    DirectoryCacheBuilder withDisplayName(String displayName);
+
+    /**
+     * Specifies the <em>initial</em> lock mode to use. See {@link PersistentCache} for details.
+     *
+     * <p>Note that not every combination of cache type and lock mode is supported.
+     */
+    DirectoryCacheBuilder withLockMode(FileLockManager.LockMode lockMode);
 
     /**
      * Specifies an action to execute to initialize the cache contents, if the cache does not exist or is invalid. An exclusive lock is held while the initializer is executing, to prevent

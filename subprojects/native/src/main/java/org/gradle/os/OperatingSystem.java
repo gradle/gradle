@@ -15,10 +15,17 @@
  */
 package org.gradle.os;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
+
 public abstract class OperatingSystem {
     private static final Windows WINDOWS = new Windows();
     private static final MacOs MAC_OS = new MacOs();
     private static final Solaris SOLARIS = new Solaris();
+    private static final Linux LINUX = new Linux();
     private static final Unix UNIX = new Unix();
 
     public static OperatingSystem current() {
@@ -29,6 +36,8 @@ public abstract class OperatingSystem {
             return MAC_OS;
         } else if (osName.contains("sunos")) {
             return SOLARIS;
+        } else if (osName.contains("linux")) {
+            return LINUX;
         } else {
             // Not strictly true
             return UNIX;
@@ -37,42 +46,74 @@ public abstract class OperatingSystem {
 
     @Override
     public String toString() {
-        return String.format("%s %s %s", System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"));
+        return String.format("%s %s %s", getName(), getVersion(), System.getProperty("os.arch"));
     }
 
-    public abstract boolean isWindows();
+    public String getName() {
+        return System.getProperty("os.name");
+    }
+    
+    public String getVersion() {
+        return System.getProperty("os.version");
+    }
 
-    public abstract boolean isUnix();
+    public boolean isWindows() {
+        return false;
+    }
 
-    public abstract boolean isMacOsX();
+    public boolean isUnix() {
+        return false;
+    }
 
-    public abstract FileSystem getFileSystem();
+    public boolean isMacOsX() {
+        return false;
+    }
+
+    public boolean isLinux() {
+        return false;
+    }
 
     public abstract String getNativePrefix();
 
     public abstract String getScriptName(String scriptPath);
 
-    static class Windows extends OperatingSystem {
-        private static final FileSystem FILE_SYSTEM = new WindowsFileSystem();
+    public abstract String getExecutableName(String executablePath);
 
-        @Override
-        public FileSystem getFileSystem() {
-            return FILE_SYSTEM;
+    public File findInPath(String name) {
+        String exeName = getExecutableName(name);
+        if (exeName.contains(File.separator)) {
+            File candidate = new File(exeName);
+            if (candidate.isFile()) {
+                return candidate;
+            }
+            return null;
+        }
+        for (File dir : getPath()) {
+            File candidate = new File(dir, exeName);
+            if (candidate.isFile()) {
+                return candidate;
+            }
         }
 
+        return null;
+    }
+
+    List<File> getPath() {
+        String path = System.getenv("PATH");
+        if (path == null) {
+            return Collections.emptyList();
+        }
+        List<File> entries = new ArrayList<File>();
+        for (String entry : path.split(Pattern.quote(File.pathSeparator))) {
+            entries.add(new File(entry));
+        }
+        return entries;
+    }
+
+    static class Windows extends OperatingSystem {
         @Override
         public boolean isWindows() {
             return true;
-        }
-
-        @Override
-        public boolean isUnix() {
-            return false;
-        }
-
-        @Override
-        public boolean isMacOsX() {
-            return false;
         }
 
         @Override
@@ -81,6 +122,14 @@ public abstract class OperatingSystem {
                 return scriptPath;
             }
             return scriptPath + ".bat";
+        }
+
+        @Override
+        public String getExecutableName(String executablePath) {
+            if (executablePath.toLowerCase().endsWith(".exe")) {
+                return executablePath;
+            }
+            return executablePath + ".exe";
         }
 
         @Override
@@ -94,30 +143,19 @@ public abstract class OperatingSystem {
     }
 
     static class Unix extends OperatingSystem {
-        private static final FileSystem FILE_SYSTEM = new UnixFileSystem();
-
+        @Override
         public String getScriptName(String scriptPath) {
             return scriptPath;
         }
 
         @Override
-        public FileSystem getFileSystem() {
-            return FILE_SYSTEM;
-        }
-
-        @Override
-        public boolean isWindows() {
-            return false;
+        public String getExecutableName(String executablePath) {
+            return executablePath;
         }
 
         @Override
         public boolean isUnix() {
             return true;
-        }
-
-        @Override
-        public boolean isMacOsX() {
-            return false;
         }
 
         public String getNativePrefix() {
@@ -142,8 +180,7 @@ public abstract class OperatingSystem {
         }
 
         protected String getOsPrefix() {
-            String name = System.getProperty("os.name");
-            String osPrefix = name.toLowerCase();
+            String osPrefix = getName().toLowerCase();
             int space = osPrefix.indexOf(" ");
             if (space != -1) {
                 osPrefix = osPrefix.substring(0, space);
@@ -153,13 +190,6 @@ public abstract class OperatingSystem {
     }
 
     static class MacOs extends Unix {
-        private static final FileSystem FILE_SYSTEM = new MacFileSystem();
-
-        @Override
-        public FileSystem getFileSystem() {
-            return FILE_SYSTEM;
-        }
-
         @Override
         public boolean isMacOsX() {
             return true;
@@ -169,6 +199,13 @@ public abstract class OperatingSystem {
         @Override
         public String getNativePrefix() {
             return "darwin";
+        }
+    }
+
+    static class Linux extends Unix {
+        @Override
+        public boolean isLinux() {
+            return true;
         }
     }
 
@@ -185,34 +222,6 @@ public abstract class OperatingSystem {
                 return "x86";
             }
             return super.getArch();
-        }
-    }
-
-    static class UnixFileSystem implements FileSystem {
-        public boolean isCaseSensitive() {
-            return true;
-        }
-
-        public boolean isSymlinkAware() {
-            return true;
-        }
-    }
-
-    static class MacFileSystem extends UnixFileSystem {
-        @Override
-        public boolean isCaseSensitive() {
-            return false;
-        }
-    }
-
-    static class WindowsFileSystem implements FileSystem {
-        public boolean isCaseSensitive() {
-            return false;
-        }
-
-        public boolean isSymlinkAware() {
-            // Not strictly true - Vista and later can handle symlinks. But not every user (most users?) don't have permission to create them.
-            return false;
         }
     }
 }

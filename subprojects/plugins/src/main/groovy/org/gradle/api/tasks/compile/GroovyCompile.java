@@ -81,7 +81,7 @@ public class GroovyCompile extends AbstractCompile {
     /**
      * Returns the options for Java compilation.
      *
-     * @return The java compile options. Never returns null.
+     * @return The Java compile options. Never returns null.
      */
     @Nested
     public CompileOptions getOptions() {

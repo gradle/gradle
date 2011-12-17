@@ -49,6 +49,8 @@ class ExtractDslMetaDataTask extends SourceTask {
     def extract() {
         Clock clock = new Clock()
 
+        //parsing all input files into metadata
+        //and placing them in the repository object
         SimpleClassMetaDataRepository<ClassMetaData> repository = new SimpleClassMetaDataRepository<ClassMetaData>()
         int counter = 0
         source.each { File f ->
@@ -56,9 +58,11 @@ class ExtractDslMetaDataTask extends SourceTask {
             counter++
         }
 
+        //updating/modifying the metadata and making sure every type reference across the metadata is fully qualified
+        //so, the superClassName, interafaces and types needed by declared properties and declared methods will have fully qualified name
         TypeNameResolver resolver = new TypeNameResolver(repository)
         repository.each { name, metaData ->
-            resolve(metaData, resolver)
+            fullyQualifyAllTypeNames(metaData, resolver)
         }
         repository.store(destFile)
 
@@ -119,7 +123,7 @@ class ExtractDslMetaDataTask extends SourceTask {
         visitor.complete()
     }
 
-    def resolve(ClassMetaData classMetaData, TypeNameResolver resolver) {
+    def fullyQualifyAllTypeNames(ClassMetaData classMetaData, TypeNameResolver resolver) {
         try {
             if (classMetaData.superClassName) {
                 classMetaData.superClassName = resolver.resolve(classMetaData.superClassName, classMetaData)

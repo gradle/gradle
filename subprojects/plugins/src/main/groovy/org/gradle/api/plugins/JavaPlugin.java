@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
@@ -62,12 +63,11 @@ public class JavaPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPlugins().apply(JavaBasePlugin.class);
 
-        JavaPluginConvention javaConvention = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
+        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         project.getConvention().getPlugins().put("embeddedJavaProject", new EmbeddableJavaProjectImpl(javaConvention));
 
-        configureConfigurations(project);
-
         configureSourceSets(javaConvention);
+        configureConfigurations(project);
 
         configureJavaDoc(javaConvention);
         configureTest(project, javaConvention);
@@ -78,20 +78,11 @@ public class JavaPlugin implements Plugin<Project> {
     private void configureSourceSets(final JavaPluginConvention pluginConvention) {
         final Project project = pluginConvention.getProject();
 
-        pluginConvention.getSourceSets().all(new Action<SourceSet>() {
-            public void execute(SourceSet sourceSet) {
-                sourceSet.setCompileClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
-                sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(project.getConfigurations().getByName(
-                        RUNTIME_CONFIGURATION_NAME)));
-            }
-        });
         SourceSet main = pluginConvention.getSourceSets().add(SourceSet.MAIN_SOURCE_SET_NAME);
 
         SourceSet test = pluginConvention.getSourceSets().add(SourceSet.TEST_SOURCE_SET_NAME);
-        test.setCompileClasspath(project.files(main.getOutput(), project.getConfigurations().getByName(
-                TEST_COMPILE_CONFIGURATION_NAME)));
-        test.setRuntimeClasspath(project.files(test.getOutput(), main.getOutput(),
-                project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME)));
+        test.setCompileClasspath(project.files(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CONFIGURATION_NAME)));
+        test.setRuntimeClasspath(project.files(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME)));
     }
 
     private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
@@ -119,7 +110,8 @@ public class JavaPlugin implements Plugin<Project> {
             }
         });
 
-        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(new ArchivePublishArtifact(jar));
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(jar));
+        project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME).getArtifacts().add(new ArchivePublishArtifact(jar));
     }
 
     private void configureBuild(Project project) {
@@ -155,20 +147,15 @@ public class JavaPlugin implements Plugin<Project> {
         test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
     }
 
-    void configureConfigurations(final Project project) {
+    void configureConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
-        Configuration compileConfiguration = configurations.add(COMPILE_CONFIGURATION_NAME).setVisible(false).
-                setDescription("Classpath for compiling the sources.");
-        Configuration runtimeConfiguration = configurations.add(RUNTIME_CONFIGURATION_NAME).setVisible(false)
-                .extendsFrom(compileConfiguration).
-                        setDescription("Classpath for running the compiled sources.");
+        Configuration compileConfiguration = configurations.getByName(COMPILE_CONFIGURATION_NAME);
+        Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
 
-        Configuration compileTestsConfiguration = configurations.add(TEST_COMPILE_CONFIGURATION_NAME).setVisible(false)
-                .extendsFrom(compileConfiguration).setDescription("Classpath for compiling the test sources.");
+        Configuration compileTestsConfiguration = configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME);
+        compileTestsConfiguration.extendsFrom(compileConfiguration);
 
-        configurations.add(TEST_RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(runtimeConfiguration,
-                compileTestsConfiguration).
-                setDescription("Classpath for running the test sources.");
+        configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME).extendsFrom(runtimeConfiguration, compileTestsConfiguration);
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration);
     }

@@ -32,7 +32,7 @@ public class CatchAndForwardDaemonFailure implements DaemonCommandAction {
     public void execute(DaemonCommandExecution execution) {
         try {
             execution.proceed();
-        } catch (Throwable e) { // Should this be Exception and not Throwable?
+        } catch (Throwable e) {
             LOGGER.error(String.format("Daemon failure during execution of %s - ", execution.getCommand()), e);
             execution.getConnection().dispatch(new DaemonFailure(UncheckedException.asUncheckedException(e)));
         }

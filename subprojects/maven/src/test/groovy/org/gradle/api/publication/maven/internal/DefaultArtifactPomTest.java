@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -40,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.util.GUtil.toList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -264,7 +264,7 @@ public class DefaultArtifactPomTest {
     }
 
     private <T> T singleItem(Iterable<? extends T> collection) {
-        List<T> elements = GUtil.addLists(collection);
+        List<T> elements = toList(collection);
         assertThat(elements.size(), equalTo(1));
         return elements.get(0);
     }

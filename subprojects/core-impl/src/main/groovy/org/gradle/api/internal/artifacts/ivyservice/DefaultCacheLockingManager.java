@@ -15,95 +15,49 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.settings.IvySettings;
-import org.gradle.cache.internal.FileLock;
+import org.gradle.api.internal.Factory;
+import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.util.UncheckedException;
-import org.jfrog.wharf.ivy.lock.LockHolder;
-import org.jfrog.wharf.ivy.lock.LockHolderFactory;
-import org.jfrog.wharf.ivy.lock.LockLogger;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.Callable;
 
-public class DefaultCacheLockingManager implements LockHolderFactory, CacheLockingManager {
-    private final ArtifactCacheMetaData cacheMetaData;
-    private final FileLockManager fileLockManager;
-    private boolean locked;
+public class DefaultCacheLockingManager implements CacheLockingManager {
+    public static final int CACHE_LAYOUT_VERSION = 7;
+    private final PersistentCache cache;
 
-    public DefaultCacheLockingManager(FileLockManager fileLockManager, ArtifactCacheMetaData cacheMetaData) {
-        this.fileLockManager = fileLockManager;
-        this.cacheMetaData = cacheMetaData;
+    public DefaultCacheLockingManager(CacheRepository cacheRepository) {
+        cache = cacheRepository
+                .store(String.format("artifacts-%d", CACHE_LAYOUT_VERSION))
+                .withDisplayName("artifact cache")
+                .withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache)
+                .withLockMode(FileLockManager.LockMode.None) // Don't need to lock anything until we use the caches
+                .open();
     }
 
-    public <T> T withCacheLock(Callable<? extends T> action) {
-        FileLock lock = fileLockManager.lock(cacheMetaData.getCacheDir(), FileLockManager.LockMode.Exclusive, "artifact cache");
-        try {
-            locked = true;
-            try {
-                return action.call();
-            } catch (Exception e) {
-                throw UncheckedException.asUncheckedException(e);
-            }
-        } finally {
-            locked = false;
-            lock.close();
-        }
+    public File getCacheDir() {
+        return cache.getBaseDir();
     }
 
-    public LockLogger getLogger() {
-        throw new UnsupportedOperationException();
+    public void longRunningOperation(String operationDisplayName, final Runnable action) {
+        cache.longRunningOperation(operationDisplayName, action);
     }
 
-    public long getTimeoutInMs() {
-        throw new UnsupportedOperationException();
+    public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
+        return cache.useCache(operationDisplayName, action);
     }
 
-    public long getSleepTimeInMs() {
-        throw new UnsupportedOperationException();
+    public void useCache(String operationDisplayName, Runnable action) {
+        cache.useCache(operationDisplayName, action);
     }
 
-    public String getLockFileSuffix() {
-        throw new UnsupportedOperationException();
+    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
+        return cache.longRunningOperation(operationDisplayName, action);
     }
 
-    public LockHolder getLockHolder(final File protectedFile) {
-        return new LockHolder() {
-            public void releaseLock() {
-            }
-
-            public boolean acquireLock() {
-                if (!locked) {
-                    throw new IllegalStateException("Cannot acquire artifact lock, as artifact cache is not locked.");
-                }
-                protectedFile.getParentFile().mkdirs();
-                return true;
-            }
-
-            public File getLockFile() {
-                throw new UnsupportedOperationException();
-            }
-
-            public File getProtectedFile() {
-                return protectedFile;
-            }
-
-            public String stateMessage() {
-                return "ok";
-            }
-        };
+    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
+        return cache.createCache(cacheFile, keyType, valueType);
     }
-
-    public LockHolder getOrCreateLockHolder(File protectedFile) {
-        return getLockHolder(protectedFile);
-    }
-
-    public void close() throws IOException {
-    }
-
-    public void setSettings(IvySettings settings) {
-        throw new UnsupportedOperationException();
-    }
-
 }

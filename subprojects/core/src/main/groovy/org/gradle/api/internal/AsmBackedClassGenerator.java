@@ -16,8 +16,11 @@
 package org.gradle.api.internal;
 
 import groovy.lang.*;
+import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.ReflectionUtil;
 import org.objectweb.asm.*;
 
@@ -67,8 +70,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
             if (isDynamicAware) {
                 interfaceTypes.add(dynamicObjectAwareType.getInternalName());
-            }
-            if (isDynamicAware) {
+                interfaceTypes.add(Type.getType(ExtensionAware.class).getInternalName());
                 interfaceTypes.add(groovyObjectType.getInternalName());
             }
 
@@ -485,7 +487,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                             // Generate args
 //                            methodVisitor.visitInsn(Opcodes.ACONST_NULL);
                             methodVisitor.visitVarInsn(Opcodes.ALOAD, 2);
-                            methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,  objArrayDesc);
+                            methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, objArrayDesc);
                             methodVisitor.visitJumpInsn(Opcodes.GOTO, end);
 
                             // Generate new Object[] { args }
@@ -596,7 +598,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // GENERATE <setter>(v)
 
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+            methodVisitor.visitVarInsn(paramType.getOpcode(Opcodes.ILOAD), 1);
 
             methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), setter.getName(), setterDescriptor);
 
@@ -619,13 +621,41 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // GENERATE super.<propName>(v)
 
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+            methodVisitor.visitVarInsn(paramType.getOpcode(Opcodes.ILOAD), 1);
 
             methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), metaMethod.getName(), methodDescriptor);
 
             // END
 
             methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+        }
+
+        public void addActionMethod(MetaMethod method) throws Exception {
+            Type actionImplType = Type.getType(ClosureBackedAction.class);
+            Type closureType = Type.getType(Closure.class);
+            
+            String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{closureType});
+
+            // GENERATE public void <method>(Closure v) { <method>(new ClosureBackedAction(v)); }
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), methodDescriptor, null, new String[0]);
+            methodVisitor.visitCode();
+
+            // GENERATE <method>(new ClosureBackedAction(v));
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+
+            // GENERATE new ClosureBackedAction(v);
+            methodVisitor.visitTypeInsn(Opcodes.NEW, actionImplType.getInternalName());
+            methodVisitor.visitInsn(Opcodes.DUP);
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+            String constuctorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{closureType});
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, actionImplType.getInternalName(), "<init>", constuctorDescriptor);
+
+            methodDescriptor = Type.getMethodDescriptor(Type.getType(method.getReturnType()), new Type[]{Type.getType(method.getParameterTypes()[0].getTheClass())});
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), method.getName(), methodDescriptor);
+
+            methodVisitor.visitInsn(Opcodes.RETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
         }
@@ -654,6 +684,18 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 return (AbstractDynamicObject) dynamicObject;
             }
             return new BeanDynamicObject(delegateObject);
+        }
+    }
+
+    public static class ClosureBackedAction implements Action<Object> {
+        private final Closure cl;
+
+        public ClosureBackedAction(Closure cl) {
+            this.cl = cl;
+        }
+
+        public void execute(Object o) {
+            ConfigureUtil.configure(cl, o);
         }
     }
 }

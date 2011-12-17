@@ -82,7 +82,7 @@ class ApplicationIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
 
-            applicationDistribution.from(createDocs.outputs.files) {
+            applicationDistribution.from(createDocs) {
                 into "docs"
                 rename 'readme(.*)', 'READ-ME\$1'
             }

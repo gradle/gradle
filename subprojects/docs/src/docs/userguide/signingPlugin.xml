@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<chapter id='signing_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='signing_plugin'>
     <title>The Signing Plugin</title>
 
     <para>
@@ -40,7 +40,7 @@
         <title>Signatory credentials</title>
         <para>
             In order to create PGP signatures, you will need a key pair (instructions on creating a key pair using the <ulink url="http://www.gnupg.org/">GnuPG tools</ulink> 
-            can be found <ulink url="http://www.dewinter.com/gnupg_howto/english/GPGMiniHowto-3.html#ss3.1">here</ulink>). You need to provide the signing plugin
+            can be found in the <ulink url="http://www.gnupg.org/documentation/howtos.html">GnuPG HOWTOs</ulink>). You need to provide the signing plugin
             with your key information, which means three things: 
         </para>
         <itemizedlist>
@@ -145,18 +145,9 @@ gradle.taskGraph.whenReady { taskGraph ->
     <section>
         <title>Publishing the signatures</title>
         <para>
-            When specifying what is to be signed via the Signing DSL, the resultant signature artifacts are automatically added to the “<literal>signatures</literal>”
-            dependency configuration that the signing plugin adds. This means that if you want to upload your signatures to your distribution repository along
-            with the artifacts for which the signature is for you are going to have to create a new configuration that combines them. By default, created artifacts such
-            as jars and the like are added to the “<literal>archives</literal>” configuration. You can create a new configuration that extends 
-            “<literal>archives</literal>” and “<literal>signatures</literal>”.
-        </para>
-        <sample id="signingPublishedConfiguration" dir="signing/maven" title="Adding the published configuration">
-            <sourcefile file="build.gradle" snippet="published-configuration"/>
-        </sample>
-        <para>
-            This also means that instead of configuring and using the “<literal>uploadArchives</literal>” to distribute your artifacts, you would use the equivalent
-            “<literal>uploadPublished</literal>” task. See <xref linkend="artifact_management"/> for more on artifacts and configurations.
+            When specifying what is to be signed via the Signing DSL, the resultant signature artifacts are automatically added to the <literal>signatures</literal> and
+            <literal>archives</literal> dependency configurations. This means that if you want to upload your signatures to your distribution repository along
+            with the artifacts you simply execute the <literal>uploadArchives</literal> task as normal.
         </para>
     </section>
     

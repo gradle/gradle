@@ -22,41 +22,13 @@ import java.net.URI;
 /**
  * An artifact repository which uses an Ivy format to store artifacts and meta-data.
  */
-public interface IvyArtifactRepository extends ArtifactRepository {
+public interface IvyArtifactRepository extends ArtifactRepository, AuthenticationSupported {
 
     String GRADLE_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])";
     String GRADLE_IVY_PATTERN = "[organisation]/[module]/[revision]/ivy-[revision].xml";
 
     String MAVEN_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])";
     String MAVEN_IVY_PATTERN = "[organisation]/[module]/[revision]/ivy-[revision].xml";
-
-    /**
-     * Returns the user name to use when authenticating to this repository.
-     *
-     * @return The user name. May be null.
-     */
-    String getUserName();
-
-    /**
-     * Sets the user name to use when authenticating to this repository.
-     *
-     * @param username The user name. May be null.
-     */
-    void setUserName(String username);
-
-    /**
-     * Returns the password to use when authenticating to this repository.
-     *
-     * @return The password. May be null.
-     */
-    String getPassword();
-
-    /**
-     * Sets the password to use when authenticating to this repository.
-     *
-     * @param password The password. May be null.
-     */
-    void setPassword(String password);
 
     /**
      * The base URL of this repository.
@@ -117,15 +89,55 @@ public interface IvyArtifactRepository extends ArtifactRepository {
      *
      * <h4>'pattern'</h4>
      * A repository layout that allows custom patterns to be defined. eg:
-     * <pre>
-     *     layout 'pattern' , {
-     *         artifacts '[module]/[revision]/[artifact](.[ext])'
-     *         ivy '[module]/[revision]/ivy.xml'
+     * <pre autoTested="">
+     * repositories {
+     *     ivy {
+     *         layout 'pattern' , {
+     *             artifact '[module]/[revision]/[artifact](.[ext])'
+     *             ivy '[module]/[revision]/ivy.xml'
+     *         }
      *     }
+     * }
      * </pre>
      *
      * @param layoutName The name of the layout to use.
      * @param config The closure used to configure the layout.
      */
     void layout(String layoutName, Closure config);
+
+    /**
+     * Returns the username to use for authentication with this repository, if any.
+     * 
+     * @return the username, may be null.
+     * @deprecated Use {@link #getCredentials()} and {@link PasswordCredentials#getUsername()} instead.
+     */
+    @Deprecated
+    String getUserName();
+
+    /**
+     * Sets the username to use for authentication with this repository, if any.
+     * 
+     * @param username the username, may be null.
+     * @deprecated Use {@link #getCredentials()} and {@link PasswordCredentials#setUsername(String)} instead.
+     */
+    @Deprecated
+    void setUserName(String username);
+
+    /**
+     * Returns the password to use for authentication with this repository, if any.
+     *
+     * @return the password, may be null.
+     * @deprecated Use {@link #getCredentials()} and {@link PasswordCredentials#getPassword()} instead.
+     */
+    @Deprecated
+    String getPassword();
+
+    /**
+     * Sets the password to use for authentication with this repository, if any.
+     *
+     * @param password the password, may be null.
+     * @deprecated Use {@link #getCredentials()} and {@link PasswordCredentials#setPassword(String)} instead.
+     */
+    @Deprecated
+    void setPassword(String password);
 }

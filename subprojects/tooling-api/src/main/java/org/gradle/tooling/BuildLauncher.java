@@ -17,6 +17,7 @@ package org.gradle.tooling;
 
 import org.gradle.tooling.model.Task;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -38,7 +39,7 @@ import java.io.OutputStream;
  *
  * <p>Instances of {@code BuildLauncher} are not thread-safe.
  */
-public interface BuildLauncher {
+public interface BuildLauncher extends LongRunningOperation {
     /**
      * Sets the tasks to be executed.
      *
@@ -64,26 +65,22 @@ public interface BuildLauncher {
     BuildLauncher forTasks(Iterable<? extends Task> tasks);
 
     /**
-     * Sets the {@link OutputStream} that should receive standard output logging from this build. The default is to discard the output.
-     *
-     * @param outputStream The output stream.
-     * @return this
+     * {@inheritDoc}
      */
     BuildLauncher setStandardOutput(OutputStream outputStream);
 
     /**
-     * Sets the {@link OutputStream} that should receive standard error logging from this build. The default is to discard the output.
-     *
-     * @param outputStream The output stream.
-     * @return this
+     * {@inheritDoc}
      */
     BuildLauncher setStandardError(OutputStream outputStream);
 
     /**
-     * Adds a progress listener which will receive progress events as the build executes.
-     *
-     * @param listener The listener
-     * @return this
+     * {@inheritDoc}
+     */
+    BuildLauncher setStandardInput(InputStream inputStream);
+
+    /**
+     * {@inheritDoc}
      */
     BuildLauncher addProgressListener(ProgressListener listener);
 

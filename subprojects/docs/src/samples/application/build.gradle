@@ -19,7 +19,7 @@ task createDocs {
     }
 }
 
-applicationDistribution.from(createDocs.outputs.files) {
+applicationDistribution.from(createDocs) {
     into "docs"
 }
 // END SNIPPET distribution-spec

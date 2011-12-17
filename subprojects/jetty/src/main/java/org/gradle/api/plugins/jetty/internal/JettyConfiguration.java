@@ -36,14 +36,14 @@ import org.mortbay.log.Log;
 import org.mortbay.util.LazyList;
 
 public class JettyConfiguration extends Configuration {
-    private List classPathFiles;
+    private List<File> classPathFiles;
     private File webXmlFile;
 
     public JettyConfiguration() {
         super();
     }
 
-    public void setClassPathConfiguration(List classPathFiles) {
+    public void setClassPathConfiguration(List<File> classPathFiles) {
         this.classPathFiles = classPathFiles;
     }
 
@@ -61,10 +61,9 @@ public class JettyConfiguration extends Configuration {
             Log.debug("Setting up classpath ...");
 
             //put the classes dir and all dependencies into the classpath
-            Iterator itor = classPathFiles.iterator();
-            while (itor.hasNext()) {
+            for (File classPathFile : classPathFiles) {
                 ((WebAppClassLoader) getWebAppContext().getClassLoader()).addClassPath(
-                        ((File) itor.next()).getCanonicalPath());
+                        classPathFile.getCanonicalPath());
             }
 
             if (Log.isDebugEnabled()) {
@@ -102,7 +101,7 @@ public class JettyConfiguration extends Configuration {
             //the org.mortbay.jetty.annotations.Configuration class, but it's too difficult?
 
             //able to use annotations on on jdk1.5 and above
-            Class annotationParserClass = Thread.currentThread().getContextClassLoader().loadClass(
+            Class<?> annotationParserClass = Thread.currentThread().getContextClassLoader().loadClass(
                     "org.mortbay.jetty.annotations.AnnotationParser");
             Method parseAnnotationsMethod = annotationParserClass.getMethod("parseAnnotations", WebAppContext.class,
                     Class.class, RunAsCollection.class, InjectionCollection.class, LifeCycleCallbackCollection.class);

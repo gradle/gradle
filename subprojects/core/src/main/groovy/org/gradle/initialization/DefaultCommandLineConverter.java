@@ -15,28 +15,19 @@
  */
 package org.gradle.initialization;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
-import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.cli.AbstractCommandLineConverter;
-import org.gradle.cli.CommandLineConverter;
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
-import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.cli.*;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -52,11 +43,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String TASKS = "t";
     private static final String PROPERTIES = "r";
     private static final String DEPENDENCIES = "n";
-    public static final String FULL_STACKTRACE = "S";
-    public static final String FULL_STACKTRACE_LONG = "full-stacktrace";
-    public static final String STACKTRACE = "s";
-    public static final String STACKTRACE_LONG = "stacktrace";
-    private static final String SYSTEM_PROP = "D";
     private static final String PROJECT_PROP = "P";
     public static final String GRADLE_USER_HOME = "g";
     private static final String EMBEDDED_SCRIPT = "e";
@@ -65,19 +51,11 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String NO_OPT = "no-opt";
     private static final String EXCLUDE_TASK = "x";
     private static final String PROFILE = "profile";
+    private static final String CONTINUE = "continue";
+    private static final String PROJECT_CACHE_DIR = "project-cache-dir";
 
-    private static BiMap<String, StartParameter.ShowStacktrace> showStacktraceMap = HashBiMap.create();
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
-
-    //Initialize bi-directional maps so you can convert these back and forth from their command line options to their
-    //object representation.
-
-    static {
-        showStacktraceMap.put(FULL_STACKTRACE, StartParameter.ShowStacktrace.ALWAYS_FULL);
-        showStacktraceMap.put(STACKTRACE, StartParameter.ShowStacktrace.ALWAYS);
-        //showStacktraceMap.put( , StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS ); there is no command argument for this. Rather, the lack of an argument means 'default to this'.
-    }
 
     public void configure(CommandLineParser parser) {
         loggingConfigurationCommandLineConverter.configure(parser);
@@ -85,10 +63,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.allowMixedSubcommandsAndOptions();
         parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
         parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
-        parser.option("project-cache-dir").hasArgument().hasDescription("Specifies the project-specific cache directory. Can be absolute or relative to the project's dir. The default is '.gradle'.");
+        parser.option(PROJECT_CACHE_DIR).hasArgument().hasDescription("Specifies the project-specific cache directory. Defaults to .gradle in the root project directory.");
         parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
-        parser.option(STACKTRACE, STACKTRACE_LONG).hasDescription("Print out the stacktrace also for user exceptions (e.g. compile error).");
-        parser.option(FULL_STACKTRACE, FULL_STACKTRACE_LONG).hasDescription("Print out the full (very verbose) stacktrace for any exceptions.");
         parser.option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks").deprecated(deprecationMessage("tasks"));
         parser.option(PROPERTIES, "properties").mapsToSubcommand(ImplicitTasksConfigurer.PROPERTIES_TASK).hasDescription("Show list of all available project properties").deprecated(deprecationMessage("properties"));
         parser.option(DEPENDENCIES, "dependencies").mapsToSubcommand(ImplicitTasksConfigurer.DEPENDENCIES_TASK).hasDescription("Show list of all project dependencies").deprecated(deprecationMessage("dependencies"));
@@ -103,6 +79,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(NO_OPT).hasDescription("Ignore any task optimization.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
+        parser.option(CONTINUE).hasDescription("Continues task execution after a task failure. [experimental]");
     }
 
     @Override
@@ -119,9 +96,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     }
 
     public StartParameter convert(ParsedCommandLine options, StartParameter startParameter) throws CommandLineArgumentException {
-        LoggingConfiguration loggingConfiguration = loggingConfigurationCommandLineConverter.convert(options);
-        startParameter.setLogLevel(loggingConfiguration.getLogLevel());
-        startParameter.setColorOutput(loggingConfiguration.isColorOutput());
+        loggingConfigurationCommandLineConverter.convert(options, startParameter);
         FileResolver resolver = new BaseDirFileResolver(startParameter.getCurrentDir());
 
         Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options);
@@ -161,8 +136,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             }
         }
 
-        if (options.hasOption("project-cache-dir")) {
-            startParameter.setProjectCacheDir(options.option("project-cache-dir").getValue());
+        if (options.hasOption(PROJECT_CACHE_DIR)) {
+            startParameter.setProjectCacheDir(resolver.resolve(options.option(PROJECT_CACHE_DIR).getValue()));
         }
 
         if (options.hasOption(EMBEDDED_SCRIPT)) {
@@ -175,17 +150,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
                         EMBEDDED_SCRIPT, BUILD_FILE, SETTINGS_FILE, NO_SEARCH_UPWARDS));
             }
             startParameter.useEmbeddedBuildFile(options.option(EMBEDDED_SCRIPT).getValue());
-        }
-
-        if (options.hasOption(FULL_STACKTRACE)) {
-            if (options.hasOption(STACKTRACE)) {
-                throw new CommandLineArgumentException(String.format(
-                        "Error: The -%s option can't be used together with the -%s option.", FULL_STACKTRACE,
-                        STACKTRACE));
-            }
-            startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS_FULL);
-        } else if (options.hasOption(STACKTRACE)) {
-            startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS);
         }
 
         if (options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
@@ -212,48 +176,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setProfile(true);
         }
 
+        if (options.hasOption(CONTINUE)) {
+            startParameter.setContinueOnFailure(true);
+        }
+        
         return startParameter;
-    }
-
-    /**
-     * This returns the stack trace level object represented by the command line argument
-     *
-     * @param commandLineArgument a single command line argument (with no '-')
-     * @return the corresponding stack trace level or null if it doesn't match any.
-     * @author mhunsicker
-     */
-    public StartParameter.ShowStacktrace getShowStacktrace(String commandLineArgument) {
-        StartParameter.ShowStacktrace showStacktrace = showStacktraceMap.get(commandLineArgument);
-        if (showStacktrace == null) {
-            return null;
-        }
-
-        return showStacktrace;
-    }
-
-    /**
-     * This returns the command line argument that represents the specified stack trace level.
-     *
-     * @param showStacktrace the stack trace level.
-     * @return the command line argument or null if this level cannot be represented on the command line.
-     * @author mhunsicker
-     */
-    public String getShowStacktraceCommandLine(StartParameter.ShowStacktrace showStacktrace) {
-        String commandLine = showStacktraceMap.inverse().get(showStacktrace);
-        if (commandLine == null) {
-            return null;
-        }
-
-        return commandLine;
-    }
-
-    /**
-     * This returns the ShowStacktrace levels that are supported on the command line.
-     *
-     * @return a collection of available ShowStacktrace levels
-     * @author mhunsicker
-     */
-    public Collection<StartParameter.ShowStacktrace> getShowStacktrace() {
-        return Collections.unmodifiableCollection(showStacktraceMap.values());
     }
 }

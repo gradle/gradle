@@ -27,9 +27,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-
-import static java.util.Collections.emptySet;
+import java.util.Collections;
 
 /**
  * @author: Szczepan Faber, created at: 7/25/11
@@ -39,7 +37,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
 //    public static final long serialVersionUID = 1L;
 
     private String name;
-    private List<IdeaContentRoot> contentRoots = new LinkedList<IdeaContentRoot>();
+    private List<? extends IdeaContentRoot> contentRoots = new LinkedList<IdeaContentRoot>();
     private IdeaProject parent;
 
     private File moduleFileDir;
@@ -61,7 +59,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
         return new ImmutableDomainObjectSet<IdeaContentRoot>(contentRoots);
     }
 
-    public DefaultIdeaModule setContentRoots(List<IdeaContentRoot> contentRoots) {
+    public DefaultIdeaModule setContentRoots(List<? extends IdeaContentRoot> contentRoots) {
         this.contentRoots = contentRoots;
         return this;
     }
@@ -102,7 +100,7 @@ public class DefaultIdeaModule implements Serializable, IdeaModule {
     }
 
     public DomainObjectSet<? extends HierarchicalElement> getChildren() {
-        return new ImmutableDomainObjectSet<HierarchicalElement>((Set) emptySet());
+        return new ImmutableDomainObjectSet<HierarchicalElement>(Collections.<HierarchicalElement>emptySet());
     }
 
     public String getDescription() {

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.specs;
 
+import org.gradle.util.DeprecationLogger;
+
 import groovy.lang.Closure;
 
 import java.util.LinkedHashSet;
@@ -27,24 +29,24 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class Specs {
-    public static final Spec SATISFIES_ALL = satisfyAll();
+    public static final Spec<Object> SATISFIES_ALL = new Spec<Object>() {
+        public boolean isSatisfiedBy(Object element) {
+            return true;
+        }
+    };
 
     public static <T> Spec<T> satisfyAll() {
-        return new Spec<T>() {
-            public boolean isSatisfiedBy(T element) {
-                return true;
-            }
-        };
+        return (Spec<T>)SATISFIES_ALL;
     }
 
-    public static final Spec SATISFIES_NONE = satisfyNone();
-
+    public static final Spec<Object> SATISFIES_NONE = new Spec<Object>() {
+        public boolean isSatisfiedBy(Object element) {
+            return false;
+        }
+    };
+    
     public static <T> Spec<T> satisfyNone() {
-        return new Spec<T>() {
-            public boolean isSatisfiedBy(T element) {
-                return false;
-            }
-        };
+        return (Spec<T>)SATISFIES_NONE;
     }
 
     public static <T> Spec<T> convertClosureToSpec(final Closure cl) {
@@ -57,6 +59,7 @@ public class Specs {
     }
 
     public static <T> Set<T> filterIterable(Iterable<? extends T> iterable, Spec<? super T> spec) {
+        DeprecationLogger.nagUserOfReplacedMethod("Specs.filterIterable", "CollectionUtils.filter");
         Set<T> result = new LinkedHashSet<T>();
         for (T t : iterable) {
             if (spec.isSatisfiedBy(t)) {

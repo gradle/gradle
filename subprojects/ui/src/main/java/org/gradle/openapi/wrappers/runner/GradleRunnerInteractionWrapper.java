@@ -15,9 +15,9 @@
  */
 package org.gradle.openapi.wrappers.runner;
 
-import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
+import org.gradle.logging.ShowStacktrace;
 import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1;
 
 import java.io.File;
@@ -54,18 +54,18 @@ public class GradleRunnerInteractionWrapper implements ExecuteGradleCommandServe
     /**
      * @return the stack trace level. This determines the detail level of any stack traces should an exception occur.
      */
-    public StartParameter.ShowStacktrace getStackTraceLevel() {
+    public ShowStacktrace getStackTraceLevel() {
         GradleRunnerInteractionVersion1.StackTraceLevel stackTraceLevel = interactionVersion1.getStackTraceLevel();
         switch (stackTraceLevel) {
             case InternalExceptions:
-                return StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS;
+                return ShowStacktrace.INTERNAL_EXCEPTIONS;
             case Always:
-                return StartParameter.ShowStacktrace.ALWAYS;
+                return ShowStacktrace.ALWAYS;
             case AlwaysFull:
-                return StartParameter.ShowStacktrace.ALWAYS_FULL;
+                return ShowStacktrace.ALWAYS_FULL;
         }
 
-        return StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS;
+        return ShowStacktrace.INTERNAL_EXCEPTIONS;
     }
 
     /**

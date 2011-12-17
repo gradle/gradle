@@ -15,23 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
-import spock.lang.Specification
-import org.gradle.api.internal.file.FileResolver
-import org.apache.ivy.plugins.resolver.IBiblioResolver
-import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver
-import org.apache.ivy.plugins.resolver.DualResolver
-import org.apache.ivy.plugins.resolver.URLResolver
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport
+import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.internal.file.FileResolver
+import spock.lang.Specification
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
-    final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(resolver)
+    final PasswordCredentials credentials = Mock()
+    final RepositoryTransportFactory transportFactory = Mock()
+    final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(resolver, credentials, transportFactory)
 
     def "creates local repository"() {
         given:
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
+        transportFactory.createFileTransport('repo') >> new FileTransport('repo')
 
         and:
         repository.name = 'repo'
@@ -44,7 +48,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         then:
         result.size() == 1
         def repo = result[0]
-        repo instanceof IBiblioResolver
+        repo instanceof MavenResolver
         repo.root == "${file.absolutePath}/"
     }
 
@@ -52,6 +56,10 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("http://localhost:9090/repo")
         _ * resolver.resolveUri('repo-dir') >> uri
+        2 * credentials.getUsername() >> 'username'
+        1 * credentials.getPassword() >> 'password'
+        transportFactory.createHttpTransport('repo', credentials) >> new HttpTransport('repo', credentials, Mock(ExternalArtifactCache))
+        0 * _._
 
         and:
         repository.name = 'repo'
@@ -64,7 +72,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         then:
         result.size() == 1
         def repo = result[0]
-        repo instanceof IBiblioWharfResolver
+        repo instanceof MavenResolver
         repo.root == "${uri}/"
     }
 
@@ -76,6 +84,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
         _ * resolver.resolveUri('repo2') >> uri2
+        transportFactory.createHttpTransport('repo', credentials) >> new HttpTransport('repo', credentials, Mock(ExternalArtifactCache))
 
         and:
         repository.name = 'repo'
@@ -89,14 +98,12 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         then:
         result.size() == 1
         def repo = result[0]
-        repo instanceof DualResolver
-        repo.ivyResolver instanceof IBiblioWharfResolver
-        repo.ivyResolver.root == "${uri}/"
-        repo.artifactResolver instanceof URLResolver
-        repo.artifactResolver.artifactPatterns.size() == 3
-        repo.artifactResolver.artifactPatterns.any { it.startsWith uri.toString() }
-        repo.artifactResolver.artifactPatterns.any { it.startsWith uri1.toString() }
-        repo.artifactResolver.artifactPatterns.any { it.startsWith uri2.toString() }
+        repo instanceof MavenResolver
+        repo.root == "${uri}/"
+        repo.artifactPatterns.size() == 3
+        repo.artifactPatterns.any { it.startsWith uri.toString() }
+        repo.artifactPatterns.any { it.startsWith uri1.toString() }
+        repo.artifactPatterns.any { it.startsWith uri2.toString() }
     }
 
     def "fails when no root url specified"() {

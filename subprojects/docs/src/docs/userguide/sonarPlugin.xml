@@ -18,33 +18,116 @@
 
     <para>The Sonar plugin provides integration with <ulink url="http://www.sonarsource.org">Sonar</ulink>,
         a web-based platform for monitoring code quality. The plugin adds a <literal>sonarAnalyze</literal> task
-        to the project, which analyzes the project's source code and stores the results in Sonar's database.
+        that analyzes the project to which the plugin is applied and its subprojects. The results are stored in
+        the Sonar database. The plugin requires Sonar 2.9 or higher.
     </para>
 
     <para>
-        The <literal>sonarAnalyze</literal> task is a standalone task that needs to be executed explicitly. By default,
-        it gets configured to analyze the Java code in the main source set. In a typical setup, the task would
-        be run once per day on a build server.
+        The <literal>sonarAnalyze</literal> task is a standalone task that needs to be executed explicitly
+        and doesn't depend on any other tasks. Apart from source code, the task also analyzes class files
+        and test result files (if available). For best results, it is therefore recommended to run a full
+        build before the analysis. In a typical setup, analysis would be performed once per day on a build server.
     </para>
 
     <section>
         <title>Usage</title>
-        <para>At a minimum, the Sonar plugin has to be applied to the root project of the build.</para>
-        <sample id="useSonarPlugin" dir="sonar" title="Using the Sonar plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        <para>At a minimum, the Sonar plugin has to be applied to the project.</para>
+        <sample id="quickstart" dir="sonar/quickstart" title="Applying the Sonar plugin">
+            <sourcefile file="build.gradle" snippet="apply-plugin"/>
         </sample>
         <para>Unless Sonar is run locally and with default settings, it is also necessary to configure
-            connection settings for the Sonar server and database. This configuration is only done for
-            the root project.</para>
-        <sample id="useSonarPlugin" dir="sonar" title="Configuring Sonar connection settings">
+            connection settings for the Sonar server and database.</para>
+        <sample id="quickstart" dir="sonar/quickstart" title="Configuring Sonar connection settings">
             <sourcefile file="build.gradle" snippet="connection-settings"/>
         </sample>
-        <para>Each project also has project-specific settings, which can be customized.</para>
-        <sample id="useSonarPlugin" dir="sonar" title="Configuring Sonar project settings">
+        <para>Project settings determine how the project is going to be analyzed. The default configuration
+            works well for analyzing standard Java projects and can be customized in many ways.</para>
+        <sample id="quickstart" dir="sonar/quickstart" title="Configuring Sonar project settings">
             <sourcefile file="build.gradle" snippet="project-settings"/>
         </sample>
-        <para>For a complete documentation of all configuration options, see the DSL rerence for
-            <apilink class="org.gradle.api.plugins.sonar.SonarAnalyze"/>
+        <para>
+            The <literal>sonar</literal>, <literal>server</literal>, <literal>database</literal>, and <literal>project</literal>
+            blocks in the examples above configure objects of type <apilink class="org.gradle.api.plugins.sonar.model.SonarRootModel"/>,
+            <apilink class="org.gradle.api.plugins.sonar.model.SonarServer"/>, <apilink class="org.gradle.api.plugins.sonar.model.SonarDatabase"/>,
+            and <apilink class="org.gradle.api.plugins.sonar.model.SonarProject"/>, respectively. See their API documentation for further information.
+        </para>
+    </section>
+
+    <section>
+        <title>Analyzing Multi-Project Builds</title>
+        <para>The Sonar plugin is capable of analyzing a whole project hierarchy at once. This yields a hierarchical view in the
+            Sonar web interface with aggregated metrics and the ability to drill down into subprojects. It is also faster and
+            less likely to run into out-of-memory problems than analyzing each project separately.
+        </para>
+        <para>
+            To analyze a project hierarchy, the Sonar plugin needs to be applied to the top-most project of the hierarchy.
+            Typically (but not necessarily) this will be the root project. The <literal>sonar</literal> block
+            in that project configures an object of type <apilink class="org.gradle.api.plugins.sonar.model.SonarRootModel"/>.
+            It holds all global configuration, most importantly server and database connection settings.
+        </para>
+        <sample id="multiProject" dir="sonar/multiProject" title="Global configuration in a multi-project build">
+            <sourcefile file="build.gradle" snippet="global-configuration"/>
+        </sample>
+        <para>Each project in the hierarchy has its own project configuration. Common values can be set from a parent build script.</para>
+        <sample id="multiProject" dir="sonar/multiProject" title="Common project configuration in a multi-project build">
+            <sourcefile file="build.gradle" snippet="common-project-configuration"/>
+        </sample>
+        <para>The <literal>sonar</literal> block in a subproject configures an object of type <apilink class="org.gradle.api.plugins.sonar.model.SonarProjectModel"/>.</para>
+        <para>
+            Projects can also be configured individually. For example, setting the <literal>skip</literal> property to <literal>true</literal>
+            prevents a project (and its subprojects) from being analyzed. Skipped projects will not be displayed in the Sonar web interface.
+        </para>
+        <sample id="multiProject" dir="sonar/multiProject" title="Individual project configuration in a multi-project build">
+            <sourcefile file="build.gradle" snippet="individual-project-configuration"/>
+        </sample>
+        <para>
+            Another typical per-project configuration is the programming language to be analyzed. Note that Sonar can only analyze one language per project.
+        </para>
+        <sample id="multiProject" dir="sonar/multiProject" title="Configuring the language to be analyzed">
+            <sourcefile file="build.gradle" snippet="language-configuration"/>
+        </sample>
+        <para>
+            When setting only a single property at a time, the equivalent property syntax is more succinct:
+        </para>
+        <sample id="multiProject" dir="sonar/multiProject" title="Using property syntax">
+            <sourcefile file="build.gradle" snippet="property-syntax"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>Analyzing Custom Source Sets</title>
+        <para>By default, the Sonar plugin will analyze the production sources in the <literal>main</literal> source set and
+            the test sources in the <literal>test</literal> source set. This works independent of the project's source directory layout.
+            Additional source sets can be added as needed.
+        </para>
+        <sample id="advanced" dir="sonar/advanced" title="Analyzing custom source sets">
+            <sourcefile file="build.gradle" snippet="source-sets"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>Setting Custom Sonar Properties</title>
+        <para>
+            Eventually, most configuration is passed to the Sonar code analyzer in the form of key-value pairs known as Sonar properties.
+            The <apilink class="org.gradle.api.plugins.sonar.model.SonarProperty"/> annotations in the API documentation show how properties
+            of the plugin's object model get mapped to the corresponding Sonar properties. The Sonar plugin offers hooks to post-process Sonar
+            properties before they get passed to the code analyzer. The same hooks can be used to add additional properties which aren't covered
+            by the plugin's object model.
+        </para>
+
+        <para>For global Sonar properties, use the <code>withGlobalProperties</code> hook on <apilink class="org.gradle.api.plugins.sonar.model.SonarRootModel"/>:</para>
+        <sample id="advanced" dir="sonar/advanced" title="Setting custom global properties">
+            <sourcefile file="build.gradle" snippet="global-properties"/>
+        </sample>
+
+        <para>For per-project Sonar properties, use the <code>withProjectProperties</code> hook on <apilink class="org.gradle.api.plugins.sonar.model.SonarProject"/>:</para>
+        <sample id="advanced" dir="sonar/advanced" title="Setting custom project properties">
+            <sourcefile file="build.gradle" snippet="project-properties"/>
+        </sample>
+
+        <para>
+            The Sonar documentation provides a complete list of Sonar properties. (Note that most of these properties are already covered
+            by the plugin's object model.) For configuring third-party Sonar plugins, consult their documentation.
         </para>
     </section>
 
@@ -62,22 +145,11 @@
                 </tr>
             </thead>
             <tr>
-                <td><literal>sonar</literal></td>
+                <td><literal>sonarAnalyze</literal></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.sonar.SonarAnalyze"/></td>
-                <td>Analyzes the project's source code and stores results in the Sonar database.</td>
+                <td>Analyzes a project hierarchy and stores the results in the Sonar database.</td>
             </tr>
         </table>
-    </section>
-
-    <section>
-        <title>Limitations</title>
-        <itemizedlist>
-            <listitem>
-                <para>The projects of a multi-project build are currently analyzed independently. This means that no
-                    aggregated view will be available.
-                </para>
-            </listitem>
-        </itemizedlist>
     </section>
 </chapter>

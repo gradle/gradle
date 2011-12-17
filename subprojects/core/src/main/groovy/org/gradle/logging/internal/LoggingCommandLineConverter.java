@@ -23,6 +23,7 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.LoggingConfiguration;
+import org.gradle.logging.ShowStacktrace;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -35,13 +36,20 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
     public static final String QUIET = "q";
     public static final String QUIET_LONG = "quiet";
     public static final String NO_COLOR = "no-color";
+    public static final String FULL_STACKTRACE = "S";
+    public static final String FULL_STACKTRACE_LONG = "full-stacktrace";
+    public static final String STACKTRACE = "s";
+    public static final String STACKTRACE_LONG = "stacktrace";
     private final BiMap<String, LogLevel> logLevelMap = HashBiMap.create();
+    private final BiMap<String, ShowStacktrace> showStacktraceMap = HashBiMap.create();
 
     public LoggingCommandLineConverter() {
         logLevelMap.put(QUIET, LogLevel.QUIET);
         logLevelMap.put(INFO, LogLevel.INFO);
         logLevelMap.put(DEBUG, LogLevel.DEBUG);
         logLevelMap.put("", LogLevel.LIFECYCLE);
+        showStacktraceMap.put(FULL_STACKTRACE, ShowStacktrace.ALWAYS_FULL);
+        showStacktraceMap.put(STACKTRACE, ShowStacktrace.ALWAYS);
     }
 
     @Override
@@ -54,7 +62,18 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         if (commandLine.hasOption(NO_COLOR)) {
             loggingConfiguration.setColorOutput(false);
         }
+        loggingConfiguration.setShowStacktrace(getShowStacktrace(commandLine));
         return loggingConfiguration;
+    }
+
+    private ShowStacktrace getShowStacktrace(ParsedCommandLine options) {
+        if (options.hasOption(FULL_STACKTRACE)) {
+            return ShowStacktrace.ALWAYS_FULL;
+        }
+        if (options.hasOption(STACKTRACE)) {
+            return ShowStacktrace.ALWAYS;
+        }
+        return ShowStacktrace.INTERNAL_EXCEPTIONS;
     }
 
     private LogLevel getLogLevel(ParsedCommandLine options) {
@@ -76,6 +95,8 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         parser.option(QUIET, QUIET_LONG).hasDescription("Log errors only.");
         parser.option(INFO, INFO_LONG).hasDescription("Set log level to info.");
         parser.option(NO_COLOR).hasDescription("Do not use color in the console output.");
+        parser.option(STACKTRACE, STACKTRACE_LONG).hasDescription("Print out the stacktrace for all exceptions.");
+        parser.option(FULL_STACKTRACE, FULL_STACKTRACE_LONG).hasDescription("Print out the full (very verbose) stacktrace for all exceptions.");
     }
 
     /**
@@ -120,4 +141,35 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         return Collections.unmodifiableCollection(logLevelMap.values());
     }
 
+    /**
+     * This returns the stack trace level object represented by the command line argument
+     *
+     * @param commandLineArgument a single command line argument (with no '-')
+     * @return the corresponding stack trace level or null if it doesn't match any.
+     * @author mhunsicker
+     */
+    public ShowStacktrace getShowStacktrace(String commandLineArgument) {
+        ShowStacktrace showStacktrace = showStacktraceMap.get(commandLineArgument);
+        if (showStacktrace == null) {
+            return null;
+        }
+
+        return showStacktrace;
+    }
+
+    /**
+     * This returns the command line argument that represents the specified stack trace level.
+     *
+     * @param showStacktrace the stack trace level.
+     * @return the command line argument or null if this level cannot be represented on the command line.
+     * @author mhunsicker
+     */
+    public String getShowStacktraceCommandLine(ShowStacktrace showStacktrace) {
+        String commandLine = showStacktraceMap.inverse().get(showStacktrace);
+        if (commandLine == null) {
+            return null;
+        }
+
+        return commandLine;
+    }
 }

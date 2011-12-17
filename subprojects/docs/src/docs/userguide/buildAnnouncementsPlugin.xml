@@ -1,0 +1,24 @@
+<chapter id='build_announcements_plugin'>
+    <title>The Build Announcements Plugin</title>
+    <note>
+        <para>
+            The build announcements is experimental and should not be considered stable.
+        </para>
+    </note>
+    <para>The build announcements plugin uses the <link linkend="announce_plugin">announce</link> plugin to send local announcements on important events in the build.</para>
+    <section>
+        <title>Usage</title>
+        <para>To use the build announcements plugin, include in your build script:</para>
+        <sample id="useBuildAnnouncementsPlugin" dir="announce" title="Using the build announcements plugin">
+            <sourcefile file="build.gradle" snippet="use-build-announcements-plugin"/>
+        </sample>
+        <para>That's it. If you want to tweak where the announcements go, you can configure the <link linkend="announce_plugin">announce</link> plugin to
+            change the local announcer.
+        </para>
+        <para>You can also apply the plugin from an init script:</para>
+        <sample id="useBuildAnnouncementsPlugin" dir="announce" title="Using the build announcements plugin from an init script">
+            <sourcefile file="init.gradle"/>
+            <test args="-I init.gradle"/>
+        </sample>
+    </section>
+</chapter>

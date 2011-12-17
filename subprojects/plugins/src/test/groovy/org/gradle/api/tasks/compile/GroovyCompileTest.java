@@ -43,7 +43,7 @@ import static org.junit.Assert.*;
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class GroovyCompileTest extends AbstractCompileTest {
-    static final List TEST_GROOVY_CLASSPATH = toList(new File("groovy.jar"));
+    static final List<File> TEST_GROOVY_CLASSPATH = toList(new File("groovy.jar"));
 
     private GroovyCompile testObj;
 
@@ -103,7 +103,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
 
     @Test
     public void testExecuteWithEmptyGroovyClasspath() {
-        setUpMocksAndAttributes(testObj, Collections.emptyList());
+        setUpMocksAndAttributes(testObj, Collections.<File>emptyList());
         try {
             testObj.compile();
         } catch (InvalidUserDataException e) {
@@ -112,7 +112,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
         Assert.fail();
     }
 
-    void setUpMocksAndAttributes(GroovyCompile compile, final List groovyClasspath) {
+    void setUpMocksAndAttributes(GroovyCompile compile, final List<File> groovyClasspath) {
         super.setUpMocksAndAttributes(compile);
 
         final FileCollection groovyClasspathCollection = context.mock(FileCollection.class);

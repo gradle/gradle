@@ -1,0 +1,7 @@
+
+task log {
+    DeprecationLogger.nagUserWith("A deprecation warning")
+    doLast {
+        DeprecationLogger.nagUserWith("A deprecation warning")
+    }
+}

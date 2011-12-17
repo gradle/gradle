@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import java.io.Serializable;
+    
 /**
  * @author Hans Dockter
  */
-public class ProjectDependenciesBuildInstruction {
+public class ProjectDependenciesBuildInstruction implements Serializable {
     private final boolean rebuild;
 
     public ProjectDependenciesBuildInstruction(boolean rebuild) {

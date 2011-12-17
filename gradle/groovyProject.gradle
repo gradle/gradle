@@ -19,6 +19,15 @@ apply from: "$rootDir/gradle/compile.gradle"
 
 test {
     maxParallelForks = guessMaxForks()
+    doFirst {
+        if (isCIBuild()) {
+            maxParallelForks = 2
+        }
+    }
+}
+
+tasks.matching { it instanceof Compile || it instanceof GroovyCompile }.all {
+    options.compilerArgs << "-Xlint:unchecked"
 }
 
 tasks.withType(Jar).each { jar ->

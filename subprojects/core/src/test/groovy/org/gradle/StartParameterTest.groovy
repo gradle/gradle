@@ -16,13 +16,8 @@
 
 package org.gradle
 
-import static org.gradle.util.Matchers.*
-
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction
 import org.gradle.api.logging.LogLevel
-import org.gradle.execution.BuildExecuter
-import org.gradle.execution.DefaultBuildExecuter
-import org.gradle.execution.DryRunBuildExecuter
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.groovy.scripts.UriScriptSource
@@ -30,12 +25,13 @@ import org.gradle.initialization.BuildFileProjectSpec
 import org.gradle.initialization.DefaultProjectSpec
 import org.gradle.initialization.ProjectDirectoryProjectSpec
 import org.gradle.initialization.ProjectSpec
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.junit.Test
+import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.util.SetSystemProperties
 
 /**
  * @author Hans Dockter
@@ -61,6 +57,7 @@ class StartParameterTest {
         testObj.cacheUsage = CacheUsage.ON
         testObj.logLevel = LogLevel.WARN
         testObj.colorOutput = false
+        testObj.continueOnFailure = true
 
         StartParameter startParameter = testObj.newInstance()
         assertEquals(testObj, startParameter)
@@ -80,9 +77,10 @@ class StartParameterTest {
         assertThat(parameter.excludedTaskNames, isEmpty())
         assertThat(parameter.projectProperties, isEmptyMap())
         assertThat(parameter.systemPropertiesArgs, isEmptyMap())
-        assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
         assertFalse(parameter.dryRun)
+        assertFalse(parameter.continueOnFailure)
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testDefaultWithGradleUserHomeSystemProp() {
@@ -99,6 +97,7 @@ class StartParameterTest {
 
         assertThat(parameter.currentDir, equalTo(dir.canonicalFile))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(dir.canonicalFile)))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetBuildFile() {
@@ -109,6 +108,7 @@ class StartParameterTest {
         assertThat(parameter.buildFile, equalTo(file.canonicalFile))
         assertThat(parameter.currentDir, equalTo(file.canonicalFile.parentFile))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new BuildFileProjectSpec(file.canonicalFile)))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetNullBuildFile() {
@@ -120,6 +120,7 @@ class StartParameterTest {
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
         assertThat(parameter.initScripts, equalTo(Collections.emptyList()))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetProjectDir() {
@@ -129,6 +130,7 @@ class StartParameterTest {
 
         assertThat(parameter.currentDir, equalTo(file.canonicalFile))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(file.canonicalFile)))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetNullProjectDir() {
@@ -138,6 +140,7 @@ class StartParameterTest {
 
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetSettingsFile() {
@@ -148,6 +151,7 @@ class StartParameterTest {
         assertThat(parameter.currentDir, equalTo(file.canonicalFile.parentFile))
         assertThat(parameter.settingsScriptSource, instanceOf(UriScriptSource.class))
         assertThat(parameter.settingsScriptSource.resource.file, equalTo(file.canonicalFile))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetNullSettingsFile() {
@@ -155,39 +159,19 @@ class StartParameterTest {
         parameter.settingsFile = null
 
         assertThat(parameter.settingsScriptSource, nullValue())
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetSettingsScriptSource() {
         StartParameter parameter = new StartParameter()
         parameter.settingsFile = new File('settings file')
 
-        ScriptSource scriptSource = {} as ScriptSource
+        ScriptSource scriptSource = new StringScriptSource("", "")
 
         parameter.settingsScriptSource = scriptSource
 
         assertThat(parameter.settingsScriptSource, sameInstance(scriptSource))
-    }
-
-    @Test public void testSetTaskNames() {
-        StartParameter parameter = new StartParameter()
-        parameter.taskNames = ['a', 'b']
-        assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
-        assertThat(parameter.buildExecuter.delegate.names, equalTo(['a', 'b']))
-    }
-
-    @Test public void testSetTaskNamesUsesDefaultExecuter() {
-        StartParameter parameter = new StartParameter()
-
-        parameter.setBuildExecuter({} as BuildExecuter)
-        parameter.taskNames = []
-        assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
-    }
-
-    @Test public void testSetExcludedTaskNames() {
-        StartParameter parameter = new StartParameter()
-        parameter.excludedTaskNames = ['a', 'b']
-        assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
-        assertThat(parameter.buildExecuter.excludedTaskNames, equalTo(['a', 'b'] as Set))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testUseEmbeddedBuildFile() {
@@ -198,23 +182,14 @@ class StartParameterTest {
         assertThat(parameter.settingsScriptSource, instanceOf(StringScriptSource.class))
         assertThat(parameter.settingsScriptSource.resource.text, equalTo(""))
         assertThat(parameter.searchUpwards, equalTo(false))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testSetNullUserHomeDir() {
         StartParameter parameter = new StartParameter()
         parameter.gradleUserHomeDir = null
         assertThat(parameter.gradleUserHomeDir, equalTo(StartParameter.DEFAULT_GRADLE_USER_HOME))
-    }
-
-    @Test public void testWrapsExecuterWhenDryRunIsTrue() {
-        StartParameter parameter = new StartParameter()
-        def originalExecuter = [:] as BuildExecuter
-        parameter.buildExecuter = originalExecuter
-        parameter.dryRun = true
-        assertThat(parameter.buildExecuter, instanceOf(DryRunBuildExecuter))
-        assertThat(parameter.buildExecuter.delegate, sameInstance(originalExecuter))
-        parameter.dryRun = false
-        assertThat(parameter.buildExecuter, sameInstance(originalExecuter))
+        assertThat(parameter, isSerializable())
     }
 
     @Test public void testNewBuild() {
@@ -234,6 +209,8 @@ class StartParameterTest {
         parameter.excludedTaskNames = ['excluded1']
         parameter.defaultProjectSelector = [:] as ProjectSpec
         parameter.dryRun = true
+        parameter.continueOnFailure = true
+        assertThat(parameter, isSerializable())
 
         StartParameter newParameter = parameter.newBuild();
 
@@ -243,6 +220,7 @@ class StartParameterTest {
         assertThat(newParameter.cacheUsage, equalTo(parameter.cacheUsage));
         assertThat(newParameter.logLevel, equalTo(parameter.logLevel));
         assertThat(newParameter.colorOutput, equalTo(parameter.colorOutput));
+        assertThat(newParameter.continueOnFailure, equalTo(parameter.continueOnFailure))
 
         assertThat(newParameter.buildFile, nullValue())
         assertThat(newParameter.taskNames, isEmpty())
@@ -250,5 +228,23 @@ class StartParameterTest {
         assertThat(newParameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
         assertThat(newParameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(newParameter.currentDir)))
         assertFalse(newParameter.dryRun)
+        assertThat(newParameter, isSerializable())
+    }
+    
+    void testMergingSystemProperties() {
+        def p = { args = null ->
+            def sp = new StartParameter()
+            if (args) {
+                sp.systemPropertyArgs = args
+            }
+            sp.mergedSystemProperties.sort()
+        }
+        
+        System.properties.clear()
+        System.properties.a = "1"
+    
+        assert p(b: "2") == [a: "1", b: "2"]
+        assert p(a: "2", b: "3") == [a: "2", b: "3"]
+        assert p() == [a: "1"]
     }
 }

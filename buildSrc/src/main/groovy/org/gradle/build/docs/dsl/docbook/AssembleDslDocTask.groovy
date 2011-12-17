@@ -42,8 +42,8 @@ import org.gradle.build.docs.dsl.model.ClassExtensionMetaData
  * <ul>
  * <li>Meta-data extracted from the source by {@link org.gradle.build.docs.dsl.ExtractDslMetaDataTask}.</li>
  * <li>Meta-data about the plugins, in the form of an XML file.</li>
- * <li>A docbook template file containing the introductory material and a list of classes to document.</li>
- * <li>A docbook template file for each class, contained in the {@code classDocbookDir} directory.</li>
+ * <li>{@code sourceFile} - A main docbook template file containing the introductory material and a list of classes to document.</li>
+ * <li>{@code classDocbookDir} - A directory that should contain docbook template for each class referenced in main docbook template.</li>
  * </ul>
  *
  * Produces the following:
@@ -61,7 +61,7 @@ class AssembleDslDocTask extends DefaultTask {
     @InputFile
     File pluginsMetaDataFile
     @InputDirectory
-    File classDocbookDir
+    File classDocbookDir //TODO SF - it would be nice to do some renames, docbookTemplatesDir, destLinksFile
     @OutputFile
     File destFile
     @OutputFile
@@ -77,10 +77,11 @@ class AssembleDslDocTask extends DefaultTask {
         provider.write(destFile)
     }
 
-    private def transformDocument(Document document) {
+    private def transformDocument(Document mainDocbookTemplate) {
         ClassMetaDataRepository<ClassMetaData> classRepository = new SimpleClassMetaDataRepository<ClassMetaData>()
         classRepository.load(classMetaDataFile)
         ClassMetaDataRepository<ClassLinkMetaData> linkRepository = new SimpleClassMetaDataRepository<ClassLinkMetaData>()
+        //for every method found in class meta, create a javadoc/groovydoc link
         classRepository.each {name, ClassMetaData metaData ->
             linkRepository.put(name, new ClassLinkMetaData(metaData))
         }
@@ -88,8 +89,8 @@ class AssembleDslDocTask extends DefaultTask {
         use(DOMCategory) {
             use(BuildableDOMCategory) {
                 Map<String, ClassExtensionMetaData> extensions = loadPluginsMetaData()
-                DslDocModel model = new DslDocModel(classDocbookDir, document, classpath, classRepository, extensions)
-                def root = document.documentElement
+                DslDocModel model = new DslDocModel(classDocbookDir, mainDocbookTemplate, classpath, classRepository, extensions)
+                def root = mainDocbookTemplate.documentElement
                 root.section.table.each { Element table ->
                     mergeContent(table, model, linkRepository)
                 }
@@ -183,19 +184,26 @@ class AssembleDslDocTask extends DefaultTask {
         }
     }
 
-    def mergeType(Element tr, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository) {
-        String className = tr.td[0].text().trim()
+    def mergeType(Element typeTr, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository) {
+        String className = typeTr.td[0].text().trim()
         ClassDoc classDoc = model.getClassDoc(className)
         try {
-            new ClassDocRenderer(new LinkRenderer(tr.ownerDocument, model)).mergeContent(classDoc)
+            //classDoc renderer renders the content of the class and also links to properties/methods
+            new ClassDocRenderer(new LinkRenderer(typeTr.ownerDocument, model)).mergeContent(classDoc)
             def linkMetaData = linkRepository.get(className)
             linkMetaData.style = LinkMetaData.Style.Dsldoc
             classDoc.classMethods.each { methodDoc ->
-                linkMetaData.addMethod(methodDoc.metaData, methodDoc.id, LinkMetaData.Style.Dsldoc)
+                linkMetaData.addMethod(methodDoc.metaData, LinkMetaData.Style.Dsldoc)
             }
-            Element root = tr.ownerDocument.documentElement
+            classDoc.classBlocks.each { blockDoc ->
+                linkMetaData.addBlockMethod(blockDoc.blockMethod.metaData)
+            }
+            classDoc.classProperties.each { propertyDoc ->
+                linkMetaData.addGetterMethod(propertyDoc.name, propertyDoc.metaData.getter)
+            }
+            Element root = typeTr.ownerDocument.documentElement
             root << classDoc.classSection
-            tr.children = {
+            typeTr.children = {
                 td {
                     link(linkend: classDoc.id) { literal(classDoc.simpleName) }
                 }

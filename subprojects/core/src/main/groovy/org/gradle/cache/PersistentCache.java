@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,41 @@ package org.gradle.cache;
 import java.io.File;
 
 /**
- * Represents a directory which can be used for caching.
+ * Represents a directory that can be used for caching.
  *
- * A shared lock is held on this cache by this process, to prevent it being removed or rebuilt by another process while it is in use.
- * However, it is the caller's responsibility to deal with concurrent access to the contents of the cache. You can use
- * {@link DirectoryCacheBuilder#withInitializer(org.gradle.api.Action)} to provide an action to initialize the contents of the
- * cache, for building a read-only cache. An exclusive lock is held by this process while the initializer is running.
+ * <p>By default, a shared lock is held on this cache by this process, to prevent it being removed or rebuilt by another process
+ * while it is in use. You can change this use {@link DirectoryCacheBuilder#withLockMode(org.gradle.cache.internal.FileLockManager.LockMode)}.
+ *
+ * <p>You can use {@link DirectoryCacheBuilder#withInitializer(org.gradle.api.Action)} to provide an action to initialize the contents
+ * of the cache, for building a read-only cache. An exclusive lock is held by this process while the initializer is running.</p>
+ *
+ * <p>You can also use {@link #useCache(String, org.gradle.api.internal.Factory)} to perform some action on the cache while holding an exclusive
+ * lock on the cache.
+ * </p>
  */
-public interface PersistentCache {
+public interface PersistentCache extends CacheAccess {
     /**
      * Returns the base directory for this cache.
      */
     File getBaseDir();
+
+    /**
+     * Creates an indexed cache implementation that is contained within this cache. This method may be used at any time.
+     *
+     * <p>The returned cache may only be used by an action being run from {@link #useCache(String, org.gradle.api.internal.Factory)}.
+     * In this instance, an exclusive lock will be held on the cache.
+     *
+     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.api.internal.Factory)}.
+     */
+    <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType);
+
+    /**
+     * Creates an indexed cache implementation that is contained within this cache. This method may be used at any time.
+     *
+     * <p>The returned cache may only be used by an action being run from {@link #useCache(String, org.gradle.api.internal.Factory)}.
+     * In this instance, an exclusive lock will be held on the cache.
+     *
+     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.api.internal.Factory)}.
+     */
+    <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer);
 }

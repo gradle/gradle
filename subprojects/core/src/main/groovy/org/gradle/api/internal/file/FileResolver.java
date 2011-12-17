@@ -18,12 +18,15 @@ package org.gradle.api.internal.file;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.resources.ReadableResource;
 
 import java.io.File;
 import java.net.URI;
 
 public interface FileResolver {
     File resolve(Object path);
+
+    ReadableResource resolveResource(Object path);
 
     File resolve(Object path, PathValidation validation);
 

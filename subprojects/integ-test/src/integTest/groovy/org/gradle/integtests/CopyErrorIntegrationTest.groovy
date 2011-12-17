@@ -16,19 +16,21 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.ExecutionFailure
-import org.gradle.os.OperatingSystem
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.gradle.util.PreconditionVerifier
 import org.junit.Assert
 import org.junit.Test
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.junit.Rule
 
 class CopyErrorIntegrationTest extends AbstractIntegrationTest {
-    @Test
-    public void reportsSymLinkWhichPointsToNothing() {
-        if (OperatingSystem.current().isWindows()) {
-            return
-        }
+    @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
 
+    @Test
+    @Requires(TestPrecondition.SYMLINKS)
+    public void reportsSymLinkWhichPointsToNothing() {
         TestFile link = testFile('src/file')
         link.linkTo(testFile('missing'))
 
@@ -48,11 +50,8 @@ class CopyErrorIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     public void reportsUnreadableSourceDir() {
-        if (OperatingSystem.current().isWindows()) {
-            return
-        }
-
         TestFile dir = testFile('src').createDir()
         def oldPermissions = dir.permissions
         dir.permissions = '-w-r--r--'

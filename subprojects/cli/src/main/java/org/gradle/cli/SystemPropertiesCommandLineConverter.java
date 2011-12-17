@@ -32,8 +32,12 @@ public class SystemPropertiesCommandLineConverter extends AbstractCommandLineCon
 
     public Map<String, String> convert(ParsedCommandLine options, Map<String, String> properties) throws CommandLineArgumentException {
         for (String keyValueExpression : options.option(SYSTEM_PROP).getValues()) {
-            String[] elements = keyValueExpression.split("=");
-            properties.put(elements[0], elements.length == 1 ? "" : elements[1]);
+            int pos = keyValueExpression.indexOf("=");
+            if (pos < 0) {
+                properties.put(keyValueExpression, "");
+            } else {
+                properties.put(keyValueExpression.substring(0, pos), keyValueExpression.substring(pos+1));
+            }
         }
         return properties;
     }

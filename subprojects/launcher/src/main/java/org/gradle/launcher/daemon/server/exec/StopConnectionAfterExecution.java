@@ -18,8 +18,11 @@ package org.gradle.launcher.daemon.server.exec;
 public class StopConnectionAfterExecution implements DaemonCommandAction {
 
     public void execute(DaemonCommandExecution execution) {
-        execution.proceed();
-        execution.getConnection().stop();
+        try {
+            execution.proceed();
+        } finally {
+            execution.getConnection().stop();
+        }
     }
 
 }

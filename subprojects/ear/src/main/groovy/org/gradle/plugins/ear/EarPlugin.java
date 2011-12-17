@@ -22,16 +22,14 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 import java.util.concurrent.Callable;
@@ -61,7 +59,7 @@ public class EarPlugin implements Plugin<ProjectInternal> {
         wireEarTaskConventions(project, pluginConvention);
         configureConfigurations(project);
 
-        //TODO SF evaluation order-sensitive
+        //TODO evaluation order-sensitive
         final JavaPluginConvention javaPlugin = project.getConvention().findPlugin(JavaPluginConvention.class);
         if (javaPlugin != null) {
             SourceSet sourceSet = javaPlugin.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -112,7 +110,6 @@ public class EarPlugin implements Plugin<ProjectInternal> {
             }
         });
 
-        //TODO SF why is the ear added this way and not a proper way? Also: groovify!
         Ear ear = project.getTasks().add(EAR_TASK_NAME, Ear.class);
         ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
         DeploymentDescriptor deploymentDescriptor = pluginConvention.getDeploymentDescriptor();
@@ -125,9 +122,7 @@ public class EarPlugin implements Plugin<ProjectInternal> {
             }
         }
         ear.setGroup(BasePlugin.BUILD_GROUP);
-        Configuration archivesConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
-        disableJarTaskAndRemoveFromArchivesConfiguration(project, archivesConfiguration);
-        archivesConfiguration.getArtifacts().add(new ArchivePublishArtifact(ear));
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(ear));
     }
 
     private void wireEarTaskConventions(Project project, final EarPluginConvention earConvention) {
@@ -153,28 +148,5 @@ public class EarPlugin implements Plugin<ProjectInternal> {
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
                 .extendsFrom(moduleConfiguration, earlibConfiguration);
-    }
-
-    //TODO SF hack duplicated with War plugin
-    private void disableJarTaskAndRemoveFromArchivesConfiguration(Project project, Configuration archivesConfiguration) {
-
-        Jar jarTask = (Jar) project.getTasks().findByName(JavaPlugin.JAR_TASK_NAME);
-        if (jarTask != null) {
-            jarTask.setEnabled(false);
-            removeJarTaskFromArchivesConfiguration(archivesConfiguration, jarTask);
-        }
-    }
-
-    private void removeJarTaskFromArchivesConfiguration(Configuration archivesConfiguration, Jar jar) {
-
-        // todo: There should be a richer connection between an ArchiveTask and a PublishArtifact
-        for (PublishArtifact publishArtifact : archivesConfiguration.getAllArtifacts()) {
-            if (publishArtifact instanceof ArchivePublishArtifact) {
-                ArchivePublishArtifact archivePublishArtifact = (ArchivePublishArtifact) publishArtifact;
-                if (archivePublishArtifact.getArchiveTask() == jar) {
-                    archivesConfiguration.getArtifacts().remove(publishArtifact);
-                }
-            }
-        }
     }
 }

@@ -27,25 +27,23 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.launcher.daemon.bootstrap.DaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
-import org.gradle.launcher.daemon.client.DaemonConnector;
-import org.gradle.launcher.daemon.client.ExternalDaemonConnector;
-import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
-import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
+import org.gradle.launcher.daemon.client.DaemonClientServices;
+import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.exec.ExceptionReportingAction;
 import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
@@ -89,8 +87,9 @@ public class CommandLineActionFactory {
         Action<ExecutionListener> action;
         try {
             ParsedCommandLine commandLine = parser.parse(args);
-            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = loggingServices.get(CommandLineConverter.class);
-            loggingConfiguration = loggingConfigurationConverter.convert(commandLine);
+            @SuppressWarnings("unchecked")
+            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = (CommandLineConverter<LoggingConfiguration>)loggingServices.get(CommandLineConverter.class);
+            loggingConfigurationConverter.convert(commandLine, loggingConfiguration);
             action = createAction(parser, commandLine, startParameterConverter, loggingServices);
         } catch (CommandLineArgumentException e) {
             action = new CommandLineParseFailureAction(parser, e);
@@ -98,7 +97,7 @@ public class CommandLineActionFactory {
 
         return new WithLoggingAction(loggingConfiguration, loggingServices,
                 new ExceptionReportingAction(action,
-                        new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), new StartParameter(), clientMetaData())));
+                        new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())));
     }
 
     private static GradleLauncherMetaData clientMetaData() {
@@ -124,29 +123,33 @@ public class CommandLineActionFactory {
             return new ActionAdapter(new ShowGuiAction());
         }
 
-        StartParameter startParameter = new StartParameter();
+        final StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
-        DaemonConnector connector = new ExternalDaemonConnector(startParameter.getGradleUserHomeDir());
-        GradleLauncherMetaData clientMetaData = clientMetaData();
+        Map<String, String> mergedSystemProperties = startParameter.getMergedSystemProperties();
+        DaemonParameters daemonParameters = new DaemonParameters();
+        daemonParameters.configureFromBuildDir(startParameter.getCurrentDir(), startParameter.isSearchUpwards());
+        daemonParameters.configureFromGradleUserHome(startParameter.getGradleUserHomeDir());
+        daemonParameters.configureFromSystemProperties(mergedSystemProperties);
+        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, System.in);
+        DaemonClient client = clientServices.get(DaemonClient.class);
+
+        boolean useDaemon = daemonParameters.isEnabled();
+        useDaemon = useDaemon || commandLine.hasOption(DAEMON);
+        useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
-        DaemonClient client = new DaemonClient(connector, clientMetaData, loggingServices.get(OutputEventListener.class));
 
         if (commandLine.hasOption(FOREGROUND)) {
-            return new ActionAdapter(new Daemon(new DaemonTcpServerConnector(), connector.getDaemonRegistry(), new DefaultDaemonCommandExecuter(loggingServices)));
+            return new ActionAdapter(new DaemonMain(daemonParameters, false));
         }
         if (commandLine.hasOption(STOP)) {
             return new ActionAdapter(new StopDaemonAction(client));
         }
-
-        boolean useDaemon = System.getProperty("org.gradle.daemon", "false").equals("true");
-        useDaemon = useDaemon || commandLine.hasOption(DAEMON);
-        useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
         if (useDaemon) {
             return new ActionAdapter(
-                    new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData, startTime, System.getProperties(), System.getenv()));
+                    new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData(), startTime, daemonParameters.getEffectiveSystemProperties(), System.getenv()));
         }
 
-        return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData, startTime));
+        return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData(), startTime));
     }
 
     private static void showUsage(PrintStream out, CommandLineParser parser) {
@@ -209,6 +212,10 @@ public class CommandLineActionFactory {
 
         public void execute(ExecutionListener executionListener) {
             action.run();
+        }
+
+        public String toString() {
+            return String.format("ActionAdapter[runnable=%s]", action);
         }
     }
 

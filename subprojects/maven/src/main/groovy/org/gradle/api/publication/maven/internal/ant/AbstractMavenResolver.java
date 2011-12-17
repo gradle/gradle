@@ -41,7 +41,7 @@ import org.apache.tools.ant.Project;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
-import org.gradle.api.internal.artifacts.ivyservice.NoOpRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;

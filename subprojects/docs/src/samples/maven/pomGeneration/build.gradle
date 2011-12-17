@@ -9,7 +9,9 @@ archivesBaseName = 'mywar'
 buildDir = 'target'
 
 repositories {
-    flatDir(dirs: "$projectDir/lib")
+    flatDir {
+        dirs "lib"
+    }
 }
 
 configurations {

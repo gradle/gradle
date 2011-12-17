@@ -15,32 +15,30 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.plugins.repository.file.FileRepository;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.DualResolver;
-import org.apache.ivy.plugins.resolver.IBiblioResolver;
-import org.apache.ivy.plugins.resolver.URLResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.ivyservice.LocalFileRepositoryCacheManager;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.GUtil;
-import org.jfrog.wharf.ivy.resolver.IBiblioWharfResolver;
-import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
-import java.io.File;
 import java.net.URI;
 import java.util.*;
 
-public class DefaultMavenArtifactRepository implements MavenArtifactRepository, ArtifactRepositoryInternal {
+import static org.gradle.util.GUtil.toList;
+
+public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
+    private final RepositoryTransportFactory transportFactory;
     private String name;
     private Object url;
     private List<Object> additionalUrls = new ArrayList<Object>();
 
-    public DefaultMavenArtifactRepository(FileResolver fileResolver) {
+    public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory) {
+        super(credentials);
         this.fileResolver = fileResolver;
+        this.transportFactory = transportFactory;
     }
 
     public String getName() {
@@ -72,7 +70,7 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
     }
 
     public void setArtifactUrls(Iterable<?> urls) {
-        additionalUrls = GUtil.addLists(urls);
+        additionalUrls = toList(urls);
     }
 
     public void createResolvers(Collection<DependencyResolver> resolvers) {
@@ -81,51 +79,19 @@ public class DefaultMavenArtifactRepository implements MavenArtifactRepository, 
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
         }
 
-        IBiblioResolver resolver;
-
-        if (rootUri.getScheme().equalsIgnoreCase("file")) {
-            resolver = new IBiblioResolver();
-            resolver.setRepository(new FileRepository());
-            resolver.setRoot(new File(rootUri).getAbsolutePath());
-            resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
-        } else {
-            IBiblioWharfResolver wharfResolver = new IBiblioWharfResolver();
-            wharfResolver.setSnapshotTimeout(IBiblioWharfResolver.DAILY);
-            resolver = wharfResolver;
-            resolver.setRoot(rootUri.toString());
+        MavenResolver resolver = new MavenResolver(name, rootUri, getTransport(rootUri.getScheme()));
+        for (URI repoUrl : getArtifactUrls()) {
+            resolver.addArtifactLocation(repoUrl, null);
         }
-
-        resolver.setUsepoms(true);
-        resolver.setName(name);
-        resolver.setPattern(ArtifactRepositoryContainer.MAVEN_REPO_PATTERN);
-        resolver.setM2compatible(true);
-        resolver.setUseMavenMetadata(true);
-        resolver.setChecksums("");
-
-        Collection<URI> artifactUrls = getArtifactUrls();
-        if (artifactUrls.isEmpty()) {
-            resolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
-            resolvers.add(resolver);
-            return;
-        }
-
-        resolver.setName(name + "_poms");
-
-        URLResolver artifactResolver = new UrlWharfResolver();
-        artifactResolver.setName(name + "_jars");
-        artifactResolver.setM2compatible(true);
-        artifactResolver.setChecksums("");
-        artifactResolver.addArtifactPattern(rootUri.toString() + '/' + ArtifactRepositoryContainer.MAVEN_REPO_PATTERN);
-        for (URI repoUrl : artifactUrls) {
-            artifactResolver.addArtifactPattern(repoUrl.toString() + '/' + ArtifactRepositoryContainer.MAVEN_REPO_PATTERN);
-        }
-
-        DualResolver dualResolver = new DualResolver();
-        dualResolver.setName(name);
-        dualResolver.setIvyResolver(resolver);
-        dualResolver.setArtifactResolver(artifactResolver);
-        dualResolver.setDescriptor(DualResolver.DESCRIPTOR_OPTIONAL);
-
-        resolvers.add(dualResolver);
+        resolvers.add(resolver);
     }
+
+    private RepositoryTransport getTransport(String scheme) {
+        if (scheme.equalsIgnoreCase("file")) {
+            return transportFactory.createFileTransport(name);
+        } else {
+            return transportFactory.createHttpTransport(name, getCredentials());
+        }
+    }
+
 }

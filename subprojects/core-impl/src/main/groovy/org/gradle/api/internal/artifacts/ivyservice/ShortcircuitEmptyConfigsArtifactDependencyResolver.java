@@ -32,7 +32,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
 
         public LenientConfiguration getLenientConfiguration() {
             return new LenientConfiguration() {
-                public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) {
+                public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
 
@@ -40,7 +40,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
                     return Collections.emptySet();
                 }
 
-                public Set<File> getFiles(Spec<Dependency> dependencySpec) {
+                public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
                     return Collections.emptySet();
                 }
             };
@@ -49,7 +49,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
         public void rethrowFailure() throws ResolveException {
         }
 
-        public Set<File> getFiles(Spec<Dependency> dependencySpec) {
+        public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
             return Collections.emptySet();
         }
 
@@ -57,7 +57,7 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
             return Collections.emptySet();
         }
 
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) throws ResolveException {
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
             return Collections.emptySet();
         }
 

@@ -17,18 +17,22 @@ package org.gradle.api.internal.file.archive;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import static org.gradle.api.file.FileVisitorUtil.*;
-import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
-import org.gradle.util.TestFile;
+import org.gradle.api.internal.file.FileResource;
+import org.gradle.api.internal.file.MaybeCompressedFileResource;
 import org.gradle.util.TemporaryFolder;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-
+import org.gradle.util.TestFile;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static java.util.Collections.*;
+import static java.util.Collections.EMPTY_LIST;
+import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
+import static org.gradle.api.file.FileVisitorUtil.assertVisits;
+import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
+import static org.gradle.util.WrapUtil.toList;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class TarFileTreeTest {
     @Rule
@@ -36,7 +40,7 @@ public class TarFileTreeTest {
     private final TestFile tarFile = tmpDir.getDir().file("test.tar");
     private final TestFile rootDir = tmpDir.getDir().file("root");
     private final TestFile expandDir = tmpDir.getDir().file("tmp");
-    private final TarFileTree tree = new TarFileTree(tarFile, expandDir);
+    private final TarFileTree tree = new TarFileTree(new MaybeCompressedFileResource(new FileResource(tarFile)), expandDir);
 
     @Test
     public void displayName() {
@@ -48,6 +52,34 @@ public class TarFileTreeTest {
         rootDir.file("subdir/file1.txt").write("content");
         rootDir.file("subdir2/file2.txt").write("content");
         rootDir.tarTo(tarFile);
+
+        assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
+        assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
+    }
+
+    @Test
+    public void readsGzippedTarFile() {
+        TestFile tgz = tmpDir.getDir().file("test.tgz");
+
+        rootDir.file("subdir/file1.txt").write("content");
+        rootDir.file("subdir2/file2.txt").write("content");
+        rootDir.tgzTo(tgz);
+
+        TarFileTree tree = new TarFileTree(new MaybeCompressedFileResource(new FileResource(tgz)), expandDir);
+
+        assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
+        assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
+    }
+
+    @Test
+    public void readsBzippedTarFile() {
+        TestFile tbz2 = tmpDir.getDir().file("test.tbz2");
+
+        rootDir.file("subdir/file1.txt").write("content");
+        rootDir.file("subdir2/file2.txt").write("content");
+        rootDir.tbzTo(tbz2);
+
+        TarFileTree tree = new TarFileTree(new MaybeCompressedFileResource(new FileResource(tbz2)), expandDir);
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
@@ -76,7 +108,7 @@ public class TarFileTreeTest {
             tree.visit(null);
             fail();
         } catch (InvalidUserDataException e) {
-            assertThat(e.getMessage(), equalTo("Cannot expand TAR '" + tarFile + "' as it is not a file."));
+            assertThat(e.getMessage(), containsString("Cannot expand TAR '" + tarFile + "'"));
         }
     }
 
@@ -89,7 +121,7 @@ public class TarFileTreeTest {
             tree.visit(null);
             fail();
         } catch (GradleException e) {
-            assertThat(e.getMessage(), equalTo("Could not expand TAR '" + tarFile + "'."));
+            assertThat(e.getMessage(), containsString("Unable to expand TAR '" + tarFile + "'"));
         }
     }
 }

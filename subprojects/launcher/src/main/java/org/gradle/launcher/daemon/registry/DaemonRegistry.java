@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.registry;
 
 import org.gradle.messaging.remote.Address;
+import org.gradle.launcher.daemon.context.DaemonContext;
 
 import java.util.List;
 
@@ -25,11 +26,11 @@ import java.util.List;
  */
 public interface DaemonRegistry {
 
-    List<DaemonStatus> getAll();
-    List<DaemonStatus> getIdle();
-    List<DaemonStatus> getBusy();
+    List<DaemonInfo> getAll();
+    List<DaemonInfo> getIdle();
+    List<DaemonInfo> getBusy();
     
-    void store(Address address);
+    void store(Address address, DaemonContext daemonContext, String password);
     void remove(Address address);
     void markBusy(Address address);
     void markIdle(Address address);

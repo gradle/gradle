@@ -41,5 +41,6 @@
             <property name='finalRegex' value='^[a-z][a-zA-Z0-9]*$'/>
         </rule-config>
         <exclude name="ConfusingMethodName"/>
+        <exclude name="FactoryMethodName"/>
     </ruleset-ref>
 </ruleset>

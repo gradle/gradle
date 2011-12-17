@@ -24,6 +24,7 @@
         <li>Try the <a href="tutorials.html">tutorials</a></li>
         <li>Read the <a href="documentation.html">documentation</a></li>
         <li>Join the <a href="community.html">community</a></li>
+        <li>Read the <a href="books.html">books</a></li>
     </ol>
 </div>
 <div id="news" class="homeList">
@@ -37,18 +38,7 @@
 
 <div id="training" class="homeList">
     <h2>Upcoming training</h2>
-    <ul>
-	    <li><a href="http://gradleware.com/training.html">September 14-15, 2011, Stockholm, SE</li>
-		<li><a href="http://gradleware.com/training.html">September 20-22, 2011, Frankfurt, DE</li>
-		<li><a href="http://gradleware.com/training.html">September 26-28, 2011, Denver, CO, US</li>
-        <li><a href="http://gradleware.com/training.html">October 11-13, 2011, Stuttgart, DE</li>
-	    <li><a href="http://gradleware.com/training.html">October 17-19, 2011, London, UK</li>
-		<li><a href="http://gradleware.com/training.html">October 18-20, 2011, Chicago, IL, US</li>
-        <li><a href="http://gradleware.com/training.html">November 1-3, 2011, Berlin, DE</li>
-	    <li><a href="http://gradleware.com/training.html">November 14-17, 2011, San Jose, CA, US</li>
-	    <li><a href="http://gradleware.com/training.html">November 21-22, 2011, Oslo, NO</li>
-	    <li><a href="http://gradleware.com/training.html">December 6-8, 2011, D&uuml;&uuml;ldorf, DE</li>
-    </ul>
+    ${php.trainings}
     <div class="more"><a href="http://gradleware.com/training">learn more</a></div>
 </div>
 

@@ -17,22 +17,21 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.changedetection.InMemoryIndexedCache;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.*;
-import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 public class InMemoryCacheFactory implements CacheFactory {
-    public PersistentCache openStore(File storeDir, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Action<? super PersistentCache> initializer) throws CacheOpenException {
-        return open(storeDir, CacheUsage.ON, Collections.<String, Object>emptyMap(), lockMode, crossVersionMode, initializer);
+    public PersistentCache openStore(File storeDir, String displayName, FileLockManager.LockMode lockMode, Action<? super PersistentCache> initializer) throws CacheOpenException {
+        return open(storeDir, displayName, CacheUsage.ON, Collections.<String, Object>emptyMap(), lockMode, initializer);
     }
 
-    public PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Action<? super PersistentCache> initializer) {
+    public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, Action<? super PersistentCache> initializer) {
         cacheDir.mkdirs();
         InMemoryCache cache = new InMemoryCache(cacheDir);
         if (initializer != null) {
@@ -41,30 +40,18 @@ public class InMemoryCacheFactory implements CacheFactory {
         return cache;
     }
 
-    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Serializer<V> serializer) {
+    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, Serializer<V> serializer) {
         return new InMemoryIndexedCache<K, V>();
     }
 
-    public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, CrossVersionMode crossVersionMode, Serializer<E> serializer) {
+    public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, FileLockManager.LockMode lockMode, Serializer<E> serializer) {
         cacheDir.mkdirs();
         return new SimpleStateCache<E>(new File(cacheDir, "state.bin"), new NoOpFileLock(), new DefaultSerializer<E>());
     }
 
-    private static class NoOpFileLock implements FileLock {
-        public boolean getUnlockedCleanly() {
-            return true;
-        }
-
-        public boolean isLockFile(File file) {
-            return false;
-        }
-
-        public <T> T readFromFile(Callable<T> action) throws LockTimeoutException {
-            try {
-                return action.call();
-            } catch (Exception e) {
-                throw UncheckedException.asUncheckedException(e);
-            }
+    private static class NoOpFileLock extends AbstractFileAccess {
+        public <T> T readFromFile(Factory<? extends T> action) throws LockTimeoutException {
+            return action.create();
         }
 
         public void writeToFile(Runnable action) throws LockTimeoutException {
@@ -84,6 +71,33 @@ public class InMemoryCacheFactory implements CacheFactory {
 
         public File getBaseDir() {
             return cacheDir;
+        }
+
+        public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
+            return new InMemoryIndexedCache<K, V>();
+        }
+
+        public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
+            return new InMemoryIndexedCache<K, V>();
+        }
+
+        public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
+            // The contract of useCache() means we have to provide some basic synchronization.
+            synchronized (this) {
+                return action.create();
+            }
+        }
+
+        public void useCache(String operationDisplayName, Runnable action) {
+            action.run();
+        }
+
+        public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
+            return action.create();
+        }
+
+        public void longRunningOperation(String operationDisplayName, Runnable action) {
+            action.run();
         }
     }
 }

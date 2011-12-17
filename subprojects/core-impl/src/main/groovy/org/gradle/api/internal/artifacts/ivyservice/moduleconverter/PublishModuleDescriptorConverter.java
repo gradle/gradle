@@ -18,13 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
-import org.gradle.util.Clock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
@@ -35,7 +31,6 @@ public class PublishModuleDescriptorConverter implements ModuleDescriptorConvert
     static final String IVY_MAVEN_NAMESPACE = "http://ant.apache.org/ivy/maven";
     static final String IVY_MAVEN_NAMESPACE_PREFIX = "m";
 
-    private static Logger logger = LoggerFactory.getLogger(PublishModuleDescriptorConverter.class);
     private ModuleDescriptorConverter resolveModuleDescriptorConverter;
     private ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter;
 
@@ -45,20 +40,11 @@ public class PublishModuleDescriptorConverter implements ModuleDescriptorConvert
         this.artifactsToModuleDescriptorConverter = artifactsToModuleDescriptorConverter;
     }
 
-    public ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module, IvySettings settings) {
-        Clock clock = new Clock();
-        DefaultModuleDescriptor moduleDescriptor = (DefaultModuleDescriptor) resolveModuleDescriptorConverter.convert(configurations, module, settings);
+    public ModuleDescriptor convert(Set<? extends Configuration> configurations, Module module) {
+        DefaultModuleDescriptor moduleDescriptor = (DefaultModuleDescriptor) resolveModuleDescriptorConverter
+                .convert(configurations, module);
         moduleDescriptor.addExtraAttributeNamespace(IVY_MAVEN_NAMESPACE_PREFIX, IVY_MAVEN_NAMESPACE);
         artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor, configurations);
-        logger.debug("Timing: Ivy convert for publish took {}", clock.getTime());
         return moduleDescriptor;
-    }
-
-    public ArtifactsToModuleDescriptorConverter getArtifactsToModuleDescriptorConverter() {
-        return artifactsToModuleDescriptorConverter;
-    }
-
-    public void setArtifactsToModuleDescriptorConverter(ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter) {
-        this.artifactsToModuleDescriptorConverter = artifactsToModuleDescriptorConverter;
     }
 }

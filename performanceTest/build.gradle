@@ -48,12 +48,18 @@ task multiGroovy(type: GeneratorTask, description: 'Generates a multi-project gr
     groovyProject = true
 }
 
-task all(dependsOn: {tasks.withType(GeneratorTask).all})
+def generators = tasks.withType(GeneratorTask)
+generators.all {
+    group = 'Project setup'
+}
+task all(dependsOn: generators)
+
 
 class TestProject {
     final String name
     final Object defaults
     Integer sourceFiles
+    Integer testSourceFiles
     Integer linesOfCodePerSourceFile
 
     TestProject() {
@@ -68,6 +74,10 @@ class TestProject {
         return sourceFiles ?: defaults.sourceFiles
     }
 
+    int getTestSourceFiles() {
+        return testSourceFiles ?: defaults.testSourceFiles
+    }
+
     int getLinesOfCodePerSourceFile() {
         return linesOfCodePerSourceFile ?: defaults.linesOfCodePerSourceFile
     }
@@ -78,6 +88,7 @@ class GeneratorTask extends DefaultTask {
     File destDir
     boolean groovyProject
     int sourceFiles = 1
+    Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
 
     final List<TestProject> projects = []
@@ -88,6 +99,10 @@ class GeneratorTask extends DefaultTask {
         outputs.upToDateWhen { false }
         setProjects(1)
         destDir = project.file("${project.buildDir}/${name}")
+    }
+
+    int getTestSourceFiles() {
+        return testSourceFiles ?: sourceFiles
     }
 
     void setProjects(int projectCount) {
@@ -169,15 +184,23 @@ class GeneratorTask extends DefaultTask {
         if (args.includeSource) {
             testProject.sourceFiles.times {
                 String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                Map classArgs = args + [packageName: packageName, productionClassName: "Production${it + 1}", testClassName: "Test${it + 1}"]
+                Map classArgs = args + [packageName: packageName, productionClassName: "Production${it + 1}"]
                 generate("src/main/java/${packageName.replace('.', '/')}/${classArgs.productionClassName}.java", 'Production.java', classArgs)
+            }
+            testProject.testSourceFiles.times {
+                String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
+                Map classArgs = args + [packageName: packageName, productionClassName: "Production${it + 1}", testClassName: "Test${it + 1}"]
                 generate("src/test/java/${packageName.replace('.', '/')}/${classArgs.testClassName}.java", 'Test.java', classArgs)
             }
             if (groovyProject) {
                 testProject.sourceFiles.times {
                     String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                    Map classArgs = args + [packageName: packageName, productionClassName: "ProductionGroovy${it + 1}", testClassName: "TestGroovy${it + 1}"]
+                    Map classArgs = args + [packageName: packageName, productionClassName: "ProductionGroovy${it + 1}"]
                     generate("src/main/groovy/${packageName.replace('.', '/')}/${classArgs.productionClassName}.groovy", 'Production.groovy', classArgs)
+                }
+                testProject.testSourceFiles.times {
+                    String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
+                    Map classArgs = args + [packageName: packageName, productionClassName: "ProductionGroovy${it + 1}", testClassName: "TestGroovy${it + 1}"]
                     generate("src/test/groovy/${packageName.replace('.', '/')}/${classArgs.testClassName}.groovy", 'Test.groovy', classArgs)
                 }
             }

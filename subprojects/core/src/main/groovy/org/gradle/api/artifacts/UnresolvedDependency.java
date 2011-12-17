@@ -21,17 +21,12 @@ package org.gradle.api.artifacts;
 public interface UnresolvedDependency {
 
     /**
-     * Returns the identifier of the dependency, for example GAV
+     * Returns the identifier of the dependency, for example group:name:version
      */
     String getId();
 
     /**
-     * Returns the configuration
-     */
-    Configuration getGradleConfiguration();
-
-    /**
      * the exception that is the cause of unresolved state
      */
-    Exception getProblem();
+    Throwable getProblem();
 }

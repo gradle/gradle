@@ -138,7 +138,7 @@ class ClassDoc {
         }
 
         ClassDoc superClass = classMetaData.superClassName ? model.getClassDoc(classMetaData.superClassName) : null
-
+        //adding the properties from the super class onto the inheriting class
         Map<String, PropertyDoc> props = new TreeMap<String, PropertyDoc>()
         if (superClass) {
             superClass.getClassProperties().each { propertyDoc ->

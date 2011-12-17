@@ -30,12 +30,13 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.ObjectConfigurationAction
+import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.util.ConfigureUtil
 import org.gradle.process.ExecResult
-import org.gradle.api.internal.file.*
+import org.gradle.util.ConfigureUtil
 import org.gradle.util.DeprecationLogger
+import org.gradle.api.internal.file.*
 
 abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class)
@@ -122,6 +123,10 @@ abstract class DefaultScript extends BasicScript {
 
     FileTree tarTree(Object tarPath) {
         fileOperations.tarTree(tarPath)
+    }
+
+    ResourceHandler getResources() {
+        fileOperations.resources
     }
 
     WorkResult copy(Closure closure) {

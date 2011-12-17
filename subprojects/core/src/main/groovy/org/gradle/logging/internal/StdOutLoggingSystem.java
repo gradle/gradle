@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.logging.internal;
 
-import org.gradle.util.TimeProvider;
-
-import java.io.PrintStream;
-
-public class StdOutLoggingSystem extends PrintStreamLoggingSystem {
-    public StdOutLoggingSystem(OutputEventListener listener, TimeProvider timeProvider) {
-        super(listener, "system.out", timeProvider);
-    }
-
-    @Override
-    protected PrintStream get() {
-        return System.out;
-    }
-
-    @Override
-    protected void set(PrintStream printStream) {
-        System.setOut(printStream);
-    }
+/**
+ * by Szczepan Faber, created at: 11/21/11
+ */
+public interface StdOutLoggingSystem extends LoggingSystem {
 }

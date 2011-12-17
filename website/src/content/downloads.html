@@ -1,14 +1,18 @@
 <h1>Downloads</h1>
 <a name="current"></a>
 <h2>${currentRelease.displayName}</h2>
+<div class="extraInfo">Released ${currentRelease.releaseDate}</div>
+<p>
+    Please read the <a href="${currentRelease.releaseNotesUrl}">release notes</a> and <a href="${currentRelease.migrationNotesUrl}">known issues and migration guide</a>
+    before downloading.
+</p>
 <ul>
-    <li><a href="${currentRelease.releaseNotesUrl}">Release notes</a></li>
     <li><a href="${currentRelease.allDistributionUrl}">gradle-${currentRelease.version}-all.zip</a>.
         Complete distribution, including documentation, samples, and source.</li>
     <li><a href="${currentRelease.binDistributionUrl}">gradle-${currentRelease.version}-bin.zip</a>.
         Minimal distribution.</li>
     <li><a href="${currentRelease.srcDistributionUrl}">gradle-${currentRelease.version}-src.zip</a>.
-        Source only distribution</li>
+        Source only distribution.</li>
 </ul>
 <p>You can also <a href="build.html">build from source</a>.</p>
 
@@ -29,6 +33,7 @@ there.</p>
     if (release != currentRelease) {
 %>
 <h2>${release.displayName}</h2>
+<% if ( release.releaseDate ) { %><div class="extraInfo">Released ${release.releaseDate}</div><% } %>
 <% if (release.broken) { %><div class="caution">Note: this release contains some serious regressions, and we suggest that you use <a href="#current">${currentRelease.version}</a> instead.</div><% } %>
 <ul>
     <li><a href="${release.releaseNotesUrl}">Release notes</a></li>

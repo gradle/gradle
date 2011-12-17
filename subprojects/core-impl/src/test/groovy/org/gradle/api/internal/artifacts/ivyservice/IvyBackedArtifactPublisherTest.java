@@ -22,10 +22,7 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.api.internal.artifacts.configurations.*;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -39,6 +36,8 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Set;
+
+import static org.hamcrest.Matchers.equalTo;
 
 /**
  * @author Hans Dockter
@@ -79,6 +78,8 @@ public class IvyBackedArtifactPublisherTest {
             will(returnValue(moduleDummy));
             allowing(resolverProvider).getResolvers();
             will(returnValue(publishResolversDummy));
+            allowing(configuration).getResolutionStrategy();
+            will(returnValue(new DefaultResolutionStrategy()));
             one(fileModuleDescriptorMock).toIvyFile(someDescriptorDestination);
             one(ivyDependencyPublisherMock).publish(expectedConfigurations,
                     publishResolversDummy, publishModuleDescriptorDummy, someDescriptorDestination, publishEngineDummy);
@@ -139,12 +140,12 @@ public class IvyBackedArtifactPublisherTest {
             allowing(setUpIvyFactory(ivySettingsDummy)).getPublishEngine();
             will(returnValue(publishEngineDummy));
 
-            allowing(publishModuleDescriptorConverter).convert(configurations,
-                    moduleDummy, ivySettingsDummy);
+            allowing(publishModuleDescriptorConverter).convert(with(equalTo(configurations)),
+                    with(equalTo(moduleDummy)));
             will(returnValue(publishModuleDescriptorDummy));
 
-            allowing(fileModuleDescriptorConverter).convert(configurations,
-                    moduleDummy, ivySettingsDummy);
+            allowing(fileModuleDescriptorConverter).convert(with(equalTo(configurations)),
+                    with(equalTo(moduleDummy)));
             will(returnValue(fileModuleDescriptorMock));
         }});
     }

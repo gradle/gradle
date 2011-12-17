@@ -75,7 +75,7 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
     }
 
     private List<File> getJars() {
-        return configuration != null ? new ArrayList(configuration.resolve()) : protocolProviderJars;
+        return configuration != null ? new ArrayList<File>(configuration.resolve()) : protocolProviderJars;
     }
 
     private void addRemoteRepositories(DeployTask deployTask) {

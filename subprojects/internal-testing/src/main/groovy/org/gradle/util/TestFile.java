@@ -20,18 +20,18 @@ import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.taskdefs.Tar;
 import org.apache.tools.ant.taskdefs.Zip;
+import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DeleteAction;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.copy.DeleteActionImpl;
+import org.gradle.os.FileSystems;
 import org.gradle.os.OperatingSystem;
-import org.gradle.os.PosixUtil;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 import org.hamcrest.Matcher;
-import org.jruby.ext.posix.POSIX;
 
 import java.io.*;
 import java.net.URI;
@@ -69,6 +69,10 @@ public class TestFile extends File implements TestFileContext {
     public TestFile usingNativeTools() {
         useNativeTools = true;
         return this;
+    }
+
+    Object writeReplace() throws ObjectStreamException {
+        return new File(getAbsolutePath());
     }
 
     private static URI toUri(URL url) {
@@ -228,19 +232,30 @@ public class TestFile extends File implements TestFileContext {
             throw new UncheckedIOException(e);
         }
     }
+    
+    public void moveToDirectory(File target) {
+        if (target.exists() && !target.isDirectory()) {
+                throw new UncheckedIOException(String.format("Target '%s' is not a directory", target));
+        }
+        try {
+            FileUtils.moveFileToDirectory(this, target, true);
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Could not move test file '%s' to directory '%s'", this, target), e);
+        }
+    }
 
     public TestFile linkTo(File target) {
-        return linkTo(target.getAbsolutePath());
+        getParentFile().createDir();
+        try {
+            FileSystems.getDefault().createSymbolicLink(getAbsoluteFile(), target);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return this;
     }
 
     public TestFile linkTo(String target) {
-        getParentFile().createDir();
-        POSIX posix = PosixUtil.current();
-        int retval = posix.symlink(target, getAbsolutePath());
-        if (retval != 0) {
-            throw new UncheckedIOException(String.format("Could not create link from '%s' to '%s'. Errno: %s", this, target, posix.errno()));
-        }
-        return this;
+        return linkTo(new File(target));
     }
 
     public TestFile touch() {
@@ -452,6 +467,24 @@ public class TestFile extends File implements TestFileContext {
         return this;
     }
 
+    public TestFile tgzTo(TestFile tarFile) {
+        Tar tar = new Tar();
+        tar.setBasedir(this);
+        tar.setDestFile(tarFile);
+        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "gzip"));
+        AntUtil.execute(tar);
+        return this;
+    }
+
+    public TestFile tbzTo(TestFile tarFile) {
+        Tar tar = new Tar();
+        tar.setBasedir(this);
+        tar.setDestFile(tarFile);
+        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "bzip2"));
+        AntUtil.execute(tar);
+        return this;
+    }
+
     public Snapshot snapshot() {
         assertIsFile();
         return new Snapshot();
@@ -460,6 +493,11 @@ public class TestFile extends File implements TestFileContext {
     public void assertHasChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
         assertTrue(now.modTime != snapshot.modTime || !Arrays.equals(now.hash, snapshot.hash));
+    }
+
+    public void assertContentsHaveNotChangedSince(Snapshot snapshot) {
+        Snapshot now = snapshot();
+        assertArrayEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
     }
 
     public void assertHasNotChangedSince(Snapshot snapshot) {

@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.internal.artifacts.repositories.PatternBasedResolver;
 
 import java.net.URI;
 
@@ -32,17 +32,14 @@ import java.net.URI;
  */
 public class MavenRepositoryLayout extends RepositoryLayout {
 
-    public void apply(URI baseUri, RepositoryResolver resolver) {
+    public void apply(URI baseUri, PatternBasedResolver resolver) {
         if (baseUri == null) {
             return;
         }
 
         resolver.setM2compatible(true); // Replace '.' with '/' in organisation
 
-        ResolvedPattern artifactPattern = new ResolvedPattern(baseUri, IvyArtifactRepository.MAVEN_ARTIFACT_PATTERN);
-        resolver.addArtifactPattern(artifactPattern.absolutePattern);
-
-        ResolvedPattern ivyPattern = new ResolvedPattern(baseUri, IvyArtifactRepository.MAVEN_IVY_PATTERN);
-        resolver.addIvyPattern(ivyPattern.absolutePattern);
+        resolver.addArtifactLocation(baseUri, IvyArtifactRepository.MAVEN_ARTIFACT_PATTERN);
+        resolver.addDescriptorLocation(baseUri, IvyArtifactRepository.MAVEN_IVY_PATTERN);
     }
 }

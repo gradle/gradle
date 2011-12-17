@@ -31,6 +31,7 @@ class ModuleFactoryDelegate {
     this.dependencyFactory = dependencyFactory
   }
 
+  //TODO SF - this method does not make sense to me. Why not ConfigureUtil.configure?
   void prepareDelegation(Closure configureClosure) {
     if (!configureClosure) {
         return

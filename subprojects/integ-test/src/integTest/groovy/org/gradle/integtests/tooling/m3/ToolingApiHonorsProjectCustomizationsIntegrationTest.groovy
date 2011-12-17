@@ -118,8 +118,6 @@ eclipse { classpath { downloadJavadoc = true } }
         when:
         EclipseProject eclipseProject = withConnection { ProjectConnection connection ->
             def builder = connection.model(EclipseProject.class)
-            builder.standardOutput = new FileOutputStream(FileDescriptor.out)
-            builder.standardError = new FileOutputStream(FileDescriptor.err)
             return builder.get()
         }
 

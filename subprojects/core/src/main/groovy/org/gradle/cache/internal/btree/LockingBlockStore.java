@@ -15,23 +15,23 @@
  */
 package org.gradle.cache.internal.btree;
 
-import org.gradle.cache.internal.FileLock;
+import org.gradle.cache.internal.FileAccess;
 
 import java.util.concurrent.Callable;
 
 public class LockingBlockStore implements BlockStore {
     private final BlockStore store;
-    private final FileLock fileLock;
+    private final FileAccess fileAccess;
 
-    public LockingBlockStore(BlockStore store, FileLock fileLock) {
+    public LockingBlockStore(BlockStore store, FileAccess fileAccess) {
         this.store = store;
-        this.fileLock = fileLock;
+        this.fileAccess = fileAccess;
     }
 
     public void open(final Runnable initAction, final BlockStore.Factory factory) {
         store.open(new Runnable() {
             public void run() {
-                fileLock.writeToFile(initAction);
+                fileAccess.writeToFile(initAction);
             }
         }, factory);
     }
@@ -41,7 +41,7 @@ public class LockingBlockStore implements BlockStore {
     }
 
     public void flush() {
-        fileLock.writeToFile(new Runnable() {
+        fileAccess.writeToFile(new Runnable() {
             public void run() {
                 store.flush();
             }
@@ -49,7 +49,7 @@ public class LockingBlockStore implements BlockStore {
     }
 
     public void clear() {
-        fileLock.writeToFile(new Runnable() {
+        fileAccess.writeToFile(new Runnable() {
             public void run() {
                 store.clear();
             }
@@ -61,7 +61,7 @@ public class LockingBlockStore implements BlockStore {
     }
 
     public <T extends BlockPayload> T read(final BlockPointer pos, final Class<T> payloadType) {
-        return fileLock.readFromFile(new Callable<T>() {
+        return fileAccess.readFromFile(new Callable<T>() {
             public T call() throws Exception {
                 return store.read(pos, payloadType);
             }
@@ -69,7 +69,7 @@ public class LockingBlockStore implements BlockStore {
     }
 
     public <T extends BlockPayload> T readFirst(final Class<T> payloadType) {
-        return fileLock.readFromFile(new Callable<T>() {
+        return fileAccess.readFromFile(new Callable<T>() {
             public T call() throws Exception {
                 return store.readFirst(payloadType);
             }
@@ -77,7 +77,7 @@ public class LockingBlockStore implements BlockStore {
     }
 
     public void write(final BlockPayload block) {
-        fileLock.writeToFile(new Runnable() {
+        fileAccess.writeToFile(new Runnable() {
             public void run() {
                 store.write(block);
             }
@@ -85,7 +85,7 @@ public class LockingBlockStore implements BlockStore {
     }
 
     public void remove(final BlockPayload block) {
-        fileLock.writeToFile(new Runnable() {
+        fileAccess.writeToFile(new Runnable() {
             public void run() {
                 store.remove(block);
             }

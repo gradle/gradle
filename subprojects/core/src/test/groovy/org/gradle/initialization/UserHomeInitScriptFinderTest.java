@@ -21,26 +21,29 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
+@RunWith(JMock.class)
 public class UserHomeInitScriptFinderTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final GradleInternal gradleMock = context.mock(GradleInternal.class);
-    private final InitScriptFinder initScriptFinderMock = context.mock(InitScriptFinder.class);
     private final StartParameter testStartParameter = new StartParameter();
+    private final UserHomeInitScriptFinder finder = new UserHomeInitScriptFinder();
 
     @Before
     public void setup() {
@@ -52,28 +55,31 @@ public class UserHomeInitScriptFinderTest {
     }
 
     @Test
-    public void addsUserInitScriptWhenItExists() throws IOException {
-        File initScript = tmpDir.file("init.gradle").createFile();
+    public void addsUserInitScriptWhenItExists() {
+        File initScript = tmpDir.createFile("init.gradle");
 
-        context.checking(new Expectations() {{
-            allowing(initScriptFinderMock).findScripts(gradleMock);
-            will(returnValue(new ArrayList()));
-        }});
-
-        List<ScriptSource> sourceList = new UserHomeInitScriptFinder(initScriptFinderMock).findScripts(gradleMock);
+        List<ScriptSource> sourceList = new ArrayList<ScriptSource>();
+        finder.findScripts(gradleMock, sourceList);
         assertThat(sourceList.size(), equalTo(1));
         assertThat(sourceList.get(0), instanceOf(UriScriptSource.class));
         assertThat(sourceList.get(0).getResource().getFile(), equalTo(initScript));
     }
 
     @Test
-    public void doesNotAddUserInitScriptWhenItDoesNotExist() throws IOException {
-        context.checking(new Expectations() {{
-            allowing(initScriptFinderMock).findScripts(gradleMock);
-            will(returnValue(new ArrayList()));
-        }});
-
-        List<ScriptSource> sourceList = new UserHomeInitScriptFinder(initScriptFinderMock).findScripts(gradleMock);
+    public void doesNotAddUserInitScriptsWhenTheyDoNotExist() {
+        List<ScriptSource> sourceList = new ArrayList<ScriptSource>();
+        finder.findScripts(gradleMock, sourceList);
         assertThat(sourceList.size(), equalTo(0));
+    }
+
+    @Test
+    public void addsInitScriptsFromInitDirectoryWhenItExists() {
+        File initScript = tmpDir.createFile("init.d/script.gradle");
+
+        List<ScriptSource> sourceList = new ArrayList<ScriptSource>();
+        finder.findScripts(gradleMock, sourceList);
+        assertThat(sourceList.size(), equalTo(1));
+        assertThat(sourceList.get(0), instanceOf(UriScriptSource.class));
+        assertThat(sourceList.get(0).getResource().getFile(), equalTo(initScript));
     }
 }

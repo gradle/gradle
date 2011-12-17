@@ -23,6 +23,12 @@ import org.gradle.launcher.daemon.protocol.Stop;
 public class HandleStop implements DaemonCommandAction {
     public void execute(DaemonCommandExecution execution) {
         if (execution.getCommand() instanceof Stop) {
+            /*
+                When the daemon was started through the DaemonMain entry point, this will cause the entire
+                JVM to exit with code 1 (which is what we want) because the call to awaitIdleTimeout() in 
+                DaemonMain#doAction will throw a DaemonStoppedException. Note that at this point we will also 
+                immediately tear down the client connection and remove the daemon from the registry.
+            */
             execution.getDaemonStateCoordinator().requestStop();
         } else {
             execution.proceed();

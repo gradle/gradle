@@ -16,25 +16,32 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.api.Action;
+import org.gradle.StartParameter;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.CommandLineParserFactory;
+import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
+import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.os.OperatingSystem;
+import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
-import org.gradle.util.GUtil;
-import org.gradle.util.Jvm;
+import org.gradle.process.internal.ExecHandleState;
 import org.gradle.util.TestFile;
-import org.hamcrest.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.*;
-import java.util.regex.Pattern;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
-import static org.gradle.util.Matchers.containsLine;
-import static org.gradle.util.Matchers.matchesRegexp;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class ForkingGradleExecuter extends AbstractGradleExecuter {
@@ -51,18 +58,29 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         return gradleHomeDir;
     }
 
-    @Override
-    protected ExecutionResult doRun() {
-        Map result = doRun(false);
-        return new ForkedExecutionResult(result);
+    public DaemonRegistry getDaemonRegistry() {
+        File userHome = getUserHomeDir();
+        if (userHome == null) {
+            userHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
+        }
+
+        DaemonParameters parameters = new DaemonParameters();
+        parameters.configureFromGradleUserHome(userHome);
+        parameters.configureFromSystemProperties(getSystemPropertiesFromArgs());
+        return new DaemonRegistryServices(parameters.getBaseDir()).get(DaemonRegistry.class);
     }
 
-    @Override
-    protected ExecutionFailure doRunWithFailure() {
-        Map result = doRun(true);
-        return new ForkedExecutionFailure(result);
+    protected Map<String, String> getSystemPropertiesFromArgs() {
+        SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
+        converter.setCommandLineParserFactory(new CommandLineParserFactory() {
+            public CommandLineParser create() {
+                return new CommandLineParser().allowUnknownOptions();
+            }
+        }); 
+        
+        return converter.convert(getAllArgs());
+        
     }
-
     /**
      * Adds some options to the GRADLE_OPTS environment variable to use.
      */
@@ -70,7 +88,15 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         gradleOpts.addAll(Arrays.asList(opts));
     }
 
-    protected Map doRun(boolean expectFailure) {
+    @Override
+    protected List<String> getAllArgs() {
+        List<String> args = new ArrayList<String>();
+        args.addAll(super.getAllArgs());
+        args.add("--stacktrace");
+        return args;
+    }
+
+    private ExecHandleBuilder createExecHandleBuilder() {
         if (!gradleHomeDir.isDirectory()) {
             fail(gradleHomeDir + " is not a directory.\n"
                     + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
@@ -78,9 +104,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
         CommandBuilder commandBuilder = OperatingSystem.current().isWindows() ? new WindowsCommandBuilder()
                 : new UnixCommandBuilder();
-
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        ByteArrayOutputStream errStream = new ByteArrayOutputStream();
 
         ExecHandleBuilder builder = new ExecHandleBuilder() {
             @Override
@@ -90,13 +113,21 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                 return ForkingGradleExecuter.this.getWorkingDir();
             }
         };
-        builder.setStandardOutput(outStream);
-        builder.setErrorOutput(errStream);
         builder.environment("GRADLE_HOME", "");
-        builder.environment("JAVA_HOME", Jvm.current().getJavaHome());
+        builder.environment("JAVA_HOME", getJavaHome());
         builder.environment("GRADLE_OPTS", formatGradleOpts());
-        builder.environment(getEnvironmentVars());
+
+        Map<String, String> envVars = new HashMap<String, String>(getAllEnvironmentVars());
+
+        // If the user's environment has JAVA_OPTS set, it will be inherited by the forked process.
+        // If we don't have explicit settings, explicit “null” it out to prevent env pollution.
+        if (!envVars.containsKey("JAVA_OPTS")) {
+            envVars.put("JAVA_OPTS", "");
+        }
+
+        builder.environment(envVars);
         builder.workingDir(getWorkingDir());
+        builder.setStandardInput(getStdin());
 
         commandBuilder.build(builder);
 
@@ -105,24 +136,19 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         LOG.info(String.format("Execute in %s with: %s %s", builder.getWorkingDir(), builder.getExecutable(),
                 builder.getArgs()));
 
-        ExecHandle proc = builder.build();
-        int exitValue = proc.start().waitForFinish().getExitValue();
+        return builder;
+    }
 
-        String output = outStream.toString();
-        String error = errStream.toString();
-        boolean failed = exitValue != 0;
+    public GradleHandle createHandle() {
+        return new ForkingGradleHandle(this);
+    }
 
-        LOG.info("OUTPUT: " + output);
-        LOG.info("ERROR: " + error);
+    protected ExecutionResult doRun() {
+        return createHandle().start().waitForFinish();
+    }
 
-        if (failed != expectFailure) {
-            String message = String.format("Gradle execution %s in %s with: %s %s%nOutput:%n%s%nError:%n%s%n-----%n",
-                    expectFailure ? "did not fail" : "failed", builder.getWorkingDir(), builder.getExecutable(),
-                    builder.getArgs(), output, error);
-            System.out.println(message);
-            throw new RuntimeException(message);
-        }
-        return GUtil.map("output", output, "error", error);
+    protected ExecutionFailure doRunWithFailure() {
+        return createHandle().start().waitForFailure();
     }
 
     private String formatGradleOpts() {
@@ -189,154 +215,107 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    private static class ForkedExecutionResult extends AbstractExecutionResult {
-        private final Map result;
-        private final Pattern skippedTaskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE))");
-        private final Pattern notSkippedTaskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)");
-        private final Pattern taskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)(\\s+.+)?");
+    private static class MultiplexingOutputStream extends OutputStream {
+        final OutputStream systemOut;
+        final OutputStream nonSystemOut;
 
-        public ForkedExecutionResult(Map result) {
-            this.result = result;
+        public MultiplexingOutputStream(OutputStream systemOut, OutputStream nonSystemOut) {
+            this.systemOut = systemOut;
+            this.nonSystemOut = nonSystemOut;
         }
 
-        public String getOutput() {
-            return result.get("output").toString();
-        }
-
-        public String getError() {
-            return result.get("error").toString();
-        }
-
-        public List<String> getExecutedTasks() {
-            return grepTasks(taskPattern);
-        }
-        
-        public ExecutionResult assertTasksExecuted(String... taskPaths) {
-            List<String> expectedTasks = Arrays.asList(taskPaths);
-            assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getExecutedTasks(), equalTo(expectedTasks));
-            return this;
-        }
-
-        public Set<String> getSkippedTasks() {
-            return new HashSet(grepTasks(skippedTaskPattern));
-        }
-        
-        public ExecutionResult assertTasksSkipped(String... taskPaths) {
-            Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
-            assertThat(String.format("Expected skipped tasks %s not found in process output:%n%s", expectedTasks, getOutput()), getSkippedTasks(), equalTo(expectedTasks));
-            return this;
-        }
-
-        public ExecutionResult assertTaskSkipped(String taskPath) {
-            Set<String> tasks = new HashSet<String>(getSkippedTasks());
-            assertThat(String.format("Expected skipped task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
-            return this;
-        }
-
-        public ExecutionResult assertTasksNotSkipped(String... taskPaths) {
-            Set<String> tasks = new HashSet<String>(grepTasks(notSkippedTaskPattern));
-            Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
-            assertThat(String.format("Expected executed tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
-            return this;
-        }
-
-        public ExecutionResult assertTaskNotSkipped(String taskPath) {
-            Set<String> tasks = new HashSet<String>(grepTasks(notSkippedTaskPattern));
-            assertThat(String.format("Expected executed task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
-            return this;
-        }
-
-        private List<String> grepTasks(final Pattern pattern) {
-            final List<String> tasks = new ArrayList<String>();
-
-            eachLine(new Action<String>() {
-                public void execute(String s) {
-                    java.util.regex.Matcher matcher = pattern.matcher(s);
-                    if (matcher.matches()) {
-                        String taskName = matcher.group(1);
-                        if (!taskName.startsWith(":buildSrc:")) {
-                            tasks.add(taskName);
-                        }
-                    }
-                }
-            });
-
-            return tasks;
-        }
-
-        private void eachLine(Action<String> action) {
-            BufferedReader reader = new BufferedReader(new StringReader(getOutput()));
-            String line;
-            try {
-                while ((line = reader.readLine()) != null) {
-                    action.execute(line);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        public void write(int b) throws IOException {
+            nonSystemOut.write(b);
+            systemOut.write(b);
         }
     }
 
-    private static class ForkedExecutionFailure extends ForkedExecutionResult implements ExecutionFailure {
-        private final Pattern causePattern = Pattern.compile("(?m)^Cause: ");
+    private static class ForkingGradleHandle extends OutputScrapingGradleHandle {
+        private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleHandle.class);
 
-        public ForkedExecutionFailure(Map result) {
-            super(result);
+        final private ForkingGradleExecuter executer;
+
+        final private ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
+        final private ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
+
+        private ExecHandle execHandle;
+
+        public ForkingGradleHandle(ForkingGradleExecuter executer) {
+            this.executer = executer;
         }
 
-        public ExecutionFailure assertHasLineNumber(int lineNumber) {
-            assertThat(getError(), containsString(String.format(" line: %d", lineNumber)));
+        public ForkingGradleExecuter getExecuter() {
+            return executer;
+        }
+
+        public String getStandardOutput() {
+            return standardOutput.toString();
+        }
+
+        public String getErrorOutput() {
+            return errorOutput.toString();
+        }
+
+        public GradleHandle start() {
+            createExecHandle().start();
             return this;
         }
 
-        public ExecutionFailure assertHasFileName(String filename) {
-            assertThat(getError(), containsLine(startsWith(filename)));
+        public GradleHandle abort() {
+            getExecHandle().abort();
             return this;
         }
 
-        public ExecutionFailure assertHasCause(String description) {
-            assertThatCause(startsWith(description));
-            return this;
+        public boolean isRunning() {
+            return execHandle != null && execHandle.getState() == ExecHandleState.STARTED;
         }
 
-        public ExecutionFailure assertThatCause(Matcher<String> matcher) {
-            String error = getError();
-            java.util.regex.Matcher regExpMatcher = causePattern.matcher(error);
-            int pos = 0;
-            while (pos < error.length()) {
-                if (!regExpMatcher.find(pos)) {
-                    break;
-                }
-                int start = regExpMatcher.end();
-                String cause;
-                if (regExpMatcher.find(start)) {
-                    cause = error.substring(start, regExpMatcher.start());
-                    pos = regExpMatcher.start();
-                } else {
-                    cause = error.substring(start);
-                    pos = error.length();
-                }
-                if (matcher.matches(cause)) {
-                    return this;
-                }
+        protected ExecHandle getExecHandle() {
+            if (execHandle == null) {
+                throw new IllegalStateException("you must call start() before calling this method");
             }
-            fail(String.format("No matching cause found in '%s'", error));
-            return this;
+
+            return execHandle;
         }
 
-        public ExecutionFailure assertHasNoCause() {
-            assertThat(getError(), not(matchesRegexp(causePattern)));
-            return this;
+        protected ExecHandle createExecHandle() {
+            if (execHandle != null) {
+                throw new IllegalStateException("you have already called start() on this handle");
+            }
+
+            ExecHandleBuilder execBuilder = getExecuter().createExecHandleBuilder();
+            execBuilder.setStandardOutput(new MultiplexingOutputStream(System.out, standardOutput));
+            execBuilder.setErrorOutput(new MultiplexingOutputStream(System.err, errorOutput));
+            execHandle = execBuilder.build();
+
+            return execHandle;
         }
 
-        public ExecutionFailure assertHasDescription(String context) {
-            assertThatDescription(startsWith(context));
-            return this;
+        public ExecutionResult waitForFinish() {
+            return waitForStop(false);
         }
 
-        public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
-            assertThat(getError(), containsLine(matcher));
-            return this;
+        public ExecutionFailure waitForFailure() {
+            return (ExecutionFailure)waitForStop(true);
+        }
+
+        protected ExecutionResult waitForStop(boolean expectFailure) {
+            ExecHandle execHandle = getExecHandle();
+            ExecResult execResult = execHandle.waitForFinish();
+            execResult.rethrowFailure(); // nop if all ok
+
+            String output = getStandardOutput();
+            String error = getErrorOutput();
+
+            boolean didFail = execResult.getExitValue() != 0;
+            if (didFail != expectFailure) {
+                String message = String.format("Gradle execution %s in %s with: %s %nError:%n%s%n-----%n",
+                        expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), error);
+                throw new RuntimeException(message);
+            }
+
+            return expectFailure ? toExecutionFailure(output, error) : toExecutionResult(output, error);
         }
     }
+
 }

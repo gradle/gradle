@@ -24,6 +24,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
 
@@ -207,15 +208,38 @@ public interface Script {
     FileTree zipTree(Object zipPath);
 
     /**
-     * <p>Creates a new {@code FileTree} which contains the contents of the given TAR file. The given tarPath path is
-     * evaluated as for {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
-     * method to untar a TAR file.</p>
+     * Creates a new {@code FileTree} which contains the contents of the given TAR file. The given tarPath path can be:
+     * <ul>
+     *   <li>an instance of {@link org.gradle.api.resources.Resource}</li>
+     *   <li>any other object is evaluated as for {@link #file(Object)}</li>
+     * </ul>
      *
-     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
-     * queried.</p>
+     * queried.
+     * <p>
+     * Unless custom implementation of resources is passed, the tar tree attempts to guess the compression based on the file extension.
+     * <p>
+     * You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * method to untar a TAR file:
      *
-     * @param tarPath The TAR file. Evaluated as for {@link #file(Object)}.
+     * <pre autoTested=''>
+     * task untar(type: Copy) {
+     *   from tarTree('someCompressedTar.gzip')
+     *
+     *   //tar tree attempts to guess the compression based on the file extension
+     *   //however if you must specify the compression explicitly you can:
+     *   from tarTree(resources.gzip('someTar.ext'))
+     *
+     *   //in case you work with unconventionally compressed tars
+     *   //you can provide your own implementation of a ReadableResource:
+     *   //from tarTree(yourOwnResource as ReadableResource)
+     *
+     *   into 'dest'
+     * }
+     * </pre>
+     *
+     * @param tarPath The TAR file or an instance of {@link org.gradle.api.resources.Resource}.
      * @return the file tree. Never returns null.
      */
     FileTree tarTree(Object tarPath);
@@ -327,4 +351,11 @@ public interface Script {
      * @return The logger. Never returns null.
      */
     Logger getLogger();
+
+    /**
+     * Provides access to resource-specific utility methods, for example factory methods that create various resources.
+     *
+     * @return Returned instance contains various resource-specific utility methods.
+     */
+    ResourceHandler getResources();
 }

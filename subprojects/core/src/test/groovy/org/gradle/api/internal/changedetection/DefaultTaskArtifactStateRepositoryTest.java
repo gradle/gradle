@@ -63,10 +63,11 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
     @Before
     public void setup() {
-        CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.createDir("user-home"), "cache", CacheUsage.ON, new InMemoryCacheFactory());
+        CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.createDir("user-home"), null, CacheUsage.ON, new InMemoryCacheFactory());
+        TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository);
         FileSnapshotter inputFilesSnapshotter = new DefaultFileSnapshotter(new DefaultHasher());
-        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheRepository, gradle);
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheRepository, new CacheBackedFileSnapshotRepository(cacheRepository, gradle), gradle);
+        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheAccess);
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess));
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, inputFilesSnapshotter, outputFilesSnapshotter);
     }
 
@@ -440,7 +441,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         state = repository.getStateFor(task());
         assertFalse(state.isUpToDate());
-        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), (Matcher) hasItem(otherFile));
+        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), hasItem((File) otherFile));
     }
 
     @Test
@@ -457,7 +458,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         state = repository.getStateFor(task());
         assertTrue(state.isUpToDate());
-        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), (Matcher) not(hasItem(outputDirFile)));
+        assertThat(state.getExecutionHistory().getOutputFiles().getFiles(), not(hasItem((File) outputDirFile)));
         state.afterTask();
     }
 

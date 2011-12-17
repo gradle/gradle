@@ -17,6 +17,7 @@ package org.gradle.tooling;
 
 import org.gradle.tooling.model.Element;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -40,28 +41,25 @@ import java.io.OutputStream;
  *
  * @param <T> The type of model to build
  */
-public interface ModelBuilder<T extends Element> {
+public interface ModelBuilder<T extends Element> extends LongRunningOperation {
+
     /**
-     * Sets the {@link OutputStream} which should receive standard output logging generated while building the model. The default is to discard the output.
-     *
-     * @param outputStream The output stream.
-     * @return this
+     * {@inheritDoc}
      */
     ModelBuilder<T> setStandardOutput(OutputStream outputStream);
 
     /**
-     * Sets the {@link OutputStream} which should receive standard error logging generated while building the model. The default is to discard the output.
-     *
-     * @param outputStream The output stream.
-     * @return this
+     * {@inheritDoc}
      */
     ModelBuilder<T> setStandardError(OutputStream outputStream);
 
     /**
-     * Adds a progress listener which will receive progress events as the model is being built.
-     *
-     * @param listener The listener
-     * @return this
+     * {@inheritDoc}
+     */
+    ModelBuilder<T> setStandardInput(InputStream inputStream);
+
+    /**
+     * {@inheritDoc}
      */
     ModelBuilder<T> addProgressListener(ProgressListener listener);
 

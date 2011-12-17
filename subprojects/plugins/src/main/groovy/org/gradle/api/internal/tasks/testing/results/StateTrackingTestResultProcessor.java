@@ -17,11 +17,9 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.*;
-import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public abstract class StateTrackingTestResultProcessor implements TestResultProcessor {
@@ -32,7 +30,7 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
         if (event.getParentId() != null) {
             parent = executing.get(event.getParentId()).test;
         }
-        TestState state = new TestState(new DecoratingTestDescriptor(test, parent), event);
+        TestState state = new TestState(new DecoratingTestDescriptor(test, parent), event, executing);
         TestState oldState = executing.put(test.getId(), state);
         if (oldState != null) {
             throw new IllegalArgumentException(String.format("Received a start event for %s with duplicate id '%s'.",
@@ -74,66 +72,7 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
     protected void completed(TestState state) {
     }
 
-    public class TestState {
-        public final TestDescriptorInternal test;
-        final TestStartEvent startEvent;
-        public boolean failedChild;
-        public List<Throwable> failures = new ArrayList<Throwable>();
-        public long testCount;
-        public long successfulCount;
-        public long failedCount;
-        public TestResult.ResultType resultType;
-        TestCompleteEvent completeEvent;
-
-        public TestState(TestDescriptorInternal test, TestStartEvent startEvent) {
-            this.test = test;
-            this.startEvent = startEvent;
-        }
-
-        public boolean isFailed() {
-            return failedChild || !failures.isEmpty();
-        }
-
-        public long getStartTime() {
-            return startEvent.getStartTime();
-        }
-
-        public long getEndTime() {
-            return completeEvent.getEndTime();
-        }
-
-        public long getExecutionTime() {
-            return completeEvent.getEndTime() - startEvent.getStartTime();
-        }
-
-        public void completed(TestCompleteEvent event) {
-            this.completeEvent = event;
-            resultType = isFailed() ? TestResult.ResultType.FAILURE
-                    : event.getResultType() != null ? event.getResultType() : TestResult.ResultType.SUCCESS;
-
-            if (!test.isComposite()) {
-                testCount = 1;
-                switch (resultType) {
-                    case SUCCESS:
-                        successfulCount = 1;
-                        break;
-                    case FAILURE:
-                        failedCount = 1;
-                        break;
-                }
-            }
-
-            if (startEvent.getParentId() != null) {
-                TestState parentState = executing.get(startEvent.getParentId());
-                if (parentState != null) {
-                    if (isFailed()) {
-                        parentState.failedChild = true;
-                    }
-                    parentState.testCount += testCount;
-                    parentState.successfulCount += successfulCount;
-                    parentState.failedCount += failedCount;
-                }
-            }
-        }
+    protected TestState getTestStateFor(Object testId) {
+        return executing.get(testId);
     }
 }

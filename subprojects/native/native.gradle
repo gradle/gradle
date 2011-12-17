@@ -3,11 +3,14 @@
 */
 dependencies {
     groovy libraries.groovy
+    compile libraries.commons_io
     compile libraries.slf4j_api
     compile libraries.jna
     compile module('org.jruby.ext.posix:jna-posix:1.0.3') {
         dependency libraries.jna
     }
+    compile libraries.guava
+    compile libraries.jcip
 }
 
 useTestFixtures()

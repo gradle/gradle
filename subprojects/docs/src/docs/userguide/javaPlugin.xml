@@ -31,14 +31,15 @@
 
     <section>
         <title>Source sets</title>
-        <para>The Java plugin introduces the concept of a <firstterm>source set</firstterm>. A source set is a group of
+        <para>The Java plugin introduces the concept of a <firstterm>source set</firstterm>. A source set is simply a group of
             source files which are compiled and executed together. These source files may include Java source files and
             resource files. Other plugins add the ability to include Groovy and Scala source files in a source set.
             A source set has an associated compile classpath, and runtime classpath.
         </para>
         <para>
-            You might use a source set to define an integration test suite, or for the API classes of your project, or
-            to separate source which needs to be compiled against different Java versions.
+            One use for source sets is to group source files into logical groups which describe their purpose. For example,
+            you might use a source set to define an integration test suite, or you might use separate source sets to define
+            the API and implementation classes of your project.
         </para>
         <para>The Java plugin defines two standard source sets, called <literal>main</literal> and <literal>test</literal>.
             The <literal>main</literal> source set contains your production source code, which is compiled and assembled
@@ -297,7 +298,9 @@
                     The tasks which produce the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
-                <td>Assembles the artifacts in the specified configuration.</td>
+                <td>Assembles the artifacts in the specified configuration.
+                    The task is added by the Base plugin which is implicitly applied by the Java plugin.
+                </td>
             </tr>
             <tr>
                 <td>
@@ -307,7 +310,9 @@
                     The tasks which uploads the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Upload"/></td>
-                <td>Assembles and uploads the artifacts in the specified configuration.</td>
+                <td>Assembles and uploads the artifacts in the specified configuration.
+                    The task is added by the Base plugin which is implicitly applied by the Java plugin.
+                </td>
             </tr>
         </table>
 
@@ -356,8 +361,6 @@
         <title>Dependency management</title>
         <para>The Java plugin adds a number of dependency configurations to your project, as shown below. It assigns
             those configurations to tasks such as <literal>compileJava</literal> and <literal>test</literal>.
-            To learn more about configurations see <xref linkend="sub:configurations"/> and
-            <xref linkend="artifacts_and_configurations"/>.
         </para>
         <table id='tab:configurations'>
             <title>Java plugin - dependency configurations</title>
@@ -401,9 +404,10 @@
             </tr>
             <tr>
                 <td>default</td>
-                <td>runtime, archives</td>
+                <td>runtime</td>
                 <td>-</td>
-                <td>Artifacts produced <literal>and</literal> dependencies required by this project.
+                <td>The default configuration used by a project dependency on this project. Contains the artifacts and
+                    dependencies required by this project at runtime.
                 </td>
             </tr>
         </table>
@@ -413,6 +417,30 @@
                 <imagedata fileref="img/javaPluginConfigurations.png"/>
             </imageobject>
         </figure>
+        <para>For each source set you add to the project, the Java plugins adds the following dependency configurations:</para>
+        <table id="java_source_set_configurations">
+            <title>Java plugin - source set dependency configurations</title>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Extends</td>
+                    <td>Used by tasks</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><replaceable>sourceSet</replaceable>Compile</td>
+                <td>-</td>
+                <td>compile<replaceable>SourceSet</replaceable>Java</td>
+                <td>Compile time dependencies for the given source set</td>
+            </tr>
+            <tr>
+                <td><replaceable>sourceSet</replaceable>Runtime</td>
+                <td><replaceable>sourceSet</replaceable>Compile</td>
+                <td>-</td>
+                <td>Runtime time dependencies for the given source set</td>
+            </tr>
+        </table>
     </section>
 
     <section>
@@ -688,7 +716,7 @@
         <title>Working with source sets</title>
         <para>You can access the source sets of a project using the <literal>sourceSets</literal> property. This
             is a container for the project's source sets, of type <apilink class="org.gradle.api.tasks.SourceSetContainer"/>.
-            There is also a <literal>sourceSets()</literal> method, which you can pass a closure to which configures the
+            There is also a <literal>sourceSets { }</literal> script block, which you can pass a closure to configure the
             source set container. The source set container works pretty much the same way as other containers, such
             as <literal>tasks</literal>.
         </para>
@@ -700,15 +728,6 @@
             main Java and resources directories:</para>
         <sample id="configureSourceSet" dir="java/customizedLayout" title="Configuring the source directories of a source set">
             <sourcefile file="build.gradle" snippet="define-main"/>
-        </sample>
-        <para>To define a new source set, you simply reference it in the <literal>sourceSets { }</literal> block.
-            When you define a source set, the Java plugin adds a number of tasks which assemble the classes for the
-            source set, as shown in <xref linkend="java_source_set_tasks"/>. For example, if you add a source set called
-            <literal>intTest</literal>, the Java plugin adds <literal>compileIntTestJava</literal>, <literal>processIntTestResources</literal>
-            and <literal>intTestClasses</literal> tasks.
-        </para>
-        <sample id="defineSourceSet" dir="userguide/java/sourceSets" title="Defining a source set">
-            <sourcefile file="build.gradle" snippet="define-source-set"/>
         </sample>
 
         <section>
@@ -742,7 +761,21 @@
                 </tr>
                 <tr>
                     <td>
-                        <literal>classesDir</literal>
+                        <literal>output</literal>
+                    </td>
+                    <td>
+                        <apilink class="org.gradle.api.tasks.SourceSetOutput"/> (read-only)
+                    </td>
+                    <td>
+                        Not null
+                    </td>
+                    <td>
+                        The output files of the source set, containing its compiled classes and resources.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <literal>output.classesDir</literal>
                     </td>
                     <td>
                         <classname>File</classname>
@@ -756,13 +789,27 @@
                 </tr>
                 <tr>
                     <td>
+                        <literal>output.resourcesDir</literal>
+                    </td>
+                    <td>
+                        <classname>File</classname>
+                    </td>
+                    <td>
+                        <literal><replaceable>buildDir</replaceable>/resources/<replaceable>name</replaceable></literal>
+                    </td>
+                    <td>
+                        The directory to generate the resources of this source set into.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
                         <literal>compileClasspath</literal>
                     </td>
                     <td>
                         <apilink class="org.gradle.api.file.FileCollection"/>
                     </td>
                     <td>
-                        <literal>compile</literal> Configuration.
+                        <literal>compile<replaceable>SourceSet</replaceable></literal> configuration.
                     </td>
                     <td>
                         The classpath to use when compiling the source files of this source set.
@@ -776,7 +823,7 @@
                         <apilink class="org.gradle.api.file.FileCollection"/>
                     </td>
                     <td>
-                        <literal>classesDir</literal> + <literal>runtime</literal> Configuration.
+                        <literal>output</literal> + <literal>runtime<replaceable>SourceSet</replaceable></literal> configuration.
                     </td>
                     <td>
                         The classpath to use when executing the classes of this source set.
@@ -846,7 +893,7 @@
                         <literal>allJava</literal>
                     </td>
                     <td>
-                        <apilink class="org.gradle.api.file.FileTree"/> (read-only)
+                        <apilink class="org.gradle.api.file.SourceDirectorySet"/> (read-only)
                     </td>
                     <td>
                         <literal>java</literal>
@@ -861,7 +908,7 @@
                         <literal>allSource</literal>
                     </td>
                     <td>
-                        <apilink class="org.gradle.api.file.FileTree"/> (read-only)
+                        <apilink class="org.gradle.api.file.SourceDirectorySet"/> (read-only)
                     </td>
                     <td>
                         <literal>resources + java</literal>
@@ -875,11 +922,33 @@
         </section>
 
         <section>
-            <title>Some source set examples</title>
-            <para>Using dependency configurations to define the source set classpath:</para>
-            <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Defining the classpath of a source set">
-                <sourcefile file="build.gradle" snippet="classpath-using-configurations"/>
+            <title>Defining new source sets</title>
+            <para>To define a new source set, you simply reference it in the <literal>sourceSets { }</literal> block. Here's an example:
+            </para>
+            <sample id="defineSourceSet" dir="userguide/java/sourceSets" title="Defining a source set">
+                <sourcefile file="build.gradle" snippet="define-source-set"/>
             </sample>
+            <para>
+                When you define a new source set, the Java plugin adds some dependency configurations for the
+                source set, as shown in <xref linkend="java_source_set_configurations"/>. You can use these configurations to
+                define the compile and runtime dependencies of the source set.
+            </para>
+            <sample id="sourceSetDependencies" dir="userguide/java/sourceSets" title="Defining source set dependencies">
+                <sourcefile file="build.gradle" snippet="source-set-dependencies"/>
+            </sample>
+            <para>
+                The Java plugin also adds a number of tasks which assemble the classes for the
+                source set, as shown in <xref linkend="java_source_set_tasks"/>. For example, for a source set called
+                <literal>intTest</literal>, you can run <userinput>gradle intTestClasses</userinput> to compile the
+                int test classes.
+            </para>
+            <sample id="compileSourceSet" dir="userguide/java/sourceSets" title="Compiling a source set">
+                <output args="intTestClasses"/>
+            </sample>
+        </section>
+
+        <section>
+            <title>Some source set examples</title>
             <para>Adding a JAR containing the classes of a source set:</para>
             <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Assembling a JAR for a source set">
                 <sourcefile file="build.gradle" snippet="jar"/>
@@ -994,7 +1063,7 @@
                     <literal>destinationDir</literal>
                 </td>
                 <td><classname>File</classname>. Can set using anything described in <xref linkend="sec:locating_files"/>.</td>
-                <td><literal><replaceable>sourceSet</replaceable>output.resourcesDir</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>.output.resourcesDir</literal></td>
             </tr>
         </table>
     </section>
@@ -1033,7 +1102,7 @@
                     <literal>destinationDir</literal>
                 </td>
                 <td><classname>File</classname>.</td>
-                <td><literal><replaceable>sourceSet</replaceable>.classesDir</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>.output.classesDir</literal></td>
             </tr>
         </table>
     </section>
@@ -1172,7 +1241,7 @@
                 <tr>
                     <td><literal>testClassesDir</literal></td>
                     <td><classname>File</classname></td>
-                    <td><literal>sourceSets.test.classesDir</literal></td>
+                    <td><literal>sourceSets.test.output.classesDir</literal></td>
                 </tr>
                 <tr>
                     <td><literal>classpath</literal></td>

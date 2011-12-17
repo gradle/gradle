@@ -17,11 +17,14 @@
 
 package org.gradle.integtests
 
-import org.gradle.util.TestFile
-import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.util.TestFile
+import org.gradle.util.TestPrecondition
+import org.junit.Rule
+import org.junit.Test
+import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertThat
 
 public class ArchiveIntegrationTest extends AbstractIntegrationTest {
     @Test public void canCopyFromAZip() {
@@ -70,6 +73,140 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         inTestDirectory().withTasks('copy').run()
 
         testFile('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
+    }
+
+    @Test public void "handles gzip compressed tars"() {
+        TestFile tar = file()
+        tar.create {
+            someDir {
+                file '1.txt'
+                file '2.txt'
+            }
+        }
+        tar.tgzTo(file('test.tgz'))
+
+        file('build.gradle') << '''
+            task copy(type: Copy) {
+                from tarTree('test.tgz')
+                exclude '**/2.txt'
+                into 'dest'
+            }
+'''
+
+        inTestDirectory().withTasks('copy').run()
+
+        file('dest').assertHasDescendants('someDir/1.txt')
+    }
+
+    @Test public void "allows user to provide a custom resource for the tarTree"() {
+        TestFile tar = file()
+        tar.create {
+            someDir {
+                file '1.txt'
+            }
+        }
+        tar.tarTo(file('test.tar'))
+
+        file('build.gradle') << '''
+            def res = new ReadableResource() {
+                InputStream read() { new FileInputStream(file('test.tar')) }
+                String getBaseName() { "foo" }
+                URI getURI() { new java.net.URI("foo") }
+                String getDisplayName() { "The foo" }
+            }
+
+            task copy(type: Copy) {
+                from tarTree(res)
+                into 'dest'
+            }
+'''
+
+        inTestDirectory().withTasks('copy').run()
+
+        file('dest').assertHasDescendants('someDir/1.txt')
+    }
+
+    @Test public void "handles bzip2 compressed tars"() {
+        TestFile tar = file()
+        tar.create {
+            someDir {
+                file '1.txt'
+                file '2.txt'
+            }
+        }
+        tar.tbzTo(file('test.tbz2'))
+
+        file('build.gradle') << '''
+            task copy(type: Copy) {
+                from tarTree('test.tbz2')
+                exclude '**/2.txt'
+                into 'dest'
+            }
+'''
+
+        inTestDirectory().withTasks('copy').run()
+
+        file('dest').assertHasDescendants('someDir/1.txt')
+    }
+
+     @Test public void "knows compression of the tar"() {
+        TestFile tar = file()
+        tar.tbzTo(file('test.tbz2'))
+
+        file('build.gradle') << '''
+            task myTar(type: Tar) {
+                assert compression == Compression.NONE
+
+                compression = Compression.GZIP
+                assert compression == Compression.GZIP
+
+                compression = Compression.BZIP2
+                assert compression == Compression.BZIP2
+            }
+'''
+
+        inTestDirectory().withTasks('myTar').run()
+    }
+
+    @Test public void "can choose compression method for tarTree"() {
+        TestFile tar = file()
+        tar.create {
+            someDir {
+                file '1.txt'
+                file '2.txt'
+            }
+        }
+        //file extension is non-standard:
+        tar.tbzTo(file('test.ext'))
+
+        file('build.gradle') << '''
+            task copy(type: Copy) {
+                from tarTree(resources.bzip2('test.ext'))
+                exclude '**/2.txt'
+                into 'dest'
+            }
+'''
+
+        inTestDirectory().withTasks('copy').run()
+
+        file('dest').assertHasDescendants('someDir/1.txt')
+    }
+
+    @Rule public final TestResources resources = new TestResources()
+
+    @Test public void "tarTreeFailsGracefully"() {
+        file('build.gradle') << '''
+            task copy(type: Copy) {
+                //the input file comes from the resources to make sure it is truly improper 'tar', see GRADLE-1952
+                from tarTree('compressedTarWithWrongExtension.tar')
+                into 'dest'
+            }
+'''
+
+        def failure = inTestDirectory().withTasks('copy').runWithFailure()
+
+        assert failure.error.contains("Unable to expand TAR")
+        assert failure.error.contains("compression based on the file extension")
     }
 
     @Test public void cannotCreateAnEmptyZip() {
@@ -161,10 +298,12 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
 
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
 
-        expandDir.file('prefix/dir1').assertPermissions(equalTo("rwxr-xr-x"))
-        expandDir.file('prefix/dir1/renamed_file1.txt').assertPermissions(equalTo("rw-r--r--"))
-        expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
-        expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
+        if (TestPrecondition.FILE_PERMISSIONS.fulfilled) {
+            expandDir.file('prefix/dir1').assertPermissions(equalTo("rwxr-xr-x"))
+            expandDir.file('prefix/dir1/renamed_file1.txt').assertPermissions(equalTo("rw-r--r--"))
+            expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
+            expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
+        }
     }
 
     @Test public void canCreateATarArchive() {
@@ -204,10 +343,12 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
 
         expandDir.file('dir1/file1.txt').assertContents(equalTo('[abc]'))
 
-        expandDir.file('dir1').assertPermissions(equalTo("rwxr-xr-x"))
-        expandDir.file('dir1/file1.txt').assertPermissions(equalTo("rw-r--r--"))
-        expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
-        expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
+        if (TestPrecondition.FILE_PERMISSIONS.fulfilled) {
+            expandDir.file('dir1').assertPermissions(equalTo("rwxr-xr-x"))
+            expandDir.file('dir1/file1.txt').assertPermissions(equalTo("rw-r--r--"))
+            expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
+            expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
+        }
     }
 
     @Test public void canCreateATgzArchive() {

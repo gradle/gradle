@@ -23,8 +23,8 @@ import java.util.ArrayList;
 
 import org.gradle.api.Transformer;
 
-public class ChainingTransformer<T> implements Transformer<T> {
-    private final List<Transformer<T>> transformers = new ArrayList<Transformer<T>>();
+public class ChainingTransformer<T> implements Transformer<T, T> {
+    private final List<Transformer<T, T>> transformers = new ArrayList<Transformer<T, T>>();
     private final Class<T> type;
 
     public ChainingTransformer(Class<T> type) {
@@ -33,18 +33,18 @@ public class ChainingTransformer<T> implements Transformer<T> {
 
     public T transform(T original) {
         T value = original;
-        for (Transformer<T> transformer : transformers) {
+        for (Transformer<T, T> transformer : transformers) {
             value = type.cast(transformer.transform(value));
         }
         return value;
     }
 
-    public void add(Transformer<T> transformer) {
+    public void add(Transformer<T, T> transformer) {
         transformers.add(transformer);
     }
 
     public void add(final Closure transformer) {
-        transformers.add(new Transformer<T>() {
+        transformers.add(new Transformer<T, T>() {
             public T transform(T original) {
                 transformer.setDelegate(original);
                 transformer.setResolveStrategy(Closure.DELEGATE_FIRST);

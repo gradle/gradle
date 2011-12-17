@@ -46,7 +46,7 @@ public class ProcessBootstrap {
         ClassLoader antClassLoader = classLoaderFactory.createIsolatedClassLoader(antClasspath);
         ClassLoader runtimeClassLoader = new URLClassLoader(runtimeClasspath, antClassLoader);
         Thread.currentThread().setContextClassLoader(runtimeClassLoader);
-        Class mainClass = runtimeClassLoader.loadClass(mainClassName);
+        Class<?> mainClass = runtimeClassLoader.loadClass(mainClassName);
         Method mainMethod = mainClass.getMethod("main", String[].class);
         mainMethod.invoke(null, new Object[]{args});
     }

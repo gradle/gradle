@@ -18,18 +18,19 @@ package org.gradle.api.internal.artifacts.publish;
 
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.util.WrapUtil;
-import org.hamcrest.Matchers;
 import org.jmock.integration.junit4.JMock;
-import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Set;
 
+import static org.gradle.util.WrapUtil.toSet;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 @RunWith(JMock.class)
 public class DefaultPublishArtifactTest extends AbstractPublishArtifactTest {
     protected PublishArtifact createPublishArtifact(String classifier) {
@@ -42,7 +43,24 @@ public class DefaultPublishArtifactTest extends AbstractPublishArtifactTest {
         Task task2 = context.mock(Task.class, "task2");
         DefaultPublishArtifact publishArtifact = new DefaultPublishArtifact(getTestName(), getTestExt(), getTestType(),
                 getTestClassifier(), getDate(), getTestFile(), task1, task2);
-        assertThat((Set<Task>) publishArtifact.getBuildDependencies().getDependencies(null), Matchers.equalTo(WrapUtil.toSet(task1, task2)));
+        assertThat((Set<Task>) publishArtifact.getBuildDependencies().getDependencies(null), equalTo(toSet(task1, task2)));
         assertCommonPropertiesAreSet(publishArtifact, true);
+    }
+
+    @Test
+    public void canSpecifyTheBuilderTasksOnConstruction() {
+        Task task = context.mock(Task.class);
+        DefaultPublishArtifact publishArtifact = new DefaultPublishArtifact("name", "extension", "type", null, null, null, task);
+
+        assertThat((Set<Task>)publishArtifact.getBuildDependencies().getDependencies(null), equalTo(toSet(task)));
+    }
+    
+    @Test
+    public void canSpecifyTheBuilderTasks() {
+        Task task = context.mock(Task.class);
+        DefaultPublishArtifact publishArtifact = new DefaultPublishArtifact("name", "extension", "type", null, null, null);
+        publishArtifact.builtBy(task);
+
+        assertThat((Set<Task>) publishArtifact.getBuildDependencies().getDependencies(null), equalTo(toSet(task)));
     }
 }

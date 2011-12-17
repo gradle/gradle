@@ -17,29 +17,37 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-
 import org.gradle.messaging.remote.internal.DisconnectAwareConnection;
 
 public class WatchForDisconnection implements DaemonCommandAction {
 
     private static final Logger LOGGER = Logging.getLogger(WatchForDisconnection.class);
 
-    public void execute(DaemonCommandExecution execution) {
+    public void execute(final DaemonCommandExecution execution) {
         DisconnectAwareConnection connection = execution.getConnection();
 
         // Watch for the client disconnecting before we call stop()
         connection.onDisconnect(new Runnable() {
             public void run() {
-                LOGGER.warn("client disconnection detected, we're going down (hard)");
-                System.exit(1);
+                LOGGER.warn("client disconnection detected, stopping the daemon");
+                
+                /*
+                    When the daemon was started through the DaemonMain entry point, this will cause the entire
+                    JVM to exit with code 1 (which is what we want) because the call to awaitIdleTimeout() in 
+                    DaemonMain#doAction will throw a DaemonStoppedException. Note that at this point we will also 
+                    immediately remove the daemon from the registry.
+                */
+                execution.getDaemonStateCoordinator().requestStop();
             }
         });
 
-        execution.proceed();
-
-        // TODO - Do we need to remove the disconnect handler here?
-        // I think we should because if the client disconnects after we run the build we may as well stay up
-        connection.onDisconnect(null);
+        try {
+            execution.proceed();
+        } finally {
+            // TODO - Do we need to remove the disconnect handler here?
+            // I think we should because if the client disconnects after we run the build we may as well stay up
+            connection.onDisconnect(null);
+        }
     }
 
 }

@@ -22,6 +22,8 @@ import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileCollection
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskOutputs
 
 class DefaultFileCollectionResolveContextTest extends Specification {
     final FileResolver resolver = Mock()
@@ -292,6 +294,23 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result == []
+    }
+
+    def resolveAsFileCollectionsResolvesTaskToItsOutputFiles() {
+        Task task = Mock()
+        TaskOutputs outputs = Mock()
+        FileCollection outputFiles = Mock()
+
+        given:
+        _ * task.outputs >> outputs
+        _ * outputs.files >> outputFiles
+
+        when:
+        context.add(task)
+        def result = context.resolveAsFileCollections()
+
+        then:
+        result == [outputFiles]
     }
 
     def resolveAsFileCollectionsUsesFileResolverToResolveOtherTypes() {

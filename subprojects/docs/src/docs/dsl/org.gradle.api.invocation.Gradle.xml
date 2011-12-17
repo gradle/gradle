@@ -57,6 +57,9 @@
                 <td>projectsEvaluated</td>
             </tr>
             <tr>
+                <td>projectsLoaded</td>
+            </tr>
+            <tr>
                 <td>buildFinished</td>
             </tr>
             <tr>
@@ -70,6 +73,12 @@
             </tr>
             <tr>
                 <td>useLogger</td>
+            </tr>
+            <tr>
+                <td>rootProject</td>
+            </tr>
+            <tr>
+                <td>allprojects</td>
             </tr>
         </table>
     </section>

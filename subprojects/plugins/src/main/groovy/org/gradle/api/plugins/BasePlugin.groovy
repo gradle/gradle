@@ -29,6 +29,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.apache.commons.lang.StringUtils
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 
 /**
  * <p>A  {@link org.gradle.api.Plugin}  which defines a basic project lifecycle and some common convention properties.</p>
@@ -40,11 +41,12 @@ class BasePlugin implements Plugin<Project> {
     public static final String UPLOAD_GROUP = 'upload'
 
     public void apply(Project project) {
-        project.convention.plugins.base = new BasePluginConvention(project)
+        def convention = new BasePluginConvention(project)
+        project.convention.plugins.base = convention
 
         configureBuildConfigurationRule(project)
         configureUploadRules(project)
-        configureArchiveDefaults(project, project.convention.plugins.base)
+        configureArchiveDefaults(project, convention)
         configureConfigurations(project)
 
         addClean(project)
@@ -56,7 +58,7 @@ class BasePlugin implements Plugin<Project> {
         Task assembleTask = project.tasks.add(ASSEMBLE_TASK_NAME);
         assembleTask.description = "Assembles all Jar, War, Zip, and Tar archives.";
         assembleTask.group = BUILD_GROUP
-        assembleTask.dependsOn project.tasks.withType(AbstractArchiveTask.class)
+        assembleTask.dependsOn project.configurations[Dependency.ARCHIVES_CONFIGURATION].allArtifacts.buildDependencies
     }
 
     private void configureArchiveDefaults(Project project, BasePluginConvention pluginConvention) {
@@ -167,9 +169,18 @@ class BasePlugin implements Plugin<Project> {
         project.setProperty("status", "integration");
 
         Configuration archivesConfiguration = configurations.add(Dependency.ARCHIVES_CONFIGURATION).
-                setDescription("Configuration for the default artifacts.");
+                setDescription("Configuration for archive artifacts.");
 
-        configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(archivesConfiguration).
-                setDescription("Configuration for the default artifacts and their dependencies.");
+        configurations.add(Dependency.DEFAULT_CONFIGURATION).
+                setDescription("Configuration for default artifacts.");
+
+        def defaultArtifacts = new DefaultArtifactPublicationSet(archivesConfiguration.artifacts)
+        project.extensions.defaultArtifacts = defaultArtifacts
+
+        configurations.all {
+            artifacts.all { artifact ->
+                defaultArtifacts.addCandidate(artifact)
+            }
+        }
     }
 }

@@ -41,7 +41,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
         builder.buildJar(testFile("repo/test-1.3.jar"));
 
         testFile("buildSrc/build.gradle").writelns(
-                "repositories { flatDir dirs: file('../repo') }",
+                "repositories { flatDir { dirs '../repo' } }",
                 "dependencies { compile name: 'test', version: '1.3' }");
         testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass extends org.gradle.test.DepClass { }");
         testFile("build.gradle").writelns("new BuildClass()");
@@ -109,7 +109,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "import org.gradle.test2.*",
                 "buildscript {",
                 "  repositories {",
-                "    flatDir dirs: file('repo')",
+                "    flatDir { dirs 'repo' }",
                 "  }",
                 "  dependencies {",
                 "    classpath name: 'test', version: '1.+'",
@@ -185,7 +185,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
         testFile("build.gradle").writelns(
                 "assert gradle.scriptClassLoader == buildscript.classLoader.parent",
                 "buildscript {",
-                "    repositories { flatDir(dirs: file('repo')) }",
+                "    repositories { flatDir { dirs 'repo' }}",
                 "    dependencies { classpath name: 'test', version: '1.3' }",
                 "}"
         );

@@ -15,37 +15,38 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
-import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.api.internal.Factory;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.daemon.client.DaemonClient;
-import org.gradle.launcher.daemon.client.ExternalDaemonConnector;
+import org.gradle.launcher.daemon.client.DaemonClientServices;
+import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.logging.internal.OutputEventRenderer;
+import org.gradle.tooling.internal.CompatibilityChecker;
 import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.model.IncompatibleVersionException;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 
 public class DefaultConnection implements ConnectionVersion4 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
-    private final ServiceRegistry loggingServices;
-    private final GradleLauncherFactory gradleLauncherFactory;
+    private final EmbeddedExecuterSupport embeddedExecuterSupport;
 
     public DefaultConnection() {
         LOGGER.debug("Using tooling API provider version {}.", GradleVersion.current().getVersion());
-        loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-        gradleLauncherFactory = new DefaultGradleLauncherFactory(loggingServices);
-        GradleLauncher.injectCustomFactory(gradleLauncherFactory);
+        //embedded use of the tooling api is not supported publicly so we don't care about its thread safety
+        //we can keep still keep this state:
+        embeddedExecuterSupport = new EmbeddedExecuterSupport();
     }
 
     public ConnectionMetaDataVersion1 getMetaData() {
@@ -74,19 +75,64 @@ public class DefaultConnection implements ConnectionVersion4 {
 
     private <T> T run(GradleLauncherAction<T> action, BuildOperationParametersVersion1 operationParameters) {
         GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer = createExecuter(operationParameters);
-        ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters.getGradleUserHomeDir(), operationParameters.getProjectDir(), operationParameters.isSearchUpwards(), action);
+        ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters.getGradleUserHomeDir(),
+                operationParameters.getProjectDir(), operationParameters.isSearchUpwards(), getVerboseLogging(operationParameters), action);
         return executer.execute(configuringAction, operationParameters);
     }
 
-    private GradleLauncherActionExecuter<BuildOperationParametersVersion1> createExecuter(BuildOperationParametersVersion1 operationParameters) {
-        GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer;
-        if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
-            executer = new EmbeddedGradleLauncherActionExecuter(gradleLauncherFactory);
-        } else {
-            File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
-            DaemonClient client = new DaemonClient(new ExternalDaemonConnector(gradleUserHomeDir), new GradleLauncherMetaData(), loggingServices.get(OutputEventListener.class));
-            executer = new DaemonGradleLauncherActionExecuter(client);
+    private boolean getVerboseLogging(BuildOperationParametersVersion1 operationParameters) {
+        try {
+            //TODO SF don't like it at all. We need a better strategy.
+            new CompatibilityChecker(operationParameters).assertSupports("getVerboseLogging");
+            return operationParameters.getVerboseLogging();
+        } catch (IncompatibleVersionException e) {
+            return false;
         }
-        return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingServices.getFactory(LoggingManagerInternal.class));
+    }
+
+    private GradleLauncherActionExecuter<BuildOperationParametersVersion1> createExecuter(BuildOperationParametersVersion1 operationParameters) {
+        if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
+            return embeddedExecuterSupport.getExecuter();
+        } else {
+            LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+            File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
+
+            if (getVerboseLogging(operationParameters)) {
+                loggingServices.get(OutputEventRenderer.class).configure(LogLevel.DEBUG);
+            }
+
+            DaemonParameters parameters = new DaemonParameters();
+            boolean searchUpwards = operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;
+            parameters.configureFromBuildDir(operationParameters.getProjectDir(), searchUpwards);
+            parameters.configureFromGradleUserHome(gradleUserHomeDir);
+            parameters.configureFromSystemProperties(System.getProperties());
+            if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
+                int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
+                parameters.setIdleTimeout(idleTimeout);
+            }
+            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, parameters, safeStandardInput(operationParameters));
+            DaemonClient client = clientServices.get(DaemonClient.class);
+            GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer = new DaemonGradleLauncherActionExecuter(client, parameters);
+
+            Factory<LoggingManagerInternal> loggingManagerFactory = loggingServices.getFactory(LoggingManagerInternal.class);
+            return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingManagerFactory);
+        }
+    }
+
+    private InputStream safeStandardInput(BuildOperationParametersVersion1 operationParameters) {
+        InputStream is;
+        try {
+            new CompatibilityChecker(operationParameters).assertSupports("getStandardInput");
+            is = operationParameters.getStandardInput();
+        } catch (IncompatibleVersionException e) {
+            return null;
+        }
+
+        if (is == null) {
+            //Tooling api means embedded use. We don't want to consume standard input if we don't own the process.
+            //Hence we use a dummy input stream by default
+            return new ByteArrayInputStream(new byte[0]);
+        }
+        return is;
     }
 }

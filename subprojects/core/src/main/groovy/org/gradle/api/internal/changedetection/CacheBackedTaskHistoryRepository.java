@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 
@@ -29,23 +28,27 @@ import java.util.List;
 import java.util.Set;
 
 public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
+    private final TaskArtifactStateCacheAccess cacheAccess;
     private final FileSnapshotRepository snapshotRepository;
     private final PersistentIndexedCache<String, TaskHistory> taskHistoryCache;
     private final DefaultSerializer<TaskHistory> serializer = new DefaultSerializer<TaskHistory>();
 
-    public CacheBackedTaskHistoryRepository(CacheRepository repository, FileSnapshotRepository snapshotRepository, Gradle gradle) {
+    public CacheBackedTaskHistoryRepository(TaskArtifactStateCacheAccess cacheAccess, FileSnapshotRepository snapshotRepository) {
+        this.cacheAccess = cacheAccess;
         this.snapshotRepository = snapshotRepository;
-        taskHistoryCache = repository.indexedCache(String.class, TaskHistory.class, "taskArtifacts").forObject(gradle).withSerializer(serializer).open();
+        taskHistoryCache = cacheAccess.createCache("taskArtifacts", String.class, TaskHistory.class, serializer);
     }
 
     public History getHistory(final TaskInternal task) {
         final TaskHistory history = loadHistory(task);
         final LazyTaskExecution currentExecution = new LazyTaskExecution();
         currentExecution.snapshotRepository = snapshotRepository;
+        currentExecution.cacheAccess = cacheAccess;
         currentExecution.setOutputFiles(outputFiles(task));
         final LazyTaskExecution previousExecution = findPreviousExecution(currentExecution, history);
         if (previousExecution != null) {
             previousExecution.snapshotRepository = snapshotRepository;
+            previousExecution.cacheAccess = cacheAccess;
         }
         history.configurations.add(0, currentExecution);
 
@@ -134,6 +137,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         private transient FileSnapshotRepository snapshotRepository;
         private transient FileCollectionSnapshot inputFilesSnapshot;
         private transient FileCollectionSnapshot outputFilesSnapshot;
+        private transient TaskArtifactStateCacheAccess cacheAccess;
 
         @Override
         public FileCollectionSnapshot getInputFilesSnapshot() {
@@ -152,7 +156,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         @Override
         public FileCollectionSnapshot getOutputFilesSnapshot() {
             if (outputFilesSnapshot == null) {
-                outputFilesSnapshot = snapshotRepository.get(outputFilesSnapshotId);
+                outputFilesSnapshot = cacheAccess.useCache("fetch output files", new Factory<FileCollectionSnapshot>() {
+                    public FileCollectionSnapshot create() {
+                        return snapshotRepository.get(outputFilesSnapshotId);
+                    }
+                });
             }
             return outputFilesSnapshot;
         }

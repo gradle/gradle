@@ -18,18 +18,20 @@ package org.gradle.cache.internal.btree;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.Serializer;
-import org.gradle.cache.internal.FileLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 // todo - stream serialised value to file
-// todo - handle hash collisions
+// todo - handle hash collisions (properly, this time)
 // todo - don't store null links to child blocks in leaf index blocks
 // todo - align block boundaries
-// todo - concurrency control
+// todo - thread safety control
 // todo - remove the check-sum from each block
 // todo - merge small values into a single data block
 // todo - discard when file corrupt
@@ -40,24 +42,25 @@ import java.util.*;
 public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BTreePersistentIndexedCache.class);
     private final File cacheFile;
+    private final Serializer<K> keySerializer;
     private final Serializer<V> serializer;
     private final short maxChildIndexEntries;
     private final int minIndexChildNodes;
     private final StateCheckBlockStore store;
     private HeaderBlock header;
 
-    public BTreePersistentIndexedCache(File cacheFile, FileLock fileLock, Serializer<V> serializer) {
-        this(cacheFile, fileLock, serializer, (short) 512, 512);
+    public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        this(cacheFile, keySerializer, valueSerializer, (short) 512, 512);
     }
 
-    public BTreePersistentIndexedCache(File cacheFile, FileLock fileLock, Serializer<V> serializer,
+    public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer,
                                        short maxChildIndexEntries, int maxFreeListEntries) {
         this.cacheFile = cacheFile;
-        this.serializer = serializer;
+        this.keySerializer = keySerializer;
+        this.serializer = valueSerializer;
         this.maxChildIndexEntries = maxChildIndexEntries;
         this.minIndexChildNodes = maxChildIndexEntries / 2;
-        BlockStore cachingStore = new CachingBlockStore(new LockingBlockStore(new FileBackedBlockStore(cacheFile), fileLock), IndexBlock.class, FreeListBlockStore.FreeListBlock.class);
-//        BlockStore cachingStore = new CachingBlockStore(new FileBackedBlockStore(cacheFile), IndexBlock.class, FreeListBlockStore.FreeListBlock.class);
+        BlockStore cachingStore = new CachingBlockStore(new FileBackedBlockStore(cacheFile), IndexBlock.class, FreeListBlockStore.FreeListBlock.class);
         store = new StateCheckBlockStore(new FreeListBlockStore(cachingStore, maxFreeListEntries));
         try {
             open();
@@ -68,10 +71,11 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     @Override
     public String toString() {
-        return String.format("cache '%s'", cacheFile);
+        return String.format("cache %s (%s)", cacheFile.getName(), cacheFile);
     }
 
     private void open() throws Exception {
+        LOGGER.debug("Opening {}", this);
         try {
             doOpen();
         } catch (CorruptedCacheException e) {
@@ -126,8 +130,9 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     public void put(K key, V value) {
         try {
-            String keyString = key.toString();
-            long hashCode = keyString.hashCode();
+            MessageDigestStream digestStream = new MessageDigestStream();
+            keySerializer.write(digestStream, key);
+            long hashCode = digestStream.getChecksum();
             Lookup lookup = header.getRoot().find(hashCode);
             boolean needNewBlock = true;
             if (lookup.entry != null) {
@@ -138,7 +143,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
                 }
             }
             if (needNewBlock) {
-                DataBlock block = new DataBlock(keyString, value);
+                DataBlock block = new DataBlock(value);
                 store.write(block);
                 lookup.indexBlock.put(hashCode, block.getPos());
             }
@@ -150,7 +155,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     public void remove(K key) {
         try {
-            Lookup lookup = header.getRoot().find(key.toString());
+            Lookup lookup = header.getRoot().find(key);
             if (lookup.entry == null) {
                 return;
             }
@@ -181,6 +186,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     }
 
     public void close() {
+        LOGGER.debug("Closing {}", this);
         try {
             store.close();
         } catch (Exception e) {
@@ -431,7 +437,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         }
 
         public DataBlock get(K key) throws Exception {
-            Lookup lookup = find(key.toString());
+            Lookup lookup = find(key);
             if (lookup.entry == null) {
                 return null;
             }
@@ -439,8 +445,11 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
             return store.read(lookup.entry.dataBlock, DataBlock.class);
         }
 
-        public Lookup find(String keyString) throws Exception {
-            return find((long) keyString.hashCode());
+        public Lookup find(K key) throws Exception {
+            MessageDigestStream digestStream = new MessageDigestStream();
+            keySerializer.write(digestStream, key);
+            long checksum = digestStream.getChecksum();
+            return find(checksum);
         }
 
         private Lookup find(long hashCode) throws Exception {
@@ -628,7 +637,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         private DataBlock() {
         }
 
-        public DataBlock(String key, V value) throws Exception {
+        public DataBlock(V value) throws Exception {
             this.value = value;
             setValue(value);
             size = serialisedValue.length;
@@ -677,6 +686,35 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
                 store.write(this);
             }
             return ok;
+        }
+    }
+
+    private static class MessageDigestStream extends OutputStream {
+        MessageDigest messageDigest;
+
+        private MessageDigestStream() throws NoSuchAlgorithmException {
+            messageDigest = MessageDigest.getInstance("MD5");
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            messageDigest.update((byte) b);
+        }
+
+        @Override
+        public void write(byte[] b) throws IOException {
+            messageDigest.update(b);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            messageDigest.update(b, off, len);
+        }
+
+        long getChecksum() {
+            byte[] digest = messageDigest.digest();
+            assert digest.length == 16;
+            return new BigInteger(digest).longValue();
         }
     }
 }

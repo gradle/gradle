@@ -49,6 +49,12 @@ public class TaskReportRenderer extends TextReportRenderer {
         super.startProject(project);
     }
 
+    @Override
+    protected String createHeader(Project project) {
+        String header = super.createHeader(project);
+        return "All tasks runnable from " + StringUtils.uncapitalize(header);
+    }
+
     public void showDetail(boolean detail) {
         this.detail = detail;
     }
@@ -142,7 +148,7 @@ public class TaskReportRenderer extends TextReportRenderer {
     public void complete() throws IOException {
         if (!detail) {
             getTextOutput().println();
-            getTextOutput().text("To see all tasks and more detail, run with ").style(UserInput).text("--all").style(Normal).text(".");
+            getTextOutput().text("To see all tasks and more detail, run with ").style(UserInput).text("--all.");
             getTextOutput().println();
         }
         super.complete();

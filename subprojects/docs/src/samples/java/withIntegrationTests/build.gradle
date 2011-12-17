@@ -4,27 +4,20 @@ repositories {
     mavenCentral()
 }
 
-configurations {
-    integrationTestCompile {
-        extendsFrom testCompile
-    }
-    integrationTestRuntime {
-        extendsFrom integrationTestCompile, testRuntime
+sourceSets {
+    integrationTest {
+        java.srcDir file('src/integration-test/java')
+        resources.srcDir file('src/integration-test/resources')
     }
 }
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.8.2'
     integrationTestCompile group: 'commons-collections', name: 'commons-collections', version: '3.2'
-}
-
-sourceSets {
-    integrationTest {
-        java.srcDir file('src/integration-test/java')
-        resources.srcDir file('src/integration-test/resources')
-        compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.integrationTestCompile
-        runtimeClasspath = output + compileClasspath + configurations.integrationTestRuntime
-    }
+    integrationTestCompile sourceSets.main.output
+    integrationTestCompile configurations.testCompile
+    integrationTestCompile sourceSets.test.output
+    integrationTestRuntime configurations.testRuntime
 }
 
 task integrationTest(type: Test, dependsOn: jar) {
@@ -33,4 +26,4 @@ task integrationTest(type: Test, dependsOn: jar) {
     systemProperties['jar.path'] = jar.archivePath
 }
 
-build.dependsOn integrationTest
+check.dependsOn integrationTest

@@ -36,14 +36,9 @@
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>--project-cache-dir</option></term>
-            <listitem><para>Specifies the project-specific cache directory. Can be absolute or relative to the project's dir. Default value is
-                <literal>.gradle</literal>. See <xref linkend="sec:caching"/>.
-            </para></listitem>
-        </varlistentry>
-        <varlistentry>
             <term><option>-D</option>, <option>--system-prop</option></term>
             <listitem><para>Sets a system property of the JVM, for example <literal>-Dmyprop=myvalue</literal>.
+                See <xref linkend="sec:gradle_properties_and_system_properties"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -53,7 +48,7 @@
         <varlistentry>
             <term><option>-P</option>, <option>--project-prop</option></term>
             <listitem><para>Sets a project property of the root project, for example
-                <literal>-Pmyprop=myvalue</literal>.
+                <literal>-Pmyprop=myvalue</literal>. See <xref linkend="sec:gradle_properties_and_system_properties"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -92,7 +87,8 @@
         </varlistentry>
         <varlistentry>
             <term><option>-g</option>, <option>--gradle-user-home</option></term>
-            <listitem><para>Specifies the Gradle user home directory.
+            <listitem><para>Specifies the Gradle user home directory. The default is the <filename>.gradle</filename>
+                directory in the user's home directory.
             </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -107,7 +103,8 @@
         </varlistentry>
         <varlistentry>
             <term><option>-m</option>, <option>--dry-run</option></term>
-            <listitem><para>Runs the build with all task actions disabled.</para> </listitem>
+            <listitem><para>Runs the build with all task actions disabled. See <xref linkend="sec:dry_run"/>.
+            </para> </listitem>
         </varlistentry>
         <varlistentry>
             <term><option>--no-color</option></term>
@@ -122,8 +119,14 @@
         <varlistentry>
             <term><option>--profile</option></term>
             <listitem><para>Profiles build execution time and generates a report in the
-                &lt;build_dir>/reports/profile directory.
+                <filename><replaceable>buildDir</replaceable>/reports/profile</filename> directory. See <xref linkend="sec:profiling_build"/>.
             </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>--project-cache-dir</option></term>
+            <listitem>
+                <para>Specifies the project-specific cache directory. Default value is <filename>.gradle</filename> in the root project directory. See <xref linkend="sec:caching"/>.</para>
+            </listitem>
         </varlistentry>
         <varlistentry>
             <term><option>-q</option>, <option>--quiet</option></term>
@@ -180,6 +183,10 @@
         <title>Experimental command-line options</title>
         <para>The following options are experimental:</para>
         <variablelist>
+            <varlistentry>
+                <term><option>--continue</option></term>
+                <listitem><para>Continues task execution after a task failure.</para></listitem>
+            </varlistentry>
             <varlistentry>
                 <term><option>--daemon</option></term>
                 <listitem><para>Uses the Gradle daemon to run the build. Starts the daemon if not running.</para></listitem>

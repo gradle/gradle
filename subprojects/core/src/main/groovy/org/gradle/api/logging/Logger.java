@@ -75,6 +75,14 @@ public interface Logger extends org.slf4j.Logger {
     void quiet(String message, Object... objects);
 
     /**
+     * Logs the given message at info log level.
+     *
+     * @param message the log message.
+     * @param objects the log message parameters.
+     */
+    void info(String message, Object... objects);
+
+    /**
      * Logs the given message at quiet log level.
      *
      * @param message the log message.

@@ -22,7 +22,12 @@ import org.gradle.api.plugins.jetty.internal.ConsoleScanner;
 import org.gradle.api.plugins.jetty.internal.JettyPluginServer;
 import org.gradle.api.plugins.jetty.internal.JettyPluginWebAppContext;
 import org.gradle.api.plugins.jetty.internal.Monitor;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.logging.ProgressLogger;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.GFileUtils;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.RequestLog;
@@ -65,26 +70,23 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     private File webDefaultXml;
 
     /**
-     * A web.xml file to be applied AFTER the webapp's web.xml file. Useful for applying different build profiles, eg
-     * test, production etc. Optional.
+     * A web.xml file to be applied AFTER the webapp's web.xml file. Useful for applying different build profiles, eg test, production etc. Optional.
      */
     private File overrideWebXml;
 
     /**
-     * The interval in seconds to scan the webapp for changes and restart the context if necessary. Ignored if reload is
-     * enabled. Disabled by default.
+     * The interval in seconds to scan the webapp for changes and restart the context if necessary. Ignored if reload is enabled. Disabled by default.
      */
     private int scanIntervalSeconds;
 
     /**
-     * reload can be set to either 'automatic' or 'manual' <p/> if 'manual' then the context can be reloaded by a
-     * linefeed in the console if 'automatic' then traditional reloading on changed files is enabled.
+     * reload can be set to either 'automatic' or 'manual' <p/> if 'manual' then the context can be reloaded by a linefeed in the console if 'automatic' then traditional reloading on changed files is
+     * enabled.
      */
     protected String reload;
 
     /**
-     * Location of a jetty xml configuration file whose contents will be applied before any plugin configuration.
-     * Optional.
+     * Location of a jetty xml configuration file whose contents will be applied before any plugin configuration. Optional.
      */
     private File jettyConfig;
 
@@ -99,11 +101,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     private String stopKey;
 
     /**
-     * <p> Determines whether or not the server blocks when started. The default behavior (daemon = false) will cause
-     * the server to pause other processes while it continues to handle web requests. This is useful when starting the
-     * server with the intent to work with it interactively. </p><p> Often, it is desirable to let the server start and
-     * continue running subsequent processes in an automated build environment. This can be facilitated by setting
-     * daemon to true. </p>
+     * <p> Determines whether or not the server blocks when started. The default behavior (daemon = false) will cause the server to pause other processes while it continues to handle web requests.
+     * This is useful when starting the server with the intent to work with it interactively. </p><p> Often, it is desirable to let the server start and continue running subsequent processes in an
+     * automated build environment. This can be facilitated by setting daemon to true. </p>
      */
     private boolean daemon;
 
@@ -132,7 +132,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     /**
      * List of Listeners for the scanner.
      */
-    protected ArrayList scannerListeners;
+    protected List<Scanner.Listener> scannerListeners;
 
     /**
      * A scanner to check ENTER hits on the console.
@@ -180,11 +180,11 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.server = server;
     }
 
-    public void setScannerListeners(ArrayList listeners) {
-        this.scannerListeners = new ArrayList(listeners);
+    public void setScannerListeners(List<Scanner.Listener> listeners) {
+        this.scannerListeners = new ArrayList<Scanner.Listener>(listeners);
     }
 
-    public ArrayList getScannerListeners() {
+    public List<Scanner.Listener> getScannerListeners() {
         return this.scannerListeners;
     }
 
@@ -199,9 +199,12 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     }
 
     public void startJettyInternal() {
+        ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(AbstractJettyRunTask.class);
+        progressLogger.setDescription("Start Jetty server");
+        progressLogger.setShortDescription("Starting Jetty");
+        progressLogger.started();
         try {
-            logger.debug("Starting Jetty Server ...");
-
             setServer(createServer());
 
             applyJettyXml();
@@ -243,7 +246,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             // start Jetty
             server.start();
 
-            logger.info("Started Jetty Server");
+            if (daemon) {
+                return;
+            }
 
             if (getStopPort() != null && getStopPort() > 0 && getStopKey() != null) {
                 Monitor monitor = new Monitor(getStopPort(), getStopKey(),
@@ -258,16 +263,23 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             // start the new line scanner thread if necessary
             startConsoleScanner();
 
-            // keep the thread going if not in daemon mode
-            if (!daemon) {
-                server.join();
-            }
         } catch (Exception e) {
-            throw new GradleException("An error occurred starting the Jetty server.", e);
+            throw new GradleException("Could not start the Jetty server.", e);
         } finally {
-            if (!daemon) {
-                logger.info("Jetty server exiting.");
-            }
+            progressLogger.completed();
+        }
+
+        progressLogger = progressLoggerFactory.newOperation(AbstractJettyRunTask.class);
+        progressLogger.setDescription(String.format("Run Jetty at http://localhost:%d/%s", getHttpPort(), getContextPath()));
+        progressLogger.setShortDescription(String.format("Running at http://localhost:%d/%s", getHttpPort(), getContextPath()));
+        progressLogger.started();
+        try {
+            // keep the thread going if not in daemon mode
+            server.join();
+        } catch (Exception e) {
+            throw new GradleException("Failed to wait for the Jetty server to stop.", e);
+        } finally {
+            progressLogger.completed();
         }
     }
 
@@ -310,8 +322,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     }
 
     /**
-     * Run a scanner thread on the given list of files and directories, calling stop/start on the given list of
-     * LifeCycle objects if any of the watched files change.
+     * Run a scanner thread on the given list of files and directories, calling stop/start on the given list of LifeCycle objects if any of the watched files change.
      */
     private void startScanner() {
 
@@ -474,8 +485,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     }
 
     /**
-     * Specifies whether the Jetty server should run in the background. When {@code true}, this task completes as
-     * soon as the server has started. When {@code false}, this task blocks until the Jetty server is stopped.
+     * Specifies whether the Jetty server should run in the background. When {@code true}, this task completes as soon as the server has started. When {@code false}, this task blocks until the Jetty
+     * server is stopped.
      */
     public boolean isDaemon() {
         return daemon;

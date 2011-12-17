@@ -15,10 +15,11 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.tooling.internal.protocol.ConnectionVersion4
-import spock.lang.Specification
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
+import org.gradle.tooling.internal.protocol.ConnectionVersion4
+import spock.lang.Specification
 
 class ConnectionFactoryTest extends Specification {
     final ToolingImplementationLoader implementationLoader = Mock()
@@ -27,7 +28,7 @@ class ConnectionFactoryTest extends Specification {
     final Distribution distribution = Mock()
     final ConnectionVersion4 connectionImpl = Mock()
     final ConnectionParameters parameters = Mock()
-    final ConnectionFactory factory = new ConnectionFactory(implementationLoader, listenerManager, progressLoggerFactory)
+    final ConnectionFactory factory = new ConnectionFactory(implementationLoader)
 
     def usesImplementationLoaderToLoadConnectionFactory() {
         when:
@@ -36,8 +37,9 @@ class ConnectionFactoryTest extends Specification {
         then:
         result instanceof DefaultProjectConnection
         result.connection instanceof DefaultAsyncConnection
-        result.connection.connection instanceof ProgressLoggingConnection
-        result.connection.connection.connection instanceof LazyConnection
+        result.connection.connection instanceof LoggingInitializerConnection
+        result.connection.connection.connection instanceof ProgressLoggingConnection
+        result.connection.connection.connection.connection instanceof LazyConnection
         0 * _._
     }
 }

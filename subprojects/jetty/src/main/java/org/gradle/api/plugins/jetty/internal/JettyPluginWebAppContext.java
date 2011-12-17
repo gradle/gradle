@@ -30,7 +30,7 @@ import org.mortbay.jetty.webapp.WebInfConfiguration;
  * Jetty6PluginWebAppContext
  */
 public class JettyPluginWebAppContext extends WebAppContext {
-    private List classpathFiles;
+    private List<File> classpathFiles;
     private File jettyEnvXmlFile;
     private File webXmlFile;
     private WebInfConfiguration webInfConfig = new WebInfConfiguration();
@@ -47,11 +47,11 @@ public class JettyPluginWebAppContext extends WebAppContext {
         setConfigurations(configs);
     }
 
-    public void setClassPathFiles(List classpathFiles) {
+    public void setClassPathFiles(List<File> classpathFiles) {
         this.classpathFiles = classpathFiles;
     }
 
-    public List getClassPathFiles() {
+    public List<File> getClassPathFiles() {
         return this.classpathFiles;
     }
 

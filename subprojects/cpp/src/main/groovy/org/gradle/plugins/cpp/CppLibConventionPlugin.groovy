@@ -21,6 +21,7 @@ import org.gradle.api.tasks.bundling.Zip
 
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 
 class CppLibConventionPlugin implements Plugin<Project> {
 
@@ -62,9 +63,8 @@ class CppLibConventionPlugin implements Plugin<Project> {
 
             def headerArtifact = new ArchivePublishArtifact(assembleHeaders)
 
-            artifacts {
-                archives libArtifact, headerArtifact
-            }
+            extensions.getByType(DefaultArtifactPublicationSet).addCandidate(libArtifact)
+            extensions.getByType(DefaultArtifactPublicationSet).addCandidate(headerArtifact)
         }
     }
 

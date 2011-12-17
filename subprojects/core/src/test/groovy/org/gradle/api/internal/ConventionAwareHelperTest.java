@@ -123,7 +123,7 @@ public class ConventionAwareHelperTest {
     }
 
     @Test public void notCachesPropertyValuesByDefault() {
-        ConventionMapping.MappedProperty property = conventionAware.map("list1", new ConventionValue() {
+        conventionAware.map("list1", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return toList("a");
             }
@@ -142,7 +142,7 @@ public class ConventionAwareHelperTest {
             }
         });
 
-        List<Object> value = toList();
+        List<Object> value = emptyList();
         assertThat(conventionAware.getConventionValue(value, "list1", true), sameInstance(value));
     }
     
@@ -152,7 +152,7 @@ public class ConventionAwareHelperTest {
                 return toList("a");
             }
         });
-        assertThat(conventionAware.getConventionValue(toList(), "list1"), equalTo((Object) toList("a")));
+        assertThat(conventionAware.getConventionValue(emptyList(), "list1"), equalTo((Object) toList("a")));
     }
 
     @Test public void usesConventionValueForEmptyMap() {

@@ -58,6 +58,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
             return cacheBuilder
         }
         1 * cacheBuilder.withInitializer(!null) >> cacheBuilder
+        1 * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         1 * cacheBuilder.open() >> cache
         1 * scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), Script) >> Script
         0 * scriptCompilationHandler._
@@ -73,6 +74,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         result == Script
         1 * cacheRepository.cache("scripts/ScriptClassName/Script/TransformerId") >> cacheBuilder
         1 * cacheBuilder.withProperties(!null) >> cacheBuilder
+        1 * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         1 * cacheBuilder.withInitializer(!null) >> {args -> initializer = args[0]; return cacheBuilder}
         1 * cacheBuilder.open() >> {initializer.execute(cache); return cache}
         1 * scriptCompilationHandler.compileToDir(source, classLoader, new File(cacheDir, "classes"), transformer, Script)

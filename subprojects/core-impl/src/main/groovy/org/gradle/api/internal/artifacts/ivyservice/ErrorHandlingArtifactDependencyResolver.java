@@ -73,7 +73,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             }
         }
 
-        public Set<File> getFiles(Spec<Dependency> dependencySpec) throws ResolveException {
+        public Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException {
             try {
                 return resolvedConfiguration.getFiles(dependencySpec);
             } catch (Throwable e) {
@@ -89,7 +89,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             }
         }
 
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) throws ResolveException {
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
             try {
                 return resolvedConfiguration.getFirstLevelModuleDependencies(dependencySpec);
             } catch (Throwable e) {
@@ -127,7 +127,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             throw wrapException(e, configuration);
         }
 
-        public Set<File> getFiles(Spec<Dependency> dependencySpec) throws ResolveException {
+        public Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException {
             throw wrapException(e, configuration);
         }
 
@@ -135,7 +135,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             throw wrapException(e, configuration);
         }
 
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) throws ResolveException {
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
             throw wrapException(e, configuration);
         }
 

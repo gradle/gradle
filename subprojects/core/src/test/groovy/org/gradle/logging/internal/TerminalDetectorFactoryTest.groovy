@@ -16,10 +16,10 @@
 
 package org.gradle.logging.internal;
 
-
-import org.gradle.api.specs.Specs
 import org.gradle.logging.internal.JnaBootPathConfigurer.JnaNotAvailableException
 import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestPrecondition
+import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -28,10 +28,10 @@ import spock.lang.Specification
  * @author: Szczepan Faber, created at: 9/12/11
  */
 public class TerminalDetectorFactoryTest extends Specification {
-
     @Rule
     public def temp = new TemporaryFolder()
 
+    @Requires(TestPrecondition.JNA)
     def "should configure jna library"() {
         when:
         def spec = new TerminalDetectorFactory().create(new JnaBootPathConfigurer(temp.dir))
@@ -41,7 +41,7 @@ public class TerminalDetectorFactoryTest extends Specification {
     }
 
     @Issue("GRADLE-1776")
-    def "should not fail when jna library not found"() {
+    def "should assume no terminal is available when jna library not found"() {
         given:
         def configurer = Mock(JnaBootPathConfigurer)
         configurer.configure() >> { throw new JnaNotAvailableException("foo") }
@@ -50,6 +50,7 @@ public class TerminalDetectorFactoryTest extends Specification {
         def spec = new TerminalDetectorFactory().create(configurer)
 
         then:
-        spec == Specs.SATISFIES_NONE
+        !spec.isSatisfiedBy(FileDescriptor.out)
+        !spec.isSatisfiedBy(FileDescriptor.err)
     }
 }

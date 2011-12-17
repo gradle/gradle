@@ -16,7 +16,6 @@
 package org.gradle.integtests.tooling.fixture
 
 import java.util.concurrent.TimeUnit
-import org.gradle.integtests.fixtures.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.internal.IntegrationTestHint
@@ -31,6 +30,7 @@ class ToolingApi {
     File projectDir
     private GradleDistribution dist
     private final List<Closure> connectorConfigurers = []
+    boolean isEmbedded = GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded
 
     ToolingApi(GradleDistribution dist) {
         this.dist = dist
@@ -68,16 +68,20 @@ class ToolingApi {
         }
     }
 
-    def File getProjectDir() {
+    File getProjectDir() {
         return projectDir ?: dist.testDir
     }
 
-    private def connector() {
+    GradleConnector connector() {
         GradleConnector connector = GradleConnector.newConnector()
         connector.useGradleUserHomeDir(new File(dist.userHomeDir.absolutePath))
         connector.forProjectDirectory(new File(getProjectDir().absolutePath))
         connector.searchUpwards(false)
-        if (GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded) {
+        connector.daemonMaxIdleTime(300, TimeUnit.SECONDS)
+        if (connector.metaClass.hasProperty(connector, 'verboseLogging')) {
+            connector.verboseLogging = true
+        }
+        if (isEmbedded) {
             LOGGER.info("Using embedded tooling API provider");
             connector.useClasspathDistribution()
             connector.embedded(true)
@@ -85,8 +89,6 @@ class ToolingApi {
             LOGGER.info("Using daemon tooling API provider");
             connector.useInstallation(new File(dist.gradleHomeDir.absolutePath))
             connector.embedded(false)
-            connector.daemonMaxIdleTime(300, TimeUnit.SECONDS)
-            DaemonGradleExecuter.registerDaemon(dist.userHomeDir)
         }
         connectorConfigurers.each {
             it.call(connector)

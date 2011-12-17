@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import java.util.concurrent.Callable
 import org.gradle.listener.ListenerManager
+import org.gradle.api.tasks.TaskExecutionException
 
 /**
  * @author Hans Dockter
@@ -77,6 +78,31 @@ class DefaultTaskTest extends AbstractTaskTest {
         defaultTask.doFirst(testAction3)
         defaultTask.execute()
         assertEquals(executed, WrapUtil.toList(3, 2, 1))
+    }
+
+    @Test public void testExecuteThrowsExecutionFailure() {
+        def failure = new RuntimeException()
+        defaultTask.doFirst { throw failure }
+
+        try {
+            defaultTask.execute()
+            fail()
+        } catch (TaskExecutionException e) {
+            assertThat(e.cause, sameInstance(failure))
+        }
+
+        assertThat(defaultTask.state.failure, instanceOf(TaskExecutionException))
+        assertThat(defaultTask.state.failure.cause, sameInstance(failure))
+    }
+
+    @Test public void testExecuteWithoutThrowingTaskFailureThrowsExecutionFailure() {
+        def failure = new RuntimeException()
+        defaultTask.doFirst { throw failure }
+
+        defaultTask.executeWithoutThrowingTaskFailure()
+
+        assertThat(defaultTask.state.failure, instanceOf(TaskExecutionException))
+        assertThat(defaultTask.state.failure.cause, sameInstance(failure))
     }
 
     @Test

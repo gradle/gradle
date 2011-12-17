@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.messaging.remote.internal.DisconnectAwareConnection;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
+import org.gradle.launcher.daemon.context.DaemonContext;
 
 import java.util.LinkedList;
 
@@ -33,15 +34,17 @@ public class DaemonCommandExecution {
 
     final private DisconnectAwareConnection<Object> connection;
     final private Command command;
+    final private DaemonContext daemonContext;
     final private DaemonStateCoordinator daemonStateCoordinator;
     final private LinkedList<DaemonCommandAction> actions;
 
     private Throwable exception;
     private Object result;
 
-    public DaemonCommandExecution(DisconnectAwareConnection<Object> connection, Command command, DaemonStateCoordinator daemonStateCoordinator, DaemonCommandAction... actions) {
+    public DaemonCommandExecution(DisconnectAwareConnection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateCoordinator daemonStateCoordinator, DaemonCommandAction... actions) {
         this.connection = connection;
         this.command = command;
+        this.daemonContext = daemonContext;
         this.daemonStateCoordinator = daemonStateCoordinator;
         
         this.actions = new LinkedList<DaemonCommandAction>();
@@ -63,6 +66,10 @@ public class DaemonCommandExecution {
         return command;
     }
 
+    public DaemonContext getDaemonContext() {
+        return daemonContext;
+    }
+
     public DaemonStateCoordinator getDaemonStateCoordinator() {
         return daemonStateCoordinator;
     }
@@ -79,7 +86,7 @@ public class DaemonCommandExecution {
     /**
      * The currently nominated result for the execution.
      * <p>
-     * If {@link getException()} returns non null, the actual “result” of executing the command should be considered
+     * If {@link #getException()} returns non null, the actual “result” of executing the command should be considered
      * to be that exception and not what is returned by this method.
      * <p>
      * May be null if no action has set the result yet.

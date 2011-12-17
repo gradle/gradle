@@ -176,14 +176,9 @@
             <sourcefile file="build.gradle"/>
             <test args="assemble"/>
         </sample>
-        <para>You can also use customization options that the <apilink class="org.gradle.api.tasks.bundling.Jar"/>
+        <para>You can also use customization options that the <apilink class="org.gradle.plugins.ear.Ear"/>
         	task provides, such as <literal>from</literal> and <literal>metaInf</literal>.
         </para>
-        <para>If you want to enable the generation of the default jar archive additional to the EAR archive just type:
-        </para>
-        <sample id="earCustomizedWithJarEnabled" dir="ear/earCustomized/ear" title="Generation of JAR archive in addition to EAR archive">
-            <sourcefile file="build.gradle" snippet="enable-jar"/>
-        </sample>
     </section>
     <section id='sec:using_custom_app_xml'>
         <title>Using custom descriptor file</title>

@@ -15,33 +15,30 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.listener.ListenerManager;
-import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
-/**
- * This is the main internal entry point for the tooling API.
- *
- * This implementation is thread-safe.
- */
 public class ConnectionFactory {
     private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
     private final ToolingImplementationLoader toolingImplementationLoader;
     private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
-    private final ListenerManager listenerManager;
-    private final ProgressLoggerFactory progressLoggerFactory;
 
-    public ConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory) {
+    public ConnectionFactory(ToolingImplementationLoader toolingImplementationLoader) {
         this.toolingImplementationLoader = toolingImplementationLoader;
-        this.listenerManager = listenerManager;
-        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     public ProjectConnection create(Distribution distribution, ConnectionParameters parameters) {
-        ConnectionVersion4 connection = new ProgressLoggingConnection(new LazyConnection(distribution, toolingImplementationLoader), progressLoggerFactory, listenerManager);
-        AsyncConnection asyncConnection = new DefaultAsyncConnection(connection, executorFactory);
+        SynchronizedLogging synchronizedLogging = new SynchronizedLogging();
+        ConnectionVersion4 lazyConnection = new LazyConnection(distribution, toolingImplementationLoader, synchronizedLogging);
+        ConnectionVersion4 progressLoggingConnection = new ProgressLoggingConnection(lazyConnection, synchronizedLogging);
+        ConnectionVersion4 initializingConnection = new LoggingInitializerConnection(progressLoggingConnection, synchronizedLogging);
+        AsyncConnection asyncConnection = new DefaultAsyncConnection(initializingConnection, executorFactory);
         return new DefaultProjectConnection(asyncConnection, adapter, parameters);
+    }
+
+    ToolingImplementationLoader getToolingImplementationLoader() {
+        return toolingImplementationLoader;
     }
 }

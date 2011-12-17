@@ -16,9 +16,13 @@
 
 package org.gradle.api.tasks.bundling;
 
-import org.gradle.api.internal.file.*;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.TarCopyAction;
 import org.gradle.api.internal.file.archive.TarCopySpecVisitor;
+import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
+import org.gradle.api.internal.file.archive.compression.Compressor;
+import org.gradle.api.internal.file.archive.compression.GzipArchiver;
+import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 
 import java.io.File;
@@ -31,11 +35,10 @@ import java.util.concurrent.Callable;
  */
 public class Tar extends AbstractArchiveTask {
     private final CopyActionImpl action;
-
     private Compression compression;
 
     public Tar() {
-        compression = Compression.NONE;
+        setCompression(Compression.NONE);
         action = new TarCopyActionImpl(getServices().get(FileResolver.class));
         getConventionMapping().map("extension", new Callable<Object>(){
             public Object call() throws Exception {
@@ -49,7 +52,8 @@ public class Tar extends AbstractArchiveTask {
     }
 
     /**
-     * Returns the compression to use for this archive.
+     * Returns the compression that is used for this archive.
+     *
      * @return The compression. Never returns null.
      */
     public Compression getCompression() {
@@ -57,7 +61,8 @@ public class Tar extends AbstractArchiveTask {
     }
 
     /**
-     * Specifies the compression to use for this archive.
+     * Configures the compressor based on passed in compression.
+     *
      * @param compression The compression. Should not be null.
      */
     public void setCompression(Compression compression) {
@@ -73,8 +78,12 @@ public class Tar extends AbstractArchiveTask {
             return Tar.this.getArchivePath();
         }
 
-        public Compression getCompression() {
-            return Tar.this.getCompression();
+        public Compressor getCompressor() {
+            switch(compression) {
+                case BZIP2: return Bzip2Archiver.getCompressor();
+                case GZIP:  return GzipArchiver.getCompressor();
+                default:    return new SimpleCompressor();
+            }
         }
     }
 }

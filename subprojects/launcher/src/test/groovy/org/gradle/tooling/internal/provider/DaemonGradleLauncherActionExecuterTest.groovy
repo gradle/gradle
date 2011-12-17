@@ -21,12 +21,14 @@ import org.gradle.launcher.exec.ReportedException
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
 import org.gradle.initialization.GradleLauncherAction
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
+import org.gradle.launcher.daemon.server.DaemonParameters
 
 class DaemonGradleLauncherActionExecuterTest extends Specification {
     final DaemonClient client = Mock()
     final GradleLauncherAction<String> action = Mock()
     final BuildOperationParametersVersion1 parameters = Mock()
-    final DaemonGradleLauncherActionExecuter executer = new DaemonGradleLauncherActionExecuter(client)
+    final DaemonParameters daemonParameters = Mock()
+    final DaemonGradleLauncherActionExecuter executer = new DaemonGradleLauncherActionExecuter(client, daemonParameters)
 
     def unpacksReportedException() {
         def failure = new RuntimeException()
@@ -38,5 +40,6 @@ class DaemonGradleLauncherActionExecuterTest extends Specification {
         BuildExceptionVersion1 e = thrown()
         e.cause == failure
         1 * client.execute(action, !null) >> { throw new ReportedException(failure) }
+        _ * daemonParameters.effectiveSystemProperties >> [:]
     }
 }

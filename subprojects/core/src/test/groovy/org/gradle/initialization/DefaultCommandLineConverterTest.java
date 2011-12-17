@@ -17,11 +17,12 @@
 package org.gradle.initialization;
 
 import org.gradle.CacheUsage;
-import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.logging.ShowStacktrace;
 import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
@@ -60,14 +61,16 @@ public class DefaultCommandLineConverterTest {
     private CacheUsage expectedCacheUsage = CacheUsage.ON;
     private boolean expectedSearchUpwards = true;
     private boolean expectedDryRun;
-    private StartParameter.ShowStacktrace expectedShowStackTrace = StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS;
+    private ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private String expectedEmbeddedScript = "somescript";
     private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
     private boolean expectedColorOutput = true;
     private StartParameter actualStartParameter;
     private boolean expectedProfile;
+    private File expectedProjectCacheDir;
 
     private final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter();
+    private boolean expectedContinue;
 
     @Test
     public void withoutAnyOptions() {
@@ -89,7 +92,6 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedProjectProperties, startParameter.getProjectProperties());
         assertEquals(expectedSystemProperties, startParameter.getSystemPropertiesArgs());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
-        assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
         assertEquals(expectedColorOutput, startParameter.isColorOutput());
         assertEquals(expectedDryRun, startParameter.isDryRun());
@@ -97,6 +99,8 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedExcludedTasks, startParameter.getExcludedTaskNames());
         assertEquals(expectedInitScripts, startParameter.getInitScripts());
         assertEquals(expectedProfile, startParameter.isProfile());
+        assertEquals(expectedContinue, startParameter.isContinueOnFailure());
+        assertEquals(expectedProjectCacheDir, startParameter.getProjectCacheDir());
     }
 
     private void checkConversion(final boolean embedded, String... args) {
@@ -123,9 +127,8 @@ public class DefaultCommandLineConverterTest {
 
     @Test
     public void withSpecifiedProjectCacheDir() {
-        actualStartParameter = new StartParameter();
-        commandLineConverter.convert(asList("--project-cache-dir", ".foo"), actualStartParameter);
-        assertEquals(".foo", actualStartParameter.getProjectCacheDir());
+        expectedProjectCacheDir = new File(currentDir, ".foo");
+        checkConversion("--project-cache-dir", ".foo");
     }
 
     @Test
@@ -222,13 +225,13 @@ public class DefaultCommandLineConverterTest {
 
     @Test
     public void withShowFullStacktrace() {
-        expectedShowStackTrace = StartParameter.ShowStacktrace.ALWAYS_FULL;
+        expectedShowStackTrace = ShowStacktrace.ALWAYS_FULL;
         checkConversion("-S");
     }
 
     @Test
     public void withShowStacktrace() {
-        expectedShowStackTrace = StartParameter.ShowStacktrace.ALWAYS;
+        expectedShowStackTrace = ShowStacktrace.ALWAYS;
         checkConversion("-s");
     }
 
@@ -354,6 +357,12 @@ public class DefaultCommandLineConverterTest {
         checkConversion("--profile");
     }
 
+    @Test
+    public void withContinue() {
+        expectedContinue = true;
+        checkConversion("--continue");
+    }
+
     @Test(expected = CommandLineArgumentException.class)
     public void withUnknownOption() {
         checkConversion("--unknown");
@@ -364,5 +373,5 @@ public class DefaultCommandLineConverterTest {
         expectedTaskNames = toList("someTask", "--some-task-option");
         checkConversion("someTask", "--some-task-option");
     }
-
+    
 }

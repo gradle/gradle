@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 
 public class AttachParentTestResultProcessor implements TestResultProcessor {
     private Object rootId;

@@ -30,9 +30,10 @@ dependencies {
     compile libraries.commons_lang
     compile libraries.junit
     compile libraries.slf4j_api
-    compile 'org.testng:testng:5.14.10'
+    compile 'org.testng:testng:6.3.1'
 
-    testCompile libraries.xmlunit
+    runtime libraries.commons_cli
+
     testCompile 'net.sourceforge.nekohtml:nekohtml:1.9.14'
 }
 

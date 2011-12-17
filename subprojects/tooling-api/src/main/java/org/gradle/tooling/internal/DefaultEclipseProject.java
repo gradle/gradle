@@ -45,7 +45,7 @@ public class DefaultEclipseProject implements EclipseProjectVersion3, Serializab
         this.description = description;
         this.projectDirectory = projectDirectory;
         this.tasks = Collections.emptyList();
-        this.children = GUtil.addLists(children);
+        this.children = GUtil.toList(children);
         this.classpath = Collections.emptyList();
         this.sourceDirectories = Collections.emptyList();
         this.projectDependencies = Collections.emptyList();

@@ -1,8 +1,11 @@
+import org.gradle.os.OperatingSystem
+
 dependencies {
     groovy libraries.groovy
 
     integTestCompile project(':toolingApi')
     integTestCompile project(':launcher')
+    integTestCompile project(':coreImpl')
     integTestCompile libraries.ant
     integTestCompile libraries.xmlunit
 
@@ -25,5 +28,18 @@ integTestTasks.all {
             exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
             exclude 'org/gradle/integtests/tooling/**/*Suite.*'
         }
+    }
+}
+
+daemonIntegTest {
+    exclude "**/org/gradle/integtests/tooling/**", //tooling integ tests use daemon anyway, don't rerun
+            "**/CrossVersionCompatibilityIntegrationTest.class", //ignored just in case to avoid old daemon implementation
+            "**/DistributionIntegrationTest.class" //fragile - heavily depends on external repos and does not contribute too much to the daemon suite anyway
+}
+
+integTest {
+    if (OperatingSystem.current().isWindows()) {
+        //Temporary hack to investigate windows build issues
+        exclude "**/org/gradle/integtests/tooling/**"
     }
 }

@@ -47,6 +47,9 @@
                 <td>description</td>
             </tr>
             <tr>
+                <td>extensions</td>
+            </tr>
+            <tr>
                 <td>gradle</td>
             </tr>
             <tr>
@@ -102,6 +105,9 @@
             </tr>
             <tr>
                 <td>version</td>
+            </tr>
+            <tr>
+                <td>resources</td>
             </tr>
         </table>
     </section>

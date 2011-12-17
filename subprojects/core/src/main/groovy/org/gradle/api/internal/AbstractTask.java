@@ -235,8 +235,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public final void execute() {
-        executer.execute(this, state);
+        executeWithoutThrowingTaskFailure();
         state.rethrowFailure();
+    }
+
+    public void executeWithoutThrowingTaskFailure() {
+        executer.execute(this, state);
     }
 
     public TaskExecuter getExecuter() {
@@ -405,6 +409,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return dir;
     }
 
+    // note: this method is on TaskInternal
+    public Factory<File> getTemporaryDirFactory() {
+        return new Factory<File>() {
+            public File create() {
+                return getTemporaryDir();
+            }
+        };
+    }
+    
     public void addValidator(TaskValidator validator) {
         validators.add(validator);
     }

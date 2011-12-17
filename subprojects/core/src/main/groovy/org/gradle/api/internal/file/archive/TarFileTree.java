@@ -26,27 +26,29 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.resources.MissingResourceException;
+import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HashUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
-    private final File tarFile;
+    private final ReadableResource resource;
     private final File tmpDir;
 
-    public TarFileTree(File tarFile, File tmpDir) {
-        this.tarFile = tarFile;
-        String expandDirName = String.format("%s_%s", tarFile.getName(), HashUtil.createHash(tarFile.getAbsolutePath()));
+    public TarFileTree(ReadableResource resource, File tmpDir) {
+        this.resource = resource;
+        String expandDirName = String.format("%s_%s", resource.getBaseName(), HashUtil.createHash(resource.getURI().toString()));
         this.tmpDir = new File(tmpDir, expandDirName);
     }
 
     public String getDisplayName() {
-        return String.format("TAR '%s'", tarFile);
+        return String.format("TAR '%s'", resource.getDisplayName());
     }
 
     public DirectoryFileTree getMirror() {
@@ -54,32 +56,42 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     }
 
     public void visit(FileVisitor visitor) {
-        if (!tarFile.exists()) {
-            return;
-        }
-        if (!tarFile.isFile()) {
-            throw new InvalidUserDataException(String.format("Cannot expand %s as it is not a file.", getDisplayName()));
-        }
-
-        AtomicBoolean stopFlag = new AtomicBoolean();
+        InputStream inputStream;
         try {
-            FileInputStream inputStream = new FileInputStream(tarFile);
-            try {
-                NoCloseTarInputStream tar = new NoCloseTarInputStream(inputStream);
-                TarEntry entry;
-                while (!stopFlag.get() && (entry = tar.getNextEntry()) != null) {
-                    if (entry.isDirectory()) {
-                        visitor.visitDir(new DetailsImpl(entry, tar, stopFlag));
-                    } else {
-                        visitor.visitFile(new DetailsImpl(entry, tar, stopFlag));
-                    }
+            inputStream = resource.read();
+            assert inputStream != null;
+        } catch (MissingResourceException e) {
+            return;
+        } catch (ResourceException e) {
+            throw new InvalidUserDataException(String.format("Cannot expand %s.", getDisplayName()), e);
+        }
 
-                }
+        try {
+            try {
+                visitImpl(visitor, inputStream);
             } finally {
                 inputStream.close();
             }
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not expand %s.", getDisplayName()), e);
+            String message = "Unable to expand " + getDisplayName() + "\n"
+                    + "  The tar might be corrupted or it is compressed in an unexpected way.\n"
+                    + "  By default the tar tree tries to guess the compression based on the file extension.\n"
+                    + "  If you need to specify the compression explicitly please refer to the DSL reference.";
+            throw new GradleException(message, e);
+        }
+    }
+
+    private void visitImpl(FileVisitor visitor, InputStream inputStream) throws IOException {
+        AtomicBoolean stopFlag = new AtomicBoolean();
+        NoCloseTarInputStream tar = new NoCloseTarInputStream(inputStream);
+        TarEntry entry;
+        while (!stopFlag.get() && (entry = tar.getNextEntry()) != null) {
+            if (entry.isDirectory()) {
+                visitor.visitDir(new DetailsImpl(entry, tar, stopFlag));
+            } else {
+                visitor.visitFile(new DetailsImpl(entry, tar, stopFlag));
+            }
+
         }
     }
 
@@ -97,7 +109,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         public String getDisplayName() {
-            return String.format("tar entry %s!%s", tarFile, entry.getName());
+            return String.format("tar entry %s!%s", resource.getDisplayName(), entry.getName());
         }
 
         public void stopVisiting() {

@@ -17,9 +17,11 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.GUtil;
@@ -72,8 +74,18 @@ public abstract class AbstractClassGeneratorTest {
         assertThat(bean.getProp(), equalTo("value"));
         assertThat(bean.doStuff("some value"), equalTo("{some value}"));
 
-        assertThat(dynamicBean.getConvention(), notNullValue());
-        assertThat(dynamicBean.getExtensions(), sameInstance((ExtensionContainer) dynamicBean.getConvention()));
+        assertThat(dynamicBean.getExtensions(), notNullValue());
+        assertThat(dynamicBean.getConvention(), sameInstance(dynamicBean.getExtensions()));
+    }
+
+    @Test
+    public void mixesInExtensionAwareInterface() throws Exception {
+        Class<? extends Bean> generatedClass = generator.generate(Bean.class);
+        assertTrue(ExtensionAware.class.isAssignableFrom(generatedClass));
+        Bean bean = generatedClass.newInstance();
+        ExtensionAware dynamicBean = (ExtensionAware) bean;
+
+        assertThat(dynamicBean.getExtensions(), notNullValue());
     }
 
     @Test
@@ -196,8 +208,8 @@ public abstract class AbstractClassGeneratorTest {
         bean.setProp(toList("other"));
         assertThat(bean.getProp(), equalTo(toList("other")));
 
-        bean.setProp(Collections.EMPTY_LIST);
-        assertThat(bean.getProp(), equalTo(Collections.EMPTY_LIST));
+        bean.setProp(Collections.<String>emptyList());
+        assertThat(bean.getProp(), equalTo(Collections.<String>emptyList()));
 
         bean.setProp(null);
         assertThat(bean.getProp(), nullValue());
@@ -229,26 +241,27 @@ public abstract class AbstractClassGeneratorTest {
         BeanSubClass bean = generator.generate(BeanSubClass.class).newInstance();
         IConventionAware conventionAware = (IConventionAware) bean;
         conventionAware.getConventionMapping().map(GUtil.map(
-                "property", new ConventionValue(){
+                "property", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         throw new UnsupportedOperationException();
                     }
                 },
-                "interfaceProperty", new ConventionValue(){
+                "interfaceProperty", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         throw new UnsupportedOperationException();
                     }
                 },
-                "overriddenProperty", new ConventionValue(){
+                "overriddenProperty", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return "conventionValue";
                     }
                 },
-                "otherProperty", new ConventionValue(){
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return "conventionValue";
-                    }
-                }));
+                "otherProperty", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return "conventionValue";
+            }
+        }
+        ));
         assertEquals(null, bean.getProperty());
         assertEquals(null, bean.getInterfaceProperty());
         assertEquals("conventionValue", bean.getOverriddenProperty());
@@ -368,10 +381,19 @@ public abstract class AbstractClassGeneratorTest {
 
     @Test
     public void mixesInSetValueMethodForProperty() throws Exception {
-        Bean bean = generator.generate(Bean.class).newInstance();
+        BeanWithVariousGettersAndSetters bean = generator.generate(BeanWithVariousGettersAndSetters.class).newInstance();
 
         call("{ it.prop 'value'}", bean);
         assertThat(bean.getProp(), equalTo("value"));
+
+        call("{ it.finalGetter 'another'}", bean);
+        assertThat(bean.getFinalGetter(), equalTo("another"));
+
+        call("{ it.writeOnly 12}", bean);
+        assertThat(bean.writeOnly, equalTo(12));
+
+        call("{ it.primitive 12}", bean);
+        assertThat(bean.getPrimitive(), equalTo(12));
     }
 
     @Test
@@ -431,6 +453,25 @@ public abstract class AbstractClassGeneratorTest {
 
         assertThat(call("{ it.prop 1.2}", bean), sameInstance((Object) bean));
         assertThat(bean.getProp(), equalTo("<1.2>"));
+
+        assertThat(call("{ it.prop 1}", bean), nullValue());
+        assertThat(bean.getProp(), equalTo("<1>"));
+    }
+
+    @Test
+    public void mixesInClosureOverloadForActionMethod() throws Exception {
+        Bean bean = generator.generate(Bean.class).newInstance();
+        bean.prop = "value";
+
+        call("{def value; it.doStuff { value = it }; assert value == \'value\' }", bean);
+    }
+
+    @Test
+    public void doesNotOverrideExistingClosureOverload() throws IllegalAccessException, InstantiationException {
+        BeanWithDslMethods bean = generator.generate(BeanWithDslMethods.class).newInstance();
+        bean.prop = "value";
+
+        assertThat(call("{def value; it.doStuff { value = it }; return value }", bean), equalTo((Object) "[value]"));
     }
 
     public static class Bean {
@@ -446,6 +487,10 @@ public abstract class AbstractClassGeneratorTest {
 
         public String doStuff(String value) {
             return "{" + value + "}";
+        }
+
+        public void doStuff(Action<String> action) {
+            action.execute(getProp());
         }
     }
 
@@ -497,6 +542,14 @@ public abstract class AbstractClassGeneratorTest {
             this.prop = String.format("<%s>", property);
             return this;
         }
+
+        public void prop(int property) {
+            this.prop = String.format("<%s>", property);
+        }
+
+        public void doStuff(Closure cl) {
+            cl.call(String.format("[%s]", getProp()));
+        }
     }
 
     public static class ConventionAwareBean extends Bean implements IConventionAware, ConventionMapping {
@@ -528,7 +581,7 @@ public abstract class AbstractClassGeneratorTest {
 
         public <T> T getConventionValue(T actualValue, String propertyName) {
             if (actualValue instanceof String) {
-                return (T)("[" + actualValue + "]");
+                return (T) ("[" + actualValue + "]");
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -595,9 +648,36 @@ public abstract class AbstractClassGeneratorTest {
         public String getReturnValueProperty() {
             return "value";
         }
-        
+
         public BeanWithVariousPropertyTypes setReturnValueProperty(String val) {
             return this;
+        }
+    }
+
+    public static class BeanWithVariousGettersAndSetters extends Bean {
+        private int primitive;
+        private boolean bool;
+        private String finalGetter;
+        private Integer writeOnly;
+
+        public int getPrimitive() {
+            return primitive;
+        }
+
+        public void setPrimitive(int primitive) {
+            this.primitive = primitive;
+        }
+
+        public final String getFinalGetter() {
+            return finalGetter;
+        }
+
+        public void setFinalGetter(String value) {
+            finalGetter = value;
+        }
+
+        public void setWriteOnly(Integer value) {
+            writeOnly = value;
         }
     }
 
@@ -670,5 +750,6 @@ public abstract class AbstractClassGeneratorTest {
         abstract void implementMe();
     }
 
-    private static class PrivateBean {}
+    private static class PrivateBean {
+    }
 }

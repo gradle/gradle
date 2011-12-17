@@ -25,8 +25,8 @@ import java.util.List;
  */
 public class ScanTargetPattern {
     private File directory;
-    private List includes = Collections.EMPTY_LIST;
-    private List excludes = Collections.EMPTY_LIST;
+    private List<String> includes = Collections.emptyList();
+    private List<String> excludes = Collections.emptyList();
 
     public File getDirectory() {
         return directory;
@@ -36,19 +36,19 @@ public class ScanTargetPattern {
         this.directory = directory;
     }
 
-    public void setIncludes(List includes) {
+    public void setIncludes(List<String> includes) {
         this.includes = includes;
     }
 
-    public void setExcludes(List excludes) {
+    public void setExcludes(List<String> excludes) {
         this.excludes = excludes;
     }
 
-    public List getIncludes() {
+    public List<String> getIncludes() {
         return includes;
     }
 
-    public List getExcludes() {
+    public List<String> getExcludes() {
         return excludes;
     }
 }

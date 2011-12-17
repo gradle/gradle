@@ -17,10 +17,10 @@ task generatePom {
     pomFile = new File(temporaryDir, 'pom.xml')
     doLast {
         dependencies {
-            configurations.publishCompile.getAllDependencies(ProjectDependency).each {
+            configurations.publishCompile.allDependencies.withType(ProjectDependency).each {
                 publishRuntime "org.gradle:gradle-${it.dependencyProject.name}:${version}"
             }
-            configurations.publishCompile.getAllDependencies(ExternalModuleDependency).each {
+            configurations.publishCompile.allDependencies.withType(ExternalModuleDependency).each {
                 publishRuntime it
             }
         }
@@ -52,7 +52,6 @@ uploadArchives {
     doFirst {
         repositories {
             ivy {
-                name = 'gradleLibs'
                 artifactPattern "${version.libsUrl}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]"
                 userName = artifactoryUserName
                 password = artifactoryUserPassword

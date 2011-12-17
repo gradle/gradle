@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
 
@@ -64,4 +65,6 @@ public interface FileOperations {
     ExecResult javaexec(Closure cl);
 
     ExecResult exec(Closure cl);
+
+    ResourceHandler getResources();
 }

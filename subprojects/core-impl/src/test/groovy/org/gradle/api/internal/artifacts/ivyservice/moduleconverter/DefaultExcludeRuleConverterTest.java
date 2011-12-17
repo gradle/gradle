@@ -19,13 +19,14 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
-import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
-import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.Map;
+
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
@@ -35,7 +36,9 @@ public class DefaultExcludeRuleConverterTest {
     @Test
     public void testCreateExcludeRule() {
         String configurationName = "someConf";
-        Map excludeRuleArgs = GUtil.map(ExcludeRule.GROUP_KEY, "someOrg", ExcludeRule.MODULE_KEY, "someModule");
+        Map<String, String> excludeRuleArgs = new HashMap<String, String>();
+        excludeRuleArgs.put(ExcludeRule.GROUP_KEY, "someOrg");
+        excludeRuleArgs.put(ExcludeRule.MODULE_KEY, "someModule");
         org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRule =
                 new DefaultExcludeRuleConverter().createExcludeRule(configurationName, new DefaultExcludeRule(excludeRuleArgs));
         assertThat(ivyExcludeRule.getId().getModuleId().getOrganisation(),

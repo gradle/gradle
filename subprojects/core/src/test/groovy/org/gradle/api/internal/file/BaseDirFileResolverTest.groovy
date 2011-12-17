@@ -15,18 +15,20 @@
  */
 package org.gradle.api.internal.file
 
+import java.util.concurrent.Callable
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
+import org.gradle.util.PreconditionVerifier
+import org.gradle.util.Requires
 import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import java.util.concurrent.Callable
-import org.gradle.os.OperatingSystem
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 
 /**
  * @author Hans Dockter
@@ -39,7 +41,8 @@ class BaseDirFileResolverTest {
     File testDir
 
     BaseDirFileResolver baseDirConverter
-    @Rule public TemporaryFolder rootDir = new TemporaryFolder();
+    @Rule public TemporaryFolder rootDir = new TemporaryFolder()
+    @Rule public PreconditionVerifier preconditions = new PreconditionVerifier()
 
     @Before public void setUp() {
         baseDir = rootDir.dir
@@ -156,11 +159,8 @@ class BaseDirFileResolverTest {
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(relativeFile))
     }
 
+    @Requires(TestPrecondition.CASE_INSENSITIVE_FS)
     @Test public void testResolveAbsolutePathOnCaseInsensitiveFileSystemToUri() {
-        if (OperatingSystem.current().fileSystem.caseSensitive) {
-            return
-        }
-
         String path = baseDir.absolutePath.toLowerCase()
         assertEquals(baseDir, baseDirConverter.resolve(path))
     }

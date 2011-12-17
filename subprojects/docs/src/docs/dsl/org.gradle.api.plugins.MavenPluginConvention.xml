@@ -9,12 +9,8 @@
                 </tr>
             </thead>
             <tr>
-                <td>pomDirName</td>
-                <td><literal>poms</literal></td>
-            </tr>
-            <tr>
-                <td>pomDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/<replaceable>${project.pomDirName}</replaceable></literal></td>
+                <td>mavenPomDir</td>
+                <td><literal><replaceable>${project.buildDir}</replaceable>/poms</literal></td>
             </tr>
             <tr>
                 <td>conf2ScopeMappings</td>

@@ -148,7 +148,7 @@ public class ReorderableList<E> implements List<E> {
        @return Returns true if the object was in the list and was moved.
     */
 
-    public boolean moveBefore(Object objectToMove) {
+    public boolean moveBefore(E objectToMove) {
         return ListReorderer.moveBefore(elements, objectToMove);
     }
 
@@ -167,7 +167,7 @@ public class ReorderableList<E> implements List<E> {
        @param  elementsToMove       List of elements to move.
     */
 
-    public void moveBefore(List elementsToMove) {
+    public void moveBefore(List<E> elementsToMove) {
         ListReorderer.moveBefore(elements, elementsToMove);
     }
 
@@ -177,7 +177,7 @@ public class ReorderableList<E> implements List<E> {
        @param  newIndex     The new location of the object.
     */
 
-    public void moveTo(List objectsToMove, int newIndex) {
+    public void moveTo(List<E> objectsToMove, int newIndex) {
         ListReorderer.moveTo(elements, objectsToMove, newIndex);
     }
 
@@ -187,7 +187,7 @@ public class ReorderableList<E> implements List<E> {
        @return True if the object was moved, false otherwise.
     */
 
-    public boolean moveToFront(Object objectToMove) {
+    public boolean moveToFront(E objectToMove) {
         return ListReorderer.moveToFront(elements, objectToMove);
     }
 
@@ -196,7 +196,7 @@ public class ReorderableList<E> implements List<E> {
        @param  elementsToMove  The list of objects to move in the list.
     */
 
-    public void moveToFront(List elementsToMove) {
+    public void moveToFront(List<E> elementsToMove) {
         ListReorderer.moveToFront(elements, elementsToMove);
     }
 
@@ -208,7 +208,7 @@ public class ReorderableList<E> implements List<E> {
        @return Returns true if the object was in the list and was moved.
     */
 
-    public boolean moveAfter(Object objectToMove) {
+    public boolean moveAfter(E objectToMove) {
         return ListReorderer.moveAfter(elements, objectToMove);
     }
 
@@ -225,7 +225,7 @@ public class ReorderableList<E> implements List<E> {
        @param  elementsToMove     List of elements to move.
     */
 
-    public void moveAfter(List elementsToMove) {
+    public void moveAfter(List<E> elementsToMove) {
         ListReorderer.moveAfter(elements, elementsToMove);
     }
 
@@ -235,7 +235,7 @@ public class ReorderableList<E> implements List<E> {
        @return Returns true if the object was in the list and was moved.
     */
 
-    public boolean moveToBack(Object objectToMove) {
+    public boolean moveToBack(E objectToMove) {
         return ListReorderer.moveToBack(elements, objectToMove);
     }
 
@@ -244,7 +244,7 @@ public class ReorderableList<E> implements List<E> {
        @param  elementsToMove The list of objects to move.
     */
 
-    public void moveToBack(List elementsToMove) {
+    public void moveToBack(List<E> elementsToMove) {
         ListReorderer.moveToBack(elements, elementsToMove);
     }
 
@@ -254,7 +254,7 @@ public class ReorderableList<E> implements List<E> {
                list, false otherwise.
     */
 
-    public boolean allElementsInFront(List checkList) {
+    public boolean allElementsInFront(List<E> checkList) {
         return ListReorderer.allElementsInFront(elements, checkList);
     }
 
@@ -264,7 +264,7 @@ public class ReorderableList<E> implements List<E> {
                list, false otherwise.
     */
 
-    public boolean allElementsInBack(List checkList) {
+    public boolean allElementsInBack(List<E> checkList) {
         return ListReorderer.allElementsInBack(elements, checkList);
     }
 
@@ -519,7 +519,7 @@ public class ReorderableList<E> implements List<E> {
     @author mhunsicker
     */
 
-    public int[] getIndices(List elementsToMove) {
+    public int[] getIndices(List<E> elementsToMove) {
         return ListReorderer.getIndices(elements, elementsToMove);
     }
 }

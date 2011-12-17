@@ -22,10 +22,7 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
-import org.gradle.cache.internal.CacheFactory;
-import org.gradle.cache.internal.DefaultCacheFactory;
-import org.gradle.cache.internal.DefaultFileLockManager;
-import org.gradle.cache.internal.FileLockManager;
+import org.gradle.cache.internal.*;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
@@ -35,6 +32,8 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
+import org.gradle.os.*;
+import org.gradle.os.jna.NativeEnvironment;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.DefaultClassLoaderFactory;
 
@@ -98,7 +97,11 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
         return new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DirectInstantiator());
     }
 
+    protected ProcessEnvironment createProcessEnvironment() {
+        return NativeEnvironment.current();
+    }
+    
     protected FileLockManager createFileLockManager() {
-        return new DefaultFileLockManager();
+        return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(get(ProcessEnvironment.class)));
     }
 }

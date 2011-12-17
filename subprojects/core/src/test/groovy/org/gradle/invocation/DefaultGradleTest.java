@@ -19,6 +19,8 @@ package org.gradle.invocation;
 import groovy.lang.Closure;
 import org.gradle.BuildListener;
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleDistributionLocator;
@@ -36,11 +38,11 @@ import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.MultiParentClassLoader;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,8 +50,9 @@ import java.io.IOException;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
-@RunWith(JUnit4.class)
+@RunWith(JMock.class)
 public class DefaultGradleTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final StartParameter parameter = new StartParameter();
@@ -63,7 +66,7 @@ public class DefaultGradleTest {
     private final Gradle parent = context.mock(Gradle.class, "parentBuild");
     private final MultiParentClassLoader scriptClassLoaderMock = context.mock(MultiParentClassLoader.class);
     private final GradleDistributionLocator gradleDistributionLocatorMock = context.mock(GradleDistributionLocator.class);
-    private final ListenerBroadcast<BuildListener> buildListenerBroadcast = context.mock(ListenerBroadcast.class);
+    private final ListenerBroadcast<BuildListener> buildListenerBroadcast = new ListenerBroadcast<BuildListener>(BuildListener.class);
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast = context.mock(ListenerBroadcast.class);
     private DefaultGradle gradle;
 
@@ -161,52 +164,59 @@ public class DefaultGradleTest {
 
     @Test
     public void broadcastsBuildStartedEventsToClosures() {
-        final Closure closure = HelperUtil.TEST_CLOSURE;
-        context.checking(new Expectations() {{
-            one(buildListenerBroadcast).add("buildStarted", closure);
-        }});
-
+        final Closure closure = closure();
         gradle.buildStarted(closure);
+
+        context.checking(new Expectations() {{
+            one(closure).call(new Object[0]);
+        }});
+        gradle.getBuildListenerBroadcaster().buildStarted(gradle);
     }
 
     @Test
     public void broadcastsSettingsEvaluatedEventsToClosures() {
-        final Closure closure = HelperUtil.TEST_CLOSURE;
+        final Closure closure = closure();
+        gradle.settingsEvaluated(closure);
+
         context.checking(new Expectations() {{
-            one(buildListenerBroadcast).add("settingsEvaluated", closure);
+            one(closure).call(new Object[0]);
         }});
 
-        gradle.settingsEvaluated(closure);
+        gradle.getBuildListenerBroadcaster().settingsEvaluated(null);
     }
 
     @Test
     public void broadcastsProjectsLoadedEventsToClosures() {
-        final Closure closure = HelperUtil.TEST_CLOSURE;
+        final Closure closure = closure();
+        gradle.projectsLoaded(closure);
+
         context.checking(new Expectations() {{
-            one(buildListenerBroadcast).add("projectsLoaded", closure);
+            one(closure).call(new Object[0]);
         }});
 
-        gradle.projectsLoaded(closure);
+        gradle.getBuildListenerBroadcaster().projectsLoaded(gradle);
     }
 
     @Test
     public void broadcastsProjectsEvaluatedEventsToClosures() {
-        final Closure closure = HelperUtil.TEST_CLOSURE;
-        context.checking(new Expectations() {{
-            one(buildListenerBroadcast).add("projectsEvaluated", closure);
-        }});
-
+        final Closure closure = closure();
         gradle.projectsEvaluated(closure);
+
+        context.checking(new Expectations() {{
+            one(closure).call(new Object[0]);
+        }});
+        gradle.getBuildListenerBroadcaster().projectsEvaluated(gradle);
     }
 
     @Test
     public void broadcastsBuildFinishedEventsToClosures() {
-        final Closure closure = HelperUtil.TEST_CLOSURE;
-        context.checking(new Expectations() {{
-            one(buildListenerBroadcast).add("buildFinished", closure);
-        }});
-
+        final Closure closure = closure();
         gradle.buildFinished(closure);
+
+        context.checking(new Expectations() {{
+            one(closure).call(new Object[0]);
+        }});
+        gradle.getBuildListenerBroadcaster().buildFinished(null);
     }
 
     @Test
@@ -216,6 +226,51 @@ public class DefaultGradleTest {
             one(listenerManager).useLogger(logger);
         }});
         gradle.useLogger(logger);
+    }
+
+    @Test
+    public void getRootProjectThrowsExceptionWhenRootProjectIsNotAvailable() {
+        try {
+            gradle.getRootProject();
+            fail();
+        } catch (IllegalStateException e) {
+            assertThat(e.getMessage(), equalTo("The root project is not yet available for " + gradle + "."));
+        }
+
+        ProjectInternal rootProject = context.mock(ProjectInternal.class);
+        gradle.setRootProject(rootProject);
+        
+        assertThat(gradle.getRootProject(), sameInstance(rootProject));
+    }
+    
+    @Test
+    public void rootProjectActionIsExecutedWhenProjectsAreLoaded() {
+        final Action<Project> action = context.mock(Action.class);
+        final ProjectInternal rootProject = context.mock(ProjectInternal.class);
+
+        gradle.rootProject(action);
+
+        context.checking(new Expectations() {{
+            one(action).execute(rootProject);
+        }});
+        
+        gradle.setRootProject(rootProject);
+        gradle.getBuildListenerBroadcaster().projectsLoaded(gradle);
+    }
+
+    @Test
+    public void allprojectsActionIsExecutedWhenProjectAreLoaded() {
+        final Action<Project> action = context.mock(Action.class);
+        final ProjectInternal rootProject = context.mock(ProjectInternal.class);
+
+        gradle.allprojects(action);
+
+        context.checking(new Expectations() {{
+            one(rootProject).allprojects(action);
+        }});
+
+        gradle.setRootProject(rootProject);
+        gradle.getBuildListenerBroadcaster().projectsLoaded(gradle);
     }
 
     @Test
@@ -229,5 +284,14 @@ public class DefaultGradleTest {
         }});
         gradle.setRootProject(project);
         assertThat(gradle.toString(), equalTo("build 'rootProject'"));
+    }
+
+    private Closure closure() {
+        final Closure mock = context.mock(Closure.class);
+        context.checking(new Expectations(){{
+            allowing(mock).getMaximumNumberOfParameters();
+            will(returnValue(0));
+        }});
+        return mock;
     }
 }

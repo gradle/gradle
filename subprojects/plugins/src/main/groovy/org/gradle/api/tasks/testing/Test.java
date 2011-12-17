@@ -28,6 +28,8 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
+import org.gradle.api.internal.tasks.testing.logging.DefaultTestLogging;
+import org.gradle.api.internal.tasks.testing.logging.StandardStreamsLogger;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestLogger;
 import org.gradle.api.internal.tasks.testing.results.TestSummaryListener;
@@ -55,6 +57,34 @@ import java.util.Set;
 
 /**
  * Executes tests. Supports JUnit (3.8.x or 4.x) or TestNG tests.
+ * <p>
+ * An example with a blend of various settings
+ * <pre autoTested=''>
+ * apply plugin: 'java' //so that 'test' task is added
+ *
+ * test {
+ *   //configuring a system property for tests
+ *   systemProperty 'some.prop', 'value'
+ *
+ *   //tuning the included/excluded tests
+ *   include 'org/foo/**'
+ *   exclude 'org/boo/**'
+ *
+ *   //makes the standard streams (err and out) visible at console when running tests
+ *   testLogging.showStandardStreams = true
+ *
+ *   //tweaking memory settings for the forked vm that runs tests
+ *   jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m'
+ *
+ *   //listening to test execution events
+ *   beforeTest { descriptor ->
+ *      logger.lifecycle("Running test: " + descriptor)
+ *   }
+ *   onOutput { descriptor, event ->
+ *      logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+ *   }
+ * }
+ * </pre>
  *
  * @author Hans Dockter
  */
@@ -74,10 +104,13 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private long forkEvery;
     private int maxParallelForks = 1;
     private ListenerBroadcast<TestListener> testListenerBroadcaster;
+    private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
+    private final TestLogging testLogging = new DefaultTestLogging();
 
     public Test() {
         testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(
                 TestListener.class);
+        testOutputListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(TestOutputListener.class);
         this.testExecuter = new DefaultTestExecuter(getServices().getFactory(WorkerProcessBuilder.class), getServices().get(
                 ActorFactory.class));
         options = new DefaultJavaForkOptions(getServices().get(FileResolver.class));
@@ -327,8 +360,10 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(Test.class));
         addTestListener(listener);
         addTestListener(new TestLogger(getServices().get(ProgressLoggerFactory.class)));
+        addTestOutputListener(new StandardStreamsLogger(LoggerFactory.getLogger(Test.class), testLogging));
 
-        TestResultProcessor resultProcessor = new TestListenerAdapter(getTestListenerBroadcaster().getSource());
+        TestResultProcessor resultProcessor = new TestListenerAdapter(
+                getTestListenerBroadcaster().getSource(), testOutputListenerBroadcaster.getSource());
         testExecuter.execute(this, resultProcessor);
 
         testFramework.report();
@@ -347,13 +382,26 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Registers a test listener with this task.  This listener will NOT be notified of tests executed by other tasks.
+     * Registers a test listener with this task. Consider also the following handy methods for quicker hooking into test execution:
+     * {@link #beforeTest(groovy.lang.Closure)}, {@link #afterTest(groovy.lang.Closure)},
+     * {@link #beforeSuite(groovy.lang.Closure)}, {@link #afterSuite(groovy.lang.Closure)}
+     * <p>
+     * This listener will NOT be notified of tests executed by other tasks.
      * To get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.
      *
      * @param listener The listener to add.
      */
     public void addTestListener(TestListener listener) {
         testListenerBroadcaster.add(listener);
+    }
+
+    /**
+     * Registers a output listener with this task. Quicker way of hooking into output events is using the {@link #onOutput(groovy.lang.Closure)} method.
+     *
+     * @param listener The listener to add.
+     */
+    public void addTestOutputListener(TestOutputListener listener) {
+        testOutputListenerBroadcaster.add(listener);
     }
 
     /**
@@ -366,6 +414,18 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     public void removeTestListener(TestListener listener) {
         testListenerBroadcaster.remove(listener);
+    }
+
+    /**
+     * Unregisters a test output listener with this task.  This method will only remove listeners that were added by calling
+     * {@link #addTestOutputListener(org.gradle.api.tasks.testing.TestOutputListener)} on this task.  If the listener was registered
+     * with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything.
+     * Instead, use {@link org.gradle.api.invocation.Gradle#removeListener(Object)}.
+     *
+     * @param listener The listener to remove.
+     */
+    public void removeTestOutputListener(TestOutputListener listener) {
+        testOutputListenerBroadcaster.remove(listener);
     }
 
     /**
@@ -412,6 +472,28 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     public void afterTest(Closure closure) {
         testListenerBroadcaster.add("afterTest", closure);
+    }
+
+    /**
+     * Adds a closure to be notified when output from the test received.
+     * A {@link org.gradle.api.tasks.testing.TestDescriptor}
+     * and {@link org.gradle.api.tasks.testing.TestOutputEvent} instance are passed to the closure as a parameter.
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     *
+     * test {
+     *   onOutput { descriptor, event ->
+     *     if (event.destination == TestOutputEvent.Destination.StdErr) {
+     *       logger.error("Test: " + descriptor + ", error: " + event.message)
+     *     }
+     *   }
+     * }
+     * </pre>
+     *
+     * @param closure The closure to call.
+     */
+    public void onOutput(Closure closure) {
+        testOutputListenerBroadcaster.add("onOutput", closure);
     }
 
     /**
@@ -674,7 +756,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Specifies that TestNG should be used to execute the tests.
      *
      * @param testFrameworkConfigure A closure used to configure the JUint options. This closure is passed an instance
-     * of type {@link org.gradle.api.tasks.testing.junit.JUnitOptions}.
+     * of type {@link org.gradle.api.tasks.testing.testng.TestNGOptions}.
      */
     public void useTestNG(Closure testFrameworkConfigure) {
         useTestFramework(new TestNGTestFramework(this), testFrameworkConfigure);
@@ -792,5 +874,36 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @Input // Also marked as input to force tests to run when the set of candidate class files changes 
     public FileTree getCandidateClassFiles() {
         return getProject().fileTree(getTestClassesDir()).matching(patternSet);
+    }
+
+    /**
+     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     *
+     * //makes the standard streams (err and out) visible at console when running tests
+     * test.testLogging.showStandardStreams = true
+     * </pre>
+     *
+     * @return test logging configuration
+     */
+    public TestLogging getTestLogging() {
+        return testLogging;
+    }
+
+    /**
+     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
+     * <pre autoTested=''>
+     * apply plugin: 'java'
+     *
+     * //makes the standard streams (err and out) visible at console when running tests
+     * test.testLogging {
+     *   showStandardStreams = true
+     * }
+     * </pre>
+     * @param closure configure closure
+     */
+    public void testLogging(Closure closure) {
+        ConfigureUtil.configure(closure, testLogging);
     }
 }

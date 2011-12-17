@@ -1,0 +1,15 @@
+apply plugin: 'java'
+
+sourceCompatibility=1.5
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile "org.testng:testng:$testNGVersion"
+}
+
+test {
+   useTestNG()
+}

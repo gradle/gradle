@@ -29,33 +29,33 @@ import java.util.Map;
  */
 public class DaemonRegistryContent implements Serializable {
 
-    private Map<Address, DaemonStatus> statusesMap = new HashMap<Address, DaemonStatus>();
+    private Map<Address, DaemonInfo> infosMap = new HashMap<Address, DaemonInfo>();
 
     /**
      * returns all statuses. May be empty.
      */
-    public List<DaemonStatus> getStatuses() {
-        return new LinkedList(statusesMap.values());
+    public List<DaemonInfo> getInfos() {
+        return new LinkedList<DaemonInfo>(infosMap.values());
     }
 
     /**
      * Gets the status for given address. May return null.
      */
-    public DaemonStatus getStatus(Address address) {
-        return statusesMap.get(address);
+    public DaemonInfo getInfo(Address address) {
+        return infosMap.get(address);
     }
 
     /**
      * Removes the status
      */
-    public void removeStatus(Address address) {
-        statusesMap.remove(address);
+    public void removeInfo(Address address) {
+        infosMap.remove(address);
     }
 
     /**
-     * sets the status for given address
+     * sets the daemonInfo for given address
      */
-    public void setStatus(Address address, DaemonStatus status) {
-        statusesMap.put(address, status);
+    public void setStatus(Address address, DaemonInfo daemonInfo) {
+        infosMap.put(address, daemonInfo);
     }
 }

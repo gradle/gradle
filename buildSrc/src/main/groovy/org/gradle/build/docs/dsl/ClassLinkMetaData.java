@@ -38,7 +38,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         this.simpleName = classMetaData.getSimpleName();
         this.style = classMetaData.isGroovy() ? LinkMetaData.Style.Groovydoc : LinkMetaData.Style.Javadoc;
         for (MethodMetaData method : classMetaData.getDeclaredMethods()) {
-            addMethod(method, method.getOverrideSignature(), style);
+            addMethod(method, style);
         }
     }
 
@@ -48,7 +48,10 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
 
     public LinkMetaData getMethod(String method) {
         MethodLinkMetaData methodMetaData = findMethod(method);
-        return new LinkMetaData(methodMetaData.style, String.format("%s.%s()", simpleName, methodMetaData.name), methodMetaData.id);
+        String displayName;
+        String urlFragment = methodMetaData.getUrlFragment(className);
+        displayName = String.format("%s.%s", simpleName, methodMetaData.getDisplayName());
+        return new LinkMetaData(methodMetaData.style, displayName, urlFragment);
     }
 
     private MethodLinkMetaData findMethod(String method) {
@@ -64,11 +67,18 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
             }
         }
         if (candidates.isEmpty()) {
-            throw new RuntimeException(String.format("No method '%s' found for class '%s'.", method, className));
+            String message = String.format("No method '%s' found for class '%s'.", method, className);
+            message += "\nThis problem may happen when some apilink from docbook template xmls refers to unknown method."
+                    +  "\nExample: <apilink class=\"org.gradle.api.Project\" method=\"someMethodThatDoesNotExist\"/>";
+            throw new RuntimeException(message);
         }
         if (candidates.size() != 1) {
-            throw new RuntimeException(String.format("Found multiple methods called '%s' in class '%s'. Candidates: %s",
-                    method, className, GUtil.join(candidates, ", ")));
+            String message = String.format("Found multiple methods called '%s' in class '%s'. Candidates: %s",
+                    method, className, GUtil.join(candidates, ", "));
+            message += "\nThis problem may happen when some apilink from docbook template xmls is incorrect. Example:"
+                    +  "\nIncorrect: <apilink class=\"org.gradle.api.Project\" method=\"tarTree\"/>"
+                    +  "\nCorrect:   <apilink class=\"org.gradle.api.Project\" method=\"tarTree(Object)\"/>";
+            throw new RuntimeException(message);
         }
         return candidates.get(0);
     }
@@ -81,29 +91,68 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         this.style = style;
     }
 
-    public void addMethod(MethodMetaData method, String id, LinkMetaData.Style style) {
-        methods.put(method.getOverrideSignature(), new MethodLinkMetaData(method.getName(), method.getOverrideSignature(), id, style));
+    public void addMethod(MethodMetaData method, LinkMetaData.Style style) {
+        methods.put(method.getOverrideSignature(), new MethodLinkMetaData(method.getName(), method.getOverrideSignature(), style));
+    }
+
+    public void addBlockMethod(MethodMetaData method) {
+        methods.put(method.getOverrideSignature(), new BlockLinkMetaData(method.getName(), method.getOverrideSignature()));
+    }
+
+    public void addGetterMethod(String propertyName, MethodMetaData method) {
+        methods.put(method.getOverrideSignature(), new GetterLinkMetaData(propertyName, method.getName(), method.getOverrideSignature()));
     }
 
     public void attach(ClassMetaDataRepository<ClassLinkMetaData> linkMetaDataClassMetaDataRepository) {
     }
 
     private static class MethodLinkMetaData implements Serializable {
-        private final String name;
-        private final String signature;
-        private final String id;
-        private final LinkMetaData.Style style;
+        final String name;
+        final String signature;
+        final LinkMetaData.Style style;
 
-        private MethodLinkMetaData(String name, String signature, String id, LinkMetaData.Style style) {
+        private MethodLinkMetaData(String name, String signature, LinkMetaData.Style style) {
             this.name = name;
             this.signature = signature;
-            this.id = id;
             this.style = style;
         }
 
+        public String getDisplayName() {
+            return String.format("%s()", name);
+        }
+        
+        public String getUrlFragment(String className) {
+            return style == LinkMetaData.Style.Dsldoc ? String.format("%s:%s", className, signature) : signature;
+        }
+        
         @Override
         public String toString() {
             return signature;
+        }
+    }
+
+    private static class BlockLinkMetaData extends MethodLinkMetaData {
+        private BlockLinkMetaData(String name, String signature) {
+            super(name, signature, LinkMetaData.Style.Dsldoc);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return String.format("%s{}", name);
+        }
+    }
+
+    private static class GetterLinkMetaData extends MethodLinkMetaData {
+        private final String propertyName;
+
+        private GetterLinkMetaData(String propertyName, String methodName, String signature) {
+            super(methodName, signature, LinkMetaData.Style.Dsldoc);
+            this.propertyName = propertyName;
+        }
+
+        @Override
+        public String getUrlFragment(String className) {
+            return String.format("%s:%s", className, propertyName);
         }
     }
 }

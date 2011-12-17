@@ -82,7 +82,7 @@ class WarPluginTest {
         assertThat(task.destinationDir, equalTo(project.libsDir))
 
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
-        assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME))
+        assertThat(task, dependsOn(WarPlugin.WAR_TASK_NAME))
     }
 
     @Test public void dependsOnRuntimeConfig() {
@@ -123,11 +123,9 @@ class WarPluginTest {
         def task = project.createTask('customWar', type: War)
         assertThat(task, dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME)))
         assertThat(task.destinationDir, equalTo(project.libsDir))
-
-        assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn(JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME, 'customWar'))
     }
 
-    @Test public void addsDefaultWarToArchiveConfiguration() {
+    @Test public void replacesJarAsPublication() {
         warPlugin.apply(project)
 
         Configuration archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);

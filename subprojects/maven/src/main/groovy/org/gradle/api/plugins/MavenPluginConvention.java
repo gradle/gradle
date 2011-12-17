@@ -23,6 +23,7 @@ import org.gradle.api.publication.maven.internal.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -36,7 +37,7 @@ public class MavenPluginConvention implements MavenPomMetaInfoProvider {
     private final ProjectInternal project;
     private final MavenFactory mavenFactory;
     private Conf2ScopeMappingContainer conf2ScopeMappings;
-    private String pomDirName = "poms";
+    private Object pomDir;
 
     public MavenPluginConvention(ProjectInternal project, MavenFactory mavenFactory) {
         this.project = project;
@@ -46,16 +47,22 @@ public class MavenPluginConvention implements MavenPomMetaInfoProvider {
 
     /**
      * Returns the name of the directory to generate Maven POMs into, relative to the build directory.
+     * @deprecated Use {@link #getMavenPomDir()} instead. 
      */
+    @Deprecated
     public String getPomDirName() {
-        return pomDirName;
+        DeprecationLogger.nagUserOfReplacedMethod("MavenPluginConvention.getPomDirName()", "getMavenPomDir()");
+        return project.getFileResolver().withBaseDir(project.getBuildDir()).resolveAsRelativePath(getPomDir());
     }
 
     /**
      * Sets the name of the directory to generate Maven POMs into, relative to the build directory.
+     * @deprecated Use {@link #setMavenPomDir} instead.
      */
+    @Deprecated
     public void setPomDirName(String pomDirName) {
-        this.pomDirName = pomDirName;
+        DeprecationLogger.nagUserOfReplacedMethod("MavenPluginConvention.setPomDirName()", "setMavenPomDir()");
+        pomDir = project.getFileResolver().withBaseDir(project.getBuildDir()).resolve(pomDirName);
     }
 
     /**
@@ -73,13 +80,31 @@ public class MavenPluginConvention implements MavenPomMetaInfoProvider {
 
     /**
      * Returns the directory to generate Maven POMs into.
+     * @deprecated Use {@link #getMavenPomDir()} instead.
      */
+    @Deprecated
     public File getPomDir() {
-        return project.getFileResolver().withBaseDir(project.getBuildDir()).resolve(pomDirName);
+        DeprecationLogger.nagUserOfReplacedMethod("MavenPluginConvention.getPomDir()", "getMavenPomDir()");
+        return getMavenPomDir();
     }
 
+    /**
+     * Returns the directory to generate Maven POMs into.
+     */
     public File getMavenPomDir() {
-        return getPomDir();
+        if (pomDir == null) {
+            return new File(project.getBuildDir(), "poms");
+        }
+        return project.getFileResolver().resolve(pomDir);
+    }
+
+    /**
+     * Sets the directory to generate Maven POMs into.
+     *
+     * @param pomDir The new POM directory. Evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     */
+    public void setMavenPomDir(Object pomDir) {
+        this.pomDir = pomDir;
     }
 
     /**

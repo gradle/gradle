@@ -28,13 +28,17 @@ import org.gradle.integtests.fixtures.*
 class AbstractIntegrationSpec extends Specification {
     
     @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     ExecutionResult result
     ExecutionFailure failure
 
     protected TestFile getBuildFile() {
         testDir.file('build.gradle')
+    }
+
+    protected TestFile getSettingsFile() {
+        testDir.file('settings.gradle')
     }
 
     protected TestFile getTestDir() {
@@ -53,6 +57,11 @@ class AbstractIntegrationSpec extends Specification {
         executer.inDirectory(directory);
     }
 
+    protected GradleDistribution requireOwnUserHomeDir() {
+        distribution.requireOwnUserHomeDir()
+        distribution
+    }
+
     /**
      * Synonym for succeeds()
      */
@@ -61,6 +70,9 @@ class AbstractIntegrationSpec extends Specification {
     }
     
     protected ExecutionResult succeeds(String... tasks) {
+        if (settingsFile.exists()) {
+            executer.usingSettingsFile(settingsFile)
+        }
         result = executer.withTasks(*tasks).run()
     }
 
@@ -70,6 +82,7 @@ class AbstractIntegrationSpec extends Specification {
     
     protected ExecutionFailure fails(String... tasks) {
         failure = executer.withTasks(*tasks).runWithFailure()
+        result = failure
     }
     
     protected List<String> getExecutedTasks() {
@@ -103,6 +116,10 @@ class AbstractIntegrationSpec extends Specification {
 
     String getOutput() {
         result.output
+    }
+
+    String getErrorOutput() {
+        result.error
     }
 
     ArtifactBuilder artifactBuilder() {

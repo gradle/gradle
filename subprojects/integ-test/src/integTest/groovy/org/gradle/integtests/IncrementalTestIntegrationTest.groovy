@@ -15,15 +15,12 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.TestResources
 import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import static org.hamcrest.Matchers.*
-import org.gradle.integtests.testng.TestNGExecutionResult
+import org.gradle.integtests.fixtures.*
+import static org.hamcrest.Matchers.startsWith
 
 class IncrementalTestIntegrationTest {
     @Rule public final GradleDistribution distribution = new GradleDistribution()

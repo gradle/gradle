@@ -34,13 +34,15 @@ import java.io.FileDescriptor;
 public class LoggingServiceRegistry extends DefaultServiceRegistry {
     private TextStreamOutputEventListener stdoutListener;
     private final boolean detectConsole;
+    private final boolean isEmbedded;
 
     LoggingServiceRegistry() {
-        this(true);
+        this(true, false);
     }
 
-    LoggingServiceRegistry(boolean detectConsole) {
+    LoggingServiceRegistry(boolean detectConsole, boolean isEmbedded) {
         this.detectConsole = detectConsole;
+        this.isEmbedded = isEmbedded;
         stdoutListener = new TextStreamOutputEventListener(get(OutputEventListener.class));
     }
 
@@ -48,21 +50,21 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
      * Creates a set of logging services which are suitable to use in a command-line process.
      */
     public static LoggingServiceRegistry newCommandLineProcessLogging() {
-        return new LoggingServiceRegistry(true);
+        return new LoggingServiceRegistry(true, false);
     }
 
     /**
      * Creates a set of logging services which are suitable to use in a child process. Does not attempt to use any terminal trickery.
      */
     public static LoggingServiceRegistry newChildProcessLogging() {
-        return new LoggingServiceRegistry(false);
+        return new LoggingServiceRegistry(false, false);
     }
 
     /**
      * Creates a set of logging services which are suitable to use embedded in another application. Does not attempt to use any terminal trickery.
      */
     public static LoggingServiceRegistry newEmbeddableLogging() {
-        return new LoggingServiceRegistry(false);
+        return new LoggingServiceRegistry(false, true);
     }
 
     protected CommandLineConverter<LoggingConfiguration> createCommandLineConverter() {
@@ -74,7 +76,10 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected StdOutLoggingSystem createStdOutLoggingSystem() {
-        return new StdOutLoggingSystem(stdoutListener, get(TimeProvider.class));
+        if (isEmbedded) {
+            return new NoOpLoggingSystem();
+        }
+        return new DefaultStdOutLoggingSystem(stdoutListener, get(TimeProvider.class));
     }
 
     protected StyledTextOutputFactory createStyledTextOutputFactory() {
@@ -82,7 +87,11 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected StdErrLoggingSystem createStdErrLoggingSystem() {
-        return new StdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
+        if (isEmbedded) {
+            return new NoOpLoggingSystem();
+        }
+        TextStreamOutputEventListener listener = new TextStreamOutputEventListener(get(OutputEventListener.class));
+        return new DefaultStdErrLoggingSystem(listener, get(TimeProvider.class));
     }
 
     protected ProgressLoggerFactory createProgressLoggerFactory() {
@@ -92,7 +101,11 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
         OutputEventRenderer renderer = get(OutputEventRenderer.class);
         Slf4jLoggingConfigurer slf4jConfigurer = new Slf4jLoggingConfigurer(renderer);
-        LoggingConfigurer compositeConfigurer = new DefaultLoggingConfigurer(renderer, slf4jConfigurer, new JavaUtilLoggingConfigurer());
+        DefaultLoggingConfigurer compositeConfigurer = new DefaultLoggingConfigurer(renderer, slf4jConfigurer);
+        if (!isEmbedded) {
+            //we want to reset and manipulate java logging only if we own the process, e.g. we're *not* embedded
+            compositeConfigurer.add(new JavaUtilLoggingConfigurer());
+        }
         return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, getStdOutLoggingSystem(), getStdErrLoggingSystem());
     }
 

@@ -57,6 +57,9 @@ public class PathAssemblerTest {
     public void gradleHomeForUrlWithNoClassifier() throws Exception {
         File gradleHome = pathAssembler.gradleHome(PathAssembler.GRADLE_USER_HOME_STRING, "somePath", new URI("http://server/gradle-0.9.zip"));
         assertEquals(file(TEST_GRADLE_USER_HOME + "/somePath/gradle-0.9"), gradleHome);
+
+        gradleHome = pathAssembler.gradleHome(PathAssembler.GRADLE_USER_HOME_STRING, "somePath", new URI("http://server/custom-gradle-0.9.zip"));
+        assertEquals(file(TEST_GRADLE_USER_HOME + "/somePath/custom-gradle-0.9"), gradleHome);
     }
 
     @Test

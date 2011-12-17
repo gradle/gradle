@@ -13,114 +13,96 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
 package org.gradle.api.internal.tasks.testing.results
 
+import org.gradle.api.internal.tasks.testing.TestSuiteExecutionException
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestResult
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.runner.RunWith
 import org.slf4j.Logger
-import org.junit.Test
-import org.junit.Before
-import static org.junit.Assert.*
-import org.gradle.api.internal.tasks.testing.TestSuiteExecutionException
+import spock.lang.Specification
+import static org.junit.Assert.assertTrue
 
-@RunWith(JMock.class)
-public class TestSummaryListenerTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final Logger logger = context.mock(Logger.class)
-    private final RuntimeException failure = new RuntimeException()
-    private final TestSummaryListener listener = new TestSummaryListener(logger)
+public class TestSummaryListenerTest extends Specification {
+    
+    def logger = Mock(Logger.class)
+    def failure = new RuntimeException()
+    def listener = new TestSummaryListener(logger)
 
-    @Before
-    public void setup() {
-        context.checking {
-            ignoring(logger).debug(withParam(anything()), (Object) withParam(anything()))
-        }
-    }
-
-    @Test
-    public void logsSuccessfulTests() {
-        context.checking {
-            one(logger).info('{} PASSED', '<test>')
-        }
+    def "logs successful tests"() {
+        when:
         listener.afterTest(test('<test>'), result(TestResult.ResultType.SUCCESS))
+        then:
+        1 * logger.info('{} PASSED', '<test>')
+        0 * logger._
     }
 
-    @Test
-    public void logsSkippedTests() {
-        context.checking {
-            one(logger).info('{} SKIPPED', '<test>')
-        }
+    def "logs skipped tests"() {
+        when:
         listener.afterTest(test('<test>'), result(TestResult.ResultType.SKIPPED))
+        then:
+        1 * logger.info('{} SKIPPED', '<test>')
+        0 * logger._
     }
 
-    @Test
-    public void logsFailedTestExecution() {
-        context.checking {
-            one(logger).info('{} FAILED: {}', '<test>', failure)
-            one(logger).error('Test {} FAILED', '<class>')
-        }
+    def "logs failed test execution"() {
+        when:
         listener.afterTest(test('<test>', '<class>'), result(TestResult.ResultType.FAILURE))
+        then:
+        1 * logger.info('{} FAILED: {}', '<test>', failure)
+        1 * logger.error('Test {} FAILED', '<class>')
+        0 * logger._
     }
 
-    @Test
-    public void logsFailedTestExecutionWhenTestHasNoClass() {
-        context.checking {
-            one(logger).error('{} FAILED: {}', '<test>', failure)
-        }
+    def "logs failed test execution when test has no class"() {
+        when:
         listener.afterTest(test('<test>'), result(TestResult.ResultType.FAILURE))
+        then:
+        1 * logger.error('{} FAILED: {}', '<test>', failure)
+        0 * logger._
     }
 
-    @Test
-    public void logsFailedSuiteExecution() {
-        context.checking {
-            one(logger).info('{} FAILED: {}', '<test>', failure)
-            one(logger).error('Test {} FAILED', '<class>')
-        }
+    def "logs failed suite execution"() {
+        when:
         listener.afterSuite(test('<test>', '<class>'), result(TestResult.ResultType.FAILURE))
+        then:
+        1 * logger.info('{} FAILED: {}', '<test>', failure)
+        1 * logger.error('Test {} FAILED', '<class>')
+        0 * logger._
     }
 
-    @Test
-    public void logsFailedSuiteExecutionWhenSuiteHasNoClass() {
-        context.checking {
-            one(logger).error('{} FAILED: {}', '<test>', failure)
-        }
+    def "logs Failed Suite Execution When Suite Has No Class"() {
+        when:
         listener.afterSuite(test('<test>'), result(TestResult.ResultType.FAILURE))
+        then:
+        1 * logger.error('{} FAILED: {}', '<test>', failure)
+        0 * logger._
     }
 
-    @Test
-    public void logsFailedSuiteExecutionWhenSuiteHasNoException() {
+    def "logs Failed Suite Execution When Suite Has No Exception"() {
+        expect:
         listener.afterSuite(test('<test>'), result(TestResult.ResultType.FAILURE, null))
     }
 
-    @Test
-    public void logsSuiteInternalException() {
-        TestSuiteExecutionException failure = new TestSuiteExecutionException('broken', new RuntimeException())
-        context.checking {
-            one(logger).error('Execution for <test> FAILED', failure)
-        }
+    def "logs Suite Internal Exception"() {
+        given:
+        def failure = new TestSuiteExecutionException('broken', new RuntimeException())
+        when:
         listener.afterSuite(test('<test>'), result(TestResult.ResultType.FAILURE, failure))
+        then:
+        1 * logger.error('Execution for <test> FAILED', failure)
+        0 * logger._
     }
 
-    @Test
-    public void doesNotLogFailedClassMoreThanOnce() {
-        context.checking {
-            ignoring(logger).info(withParam(anything()), (Object) withParam(anything()), (Object) withParam(anything()))
-            one(logger).error('Test {} FAILED', '<class>')
-        }
+    def "does Not Log Failed Class More Than Once"() {
+        when:
         listener.afterTest(test('<test1>', '<class>'), result(TestResult.ResultType.FAILURE))
         listener.afterTest(test('<test2>', '<class>'), result(TestResult.ResultType.FAILURE))
         listener.afterSuite(test('<test3>', '<class>'), result(TestResult.ResultType.FAILURE))
+        then:
+        1 * logger.error('Test {} FAILED', '<class>')
     }
 
-    @Test
-    public void usesRootSuiteResultsToDetermineIfTestsHasFailed() {
+    def "uses Root Suite Results To Determine If Tests Has Failed"() {
         listener.afterSuite(test('<test>', null, null), result(TestResult.ResultType.FAILURE, null, 3, 5))
         assertTrue(listener.hadFailures())
     }

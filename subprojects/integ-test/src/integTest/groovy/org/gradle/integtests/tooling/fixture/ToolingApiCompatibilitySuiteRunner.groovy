@@ -15,79 +15,88 @@
  */
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.junit.runner.Description
-import org.junit.runner.Request
-import org.junit.runner.Runner
-import org.junit.runner.notification.RunNotifier
-import org.junit.runner.notification.RunListener
-import org.junit.runner.notification.Failure
+import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.BasicGradleDistribution
-import org.gradle.util.ObservableUrlClassLoader
-import org.gradle.util.ClasspathUtil
-import org.gradle.util.MultiParentClassLoader
-import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestFile
-import org.gradle.util.DefaultClassLoaderFactory
+import org.gradle.util.*
 
 /**
- * Executes instances of {@link ToolingApiCompatibilitySuite}.
+ * Executes instances of {@link ToolingApiSpecification} against all compatible versions of tooling API consumer
+ * and provider, including the current Gradle version under test.
+ *
+ * <p>A test can be annotated with {@link MinToolingApiVersion} and {@link MinTargetGradleVersion} to indicate the
+ * minimum tooling API or Gradle versions required for the test.
  */
-class ToolingApiCompatibilitySuiteRunner extends Runner {
-    private final Class<ToolingApiCompatibilitySuite> target
-    private final Description description
-    private final List<Permutation> permutations = []
+class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
 
-    def dist = new GradleDistribution()
-    def m3 = dist.previousVersion("1.0-milestone-3")
-    def m4 = dist.previousVersion("1.0-milestone-4")
-
-    ToolingApiCompatibilitySuiteRunner(Class<ToolingApiCompatibilitySuite> target) {
-        this.target = target
-        def suite = target.newInstance()
-        this.description = Description.createSuiteDescription(target)
-        permutations << new Permutation(suite, description, dist, m3)
-        permutations << new Permutation(suite, description, m3, dist)
-        permutations << new Permutation(suite, description, dist, m4)
-        permutations << new Permutation(suite, description, m4, dist)
+    ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
+        super(target)
     }
 
     @Override
-    Description getDescription() {
-        return description
-    }
-
-    @Override
-    void run(RunNotifier notifier) {
-        permutations.each { it.run(notifier) }
-    }
-
-    private static class Permutation {
-        final BasicGradleDistribution toolingApi
-        final BasicGradleDistribution gradle
-        final Runner runner
-        final ToolingApiCompatibilitySuite suite
-        final Map<Description, Description> descriptionTranslations = [:]
-
-        Permutation(ToolingApiCompatibilitySuite suite, Description parent, BasicGradleDistribution toolingApi, BasicGradleDistribution gradle) {
-            this.toolingApi = toolingApi
-            this.gradle = gradle
-            this.suite = suite
-            if (suite.accept(toolingApi, gradle)) {
-                runner = Request.classes(loadClasses() as Class[]).getRunner()
-                map(runner.description, parent)
-            } else {
-                runner = null;
+    protected List<Permutation> createExecutions() {
+        List<Permutation> permutations = []
+        permutations << new Permutation(current, current)
+        previous.each {
+            if (it.toolingApiSupported) {
+                permutations << new Permutation(current, it)
+                permutations << new Permutation(it, current)
             }
         }
+        return permutations
+    }
 
-        private List<Class> loadClasses() {
+    private class Permutation extends AbstractCompatibilityTestRunner.Execution {
+        final BasicGradleDistribution toolingApi
+        final BasicGradleDistribution gradle
+
+        Permutation(BasicGradleDistribution toolingApi, BasicGradleDistribution gradle) {
+            this.toolingApi = toolingApi
+            this.gradle = gradle
+        }
+
+        @Override
+        protected String getDisplayName() {
+            return "${displayName(toolingApi)} -> ${displayName(gradle)}"
+        }
+
+        private String displayName(BasicGradleDistribution dist) {
+            if (dist.version == GradleVersion.current().version) {
+                return "current"
+            }
+            return dist.version
+        }
+
+        @Override
+        protected boolean isEnabled() {
+            MinToolingApiVersion minToolingApiVersion = target.getAnnotation(MinToolingApiVersion)
+            if (minToolingApiVersion && GradleVersion.version(toolingApi.version) < extractVersion(minToolingApiVersion)) {
+                return false
+            }
+            MinTargetGradleVersion minTargetGradleVersion = target.getAnnotation(MinTargetGradleVersion)
+            if (minTargetGradleVersion && GradleVersion.version(gradle.version) < extractVersion(minTargetGradleVersion)) {
+                return false
+            }
+            return true
+        }
+
+        private GradleVersion extractVersion(annotation) {
+            if (annotation.currentOnly()) {
+                return GradleVersion.current()
+            }
+            return GradleVersion.version(annotation.value())
+        }
+
+        @Override
+        protected List<? extends Class<?>> loadTargetClasses() {
             def testClassLoader = getTestClassLoader()
-            return suite.classes.collect { testClassLoader.loadClass(it.name) }
+            return [testClassLoader.loadClass(target.name)]
         }
 
         private ClassLoader getTestClassLoader() {
+            if (toolingApi.version == GradleVersion.current().version) {
+                return getClass().classLoader
+            }
             def classLoader = TEST_CLASS_LOADERS.get(toolingApi.version)
             if (!classLoader) {
                 classLoader = createTestClassLoader()
@@ -118,72 +127,20 @@ class ToolingApiCompatibilitySuiteRunner extends Runner {
             sharedClassLoader.allowPackage('org.spockframework')
             sharedClassLoader.allowClass(TestFile)
             sharedClassLoader.allowClass(SetSystemProperties)
-            sharedClassLoader.allowClass(TargetDistSelector)
             sharedClassLoader.allowPackage('org.gradle.integtests.fixtures')
+            sharedClassLoader.allowPackage('org.gradle.tests.fixtures')
 
             def parentClassLoader = new MultiParentClassLoader(toolingApiClassLoader, sharedClassLoader)
 
             def testClassPath = []
-            testClassPath << ClasspathUtil.getClasspathForClass(suite.class)
+            testClassPath << ClasspathUtil.getClasspathForClass(target)
 
             return new ObservableUrlClassLoader(parentClassLoader, testClassPath.collect { it.toURI().toURL() })
         }
 
-        private void map(Description source, Description target) {
-            source.children.each { child ->
-                def mappedChild
-                if (child.methodName) {
-                    mappedChild = Description.createSuiteDescription("${child.methodName} [${toolingApi} -> ${gradle}](${child.className})")
-                } else {
-                    mappedChild = Description.createSuiteDescription(child.className)
-                }
-                target.addChild(mappedChild)
-                descriptionTranslations.put(child, mappedChild)
-                map(child, mappedChild)
-            }
-        }
-
-        void run(RunNotifier notifier) {
-            if (runner == null) {
-                def description = Description.createSuiteDescription("ignored [${toolingApi} -> ${gradle}](${suite.class.name})")
-                notifier.fireTestIgnored(description)
-                return
-            }
-
-            RunNotifier nested = new RunNotifier()
-            nested.addListener(new RunListener() {
-                @Override
-                void testStarted(Description description) {
-                    notifier.fireTestStarted(descriptionTranslations[description])
-                }
-
-                @Override
-                void testFailure(Failure failure) {
-                    notifier.fireTestFailure(new Failure(descriptionTranslations[failure.description], failure.exception))
-                }
-
-                @Override
-                void testAssumptionFailure(Failure failure) {
-                    notifier.fireTestAssumptionFailed(new Failure(descriptionTranslations[failure.description], failure.exception))
-                }
-
-                @Override
-                void testIgnored(Description description) {
-                    notifier.fireTestIgnored(descriptionTranslations[description])
-                }
-
-                @Override
-                void testFinished(Description description) {
-                    notifier.fireTestFinished(descriptionTranslations[description])
-                }
-            })
-
-            TargetDistSelector.select(gradle.version)
-            try {
-                runner.run(nested)
-            } finally {
-                TargetDistSelector.unselect()
-            }
+        @Override
+        protected void before() {
+            testClassLoader.loadClass(ToolingApiSpecification.name).selectTargetDist(gradle)
         }
     }
 }

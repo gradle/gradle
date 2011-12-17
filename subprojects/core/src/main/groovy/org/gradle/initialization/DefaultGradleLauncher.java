@@ -26,15 +26,11 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.logging.LoggingManagerInternal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DefaultGradleLauncher extends GradleLauncher {
     private enum Stage {
         Configure, PopulateTaskGraph, Build
     }
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradleLauncher.class);
 
     private final GradleInternal gradle;
     private final SettingsHandler settingsHandler;
@@ -44,6 +40,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildListener buildListener;
     private final InitScriptHandler initScriptHandler;
     private final LoggingManagerInternal loggingManager;
+    private final BuildExecuter buildExecuter;
 
     /**
      * Creates a new instance.  Don't call this directly, use {@link #newInstance(org.gradle.StartParameter)} or {@link
@@ -51,7 +48,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
      */
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
                                  BuildLoader buildLoader, BuildConfigurer buildConfigurer, BuildListener buildListener,
-                                 ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager) {
+                                 ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager,
+                                 BuildExecuter buildExecuter) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
@@ -60,6 +58,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
         this.loggingManager = loggingManager;
+        this.buildExecuter = buildExecuter;
     }
 
     public GradleInternal getGradle() {
@@ -143,16 +142,14 @@ public class DefaultGradleLauncher extends GradleLauncher {
         }
 
         // Populate task graph
-        BuildExecuter executer = gradle.getStartParameter().getBuildExecuter();
-        executer.select(gradle);
+        buildExecuter.select(gradle);
 
         if (upTo == Stage.PopulateTaskGraph) {
             return;
         }
 
         // Execute build
-        LOGGER.info(String.format("Starting build for %s.", executer.getDisplayName()));
-        executer.execute();
+        buildExecuter.execute();
 
         assert upTo == Stage.Build;
     }

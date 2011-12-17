@@ -132,10 +132,16 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
         }
     }
 
+    public void awaitIdleTimeout(int timeout) throws DaemonStoppedException {
+        if (awaitStopOrIdleTimeout(timeout)) {
+            throw new DaemonStoppedException(currentCommandExecution);
+        }
+    }
+
     public void stop() {
         lock.lock();
         try {
-            LOGGER.debug("Stop requested. The daemon is running a build: " + isRunning());
+            LOGGER.debug("Stop requested. The daemon is running a build: " + isBusy());
             stopped = true;
             onStop.run();
             condition.signalAll();
@@ -163,7 +169,12 @@ public class DaemonStateCoordinator implements Stoppable, AsyncStoppable {
         lock.lock();
         try {
             if (currentCommandExecution != null) { // daemon is busy
-                LOGGER.warn("onStartCommand({}) called while currentCommandExecution = {}", execution, currentCommandExecution);
+                /*
+                    This is not particularly abnormal as daemon can become busy between a particular client connecting to it and then
+                    sending a command. The UpdateDaemonStateAndHandleBusyDaemon command action will send back a DaemonBusy result
+                    to the client which will then just try another daemon, making this a non-error condition.
+                */
+                LOGGER.debug("onStartCommand({}) called while currentCommandExecution = {}", execution, currentCommandExecution);
                 return currentCommandExecution;
             } else {
                 LOGGER.debug("onStartCommand({}) called after {} mins of idle", execution, getIdleMinutes());

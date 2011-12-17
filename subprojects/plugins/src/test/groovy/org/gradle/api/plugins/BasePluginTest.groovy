@@ -18,157 +18,199 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.tasks.DefaultTaskDependency
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Upload
-import org.gradle.util.HelperUtil
-import org.junit.Test
-import static org.gradle.util.Matchers.*
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
-import org.gradle.api.artifacts.Dependency
-import org.gradle.util.WrapUtil
-import org.gradle.api.internal.artifacts.configurations.Configurations
+import org.gradle.api.tasks.bundling.Zip
+import org.gradle.util.HelperUtil
+import spock.lang.Specification
+import static org.gradle.util.Matchers.dependsOn
+import static org.hamcrest.Matchers.instanceOf
 
 /**
  * @author Hans Dockter
  */
-class BasePluginTest {
+class BasePluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject()
     private final BasePlugin plugin = new BasePlugin()
 
-    @Test public void addsConventionObject() {
+    public void addsConventionObjects() {
+        when:
         plugin.apply(project)
 
-        assertThat(project.convention.plugins.base, instanceOf(BasePluginConvention))
+        then:
+        project.convention.plugins.base instanceof BasePluginConvention
+        project.extensions.findByType(DefaultArtifactPublicationSet) != null
     }
 
-    @Test public void createsTasksAndAppliesMappings() {
+    public void createsTasksAndAppliesMappings() {
+        when:
         plugin.apply(project)
 
-        def task = project.tasks[BasePlugin.CLEAN_TASK_NAME]
-        assertThat(task, instanceOf(Delete))
-        assertThat(task, dependsOn())
-        assertThat(task.targetFiles.files, equalTo([project.buildDir] as Set))
+        then:
+        def clean = project.tasks[BasePlugin.CLEAN_TASK_NAME]
+        clean instanceOf(Delete)
+        clean dependsOn()
+        clean.targetFiles.files == [project.buildDir] as Set
 
-        task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
-        assertThat(task, instanceOf(DefaultTask))
+        and:
+        def assemble = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
+        assemble instanceOf(DefaultTask)
     }
 
-    @Test public void addsRulesWhenAConfigurationIsAdded() {
-        plugin.apply(project)
+    public void assembleTaskBuildsThePublishedArtifacts() {
+        given:
+        def someJar = project.tasks.add('someJar', Jar)
 
-        assertThat(project.tasks.rules.size(), equalTo(3))
+        when:
+        plugin.apply(project)
+        project.artifacts.archives someJar
+
+        then:
+        def assemble = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
+        assemble dependsOn('someJar')
     }
 
-    @Test public void addsImplicitTasksForConfiguration() {
+    public void addsRulesWhenAConfigurationIsAdded() {
+        when:
         plugin.apply(project)
 
-        Task producer = [getName: {-> 'producer'}] as Task
-        PublishArtifact artifactStub = [getBuildDependencies: {-> new DefaultTaskDependency().add(producer) }] as PublishArtifact
-
-        project.configurations.getByName('archives').addArtifact(artifactStub)
-
-        def task = project.tasks['buildArchives']
-        assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, dependsOn('producer'))
-
-        task = project.tasks['uploadArchives']
-        assertThat(task, instanceOf(Upload))
-        assertThat(task, dependsOn('producer'))
-
-        project.configurations.add('conf').addArtifact(artifactStub)
-
-        task = project.tasks['buildConf']
-        assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, dependsOn('producer'))
-
-        task = project.tasks['uploadConf']
-        assertThat(task, instanceOf(Upload))
-        assertThat(task, dependsOn('producer'))
-        assertThat(task.configuration, sameInstance(project.configurations.conf))
+        then:
+        !project.tasks.rules.empty
     }
 
-    @Test public void addsACleanRule() {
-        plugin.apply(project)
+    public void addsImplicitTasksForConfiguration() {
+        given:
+        def someJar = project.tasks.add('someJar', Jar)
 
+        when:
+        plugin.apply(project)
+        project.artifacts.archives someJar
+
+        then:
+        def buildArchives = project.tasks['buildArchives']
+        buildArchives instanceOf(DefaultTask)
+        buildArchives dependsOn('someJar')
+
+        and:
+        def uploadArchives = project.tasks['uploadArchives']
+        uploadArchives instanceOf(Upload)
+        uploadArchives dependsOn('someJar')
+
+        when:
+        project.configurations.add('conf')
+        project.artifacts.conf someJar
+
+        then:
+        def buildConf = project.tasks['buildConf']
+        buildConf instanceOf(DefaultTask)
+        buildConf dependsOn('someJar')
+
+        and:
+        def uploadConf = project.tasks['uploadConf']
+        uploadConf instanceOf(Upload)
+        uploadConf dependsOn('someJar')
+        uploadConf.configuration == project.configurations.conf
+    }
+
+    public void addsACleanRule() {
+        given:
         Task test = project.task('test')
         test.outputs.files(project.buildDir)
 
-        Task cleanTest = project.tasks['cleanTest']
-        assertThat(cleanTest, instanceOf(Delete))
-        assertThat(cleanTest.delete, equalTo([test.outputs.files] as Set))
-    }
-
-    @Test public void cleanRuleIsCaseSensitive() {
+        when:
         plugin.apply(project)
 
+        then:
+        Task cleanTest = project.tasks['cleanTest']
+        cleanTest instanceOf(Delete)
+        cleanTest.delete == [test.outputs.files] as Set
+    }
+
+    public void cleanRuleIsCaseSensitive() {
+        given:
         project.task('testTask')
         project.task('12')
 
-        assertThat(project.tasks.findByName('cleantestTask'), nullValue())
-        assertThat(project.tasks.findByName('cleanTesttask'), nullValue())
-        assertThat(project.tasks.findByName('cleanTestTask'), instanceOf(Delete.class))
-        assertThat(project.tasks.findByName('clean12'), instanceOf(Delete.class))
-    }
-
-    @Test public void appliesMappingsForArchiveTasks() {
+        when:
         plugin.apply(project)
 
+        then:
+        project.tasks.findByName('cleantestTask') == null
+        project.tasks.findByName('cleanTesttask') == null
+        project.tasks.findByName('cleanTestTask') instanceof Delete
+        project.tasks.findByName('clean12') instanceof Delete
+    }
+
+    public void appliesMappingsForArchiveTasks() {
+        when:
+        plugin.apply(project)
         project.version = '1.0'
 
-        def task = project.tasks.add('someJar', Jar)
-        assertThat(task.destinationDir, equalTo(project.libsDir))
-        assertThat(task.version, equalTo(project.version))
-        assertThat(task.baseName, equalTo(project.archivesBaseName))
+        then:
+        def someJar = project.tasks.add('someJar', Jar)
+        someJar.destinationDir == project.libsDir
+        someJar.version == project.version
+        someJar.baseName == project.archivesBaseName
 
-        assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn('someJar'))
+        and:
+        def someZip = project.tasks.add('someZip', Zip)
+        someZip.destinationDir == project.distsDir
+        someZip.version == project.version
+        someZip.baseName == project.archivesBaseName
 
-        task = project.tasks.add('someZip', Zip)
-        assertThat(task.destinationDir, equalTo(project.distsDir))
-        assertThat(task.version, equalTo(project.version))
-        assertThat(task.baseName, equalTo(project.archivesBaseName))
-
-        assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn('someJar', 'someZip'))
-
-        task = project.tasks.add('someTar', Tar)
-        assertThat(task.destinationDir, equalTo(project.distsDir))
-        assertThat(task.version, equalTo(project.version))
-        assertThat(task.baseName, equalTo(project.archivesBaseName))
-
-        assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn('someJar', 'someZip', 'someTar'))
+        and:
+        def someTar = project.tasks.add('someTar', Tar)
+        someTar.destinationDir == project.distsDir
+        someTar.version == project.version
+        someTar.baseName == project.archivesBaseName
     }
 
-    @Test public void usesNullVersionWhenProjectVersionNotSpecified() {
+    public void usesNullVersionWhenProjectVersionNotSpecified() {
+        when:
         plugin.apply(project)
 
+        then:
         def task = project.tasks.add('someJar', Jar)
-        assertThat(task.version, nullValue())
+        task.version == null
 
+        when:
         project.version = '1.0'
 
-        task = project.tasks.add('someOtherJar', Jar)
-        assertThat(task.version, equalTo('1.0'))
+        then:
+        task.version == '1.0'
     }
 
-    @Test public void addsConfigurationsToTheProject() {
+    public void addsConfigurationsToTheProject() {
+        when:
         plugin.apply(project)
 
-        assertThat(project.status, equalTo("integration"))
+        then:
+        def defaultConfig = project.configurations[Dependency.DEFAULT_CONFIGURATION]
+        defaultConfig.extendsFrom == [] as Set
+        defaultConfig.visible
+        defaultConfig.transitive
 
-        def configuration = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
-        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(WrapUtil.toSet(Dependency.ARCHIVES_CONFIGURATION)))
-        assertTrue(configuration.visible)
-        assertTrue(configuration.transitive)
+        and:
+        def archives = project.configurations[Dependency.ARCHIVES_CONFIGURATION]
+        defaultConfig.extendsFrom == [] as Set
+        archives.visible
+        archives.transitive
+    }
 
-        configuration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
-        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(WrapUtil.toSet()))
-        assertTrue(configuration.visible)
-        assertTrue(configuration.transitive)
+    public void addsEveryPublishedArtifactToTheArchivesConfiguration() {
+        PublishArtifact artifact = Mock()
+
+        when:
+        plugin.apply(project)
+        project.configurations.add("custom").artifacts.add(artifact)
+
+        then:
+        project.configurations[Dependency.ARCHIVES_CONFIGURATION].artifacts.contains(artifact)
     }
 }

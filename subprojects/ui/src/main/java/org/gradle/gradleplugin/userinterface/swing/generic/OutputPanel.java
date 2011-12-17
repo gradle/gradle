@@ -16,7 +16,6 @@
 package org.gradle.gradleplugin.userinterface.swing.generic;
 
 import org.gradle.BuildResult;
-import org.gradle.StartParameter;
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
 import org.gradle.foundation.output.FileLink;
 import org.gradle.foundation.output.FileLinkDefinitionLord;
@@ -27,6 +26,7 @@ import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 import org.gradle.gradleplugin.userinterface.swing.common.SearchPanel;
 import org.gradle.gradleplugin.userinterface.swing.common.TextPaneSearchInteraction;
+import org.gradle.logging.ShowStacktrace;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -555,7 +555,7 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
 
     private void appendThrowable(Throwable throwable) {
         if (throwable != null) {
-            String output = GradlePluginLord.getGradleExceptionMessage(throwable, StartParameter.ShowStacktrace.ALWAYS_FULL);
+            String output = GradlePluginLord.getGradleExceptionMessage(throwable, ShowStacktrace.ALWAYS_FULL);
             appendGradleOutput(output);
         }
     }

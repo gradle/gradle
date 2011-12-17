@@ -17,8 +17,11 @@ package org.gradle.logging;
 
 import org.gradle.api.logging.LogLevel;
 
-public class LoggingConfiguration {
+import java.io.Serializable;
+
+public class LoggingConfiguration implements Serializable {
     private LogLevel logLevel = LogLevel.LIFECYCLE;
+    private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private boolean colorOutput = true;
 
     public LogLevel getLogLevel() {
@@ -29,11 +32,30 @@ public class LoggingConfiguration {
         this.logLevel = logLevel;
     }
 
+    /**
+     * Returns true if logging output should be displayed in color when Gradle is running in a terminal which supports
+     * color output. The default value is true.
+     *
+     * @return true if logging output should be displayed in color.
+     */
     public boolean isColorOutput() {
         return colorOutput;
     }
 
+    /**
+     * Specifies whether logging output should be displayed in color.
+     *
+     * @param colorOutput true if logging output should be displayed in color.
+     */
     public void setColorOutput(boolean colorOutput) {
         this.colorOutput = colorOutput;
+    }
+
+    public ShowStacktrace getShowStacktrace() {
+        return showStacktrace;
+    }
+
+    public void setShowStacktrace(ShowStacktrace showStacktrace) {
+        this.showStacktrace = showStacktrace;
     }
 }

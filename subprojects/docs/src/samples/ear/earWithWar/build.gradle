@@ -6,7 +6,6 @@ repositories {
     mavenCentral()
 }
 
-//TODO SF further refactoring in the ear samples needed (e.g. specific common folder, etc.)
 dependencies {
     deploy project(':war')
 

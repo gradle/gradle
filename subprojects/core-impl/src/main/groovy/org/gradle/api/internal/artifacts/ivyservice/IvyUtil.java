@@ -29,7 +29,7 @@ import java.util.Map;
 public class IvyUtil {
 
     public static ModuleRevisionId createModuleRevisionId(Module module) {
-        return createModuleRevisionId(module, new HashMap());
+        return createModuleRevisionId(module, new HashMap<String, String>());
     }
 
     public static ModuleRevisionId createModuleRevisionId(Module module, Map<String, String> extraAttributes) {

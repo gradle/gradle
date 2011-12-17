@@ -9,14 +9,14 @@
     <link href="css/gradle.css" rel="stylesheet" type="text/css"/>
 </head>
 
-<body>
+<body class="${fileName.split('\\.').first()}">
 
 <div id="top">
     <div id="headerContainer">
         <div id="header">
             <div id="logo">
                 <a href="index.php">
-                    <img src="img/gradle_logo.gif" width="400" height="110" />
+                    <img src="img/gradle_logo.gif" width="280" height="77" />
                 </a>
             </div>
             <div id="navbar">
@@ -25,7 +25,8 @@
 Map urls = new LinkedHashMap()
 urls['GET EXCITED'] = 'get-excited.html'
 urls.DOWNLOADS = 'downloads.html'
-urls.DOCUMENTATION = 'documentation.html'
+urls.DOCS = 'documentation.html'
+urls.ROADMAP = "roadmap.php"
 urls.COMMUNITY = 'community.html'
 urls.'GRADLEWARE' = 'http://www.gradleware.com'
 for (entry in urls.entrySet() ) {
@@ -40,7 +41,7 @@ for (entry in urls.entrySet() ) {
 <div id="middle">
     <div class="contentTop"></div>
     <div class="contentContainer">
-        <div class="content">${content}</div>
+        <div class="content clearfix">${content}</div>
     </div>
     <div class="contentBottom"></div>
 </div>

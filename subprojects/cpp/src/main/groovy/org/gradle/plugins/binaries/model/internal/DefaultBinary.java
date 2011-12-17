@@ -43,7 +43,7 @@ public class DefaultBinary implements Binary {
         this.name = name;
         this.project = project;
         this.compilers = project.getExtensions().getByType(CompilerRegistry.class);
-        this.sourceSets = new DefaultDomainObjectSet(SourceSet.class);
+        this.sourceSets = new DefaultDomainObjectSet<SourceSet>(SourceSet.class);
         this.spec = compilers.getDefaultCompiler().getSpecFactory().create(this);
     }
 

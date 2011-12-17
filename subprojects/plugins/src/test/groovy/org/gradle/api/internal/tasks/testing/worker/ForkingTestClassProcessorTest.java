@@ -26,10 +26,10 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -41,10 +41,9 @@ import static org.hamcrest.Matchers.notNullValue;
 
 @RunWith(JMock.class)
 public class ForkingTestClassProcessorTest {
-    private final JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final WorkerTestClassProcessorFactory processorFactory = context.mock(WorkerTestClassProcessorFactory.class);
+    @SuppressWarnings("unchecked")
     private final Factory<WorkerProcessBuilder> workerFactory = context.mock(Factory.class);
     private final WorkerProcess workerProcess = context.mock(WorkerProcess.class);
     private final RemoteTestClassProcessor worker = context.mock(RemoteTestClassProcessor.class);
@@ -53,6 +52,7 @@ public class ForkingTestClassProcessorTest {
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
     private final List<File> appClassPath = asList(new File("classpath.jar"));
     private final JavaForkOptions options = context.mock(JavaForkOptions.class);
+    @SuppressWarnings("unchecked")
     private final Action<WorkerProcessBuilder> action = context.mock(Action.class);
     private final ForkingTestClassProcessor processor = new ForkingTestClassProcessor(workerFactory, processorFactory, options, appClassPath, action);
 

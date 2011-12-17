@@ -15,8 +15,24 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import java.util.concurrent.Callable;
+import net.jcip.annotations.ThreadSafe;
+import org.gradle.cache.CacheAccess;
+import org.gradle.cache.PersistentIndexedCache;
 
-public interface CacheLockingManager {
-    <T> T withCacheLock(Callable<? extends T> action);
+import java.io.File;
+
+/**
+ * Provides synchronized access to the artifact cache.
+ */
+@ThreadSafe
+public interface CacheLockingManager extends ArtifactCacheMetaData, CacheAccess {
+    /**
+     * Creates a cache implementation that is managed by this locking manager. This method may be used at any time.
+     *
+     * <p>The returned cache may only be used by an action being run from {@link #useCache(String, org.gradle.api.internal.Factory)}.
+     * In this instance, an exclusive lock will be held on the cache.
+     *
+     * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.api.internal.Factory)}.
+     */
+    <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType);
 }

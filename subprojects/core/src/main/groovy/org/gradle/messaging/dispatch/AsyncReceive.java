@@ -28,6 +28,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * <p>Receives messages asynchronously. One or more {@link Receive} instances can use used as a source of messages. Messages are sent to a {@link Dispatch} </p>
+ * 
+ * <p>It is also possible to specify an <code>onReceiversExhausted</code> Runnable callback that will be run when all of the given receivers
+ * have been exhausted of messages. However, the current implementation is flawed in that this may erroneously fire if the first receiver
+ * is exhausted before the second starts.
  */
 public class AsyncReceive<T> implements AsyncStoppable {
     private enum State {
@@ -38,15 +42,25 @@ public class AsyncReceive<T> implements AsyncStoppable {
     private final Condition condition = lock.newCondition();
     private final Executor executor;
     private final List<Dispatch<? super T>> dispatches = new ArrayList<Dispatch<? super T>>();
+    private final Runnable onReceiversExhausted;
     private int receivers;
     private State state = State.Init;
 
     public AsyncReceive(Executor executor) {
+        this(executor, (Runnable)null);
+    }
+
+    public AsyncReceive(Executor executor, Runnable onReceiversExhausted) {
         this.executor = executor;
+        this.onReceiversExhausted = onReceiversExhausted;
     }
 
     public AsyncReceive(Executor executor, final Dispatch<? super T> dispatch) {
-        this(executor);
+        this(executor, dispatch, null);
+    }
+
+    public AsyncReceive(Executor executor, final Dispatch<? super T> dispatch, Runnable onReceiversExhausted) {
+        this(executor, onReceiversExhausted);
         dispatchTo(dispatch);
     }
 
@@ -95,6 +109,9 @@ public class AsyncReceive<T> implements AsyncStoppable {
         lock.lock();
         try {
             receivers--;
+            if (receivers == 0 && onReceiversExhausted != null) {
+                onReceiversExhausted.run();
+            }
             condition.signalAll();
         } finally {
             lock.unlock();

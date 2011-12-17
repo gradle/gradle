@@ -50,16 +50,16 @@ class AbstractOptions {
                 (!excludedFieldsFromOptionMap().contains(field.name))
     }
 
-    private def antProperty(String fieldName) {
+    private antProperty(String fieldName) {
         String antProperty = null
-        if (fieldName2AntMap().keySet().contains(fieldName)) {
+        if (fieldName2AntMap().containsKey(fieldName)) {
             antProperty = fieldName2AntMap()[fieldName]
         }
         antProperty ?: fieldName
     }
 
-    private def antValue(String fieldName, def value) {
-        if (fieldValue2AntMap().keySet().contains(fieldName)) {
+    private antValue(String fieldName, def value) {
+        if (fieldValue2AntMap().containsKey(fieldName)) {
             return fieldValue2AntMap()[fieldName]()
         }
         value

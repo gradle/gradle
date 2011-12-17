@@ -1,0 +1,37 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>forcedModules</td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>failOnVersionConflict</td>
+            </tr>
+            <tr>
+                <td>force</td>
+            </tr>
+            <tr>
+                <td>cacheDynamicVersionsFor</td>
+            </tr>
+            <tr>
+                <td>cacheChangingModulesFor</td>
+            </tr>
+        </table>
+    </section>
+</section>

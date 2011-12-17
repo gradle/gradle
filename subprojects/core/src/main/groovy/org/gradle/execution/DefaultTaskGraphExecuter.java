@@ -41,9 +41,14 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
-    private final Set<Task> executionPlan = new LinkedHashSet<Task>();
+    private final Map<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
     private boolean populated;
     private Spec<? super Task> filter = Specs.satisfyAll();
+    private TaskFailureHandler failureHandler = new TaskFailureHandler() {
+        public void onTaskFailure(Task task) {
+            task.getState().rethrowFailure();
+        }
+    };
 
     public DefaultTaskGraphExecuter(ListenerManager listenerManager) {
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
@@ -75,7 +80,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         graphListeners.getSource().graphPopulated(this);
 
         try {
-            doExecute(executionPlan);
+            doExecute(executionPlan.values());
             logger.debug("Timing: Executing the DAG took " + clock.getTime());
         } finally {
             executionPlan.clear();
@@ -100,7 +105,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
                 queue.remove(0);
                 continue;
             }
-            if (executionPlan.contains(task)) {
+            if (executionPlan.containsKey(task)) {
                 // Already in plan - skip
                 queue.remove(0);
                 continue;
@@ -122,7 +127,15 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
                 // Have visited this task's dependencies - add it to the end of the plan
                 queue.remove(0);
                 visiting.remove(task);
-                executionPlan.add(task);
+                Set<TaskInfo> dependencies = new HashSet<TaskInfo>();
+                for (Task dependency : context.getDependencies(task)) {
+                    TaskInfo dependencyInfo = executionPlan.get(dependency);
+                    if (dependencyInfo != null) {
+                        dependencies.add(dependencyInfo);
+                    }
+                    // else - the dependency has been filtered, so ignore it
+                }
+                executionPlan.put(task, new TaskInfo((TaskInternal) task, dependencies));
             }
         }
     }
@@ -155,16 +168,33 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         taskListeners.add("afterExecute", closure);
     }
 
-    private void doExecute(Iterable<? extends Task> tasks) {
-        for (Task task : tasks) {
+    public void useFailureHandler(TaskFailureHandler handler) {
+        this.failureHandler = handler;
+    }
+
+    private void doExecute(Iterable<? extends TaskInfo> tasks) {
+        for (TaskInfo task : tasks) {
             executeTask(task);
         }
     }
 
-    private void executeTask(Task task) {
+    private void executeTask(TaskInfo taskInfo) {
+        TaskInternal task = taskInfo.task;
+        for (TaskInfo dependency : taskInfo.dependencies) {
+            if (!dependency.executed) {
+                // Cannot execute this task, as some dependencies have not been executed
+                return;
+            }
+        }
+        
         taskListeners.getSource().beforeExecute(task);
         try {
-            ((TaskInternal) task).execute();
+            task.executeWithoutThrowingTaskFailure();
+            if (task.getState().getFailure() != null) {
+                failureHandler.onTaskFailure(task);
+            } else {
+                taskInfo.executed = true;
+            }
         } finally {
             taskListeners.getSource().afterExecute(task, task.getState());
         }
@@ -172,7 +202,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
     public boolean hasTask(Task task) {
         assertPopulated();
-        return executionPlan.contains(task);
+        return executionPlan.containsKey(task);
     }
 
     public boolean hasTask(String path) {
@@ -188,13 +218,24 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
     public List<Task> getAllTasks() {
         assertPopulated();
-        return new ArrayList<Task>(executionPlan);
+        return new ArrayList<Task>(executionPlan.keySet());
     }
 
     private void assertPopulated() {
         if (!populated) {
             throw new IllegalStateException(
                     "Task information is not available, as this task execution graph has not been populated.");
+        }
+    }
+    
+    private static class TaskInfo {
+        private final TaskInternal task;
+        private final Set<TaskInfo> dependencies;
+        private boolean executed;
+
+        private TaskInfo(TaskInternal task, Set<TaskInfo> dependencies) {
+            this.task = task;
+            this.dependencies = dependencies;
         }
     }
 }

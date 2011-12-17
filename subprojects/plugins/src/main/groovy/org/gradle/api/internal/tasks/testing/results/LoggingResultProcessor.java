@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.results;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 
 public class LoggingResultProcessor implements TestResultProcessor {
     private static final Logger LOGGER = Logging.getLogger(LoggingResultProcessor.class);

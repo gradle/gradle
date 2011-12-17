@@ -45,18 +45,16 @@ p {
     margin-right: auto;
 }
 
-#header, #footer {
-    margin-bottom: 10px;
-}
-
 #header {
     position: relative;
-    height: 122px;
+    height: 90px;
+    margin: 0 33px 10px 33px;
+    margin-left: 33px;
+    margin-right: 33px;
 }
 
 #footer {
-    margin-left: 70px;
-    margin-right: 70px;
+    margin: 0 70px 10px 70px;
     width: 990px;
 }
 
@@ -70,6 +68,10 @@ p {
 
 #header #logo a:hover {
     text-decoration: none;
+}
+
+#header #logo img {
+    border: none;
 }
 
 #header #title {
@@ -375,8 +377,22 @@ table.table td.colHeader {
     list-style: none;
 }
 
+div.extraInfo {
+    color: #808080;
+    margin-top: -0.3em;
+    margin-bottom: 1em;
+}
+
 div.caution {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    border: solid #e6c8c8 1px;
     font-weight: bold;
+    padding-top: 0.8em;
+    padding-bottom: 0.8em;
+    padding-left: 1.6em;
+    padding-right: 1.6em;
+    background-color: #fff5f5;
 }
 
 #footer {
@@ -411,4 +427,50 @@ div.caution {
 
 #footer .container .entry {
     padding-top: 5px;
+}
+
+.clearfix:after {
+    content: ".";
+    display: block;
+    clear: both;
+    visibility: hidden;
+    line-height: 0;
+    height: 0;
+}
+
+.clearfix {
+    display: inline-block;
+}
+
+html[xmlns] .clearfix {
+    display: block;
+}
+
+* html .clearfix {
+    height: 1%;
+}
+
+div.book img {
+    margin-right: 1em;
+}
+
+div.book h2, div.book h3 {
+    margin-top: 0;
+}
+
+div.book p.authors {
+    font-style: italic;
+}
+
+img.book-cover {
+    float: right; 
+    margin: 10px; 
+    width: 180px; 
+    height: 236px;
+    clear: both;
+}
+
+div.book-listing h2 {
+    width: 790px;
+    clear: both;
 }

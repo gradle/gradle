@@ -125,13 +125,13 @@
             as a compile-time dependency.
         </para>
 
-        <sample id="customTaskStandalone" dir="customPlugin" title="A build for a custom task" includeLocation="true">
+        <sample id="customTaskStandalone" dir="customPlugin/plugin" title="A build for a custom task" includeLocation="true">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
 
         <para>We just follow the convention for where the source for the task class should go.</para>
 
-        <sample id="customTaskStandalone" dir="customPlugin" title="A custom task">
+        <sample id="customTaskStandalone" dir="customPlugin/plugin" title="A custom task">
             <sourcefile file="src/main/groovy/org/gradle/GreetingTask.groovy"/>
         </sample>
 
@@ -142,8 +142,10 @@
                 The following example shows how you might do this when the JAR containing the task class has been published
                 to a local repository:
             </para>
-            <sample id="usingCustomTask" dir="customPlugin" title="Using a custom task in another project">
-                <sourcefile file="usesCustomTask.gradle" snippet="use-task"/>
+            <sample id="usingCustomTask" dir="customPlugin/consumer" title="Using a custom task in another project">
+                <test args="-p../plugin uploadArchives"/>
+                <test args="greeting"/>
+                <sourcefile file="build.gradle" snippet="use-task"/>
             </sample>
         </section>
         <section>
@@ -151,7 +153,7 @@
             <para>You can use the <apilink class="org.gradle.testfixtures.ProjectBuilder"/> class to create
                 <apilink class="org.gradle.api.Project"/> instances to use when you test your task class.
             </para>
-            <sample id="customTaskStandalone" dir="customPlugin" title="Testing a custom task">
+            <sample id="customTaskStandalone" dir="customPlugin/plugin" title="Testing a custom task">
                 <sourcefile file="src/test/groovy/org/gradle/GreetingTaskTest.groovy" snippet="test-task"/>
             </sample>
         </section>

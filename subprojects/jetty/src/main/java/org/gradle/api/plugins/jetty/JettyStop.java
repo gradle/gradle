@@ -19,6 +19,8 @@ package org.gradle.api.plugins.jetty;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.logging.ProgressLogger;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +48,10 @@ public class JettyStop extends ConventionTask {
             throw new InvalidUserDataException("Please specify a valid stopKey");
         }
 
+        ProgressLogger progressLogger = getServices().get(ProgressLoggerFactory.class).newOperation(JettyStop.class);
+        progressLogger.setDescription("Stop Jetty server");
+        progressLogger.setShortDescription("Stopping Jetty");
+        progressLogger.started();
         try {
             Socket s = new Socket(InetAddress.getByName("127.0.0.1"), getStopPort());
             s.setSoLinger(false, 0);
@@ -58,6 +64,8 @@ public class JettyStop extends ConventionTask {
             logger.info("Jetty not running!");
         } catch (Exception e) {
             logger.error("Exception during stopping", e);
+        } finally {
+            progressLogger.completed();
         }
     }
 

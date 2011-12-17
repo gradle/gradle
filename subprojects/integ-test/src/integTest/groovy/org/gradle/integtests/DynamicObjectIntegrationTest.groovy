@@ -341,12 +341,21 @@ assert 'overridden value' == global
         testDir.file('build.gradle') << '''
             class GroovyTask extends DefaultTask {
                 def String prop
+                void doStuff(Action<Task> action) { action.execute(this) }
             }
             tasks.withType(GroovyTask) { conventionMapping.prop = { '[default]' } }
             task test(type: GroovyTask)
             assert test.prop == '[default]'
-            test { prop 'value' }
+            test {
+                description 'does something'
+                prop 'value'
+            }
+            assert test.description == 'does something'
             assert test.prop == 'value'
+            test.doStuff {
+                prop = 'new value'
+            }
+            assert test.prop == 'new value'
 '''
 
         executer.inDirectory(testDir).withTasks("test").run();

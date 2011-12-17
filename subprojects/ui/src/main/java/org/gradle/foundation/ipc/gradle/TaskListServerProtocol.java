@@ -15,12 +15,10 @@
  */
 package org.gradle.foundation.ipc.gradle;
 
-import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.ipc.basic.MessageObject;
+import org.gradle.logging.ShowStacktrace;
 
 import java.io.File;
 import java.util.List;
@@ -32,8 +30,6 @@ import java.util.List;
  * @author mhunsicker
  */
 public class TaskListServerProtocol extends AbstractGradleServerProtocol {
-    private final Logger logger = Logging.getLogger(TaskListServerProtocol.class);
-
     private static final String INIT_SCRIPT_NAME = "refresh-tasks-init-script";
 
     private ExecutionInteraction executionInteraction;
@@ -58,7 +54,7 @@ public class TaskListServerProtocol extends AbstractGradleServerProtocol {
         void reportLiveOutput(String message);
     }
 
-    public TaskListServerProtocol(File currentDirectory, File gradleHomeDirectory, File customGradleExecutor, String fullCommandLine, LogLevel logLevel, StartParameter.ShowStacktrace stackTraceLevel,
+    public TaskListServerProtocol(File currentDirectory, File gradleHomeDirectory, File customGradleExecutor, String fullCommandLine, LogLevel logLevel, ShowStacktrace stackTraceLevel,
                                   ExecutionInteraction executionInteraction) {
         super(currentDirectory, gradleHomeDirectory, customGradleExecutor, fullCommandLine, logLevel, stackTraceLevel);
         this.executionInteraction = executionInteraction;

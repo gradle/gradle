@@ -16,13 +16,13 @@
 
 package org.gradle.integtests.tooling
 
+import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.TestFile
-import org.gradle.util.TextUtil
-
 import spock.lang.Issue
 
+@MinTargetGradleVersion('1.0-milestone-5')
 class EclipseToolingApiIntegrationTest extends ToolingApiSpecification {
     TestFile projectDir = dist.testDir
 
@@ -35,7 +35,7 @@ class EclipseToolingApiIntegrationTest extends ToolingApiSpecification {
 apply plugin: "java"
 
 repositories {
-	flatDir { dirs "${TextUtil.escapeString(repoDir)}" }
+	flatDir dirs: file("${repoDir.toURI()}")
 }
 
 dependencies {
@@ -49,6 +49,8 @@ dependencies {
         }
 
         then:
-        project != null
+        project.classpath[0].file != null
+        project.classpath[0].source == null
+        project.classpath[0].javadoc == null
     }
 }

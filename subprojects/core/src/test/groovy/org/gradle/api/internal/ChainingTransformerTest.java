@@ -38,8 +38,10 @@ public class ChainingTransformerTest {
 
     @Test
     public void passesObjectToEachTransformerInTurn() {
-        final Transformer<String> transformerA = context.mock(Transformer.class, "transformerA");
-        final Transformer<String> transformerB = context.mock(Transformer.class, "transformerB");
+        @SuppressWarnings("unchecked")
+        final Transformer<String, String> transformerA = context.mock(Transformer.class, "transformerA");
+        @SuppressWarnings("unchecked")
+        final Transformer<String, String> transformerB = context.mock(Transformer.class, "transformerB");
 
         context.checking(new Expectations(){{
             one(transformerA).transform("original");

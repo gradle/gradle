@@ -19,11 +19,15 @@ import spock.lang.*
 import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.*
 import org.gradle.util.HelperUtil
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
 
 class SigningProjectSpec extends Specification {
     
     static final DEFAULT_KEY_SET = "gradle"
     
+    @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
+        
     Project project = HelperUtil.createRootProject()
     
     private assertProject() {
@@ -86,8 +90,17 @@ class SigningProjectSpec extends Specification {
     }
     
     def getResourceFile(path) {
-        def url = getClass().classLoader.getResource(path)
-        new File(url.toURI())
+        def copiedFile = tmpDir.file(path)
+        if (!copiedFile.exists()) {
+            
+            def url = getClass().classLoader.getResource(path)
+            def file = new File(url.toURI())
+            if (file.exists()) {
+                copiedFile.copyFrom(file)
+            }
+        }
+        
+        copiedFile
     }
     
     def useJavadocAndSourceJars() {

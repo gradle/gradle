@@ -48,7 +48,7 @@ public class EclipseModelBuilder implements BuildsModel {
     private GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
     private GradleProject rootGradleProject;
 
-    public boolean canBuild(Class type) {
+    public boolean canBuild(Class<?> type) {
         if (type.isAssignableFrom(EclipseProjectVersion3.class)) {
             //I don't like preparing the state in this method but for now lets leave it :/
             boolean includeTasks = BuildableProjectVersion1.class.isAssignableFrom(type);

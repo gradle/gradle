@@ -24,7 +24,7 @@ import org.gradle.tooling.internal.protocol.ProjectVersion3;
  * @author: Szczepan Faber, created at: 7/23/11
  */
 public class BasicIdeaModelBuilder implements BuildsModel {
-    public boolean canBuild(Class type) {
+    public boolean canBuild(Class<?> type) {
         return type == InternalBasicIdeaProject.class;
     }
 

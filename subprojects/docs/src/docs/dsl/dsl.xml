@@ -148,7 +148,30 @@
                 <td>org.gradle.api.artifacts.Configuration</td>
             </tr>
             <tr>
+                <td>org.gradle.api.artifacts.ResolutionStrategy</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.ExtensionAware</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.dsl.ConventionProperty</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Container types</title>
+        <para>Container types that handle various declarative elements (e.g. dependencies, configurations, artifacts, etc.):</para>
+        <table>
+            <title>Container types</title>
+            <tr>
+                <td>org.gradle.api.artifacts.ConfigurationContainer</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.DependencyHandler</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.ArtifactHandler</td>
             </tr>
         </table>
     </section>
@@ -259,6 +282,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.bundling.Zip</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.bundling.AbstractArchiveTask</td>
             </tr>
         </table>
     </section>

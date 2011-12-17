@@ -28,11 +28,14 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.cache.CacheRepository
+import org.gradle.cache.internal.FileLockManager
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.util.TimeProvider
 import spock.lang.Specification
-import org.gradle.cache.internal.FileLockManager
+import org.gradle.cache.DirectoryCacheBuilder
+import org.gradle.cache.PersistentCache
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -52,12 +55,26 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.getFactory(LoggingManagerInternal) >> loggingFactory
         ProgressLoggerFactory progressLoggerFactory = Mock()
         _ * parent.get(ProgressLoggerFactory) >> progressLoggerFactory
-        CacheRepository cacheRepository = Mock()
+        CacheRepository cacheRepository = initCacheRepository()
         _ * parent.get(CacheRepository) >> cacheRepository
         ClassPathRegistry classPathRegistry = Mock()
         _ * parent.get(ClassPathRegistry) >> classPathRegistry
         _ * parent.get(ListenerManager) >> listenerManager
         _ * parent.get(FileLockManager) >> Mock(FileLockManager)
+        _ * parent.get(TimeProvider) >> Mock(TimeProvider)
+    }
+
+    private CacheRepository initCacheRepository() {
+        CacheRepository cacheRepository = Mock()
+        DirectoryCacheBuilder cacheBuilder = Mock()
+        _ * cacheRepository.store(_) >> cacheBuilder
+        _ * cacheBuilder.withVersionStrategy(_) >> cacheBuilder
+        _ * cacheBuilder.withLockMode(_) >> cacheBuilder
+        _ * cacheBuilder.withDisplayName(_) >> cacheBuilder
+        PersistentCache cache = Mock()
+        _ * cacheBuilder.open() >> cache
+        cache.baseDir >> new File("cache")
+        return cacheRepository
     }
 
     def "can create dependency resolution services"() {
@@ -65,7 +82,8 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(Instantiator.class) >> instantiator
         _ * parent.get(StartParameter.class) >> startParameter
         1 * instantiator.newInstance(DefaultRepositoryHandler.class, _, _) >> repositoryHandler
-        1 * instantiator.newInstance(DefaultConfigurationContainer.class, !null, instantiator, domainObjectContext, listenerManager, dependencyMetaDataProvider) >> configurationContainer
+        1 * instantiator.newInstance(DefaultConfigurationContainer.class, !null, instantiator,
+                domainObjectContext, listenerManager, dependencyMetaDataProvider) >> configurationContainer
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
@@ -74,6 +92,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         resolutionServices.resolveRepositoryHandler != null
         resolutionServices.configurationContainer != null
         resolutionServices.dependencyHandler != null
+        resolutionServices.artifactHandler != null
         resolutionServices.publishServicesFactory != null
     }
 

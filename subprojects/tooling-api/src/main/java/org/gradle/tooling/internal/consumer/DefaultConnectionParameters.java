@@ -25,14 +25,16 @@ public class DefaultConnectionParameters implements ConnectionParameters {
     private final Boolean embedded;
     private final Integer daemonMaxIdleTimeValue;
     private final TimeUnit daemonMaxIdleTimeUnits;
+    private final boolean verboseLogging;
 
-    public DefaultConnectionParameters(File projectDir, File gradleUserHomeDir, Boolean searchUpwards, Boolean embedded, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
+    public DefaultConnectionParameters(File projectDir, File gradleUserHomeDir, Boolean searchUpwards, Boolean embedded, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, boolean verboseLogging) {
         this.projectDir = projectDir;
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.searchUpwards = searchUpwards;
         this.embedded = embedded;
         this.daemonMaxIdleTimeValue = daemonMaxIdleTimeValue;
         this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
+        this.verboseLogging = verboseLogging;
     }
 
     public File getGradleUserHomeDir() {
@@ -57,5 +59,9 @@ public class DefaultConnectionParameters implements ConnectionParameters {
 
     public TimeUnit getDaemonMaxIdleTimeUnits() {
         return daemonMaxIdleTimeUnits;
+    }
+
+    public boolean getVerboseLogging() {
+        return verboseLogging;
     }
 }

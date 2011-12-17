@@ -18,5 +18,8 @@ package org.gradle.api.internal;
 import java.io.File;
 
 public interface GradleDistributionLocator {
+    /**
+     * Returns the directory containing the Gradle distribution of the current Gradle version. May be null.
+     */
     File getGradleHome();
 }

@@ -15,7 +15,6 @@ public class Main {
             connector.useInstallation(new File(args[0]));
         }
 
-        //TODO SF make it a multimodule project
         ProjectConnection connection = connector.connect();
         try {
             IdeaProject project = connection.getModel(IdeaProject.class);

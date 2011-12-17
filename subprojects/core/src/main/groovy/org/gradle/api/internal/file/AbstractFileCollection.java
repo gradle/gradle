@@ -27,6 +27,7 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.GUtil;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.*;
@@ -208,7 +209,7 @@ public abstract class AbstractFileCollection implements FileCollection, MinimalF
             }
 
             public Set<File> getFiles() {
-                return Specs.filterIterable(AbstractFileCollection.this, filterSpec);
+                return CollectionUtils.filter(AbstractFileCollection.this, new LinkedHashSet<File>(), filterSpec);
             }
         };
     }

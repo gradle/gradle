@@ -19,6 +19,10 @@ import java.lang.reflect.Field
 
 import net.jcip.annotations.NotThreadSafe
 
+/**
+ * Converts a model object to a map of Sonar properties, guided by the information
+ * provided with <tt>SonarProperty</tt> and <tt>IncludeProperties</tt> annotations.
+ */
 @NotThreadSafe
 class ModelToPropertiesConverter {
     List<Closure> propertyProcessors = []

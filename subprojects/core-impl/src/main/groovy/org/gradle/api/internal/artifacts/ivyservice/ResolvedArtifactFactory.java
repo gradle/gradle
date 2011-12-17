@@ -16,15 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.resolve.DownloadOptions;
-import org.apache.ivy.core.resolve.ResolveEngine;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.file.FileSource;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
 public class ResolvedArtifactFactory {
     private final CacheLockingManager lockingManager;
@@ -33,12 +31,12 @@ public class ResolvedArtifactFactory {
         this.lockingManager = lockingManager;
     }
 
-    public ResolvedArtifact create(ResolvedDependency owner, final Artifact artifact, final ResolveEngine resolvedEngine) {
+    public ResolvedArtifact create(ResolvedDependency owner, final Artifact artifact, final ArtifactToFileResolver resolver) {
         return new DefaultResolvedArtifact(owner, artifact, new FileSource() {
             public File get() {
-                return lockingManager.withCacheLock(new Callable<File>() {
-                    public File call() throws Exception {
-                        return resolvedEngine.download(artifact, new DownloadOptions()).getLocalFile();
+                return lockingManager.useCache(String.format("download %s", artifact), new Factory<File>() {
+                    public File create() {
+                        return resolver.resolve(artifact);
                     }
                 });
             }

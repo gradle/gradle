@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,30 @@ package org.gradle.api.internal.file.archive;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.file.copy.ReadableCopySpec;
-import org.gradle.api.tasks.bundling.Compression;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.util.TestFile;
+import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
+import org.gradle.api.internal.file.archive.compression.GzipArchiver;
+import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
+import org.gradle.api.internal.file.copy.ReadableCopySpec;
 import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
 import org.hamcrest.Description;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.io.OutputStream;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class TarCopySpecVisitorTest {
@@ -64,8 +68,8 @@ public class TarCopySpecVisitorTest {
         context.checking(new Expectations() {{
             allowing(copyAction).getArchivePath();
             will(returnValue(tarFile));
-            allowing(copyAction).getCompression();
-            will(returnValue(Compression.NONE));
+            allowing(copyAction).getCompressor();
+            will(returnValue(new SimpleCompressor()));
         }});
 
         visitor.startVisit(copyAction);
@@ -89,8 +93,8 @@ public class TarCopySpecVisitorTest {
         context.checking(new Expectations(){{
             allowing(copyAction).getArchivePath();
             will(returnValue(tarFile));
-            allowing(copyAction).getCompression();
-            will(returnValue(Compression.GZIP));
+            allowing(copyAction).getCompressor();
+            will(returnValue(GzipArchiver.getCompressor()));
         }});
 
         visitor.startVisit(copyAction);
@@ -114,8 +118,8 @@ public class TarCopySpecVisitorTest {
         context.checking(new Expectations(){{
             allowing(copyAction).getArchivePath();
             will(returnValue(tarFile));
-            allowing(copyAction).getCompression();
-            will(returnValue(Compression.BZIP2));
+            allowing(copyAction).getCompressor();
+            will(returnValue(Bzip2Archiver.getCompressor()));
         }});
 
         visitor.startVisit(copyAction);
@@ -139,6 +143,8 @@ public class TarCopySpecVisitorTest {
         context.checking(new Expectations(){{
             allowing(copyAction).getArchivePath();
             will(returnValue(tarFile));
+            allowing(copyAction).getCompressor();
+            will(returnValue(new SimpleCompressor()));
         }});
 
         try {
@@ -157,8 +163,10 @@ public class TarCopySpecVisitorTest {
             allowing(copyAction).getArchivePath();
             will(returnValue(tarFile));
 
-            allowing(copyAction).getCompression();
-            will(returnValue(Compression.NONE));
+            allowing(copyAction).getCompressor();
+            will(returnValue(new SimpleCompressor(
+
+            )));
         }});
 
         visitor.startVisit(copyAction);

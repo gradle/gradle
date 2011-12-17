@@ -35,25 +35,6 @@ war {
     webXml = file('src/someWeb.xml') // copies a file to WEB-INF/web.xml
 }
 
-// START SNIPPET enable-jar
-jar.enabled = true
-// END SNIPPET enable-jar
-
-[jettyRun, jettyRunWar]*.daemon = true
 stopKey = 'foo'
 stopPort = 9451
-httpPort = 8163
-
-task runTest(dependsOn: jettyRun) << {
-    callServlet()
-}
-
-task runWarTest(dependsOn: jettyRunWar) << {
-    callServlet()
-}
-
-private void callServlet() {
-    URL url = new URL("http://localhost:$httpPort/customised/hello")
-    new File(buildDir, "servlet-out.txt").write(url.text)
-    jettyStop.execute()
-}
+httpPort = 8080

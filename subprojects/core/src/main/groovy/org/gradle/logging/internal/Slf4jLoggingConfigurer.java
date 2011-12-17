@@ -126,6 +126,8 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer {
                 throw new IllegalArgumentException();
         }
 
+        lc.getLogger("httpclient.wire.content").setLevel(Level.OFF);
+
         appender.start();
     }
 

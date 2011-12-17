@@ -15,9 +15,9 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ProjectConnection;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +37,7 @@ public class DefaultGradleConnector extends GradleConnector {
     private Boolean embedded;
     private Integer daemonMaxIdleTimeValue;
     private TimeUnit daemonMaxIdleTimeUnits;
+    private boolean verboseLogging;
 
     public DefaultGradleConnector(ConnectionFactory connectionFactory, DistributionFactory distributionFactory) {
         this.connectionFactory = connectionFactory;
@@ -101,9 +102,29 @@ public class DefaultGradleConnector extends GradleConnector {
             throw new IllegalStateException("A project directory must be specified before creating a connection.");
         }
         if (distribution == null) {
-            distribution = distributionFactory.getDefaultDistribution(projectDir);
+            distribution = distributionFactory.getDefaultDistribution(projectDir, searchUpwards != null ? searchUpwards : true);
         }
-        return connectionFactory.create(distribution, new DefaultConnectionParameters(projectDir, gradleUserHomeDir, searchUpwards, embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits));
+        DefaultConnectionParameters params = new DefaultConnectionParameters(projectDir, gradleUserHomeDir, searchUpwards,
+                embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, verboseLogging);
+        return connectionFactory.create(distribution, params);
     }
 
+    /**
+     * If true then debug log statements will be shown
+     *
+     * @param verboseLogging
+     * @return
+     */
+    public DefaultGradleConnector setVerboseLogging(boolean verboseLogging) {
+        this.verboseLogging = true;
+        return this;
+    }
+
+    ConnectionFactory getConnectionFactory() {
+        return connectionFactory;
+    }
+
+    void setDistribution(Distribution distribution) {
+        this.distribution = distribution;
+    }
 }

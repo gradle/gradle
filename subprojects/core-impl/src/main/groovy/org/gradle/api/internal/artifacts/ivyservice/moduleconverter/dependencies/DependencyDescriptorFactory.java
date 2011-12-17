@@ -25,8 +25,6 @@ import org.gradle.api.artifacts.ModuleDependency;
  * @author Hans Dockter
  */
 public interface DependencyDescriptorFactory {
-    String PROJECT_PATH_KEY = "org.gradle.projectPath";
-
     /** Adds a dependency descriptor, using information in the configuration object to work around ivy limitations */
     DefaultDependencyDescriptor addDependencyDescriptor(Configuration configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency);
 

@@ -16,11 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.conflict.ConflictManager;
-import org.apache.ivy.plugins.conflict.LatestConflictManager;
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -31,16 +26,18 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.IvyConverter
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Collections;
+
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
@@ -62,7 +59,6 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
 
     private DependencyDescriptorFactory dependencyDescriptorFactoryStub = context.mock(DependencyDescriptorFactory.class);
     private ExcludeRuleConverter excludeRuleConverterStub = context.mock(ExcludeRuleConverter.class);
-    private IvySettings ivySettingsDummy = new IvySettings();
 
     @Test
     public void testAddDependencyDescriptors() {
@@ -71,7 +67,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
         Configuration configurationStub1 = createNamedConfigurationStubWithDependenciesAndExcludeRules("conf1", GRADLE_EXCLUDE_RULE_DUMMY_1, dependencyDummy1, similarDependency1);
         Configuration configurationStub2 = createNamedConfigurationStubWithDependenciesAndExcludeRules("conf2", GRADLE_EXCLUDE_RULE_DUMMY_2, dependencyDummy2, similarDependency2);
         Configuration configurationStub3 = createNamedConfigurationStubWithDependenciesAndExcludeRules("conf3", null, similarDependency3);
-        DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(toSet(configurationStub1.getName(),
+        final DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(toSet(configurationStub1.getName(),
                 configurationStub2.getName()));
         associateDependencyWithDescriptor(dependencyDummy1, moduleDescriptor, configurationStub1);
         associateDependencyWithDescriptor(dependencyDummy2, moduleDescriptor, configurationStub2);
@@ -81,21 +77,12 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
         associateGradleExcludeRuleWithIvyExcludeRule(GRADLE_EXCLUDE_RULE_DUMMY_1, ivyExcludeRuleStub1, configurationStub1);
         associateGradleExcludeRuleWithIvyExcludeRule(GRADLE_EXCLUDE_RULE_DUMMY_2, ivyExcludeRuleStub2, configurationStub2);
 
-        converter.addDependencyDescriptors(moduleDescriptor, toSet(configurationStub1, configurationStub2, configurationStub3),
-                ivySettingsDummy);
-                
+        converter.addDependencyDescriptors(moduleDescriptor, toSet(configurationStub1, configurationStub2, configurationStub3));
+
         assertThat(moduleDescriptor.getExcludeRules(toArray(configurationStub1.getName())), equalTo(toArray(
                 ivyExcludeRuleStub1)));
         assertThat(moduleDescriptor.getExcludeRules(toArray(configurationStub2.getName())), equalTo(toArray(
                 ivyExcludeRuleStub2)));
-        assertIsCorrectConflictResolver(moduleDescriptor);
-        
-    }
-
-    private void assertIsCorrectConflictResolver(DefaultModuleDescriptor moduleDescriptor) {
-        ConflictManager conflictManager = moduleDescriptor.getConflictManager(new ModuleId(ExactPatternMatcher.ANY_EXPRESSION, ExactPatternMatcher.ANY_EXPRESSION));
-        assertThat(conflictManager, instanceOf(LatestConflictManager.class));
-        assertThat(((LatestConflictManager) conflictManager).getSettings(), equalTo(ivySettingsDummy));
 
     }
 

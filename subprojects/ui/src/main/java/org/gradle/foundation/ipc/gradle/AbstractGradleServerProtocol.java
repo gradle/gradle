@@ -16,7 +16,6 @@
 package org.gradle.foundation.ipc.gradle;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -26,6 +25,7 @@ import org.gradle.foundation.ipc.basic.ExecutionInfo;
 import org.gradle.foundation.ipc.basic.MessageObject;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.logging.ShowStacktrace;
 import org.gradle.os.OperatingSystem;
 import org.gradle.util.Jvm;
 
@@ -78,10 +78,10 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
         return continueConnection;
     }
 
-    private StartParameter.ShowStacktrace stackTraceLevel;
+    private ShowStacktrace stackTraceLevel;
 
     public AbstractGradleServerProtocol(File currentDirectory, File gradleHomeDirectory, File customGradleExecutor, String fullCommandLine, LogLevel logLevel,
-                                        StartParameter.ShowStacktrace stackTraceLevel) {
+                                        ShowStacktrace stackTraceLevel) {
         this.currentDirectory = currentDirectory;
         this.gradleHomeDirectory = gradleHomeDirectory;
         this.customGradleExecutor = customGradleExecutor;
@@ -271,7 +271,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
 
         //add the stack trace level if its not present
         if (!commandLineAssistant.hasShowStacktraceDefined(individualCommandLineArguments)) {
-            String stackTraceLevelText = commandLineAssistant.getCommandLineConverter().getShowStacktraceCommandLine(stackTraceLevel);
+            String stackTraceLevelText = commandLineAssistant.getLoggingCommandLineConverter().getShowStacktraceCommandLine(stackTraceLevel);
             if (stackTraceLevelText != null) {
                 executionCommandLine.add('-' + stackTraceLevelText);
             }

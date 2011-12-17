@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.bundling;
 
+import groovy.lang.Closure;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.util.GUtil;
@@ -156,5 +157,32 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     public void setClassifier(String classifier) {
         this.classifier = classifier;
+    }
+
+    /**
+     * Specifies the destination directory *inside* the archive for the files.
+     * The destination is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * Don't mix it up with {@link #getDestinationDir()} which specifies the output directory for the archive.
+     *
+     * @param destPath destination directory *inside* the archive for the files
+     * @return this
+     */
+    public AbstractArchiveTask into(Object destPath) {
+        super.into(destPath);
+        return this;
+    }
+
+    /**
+     * Creates and configures a child {@code CopySpec} with a destination directory *inside* the archive for the files.
+     * The destination is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * Don't mix it up with {@link #getDestinationDir()} which specifies the output directory for the archive.
+     *
+     * @param destPath destination directory *inside* the archive for the files
+     * @param configureClosure The closure to use to configure the child {@code CopySpec}.
+     * @return this
+     */
+    public AbstractArchiveTask into(Object destPath, Closure configureClosure) {
+        super.into(destPath, configureClosure);
+        return this;
     }
 }

@@ -29,7 +29,7 @@ import java.util.concurrent.Executor;
  */
 public class AsyncListenerBroadcast<T> extends ListenerBroadcast<T> {
     public AsyncListenerBroadcast(Class<T> type, final Executor executor) {
-        super(type, new Transformer<StoppableDispatch<MethodInvocation>>() {
+        super(type, new Transformer<StoppableDispatch<MethodInvocation>, StoppableDispatch<MethodInvocation>>() {
             public StoppableDispatch<MethodInvocation> transform(StoppableDispatch<MethodInvocation> original) {
                 return new AsyncDispatch<MethodInvocation>(executor, original);
             }

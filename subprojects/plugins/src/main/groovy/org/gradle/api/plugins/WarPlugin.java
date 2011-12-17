@@ -21,12 +21,10 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.bundling.War;
 
 import java.util.concurrent.Callable;
@@ -76,28 +74,8 @@ public class WarPlugin implements Plugin<Project> {
         War war = project.getTasks().add(WAR_TASK_NAME, War.class);
         war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
         war.setGroup(BasePlugin.BUILD_GROUP);
-        Configuration archivesConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
-        disableJarTaskAndRemoveFromArchivesConfiguration(project, archivesConfiguration);
-        archivesConfiguration.getArtifacts().add(new ArchivePublishArtifact(war));
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(war));
         configureConfigurations(project.getConfigurations());
-    }
-
-    private void disableJarTaskAndRemoveFromArchivesConfiguration(Project project, Configuration archivesConfiguration) {
-        Jar jarTask = (Jar) project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME);
-        jarTask.setEnabled(false);
-        removeJarTaskFromArchivesConfiguration(archivesConfiguration, jarTask);
-    }
-
-    private void removeJarTaskFromArchivesConfiguration(Configuration archivesConfiguration, Jar jar) {
-        // todo: There should be a richer connection between an ArchiveTask and a PublishArtifact
-        for (PublishArtifact publishArtifact : archivesConfiguration.getAllArtifacts()) {
-            if (publishArtifact instanceof ArchivePublishArtifact) {
-                ArchivePublishArtifact archivePublishArtifact = (ArchivePublishArtifact) publishArtifact;
-                if (archivePublishArtifact.getArchiveTask() == jar) {
-                    archivesConfiguration.getArtifacts().remove(publishArtifact);
-                }
-            }
-        }
     }
 
     public void configureConfigurations(ConfigurationContainer configurationContainer) {

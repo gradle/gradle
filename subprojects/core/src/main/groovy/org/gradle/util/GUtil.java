@@ -25,32 +25,46 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+
 /**
  * @author Hans Dockter
  */
 public class GUtil {
     public static <T extends Collection> T flatten(Object[] elements, T addTo, boolean flattenMaps) {
-        return flatten(Arrays.asList(elements), addTo, flattenMaps);
+        return flatten(asList(elements), addTo, flattenMaps);
     }
 
     public static <T extends Collection> T flatten(Object[] elements, T addTo) {
-        return flatten(Arrays.asList(elements), addTo);
+        return flatten(asList(elements), addTo);
     }
 
     public static <T extends Collection> T flatten(Collection elements, T addTo) {
         return flatten(elements, addTo, true);
     }
 
-    public static <T extends Collection> T flatten(Collection elements, T addTo, boolean flattenMaps) {
+    public static <T extends Collection> T flattenElements(Object... elements) {
+        Collection<T> out = new LinkedList<T>();
+        flatten(elements, out, true);
+        return (T) out;
+    }
+
+    public static <T extends Collection> T flatten(Collection elements, T addTo, boolean flattenMapsAndArrays) {
+        //TODO SF - for some reason, flattening of arrays is controlled by flattenMaps. Consider some refactorings.
+        return flatten(elements, addTo, flattenMapsAndArrays, flattenMapsAndArrays);
+    }
+
+    public static <T extends Collection> T flatten(Collection elements, T addTo, boolean flattenMaps, boolean flattenArrays) {
         Iterator iter = elements.iterator();
         while (iter.hasNext()) {
             Object element = iter.next();
             if (element instanceof Collection) {
-                flatten((Collection) element, addTo, flattenMaps);
+                flatten((Collection) element, addTo, flattenMaps, flattenArrays);
             } else if ((element instanceof Map) && flattenMaps) {
-                flatten(((Map) element).values(), addTo, flattenMaps);
-            } else if ((element.getClass().isArray()) && flattenMaps) {
-                flatten(Arrays.asList((Object[]) element), addTo, flattenMaps);
+                flatten(((Map) element).values(), addTo, flattenMaps, flattenArrays);
+            } else if ((element.getClass().isArray()) && flattenArrays) {
+                flatten(asList((Object[]) element), addTo, flattenMaps, flattenArrays);
             } else {
                 addTo.add(element);
             }
@@ -58,8 +72,31 @@ public class GUtil {
         return addTo;
     }
 
-    public static List flatten(Collection elements, boolean flattenMaps) {
-        return flatten(elements, new ArrayList(), flattenMaps);
+    //TODO SF - consider moving all flatteing and collectionzizing methods to the CollectionUtil
+    /**
+     * Flattens input collections (including arrays *but* not maps).
+     * If input is not a collection wraps it in a collection and returns it.
+     * @param input any object
+     * @return collection of flattened input or single input wrapped in a collection.
+     */
+    public static Collection collectionize(Object input) {
+        if (input == null) {
+            return emptyList();
+        } else if (input instanceof Collection) {
+            Collection out = new LinkedList();
+            flatten((Collection) input, out, false, true);
+            return out;
+        } else if (input.getClass().isArray()) {
+            Collection out = new LinkedList();
+            flatten(asList((Object[]) input), out, false, true);
+            return out;
+        } else {
+            return asList(input);
+        }
+    }
+
+    public static List flatten(Collection elements, boolean flattenMapsAndArrays) {
+        return flatten(elements, new ArrayList(), flattenMapsAndArrays);
     }
 
     public static List flatten(Collection elements) {
@@ -86,7 +123,7 @@ public class GUtil {
     }
 
     public static String join(Object[] self, String separator) {
-        return join(Arrays.asList(self), separator);
+        return join(asList(self), separator);
     }
 
     public static List<String> prefix(String prefix, Collection<String> strings) {
@@ -116,9 +153,17 @@ public class GUtil {
     public static <T> Set<T> addSets(Iterable<? extends T>... sets) {
         return addToCollection(new HashSet<T>(), sets);
     }
+    
+    public static <T> Set<T> toSet(Iterable<? extends T> elements) {
+        return addToCollection(new HashSet<T>(), elements);
+    }
 
     public static <T> List<T> addLists(Iterable<? extends T>... lists) {
         return addToCollection(new ArrayList<T>(), lists);
+    }
+
+    public static <T> List<T> toList(Iterable<? extends T> list) {
+        return addToCollection(new ArrayList<T>(), list);
     }
 
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, Iterable<? extends V>... srcs) {

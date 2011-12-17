@@ -15,11 +15,7 @@ signing {
 }
 // END SNIPPET conditional-signing
 
-configurations {
-    published.extendsFrom archives, signatures
-}
-
-uploadPublished {
+uploadArchives {
     repositories {
         mavenDeployer {
             repository(url: uri("${buildDir}/repo"))

@@ -42,9 +42,9 @@
     <xi:include href='installation.xml'/>
     <xi:include href='buildScriptsTutorial.xml'/>
     <xi:include href='javaTutorial.xml'/>
+    <xi:include href='artifactDependenciesTutorial.xml'/>
     <xi:include href='groovyTutorial.xml'/>
     <xi:include href='webTutorial.xml'/>
-    <xi:include href='artifactDependenciesTutorial.xml'/>
     <xi:include href='commandLineTutorial.xml'/>
     <xi:include href='guiTutorial.xml'/>
     <xi:include href='thisAndThat.xml'/>
@@ -69,11 +69,13 @@
     <xi:include href='antlrPlugin.xml'/>
     <xi:include href='projectReports.xml'/>
     <xi:include href='announcePlugin.xml'/>
+    <xi:include href='buildAnnouncementsPlugin.xml'/>
     <xi:include href='applicationPlugin.xml'/>
 	<xi:include href='depMngmt.xml'/>
     <xi:include href='artifactMngmt.xml'/>
     <xi:include href='mavenPlugin.xml'/>
     <xi:include href='signingPlugin.xml'/>
+    <xi:include href='cpp.xml'/>
     <xi:include href='buildLifecycle.xml'/>
     <xi:include href='multiproject.xml'/>
     <xi:include href='customTasks.xml'/>
@@ -87,6 +89,5 @@
     <xi:include href='potentialTraps.xml'/>
     <xi:include href='commandLine.xml'/>
     <xi:include href='ideSupport.xml'/>
-    <xi:include href='cpp.xml'/>
     <xi:include href='glossary.xml'/>
 </book>

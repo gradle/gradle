@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileResolver;
@@ -99,6 +100,9 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 resolveNested(fileCollection);
             } else if (element instanceof FileCollection || element instanceof MinimalFileCollection) {
                 converter.convertInto(element, result, fileResolver);
+            } else if (element instanceof Task) {
+                Task task = (Task) element;
+                queue.add(0, task.getOutputs().getFiles());
             } else if (element instanceof Closure) {
                 Closure closure = (Closure) element;
                 Object closureResult = closure.call();

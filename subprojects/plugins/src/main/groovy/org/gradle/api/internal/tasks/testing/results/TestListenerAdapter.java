@@ -17,35 +17,53 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.tasks.testing.TestListener;
-import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.*;
 
 public class TestListenerAdapter extends StateTrackingTestResultProcessor {
-    private final TestListener listener;
+    private final TestListener testListener;
+    private final TestOutputListener testOutputListener;
 
-    public TestListenerAdapter(TestListener listener) {
-        this.listener = listener;
+    public TestListenerAdapter(TestListener testListener, TestOutputListener testOutputListener) {
+        this.testListener = testListener;
+        this.testOutputListener = testOutputListener;
     }
 
     @Override
     protected void started(TestState state) {
         TestDescriptorInternal test = state.test;
         if (test.isComposite()) {
-            listener.beforeSuite(test);
+            testListener.beforeSuite(test);
         } else {
-            listener.beforeTest(test);
+            testListener.beforeTest(test);
         }
     }
 
     @Override
     protected void completed(TestState state) {
-        TestResult result = new DefaultTestResult(state.resultType, state.failures, state.getStartTime(),
-                state.getEndTime(), state.testCount, state.successfulCount, state.failedCount);
+        TestResult result = new DefaultTestResult(state);
         TestDescriptorInternal test = state.test;
         if (test.isComposite()) {
-            listener.afterSuite(test, result);
+            testListener.afterSuite(test, result);
         } else {
-            listener.afterTest(test, result);
+            testListener.afterTest(test, result);
+        }
+    }
+
+    @Override
+    public void output(Object testId, TestOutputEvent event) {
+        super.output(testId, event);
+
+        TestState testState = getTestStateFor(testId);
+        if (testState == null) {
+            throw new UnableToFindTest("Unable to notify listener with output event: " + event + ". I couldn't find test with id: "
+                    + testId + ". This might be a bug, please report it.");
+        }
+        testOutputListener.onOutput(testState.test, event);
+    }
+
+    public static class UnableToFindTest extends RuntimeException {
+        public UnableToFindTest(String message) {
+            super(message);
         }
     }
 }

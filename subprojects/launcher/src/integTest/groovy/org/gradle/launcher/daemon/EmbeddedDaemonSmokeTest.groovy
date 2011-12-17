@@ -17,15 +17,14 @@ package org.gradle.launcher.daemon
 
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.launcher.daemon.client.DaemonClient
+import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
+import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.exec.DefaultBuildActionParameters
-import org.gradle.logging.LoggingServiceRegistry
-import org.gradle.logging.internal.OutputEventListener
 import org.gradle.tooling.internal.provider.ConfiguringBuildAction
 import org.gradle.tooling.internal.provider.ExecuteBuildAction
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.launcher.daemon.client.EmbeddedDaemonConnector
-import org.gradle.launcher.daemon.client.DaemonClient
 
 /**
  * Exercises the basic mechanics using an embedded daemon.
@@ -37,14 +36,11 @@ class EmbeddedDaemonSmokeTest extends Specification {
 
     @Rule public final GradleDistribution distribution = new GradleDistribution()
 
-    def connector = new EmbeddedDaemonConnector()
-    def metadata = new GradleLauncherMetaData()
-    def outputEventListener = LoggingServiceRegistry.newEmbeddableLogging().get(OutputEventListener)
-    def client = new DaemonClient(connector, metadata, outputEventListener)
+    def daemonClientServices = new EmbeddedDaemonClientServices()
     
     def "run build"() {
         given:
-        def action = new ConfiguringBuildAction(distribution.gradleHomeDir, distribution.testDir, false, new ExecuteBuildAction(["echo"]))
+        def action = new ConfiguringBuildAction(distribution.gradleHomeDir, distribution.testDir, false, false, new ExecuteBuildAction(["echo"]))
         def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties, System.getenv(), new File("."))
         
         and:
@@ -61,14 +57,14 @@ class EmbeddedDaemonSmokeTest extends Specification {
         """
         
         when:
-        client.execute(action, parameters)
+        daemonClientServices.get(DaemonClient).execute(action, parameters)
         
         then:
         outputFile.exists() && outputFile.text == "Hello!"
     }
     
     def cleanup() {
-        connector.daemonRegistry.stopDaemons()
+        daemonClientServices.get(DaemonRegistry).stopDaemons()
     }
 
 }

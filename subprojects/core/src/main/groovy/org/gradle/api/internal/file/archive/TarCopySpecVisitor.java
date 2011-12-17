@@ -15,22 +15,19 @@
  */
 package org.gradle.api.internal.file.archive;
 
+import org.apache.tools.tar.TarEntry;
+import org.apache.tools.tar.TarOutputStream;
+import org.apache.tools.zip.UnixStat;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.file.FileVisitDetails;
-import org.apache.tools.tar.TarOutputStream;
-import org.apache.tools.tar.TarEntry;
-import org.apache.tools.bzip2.CBZip2OutputStream;
-import org.apache.tools.zip.UnixStat;
+import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.EmptyCopySpecVisitor;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.zip.GZIPOutputStream;
 
 public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
     private TarOutputStream tarOutStr;
@@ -41,17 +38,7 @@ public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
         TarCopyAction archiveAction = (TarCopyAction) action;
         try {
             tarFile = archiveAction.getArchivePath();
-            OutputStream outStr = new FileOutputStream(tarFile);
-            switch (archiveAction.getCompression()) {
-                case GZIP:
-                    outStr = new GZIPOutputStream(outStr);
-                    break;
-                case BZIP2:
-                    outStr.write('B');
-                    outStr.write('Z');
-                    outStr = new CBZip2OutputStream(outStr);
-                    break;
-            }
+            OutputStream outStr = archiveAction.getCompressor().compress(tarFile);
             tarOutStr = new TarOutputStream(outStr);
             tarOutStr.setLongFileMode(TarOutputStream.LONGFILE_GNU);
         } catch (Exception e) {

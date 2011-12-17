@@ -26,6 +26,7 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public interface DependencyFactory {
+    //for gradle distribution specific dependencies
     enum ClassPathNotation {
         GRADLE_API, LOCAL_GROOVY
     }

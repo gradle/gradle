@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -45,10 +45,10 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
         return new ResolvedConfiguration() {
             private final CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive());
 
-            public Set<File> getFiles(Spec<Dependency> dependencySpec) {
+            public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
                 Set<File> files = new LinkedHashSet<File>();
 
-                Set<Dependency> selectedDependencies = Specs.filterIterable(dependencies, dependencySpec);
+                Set<Dependency> selectedDependencies = CollectionUtils.filter(dependencies, dependencySpec);
                 for (Dependency dependency : selectedDependencies) {
                     resolveContext.add(dependency);
                 }
@@ -65,7 +65,7 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
                 return resolvedConfiguration.getFirstLevelModuleDependencies();
             }
 
-            public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<Dependency> dependencySpec) throws ResolveException {
+            public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
                 return resolvedConfiguration.getFirstLevelModuleDependencies(dependencySpec);
             }
 

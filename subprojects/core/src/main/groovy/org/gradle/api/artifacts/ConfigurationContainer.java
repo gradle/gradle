@@ -16,16 +16,16 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
-import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectContainer;
 
 /**
- * <p>A {@code ConfigurationContainer} is responsible for managing a set of {@link Configuration} instances.</p>
+ * <p>A {@code ConfigurationContainer} is responsible for declaring and managing configurations. See also {@link Configuration}.</p>
  *
  * <p>You can obtain a {@code ConfigurationContainer} instance by calling {@link org.gradle.api.Project#getConfigurations()},
  * or using the {@code configurations} property in your build script.</p>
  *
- * <p>The configurations in a container are accessable as read-only properties of the container, using the name of the
+ * <p>The configurations in a container are accessible as read-only properties of the container, using the name of the
  * configuration as the property name. For example:</p>
  *
  * <pre>
@@ -42,6 +42,42 @@ import org.gradle.api.InvalidUserDataException;
  *     transitive = false
  * }
  * </pre>
+ *
+ * <h2>Examples</h2>
+ *
+ * An example showing how to refer to a given configuration by name
+ * in order to get hold of all dependencies (e.g. jars, but only)
+ * <pre autoTested='true'>
+ *   apply plugin: 'java' //so that I can use 'compile' configuration
+ *
+ *   //copying all dependencies attached to 'compile' into a specific folder
+ *   task copyAllDependencies(type: Copy) {
+ *     //referring to the 'compile' configuration
+ *     from configurations.compile
+ *     into 'allLibs'
+ *   }
+ * </pre>
+ *
+ * An example showing how to declare and configure configurations
+ * <pre autoTested=''>
+ * apply plugin: 'java' //so that I can use 'compile', 'testCompile' configurations
+ *
+ * configurations {
+ *   //adding a configuration:
+ *   myConfiguration
+ *
+ *   //adding a configuration that extends existing configuration:
+ *   //(testCompile was added by the java plugin)
+ *   myIntegrationTestsCompile.extendsFrom(testCompile)
+ *
+ *   //configuring existing configurations not to put transitive dependencies on the compile classpath
+ *   //this way you can avoid issues with implicit dependencies to transitive libraries
+ *   compile.transitive = false
+ *   testCompile.transitive = false
+ * }
+ * </pre>
+ *
+ * Examples on configuring the <b>resolution strategy</b> - see docs for {@link ResolutionStrategy}
  *
  * @author Hans Dockter
  */

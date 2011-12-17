@@ -51,8 +51,8 @@ public class Jvm {
         return new File(JavaEnvUtils.getJdkExecutable("javadoc"));
     }
 
-    public File getJpsExecutable() {
-        return new File(JavaEnvUtils.getJdkExecutable("jps"));
+    public File getExecutable(String name) {
+        return new File(JavaEnvUtils.getJdkExecutable(name));
     }
 
     public boolean isJava5Compatible() {
@@ -106,6 +106,10 @@ public class Jvm {
         return envVars;
     }
 
+    public boolean getSupportsAppleScript() {
+        return false;
+    }
+
     /**
      * Note: Implementation assumes that an Apple JVM always comes with a JDK rather than a JRE,
      * but this is likely an over-simplification.
@@ -142,6 +146,11 @@ public class Jvm {
                 vars.put(entry.getKey(), entry.getValue());
             }
             return vars;
+        }
+
+        @Override
+        public boolean getSupportsAppleScript() {
+            return true;
         }
     }
 }

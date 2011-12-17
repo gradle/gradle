@@ -16,10 +16,10 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
-import org.junit.Test
-import org.gradle.util.TestFile
 import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.util.TestFile
+import org.junit.Test
 
 class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
@@ -137,10 +137,10 @@ task generateResource << {}
 task generateTestResource << {}
 task notRegistered << {}
 
-sourceSets.main.output.dir "$buildDir/generatedResources", buildBy: 'generateResource'
+sourceSets.main.output.dir "$buildDir/generatedResources", builtBy: 'generateResource'
 sourceSets.main.output.dir "$buildDir/generatedResourcesWithoutBuilder"
 
-sourceSets.test.output.dir "$buildDir/generatedTestResources", buildBy: 'generateTestResource'
+sourceSets.test.output.dir "$buildDir/generatedTestResources", builtBy: 'generateTestResource'
 '''
 
         //when
@@ -225,5 +225,86 @@ project(':c') {
         assert !result.executedTasks.contains(':b:build')
         assert !result.executedTasks.contains(':b:jar')
         assert result.executedTasks.contains(':c:build')
+    }
+
+    @Test
+    public void "project dependency does not drag in source jar from target project"() {
+        testFile("settings.gradle") << "include 'a', 'b'"
+        testFile("build.gradle") << """
+allprojects {
+    apply plugin: 'java'
+
+    task sourcesJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives sourcesJar
+    }
+}
+
+project(':a') {
+    dependencies { compile project(':b') }
+    compileJava.doFirst {
+        assert classpath.collect { it.name } == ['b.jar']
+    }
+}
+
+"""
+        testFile("a/src/main/java/org/gradle/test/PersonImpl.java") << """
+package org.gradle.test;
+class PersonImpl implements Person { }
+"""
+
+        testFile("b/src/main/java/org/gradle/test/Person.java") << """
+package org.gradle.test;
+interface Person { }
+"""
+
+        def result = inTestDirectory().withTasks("a:classes").run()
+        result.assertTasksExecuted(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar", ":a:compileJava", ":a:processResources", ":a:classes")
+    }
+
+    @Test
+    public void "can add additional jars to published runtime classpath"() {
+        testFile("settings.gradle") << "include 'a', 'b'"
+        testFile("build.gradle") << """
+allprojects {
+    apply plugin: 'java'
+}
+
+project(':b') {
+    sourceSets { extra }
+
+    task additionalJar(type: Jar) {
+        classifier = 'extra'
+        from sourceSets.extra.output
+    }
+
+    artifacts {
+        runtime additionalJar
+    }
+}
+
+project(':a') {
+    dependencies { compile project(':b') }
+    compileJava.doFirst {
+        assert classpath.collect { it.name } == ['b.jar', 'b-extra.jar']
+    }
+}
+
+"""
+        testFile("a/src/main/java/org/gradle/test/PersonImpl.java") << """
+package org.gradle.test;
+class PersonImpl implements Person { }
+"""
+
+        testFile("b/src/extra/java/org/gradle/test/Person.java") << """
+package org.gradle.test;
+interface Person { }
+"""
+
+        inTestDirectory().withTasks("a:classes").run()
     }
 }

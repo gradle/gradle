@@ -18,37 +18,30 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.internal.Factory;
-import org.gradle.util.UncheckedException;
-import org.jfrog.wharf.ivy.cache.WharfCacheManager;
-import org.jfrog.wharf.ivy.lock.LockHolderFactory;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DownloadingRepositoryCacheManager;
 
-import java.lang.reflect.Field;
+import java.io.File;
 
 public class IvySettingsFactory implements Factory<IvySettings> {
-    private final LockHolderFactory lockHolderFactory;
     private final ArtifactCacheMetaData cacheMetaData;
+    private final FileStore fileStore;
 
-    public IvySettingsFactory(ArtifactCacheMetaData cacheMetaData, LockHolderFactory lockHolderFactory) {
+    public IvySettingsFactory(ArtifactCacheMetaData cacheMetaData, FileStore fileStore) {
         this.cacheMetaData = cacheMetaData;
-        this.lockHolderFactory = lockHolderFactory;
+        this.fileStore = fileStore;
     }
 
     public IvySettings create() {
         IvySettings ivySettings = new IvySettings();
-        ivySettings.setDefaultCache(cacheMetaData.getCacheDir());
+        ivySettings.setDefaultCache(new File(cacheMetaData.getCacheDir(), "ivy"));
         ivySettings.setDefaultCacheIvyPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_IVY_PATTERN);
         ivySettings.setDefaultCacheArtifactPattern(ArtifactRepositoryContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
 
-        WharfCacheManager cacheManager = WharfCacheManager.newInstance(ivySettings);
-        try {
-            Field field = WharfCacheManager.class.getDeclaredField("lockFactory");
-            field.setAccessible(true);
-            field.set(cacheManager, lockHolderFactory);
-        } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
-        ivySettings.setDefaultRepositoryCacheManager(cacheManager);
+
+        ivySettings.setDefaultRepositoryCacheManager(new DownloadingRepositoryCacheManager("downloading", fileStore, ivySettings));
+
         return ivySettings;
     }
 }

@@ -1,12 +1,48 @@
 apply plugin: 'java'
 
-//START SNIPPET assign-artifact
+//START SNIPPET archive-artifact
 task myJar(type: Jar)
 
 artifacts {
     archives myJar
 }
-//END SNIPPET assign-artifact
+//END SNIPPET archive-artifact
+
+//START SNIPPET file-artifact
+def someFile = file('build/somefile.txt')
+
+artifacts {
+    archives someFile
+}
+//END SNIPPET file-artifact
+
+//START SNIPPET customised-file-artifact
+task myTask(type:  MyTaskType) {
+    destFile = file('build/somefile.txt')
+}
+
+artifacts {
+    archives(myTask.destFile) {
+        name 'my-artifact'
+        type 'text'
+        builtBy myTask
+    }
+}
+//END SNIPPET customised-file-artifact
+
+//START SNIPPET map-file-artifact
+task generate(type:  MyTaskType) {
+    destFile = file('build/somefile.txt')
+}
+
+artifacts {
+    archives file: generate.destFile, name: 'my-artifact', type: 'text', builtBy: generate
+}
+//END SNIPPET map-file-artifact
+
+class MyTaskType extends DefaultTask {
+    File destFile
+}
 
 //START SNIPPET uploading
 repositories {
@@ -17,15 +53,29 @@ repositories {
 }
 
 uploadArchives {
-    uploadDescriptor = false
     repositories {
         add project.repositories.fileRepo
-        add(new org.apache.ivy.plugins.resolver.SshResolver()) {
-            name = "sshRepo"
-            user = "username"
-            userPassword = "pw"
-            host = "http://repo.mycompany.com"
+        ivy {
+            credentials {
+                username "username"
+                password "pw"
+            }
+            url "http://repo.mycompany.com"
         }
     }
 }
 //END SNIPPET uploading
+
+//START SNIPPET publish-repository
+uploadArchives {
+    repositories {
+        ivy {
+            credentials {
+                username "username"
+                password "pw"
+            }
+            url "http://repo.mycompany.com"
+        }
+    }
+}
+//END SNIPPET publish-repository

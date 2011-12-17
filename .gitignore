@@ -2,6 +2,7 @@
 .gradle
 /build
 /out
+/intTestHomeDir
 /subprojects/*/out
 /intellij
 /buildSrc/lib
@@ -25,7 +26,6 @@
 *.settings
 /bin
 /subprojects/*/bin
-/intTestHomeDir
 .DS_Store
 /performanceTest/lib
 .textmate

@@ -102,7 +102,7 @@ public interface TaskInputs {
     boolean getHasSourceFiles();
 
     /**
-     * Returns the set of source files for this task. These are the subset of input files which the task does work on.
+     * Returns the set of source files for this task. These are the subset of input files which the task actually does work on.
      * A task is skipped if it has declared it accepts source files, and this collection is empty.
      *
      * @return The set of source files for this task.

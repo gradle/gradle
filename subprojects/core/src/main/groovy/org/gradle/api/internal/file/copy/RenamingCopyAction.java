@@ -21,9 +21,9 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 
 public class RenamingCopyAction implements Action<FileCopyDetails> {
-    private final Transformer<String> transformer;
+    private final Transformer<String, String> transformer;
 
-    public RenamingCopyAction(Transformer<String> transformer) {
+    public RenamingCopyAction(Transformer<String, String> transformer) {
         this.transformer = transformer;
     }
 

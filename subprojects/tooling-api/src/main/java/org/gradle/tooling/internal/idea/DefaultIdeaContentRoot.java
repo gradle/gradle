@@ -46,7 +46,7 @@ public class DefaultIdeaContentRoot implements IdeaContentRoot, Serializable {
     }
 
     public DomainObjectSet<IdeaSourceDirectory> getSourceDirectories() {
-        return new ImmutableDomainObjectSet(sourceDirectories);
+        return new ImmutableDomainObjectSet<IdeaSourceDirectory>(sourceDirectories);
     }
 
     public DefaultIdeaContentRoot setSourceDirectories(Set<IdeaSourceDirectory> sourceDirectories) {
@@ -55,7 +55,7 @@ public class DefaultIdeaContentRoot implements IdeaContentRoot, Serializable {
     }
 
     public DomainObjectSet<IdeaSourceDirectory> getTestDirectories() {
-        return new ImmutableDomainObjectSet(testDirectories);
+        return new ImmutableDomainObjectSet<IdeaSourceDirectory>(testDirectories);
     }
 
     public DefaultIdeaContentRoot setTestDirectories(Set<IdeaSourceDirectory> testDirectories) {
