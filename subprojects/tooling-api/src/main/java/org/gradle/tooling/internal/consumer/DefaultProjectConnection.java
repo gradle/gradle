@@ -46,6 +46,7 @@ class DefaultProjectConnection implements ProjectConnection {
         modelTypeMap.put(IdeaProject.class, InternalIdeaProject.class);
         modelTypeMap.put(GradleProject.class, InternalGradleProject.class);
         modelTypeMap.put(BasicIdeaProject.class, InternalBasicIdeaProject.class);
+        modelTypeMap.put(BuildEnvironment.class, InternalBuildEnvironment.class);
     }
 
     public void close() {

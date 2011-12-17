@@ -40,6 +40,7 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
     int threads = 3
 
     def setup() {
+        //concurrent tooling api at the moment is only supported for forked mode
         toolingApi.isEmbedded = false
         concurrent.shortTimeout = 20000
         new ConnectorServices().reset()

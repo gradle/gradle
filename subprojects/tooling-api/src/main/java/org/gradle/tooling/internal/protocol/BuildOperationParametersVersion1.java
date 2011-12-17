@@ -19,7 +19,7 @@ import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Drastic changes to this interface may break the cross-version protocol.
+ * Changes to this interface may break the cross-version protocol.
  * If you change it, make sure you run the all tooling api tests to flush out compatibility issues.
  */
 public interface BuildOperationParametersVersion1 extends InternalLongRunningOperationParameters {

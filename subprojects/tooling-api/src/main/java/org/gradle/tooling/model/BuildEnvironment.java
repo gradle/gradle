@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.model;
 
 /**
- * I needed this interface so that it is possible to develop new features incrementally.
- * In general I'd like to avoid growing VersionX interfaces
- * because we have an excellent test suite that tells the story of what has changed and when
+ * Informs about the build environment, like Gradle version or jvm in use
  * <p>
- * A marker interface to document the problem consistently.
- * The implementators should live only until we gradually remove old VersionX types.
- * <p>
- * If you make changes to inheritor of this interfaces make sure you run all compatibility tests.
- *
- * @author: Szczepan Faber, created at: 8/5/11
+ * Marked as deprecated because the API is not yet confirmed.
+ * E.g. we will provide this information for sure, we just haven't yet confirmed the API.
  */
-public interface InternalProtocolInterface {
+@Deprecated
+public interface BuildEnvironment extends Element {
+
+    String getGradleVersion();
+
+//    String getJavaVersion();
+
+//    String getJvmArguments();
 }

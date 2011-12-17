@@ -20,7 +20,9 @@ package org.gradle.tooling.internal.protocol;
  *
  * <p>Implementations must be thread-safe.
  *
- * <p>DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.</p>
+ * <p>
+ * Changes to this interface may break the cross-version protocol.
+ * If you change it, make sure you run the all tooling api tests to flush out compatibility issues.
  */
 public interface ConnectionVersion4 {
     /**
