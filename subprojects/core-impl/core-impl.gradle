@@ -13,12 +13,6 @@ dependencies {
     compile libraries.maven_ant_tasks
     compile module('org.jfrog.wharf:wharf-core:1.0-20111007143103') {
         dependency libraries.ivy
-        module('com.esotericsoftware:kryo:1.03') {
-            dependency 'com.esotericsoftware:minlog:1.2@jar'
-            module('com.googlecode:reflectasm:1.01') {
-                dependency libraries.asm
-            }
-        }
     }
 
     testCompile libraries.junit
