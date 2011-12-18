@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.CachingDirectedGraphWalker;
 import org.gradle.api.internal.DirectedGraphWithEdgeValues;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -142,7 +142,7 @@ public class DefaultLenientConfiguration implements ResolvedConfigurationBuilder
         public File getFile(ResolvedArtifact artifact) {
             try {
                 return super.getFile(artifact);
-            } catch (ArtifactNotFoundException e) {
+            } catch (ArtifactResolveException e) {
                 return null;
             }
         }
