@@ -43,6 +43,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolveException
+import spock.lang.Ignore
 
 class DependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
@@ -286,15 +287,98 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def "does not include module version that is excluded after conflict resolution has been applied"() {
-        expect: false
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def evicted = revision('c', '1')
+        def selected = revision('c', '2')
+        def d = revision('d')
+        def e = revision('e')
+        traverses root, evicted
+        traverses root, a, exclude: b
+        doesNotResolve evicted, a
+        traverses a, b
+        traverses root, d
+        traverses d, e
+        traverses e, selected // conflict is deeper than 'b', to ensure 'b' has been visited
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+        result.rethrowFailure()
+
+        then:
+        1 * conflictResolver.select({it*.revision == ['1', '2']}, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+            return candidates.find { it.revision == '2' }
+        }
+        0 * conflictResolver._
+
+        and:
+        modules(result) == ids(a, selected, d, e)
     }
 
-    def "does not include dependencies of module version that is not transitive after conflict resolution has been applied"() {
-        expect: false
+    def "does not include dependencies of module version that is no longer transitive after conflict resolution has been applied"() {
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def evicted = revision('c', '1')
+        def selected = revision('c', '2')
+        def d = revision('d')
+        def e = revision('e')
+        traverses root, evicted
+        traverses root, a, transitive: false
+        doesNotResolve evicted, a
+        traverses a, b
+        traverses root, d
+        traverses d, e
+        traverses e, selected // conflict is deeper than 'b', to ensure 'b' has been visited
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+        result.rethrowFailure()
+
+        then:
+        1 * conflictResolver.select({it*.revision == ['1', '2']}, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+            return candidates.find { it.revision == '2' }
+        }
+        0 * conflictResolver._
+
+        and:
+        modules(result) == ids(a, selected, d, e)
     }
 
-    def "does not use selected module version that is no longer in conflict after conflict resolution has been applied"() {
-        expect: false
+    @Ignore
+    def "does not invoke conflict resolver for module version that is no longer in conflict after conflict resolution has been applied"() {
+        given:
+        def evictedA = revision('a', '1.1')
+        def selectedA = revision('a', '1.2')
+        def b1 = revision('b', '1')
+        def b2 = revision('b', '2')
+        def b3 = revision('b', '3')
+        def c = revision('c')
+        def d = revision('d')
+        traverses root, evictedA
+        traverses evictedA, b1
+        traverses evictedA, b2
+        traverses root, c
+        traverses c, d
+        traverses d, selectedA // conflict is deeper than the dependencies of evicted 'a'
+        traverses selectedA, b3
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+        result.rethrowFailure()
+
+        then:
+        1 * conflictResolver.select({it*.revision == ['1.1', '1.2']}, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+            return candidates.find { it.revision == '1.2' }
+        }
+        1 * conflictResolver.select({it*.revision == ['1', '2']}, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+            return candidates.find { it.revision == '2' }
+        }
+        0 * conflictResolver._
+
+        and:
+        modules(result) == ids(selectedA, c, d, b3)
     }
 
     def "does not attempt to resolve a dependency whose target module is excluded earlier in the path"() {
@@ -684,7 +768,20 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def "direct dependency can force a particular version"() {
-        expect: false
+        given:
+        def forced = revision("a", "1")
+        def evicted = revision("a", "2")
+        def b = revision("b")
+        traverses root, b
+        traverses root, forced, force: true
+        doesNotResolve b, evicted
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+        result.rethrowFailure()
+
+        then:
+        modules(result) == ids(forced, b)
     }
 
     def revision(String name, String revision = '1.0') {
@@ -702,7 +799,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def traverses(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
         def resolver = dependsOn(args, from, to)
-        1 * resolver.descriptor >> to
+        1 * resolver.descriptor >> { println "RESOLVE $from.moduleRevisionId -> $to.moduleRevisionId"; return to }
     }
 
     def doesNotResolve(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
@@ -723,8 +820,9 @@ class DependencyGraphBuilderTest extends Specification {
     def dependsOn(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
         ModuleDependency moduleDependency = Mock()
         def dependencyId = args.revision ? new ModuleRevisionId(to.moduleRevisionId.moduleId, args.revision) : to.moduleRevisionId
-        def transitive = args.transitive == null || args.transitive
-        def descriptor = new EnhancedDependencyDescriptor(moduleDependency, from, dependencyId, false, false, transitive)
+        boolean transitive = args.transitive == null || args.transitive
+        boolean force = args.force
+        def descriptor = new EnhancedDependencyDescriptor(moduleDependency, from, dependencyId, force, false, transitive)
         descriptor.addDependencyConfiguration("default", "default")
         if (args.exclude) {
             descriptor.addExcludeRule("default", new DefaultExcludeRule(new ArtifactId(
