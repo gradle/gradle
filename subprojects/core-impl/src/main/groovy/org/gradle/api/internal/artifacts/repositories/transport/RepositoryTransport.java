@@ -15,26 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-public interface HttpProxySettings {
-    
-    HttpProxy getProxy(String host);
+import org.apache.ivy.plugins.resolver.AbstractResolver;
 
-    public class HttpProxy {
-        public final String host;
-        public final int port;
-        public final String username;
-        public final String password;
+import java.net.URI;
 
-        public HttpProxy(String host, int port, String username, String password) {
-            this.host = host;
-            this.port = port;
-            if (username == null || username.length() == 0) {
-                this.username = null;
-                this.password = null;
-            } else {
-                this.username = username;
-                this.password = password;
-            }
-        }
-    }
+public interface RepositoryTransport {
+    ResourceCollection getRepositoryAccessor();
+
+    void configureCacheManager(AbstractResolver resolver);
+
+    String convertToPath(URI uri);
 }

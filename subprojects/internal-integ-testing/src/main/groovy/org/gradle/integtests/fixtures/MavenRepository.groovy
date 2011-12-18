@@ -232,14 +232,22 @@ class MavenModule {
     }
 
     private void createHashFiles(File file) {
-        moduleDir.file("${file.name}.sha1").text = getHash(file, "SHA1")
-        moduleDir.file("${file.name}.md5").text = getHash(file, "MD5")
+        sha1File(file).text = getHash(file, "SHA1")
+        md5File(file).text = getHash(file, "MD5")
     }
 
     private String getHash(File file, String algorithm) {
         MessageDigest messageDigest = MessageDigest.getInstance(algorithm)
         messageDigest.update(file.bytes)
         return new BigInteger(1, messageDigest.digest()).toString(16)
+    }
+
+    TestFile sha1File(File file) {
+        return moduleDir.file("${file.name}.sha1")
+    }
+    
+    TestFile md5File(File file) {
+        return moduleDir.file("${file.name}.md5")
     }
 }
 

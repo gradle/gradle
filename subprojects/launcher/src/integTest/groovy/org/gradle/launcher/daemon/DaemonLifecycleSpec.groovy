@@ -178,7 +178,7 @@ class DaemonLifecycleSpec extends Specification {
     }
 
     def setup() {
-        distribution.requireOwnUserHomeDir()
+        distribution.requireIsolatedDaemons()
         LoggerFactory.getLogger("org.gradle.cache.internal.DefaultFileLockManager").level = Level.INFO
     }
 

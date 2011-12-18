@@ -130,7 +130,7 @@ public class CommandLineActionFactory {
         daemonParameters.configureFromBuildDir(startParameter.getCurrentDir(), startParameter.isSearchUpwards());
         daemonParameters.configureFromGradleUserHome(startParameter.getGradleUserHomeDir());
         daemonParameters.configureFromSystemProperties(mergedSystemProperties);
-        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters);
+        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
 
         boolean useDaemon = daemonParameters.isEnabled();

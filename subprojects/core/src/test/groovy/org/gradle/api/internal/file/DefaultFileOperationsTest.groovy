@@ -29,10 +29,10 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.CopyActionImpl
 import org.gradle.api.internal.file.copy.CopySpecImpl
 import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecException
 import org.gradle.util.ClasspathUtil
-import org.gradle.os.OperatingSystem
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
@@ -131,8 +131,8 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def createsTarFileTree() {
-        expectPathResolved('path')
-        expectTempFileCreated()
+        TestFile file = tmpDir.file('path')
+        resolver.resolveResource('path') >> new FileResource(file)
 
         when:
         def tarTree = fileOperations.tarTree('path')

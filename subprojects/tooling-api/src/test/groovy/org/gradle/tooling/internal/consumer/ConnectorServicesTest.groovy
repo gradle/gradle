@@ -37,17 +37,5 @@ public class ConnectorServicesTest extends Specification {
 
         //tooling impl loader must be shared across connectors, so that we have single DefaultConnection per distro/classpath
         connectorOne.connectionFactory.toolingImplementationLoader == connectorTwo.connectionFactory.toolingImplementationLoader
-
-        //listener manager cannot be shared across connectors
-        connectorOne.connectionFactory.listenerManager != connectorTwo.connectionFactory.listenerManager
-
-        //to keep memory footprint the tooling api users were used to
-        connectorOne.distributionFactory == connectorTwo.distributionFactory
-        connectorOne.distributionFactory.progressLoggerFactory == connectorTwo.distributionFactory.progressLoggerFactory
-
-        //it would be error prone if we shared the progressLoggerFactory between connection factory and distribution factory
-        // because distribution factory is a singleton whereas the connection factory is not and
-        // there are progress logging features available per single connection
-        connectorOne.distributionFactory.progressLoggerFactory != connectorOne.connectionFactory.progressLoggerFactory
     }
 }

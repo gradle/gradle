@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 import org.gradle.util.TestFile
 import junit.framework.AssertionFailedError
 import java.util.regex.Pattern
+import java.security.MessageDigest
 
 class IvyRepository {
     final TestFile rootDir
@@ -148,6 +149,18 @@ class IvyModule {
      */
     void assertArtifactsPublished(String... names) {
         assert moduleDir.list() as Set == names as Set
+    }
+
+    private String getHash(File file, String algorithm) {
+        MessageDigest messageDigest = MessageDigest.getInstance(algorithm)
+        messageDigest.update(file.bytes)
+        return new BigInteger(1, messageDigest.digest()).toString(16)
+    }
+
+    TestFile sha1File(File file) {
+        def sha1File = moduleDir.file("${file.name}.sha1")
+        sha1File.text = getHash(file, "SHA1")
+        return sha1File
     }
 
     IvyDescriptor getIvy() {

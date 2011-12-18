@@ -20,18 +20,20 @@ import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tests.fixtures.ConcurrentTestUtil
-import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProgressListener
-import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.internal.consumer.ConnectorServices
+import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
+import org.gradle.tooling.*
 
 @MinToolingApiVersion(currentOnly = true)
 @MinTargetGradleVersion(currentOnly = true)
+@Issue("GRADLE-1933")
 class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
 
     @Rule def concurrent = new ConcurrentTestUtil()
@@ -39,15 +41,14 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
 
     def setup() {
         toolingApi.isEmbedded = false
+        concurrent.shortTimeout = 20000
+        new ConnectorServices().reset()
     }
 
-    @Issue("GRADLE-1933")
     def "handles concurrent scenario"() {
         dist.file('build.gradle')  << "apply plugin: 'java'"
 
         when:
-        concurrent.shortTimeout = 30000
-
         threads.times {
             concurrent.start { useToolingApi() }
         }
@@ -62,8 +63,6 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         dist.file('build.gradle')  << "apply plugin: 'java'"
 
         when:
-        concurrent.shortTimeout = 30000
-
         threads.times { concurrent.start { useToolingApi() } }
         threads.times { concurrent.start { useToolingApi(dist.previousVersion("1.0-milestone-7"))} }
 
@@ -89,7 +88,198 @@ See the full stacktrace and the list of causes to investigate""", e);
         }
     }
 
-    //TODO SF DSLize this and the other test
+    def "can share connection when running build"() {
+        given:
+        dist.file("build.gradle") << """
+def text = System.in.text
+System.out.println 'out=' + text
+System.err.println 'err=' + text
+project.description = text
+"""
+
+        when:
+        withConnection { connection ->
+            threads.times { idx ->
+                concurrent.start {
+                    def model = connection.model(Project.class)
+                    def operation = new ConfigurableOperation(model)
+                        .setStandardInput("hasta la vista $idx")
+
+                    assert model.get().description == "hasta la vista $idx"
+
+                    assert operation.getStandardOutput().contains("out=hasta la vista $idx")
+                    assert operation.getStandardOutput().count("out=hasta la vista") == 1
+
+                    assert operation.getStandardError().contains("err=hasta la vista $idx")
+                    assert operation.getStandardError().count("err=hasta la vista") == 1
+                }
+            }
+            concurrent.finished()
+        }
+
+        then: noExceptionThrown()
+    }
+
+    def "handles standard input concurrently when getting model"() {
+        when:
+        threads.times { idx ->
+            dist.file("build$idx/build.gradle") << "description = System.in.text"
+        }
+
+        then:
+        threads.times { idx ->
+            concurrent.start {
+                withConnectionInDir("build$idx") { connection ->
+                    def model = connection.model(Project.class)
+                    model.standardInput = new ByteArrayInputStream("project $idx".toString().bytes)
+                    def project = model.get()
+                    assert project.description == "project $idx"
+                }
+            }
+        }
+
+        concurrent.finished()
+    }
+
+    def "handles standard input concurrently when running build"() {
+        when:
+        threads.times { idx ->
+            dist.file("build$idx/build.gradle") << "task show << { println System.in.text}"
+        }
+
+        then:
+        threads.times { idx ->
+            concurrent.start {
+                withConnectionInDir("build$idx") { connection ->
+                    def build = connection.newBuild()
+                    def operation = new ConfigurableOperation(build)
+                        .setStandardInput("hasta la vista $idx")
+                    build.forTasks('show').run()
+                    assert operation.standardOutput.contains("hasta la vista $idx")
+                }
+            }
+        }
+
+        concurrent.finished()
+    }
+
+    def "during task execution receives distribution progress including waiting for the other thread"() {
+        given:
+        dist.file("build1/build.gradle") << "task foo1"
+        dist.file("build2/build.gradle") << "task foo2"
+
+        when:
+        def allProgress = []
+
+        concurrent.start {
+            def connector = new ConfigurableConnector(connector: toolingApi.connector())
+                .distributionOperation( { it.description = "download for 1"; Thread.sleep(500) } )
+                .forProjectDirectory(dist.file("build1"))
+
+            connector.forProjectDirectory(dist.file("build1"))
+            def connection = connector.connect()
+
+            try {
+                def build = connection.newBuild()
+                def operation = new ConfigurableOperation(build)
+                build.forTasks('foo1').run()
+                assert operation.progressMessages.contains("download for 1")
+                assert !operation.progressMessages.contains("download for 2")
+                allProgress << operation.progressMessages
+            } finally {
+                connection.close()
+            }
+        }
+
+        concurrent.start {
+            def connector = new ConfigurableConnector(connector: toolingApi.connector())
+                .distributionOperation( { it.description = "download for 2"; Thread.sleep(500) } )
+                .forProjectDirectory(dist.file("build2"))
+
+            def connection = connector.connect()
+
+            try {
+                def build = connection.newBuild()
+                def operation = new ConfigurableOperation(build)
+                build.forTasks('foo2').run()
+                assert operation.progressMessages.contains("download for 2")
+                assert !operation.progressMessages.contains("download for 1")
+                allProgress << operation.progressMessages
+            } finally {
+                connection.close()
+            }
+        }
+
+        then:
+        concurrent.finished()
+        //only one thread should log that progress message
+        1 == allProgress.count {
+            it.contains("Wait for the other thread to finish acquiring the distribution")
+        }
+    }
+
+    def "during model building receives distribution progress"() {
+        given:
+        threads.times { idx ->
+            dist.file("build$idx/build.gradle") << "apply plugin: 'java'"
+        }
+
+        when:
+        threads.times { idx ->
+            concurrent.start {
+                def connector = new ConfigurableConnector(connector: toolingApi.connector())
+                    .distributionProgressMessage("download for " + idx)
+
+                def connection = connector.connect()
+
+                try {
+                    def model = connection.model(Project)
+                    def operation = new ConfigurableOperation(model)
+
+                    assert model.get()
+                    assert operation.progressMessages.contains("download for " + idx)
+                    assert !operation.progressMessages.contains("download for " + ++idx)
+                } finally {
+                    connection.close()
+                }
+            }
+        }
+
+        then:
+        concurrent.finished()
+    }
+
+    static class ConfigurableConnector extends GradleConnector {
+        @Delegate GradleConnector connector
+
+        ConfigurableConnector distributionProgressMessage(String message) {
+            connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: { it.description = message} )
+            this
+        }
+
+        ConfigurableConnector distributionOperation(Closure operation) {
+            connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: operation )
+            this
+        }
+    }
+
+    static class ConfigurableDistribution implements Distribution {
+        Distribution delegate
+        Closure operation
+
+        String getDisplayName() {
+            return 'mock'
+        }
+
+        Set<File> getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
+            def o = progressLoggerFactory.newOperation("mock")
+            operation(o)
+            o.started()
+            o.completed()
+            return delegate.getToolingImplementationClasspath(progressLoggerFactory)
+        }
+    }
+
     def "receives progress and logging while the model is building"() {
         when:
         //create build folders with slightly different builds
@@ -103,41 +293,21 @@ System.err.println 'this is stderr: $idx'
         then:
         threads.times { idx ->
             concurrent.start {
-                assertReceivesProgressForModel(idx)
+                withConnectionInDir("build$idx") { connection ->
+                    def model = connection.model(Project.class)
+                    def operation = new ConfigurableOperation(model)
+                    assert model.get()
+
+                    assert operation.getStandardOutput().contains("this is stdout: $idx")
+                    assert operation.getStandardOutput().count("this is stdout") == 1
+
+                    assert operation.getStandardError().contains("this is stderr: $idx")
+                    assert operation.getStandardError().count("this is stderr") == 1
+                }
             }
         }
 
         concurrent.finished()
-    }
-
-    private assertReceivesProgressForModel(idx) {
-        def stdout = new ByteArrayOutputStream()
-        def stderr = new ByteArrayOutputStream()
-        def progressMessages = []
-
-        GradleConnector connector = toolingApi.connector()
-        connector.forProjectDirectory(new File(dist.testDir, "build$idx"))
-        ProjectConnection connection = connector.connect()
-        try {
-            def model = connection.model(Project.class)
-            model.standardOutput = stdout
-            model.standardError = stderr
-            model.addProgressListener({ event -> progressMessages << event.description } as ProgressListener)
-            assert model.get()
-        } finally {
-            connection.close();
-        }
-
-        assert stdout.toString().contains("this is stdout: $idx")
-        assert stderr.toString().contains("this is stderr: $idx")
-        assert progressMessages.size() >= 2
-        assert progressMessages.pop() == ''
-        assert progressMessages.every { it }
-
-        //Below may be very fragile as it depends on progress messages content
-        //However, when refactoring the logging code I found ways to break it silently
-        //Hence I want to make sure the functionality is not broken. We can remove the assertion later of find better ways of asserting it.
-        assert progressMessages == ['Load projects', 'Configure projects', "Resolve dependencies 'classpath'", 'Configure projects', "Resolve dependencies ':classpath'", "Configure projects", "Load projects"]
     }
 
     def "receives progress and logging while the build is executing"() {
@@ -153,44 +323,69 @@ System.err.println 'this is stderr: $idx'
         then:
         threads.times { idx ->
             concurrent.start {
-                assertReceivesProgressForBuild(idx)
+                withConnectionInDir("build$idx") { connection ->
+                    def build = connection.newBuild()
+                    def operation = new ConfigurableOperation(build)
+                    build.run()
+
+                    assert operation.standardOutput.contains("this is stdout: $idx")
+                    assert operation.standardOutput.count("this is stdout") == 1
+
+                    assert operation.standardError.contains("this is stderr: $idx")
+                    assert operation.standardError.count("this is stderr") == 1
+                }
             }
         }
 
         concurrent.finished()
     }
 
-    private def assertReceivesProgressForBuild(idx) {
+    static class ProgressTrackingListener implements ProgressListener {
+        def progressMessages = []
+        void statusChanged(ProgressEvent event) {
+            progressMessages << event.description
+        }
+    }
+
+    static class ConfigurableOperation {
+        LongRunningOperation operation
+        def listener = new ProgressTrackingListener()
         def stdout = new ByteArrayOutputStream()
         def stderr = new ByteArrayOutputStream()
-        def progressMessages = []
-        def events = []
 
-        GradleConnector connector = toolingApi.connector()
-        connector.forProjectDirectory(new File(dist.testDir, "build$idx"))
-        ProjectConnection connection = connector.connect()
-        try {
-            def build = connection.newBuild()
-            build.standardOutput = stdout
-            build.standardError = stderr
-            build.addProgressListener({ event ->
-                progressMessages << event.description
-                events << event
-            } as ProgressListener)
-            build.run()
-        } finally {
-            connection.close()
+        public ConfigurableOperation(LongRunningOperation operation) {
+            this.operation = operation
+            operation.addProgressListener(listener)
+            operation.standardOutput = stdout
+            operation.standardError = stderr
         }
 
-        assert stdout.toString().contains("this is stdout: $idx")
-        assert stderr.toString().contains("this is stderr: $idx")
-        assert progressMessages.size() >= 2
-        assert progressMessages.pop() == ''
-        assert progressMessages.every { it }
+        String getStandardOutput() {
+            return stdout.toString()
+        }
 
-        //Below may be very fragile as it depends on progress messages content
-        //However, when refactoring the logging code I found ways to break it silently
-        //Hence I want to make sure the functionality is not broken. We can remove the assertion later of find better ways of asserting it.
-        assert progressMessages == ["Execute build", "Configure projects", "Resolve dependencies 'classpath'", "Configure projects", "Resolve dependencies ':classpath'", "Configure projects", "Execute build", "Execute tasks", "Execute :help", "Execute tasks", "Execute build"]
+        String getStandardError() {
+            return stderr.toString()
+        }
+
+        ConfigurableOperation setStandardInput(String input) {
+            this.operation.standardInput = new ByteArrayInputStream(input.toString().bytes)
+            return this
+        }
+
+        List getProgressMessages() {
+            return listener.progressMessages
+        }
+    }
+
+    def withConnectionInDir(String dir, Closure cl) {
+        GradleConnector connector = toolingApi.connector()
+        connector.forProjectDirectory(dist.file(dir))
+        ProjectConnection connection = connector.connect()
+        try {
+            return cl(connection)
+        } finally {
+            connection.close();
+        }
     }
 }

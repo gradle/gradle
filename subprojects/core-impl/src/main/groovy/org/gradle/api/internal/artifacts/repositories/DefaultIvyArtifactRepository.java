@@ -17,18 +17,15 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
-import org.gradle.api.internal.artifacts.repositories.transport.DefaultHttpSettings;
-import org.gradle.api.internal.artifacts.repositories.transport.HttpSettings;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
-import org.jfrog.wharf.ivy.resolver.UrlWharfResolver;
 
 import java.net.URI;
 import java.util.Collection;
@@ -41,10 +38,12 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private RepositoryLayout layout;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
     private final FileResolver fileResolver;
+    private final RepositoryTransportFactory transportFactory;
 
-    public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials) {
+    public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory) {
         super(credentials);
         this.fileResolver = fileResolver;
+        this.transportFactory = transportFactory;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
         this.layout = new GradleRepositoryLayout();
     }
@@ -80,39 +79,28 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         layout.addSchemes(uri, schemes);
         additionalPatternsLayout.addSchemes(uri, schemes);
 
-        RepositoryResolver resolver = createResolver(schemes);
-        resolver.setName(name);
-        
+        PatternBasedResolver resolver = createResolver(schemes);
+
         layout.apply(uri, resolver);
         additionalPatternsLayout.apply(uri, resolver);
 
-        if (resolver.getArtifactPatterns().isEmpty()) {
-            throw new InvalidUserDataException("You must specify a base url or at least one artifact pattern for an Ivy repository.");
-        }
         resolvers.add(resolver);
     }
 
-    private RepositoryResolver createResolver(Set<String> schemes) {
+    private PatternBasedResolver createResolver(Set<String> schemes) {
+        if (schemes.isEmpty()) {
+            throw new InvalidUserDataException("You must specify a base url or at least one artifact pattern for an Ivy repository.");
+        }
+        if (!WrapUtil.toSet("http", "https", "file").containsAll(schemes)) {
+            throw new InvalidUserDataException("You may only specify 'file', 'http' and 'https' urls for an ivy repository.");
+        }
         if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
-            return http();
+            return new IvyResolver(name, transportFactory.createHttpTransport(name, getCredentials()));
         }
         if (WrapUtil.toSet("file").containsAll(schemes)) {
-            return file();
+            return new IvyResolver(name, transportFactory.createFileTransport(name));
         }
-        return url();
-    }
-
-    private RepositoryResolver url() {
-        return new UrlWharfResolver();
-    }
-
-    private RepositoryResolver file() {
-        return new LocalFileSystemResolver(name);
-    }
-
-    private RepositoryResolver http() {
-        HttpSettings httpSettings = new DefaultHttpSettings(getCredentials());
-        return new CommonsHttpClientResolver(httpSettings);
+        throw new InvalidUserDataException("You cannot mix file and http(s) urls for a single ivy repository. Please declare 2 separate repositories.");
     }
 
     public String getName() {
@@ -166,14 +154,16 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             this.fileResolver = fileResolver;
         }
 
-        public void apply(URI baseUri, RepositoryResolver resolver) {
+        public void apply(URI baseUri, PatternBasedResolver resolver) {
             for (String artifactPattern : artifactPatterns) {
-                resolver.addArtifactPattern(new ResolvedPattern(artifactPattern, fileResolver).absolutePattern);
+                ResolvedPattern resolvedPattern = new ResolvedPattern(artifactPattern, fileResolver);
+                resolver.addArtifactLocation(resolvedPattern.baseUri, resolvedPattern.pattern);
             }
 
             Set<String> usedIvyPatterns = ivyPatterns.isEmpty() ? artifactPatterns : ivyPatterns;
             for (String ivyPattern : usedIvyPatterns) {
-                resolver.addIvyPattern(new ResolvedPattern(ivyPattern, fileResolver).absolutePattern);
+                ResolvedPattern resolvedPattern = new ResolvedPattern(ivyPattern, fileResolver);
+                resolver.addDescriptorLocation(resolvedPattern.baseUri, resolvedPattern.pattern);
             }
         }
 

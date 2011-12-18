@@ -22,6 +22,7 @@ import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.Element;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 
 public class DefaultModelBuilder<T extends Element> extends AbstractLongRunningOperation implements ModelBuilder<T> {
@@ -63,6 +64,12 @@ public class DefaultModelBuilder<T extends Element> extends AbstractLongRunningO
     @Override
     public DefaultModelBuilder<T> setStandardError(OutputStream outputStream) {
         super.setStandardError(outputStream);
+        return this;
+    }
+
+    @Override
+    public DefaultModelBuilder<T> setStandardInput(InputStream inputStream) {
+        super.setStandardInput(inputStream);
         return this;
     }
 

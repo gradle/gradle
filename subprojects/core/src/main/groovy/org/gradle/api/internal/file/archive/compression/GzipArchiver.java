@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
+import org.gradle.api.internal.resources.URIBuilder;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
 
@@ -33,10 +34,12 @@ import java.util.zip.GZIPOutputStream;
 public class GzipArchiver implements ReadableResource {
 
     private ReadableResource resource;
+    private URI uri;
 
     public GzipArchiver(ReadableResource resource) {
         assert resource != null;
         this.resource = resource;
+        this.uri = new URIBuilder(resource.getURI()).schemePrefix("gzip:").build();
     }
 
     public static Compressor getCompressor() {
@@ -70,7 +73,7 @@ public class GzipArchiver implements ReadableResource {
     }
 
     public URI getURI() {
-        return resource.getURI();
+        return uri;
     }
 
     public String getBaseName() {

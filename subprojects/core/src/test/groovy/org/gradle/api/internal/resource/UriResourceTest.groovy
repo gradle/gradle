@@ -17,15 +17,12 @@
 
 package org.gradle.api.internal.resource
 
-import org.gradle.api.resources.MissingResourceException
-import org.gradle.api.resources.ResourceException
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.nullValue
+import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 class UriResourceTest {
@@ -87,7 +84,7 @@ class UriResourceTest {
         try {
             resource.text
             fail()
-        } catch (MissingResourceException e) {
+        } catch (ResourceNotFoundException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$file' as it does not exist." as String))
         }
     }
@@ -121,7 +118,7 @@ class UriResourceTest {
         try {
             resource.text
             fail()
-        } catch (MissingResourceException e) {
+        } catch (ResourceNotFoundException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$file' as it does not exist." as String))
         }
     }
@@ -143,7 +140,7 @@ class UriResourceTest {
         try {
             resource.text
             fail()
-        } catch (MissingResourceException e) {
+        } catch (ResourceNotFoundException e) {
             assertThat(e.message, equalTo("Could not read <display-name> '$jarUri' as it does not exist." as String))
         }
     }
@@ -155,7 +152,7 @@ class UriResourceTest {
         try {
             resource.text
             fail()
-        } catch (MissingResourceException e) {
+        } catch (ResourceNotFoundException e) {
             assertThat(e.message, equalTo("Could not read <display-name> 'http://www.gradle.org/unknown.txt' as it does not exist." as String))
         }
     }

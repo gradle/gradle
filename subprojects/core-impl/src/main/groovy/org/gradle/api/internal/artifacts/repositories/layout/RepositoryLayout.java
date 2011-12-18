@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
+import org.gradle.api.internal.artifacts.repositories.PatternBasedResolver;
 
 import java.net.URI;
 import java.util.Set;
@@ -30,7 +30,7 @@ public abstract class RepositoryLayout {
      * @param baseUri The base URI for the repository.
      * @param resolver The ivy resolver that will be used to resolve this layout.
      */
-    public abstract void apply(URI baseUri, RepositoryResolver resolver);
+    public abstract void apply(URI baseUri, PatternBasedResolver resolver);
 
     /**
      * Add any schemes registered as patterns in this layout, given the supplied base URI.

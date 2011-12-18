@@ -756,7 +756,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Specifies that TestNG should be used to execute the tests.
      *
      * @param testFrameworkConfigure A closure used to configure the JUint options. This closure is passed an instance
-     * of type {@link org.gradle.api.tasks.testing.junit.JUnitOptions}.
+     * of type {@link org.gradle.api.tasks.testing.testng.TestNGOptions}.
      */
     public void useTestNG(Closure testFrameworkConfigure) {
         useTestFramework(new TestNGTestFramework(this), testFrameworkConfigure);

@@ -28,8 +28,8 @@ public class MaybeCompressedFileResourceTest extends Specification {
 
     def "understands file extensions"() {
         expect:
-        new MaybeCompressedFileResource(new File("foo")).resource instanceof FileResource
-        new MaybeCompressedFileResource(new File("foo.tgz")).resource instanceof GzipArchiver
-        new MaybeCompressedFileResource(new File("foo.tbz2")).resource instanceof Bzip2Archiver
+        new MaybeCompressedFileResource(new FileResource(new File("foo"))).resource instanceof FileResource
+        new MaybeCompressedFileResource(new FileResource(new File("foo.tgz"))).resource instanceof GzipArchiver
+        new MaybeCompressedFileResource(new FileResource(new File("foo.tbz2"))).resource instanceof Bzip2Archiver
     }
 }

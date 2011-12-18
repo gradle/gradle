@@ -40,29 +40,13 @@ class GroovyCompileOptionsTest {
         assertFalse(compileOptions.listFiles)
         assertFalse(compileOptions.verbose)
         assertTrue(compileOptions.fork)
-        assertNull(compileOptions.encoding)
+        assertEquals('UTF-8', compileOptions.encoding)
         assertNotNull(compileOptions.forkOptions)
     }
 
     @Test public void testOptionMapForForkOptions() {
         Map optionMap = compileOptions.optionMap()
         assertEquals(optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()), TEST_FORK_OPTION_MAP)
-    }
-
-    @Test public void testOptionMapWithNullables() {
-        Map optionMap = compileOptions.optionMap()
-        Map nullables = [
-                encoding: 'encoding'
-        ]
-        nullables.each {String field, String antProperty ->
-            assertFalse(optionMap.keySet().contains(antProperty))
-        }
-
-        nullables.keySet().each {compileOptions."$it" = "${it}Value"}
-        optionMap = compileOptions.optionMap()
-        nullables.each {String field, String antProperty ->
-            assertEquals("${field}Value" as String, optionMap[antProperty])
-        }
     }
 
     @Test public void testOptionMapWithTrueFalseValues() {

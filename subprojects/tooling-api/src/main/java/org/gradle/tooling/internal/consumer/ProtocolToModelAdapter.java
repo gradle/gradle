@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.IncompatibleVersionException;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -135,8 +136,12 @@ public class ProtocolToModelAdapter {
             try {
                 match = delegate.getClass().getMethod(method.getName(), method.getParameterTypes());
             } catch (NoSuchMethodException e) {
-                throw new UnsupportedOperationException(String.format(
-                        "Method not found. Please verify that the version of Gradle you connect to contains method: %s.%s()"
+                //TODO SF - find a place for it in the documentation.
+                throw new IncompatibleVersionException(String.format(
+                        "Method not found. The version of Gradle you connect to does not support this method: %s.%s()\n"
+                        + "Most likely, this method was added in one of the later versions of Gradle.\n"
+                        + "To resolve the problem you can change/upgrade the target version of Gradle you connect to.\n"
+                        + "Alternatively, you can handle and ignore this exception."
                         , method.getDeclaringClass().getSimpleName(), method.getName(), delegate.getClass().getSimpleName()), e);
             }
 

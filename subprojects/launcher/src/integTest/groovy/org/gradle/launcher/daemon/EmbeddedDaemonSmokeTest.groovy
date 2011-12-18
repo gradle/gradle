@@ -17,13 +17,12 @@ package org.gradle.launcher.daemon
 
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.launcher.daemon.client.DaemonClient
+import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
+import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.exec.DefaultBuildActionParameters
 import org.gradle.tooling.internal.provider.ConfiguringBuildAction
 import org.gradle.tooling.internal.provider.ExecuteBuildAction
-import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
-import org.gradle.launcher.daemon.client.DaemonClient
-import org.gradle.launcher.daemon.registry.DaemonRegistry
-
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -41,7 +40,7 @@ class EmbeddedDaemonSmokeTest extends Specification {
     
     def "run build"() {
         given:
-        def action = new ConfiguringBuildAction(distribution.gradleHomeDir, distribution.testDir, false, new ExecuteBuildAction(["echo"]))
+        def action = new ConfiguringBuildAction(distribution.gradleHomeDir, distribution.testDir, false, false, new ExecuteBuildAction(["echo"]))
         def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties, System.getenv(), new File("."))
         
         and:

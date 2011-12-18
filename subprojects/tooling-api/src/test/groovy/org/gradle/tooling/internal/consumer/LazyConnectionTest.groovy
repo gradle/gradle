@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1
@@ -28,14 +29,17 @@ class LazyConnectionTest extends Specification {
     final BuildParametersVersion1 buildParams = Mock()
     final BuildOperationParametersVersion1 params = Mock()
     final ConnectionVersion4 connectionImpl = Mock()
-    final LazyConnection connection = new LazyConnection(distribution, implementationLoader)
+    final LoggingProvider loggingProvider = Mock()
+    final ProgressLoggerFactory progressLoggerFactory = Mock()
+    final LazyConnection connection = new LazyConnection(distribution, implementationLoader, loggingProvider)
 
     def createsConnectionOnDemandToExecuteBuild() {
         when:
         connection.executeBuild(buildParams, params)
 
         then:
-        1 * implementationLoader.create(distribution) >> connectionImpl
+        1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
+        1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
         1 * connectionImpl.executeBuild(buildParams, params)
         0 * _._
     }
@@ -45,7 +49,8 @@ class LazyConnectionTest extends Specification {
         connection.getModel(ProjectVersion3, params)
 
         then:
-        1 * implementationLoader.create(distribution) >> connectionImpl
+        1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
+        1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
         1 * connectionImpl.getModel(ProjectVersion3, params)
         0 * _._
     }
@@ -56,7 +61,8 @@ class LazyConnectionTest extends Specification {
         connection.executeBuild(buildParams, params)
 
         then:
-        1 * implementationLoader.create(distribution) >> connectionImpl
+        1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
+        1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
         1 * connectionImpl.getModel(ProjectVersion3, params)
         1 * connectionImpl.executeBuild(buildParams, params)
         0 * _._
@@ -68,7 +74,8 @@ class LazyConnectionTest extends Specification {
         connection.stop()
 
         then:
-        1 * implementationLoader.create(distribution) >> connectionImpl
+        1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
+        1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
         1 * connectionImpl.getModel(ProjectVersion3, params)
         1 * connectionImpl.stop()
         0 * _._
@@ -91,7 +98,8 @@ class LazyConnectionTest extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * implementationLoader.create(distribution) >> { throw failure }
+        1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
+        1 * implementationLoader.create(distribution, progressLoggerFactory) >> { throw failure }
 
         when:
         connection.stop()

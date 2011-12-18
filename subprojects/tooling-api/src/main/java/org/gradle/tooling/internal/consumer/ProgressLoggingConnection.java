@@ -17,7 +17,6 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.internal.ProgressCompleteEvent;
 import org.gradle.logging.internal.ProgressEvent;
 import org.gradle.logging.internal.ProgressListener;
@@ -29,13 +28,11 @@ import org.gradle.tooling.internal.protocol.*;
  */
 public class ProgressLoggingConnection implements ConnectionVersion4 {
     private final ConnectionVersion4 connection;
-    private final ProgressLoggerFactory progressLoggerFactory;
-    private final ListenerManager listenerManager;
+    private final LoggingProvider loggingProvider;
 
-    public ProgressLoggingConnection(ConnectionVersion4 connection, ProgressLoggerFactory progressLoggerFactory, ListenerManager listenerManager) {
+    public ProgressLoggingConnection(ConnectionVersion4 connection, LoggingProvider loggingProvider) {
         this.connection = connection;
-        this.progressLoggerFactory = progressLoggerFactory;
-        this.listenerManager = listenerManager;
+        this.loggingProvider = loggingProvider;
     }
 
     public void stop() {
@@ -65,9 +62,10 @@ public class ProgressLoggingConnection implements ConnectionVersion4 {
 
     private <T> T run(String description, BuildOperationParametersVersion1 parameters, BuildAction<T> action) {
         ProgressListenerAdapter listener = new ProgressListenerAdapter(parameters.getProgressListener());
+        ListenerManager listenerManager = loggingProvider.getListenerManager();
         listenerManager.addListener(listener);
         try {
-            ProgressLogger progressLogger = progressLoggerFactory.newOperation(ProgressLoggingConnection.class);
+            ProgressLogger progressLogger = loggingProvider.getProgressLoggerFactory().newOperation(ProgressLoggingConnection.class);
             progressLogger.setDescription(description);
             progressLogger.started();
             try {

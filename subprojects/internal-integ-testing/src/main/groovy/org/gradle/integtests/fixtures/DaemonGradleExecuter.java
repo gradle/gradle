@@ -35,7 +35,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         args.add("--daemon");
         args.add("-Dorg.gradle.daemon.idletimeout=" + (5 * 60 * 1000));
         String customDaemonRegistryDir = System.getProperty(DAEMON_REGISTRY_SYS_PROP);
-        if (customDaemonRegistryDir != null && !distribution.isUsingOwnUserHomeDir()) {
+        if (customDaemonRegistryDir != null && !distribution.isUsingIsolatedDaemons()) {
             args.add("-Dorg.gradle.daemon.registry.base=" + customDaemonRegistryDir);
         }
         

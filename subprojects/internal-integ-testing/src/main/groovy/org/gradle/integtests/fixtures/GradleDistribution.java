@@ -39,6 +39,7 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     private final TemporaryFolder temporaryFolder = new TemporaryFolder();
     private TestFile userHome;
     private boolean usingOwnUserHomeDir;
+    private boolean usingIsolatedDaemons;
 
     static {
         USER_HOME_DIR = file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
@@ -93,6 +94,15 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     public void requireOwnUserHomeDir() {
         usingOwnUserHomeDir = true;
         userHome = getTestDir().file("user-home");
+    }
+
+    public boolean isUsingIsolatedDaemons() {
+        return usingIsolatedDaemons;
+    }
+
+    public void requireIsolatedDaemons() {
+        requireOwnUserHomeDir();
+        this.usingIsolatedDaemons = true;
     }
 
     public Statement apply(Statement base, FrameworkMethod method, Object target) {

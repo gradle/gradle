@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer.loader
 
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.actor.ActorFactory
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.consumer.Distribution
@@ -28,12 +29,13 @@ import spock.lang.Specification
 
 class DefaultToolingImplementationLoaderTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
-    final Distribution distribution = Mock()
+    Distribution distribution = Mock()
+    ProgressLoggerFactory loggerFactory = Mock()
 
     def usesMetaInfServiceToDetermineFactoryImplementation() {
         given:
         def loader = new DefaultToolingImplementationLoader()
-        distribution.toolingImplementationClasspath >> ([
+        distribution.getToolingImplementationClasspath(loggerFactory) >> ([
                 getToolingApiResourcesDir(),
                 ClasspathUtil.getClasspathForClass(TestConnection.class),
                 ClasspathUtil.getClasspathForClass(ActorFactory.class),
@@ -43,7 +45,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         ] as Set)
 
         when:
-        def factory = loader.create(distribution)
+        def factory = loader.create(distribution, loggerFactory)
 
         then:
         factory.class != TestConnection.class
@@ -64,12 +66,12 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader(cl)
 
         when:
-        loader.create(distribution)
+        loader.create(distribution, loggerFactory)
 
         then:
         UnsupportedVersionException e = thrown()
         e.message == "The specified <dist-display-name> is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
-        _ * distribution.toolingImplementationClasspath >> ([] as Set)
+        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> ([] as Set)
         _ * distribution.displayName >> '<dist-display-name>'
     }
 }

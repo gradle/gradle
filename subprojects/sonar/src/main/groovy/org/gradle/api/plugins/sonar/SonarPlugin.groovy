@@ -109,7 +109,7 @@ class SonarPlugin implements Plugin<ProjectInternal> {
             version = { project.version.toString() }
             baseDir = { project.projectDir }
             workDir = { new File(project.buildDir, "sonar") }
-            dynamicAnalysis = { "false" }
+            dynamicAnalysis = { "reuseReports" }
         }
 
         def javaSettings = instantiator.newInstance(SonarJavaSettings)
@@ -138,7 +138,6 @@ class SonarPlugin implements Plugin<ProjectInternal> {
                     }
                     libraries
                 }
-                dynamicAnalysis = { "reuseReports" }
                 testReportPath = { project.test.testResultsDir }
                 language = { "java" }
             }

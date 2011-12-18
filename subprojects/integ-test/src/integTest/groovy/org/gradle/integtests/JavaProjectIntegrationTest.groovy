@@ -137,10 +137,10 @@ task generateResource << {}
 task generateTestResource << {}
 task notRegistered << {}
 
-sourceSets.main.output.dir "$buildDir/generatedResources", buildBy: 'generateResource'
+sourceSets.main.output.dir "$buildDir/generatedResources", builtBy: 'generateResource'
 sourceSets.main.output.dir "$buildDir/generatedResourcesWithoutBuilder"
 
-sourceSets.test.output.dir "$buildDir/generatedTestResources", buildBy: 'generateTestResource'
+sourceSets.test.output.dir "$buildDir/generatedTestResources", builtBy: 'generateTestResource'
 '''
 
         //when

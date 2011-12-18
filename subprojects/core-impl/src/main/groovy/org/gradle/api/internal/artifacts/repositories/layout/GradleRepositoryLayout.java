@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.internal.artifacts.repositories.PatternBasedResolver;
 
 import java.net.URI;
 
@@ -31,15 +31,12 @@ import java.net.URI;
  */
 public class GradleRepositoryLayout extends RepositoryLayout {
 
-    public void apply(URI baseUri, RepositoryResolver resolver) {
+    public void apply(URI baseUri, PatternBasedResolver resolver) {
         if (baseUri == null) {
             return;
         }
 
-        ResolvedPattern artifactPattern = new ResolvedPattern(baseUri, IvyArtifactRepository.GRADLE_ARTIFACT_PATTERN);
-        resolver.addArtifactPattern(artifactPattern.absolutePattern);
-
-        ResolvedPattern ivyPattern = new ResolvedPattern(baseUri, IvyArtifactRepository.GRADLE_IVY_PATTERN);
-        resolver.addIvyPattern(ivyPattern.absolutePattern);
+        resolver.addArtifactLocation(baseUri, IvyArtifactRepository.GRADLE_ARTIFACT_PATTERN);
+        resolver.addDescriptorLocation(baseUri, IvyArtifactRepository.GRADLE_IVY_PATTERN);
     }
 }

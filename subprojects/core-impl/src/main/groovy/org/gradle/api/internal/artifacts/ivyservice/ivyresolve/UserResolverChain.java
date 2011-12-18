@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
@@ -26,12 +27,14 @@ import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.*;
 
 public class UserResolverChain extends ChainResolver implements DependencyResolvers {
@@ -40,11 +43,13 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
     private final Map<ModuleRevisionId, ModuleVersionRepository> artifactRepositories = new HashMap<ModuleRevisionId, ModuleVersionRepository>();
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
+    private final ArtifactFileStore artifactFileStore;
     private CachePolicy cachePolicy;
 
-    public UserResolverChain(ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache) {
+    public UserResolverChain(ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache, ArtifactFileStore artifactFileStore) {
         this.moduleDescriptorCache = moduleDescriptorCache;
         this.moduleResolutionCache = moduleResolutionCache;
+        this.artifactFileStore = artifactFileStore;
     }
 
     public void setCachePolicy(CachePolicy cachePolicy) {
@@ -197,7 +202,7 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
         public void findModule() {
             resolvedDependencyDescriptor = null;
             resolvedModule = null;
-            
+
             resolveModuleSelector();
             if (!lookupModuleInCache()) {
                 resolveModule();
@@ -248,8 +253,9 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
                 LOGGER.debug("Detected non-existence of module '{}' in resolver cache", resolvedModuleVersionId);
                 return true;
             }
-            if (cachedModuleDescriptor.isChangingModule()) {
+            if (cachedModuleDescriptor.isChangingModule() || resolvedDependencyDescriptor.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
+                    // TODO:DAZ Move expiring of changing module artifacts into here, once we can rely on sha1 comparison to prevent re-download
                     LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}'", resolvedModuleVersionId);
                     return false;
                 }
@@ -272,8 +278,17 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
             if (resolvedModule == null) {
                 moduleDescriptorCache.cacheModuleDescriptor(repository, resolvedDependencyDescriptor.getDependencyRevisionId(), null, requestedDependencyDescriptor.isChanging());
             } else {
+                cacheArtifactFile();
                 moduleResolutionCache.cacheModuleResolution(repository, requestedDependencyDescriptor.getDependencyRevisionId(), resolvedModule.getId());
                 moduleDescriptorCache.cacheModuleDescriptor(repository, resolvedModule.getId(), resolvedModule.getDescriptor(), isChangingDependency(requestedDependencyDescriptor, resolvedModule));
+            }
+        }
+
+        private void cacheArtifactFile() {
+            ArtifactOrigin artifactOrigin = resolvedModule.getReport().getArtifactOrigin();
+            File artifactFile = resolvedModule.getReport().getOriginalLocalFile();
+            if (artifactOrigin != null && artifactFile != null) {
+                artifactFileStore.storeArtifactFile(repository, artifactOrigin.getArtifact().getId(), artifactFile);
             }
         }
 

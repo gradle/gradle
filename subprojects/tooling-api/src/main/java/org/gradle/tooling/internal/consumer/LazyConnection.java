@@ -31,15 +31,17 @@ import java.util.concurrent.locks.ReentrantLock;
 public class LazyConnection implements ConnectionVersion4 {
     private final Distribution distribution;
     private final ToolingImplementationLoader implementationLoader;
+    private final LoggingProvider loggingProvider;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private Set<Thread> executing = new HashSet<Thread>();
     private boolean stopped;
     private ConnectionVersion4 connection;
 
-    public LazyConnection(Distribution distribution, ToolingImplementationLoader implementationLoader) {
+    public LazyConnection(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider) {
         this.distribution = distribution;
         this.implementationLoader = implementationLoader;
+        this.loggingProvider = loggingProvider;
     }
 
     public void stop() {
@@ -112,7 +114,7 @@ public class LazyConnection implements ConnectionVersion4 {
             if (connection == null) {
                 // Hold the lock while creating the connection. Not generally good form.
                 // In this instance, blocks other threads from creating the connection at the same time
-                connection = implementationLoader.create(distribution);
+                connection = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory());
             }
             return connection;
         } finally {

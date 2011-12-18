@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport;
+package org.gradle.api.internal.artifacts.repositories.transport.http;
 
-import spock.lang.Specification;
+
+import spock.lang.Specification
 
 class JavaSystemPropertiesHttpProxySettingsTest extends Specification {
     def "proxy is not configured when proxyHost property not set"() {

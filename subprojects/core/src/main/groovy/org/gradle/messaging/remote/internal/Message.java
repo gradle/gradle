@@ -110,7 +110,7 @@ public abstract class Message implements Serializable {
             }
 
             if (throwable == null) {
-                throwable = new PlaceholderException(String.format("%s: %s", type, message), causeThrowable);
+                throwable = new PlaceholderException(type, message, causeThrowable);
                 throwable.setStackTrace(stackTrace);
             }
 

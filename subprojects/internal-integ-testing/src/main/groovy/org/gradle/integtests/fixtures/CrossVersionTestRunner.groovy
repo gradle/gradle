@@ -48,5 +48,19 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
         protected void before() {
             target.previous = previousVersion
         }
+
+        @Override
+        protected boolean isEnabled() {
+            TargetGradleVersions targetGradleVersions = target.getAnnotation(TargetGradleVersions)
+            if (!targetGradleVersions) {
+                return true
+            }
+            for (String targetGradleVersion: targetGradleVersions.value()) {
+                if (previousVersion.version == targetGradleVersion) {
+                    return true
+                }
+            }
+            return false
+        }
     }
 }

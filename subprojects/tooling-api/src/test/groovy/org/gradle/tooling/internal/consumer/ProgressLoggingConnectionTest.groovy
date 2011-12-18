@@ -18,12 +18,8 @@ package org.gradle.tooling.internal.consumer
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1
-import org.gradle.tooling.internal.protocol.ConnectionVersion4
-import org.gradle.tooling.internal.protocol.ProjectVersion3
 import spock.lang.Specification
-import org.gradle.tooling.internal.protocol.ProgressListenerVersion1
+import org.gradle.tooling.internal.protocol.*
 
 class ProgressLoggingConnectionTest extends Specification {
     final ConnectionVersion4 target = Mock()
@@ -32,13 +28,16 @@ class ProgressLoggingConnectionTest extends Specification {
     final ProgressLogger progressLogger = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ListenerManager listenerManager = Mock()
-    final ProgressLoggingConnection connection = new ProgressLoggingConnection(target, progressLoggerFactory, listenerManager)
+    final LoggingProvider loggingProvider = Mock()
+    final ProgressLoggingConnection connection = new ProgressLoggingConnection(target, loggingProvider)
 
     def notifiesProgressListenerOfStartAndEndOfFetchingModel() {
         when:
         connection.getModel(ProjectVersion3, params)
 
         then:
+        1 * loggingProvider.getListenerManager() >> listenerManager
+        1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * listenerManager.addListener(!null)
         1 * progressLoggerFactory.newOperation(ProgressLoggingConnection.class) >> progressLogger
         1 * progressLogger.setDescription('Load projects')
@@ -57,6 +56,8 @@ class ProgressLoggingConnectionTest extends Specification {
         connection.executeBuild(buildParams, params)
 
         then:
+        1 * loggingProvider.getListenerManager() >> listenerManager
+        1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * listenerManager.addListener(!null)
         1 * progressLoggerFactory.newOperation(ProgressLoggingConnection.class) >> progressLogger
         1 * progressLogger.setDescription('Execute build')

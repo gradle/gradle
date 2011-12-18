@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.layout;
 
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
+import org.gradle.api.internal.artifacts.repositories.PatternBasedResolver;
 
 import java.net.URI;
 import java.util.LinkedHashSet;
@@ -46,18 +46,18 @@ public class PatternRepositoryLayout extends RepositoryLayout {
     }
 
     @Override
-    public void apply(URI baseUri, RepositoryResolver resolver) {
+    public void apply(URI baseUri, PatternBasedResolver resolver) {
         if (baseUri == null) {
             return;
         }
 
         for (String artifactPattern : artifactPatterns) {
-            resolver.addArtifactPattern(new ResolvedPattern(baseUri, artifactPattern).absolutePattern);
+            resolver.addArtifactLocation(baseUri, artifactPattern);
         }
 
         Set<String> usedIvyPatterns = ivyPatterns.isEmpty() ? artifactPatterns : ivyPatterns;
         for (String ivyPattern : usedIvyPatterns) {
-            resolver.addIvyPattern(new ResolvedPattern(baseUri, ivyPattern).absolutePattern);
+            resolver.addDescriptorLocation(baseUri, ivyPattern);
         }
     }
 }

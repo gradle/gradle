@@ -27,21 +27,21 @@ public interface Resource {
     /**
      * Human readable name of this resource
      *
-     * @return human readable name
+     * @return human readable name, should not be null
      */
     String getDisplayName();
 
     /**
      * Uniform resource identifier that uniquely describes this resource
      *
-     * @return unique URI
+     * @return unique URI, should not be null
      */
     URI getURI();
 
     /**
      * Short name that concisely describes this resource
      *
-     * @return concise base name
+     * @return concise base name, should not be null
      */
     String getBaseName();
 }

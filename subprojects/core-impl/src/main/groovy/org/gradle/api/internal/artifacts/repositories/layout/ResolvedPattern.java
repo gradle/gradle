@@ -21,19 +21,23 @@ import java.net.URI;
 
 public class ResolvedPattern {
     public final String scheme;
+    public final URI baseUri;
+    public final String pattern;
     public final String absolutePattern;
 
     public ResolvedPattern(String rawPattern, FileResolver fileResolver) {
         // get rid of the ivy [] token, as [ ] are not valid URI characters
         int pos = rawPattern.indexOf('[');
         String basePath = pos < 0 ? rawPattern : rawPattern.substring(0, pos);
-        URI baseUri = fileResolver.resolveUri(basePath);
-        String pattern = pos < 0 ? "" : rawPattern.substring(pos);
+        this.baseUri = fileResolver.resolveUri(basePath);
+        this.pattern = pos < 0 ? "" : rawPattern.substring(pos);
         scheme = baseUri.getScheme().toLowerCase();
         absolutePattern = constructAbsolutePattern(baseUri, pattern);
     }
 
     public ResolvedPattern(URI baseUri, String pattern) {
+        this.baseUri = baseUri;
+        this.pattern = pattern;
         scheme = baseUri.getScheme().toLowerCase();
         absolutePattern = constructAbsolutePattern(baseUri, pattern);
     }

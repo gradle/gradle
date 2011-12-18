@@ -18,9 +18,9 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
-import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.internal.Connection;
@@ -51,7 +51,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new HandleClientDisconnectBeforeSendingCommand(),
             new CatchAndForwardDaemonFailure(),
             new HandleStop(),
-            new UpdateDaemonStateAndHandleBusyDaemon(),
+            new StartBuildOrRespondWithBusy(),
             new EstablishBuildEnvironment(),
             new LogToClient(loggingManager), // from this point down, logging is sent back to the client
             new ForwardClientInput(executorFactory),

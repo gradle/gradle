@@ -15,12 +15,14 @@
  */
 package org.gradle.tooling.internal.consumer.loader
 
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import spock.lang.Specification
 
 class CachingToolingImplementationLoaderTest extends Specification {
     final ToolingImplementationLoader target = Mock()
+    final ProgressLoggerFactory loggerFactory = Mock()
     final CachingToolingImplementationLoader loader = new CachingToolingImplementationLoader(target)
 
     def delegatesToTargetLoaderToCreateImplementation() {
@@ -28,12 +30,12 @@ class CachingToolingImplementationLoaderTest extends Specification {
         final Distribution distribution = Mock()
 
         when:
-        def impl = loader.create(distribution)
+        def impl = loader.create(distribution, loggerFactory)
 
         then:
         impl == connectionImpl
-        1 * target.create(distribution) >> connectionImpl
-        _ * distribution.toolingImplementationClasspath >> ([new File('a.jar')] as Set)
+        1 * target.create(distribution, loggerFactory) >> connectionImpl
+        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> ([new File('a.jar')] as Set)
         0 * _._
     }
 
@@ -42,14 +44,14 @@ class CachingToolingImplementationLoaderTest extends Specification {
         final Distribution distribution = Mock()
 
         when:
-        def impl = loader.create(distribution)
-        def impl2 = loader.create(distribution)
+        def impl = loader.create(distribution, loggerFactory)
+        def impl2 = loader.create(distribution, loggerFactory)
 
         then:
         impl == connectionImpl
         impl2 == connectionImpl
-        1 * target.create(distribution) >> connectionImpl
-        _ * distribution.toolingImplementationClasspath >> ([new File('a.jar')] as Set)
+        1 * target.create(distribution, loggerFactory) >> connectionImpl
+        _ * distribution.getToolingImplementationClasspath(loggerFactory) >> ([new File('a.jar')] as Set)
         0 * _._
     }
 
@@ -60,16 +62,16 @@ class CachingToolingImplementationLoaderTest extends Specification {
         Distribution distribution2 = Mock()
 
         when:
-        def impl = loader.create(distribution1)
-        def impl2 = loader.create(distribution2)
+        def impl = loader.create(distribution1, loggerFactory)
+        def impl2 = loader.create(distribution2, loggerFactory)
 
         then:
         impl == connectionImpl1
         impl2 == connectionImpl2
-        1 * target.create(distribution1) >> connectionImpl1
-        1 * target.create(distribution2) >> connectionImpl2
-        _ * distribution1.toolingImplementationClasspath >> ([new File('a.jar')] as Set)
-        _ * distribution2.toolingImplementationClasspath >> ([new File('b.jar')] as Set)
+        1 * target.create(distribution1, loggerFactory) >> connectionImpl1
+        1 * target.create(distribution2, loggerFactory) >> connectionImpl2
+        _ * distribution1.getToolingImplementationClasspath(loggerFactory) >> ([new File('a.jar')] as Set)
+        _ * distribution2.getToolingImplementationClasspath(loggerFactory) >> ([new File('b.jar')] as Set)
         0 * _._
     }
 }

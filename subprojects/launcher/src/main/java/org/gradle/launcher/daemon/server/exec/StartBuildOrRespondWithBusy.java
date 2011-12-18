@@ -15,15 +15,17 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.launcher.daemon.protocol.Build;
+import org.gradle.launcher.daemon.protocol.BuildStarted;
 import org.gradle.launcher.daemon.protocol.DaemonBusy;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 
 /**
  * Updates the daemon idle/busy status, sending a DaemonBusy result back to the client if the daemon is busy.
  */
-public class UpdateDaemonStateAndHandleBusyDaemon implements DaemonCommandAction {
+public class StartBuildOrRespondWithBusy extends BuildCommandOnly {
 
-    public void execute(DaemonCommandExecution execution) {
+    protected void doBuild(DaemonCommandExecution execution, Build build) {
         DaemonStateCoordinator stateCoordinator = execution.getDaemonStateCoordinator();
 
         DaemonCommandExecution existingExecution = stateCoordinator.onStartCommand(execution);
@@ -31,11 +33,14 @@ public class UpdateDaemonStateAndHandleBusyDaemon implements DaemonCommandAction
             execution.getConnection().dispatch(new DaemonBusy(existingExecution.getCommand()));
         } else {
             try {
+                execution.getConnection().dispatch(new BuildStarted(build));
                 execution.proceed();
             } finally {
                 stateCoordinator.onFinishCommand();
             }
         }
     }
+    
+    
 
 }

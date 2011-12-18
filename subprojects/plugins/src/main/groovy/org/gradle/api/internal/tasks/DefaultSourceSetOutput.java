@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.SourceSetOutput;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.HashMap;
@@ -94,12 +95,20 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     }
 
     public void dir(Map<String, Object> options, Object dir) {
-        Object buildBy = options.get("buildBy");
         this.dirs.from(dir);
         this.outputDirectories.from(dir);
+
+        Object buildBy = options.get("buildBy");
         if (buildBy != null) {
+            DeprecationLogger.nagUserOfReplacedNamedParameter("buildBy:", "builtBy:");
             this.builtBy(buildBy);
             this.dirs.builtBy(buildBy);
+        }
+
+        Object builtBy = options.get("builtBy");
+        if (builtBy != null) {
+            this.builtBy(builtBy);
+            this.dirs.builtBy(builtBy);
         }
     }
 

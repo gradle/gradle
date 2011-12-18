@@ -32,4 +32,12 @@ public class Synchronizer {
         }
     }
 
+    public void synchronize(Operation operation) {
+        lock.lock();
+        try {
+            operation.execute();
+        } finally {
+            lock.unlock();
+        }
+    }
 }

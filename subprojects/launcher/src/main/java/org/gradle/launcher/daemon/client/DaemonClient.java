@@ -29,23 +29,24 @@ import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
 
+import java.io.InputStream;
+
 /**
  * The client piece of the build daemon.
  * <p>
  * Immediately upon forming a connection, the daemon may send {@link OutputEvent} messages back to the client and may do so
  * for as long as the connection is open.
  * <p>
- * The client is expected to send exactly one {@link Build} message as the first message it sends to the daemon. After this
- * it may send zero to many {@link ForwardInput} messages. If the client's stdin stream is closed before the connection to the
- * daemon is terminated, the client must send a {@link CloseInput} command to instruct that daemon that no more input is to be
+ * The client is expected to send exactly one {@link Build} message as the first message it sends to the daemon. The daemon 
+ * may either return {@link DaemonBusy} or {@link BuildStarted}. If the former is received, the client should not send any more
+ * messages to this daemon. If the latter is received, the client can assume the daemon is performing the build. The client may then
+ * send zero to many {@link ForwardInput} messages. If the client's stdin stream is closed before the connection to the
+ * daemon is terminated, the client must send a {@link CloseInput} command to instruct the daemon that no more input is to be
  * expected.
  * <p>
- * After receiving the {@link Build} message from the client, the daemon will at some time return a {@link Result} message
- * indicating either that the daemon encountered an internal failure or that the build failed dependending on the specific
- * type of the {@link Result} object returned.
- * <p>
- * After receiving the {@link Result} message, the client must send a {@link CloseInput} command if it has not already done so
- * due the stdin stream being closed. At this point the client is expected to terminate the connection with the daemon.
+ * After receiving the {@link Result} message (after a {@link BuildStarted} mesage), the client must send a {@link CloseInput}
+ * command if it has not already done so due to the stdin stream being closed. At this point the client is expected to 
+ * terminate the connection with the daemon.
  * <p>
  * If the daemon returns a {@code null} message before returning a {@link Result} object, it has terminated unexpectedly for some reason.
  */
@@ -55,12 +56,17 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     private final BuildClientMetaData clientMetaData;
     private final OutputEventListener outputEventListener;
     private final Spec<DaemonContext> compatibilitySpec;
+    private final InputStream buildStandardInput;
 
-    public DaemonClient(DaemonConnector connector, BuildClientMetaData clientMetaData, OutputEventListener outputEventListener, Spec<DaemonContext> compatibilitySpec) {
+    //TODO SF - outputEventListener and buildStandardInput are per-build settings
+    //so down the road we should refactor the code accordingly and potentially attach them to BuildActionParameters
+    public DaemonClient(DaemonConnector connector, BuildClientMetaData clientMetaData, OutputEventListener outputEventListener,
+                        Spec<DaemonContext> compatibilitySpec, InputStream buildStandardInput) {
         this.connector = connector;
         this.clientMetaData = clientMetaData;
         this.outputEventListener = outputEventListener;
         this.compatibilitySpec = compatibilitySpec;
+        this.buildStandardInput = buildStandardInput;
     }
 
     /**
@@ -94,40 +100,49 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         LOGGER.warn("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.");
         while(true) {
             DaemonConnection daemonConnection = connector.connect(compatibilitySpec);
+            Connection<Object> connection = daemonConnection.getConnection();
+            Build build = new Build(action, parameters);
 
-            Result<T> result = runBuild(new Build(action, parameters), daemonConnection.getConnection());
-            if (result instanceof DaemonBusy) {
-                continue; // try a different daemon
-            } else if (result instanceof Failure) {
+            //TODO SF add exception handling to try a different daemon
+            connection.dispatch(build);
+            Object firstResult = connection.receive();
+
+            if (firstResult instanceof BuildStarted) {
+                return (T) monitorBuild(build, connection).getValue();
+            } else if (firstResult instanceof DaemonBusy) {
+                LOGGER.info("The daemon we connected to was busy. Trying a different daemon...");
+            } else if (firstResult instanceof Failure) {
                 // Could potentially distinguish between CommandFailure and DaemonFailure here.
-                throw ((Failure)result).getValue();
-            } else if (result instanceof Success) {
-                return result.getValue();
+                throw ((Failure) firstResult).getValue();
+            } else if (firstResult == null) {
+                LOGGER.warn("The first result from the daemon was empty. Most likely the daemon has died. Trying a different daemon...");
             } else {
-                throw new IllegalStateException(String.format("Daemon returned %s for which there is no strategy to handle (i.e. is an unknown Result type)", result));
+                throw new IllegalStateException(String.format("Daemon returned %s for which there is no strategy to handle (i.e. is an unknown Result type)", firstResult));
             }
         }
     }
 
-    private <T> Result<T> runBuild(Build build, Connection<Object> connection) {
-        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(System.in, build.getClientMetaData(), connection);
+    private Result monitorBuild(Build build, Connection<Object> connection) {
+        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, build.getClientMetaData(), connection);
         try {
-            //TODO - this may fail. We should handle it and have tests for that. It means the server is gone.
-            connection.dispatch(build);
             inputForwarder.start();
+            int objectsReceived = 0;
+
             while (true) {
                 Object object = connection.receive();
-                
+                LOGGER.debug("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
+
                 if (object == null) {
                     throw new DaemonDisappearedException(build, connection);
+                } else if (object instanceof Failure) {
+                    // Could potentially distinguish between CommandFailure and DaemonFailure here.
+                    throw ((Failure) object).getValue();
                 } else if (object instanceof OutputEvent) {
                     outputEventListener.onOutput((OutputEvent) object);
                 } else if (object instanceof Result) {
-                    @SuppressWarnings("unchecked")
-                    Result<T> result = (Result<T>) object;
-                    return result;
+                    return (Result) object;
                 } else {
-                    throw new IllegalStateException(String.format("Daemon returned %s (type: %s) for which there is no strategy to handle", object, object.getClass()));
+                    throw new IllegalStateException(String.format("Daemon returned %s (type: %s) as for which there is no strategy to handle", object, object.getClass()));
                 }
             }
         } finally {

@@ -42,6 +42,29 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         System.err.is(errInstance)
     }
 
+    static class FailingInputStream extends InputStream implements GroovyInterceptable {
+
+        int read() {
+            throw new RuntimeException("Input stream should not be consumed");
+        }
+
+        def invokeMethod(String name, args) {
+            throw new RuntimeException("Input stream should not be consumed");
+        }
+    }
+
+    def "tooling api should never consume the std in"() {
+        given:
+        System.in = new FailingInputStream()
+        buildFile << "task hey"
+
+        when:
+        toolingApi.withConnection { connection -> connection.newBuild().run() }
+
+        then:
+        noExceptionThrown()
+    }
+
     def "tooling api does not reset the java logging"() {
         //(SF) checking if the logger level was not overridden.
         //this gives some confidence that the LogManager was not reset

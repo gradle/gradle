@@ -46,7 +46,7 @@ public class DefaultResourceHandler implements ResourceHandler {
         if (tarPath instanceof ReadableResource) {
             return (ReadableResource) tarPath;
         } else {
-            return new MaybeCompressedFileResource(resolver.resolve(tarPath));
+            return new MaybeCompressedFileResource(resolver.resolveResource(tarPath));
         }
     }
 }

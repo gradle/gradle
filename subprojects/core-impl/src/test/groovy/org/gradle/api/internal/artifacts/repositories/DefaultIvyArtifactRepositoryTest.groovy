@@ -15,41 +15,55 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
-import spock.lang.Specification
-import org.apache.ivy.plugins.resolver.URLResolver
-import org.apache.ivy.plugins.resolver.RepositoryResolver
-import org.gradle.api.internal.file.FileResolver
-import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport
+import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResourceCollection
+import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport
+import org.gradle.api.internal.file.FileResolver
+import spock.lang.Specification
+import org.gradle.api.internal.artifacts.repositories.transport.file.FileResourceCollection
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
     final PasswordCredentials credentials = Mock()
-    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, credentials)
+    final RepositoryTransportFactory transportFactory = Mock()
+    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, credentials, transportFactory)
 
-    def "creates a resolver for URL patterns"() {
+    def "cannot create a resolver for url with unknown scheme"() {
         repository.name = 'name'
         repository.artifactPattern 'pattern1'
-        repository.artifactPattern 'pattern2'
-        repository.ivyPattern 'ivyPattern'
 
         given:
         fileResolver.resolveUri('pattern1') >> new URI('scheme:resource1')
-        fileResolver.resolveUri('pattern2') >> new URI('scheme:resource2')
-        fileResolver.resolveUri('ivyPattern') >> new URI('scheme:ivyFile')
 
         when:
         def resolvers = []
         repository.createResolvers(resolvers)
 
         then:
-        resolvers.size() == 1
-        def resolver = resolvers[0]
-        resolver instanceof URLResolver
-        resolver.name == 'name'
-        resolver.artifactPatterns == ['scheme:resource1', 'scheme:resource2'] as List
-        resolver.ivyPatterns == ['scheme:ivyFile'] as List
+        InvalidUserDataException e = thrown()
+        e.message == "You may only specify 'file', 'http' and 'https' urls for an ivy repository."
+    }
+
+    def "cannot creates a resolver for mixed url scheme"() {
+        repository.name = 'name'
+        repository.artifactPattern 'pattern1'
+        repository.artifactPattern 'pattern2'
+
+        given:
+        fileResolver.resolveUri('pattern1') >> new URI('http:resource1')
+        fileResolver.resolveUri('pattern2') >> new URI('file:resource2')
+
+        when:
+        def resolvers = []
+        repository.createResolvers(resolvers)
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == "You cannot mix file and http(s) urls for a single ivy repository. Please declare 2 separate repositories."
     }
 
     def "creates a resolver for HTTP patterns"() {
@@ -61,6 +75,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
         fileResolver.resolveUri('http://other/') >> new URI('http://other/')
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
         def resolvers = []
@@ -69,8 +84,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         resolvers.size() == 1
         def resolver = resolvers[0]
-        resolver instanceof RepositoryResolver
-        resolver.repository instanceof CommonsHttpClientBackedRepository
+        resolver instanceof ResourceCollectionResolver
+        resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[artifact]-[revision].[ext]', 'http://other/[module]/[artifact]-[revision].[ext]'] as List
         resolver.ivyPatterns == ['http://host/[module]/ivy-[revision].xml'] as List
@@ -81,10 +96,12 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.artifactPattern 'repo/[organisation]/[artifact]-[revision].[ext]'
         repository.artifactPattern 'repo/[organisation]/[module]/[artifact]-[revision].[ext]'
         repository.ivyPattern 'repo/[organisation]/[module]/ivy-[revision].xml'
-        def file = new File("test").toURI()
+        def file = new File("test")
+        def fileUri = file.toURI()
 
         given:
-        fileResolver.resolveUri('repo/') >> file
+        fileResolver.resolveUri('repo/') >> fileUri
+        transportFactory.createFileTransport('name') >> new FileTransport('name')
 
         when:
         def resolvers = []
@@ -93,32 +110,11 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         resolvers.size() == 1
         def resolver = resolvers[0]
-        resolver instanceof FileSystemResolver
+        resolver instanceof ResourceCollectionResolver
+        resolver.repository instanceof FileResourceCollection
         resolver.name == 'name'
-        resolver.artifactPatterns == ["${file.path}/[organisation]/[artifact]-[revision].[ext]", "${file.path}/[organisation]/[module]/[artifact]-[revision].[ext]"] as List
-        resolver.ivyPatterns == ["${file.path}/[organisation]/[module]/ivy-[revision].xml"] as List
-    }
-
-    def "creates a URL resolver for mixed patterns"() {
-        repository.name = 'name'
-        repository.artifactPattern 'http://host/[module]/[artifact]-[revision].[ext]'
-        repository.artifactPattern 'repo/[organisation]/[artifact]-[revision].[ext]'
-        def file = new File("test").toURI()
-
-        given:
-        fileResolver.resolveUri('http://host/') >> new URI('http://host/')
-        fileResolver.resolveUri('repo/') >> file
-
-        when:
-        def resolvers = []
-        repository.createResolvers(resolvers)
-
-        then:
-        resolvers.size() == 1
-        def resolver = resolvers[0]
-        resolver instanceof URLResolver
-        resolver.name == 'name'
-        resolver.artifactPatterns == ['http://host/[module]/[artifact]-[revision].[ext]', "file:${file.path}/[organisation]/[artifact]-[revision].[ext]"] as List
+        resolver.artifactPatterns == ["${file.absolutePath}/[organisation]/[artifact]-[revision].[ext]", "${file.absolutePath}/[organisation]/[module]/[artifact]-[revision].[ext]"] as List
+        resolver.ivyPatterns == ["${file.absolutePath}/[organisation]/[module]/ivy-[revision].xml"] as List
     }
 
     def "uses gradle patterns with specified url and default layout"() {
@@ -127,6 +123,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
         def resolvers = []
@@ -135,8 +132,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         resolvers.size() == 1
         def resolver = resolvers[0]
-        resolver instanceof RepositoryResolver
-        resolver.repository instanceof CommonsHttpClientBackedRepository
+        resolver instanceof ResourceCollectionResolver
+        resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'] as List
         resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml"] as List
@@ -149,6 +146,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
         def resolvers = []
@@ -157,8 +155,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         resolvers.size() == 1
         def resolver = resolvers[0]
-        resolver instanceof RepositoryResolver
-        resolver.repository instanceof CommonsHttpClientBackedRepository
+        resolver instanceof ResourceCollectionResolver
+        resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'] as List
         resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml"] as List
@@ -175,6 +173,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
         def resolvers = []
@@ -183,8 +182,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         resolvers.size() == 1
         def resolver = resolvers[0]
-        resolver instanceof RepositoryResolver
-        resolver.repository instanceof CommonsHttpClientBackedRepository
+        resolver instanceof ResourceCollectionResolver
+        resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[module]/[revision]/[artifact](.[ext])'] as List
         resolver.ivyPatterns == ["http://host/[module]/[revision]/ivy.xml"] as List
@@ -198,6 +197,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
         def resolvers = []
@@ -206,8 +206,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         resolvers.size() == 1
         def resolver = resolvers[0]
-        resolver instanceof RepositoryResolver
-        resolver.repository instanceof CommonsHttpClientBackedRepository
+        resolver instanceof ResourceCollectionResolver
+        resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
         resolver.artifactPatterns == ['http://host/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])', 'http://host/[other]/artifact'] as List
         resolver.ivyPatterns == ["http://host/[organisation]/[module]/[revision]/ivy-[revision].xml", 'http://host/[other]/ivy'] as List
@@ -220,6 +220,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             artifact '[layoutPattern]'
         }
         repository.artifactPattern 'http://other/[additionalPattern]'
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host')
@@ -237,6 +238,9 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     }
 
     def "fails when no artifact patterns specified"() {
+        given:
+        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
+
         when:
         repository.createResolvers([])
 

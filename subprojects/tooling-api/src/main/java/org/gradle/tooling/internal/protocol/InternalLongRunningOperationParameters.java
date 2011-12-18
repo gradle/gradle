@@ -15,12 +15,14 @@
  */
 package org.gradle.tooling.internal.protocol;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Drastic changes to this interface may break the cross-version protocol.
+ * If you change it, make sure you run the all tooling api tests to flush out compatibility issues.
  */
-public interface LongRunningOperationParametersVersion1 {
+public interface InternalLongRunningOperationParameters {
     /**
      * Returns the output stream to write stdout logging to.
      *
@@ -41,4 +43,11 @@ public interface LongRunningOperationParametersVersion1 {
      * @return The listener. Must not be null.
      */
     ProgressListenerVersion1 getProgressListener();
+
+    /**
+     * Returns the standard input stream to be used.
+     *
+     * @return The input stream. May be null.
+     */
+    InputStream getStandardInput();
 }
