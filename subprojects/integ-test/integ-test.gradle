@@ -26,7 +26,6 @@ integTestTasks.all {
 
         if (isDevBuild()) {
             exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
-            exclude 'org/gradle/integtests/tooling/**/*Suite.*'
         }
     }
 }
