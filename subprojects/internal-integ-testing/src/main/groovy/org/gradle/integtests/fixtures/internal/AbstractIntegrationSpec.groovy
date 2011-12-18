@@ -52,7 +52,11 @@ class AbstractIntegrationSpec extends Specification {
     protected GradleExecuter sample(Sample sample) {
         inDirectory(sample.dir)
     }
-    
+
+    protected GradleExecuter inDirectory(String path) {
+        inDirectory(testDir.file(path))
+    }
+
     protected GradleExecuter inDirectory(File directory) {
         executer.inDirectory(directory);
     }
