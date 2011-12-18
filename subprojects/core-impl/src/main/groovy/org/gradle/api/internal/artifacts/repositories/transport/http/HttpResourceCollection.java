@@ -265,10 +265,13 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
             GetMethod get = new GetMethod(checksumUrl);
             try {
                 int result = executeMethod(get);
-                if (result == 404) {
-                    return null;
+                if (wasSuccessful(result)) {
+                    return WharfUtils.getCleanChecksum(get.getResponseBodyAsString());
                 }
-                return WharfUtils.getCleanChecksum(get.getResponseBodyAsString());
+                if (result != 404) {
+                    LOGGER.info("Request for checksum at {} failed: {}", checksumUrl, get.getStatusText());
+                }
+                return null;
             } catch (IOException e) {
                 LOGGER.warn("Checksum missing at {} due to: {}", checksumUrl, e.getMessage());
                 return null;
