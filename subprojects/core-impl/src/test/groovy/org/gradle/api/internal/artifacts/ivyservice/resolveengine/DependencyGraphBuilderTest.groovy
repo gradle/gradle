@@ -44,6 +44,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolveException
 import spock.lang.Ignore
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 
 class DependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
@@ -126,7 +127,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select(!null, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             assert candidates*.revision == ['1.2', '1.1']
             return candidates.find { it.revision == '1.2' }
         }
@@ -156,7 +157,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select(!null, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             assert candidates*.revision == ['1.1', '1.2']
             return candidates.find { it.revision == '1.2' }
         }
@@ -186,7 +187,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select(!null, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             assert candidates*.revision == ['1.1', '1.2']
             return candidates.find { it.revision == '1.2' }
         }
@@ -212,7 +213,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select(!null, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             assert candidates*.revision == ['1.2', '1.1']
             return candidates.find { it.revision == '1.2' }
         }
@@ -241,7 +242,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select(!null, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             assert candidates*.revision == ['1.1', '1.2']
             return candidates.find { it.revision == '1.2' }
         }
@@ -271,13 +272,13 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select({it*.revision == ['1.1', '1.2']}, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select({it*.revision == ['1.1', '1.2']}, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             return candidates.find { it.revision == '1.2' }
         }
-        1 * conflictResolver.select({it*.revision == ['2.1', '2.2']}, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select({it*.revision == ['2.1', '2.2']}, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             return candidates.find { it.revision == '2.2' }
         }
-        1 * conflictResolver.select({it*.revision == ['1.1', '1.2', '1.0']}, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select({it*.revision == ['1.1', '1.2', '1.0']}, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             return candidates.find { it.revision == '1.2' }
         }
         0 * conflictResolver._
@@ -307,7 +308,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select({it*.revision == ['1', '2']}, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select({it*.revision == ['1', '2']}, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             return candidates.find { it.revision == '2' }
         }
         0 * conflictResolver._
@@ -337,7 +338,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select({it*.revision == ['1', '2']}, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select({it*.revision == ['1', '2']}, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             return candidates.find { it.revision == '2' }
         }
         0 * conflictResolver._
@@ -369,10 +370,10 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select({it*.revision == ['1.1', '1.2']}, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select({it*.revision == ['1.1', '1.2']}, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             return candidates.find { it.revision == '1.2' }
         }
-        1 * conflictResolver.select({it*.revision == ['1', '2']}, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select({it*.revision == ['1', '2']}, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             return candidates.find { it.revision == '2' }
         }
         0 * conflictResolver._
@@ -410,7 +411,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select(!null, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             return candidates.find { it.revision == '1.2' }
         }
 
@@ -569,7 +570,32 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def "reports failure to resolve version selector to module version"() {
-        expect: false
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        traverses root, a
+        traverses root, b
+        doesNotResolve b, a
+        brokenSelector b, 'unknown'
+        brokenSelector a, 'unknown'
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        result.unresolvedModuleDependencies.size() == 1
+        def unresolved = result.unresolvedModuleDependencies.iterator().next()
+        unresolved.id == 'group#unknown;1.0'
+        unresolved.problem instanceof ModuleVersionResolveException
+
+        when:
+        result.rethrowFailure()
+
+        then:
+        ResolveException e = thrown()
+        e.cause instanceof ModuleVersionResolveException
+        e.cause.message.contains "group:root:1.0 > group:a:1.0"
+        e.cause.message.contains "group:root:1.0 > group:b:1.0 > group:a:1.0"
     }
 
     def "merges all failures for all dependencies with a given module version selector"() {
@@ -679,7 +705,7 @@ class DependencyGraphBuilderTest extends Specification {
         def result = builder.resolve(configuration, resolveData)
 
         then:
-        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select(!null, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             return candidates.find { it.revision == '1.2' }
         }
 
@@ -711,7 +737,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select(!null, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             return candidates.find { it.revision == '1.2' }
         }
 
@@ -735,7 +761,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select(!null, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             return candidates.find { it.revision == '1.2' }
         }
 
@@ -759,12 +785,17 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        1 * conflictResolver.select(!null, !null) >> { Set<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
+        1 * conflictResolver.select(!null, !null) >> { Collection<ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root ->
             return candidates.find { it.revision == '1.2' }
         }
 
         and:
         modules(result) == ids(selected, c)
+    }
+
+    @Ignore
+    def "fails when version selector cannot be resolved even when conflicts present"() {
+        expect: false
     }
 
     def "direct dependency can force a particular version"() {
@@ -798,28 +829,41 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def traverses(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
-        def resolver = dependsOn(args, from, to)
+        def descriptor = dependsOn(args, from, to.moduleRevisionId)
+        def resolver = selectorResolvesTo(descriptor, to.moduleRevisionId)
         1 * resolver.descriptor >> { println "RESOLVE $from.moduleRevisionId -> $to.moduleRevisionId"; return to }
     }
 
     def doesNotResolve(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
-        def resolver = dependsOn(args, from, to)
-        0 * resolver.descriptor
+        def descriptor = dependsOn(args, from, to.moduleRevisionId)
+        ModuleVersionResolver resolver = Mock()
+        (0..1) * dependencyResolver.create(descriptor) >> resolver
+        (0..1) * resolver.id >> to.moduleRevisionId
     }
 
     def traversesMissing(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
-        def resolver = dependsOn(args, from, to)
+        def descriptor = dependsOn(args, from, to.moduleRevisionId)
+        def resolver = selectorResolvesTo(descriptor, to.moduleRevisionId)
         1 * resolver.descriptor >> { throw new ModuleVersionNotFoundException("missing") }
     }
 
     def traversesBroken(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
-        def resolver = dependsOn(args, from, to)
+        def descriptor = dependsOn(args, from, to.moduleRevisionId)
+        def resolver = selectorResolvesTo(descriptor, to.moduleRevisionId)
         1 * resolver.descriptor >> { throw new ModuleVersionResolveException("broken") }
     }
 
-    def dependsOn(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
+    def brokenSelector(Map<String, ?> args = [:], DefaultModuleDescriptor from, String to) {
+        def descriptor = dependsOn(args, from, ModuleRevisionId.newInstance("group", to, "1.0"))
+        ModuleVersionResolver resolver = Mock()
+        (0..1) * dependencyResolver.create(descriptor) >> resolver
+        (0..1) * resolver.id >> { throw new ModuleVersionResolveException("broken") }
+        0 * resolver.descriptor
+    }
+
+    def dependsOn(Map<String, ?> args = [:], DefaultModuleDescriptor from, ModuleRevisionId to) {
         ModuleDependency moduleDependency = Mock()
-        def dependencyId = args.revision ? new ModuleRevisionId(to.moduleRevisionId.moduleId, args.revision) : to.moduleRevisionId
+        def dependencyId = args.revision ? new ModuleRevisionId(to.moduleId, args.revision) : to
         boolean transitive = args.transitive == null || args.transitive
         boolean force = args.force
         def descriptor = new EnhancedDependencyDescriptor(moduleDependency, from, dependencyId, force, false, transitive)
@@ -832,10 +876,13 @@ class DependencyGraphBuilderTest extends Specification {
                     ExactPatternMatcher.INSTANCE, null))
         }
         from.addDependency(descriptor)
+        return descriptor
+    }
 
+    def selectorResolvesTo(DependencyDescriptor descriptor, ModuleRevisionId to) {
         ModuleVersionResolver resolver = Mock()
-        (0..1) * dependencyResolver.create(descriptor) >> resolver
-        _ * resolver.id >> to.moduleRevisionId
+        1 * dependencyResolver.create(descriptor) >> resolver
+        1 * resolver.id >> to
         return resolver
     }
 

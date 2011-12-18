@@ -62,7 +62,7 @@ public abstract class ModuleVersionSpec implements Spec<ModuleId> {
         List<ModuleVersionSpec> specs = new ArrayList<ModuleVersionSpec>();
         unpackUnion(specs);
         other.unpackUnion(specs);
-        for (int i = 0; i < specs.size(); ) {
+        for (int i = 0; i < specs.size();) {
             ModuleVersionSpec spec = specs.get(i);
             ModuleVersionSpec merged = null;
             for (int j = i + 1; j < specs.size(); j++) {
