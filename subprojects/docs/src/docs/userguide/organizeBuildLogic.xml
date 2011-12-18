@@ -108,11 +108,9 @@
     
     <section id='sec:build_sources'>
         <title>Build sources in the <filename>buildSrc</filename> project</title>
-        <para>When you run Gradle, it checks for the existence of a directory called <filename>buildSrc</filename>. Just put
-            your build source code in this directory and stick to the layout convention for a Java/Groovy project (see
-            <xref linkend='javalayout'/>). Gradle then automatically compiles and tests this code and puts it in
-            the classpath of your build script. You don't need to provide any further instruction. This can be a good
-            place to add your custom tasks and plugins.
+        <para>When you run Gradle, it checks for the existence of a directory called <filename>buildSrc</filename>. 
+            Gradle then automatically compiles and tests this code and puts it in the classpath of your build script. 
+            You don't need to provide any further instruction. This can be a good place to add your custom tasks and plugins.
         </para>
         <para>For multi-project builds there can be only one <filename>buildSrc</filename> directory, which has to be
             in the root project directory.
@@ -122,6 +120,10 @@
             <title>Default buildSrc build script</title>
             <programlisting><xi:include href='../../../../../subprojects/core/src/main/resources/org/gradle/initialization/defaultBuildSourceScript.txt' parse='text'/></programlisting>
         </figure>
+        <para>
+            This means that you can just put you build source code in this directory and stick to the layout convention for a 
+            Java/Groovy project (see <xref linkend='javalayout'/>).
+        </para>
         <para>
             If you need more flexibility, you can provide your own <filename>build.gradle</filename>. Gradle applies the default build script
             regardless of whether there is one specified. This means you only need to declare the extra things you need. Below is an example.
