@@ -1,0 +1,14 @@
+subprojects {
+  apply plugin: "groovy"
+
+  dependencies {
+    groovy localGroovy()
+    compile gradleApi()
+  }
+
+// START SNIPPET addToRootProject
+rootProject.dependencies {
+  runtime project(path)
+}
+// END SNIPPET addToRootProject
+}

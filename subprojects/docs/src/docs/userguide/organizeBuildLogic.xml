@@ -122,16 +122,21 @@
             <title>Default buildSrc build script</title>
             <programlisting><xi:include href='../../../../../subprojects/core/src/main/resources/org/gradle/initialization/defaultBuildSourceScript.txt' parse='text'/></programlisting>
         </figure>
-        <para>This is probably good enough for most cases. If you need more flexibility, you can provide your own
-            <filename>build.gradle</filename> and a <filename>settings.gradle</filename> file in the
-            <filename>buildSrc</filename> directory. If you like, you can even have a multi-project build in there.
-            Gradle applies the default build script regardless of whether there is one specified. This means you only need to
-            declare the extra things you need. Below is an example. Notice that this example does not need to declare a dependency on the Gradle
-            API, as this is done by the default build script:
+        <para>
+            If you need more flexibility, you can provide your own <filename>build.gradle</filename>. Gradle applies the default build script
+            regardless of whether there is one specified. This means you only need to declare the extra things you need. Below is an example.
+            Notice that this example does not need to declare a dependency on the Gradle API, as this is done by the default build script:
         </para>
-
         <sample id="customBuildSrcBuild" dir="java/multiproject" title="Custom buildSrc build script">
             <sourcefile file="buildSrc/build.gradle"/>
+        </sample>
+        <para>
+            The <filename>buildSrc</filename> project can be a multi-project build. This works like any other regular Gradle multi-project build. However,
+            you need to make all of the projects that you wish be on the classpath of the actual build <literal>runtime</literal> dependencies of the root project in 
+            <filename>buildSrc</filename>. You can do this by adding this to the configuration of each project you wish to export:
+        </para>
+        <sample id="multiProjectBuildSrc" dir="multiProjectBuildSrc" includeLocation="true" title="Adding subprojects to the root buildSrc project">
+            <sourcefile file="buildSrc/build.gradle" snippet="addToRootProject"/>
         </sample>
     </section>
 
