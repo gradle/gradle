@@ -39,7 +39,6 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class DefaultSettingsConverter implements SettingsConverter {
-    static final String LOOPBACK_RESOLVER_NAME = "main";
     private final Factory<IvySettings> settingsFactory;
     private final Map<String, DependencyResolver> resolversById = new HashMap<String, DependencyResolver>();
     private final TransferListener transferListener;
@@ -77,7 +76,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
             userResolverChain = createUserResolverChain();
-            resolveSettings.addResolver(userResolverChain);
             LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(LOOPBACK_RESOLVER_NAME, userResolverChain, cacheLockingManager);
             resolveSettings.addResolver(loopbackDependencyResolver);
             resolveSettings.setDefaultResolver(LOOPBACK_RESOLVER_NAME);
@@ -90,19 +88,16 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     private UserResolverChain createUserResolverChain() {
-        UserResolverChain chainResolver = new UserResolverChain(moduleResolutionCache, moduleDescriptorCache, artifactFileStore);
-        chainResolver.setName(USER_RESOLVER_CHAIN_NAME);
-        chainResolver.setReturnFirst(true);
-        chainResolver.setRepositoryCacheManager(new NoOpRepositoryCacheManager(chainResolver.getName()));
-        return chainResolver;
+        UserResolverChain resolverChain = new UserResolverChain(moduleResolutionCache, moduleDescriptorCache, artifactFileStore);
+        resolverChain.setSettings(resolveSettings);
+        return resolverChain;
     }
 
-    private void replaceResolvers(List<DependencyResolver> resolvers, ChainResolver chainResolver) {
-        Collection<DependencyResolver> oldResolvers = new ArrayList<DependencyResolver>(chainResolver.getResolvers());
-        for (DependencyResolver resolver : oldResolvers) {
-            resolveSettings.getResolvers().remove(resolver);
-            chainResolver.getResolvers().remove(resolver);
+    private void replaceResolvers(List<DependencyResolver> resolvers, UserResolverChain chainResolver) {
+        for (ModuleVersionRepository moduleVersionRepository : chainResolver.getResolvers()) {
+            resolveSettings.getResolvers().remove(moduleVersionRepository);
         }
+        chainResolver.clearResolvers();
         for (DependencyResolver resolver : resolvers) {
             resolver.setSettings(resolveSettings);
             String resolverId = new WharfResolverMetadata(resolver).getId();

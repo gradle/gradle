@@ -37,7 +37,8 @@ class DefaultIvyAdapter implements IvyAdapter {
         this.ivy = ivy;
         this.artifactResolutionCache = artifactResolutionCache;
         this.resolutionStrategy = resolutionStrategy;
-        userResolver = (UserResolverChain) ivy.getSettings().getResolver(SettingsConverter.USER_RESOLVER_CHAIN_NAME);
+        LoopbackDependencyResolver lookbackResolver = (LoopbackDependencyResolver) ivy.getSettings().getResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME);
+        userResolver = lookbackResolver.getUserResolverChain();
         versionMatcher = ivy.getSettings().getVersionMatcher();
     }
 

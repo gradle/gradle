@@ -24,7 +24,6 @@ import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.search.ModuleEntry;
 import org.apache.ivy.core.search.OrganisationEntry;
 import org.apache.ivy.core.search.RevisionEntry;
@@ -35,74 +34,35 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Map;
 
-public class DelegatingDependencyResolver implements DependencyResolver {
-    private final DependencyResolver resolver;
-
-    public DelegatingDependencyResolver(DependencyResolver resolver) {
-        this.resolver = resolver;
-    }
-
-    public DependencyResolver getResolver() {
-        return resolver;
-    }
-
-    public String getName() {
-        return resolver.getName();
-    }
-
+public abstract class LimitedDependencyResolver implements DependencyResolver {
     public Namespace getNamespace() {
-        return resolver.getNamespace();
+        throw new UnsupportedOperationException();
     }
 
     public RepositoryCacheManager getRepositoryCacheManager() {
-        return resolver.getRepositoryCacheManager();
+        throw new UnsupportedOperationException();
     }
 
     public ModuleEntry[] listModules(OrganisationEntry org) {
-        return resolver.listModules(org);
+        throw new UnsupportedOperationException();
     }
 
     public OrganisationEntry[] listOrganisations() {
-        return resolver.listOrganisations();
+        throw new UnsupportedOperationException();
     }
 
     public RevisionEntry[] listRevisions(ModuleEntry module) {
-        return resolver.listRevisions(module);
+        throw new UnsupportedOperationException();
     }
 
     public String[] listTokenValues(String token, Map otherTokenValues) {
-        return resolver.listTokenValues(token, otherTokenValues);
+        throw new UnsupportedOperationException();
     }
 
     public Map[] listTokenValues(String[] tokens, Map criteria) {
-        return resolver.listTokenValues(tokens, criteria);
-    }
-
-    public ArtifactOrigin locate(Artifact artifact) {
-        return resolver.locate(artifact);
-    }
-
-    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
-        return resolver.getDependency(dd, data);
-    }
-
-    public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
-        return resolver.findIvyFileRef(dd, data);
-    }
-
-    public boolean exists(Artifact artifact) {
-        return resolver.exists(artifact);
-    }
-
-    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
-        return resolver.download(artifacts, options);
-    }
-
-    public ArtifactDownloadReport download(ArtifactOrigin artifact, DownloadOptions options) {
-        return resolver.download(artifact, options);
+        throw new UnsupportedOperationException();
     }
 
     public void abortPublishTransaction() throws IOException {
@@ -137,7 +97,28 @@ public class DelegatingDependencyResolver implements DependencyResolver {
         throw new UnsupportedOperationException();
     }
 
-    public void setSettings(ResolverSettings settings) {
+    public ArtifactOrigin locate(Artifact artifact) {
         throw new UnsupportedOperationException();
+    }
+
+    public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean exists(Artifact artifact) {
+        throw new UnsupportedOperationException();
+    }
+
+    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
+        throw new UnsupportedOperationException();
+    }
+
+    public ArtifactDownloadReport download(ArtifactOrigin artifact, DownloadOptions options) {
+        throw new UnsupportedOperationException();
+    }
+
+
+    public void setSettings(ResolverSettings settings) {
+        // Ignore
     }
 }

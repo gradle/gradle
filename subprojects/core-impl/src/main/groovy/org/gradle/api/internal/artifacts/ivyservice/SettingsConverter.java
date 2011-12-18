@@ -25,7 +25,7 @@ import java.util.List;
  * @author Hans Dockter
  */
 public interface SettingsConverter {
-    String USER_RESOLVER_CHAIN_NAME = "userResolverChain";
+    String LOOPBACK_RESOLVER_NAME = "main";
 
     IvySettings convertForPublish(List<DependencyResolver> publishResolvers);
 

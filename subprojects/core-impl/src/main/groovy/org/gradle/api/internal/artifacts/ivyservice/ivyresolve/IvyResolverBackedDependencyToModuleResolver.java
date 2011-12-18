@@ -37,10 +37,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
 class IvyResolverBackedDependencyToModuleResolver implements DependencyToModuleResolver {
     private final Ivy ivy;
     private final ResolveData resolveData;
-    private final DependencyResolver resolver;
+    private final UserResolverChain resolver;
     private final VersionMatcher versionMatcher;
 
-    public IvyResolverBackedDependencyToModuleResolver(Ivy ivy, ResolveData resolveData, DependencyResolver resolver, VersionMatcher versionMatcher) {
+    public IvyResolverBackedDependencyToModuleResolver(Ivy ivy, ResolveData resolveData, UserResolverChain resolver, VersionMatcher versionMatcher) {
         this.ivy = ivy;
         this.resolveData = resolveData;
         this.resolver = resolver;

@@ -21,9 +21,10 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
+import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.plugins.IvySettingsAware;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
-import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
@@ -37,13 +38,15 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.*;
 
-public class UserResolverChain extends ChainResolver implements DependencyResolvers {
+public class UserResolverChain implements DependencyResolvers, IvySettingsAware {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
 
     private final Map<ModuleRevisionId, ModuleVersionRepository> artifactRepositories = new HashMap<ModuleRevisionId, ModuleVersionRepository>();
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
     private final ArtifactFileStore artifactFileStore;
+    private final List<ModuleVersionRepository> resolvers = new ArrayList<ModuleVersionRepository>();
+    private IvySettings settings;
     private CachePolicy cachePolicy;
 
     public UserResolverChain(ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache, ArtifactFileStore artifactFileStore) {
@@ -52,19 +55,21 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
         this.artifactFileStore = artifactFileStore;
     }
 
+    public void setSettings(IvySettings settings) {
+        this.settings = settings;
+    }
+
     public void setCachePolicy(CachePolicy cachePolicy) {
         this.cachePolicy = cachePolicy;
     }
 
-    @Override
     public void add(DependencyResolver resolver) {
         if (!(resolver instanceof ModuleVersionRepository)) {
             throw new IllegalArgumentException("Can only add ModuleVersionRepository instances.");
         }
-        super.add(resolver);
+        resolvers.add((ModuleVersionRepository) resolver);
     }
 
-    @Override
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) {
 
         List<ModuleResolution> resolutionList = createResolutionList(dd, data);
@@ -81,7 +86,7 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
     }
 
     private List<ModuleResolution> createResolutionList(DependencyDescriptor dd, ResolveData data) {
-        boolean staticVersion = !getSettings().getVersionMatcher().isDynamic(dd.getDependencyRevisionId());
+        boolean staticVersion = !settings.getVersionMatcher().isDynamic(dd.getDependencyRevisionId());
         List<ModuleResolution> resolutionList = new ArrayList<ModuleResolution>();
         for (ModuleVersionRepository resolver : getResolvers()) {
             resolutionList.add(new ModuleResolution(resolver, dd, data, staticVersion));
@@ -129,7 +134,7 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
             return two.getModule() == null ? one : two;
         }
 
-        ComparatorLatestStrategy latestStrategy = (ComparatorLatestStrategy) getLatestStrategy();
+        ComparatorLatestStrategy latestStrategy = (ComparatorLatestStrategy) settings.getDefaultLatestStrategy();
         Comparator<ArtifactInfo> comparator = latestStrategy.getComparator();
         int comparison = comparator.compare(one, two);
 
@@ -168,9 +173,12 @@ public class UserResolverChain extends ChainResolver implements DependencyResolv
         return getResolvers();
     }
 
-    @Override
+    public void clearResolvers() {
+        resolvers.clear();
+    }
+    
     public List<ModuleVersionRepository> getResolvers() {
-        return super.getResolvers();
+        return resolvers;
     }
 
     private class ModuleResolution implements ArtifactInfo {
