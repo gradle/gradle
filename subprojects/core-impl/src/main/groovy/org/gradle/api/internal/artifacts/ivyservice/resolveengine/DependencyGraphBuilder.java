@@ -161,36 +161,45 @@ public class DependencyGraphBuilder {
         }
 
         private Collection<List<ModuleRevisionId>> calculatePaths(Map.Entry<ModuleRevisionId, BrokenDependency> entry) {
-            // Include the shortest path from each configuration that has a direct dependency on the broken dependency, back to the root
+            // Include the shortest path from each version that has a direct dependency on the broken dependency, back to the root
             
-            Map<ConfigurationNode, List<ModuleRevisionId>> shortestPaths = new LinkedHashMap<ConfigurationNode, List<ModuleRevisionId>>();
+            Map<DefaultModuleRevisionResolveState, List<ModuleRevisionId>> shortestPaths = new LinkedHashMap<DefaultModuleRevisionResolveState, List<ModuleRevisionId>>();
             List<ModuleRevisionId> rootPath = new ArrayList<ModuleRevisionId>();
             rootPath.add(root.moduleRevision.id);
-            shortestPaths.put(root, rootPath);
+            shortestPaths.put(root.moduleRevision, rootPath);
 
-            Set<ConfigurationNode> seen = new HashSet<ConfigurationNode>();
-            LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
-            queue.addAll(entry.getValue().requiredBy);
+            Set<DefaultModuleRevisionResolveState> directDependees = new LinkedHashSet<DefaultModuleRevisionResolveState>();
+            for (ConfigurationNode node : entry.getValue().requiredBy) {
+                directDependees.add(node.moduleRevision);
+            }
+
+            Set<DefaultModuleRevisionResolveState> seen = new HashSet<DefaultModuleRevisionResolveState>();
+            LinkedList<DefaultModuleRevisionResolveState> queue = new LinkedList<DefaultModuleRevisionResolveState>();
+            queue.addAll(directDependees);
             while (!queue.isEmpty()) {
-                ConfigurationNode node = queue.getFirst();
-                if (node == root) {
+                DefaultModuleRevisionResolveState version = queue.getFirst();
+                if (version == root.moduleRevision) {
                     queue.removeFirst();
-                } else if (seen.add(node)) {
-                    for (DependencyEdge dependencyEdge : node.incomingEdges) {
-                        queue.add(0, dependencyEdge.from);
+                } else if (seen.add(version)) {
+                    for (ConfigurationNode configuration : version.configurations) {
+                        for (DependencyEdge dependencyEdge : configuration.incomingEdges) {
+                            queue.add(0, dependencyEdge.from.moduleRevision);
+                        }
                     }
                 } else {
                     queue.remove();
                     List<ModuleRevisionId> shortest = null;
-                    for (DependencyEdge dependencyEdge : node.incomingEdges) {
-                        List<ModuleRevisionId> candidate = shortestPaths.get(dependencyEdge.from);
-                        if (candidate == null) {
-                            continue;
-                        }
-                        if (shortest == null) {
-                            shortest = candidate;
-                        } else if (shortest.size() > candidate.size()) {
-                            shortest = candidate;
+                    for (ConfigurationNode configuration : version.configurations) {
+                        for (DependencyEdge dependencyEdge : configuration.incomingEdges) {
+                            List<ModuleRevisionId> candidate = shortestPaths.get(dependencyEdge.from.moduleRevision);
+                            if (candidate == null) {
+                                continue;
+                            }
+                            if (shortest == null) {
+                                shortest = candidate;
+                            } else if (shortest.size() > candidate.size()) {
+                                shortest = candidate;
+                            }
                         }
                     }
                     if (shortest == null) {
@@ -198,14 +207,15 @@ public class DependencyGraphBuilder {
                     }
                     List<ModuleRevisionId> path = new ArrayList<ModuleRevisionId>();
                     path.addAll(shortest);
-                    path.add(node.moduleRevision.id);
-                    shortestPaths.put(node, path);
+                    path.add(version.id);
+                    shortestPaths.put(version, path);
                 }
             }
 
             List<List<ModuleRevisionId>> paths = new ArrayList<List<ModuleRevisionId>>();
-            for (ConfigurationNode node : entry.getValue().requiredBy) {
-                paths.add(shortestPaths.get(node));
+            for (DefaultModuleRevisionResolveState version : directDependees) {
+                List<ModuleRevisionId> path = shortestPaths.get(version);
+                paths.add(path);
             }
             return paths;
         }
@@ -601,10 +611,6 @@ public class DependencyGraphBuilder {
         public void addConfiguration(ConfigurationNode configurationNode) {
             configurations.add(configurationNode);
         }
-
-        public void removeConfiguration(ConfigurationNode configurationNode) {
-            configurations.remove(configurationNode);
-        }
     }
 
     private static class ConfigurationNode {
@@ -693,8 +699,7 @@ public class DependencyGraphBuilder {
                     removeOutgoingEdges();
                 }
                 if (incomingEdges.isEmpty()) {
-                    LOGGER.debug("{} has no incoming edges. removing.", this);
-                    moduleRevision.removeConfiguration(this);
+                    LOGGER.debug("{} has no incoming edges. ignoring.", this);
                 } else {
                     LOGGER.debug("{} has no transitive incoming edges. ignoring outgoing edges.", this);
                 }
