@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 
@@ -28,37 +29,44 @@ import java.io.File;
 import java.text.ParseException;
 
 /**
- * The main entry point for a {@link DependencyResolver} to call back into the dependency
- * resolution mechanism.
+ * The main entry point for a {@link DependencyResolver} to call back into the dependency resolution mechanism.
  */
-public class LoopbackDependencyResolver extends LimitedDependencyResolver {
+public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
     private final String name;
-    private final UserResolverChain resolver;
+    private final UserResolverChain userResolverChain;
     private final CacheLockingManager cacheLockingManager;
 
-    public LoopbackDependencyResolver(String name, UserResolverChain resolver, CacheLockingManager cacheLockingManager) {
+    public LoopbackDependencyResolver(String name, UserResolverChain userResolverChain, CacheLockingManager cacheLockingManager) {
         this.name = name;
-        this.resolver = resolver;
+        this.userResolverChain = userResolverChain;
         this.cacheLockingManager = cacheLockingManager;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
+    public void setSettings(ResolverSettings settings) {
+        userResolverChain.setSettings(settings);
+    }
+
+    @Override
     public ResolvedModuleRevision getDependency(final DependencyDescriptor dd, final ResolveData data) throws ParseException {
         return cacheLockingManager.useCache(String.format("Resolve %s", dd), new Factory<ResolvedModuleRevision>() {
             public ResolvedModuleRevision create() {
-                return resolver.getDependency(dd, data);
+                return userResolverChain.getDependency(dd, data);
             }
         });
     }
 
+    @Override
     public ArtifactOrigin locate(final Artifact artifact) {
         return cacheLockingManager.useCache(String.format("Locate %s", artifact), new Factory<ArtifactOrigin>() {
             public ArtifactOrigin create() {
                 try {
-                    File artifactFile = resolver.resolve(artifact);
+                    File artifactFile = userResolverChain.resolve(artifact);
                     return new ArtifactOrigin(artifact, false, artifactFile.getAbsolutePath());
                 } catch (ArtifactNotFoundException e) {
                     return null;
@@ -68,6 +76,6 @@ public class LoopbackDependencyResolver extends LimitedDependencyResolver {
     }
 
     public UserResolverChain getUserResolverChain() {
-        return resolver;
+        return userResolverChain;
     }
 }

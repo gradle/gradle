@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.cache.CacheMetadataOptions;
-import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.matcher.Matcher;
 import org.apache.ivy.plugins.matcher.NoMatcher;
@@ -29,20 +27,21 @@ import org.gradle.api.GradleException;
 import java.lang.reflect.Method;
 
 class ChangingModuleDetector {
+    private final DependencyResolver resolver;
     private final ResolverSettings settings;
 
-    public ChangingModuleDetector(ResolverSettings settings) {
+    public ChangingModuleDetector(DependencyResolver resolver, ResolverSettings settings) {
+        this.resolver = resolver;
         this.settings = settings;
     }
 
-    public boolean isChangingModule(DependencyResolver resolver, ResolvedModuleRevision revision, ResolveData resolveData) {
-        CacheMetadataOptions options = getCacheMetadataOptions(resolver, resolveData);
-        return getChangingMatcher(options).matches(revision.getId().getRevision());
+    public boolean isChangingModule(ResolvedModuleRevision revision) {
+        return getChangingMatcher().matches(revision.getId().getRevision());
     }
 
-    private Matcher getChangingMatcher(CacheMetadataOptions options) {
-        String changingMatcherName = options.getChangingMatcherName();
-        String changingPattern = options.getChangingPattern();
+    private Matcher getChangingMatcher() {
+        String changingMatcherName = readAbstractResolverProperty(resolver, "getChangingMatcherName");
+        String changingPattern = readAbstractResolverProperty(resolver, "getChangingPattern");
         if (changingMatcherName == null || changingPattern == null) {
             return NoMatcher.INSTANCE;
         }
@@ -54,17 +53,17 @@ class ChangingModuleDetector {
         return matcher.getMatcher(changingPattern);
     }
 
-    private CacheMetadataOptions getCacheMetadataOptions(DependencyResolver resolver, ResolveData resolveData) {
+    private String readAbstractResolverProperty(DependencyResolver resolver, String getter) {
         if (resolver instanceof AbstractResolver) {
             try {
-                Method method = AbstractResolver.class.getDeclaredMethod("getCacheOptions", ResolveData.class);
+                Method method = AbstractResolver.class.getDeclaredMethod(getter);
                 method.setAccessible(true);
-                return (CacheMetadataOptions) method.invoke(resolver, resolveData);
+                return (String) method.invoke(resolver);
             } catch (Exception e) {
                 throw new GradleException("Could not get cache options from AbstractResolver", e);
             }
         }
-        return new CacheMetadataOptions();
+        return null;
     }
 
 }

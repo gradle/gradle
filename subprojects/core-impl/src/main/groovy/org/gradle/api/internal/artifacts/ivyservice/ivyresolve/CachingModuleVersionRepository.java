@@ -22,7 +22,6 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
@@ -60,8 +59,8 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         return delegate.getId();
     }
 
-    public boolean isChanging(ResolvedModuleRevision revision, ResolveData resolveData) {
-        return delegate.isChanging(revision, resolveData);
+    public boolean isChanging(ResolvedModuleRevision revision) {
+        return delegate.isChanging(revision);
     }
 
     public boolean isLocal() {
@@ -124,19 +123,19 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         }
 
         LOGGER.debug("Using cached module metadata for '{}'", resolvedModuleVersionId);
-        ResolvedModuleRevision cachedModule = new ResolvedModuleRevision((DependencyResolver) delegate, (DependencyResolver) delegate, cachedModuleDescriptor.getModuleDescriptor(), null);
+        ResolvedModuleRevision cachedModule = new ResolvedModuleRevision(null, null, cachedModuleDescriptor.getModuleDescriptor(), null);
         return found(cachedModule);
     }
 
-    public ResolvedModuleRevision resolveModule(DependencyDescriptor resolvedDependencyDescriptor, DependencyDescriptor requestedDependencyDescriptor1, ResolveData resolveData1) {
-        ResolvedModuleRevision module = delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDependencyDescriptor, true), resolveData1);
+    public ResolvedModuleRevision resolveModule(DependencyDescriptor resolvedDependencyDescriptor, DependencyDescriptor requestedDependencyDescriptor, ResolveData resolveData) {
+        ResolvedModuleRevision module = delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDependencyDescriptor, true), resolveData);
 
         if (module == null) {
-            moduleDescriptorCache.cacheModuleDescriptor(delegate, resolvedDependencyDescriptor.getDependencyRevisionId(), null, requestedDependencyDescriptor1.isChanging());
+            moduleDescriptorCache.cacheModuleDescriptor(delegate, resolvedDependencyDescriptor.getDependencyRevisionId(), null, requestedDependencyDescriptor.isChanging());
         } else {
             cacheArtifactFile(module);
-            moduleResolutionCache.cacheModuleResolution(delegate, requestedDependencyDescriptor1.getDependencyRevisionId(), module.getId());
-            moduleDescriptorCache.cacheModuleDescriptor(delegate, module.getId(), module.getDescriptor(), isChangingDependency(requestedDependencyDescriptor1, module, resolveData1));
+            moduleResolutionCache.cacheModuleResolution(delegate, requestedDependencyDescriptor.getDependencyRevisionId(), module.getId());
+            moduleDescriptorCache.cacheModuleDescriptor(delegate, module.getId(), module.getDescriptor(), isChangingDependency(requestedDependencyDescriptor, module));
         }
         return module;
     }
@@ -149,12 +148,12 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         }
     }
 
-    private boolean isChangingDependency(DependencyDescriptor descriptor, ResolvedModuleRevision downloadedModule, ResolveData resolveData1) {
+    private boolean isChangingDependency(DependencyDescriptor descriptor, ResolvedModuleRevision downloadedModule) {
         if (descriptor.isChanging()) {
             return true;
         }
 
-        return delegate.isChanging(downloadedModule, resolveData1);
+        return delegate.isChanging(downloadedModule);
     }
 
     private CachedModuleLookup notFound() {

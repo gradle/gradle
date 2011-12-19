@@ -22,11 +22,10 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.IvySettingsAware;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
@@ -40,7 +39,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.*;
 
-public class UserResolverChain implements ArtifactToFileResolver, IvySettingsAware {
+public class UserResolverChain implements ArtifactToFileResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
 
     private final Map<ModuleRevisionId, ModuleVersionRepository> artifactRepositories = new HashMap<ModuleRevisionId, ModuleVersionRepository>();
@@ -50,17 +49,18 @@ public class UserResolverChain implements ArtifactToFileResolver, IvySettingsAwa
     private final ArtifactFileStore artifactFileStore;
     private final List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
     private final List<ModuleVersionRepository> moduleVersionRepositories = new ArrayList<ModuleVersionRepository>();
-    private IvySettings settings;
+    private ResolverSettings settings;
     private CachePolicy cachePolicy;
 
-    public UserResolverChain(ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache, ArtifactResolutionCache artifactResolutionCache, ArtifactFileStore artifactFileStore) {
+    public UserResolverChain(ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
+                             ArtifactResolutionCache artifactResolutionCache, ArtifactFileStore artifactFileStore) {
         this.moduleDescriptorCache = moduleDescriptorCache;
         this.moduleResolutionCache = moduleResolutionCache;
         this.artifactResolutionCache = artifactResolutionCache;
         this.artifactFileStore = artifactFileStore;
     }
 
-    public void setSettings(IvySettings settings) {
+    public void setSettings(ResolverSettings settings) {
         this.settings = settings;
     }
 
@@ -68,13 +68,10 @@ public class UserResolverChain implements ArtifactToFileResolver, IvySettingsAwa
         this.cachePolicy = cachePolicy;
     }
 
-    public void add(DependencyResolver resolver) {
-        if (!(resolver instanceof ModuleVersionRepository)) {
-            throw new IllegalArgumentException("Can only add ModuleVersionRepository instances.");
-        }
+    public void add(String id, DependencyResolver resolver) {
         resolvers.add(resolver);
-        ModuleVersionRepository cachingRepository = new CachingModuleVersionRepository((ModuleVersionRepository) resolver,
-                moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache, artifactFileStore, cachePolicy);
+        ModuleVersionRepository adapted = new DependencyResolverAdapter(id, resolver);
+        ModuleVersionRepository cachingRepository = new CachingModuleVersionRepository(adapted, moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache, artifactFileStore, cachePolicy);
         moduleVersionRepositories.add(cachingRepository);
     }
 

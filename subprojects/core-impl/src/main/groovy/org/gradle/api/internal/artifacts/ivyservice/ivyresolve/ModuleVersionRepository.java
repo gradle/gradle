@@ -37,7 +37,7 @@ public interface ModuleVersionRepository {
     File download(Artifact artifact, DownloadOptions options);
 
     // TODO - should be part of the meta-data returned by getDependency()
-    boolean isChanging(ResolvedModuleRevision revision, ResolveData resolveData);
+    boolean isChanging(ResolvedModuleRevision revision);
 
     // TODO - should be internal to the implementation of this
     boolean isLocal();

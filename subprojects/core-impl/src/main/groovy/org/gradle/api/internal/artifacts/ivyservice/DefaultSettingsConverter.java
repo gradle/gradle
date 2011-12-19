@@ -34,14 +34,16 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultSettingsConverter implements SettingsConverter {
     private final Factory<IvySettings> settingsFactory;
-    private final Map<String, DependencyResolver> resolversById = new HashMap<String, DependencyResolver>();
+    private final Map<String, IvyDependencyResolver> resolversById = new HashMap<String, IvyDependencyResolver>();
     private final TransferListener transferListener;
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
@@ -105,15 +107,15 @@ public class DefaultSettingsConverter implements SettingsConverter {
         for (DependencyResolver resolver : resolvers) {
             resolver.setSettings(resolveSettings);
             String resolverId = new WharfResolverMetadata(resolver).getId();
-            DependencyResolver sharedResolver = resolversById.get(resolverId);
+            IvyDependencyResolver sharedResolver = resolversById.get(resolverId);
             if (sharedResolver == null) {
                 initializeResolvers(resolveSettings, WrapUtil.toList(resolver));
-                sharedResolver = new DependencyResolverAdapter(resolverId, resolver, cacheLockingManager);
+                sharedResolver = new CacheLockingDependencyResolver(resolver, cacheLockingManager);
                 resolversById.put(resolverId, sharedResolver);
             }
             resolveSettings.addResolver(sharedResolver);
             assert resolveSettings.getResolver(resolver.getName()) == sharedResolver;
-            chainResolver.add(sharedResolver);
+            chainResolver.add(resolverId, sharedResolver);
         }
     }
 
