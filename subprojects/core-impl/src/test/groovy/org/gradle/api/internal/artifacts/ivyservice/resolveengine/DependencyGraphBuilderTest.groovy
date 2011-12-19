@@ -540,7 +540,7 @@ class DependencyGraphBuilderTest extends Specification {
         artifacts(result) == ids(a, b)
     }
 
-    def "reports all incoming paths for a failed dependency"() {
+    def "reports shortest incoming paths for a failed dependency"() {
         given:
         def a = revision('a')
         def b = revision('b')
@@ -549,6 +549,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses root, b
         doesNotResolve b, a
         traversesBroken a, c
+        doesNotResolve b, c
 
         when:
         def result = builder.resolve(configuration, resolveData)
@@ -566,7 +567,8 @@ class DependencyGraphBuilderTest extends Specification {
         ResolveException e = thrown()
         e.cause instanceof ModuleVersionResolveException
         e.cause.message.contains "group:root:1.0 > group:a:1.0"
-        e.cause.message.contains "group:root:1.0 > group:b:1.0 > group:a:1.0"
+        e.cause.message.contains "group:root:1.0 > group:b:1.0"
+        !e.cause.message.contains("group:root:1.0 > group:b:1.0 > group:a:1.0")
     }
 
     def "reports failure to resolve version selector to module version"() {
@@ -595,7 +597,7 @@ class DependencyGraphBuilderTest extends Specification {
         ResolveException e = thrown()
         e.cause instanceof ModuleVersionResolveException
         e.cause.message.contains "group:root:1.0 > group:a:1.0"
-        e.cause.message.contains "group:root:1.0 > group:b:1.0 > group:a:1.0"
+        e.cause.message.contains "group:root:1.0 > group:b:1.0"
     }
 
     def "merges all failures for all dependencies with a given module version selector"() {
@@ -627,7 +629,7 @@ class DependencyGraphBuilderTest extends Specification {
         e.cause.message.contains "group:root:1.0 > group:b:1.0"
     }
 
-    def "reports all incoming paths for a missing module version"() {
+    def "reports shortest incoming paths for a missing module version"() {
         given:
         def a = revision('a')
         def b = revision('b')
@@ -636,6 +638,7 @@ class DependencyGraphBuilderTest extends Specification {
         traverses root, b
         doesNotResolve b, a
         traversesMissing a, c
+        doesNotResolve b, c
 
         when:
         def result = builder.resolve(configuration, resolveData)
@@ -653,7 +656,8 @@ class DependencyGraphBuilderTest extends Specification {
         ResolveException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains "group:root:1.0 > group:a:1.0"
-        e.cause.message.contains "group:root:1.0 > group:b:1.0 > group:a:1.0"
+        e.cause.message.contains "group:root:1.0 > group:b:1.0"
+        !e.cause.message.contains("group:root:1.0 > group:b:1.0 > group:a:1.0")
     }
 
     def "merges all dependencies with a given module version selector when reporting missing version"() {
@@ -683,6 +687,34 @@ class DependencyGraphBuilderTest extends Specification {
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains "group:root:1.0 > group:a:1.0"
         e.cause.message.contains "group:root:1.0 > group:b:1.0"
+    }
+    
+    def "can handle a cycle in the incoming paths of a broken module"() {
+        given:
+        def a = revision('a')
+        def b = revision('b')
+        def c = revision('c')
+        traverses root, a
+        traverses a, b
+        doesNotResolve b, a
+        traversesMissing b, c
+
+        when:
+        def result = builder.resolve(configuration, resolveData)
+
+        then:
+        result.unresolvedModuleDependencies.size() == 1
+        def unresolved = result.unresolvedModuleDependencies.iterator().next()
+        unresolved.id == 'group#c;1.0'
+        unresolved.problem instanceof ModuleVersionResolveException
+
+        when:
+        result.rethrowFailure()
+
+        then:
+        ResolveException e = thrown()
+        e.cause instanceof ModuleVersionNotFoundException
+        e.cause.message.contains "group:root:1.0 > group:a:1.0 > group:b:1.0"
     }
 
     def "does not report a path through an evicted version"() {
@@ -716,7 +748,6 @@ class DependencyGraphBuilderTest extends Specification {
         ResolveException ex = thrown()
         ex.cause instanceof ModuleVersionNotFoundException
         !ex.cause.message.contains("group:a:1.1")
-        ex.cause.message.contains "group:root:1.0 > group:d:1.0 > group:e:1.0 > group:a:1.2"
         ex.cause.message.contains "group:root:1.0 > group:a:1.2"
 
         and:

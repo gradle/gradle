@@ -39,12 +39,18 @@ import org.jfrog.wharf.ivy.util.WharfUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A repository which uses commons-httpclient to access resources using HTTP/HTTPS.
@@ -236,6 +242,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
                 return new MissingHttpResource(source);
             }
             if (!wasSuccessful(result)) {
+                LOGGER.info("Failed to get resource: {} ({}). [HTTP GET: {}]", new Object[]{result, method.getStatusText(), source});
                 throw new UncheckedIOException(String.format("Could not GET '%s'. Received status code %s from server: %s", source, result, method.getStatusText()));
             }
             LOGGER.info("Resource found. [HTTP GET: {}]", source);
@@ -248,7 +255,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
 
             String sha1 = downloadChecksum(checksumUrl);
             if (sha1 == null) {
-                LOGGER.info("Checksum {} missing. [HTTP GET: {}]", checksumType, checksumUrl);
+                LOGGER.info("Checksum {} unavailable. [HTTP GET: {}]", checksumType, checksumUrl);
             } else {
                 for (CachedArtifact candidate : candidates) {
                     if (candidate.getSha1().equals(sha1)) {
@@ -265,10 +272,13 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
             GetMethod get = new GetMethod(checksumUrl);
             try {
                 int result = executeMethod(get);
-                if (result == 404) {
-                    return null;
+                if (wasSuccessful(result)) {
+                    return WharfUtils.getCleanChecksum(get.getResponseBodyAsString());
                 }
-                return WharfUtils.getCleanChecksum(get.getResponseBodyAsString());
+                if (result != 404) {
+                    LOGGER.info("Request for checksum at {} failed: {}", checksumUrl, get.getStatusText());
+                }
+                return null;
             } catch (IOException e) {
                 LOGGER.warn("Checksum missing at {} due to: {}", checksumUrl, e.getMessage());
                 return null;

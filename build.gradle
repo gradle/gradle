@@ -127,8 +127,7 @@ allprojects {
         mavenRepo(url: 'http://repository.codehaus.org/')
         mavenRepo(url: 'http://m2repo.spockframework.org/snapshots/')
         ivy {
-            artifactPattern 'http://repo.jfrog.org/artifactory/gradle-plugins-snapshots/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
-            ivyPattern 'http://repo.jfrog.org/artifactory/gradle-ivy-local/[organisation]/[module]/ivy-[revision].xml'
+            url 'http://repo.jfrog.org/artifactory/gradle-wharf-local'
         }
     }
 
