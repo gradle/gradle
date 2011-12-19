@@ -21,12 +21,14 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.tooling.internal.CompatibilityChecker;
+import org.gradle.tooling.internal.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.model.IncompatibleVersionException;
 import org.gradle.util.GUtil;
@@ -69,7 +71,13 @@ public class DefaultConnection implements ConnectionVersion4 {
     }
 
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
-        GradleLauncherAction<ProjectVersion3> action = new DelegatingBuildModelAction(type);
+        if (type == InternalBuildEnvironment.class) {
+            //we don't really need to launch gradle to acquire this information, TODO SF refactor
+            DaemonClientServices services = daemonClientServices(operationParameters);
+            DaemonContext context = services.get(DaemonContext.class);
+            return new DefaultBuildEnvironment(GradleVersion.current().getVersion(), context.getJavaHome(), context.getDaemonOpts());
+        }
+        DelegatingBuildModelAction action = new DelegatingBuildModelAction(type);
         return run(action, operationParameters);
     }
 
@@ -94,29 +102,34 @@ public class DefaultConnection implements ConnectionVersion4 {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             return embeddedExecuterSupport.getExecuter();
         } else {
-            LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-            File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
-
-            if (getVerboseLogging(operationParameters)) {
-                loggingServices.get(OutputEventRenderer.class).configure(LogLevel.DEBUG);
-            }
-
-            DaemonParameters parameters = new DaemonParameters();
-            boolean searchUpwards = operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;
-            parameters.configureFromBuildDir(operationParameters.getProjectDir(), searchUpwards);
-            parameters.configureFromGradleUserHome(gradleUserHomeDir);
-            parameters.configureFromSystemProperties(System.getProperties());
-            if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
-                int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
-                parameters.setIdleTimeout(idleTimeout);
-            }
-            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, parameters, safeStandardInput(operationParameters));
+            DaemonClientServices clientServices = daemonClientServices(operationParameters);
             DaemonClient client = clientServices.get(DaemonClient.class);
-            GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer = new DaemonGradleLauncherActionExecuter(client, parameters);
 
-            Factory<LoggingManagerInternal> loggingManagerFactory = loggingServices.getFactory(LoggingManagerInternal.class);
+            GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer = new DaemonGradleLauncherActionExecuter(client, clientServices.getDaemonParameters());
+
+            Factory<LoggingManagerInternal> loggingManagerFactory = clientServices.getLoggingServices().getFactory(LoggingManagerInternal.class);
             return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingManagerFactory);
         }
+    }
+
+    private DaemonClientServices daemonClientServices(BuildOperationParametersVersion1 operationParameters) {
+        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+
+        if (getVerboseLogging(operationParameters)) {
+            loggingServices.get(OutputEventRenderer.class).configure(LogLevel.DEBUG);
+        }
+
+        File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
+        DaemonParameters parameters = new DaemonParameters();
+        boolean searchUpwards = operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;
+        parameters.configureFromBuildDir(operationParameters.getProjectDir(), searchUpwards);
+        parameters.configureFromGradleUserHome(gradleUserHomeDir);
+        parameters.configureFromSystemProperties(System.getProperties());
+        if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
+            int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
+            parameters.setIdleTimeout(idleTimeout);
+        }
+        return new DaemonClientServices(loggingServices, parameters, safeStandardInput(operationParameters));
     }
 
     private InputStream safeStandardInput(BuildOperationParametersVersion1 operationParameters) {

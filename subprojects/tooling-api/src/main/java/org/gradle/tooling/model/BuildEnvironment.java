@@ -16,6 +16,9 @@
 
 package org.gradle.tooling.model;
 
+import java.io.File;
+import java.util.List;
+
 /**
  * Informs about the build environment, like Gradle version or jvm in use
  * <p>
@@ -27,7 +30,7 @@ public interface BuildEnvironment extends Element {
 
     String getGradleVersion();
 
-//    String getJavaVersion();
+    File getJavaHome();
 
-//    String getJvmArguments();
+    List<String> getJvmArguments();
 }

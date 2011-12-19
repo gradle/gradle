@@ -19,24 +19,38 @@ package org.gradle.integtests.tooling.next
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.BuildEnvironment
 
 @MinToolingApiVersion(currentOnly = true)
 @MinTargetGradleVersion(currentOnly = true)
-class BuildEnvironmentIntegrationTest extends ToolingApiSpecification {
+class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
+
+    def setup() {
+        //for debugging purposes:
+//        toolingApi.isEmbedded = false
+    }
 
     def "informs about build environment"() {
-        //for debugging purposes:
-        //toolingApi.isEmbedded = false
-
-        when:
+        given:
         dist.file('build.gradle')  << "task foo"
 
+        when:
+        BuildEnvironment model = withConnection { it.getModel(BuildEnvironment.class) }
+
         then:
-        withConnection { ProjectConnection connection ->
-            def model = connection.getModel(BuildEnvironment.class)
-            model.gradleVersion == dist.version
-        }
+        model.gradleVersion == dist.version
+    }
+
+    def "informs about java versions"() {
+        given:
+        dist.file('build.gradle')  << "task foo"
+
+        when:
+        BuildEnvironment model = withConnection { it.getModel(BuildEnvironment.class) }
+
+        then:
+        println "Find way to assert on: $model.jvmArguments and $model.javaHome"
+        model.javaHome
+        !model.jvmArguments.empty
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.tooling.model.BuildEnvironment;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * by Szczepan Faber, created at: 12/17/11
@@ -28,13 +29,25 @@ import java.io.Serializable;
 public class DefaultBuildEnvironment implements BuildEnvironment, InternalBuildEnvironment, Serializable {
 
     private final String gradleVersion;
+    private final File javaHome;
+    private final List<String> jvmArguments;
 
-    public DefaultBuildEnvironment(String gradleVersion) {
+    public DefaultBuildEnvironment(String gradleVersion, File javaHome, List<String> jvmArguments) {
         this.gradleVersion = gradleVersion;
+        this.javaHome = javaHome;
+        this.jvmArguments = jvmArguments;
     }
 
     public String getGradleVersion() {
         return gradleVersion;
+    }
+
+    public File getJavaHome() {
+        return javaHome;
+    }
+
+    public List<String> getJvmArguments() {
+        return jvmArguments;
     }
 
     public String getName() {

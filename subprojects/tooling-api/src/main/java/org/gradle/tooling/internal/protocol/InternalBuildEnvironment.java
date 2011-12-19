@@ -16,6 +16,9 @@
 
 package org.gradle.tooling.internal.protocol;
 
+import java.io.File;
+import java.util.List;
+
 /**
  * by Szczepan Faber, created at: 12/17/11
  */
@@ -23,8 +26,8 @@ public interface InternalBuildEnvironment extends ProjectVersion3, InternalProto
 
     String getGradleVersion();
 
-//    String getJavaVersion();
+    File getJavaHome();
 
-//    String getJvmArguments();
+    List<String> getJvmArguments();
 
 }

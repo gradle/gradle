@@ -23,20 +23,17 @@ import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.DaemonParameters;
 
 import java.io.InputStream;
-import java.util.List;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon client.
  */
 public class DaemonClientServices extends DaemonClientServicesSupport {
-    private final List<String> daemonOpts;
-    private final int idleTimeout;
     private final ServiceRegistry registryServices;
+    private final DaemonParameters daemonParameters;
 
     public DaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream buildStandardInput) {
         super(loggingServices, buildStandardInput);
-        this.daemonOpts = daemonParameters.getJvmArgs();
-        this.idleTimeout = daemonParameters.getIdleTimeout();
+        this.daemonParameters = daemonParameters;
         this.registryServices = new DaemonRegistryServices(daemonParameters.getBaseDir());
         add(registryServices);
     }
@@ -47,12 +44,15 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
     }
 
     public Runnable makeDaemonStarter() {
-        return new DaemonStarter(registryServices.get(DaemonDir.class), daemonOpts, idleTimeout);
+        return new DaemonStarter(registryServices.get(DaemonDir.class), daemonParameters.getJvmArgs(), daemonParameters.getIdleTimeout());
     }
 
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
         builder.setDaemonRegistryDir(registryServices.get(DaemonDir.class).getBaseDir());
-        builder.setDaemonOpts(daemonOpts);
+        builder.setDaemonOpts(daemonParameters.getJvmArgs());
     }
 
+    public DaemonParameters getDaemonParameters() {
+        return daemonParameters;
+    }
 }
