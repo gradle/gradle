@@ -21,28 +21,22 @@ import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.model.Project
 
 class ToolingApiModelIntegrationTest extends ToolingApiSpecification {
-    def "receives progress and logging while the model is building"() {
+    def "receives progress while the model is building"() {
         dist.testFile('build.gradle') << '''
 System.out.println 'this is stdout'
 System.err.println 'this is stderr'
 '''
 
-        def stdout = new ByteArrayOutputStream()
-        def stderr = new ByteArrayOutputStream()
         def progressMessages = []
 
         when:
         withConnection { connection ->
             def model = connection.model(Project.class)
-            model.standardOutput = stdout
-            model.standardError = stderr
             model.addProgressListener({ event -> progressMessages << event.description } as ProgressListener)
             return model.get()
         }
 
         then:
-        stdout.toString().contains('this is stdout')
-        stderr.toString().contains('this is stderr')
         progressMessages.size() >= 2
         progressMessages.pop() == ''
         progressMessages.every { it }

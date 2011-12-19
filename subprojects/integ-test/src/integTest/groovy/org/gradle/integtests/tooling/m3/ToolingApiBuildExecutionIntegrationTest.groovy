@@ -73,27 +73,21 @@ apply plugin: 'java'
         dist.testFile('build/libs/test.jar').assertDoesNotExist()
     }
 
-    def "receives progress and logging while the build is executing"() {
+    def "receives progress while the build is executing"() {
         dist.testFile('build.gradle') << '''
 System.out.println 'this is stdout'
 System.err.println 'this is stderr'
 '''
-        def stdout = new ByteArrayOutputStream()
-        def stderr = new ByteArrayOutputStream()
         def progressMessages = []
 
         when:
         withConnection { connection ->
             def build = connection.newBuild()
-            build.standardOutput = stdout
-            build.standardError = stderr
             build.addProgressListener({ event -> progressMessages << event.description } as ProgressListener)
             build.run()
         }
 
         then:
-        stdout.toString().contains('this is stdout')
-        stderr.toString().contains('this is stderr')
         progressMessages.size() >= 2
         progressMessages.pop() == ''
         progressMessages.every { it }
