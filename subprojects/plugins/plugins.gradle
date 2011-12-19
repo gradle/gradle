@@ -42,7 +42,7 @@ task wrapperJar(type: Copy) {
     from project(":wrapper").executableJar.outputs.files
     into generatedResourcesDir
 }
-sourceSets.main.output.dir generatedResourcesDir, buildBy: wrapperJar
+sourceSets.main.output.dir generatedResourcesDir, builtBy: wrapperJar
 
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'

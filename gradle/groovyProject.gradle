@@ -40,7 +40,7 @@ tasks.withType(Jar).each { jar ->
 generatedResourcesDir = file("$buildDir/generated-resources/main")
 
 task classpathManifest(type: ClasspathManifest)
-sourceSets.main.output.dir generatedResourcesDir, buildBy: classpathManifest
+sourceSets.main.output.dir generatedResourcesDir, builtBy: classpathManifest
 
 if (file("src/testFixtures").exists()) {
     apply from: "$rootDir/gradle/testFixtures.gradle"
