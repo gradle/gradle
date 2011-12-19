@@ -23,8 +23,6 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
@@ -32,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
 
 /**
- * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver} implementation which uses an Ivy {@link DependencyResolver} to resolve a dependency descriptor.
+ * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver} implementation which wraps a {@link UserResolverChain} to resolve a dependency descriptor.
  */
 class IvyResolverBackedDependencyToModuleResolver implements DependencyToModuleResolver {
     private final Ivy ivy;
@@ -78,19 +76,19 @@ class IvyResolverBackedDependencyToModuleResolver implements DependencyToModuleR
                     context.setIvy(ivy);
                     context.setResolveData(resolveData);
                     context.setDependencyDescriptor(dependencyDescriptor);
-                    ResolvedModuleRevision resolvedRevision;
+                    ModuleVersionDescriptor moduleVersionDescriptor;
                     try {
-                        resolvedRevision = resolver.getDependency(dependencyDescriptor, resolveData);
+                        moduleVersionDescriptor = resolver.getDependency(dependencyDescriptor, resolveData);
                     } catch (Throwable t) {
                         ModuleRevisionId id = dependencyDescriptor.getDependencyRevisionId();
                         throw new ModuleVersionResolveException(String.format("Could not resolve group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()), t);
                     }
-                    if (resolvedRevision == null) {
+                    if (moduleVersionDescriptor == null) {
                         ModuleRevisionId id = dependencyDescriptor.getDependencyRevisionId();
                         throw notFound(id);
                     }
-                    checkDescriptor(resolvedRevision.getDescriptor());
-                    moduleDescriptor = resolvedRevision.getDescriptor();
+                    checkDescriptor(moduleVersionDescriptor.getDescriptor());
+                    moduleDescriptor = moduleVersionDescriptor.getDescriptor();
                 } catch (ModuleVersionResolveException e) {
                     failure = e;
                     throw failure;

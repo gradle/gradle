@@ -15,12 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.ResolverSettings;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
 
-public interface IvyDependencyResolver extends DependencyResolver {
-    ResolverSettings getSettings();
+import java.io.File;
 
-    boolean isChangingModule(ModuleDescriptor moduleDescriptor);
+public interface ModuleVersionDescriptor extends ModuleVersionResolver {
+    Artifact getMetadataArtifact();
+
+    File getMetadataFile();
+
+    boolean isChanging();
 }

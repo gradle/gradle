@@ -17,9 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 
 import java.io.File;
 
@@ -32,13 +30,10 @@ import java.io.File;
 public interface ModuleVersionRepository {
     String getId();
 
-    ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data);
+    ModuleVersionDescriptor getDependency(DependencyDescriptor dd, ResolveData data);
 
-    File download(Artifact artifact, DownloadOptions options);
+    File download(Artifact artifact);
 
-    // TODO - should be part of the meta-data returned by getDependency()
-    boolean isChanging(ResolvedModuleRevision revision);
-
-    // TODO - should be internal to the implementation of this
+    // TODO - should be internal to the implementation of this (is only used to communicate DependencyResolverAdapter -> CachingModuleVersionRepository)
     boolean isLocal();
 }

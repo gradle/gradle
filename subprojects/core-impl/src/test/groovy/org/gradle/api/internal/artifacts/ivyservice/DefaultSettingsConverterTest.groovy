@@ -20,6 +20,8 @@ import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.internal.Factory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
 import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LoopbackDependencyResolver
@@ -27,7 +29,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.UserResolverChain
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore
 
 class DefaultSettingsConverterTest extends Specification {
     final IBiblioResolver testResolver = new IBiblioResolver()
@@ -36,6 +37,7 @@ class DefaultSettingsConverterTest extends Specification {
     ResolutionStrategyInternal resolutionStrategy = Mock()
     ModuleResolutionCache dynamicRevisionCache = Mock()
     ModuleDescriptorCache moduleDescriptorCache = Mock()
+    ArtifactResolutionCache artifactResolutionCache = Mock()
     ArtifactFileStore artifactFileStore = Mock()
     CacheLockingManager cacheLockingManager = Mock()
     FileStore fileStore = Mock()
@@ -45,7 +47,7 @@ class DefaultSettingsConverterTest extends Specification {
     final Factory<IvySettings> ivySettingsFactory = Mock()
     final IvySettings ivySettings = new IvySettings()
 
-    DefaultSettingsConverter converter = new DefaultSettingsConverter(Mock(ProgressLoggerFactory), ivySettingsFactory, dynamicRevisionCache, moduleDescriptorCache, artifactFileStore, cacheLockingManager)
+    DefaultSettingsConverter converter = new DefaultSettingsConverter(Mock(ProgressLoggerFactory), ivySettingsFactory, dynamicRevisionCache, moduleDescriptorCache, artifactResolutionCache, artifactFileStore, cacheLockingManager)
 
     public void setup() {
         testResolver.name = 'resolver'
@@ -63,12 +65,11 @@ class DefaultSettingsConverterTest extends Specification {
 
         assert settings.is(ivySettings)
 
-        UserResolverChain chainResolver = settings.getResolver(DefaultSettingsConverter.USER_RESOLVER_CHAIN_NAME)
-        assert chainResolver.returnFirst
-        assert chainResolver.resolvers.size() == 2
-
+        LoopbackDependencyResolver loopbackDependencyResolver = settings.getDefaultResolver()
         assert settings.defaultResolver instanceof LoopbackDependencyResolver
-        assert settings.defaultResolver.resolver == chainResolver
+
+        UserResolverChain chainResolver = loopbackDependencyResolver.userResolverChain
+        assert chainResolver.resolvers.size() == 2
 
         [testResolver, testResolver2].each { resolver ->
             assert chainResolver.resolvers.any { it.resolver == resolver }
@@ -90,7 +91,7 @@ class DefaultSettingsConverterTest extends Specification {
 
         assert settings.is(ivySettings)
 
-        UserResolverChain chainResolver = settings.defaultResolver.resolver
+        UserResolverChain chainResolver = settings.defaultResolver.userResolverChain
         assert chainResolver.resolvers.size() == 2
         [testResolver, testResolver2].each { resolver ->
             assert chainResolver.resolvers.any { it.resolver == resolver }
@@ -102,7 +103,7 @@ class DefaultSettingsConverterTest extends Specification {
         then:
         assert settings.is(ivySettings)
 
-        UserResolverChain secondChainResolver = settings.getResolver(DefaultSettingsConverter.USER_RESOLVER_CHAIN_NAME)
+        UserResolverChain secondChainResolver = settings.defaultResolver.userResolverChain
         assert secondChainResolver.resolvers.size() == 1
         [testResolver].each { resolver ->
             assert secondChainResolver.resolvers.any { it.resolver == resolver }

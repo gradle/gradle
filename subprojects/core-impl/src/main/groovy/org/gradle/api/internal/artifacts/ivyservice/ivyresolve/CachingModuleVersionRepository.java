@@ -15,13 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
@@ -59,15 +56,11 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         return delegate.getId();
     }
 
-    public boolean isChanging(ResolvedModuleRevision revision) {
-        return delegate.isChanging(revision);
-    }
-
     public boolean isLocal() {
         return delegate.isLocal();
     }
 
-    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) {
+    public ModuleVersionDescriptor getDependency(DependencyDescriptor dd, ResolveData data) {
         if (isLocal()) {
             return delegate.getDependency(dd, data);
         }
@@ -75,7 +68,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         return findModule(dd, data);
     }
 
-    public ResolvedModuleRevision findModule(DependencyDescriptor requestedDependencyDescriptor, ResolveData resolveData) {
+    public ModuleVersionDescriptor findModule(DependencyDescriptor requestedDependencyDescriptor, ResolveData resolveData) {
         DependencyDescriptor resolvedDependencyDescriptor = maybeUseCachedDynamicVersion(delegate, requestedDependencyDescriptor);
         CachedModuleLookup lookup = lookupModuleInCache(resolvedDependencyDescriptor);
         if (lookup.wasFound) {
@@ -123,12 +116,13 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         }
 
         LOGGER.debug("Using cached module metadata for '{}'", resolvedModuleVersionId);
-        ResolvedModuleRevision cachedModule = new ResolvedModuleRevision(null, null, cachedModuleDescriptor.getModuleDescriptor(), null);
+        // TODO:DAZ Could provide artifact metadata and file here from artifactFileStore (it's not needed currently)
+        ModuleVersionDescriptor cachedModule = new DefaultModuleVersionDescriptor(cachedModuleDescriptor.getModuleDescriptor(), null, null, cachedModuleDescriptor.isChangingModule());
         return found(cachedModule);
     }
 
-    public ResolvedModuleRevision resolveModule(DependencyDescriptor resolvedDependencyDescriptor, DependencyDescriptor requestedDependencyDescriptor, ResolveData resolveData) {
-        ResolvedModuleRevision module = delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDependencyDescriptor, true), resolveData);
+    public ModuleVersionDescriptor resolveModule(DependencyDescriptor resolvedDependencyDescriptor, DependencyDescriptor requestedDependencyDescriptor, ResolveData resolveData) {
+        ModuleVersionDescriptor module = delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDependencyDescriptor, true), resolveData);
 
         if (module == null) {
             moduleDescriptorCache.cacheModuleDescriptor(delegate, resolvedDependencyDescriptor.getDependencyRevisionId(), null, requestedDependencyDescriptor.isChanging());
@@ -140,43 +134,43 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         return module;
     }
 
-    private void cacheArtifactFile(ResolvedModuleRevision resolvedModule) {
-        ArtifactOrigin artifactOrigin = resolvedModule.getReport().getArtifactOrigin();
-        File artifactFile = resolvedModule.getReport().getOriginalLocalFile();
+    private void cacheArtifactFile(ModuleVersionDescriptor resolvedModule) {
+        Artifact artifactOrigin = resolvedModule.getMetadataArtifact();
+        File artifactFile = resolvedModule.getMetadataFile();
         if (artifactOrigin != null && artifactFile != null) {
-            artifactFileStore.storeArtifactFile(delegate, artifactOrigin.getArtifact().getId(), artifactFile);
+            artifactFileStore.storeArtifactFile(delegate, artifactOrigin.getId(), artifactFile);
         }
     }
 
-    private boolean isChangingDependency(DependencyDescriptor descriptor, ResolvedModuleRevision downloadedModule) {
+    private boolean isChangingDependency(DependencyDescriptor descriptor, ModuleVersionDescriptor downloadedModule) {
         if (descriptor.isChanging()) {
             return true;
         }
 
-        return delegate.isChanging(downloadedModule);
+        return downloadedModule.isChanging();
     }
 
     private CachedModuleLookup notFound() {
         return new CachedModuleLookup(false, null);
     }
 
-    private CachedModuleLookup found(ResolvedModuleRevision module) {
+    private CachedModuleLookup found(ModuleVersionDescriptor module) {
         return new CachedModuleLookup(true, module);
     }
 
     private static class CachedModuleLookup {
         public final boolean wasFound;
-        public final ResolvedModuleRevision module;
+        public final ModuleVersionDescriptor module;
 
-        private CachedModuleLookup(boolean wasFound, ResolvedModuleRevision module) {
+        private CachedModuleLookup(boolean wasFound, ModuleVersionDescriptor module) {
             this.module = module;
             this.wasFound = wasFound;
         }
     }
 
-    public File download(Artifact artifact, DownloadOptions options) {
+    public File download(Artifact artifact) {
         if (isLocal()) {
-            return delegate.download(artifact, options);
+            return delegate.download(artifact);
         }
 
         // Look in the cache for this resolver
@@ -195,7 +189,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
             }
         }
 
-        File artifactFile = delegate.download(artifact, options);
+        File artifactFile = delegate.download(artifact);
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), artifactFile);
         return artifactResolutionCache.storeArtifactFile(delegate, artifact.getId(), artifactFile);
     }

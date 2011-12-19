@@ -19,9 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
@@ -75,10 +73,10 @@ public class UserResolverChain implements ArtifactToFileResolver {
         moduleVersionRepositories.add(cachingRepository);
     }
 
-    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) {
+    public ModuleVersionDescriptor getDependency(DependencyDescriptor dd, ResolveData data) {
         ModuleResolution latestResolved = findLatestModule(dd, data);
         if (latestResolved != null) {
-            ResolvedModuleRevision downloadedModule = latestResolved.module;
+            ModuleVersionDescriptor downloadedModule = latestResolved.module;
             LOGGER.debug("Found module '{}' using resolver '{}'", downloadedModule, latestResolved.repository);
             rememberResolverToUseForArtifactDownload(latestResolved.repository, downloadedModule);
             return downloadedModule;
@@ -93,7 +91,7 @@ public class UserResolverChain implements ArtifactToFileResolver {
         ModuleResolution best = null;
         for (ModuleVersionRepository repository : moduleVersionRepositories) {
             try {
-                ResolvedModuleRevision module = repository.getDependency(dependencyDescriptor, resolveData);
+                ModuleVersionDescriptor module = repository.getDependency(dependencyDescriptor, resolveData);
                 if (module != null) {
                     ModuleResolution moduleResolution = new ModuleResolution(repository, module);
                     if (isStaticVersion && !moduleResolution.isGeneratedModuleDescriptor()) {
@@ -134,7 +132,7 @@ public class UserResolverChain implements ArtifactToFileResolver {
         return comparison < 0 ? two : one;
     }
 
-    private void rememberResolverToUseForArtifactDownload(ModuleVersionRepository repository, ResolvedModuleRevision cachedModule) {
+    private void rememberResolverToUseForArtifactDownload(ModuleVersionRepository repository, ModuleVersionDescriptor cachedModule) {
         artifactRepositories.put(cachedModule.getId(), repository);
     }
 
@@ -163,11 +161,10 @@ public class UserResolverChain implements ArtifactToFileResolver {
         ArtifactResolutionExceptionBuilder exceptionBuilder = new ArtifactResolutionExceptionBuilder(artifact);
 
         List<ModuleVersionRepository> artifactRepositories = getArtifactResolversForModule(artifact.getModuleRevisionId());
-        DownloadOptions downloadOptions = new DownloadOptions();
         LOGGER.debug("Attempting to download {} using resolvers {}", artifact, artifactRepositories);
         for (ModuleVersionRepository resolver : artifactRepositories) {
             try {
-                File artifactDownload = resolver.download(artifact, downloadOptions);
+                File artifactDownload = resolver.download(artifact);
                 if (artifactDownload != null) {
                     return artifactDownload;
                 }
@@ -191,9 +188,9 @@ public class UserResolverChain implements ArtifactToFileResolver {
 
     private class ModuleResolution implements ArtifactInfo {
         public final ModuleVersionRepository repository;
-        public final ResolvedModuleRevision module;
+        public final ModuleVersionDescriptor module;
 
-        public ModuleResolution(ModuleVersionRepository repository, ResolvedModuleRevision module) {
+        public ModuleResolution(ModuleVersionRepository repository, ModuleVersionDescriptor module) {
             this.repository = repository;
             this.module = module;
         }
@@ -206,7 +203,7 @@ public class UserResolverChain implements ArtifactToFileResolver {
         }
 
         public long getLastModified() {
-            return module.getPublicationDate().getTime();
+            return module.getDescriptor().getResolvedPublicationDate().getTime();
         }
 
         public String getRevision() {

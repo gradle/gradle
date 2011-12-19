@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.resolve.ResolvedModuleRevision;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.plugins.matcher.Matcher;
 import org.apache.ivy.plugins.matcher.NoMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
@@ -35,8 +35,8 @@ class ChangingModuleDetector {
         this.settings = settings;
     }
 
-    public boolean isChangingModule(ResolvedModuleRevision revision) {
-        return getChangingMatcher().matches(revision.getId().getRevision());
+    public boolean isChangingModule(ModuleDescriptor moduleDescriptor) {
+        return getChangingMatcher().matches(moduleDescriptor.getResolvedModuleRevisionId().getRevision());
     }
 
     private Matcher getChangingMatcher() {

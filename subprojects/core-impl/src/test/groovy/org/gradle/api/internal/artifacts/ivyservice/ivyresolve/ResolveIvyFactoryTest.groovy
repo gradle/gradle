@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.version.VersionMatcher
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.IvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache
@@ -40,6 +41,8 @@ class ResolveIvyFactoryTest extends Specification {
         DependencyResolver resolver1 = Mock()
         DependencyResolver resolver2 = Mock()
         UserResolverChain userResolverChain = Mock()
+        CacheLockingManager cacheLockingManager = Mock()
+        LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME, userResolverChain, cacheLockingManager)
         VersionMatcher versionMatcher = Mock()
 
         when:
@@ -50,7 +53,7 @@ class ResolveIvyFactoryTest extends Specification {
         1 * settingsConverter.convertForResolve([resolver1, resolver2], resolutionStrategy) >> ivySettings
         1 * ivyFactory.createIvy(ivySettings) >> ivy
         2 * ivy.getSettings() >> ivySettings
-        1 * ivySettings.getResolver(SettingsConverter.USER_RESOLVER_CHAIN_NAME) >> userResolverChain
+        1 * ivySettings.getResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME) >> loopbackDependencyResolver
         1 * ivySettings.getVersionMatcher() >> versionMatcher
         0 * _._
 

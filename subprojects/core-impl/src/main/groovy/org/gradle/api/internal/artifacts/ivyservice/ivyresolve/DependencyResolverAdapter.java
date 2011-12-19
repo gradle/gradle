@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
@@ -34,6 +35,7 @@ import java.text.ParseException;
 public class DependencyResolverAdapter implements ModuleVersionRepository {
     private final String id;
     private final DependencyResolver resolver;
+    private final DownloadOptions downloadOptions = new DownloadOptions();
 
     public DependencyResolverAdapter(String id, DependencyResolver resolver) {
         this.id = id;
@@ -48,15 +50,8 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
         return resolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager;
     }
 
-    public boolean isChanging(ResolvedModuleRevision revision) {
-        if (resolver instanceof IvyDependencyResolver) {
-            return ((IvyDependencyResolver) resolver).isChangingModule(revision);
-        }
-        return false;
-    }
-
-    public File download(Artifact artifact, DownloadOptions options) {
-        ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{artifact}, options).getArtifactReport(artifact);
+    public File download(Artifact artifact) {
+        ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{artifact}, downloadOptions).getArtifactReport(artifact);
         if (downloadFailed(artifactDownloadReport)) {
             throw ArtifactResolutionExceptionBuilder.downloadFailure(artifactDownloadReport.getArtifact(), artifactDownloadReport.getDownloadDetails());
         }
@@ -69,11 +64,31 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
                 && !artifactReport.getDownloadDetails().equals(ArtifactDownloadReport.MISSING_ARTIFACT);
     }
 
-    public ResolvedModuleRevision getDependency(final DependencyDescriptor dd, final ResolveData data) {
+    public ModuleVersionDescriptor getDependency(final DependencyDescriptor dd, final ResolveData data) {
         try {
-            return resolver.getDependency(dd, data);
+            ResolvedModuleRevision revision = resolver.getDependency(dd, data);
+            if (revision == null) {
+                return null;
+            }
+            return new DefaultModuleVersionDescriptor(revision.getDescriptor(), getOriginalMetadataArtifact(revision), getOriginalMetadataFile(revision), isChanging(revision));
         } catch (ParseException e) {
             throw UncheckedException.asUncheckedException(e);
         }
+    }
+
+    private Artifact getOriginalMetadataArtifact(ResolvedModuleRevision revision) {
+        ArtifactOrigin artifactOrigin = revision.getReport().getArtifactOrigin();
+        return artifactOrigin == null ? null : artifactOrigin.getArtifact();
+    }
+
+    private File getOriginalMetadataFile(ResolvedModuleRevision revision) {
+        return revision.getReport().getOriginalLocalFile();
+    }
+
+    private boolean isChanging(ResolvedModuleRevision resolvedModuleRevision) {
+        if (resolver instanceof IvyDependencyResolver) {
+            return ((IvyDependencyResolver) resolver).isChangingModule(resolvedModuleRevision.getDescriptor());
+        }
+        return false;
     }
 }

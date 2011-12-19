@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
@@ -54,9 +55,12 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
 
     @Override
     public ResolvedModuleRevision getDependency(final DependencyDescriptor dd, final ResolveData data) throws ParseException {
+        final DependencyResolver loopback = this;
         return cacheLockingManager.useCache(String.format("Resolve %s", dd), new Factory<ResolvedModuleRevision>() {
             public ResolvedModuleRevision create() {
-                return userResolverChain.getDependency(dd, data);
+                ModuleVersionDescriptor dependency = userResolverChain.getDependency(dd, data);
+                MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(dependency.getMetadataArtifact());
+                return new ResolvedModuleRevision(loopback, loopback, dependency.getDescriptor(), downloadReport);
             }
         });
     }
