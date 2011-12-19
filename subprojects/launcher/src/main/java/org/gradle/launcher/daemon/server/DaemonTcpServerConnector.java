@@ -18,6 +18,14 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
+import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.launcher.cli.ExecuteBuildAction;
+import org.gradle.launcher.daemon.protocol.Build;
+import org.gradle.launcher.daemon.protocol.CloseInput;
+import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
@@ -26,7 +34,18 @@ import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
 import org.gradle.util.UUIDGenerator;
+import org.gradle.util.UncheckedException;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -73,6 +92,79 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
                     handler.handle(connectionConnectEvent.getConnection());
                 }
             };
+
+            try {
+                final ServerSocket serverSocket = new ServerSocket(23000);
+                new DefaultExecutorFactory().create("delete me!").execute(new Runnable() {
+                    public void run() {
+                        while (true) {
+                            try {
+                                final Socket socket = serverSocket.accept();
+                                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                                final File currentDir = new File(reader.readLine());
+                                final List<String> args = new ArrayList<String>();
+                                while (true) {
+                                    String line = reader.readLine();
+                                    if (line == null || line.length() == 0) {
+                                        break;
+                                    }
+                                    args.add(line);
+                                }
+                                System.out.format("=> CWD %s%n", currentDir);
+                                System.out.format("=> ARGS %s%n", args);
+                                
+                                handler.handle(new Connection<Object>() {
+                                    boolean receivedBuild;
+
+                                    public void requestStop() {
+                                    }
+
+                                    public void dispatch(Object message) {
+                                        try {
+                                            socket.getOutputStream().write(("message:" + message + "\n").getBytes());
+                                            socket.getOutputStream().flush();
+                                        } catch (IOException e) {
+                                            throw UncheckedException.asUncheckedException(e);
+                                        }
+                                    }
+
+                                    public Object receive() {
+                                        if (!receivedBuild) {
+                                            CommandLineParser parser = new CommandLineParser();
+                                            new DefaultCommandLineConverter().configure(parser);
+                                            ParsedCommandLine parsedCommandLine = parser.parse(args);
+                                            DefaultBuildActionParameters buildActionParameters = new DefaultBuildActionParameters(
+                                                    new GradleLauncherMetaData(),
+                                                    System.currentTimeMillis(),
+                                                    new HashMap<Object, Object>(System.getProperties()),
+                                                    Collections.<String, String>emptyMap(),
+                                                    currentDir);
+                                            receivedBuild = true;
+                                            return new Build(new ExecuteBuildAction(currentDir, parsedCommandLine), buildActionParameters);
+                                        } else {
+                                            return new CloseInput(new GradleLauncherMetaData());
+                                        }
+                                    }
+
+                                    public void stop() {
+                                        try {
+                                            socket.close();
+                                        } catch (IOException e) {
+                                            throw UncheckedException.asUncheckedException(e);
+                                        }
+                                    }
+                                });
+                            } catch (IOException e) {
+                                
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+                );
+            } catch (IOException e) {
+                throw UncheckedException.asUncheckedException(e);
+            }
 
             Address address = incomingConnector.accept(connectEvent, false);
             started = true;

@@ -18,6 +18,7 @@ package org.gradle.launcher.cli;
 import org.gradle.BuildExceptionReporter;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
@@ -27,6 +28,7 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.launcher.GradleMain;
 import org.gradle.launcher.daemon.bootstrap.DaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
@@ -39,7 +41,10 @@ import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -82,6 +87,7 @@ public class CommandLineActionFactory {
         parser.option(DAEMON).hasDescription("Uses the Gradle daemon to run the build. Starts the daemon if not running [experimental].");
         parser.option(NO_DAEMON).hasDescription("Do not use the Gradle daemon to run the build [experimental].");
         parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running [experimental].");
+        parser.option("fork");
 
         LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
         ServiceRegistry loggingServices = createLoggingServices();
@@ -92,7 +98,7 @@ public class CommandLineActionFactory {
             @SuppressWarnings("unchecked")
             CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = (CommandLineConverter<LoggingConfiguration>)loggingServices.get(CommandLineConverter.class);
             loggingConfigurationConverter.convert(commandLine, loggingConfiguration);
-            action = createAction(parser, commandLine, startParameterConverter, loggingServices);
+            action = createAction(parser, commandLine, startParameterConverter, loggingServices, args);
         } catch (CommandLineArgumentException e) {
             action = new CommandLineParseFailureAction(parser, e);
         }
@@ -114,7 +120,7 @@ public class CommandLineActionFactory {
         return LoggingServiceRegistry.newCommandLineProcessLogging();
     }
 
-    private Action<ExecutionListener> createAction(CommandLineParser parser, final ParsedCommandLine commandLine, CommandLineConverter<StartParameter> startParameterConverter, final ServiceRegistry loggingServices) {
+    private Action<ExecutionListener> createAction(CommandLineParser parser, final ParsedCommandLine commandLine, CommandLineConverter<StartParameter> startParameterConverter, final ServiceRegistry loggingServices, List<String> args) {
         if (commandLine.hasOption(HELP)) {
             return new ActionAdapter(new ShowUsageAction(parser));
         }
@@ -125,6 +131,20 @@ public class CommandLineActionFactory {
             return new ActionAdapter(new ShowGuiAction());
         }
 
+        if (commandLine.hasOption("fork")) {
+            return new Action<ExecutionListener>() {
+                public void execute(ExecutionListener executionListener) {
+                    ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder();
+                    execHandleBuilder.workingDir(new File(".").getAbsoluteFile());
+                    execHandleBuilder.executable(Jvm.current().getJavaExecutable());
+                    execHandleBuilder.args("-cp", GUtil.join(new DefaultModuleRegistry().getModule("gradle-launcher").getImplementationClasspath(), File.separator));
+                    execHandleBuilder.args(GradleMain.class.getName());
+                    execHandleBuilder.args(commandLine.getExtraArguments());
+                    execHandleBuilder.build().start().waitForFinish().assertNormalExitValue();
+                }
+            };
+        }
+        
         final StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
         Properties mergedSystemProperties = startParameter.getMergedSystemProperties();
