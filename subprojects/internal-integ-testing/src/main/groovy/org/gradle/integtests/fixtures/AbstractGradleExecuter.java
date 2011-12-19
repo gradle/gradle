@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 import org.gradle.util.Jvm;
+import org.gradle.util.TextUtil;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> args = new ArrayList<String>();
@@ -172,7 +173,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withStdIn(String text) {
-        this.stdin = new ByteArrayInputStream(text.getBytes());
+        this.stdin = new ByteArrayInputStream(TextUtil.toPlatformLineSeparators(text).getBytes());
         return this;
     }
 

@@ -17,7 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
-import org.gradle.util.SystemProperties
+import org.gradle.util.TextUtil
 
 class StdioIntegrationTest extends AbstractIntegrationSpec {
 
@@ -64,8 +64,7 @@ task echo << {
 }
 '''
         and:
-        def sep = SystemProperties.lineSeparator
-        writeEnd.write("abc\n123\nclose$sep".toString().bytes)
+        writeEnd.write(TextUtil.toPlatformLineSeparators("abc\n123\nclose\n").bytes)
 
         when:
         executer.withStdIn(readEnd).withArguments("-s", "--info")
