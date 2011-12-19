@@ -137,7 +137,7 @@ public class DependencyGraphBuilder {
      * Populates the result from the graph traversal state.
      */
     private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder result) {
-        FailureState failureState = new FailureState();
+        FailureState failureState = new FailureState(resolveState.root);
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             resolvedConfiguration.attachToParents(resolvedArtifactFactory, artifactResolver, result);
             resolvedConfiguration.collectFailures(failureState);
@@ -147,15 +147,67 @@ public class DependencyGraphBuilder {
 
     private static class FailureState {
         final Map<ModuleRevisionId, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleRevisionId, BrokenDependency>();
+        final ConfigurationNode root;
+
+        private FailureState(ConfigurationNode root) {
+            this.root = root;
+        }
 
         public void attachFailures(ResolvedConfigurationBuilder result) {
             for (Map.Entry<ModuleRevisionId, BrokenDependency> entry : failuresByRevisionId.entrySet()) {
-                List<List<ModuleRevisionId>> paths = new ArrayList<List<ModuleRevisionId>>();
-                for (DependencyEdge dependency : entry.getValue().requiredBy) {
-                    dependency.addPathsBackToRoot(paths);
-                }
+                Collection<List<ModuleRevisionId>> paths = calculatePaths(entry);
                 result.addUnresolvedDependency(new DefaultUnresolvedDependency(entry.getKey().toString(), entry.getValue().failure.withIncomingPaths(paths)));
             }
+        }
+
+        private Collection<List<ModuleRevisionId>> calculatePaths(Map.Entry<ModuleRevisionId, BrokenDependency> entry) {
+            // Include the shortest path from each configuration that has a direct dependency on the broken dependency, back to the root
+            
+            Map<ConfigurationNode, List<ModuleRevisionId>> shortestPaths = new LinkedHashMap<ConfigurationNode, List<ModuleRevisionId>>();
+            List<ModuleRevisionId> rootPath = new ArrayList<ModuleRevisionId>();
+            rootPath.add(root.moduleRevision.id);
+            shortestPaths.put(root, rootPath);
+
+            Set<ConfigurationNode> seen = new HashSet<ConfigurationNode>();
+            LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
+            queue.addAll(entry.getValue().requiredBy);
+            while (!queue.isEmpty()) {
+                ConfigurationNode node = queue.getFirst();
+                if (node == root) {
+                    queue.removeFirst();
+                } else if (seen.add(node)) {
+                    for (DependencyEdge dependencyEdge : node.incomingEdges) {
+                        queue.add(0, dependencyEdge.from);
+                    }
+                } else {
+                    queue.remove();
+                    List<ModuleRevisionId> shortest = null;
+                    for (DependencyEdge dependencyEdge : node.incomingEdges) {
+                        List<ModuleRevisionId> candidate = shortestPaths.get(dependencyEdge.from);
+                        if (candidate == null) {
+                            continue;
+                        }
+                        if (shortest == null) {
+                            shortest = candidate;
+                        } else if (shortest.size() > candidate.size()) {
+                            shortest = candidate;
+                        }
+                    }
+                    if (shortest == null) {
+                        continue;
+                    }
+                    List<ModuleRevisionId> path = new ArrayList<ModuleRevisionId>();
+                    path.addAll(shortest);
+                    path.add(node.moduleRevision.id);
+                    shortestPaths.put(node, path);
+                }
+            }
+
+            List<List<ModuleRevisionId>> paths = new ArrayList<List<ModuleRevisionId>>();
+            for (ConfigurationNode node : entry.getValue().requiredBy) {
+                paths.add(shortestPaths.get(node));
+            }
+            return paths;
         }
 
         public void addUnresolvedDependency(DependencyEdge dependency, ModuleRevisionId revisionId, ModuleVersionResolveException failure) {
@@ -164,12 +216,12 @@ public class DependencyGraphBuilder {
                 breakage = new BrokenDependency(failure);
                 failuresByRevisionId.put(revisionId, breakage);
             }
-            breakage.requiredBy.add(dependency);
+            breakage.requiredBy.add(dependency.from);
         }
-
+        
         private static class BrokenDependency {
             final ModuleVersionResolveException failure;
-            final List<DependencyEdge> requiredBy = new ArrayList<DependencyEdge>();
+            final List<ConfigurationNode> requiredBy = new ArrayList<ConfigurationNode>();
 
             private BrokenDependency(ModuleVersionResolveException failure) {
                 this.failure = failure;
@@ -315,10 +367,6 @@ public class DependencyGraphBuilder {
             if (selector != null && selector.failure != null) {
                 failureState.addUnresolvedDependency(this, selector.descriptor.getDependencyRevisionId(), selector.failure);
             }
-        }
-
-        public void addPathsBackToRoot(Collection<List<ModuleRevisionId>> paths) {
-            from.addPathsBackToRoot(paths);
         }
     }
 
@@ -760,20 +808,6 @@ public class DependencyGraphBuilder {
                 }
                 incomingEdges.clear();
             }
-        }
-
-        public void addPathsBackToRoot(Collection<List<ModuleRevisionId>> paths) {
-            List<List<ModuleRevisionId>> incomingPaths = new ArrayList<List<ModuleRevisionId>>();
-            for (DependencyEdge incomingEdge : incomingEdges) {
-                incomingEdge.addPathsBackToRoot(incomingPaths);
-            }
-            if (incomingPaths.isEmpty()) {
-                incomingPaths.add(new ArrayList<ModuleRevisionId>());
-            }
-            for (List<ModuleRevisionId> incomingPath : incomingPaths) {
-                incomingPath.add(moduleRevision.id);
-            }
-            paths.addAll(incomingPaths);
         }
     }
 
