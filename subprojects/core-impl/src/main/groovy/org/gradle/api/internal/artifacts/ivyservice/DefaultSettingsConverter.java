@@ -25,6 +25,7 @@ import org.apache.ivy.util.Message;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore;
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
@@ -44,6 +45,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private final TransferListener transferListener;
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
+    private final ArtifactResolutionCache artifactResolutionCache;
     private final ArtifactFileStore artifactFileStore;
     private final CacheLockingManager cacheLockingManager;
     private IvySettings publishSettings;
@@ -51,11 +53,13 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private UserResolverChain userResolverChain;
 
     public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory,
-                                    ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache, ArtifactFileStore artifactFileStore,
+                                    ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
+                                    ArtifactResolutionCache artifactResolutionCache, ArtifactFileStore artifactFileStore,
                                     CacheLockingManager cacheLockingManager) {
         this.settingsFactory = settingsFactory;
         this.moduleResolutionCache = moduleResolutionCache;
         this.moduleDescriptorCache = moduleDescriptorCache;
+        this.artifactResolutionCache = artifactResolutionCache;
         this.artifactFileStore = artifactFileStore;
         this.cacheLockingManager = cacheLockingManager;
         Message.setDefaultLogger(new IvyLoggingAdaper());
@@ -88,13 +92,13 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     private UserResolverChain createUserResolverChain() {
-        UserResolverChain resolverChain = new UserResolverChain(moduleResolutionCache, moduleDescriptorCache, artifactFileStore);
+        UserResolverChain resolverChain = new UserResolverChain(moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache, artifactFileStore);
         resolverChain.setSettings(resolveSettings);
         return resolverChain;
     }
 
     private void replaceResolvers(List<DependencyResolver> resolvers, UserResolverChain chainResolver) {
-        for (ModuleVersionRepository moduleVersionRepository : chainResolver.getResolvers()) {
+        for (DependencyResolver moduleVersionRepository : chainResolver.getResolvers()) {
             resolveSettings.getResolvers().remove(moduleVersionRepository);
         }
         chainResolver.clearResolvers();

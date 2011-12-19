@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.cache.ArtifactOrigin;
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
@@ -22,6 +24,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 
+import java.io.File;
 import java.text.ParseException;
 
 /**
@@ -47,6 +50,19 @@ public class LoopbackDependencyResolver extends LimitedDependencyResolver {
         return cacheLockingManager.useCache(String.format("Resolve %s", dd), new Factory<ResolvedModuleRevision>() {
             public ResolvedModuleRevision create() {
                 return resolver.getDependency(dd, data);
+            }
+        });
+    }
+
+    public ArtifactOrigin locate(final Artifact artifact) {
+        return cacheLockingManager.useCache(String.format("Locate %s", artifact), new Factory<ArtifactOrigin>() {
+            public ArtifactOrigin create() {
+                try {
+                    File artifactFile = resolver.resolve(artifact);
+                    return new ArtifactOrigin(artifact, false, artifactFile.getAbsolutePath());
+                } catch (ArtifactNotFoundException e) {
+                    return null;
+                }
             }
         });
     }

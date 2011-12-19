@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadReport;
+import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.util.UncheckedException;
 
+import java.io.File;
 import java.text.ParseException;
 import java.util.Arrays;
 
@@ -65,6 +67,20 @@ public class DependencyResolverAdapter extends LimitedDependencyResolver impleme
 
     public void setSettings(ResolverSettings settings) {
         this.settings = settings;
+    }
+
+    public File download(Artifact artifact, DownloadOptions options) {
+        ArtifactDownloadReport artifactDownloadReport = download(new Artifact[]{artifact}, options).getArtifactReport(artifact);
+        if (downloadFailed(artifactDownloadReport)) {
+            throw ArtifactResolutionExceptionBuilder.downloadFailure(artifactDownloadReport.getArtifact(), artifactDownloadReport.getDownloadDetails());
+        }
+        return artifactDownloadReport.getLocalFile();
+    }
+
+    private boolean downloadFailed(ArtifactDownloadReport artifactReport) {
+        // Ivy reports FAILED with MISSING_ARTIFACT message when the artifact doesn't exist.
+        return artifactReport.getDownloadStatus() == DownloadStatus.FAILED
+                && !artifactReport.getDownloadDetails().equals(ArtifactDownloadReport.MISSING_ARTIFACT);
     }
 
     public ResolvedModuleRevision getDependency(final DependencyDescriptor dd, final ResolveData data) {

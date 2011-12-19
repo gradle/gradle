@@ -208,6 +208,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         get(FileStore.class)),
                 get(ModuleResolutionCache.class),
                 get(ModuleDescriptorCache.class),
+                get(ArtifactResolutionCache.class),
                 get(ArtifactFileStore.class),
                 get(CacheLockingManager.class)
         );

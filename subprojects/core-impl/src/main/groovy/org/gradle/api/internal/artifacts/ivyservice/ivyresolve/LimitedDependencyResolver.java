@@ -97,10 +97,6 @@ public abstract class LimitedDependencyResolver implements DependencyResolver {
         throw new UnsupportedOperationException();
     }
 
-    public ArtifactOrigin locate(Artifact artifact) {
-        throw new UnsupportedOperationException();
-    }
-
     public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
         throw new UnsupportedOperationException();
     }

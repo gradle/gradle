@@ -17,10 +17,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
+
+import java.io.File;
 
 /**
  * A repository of module versions.
@@ -33,7 +34,7 @@ public interface ModuleVersionRepository {
 
     ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data);
 
-    DownloadReport download(Artifact[] artifacts, DownloadOptions options);
+    File download(Artifact artifact, DownloadOptions options);
 
     // TODO - should be part of the meta-data returned by getDependency()
     boolean isChanging(ResolvedModuleRevision revision, ResolveData resolveData);

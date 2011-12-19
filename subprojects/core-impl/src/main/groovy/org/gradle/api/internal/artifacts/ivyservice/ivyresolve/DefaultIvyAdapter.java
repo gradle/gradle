@@ -54,6 +54,6 @@ class DefaultIvyAdapter implements IvyAdapter {
     }
 
     public ArtifactToFileResolver getArtifactToFileResolver() {
-        return new IvyResolverBackedArtifactToFileResolver(userResolver, artifactResolutionCache, resolutionStrategy.getCachePolicy());
+        return userResolver;
     }
 }

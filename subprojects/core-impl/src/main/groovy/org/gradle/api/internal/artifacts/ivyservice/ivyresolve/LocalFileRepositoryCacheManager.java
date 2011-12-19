@@ -25,7 +25,6 @@ import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
-import org.apache.ivy.plugins.parser.ModuleDescriptorParserRegistry;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.repository.ArtifactResourceResolver;
 import org.apache.ivy.plugins.repository.ResourceDownloader;
@@ -33,6 +32,7 @@ import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ParserRegistry;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +43,7 @@ import java.text.ParseException;
  */
 public class LocalFileRepositoryCacheManager implements RepositoryCacheManager {
     private final String name;
+    private final ParserRegistry parserRegistry = new ParserRegistry();
 
     public LocalFileRepositoryCacheManager(String name) {
         this.name = name;
@@ -104,7 +105,7 @@ public class LocalFileRepositoryCacheManager implements RepositoryCacheManager {
         report.setSearched(false);
         report.setOriginalLocalFile(file);
 
-        ModuleDescriptorParser parser = ModuleDescriptorParserRegistry.getInstance().getParser(originalMetadataRef.getResource());
+        ModuleDescriptorParser parser = parserRegistry.forResource(originalMetadataRef.getResource());
         ParserSettings parserSettings = ((AbstractResolver) resolver).getParserSettings();
 
         ModuleDescriptor descriptor;
