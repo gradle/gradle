@@ -17,11 +17,14 @@
 package org.gradle.integtests.tooling.next
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
+import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tests.fixtures.ConcurrentTestUtil
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.model.Project
@@ -29,7 +32,6 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
-import org.gradle.tooling.*
 
 @MinToolingApiVersion(currentOnly = true)
 @MinTargetGradleVersion(currentOnly = true)
@@ -339,44 +341,6 @@ System.err.println 'this is stderr: $idx'
         }
 
         concurrent.finished()
-    }
-
-    static class ProgressTrackingListener implements ProgressListener {
-        def progressMessages = []
-        void statusChanged(ProgressEvent event) {
-            progressMessages << event.description
-        }
-    }
-
-    static class ConfigurableOperation {
-        LongRunningOperation operation
-        def listener = new ProgressTrackingListener()
-        def stdout = new ByteArrayOutputStream()
-        def stderr = new ByteArrayOutputStream()
-
-        public ConfigurableOperation(LongRunningOperation operation) {
-            this.operation = operation
-            operation.addProgressListener(listener)
-            operation.standardOutput = stdout
-            operation.standardError = stderr
-        }
-
-        String getStandardOutput() {
-            return stdout.toString()
-        }
-
-        String getStandardError() {
-            return stderr.toString()
-        }
-
-        ConfigurableOperation setStandardInput(String input) {
-            this.operation.standardInput = new ByteArrayInputStream(input.toString().bytes)
-            return this
-        }
-
-        List getProgressMessages() {
-            return listener.progressMessages
-        }
     }
 
     def withConnectionInDir(String dir, Closure cl) {
