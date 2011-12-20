@@ -23,6 +23,7 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.launcher.exec.InitializationAware;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
+import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
 
 /**
  * A {@link GradleLauncherActionExecuter} which executes an action locally.

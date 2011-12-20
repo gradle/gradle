@@ -29,6 +29,8 @@ import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.tooling.internal.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.provider.input.AdaptedOperationParameters;
+import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;

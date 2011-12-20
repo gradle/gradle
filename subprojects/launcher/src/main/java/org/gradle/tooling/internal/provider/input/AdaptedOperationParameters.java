@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.input;
 
 import org.gradle.tooling.internal.CompatibleIntrospector;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;

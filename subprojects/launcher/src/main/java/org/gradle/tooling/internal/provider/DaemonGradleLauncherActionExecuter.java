@@ -24,6 +24,7 @@ import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.launcher.exec.ReportedException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
+import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
 
 import java.io.File;
 
