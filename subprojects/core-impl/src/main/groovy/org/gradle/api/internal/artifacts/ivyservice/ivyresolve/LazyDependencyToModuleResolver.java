@@ -15,14 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.Ivy;
-import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
@@ -30,18 +27,15 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
 
 /**
- * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver} implementation which wraps a {@link UserResolverChain} to resolve a dependency descriptor.
+ * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver} implementation which returns lazy resolvers that don't
+ * actually retrieve module descriptors until required.
  */
-class IvyResolverBackedDependencyToModuleResolver implements DependencyToModuleResolver {
-    private final Ivy ivy;
-    private final ResolveData resolveData;
-    private final UserResolverChain resolver;
+class LazyDependencyToModuleResolver implements DependencyToModuleResolver {
+    private final DependencyToModuleResolver delegate;
     private final VersionMatcher versionMatcher;
 
-    public IvyResolverBackedDependencyToModuleResolver(Ivy ivy, ResolveData resolveData, UserResolverChain resolver, VersionMatcher versionMatcher) {
-        this.ivy = ivy;
-        this.resolveData = resolveData;
-        this.resolver = resolver;
+    public LazyDependencyToModuleResolver(DependencyToModuleResolver delegate, VersionMatcher versionMatcher) {
+        this.delegate = delegate;
         this.versionMatcher = versionMatcher;
     }
 
@@ -71,29 +65,23 @@ class IvyResolverBackedDependencyToModuleResolver implements DependencyToModuleR
             }
 
             if (moduleDescriptor == null) {
-                IvyContext context = IvyContext.pushNewCopyContext();
                 try {
-                    context.setIvy(ivy);
-                    context.setResolveData(resolveData);
-                    context.setDependencyDescriptor(dependencyDescriptor);
-                    ModuleVersionDescriptor moduleVersionDescriptor;
+                    ModuleVersionResolver moduleVersionResolver;
                     try {
-                        moduleVersionDescriptor = resolver.getDependency(dependencyDescriptor, resolveData);
+                        moduleVersionResolver = delegate.create(dependencyDescriptor);
                     } catch (Throwable t) {
                         ModuleRevisionId id = dependencyDescriptor.getDependencyRevisionId();
                         throw new ModuleVersionResolveException(String.format("Could not resolve group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()), t);
                     }
-                    if (moduleVersionDescriptor == null) {
+                    if (moduleVersionResolver == null) {
                         ModuleRevisionId id = dependencyDescriptor.getDependencyRevisionId();
                         throw notFound(id);
                     }
-                    checkDescriptor(moduleVersionDescriptor.getDescriptor());
-                    moduleDescriptor = moduleVersionDescriptor.getDescriptor();
+                    checkDescriptor(moduleVersionResolver.getDescriptor());
+                    moduleDescriptor = moduleVersionResolver.getDescriptor();
                 } catch (ModuleVersionResolveException e) {
                     failure = e;
                     throw failure;
-                } finally {
-                    IvyContext.popContext();
                 }
             }
             return moduleDescriptor;

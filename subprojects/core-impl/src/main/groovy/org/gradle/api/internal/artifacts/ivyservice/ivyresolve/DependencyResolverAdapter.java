@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
@@ -64,9 +65,10 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
                 && !artifactReport.getDownloadDetails().equals(ArtifactDownloadReport.MISSING_ARTIFACT);
     }
 
-    public ModuleVersionDescriptor getDependency(final DependencyDescriptor dd, final ResolveData data) {
+    public ModuleVersionDescriptor getDependency(final DependencyDescriptor dd) {
+        ResolveData resolveData = IvyContext.getContext().getResolveData();
         try {
-            ResolvedModuleRevision revision = resolver.getDependency(dd, data);
+            ResolvedModuleRevision revision = resolver.getDependency(dd, resolveData);
             if (revision == null) {
                 return null;
             }

@@ -312,8 +312,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             ResolveIvyFactory ivyFactory = new ResolveIvyFactory(
                     get(IvyFactory.class),
                     resolverProvider,
-                    get(SettingsConverter.class),
-                    get(ArtifactResolutionCache.class));
+                    get(SettingsConverter.class)
+            );
 
             ResolvedArtifactFactory resolvedArtifactFactory = new ResolvedArtifactFactory(
                     get(CacheLockingManager.class)

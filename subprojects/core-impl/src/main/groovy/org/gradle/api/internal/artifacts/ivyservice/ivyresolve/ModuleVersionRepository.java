@@ -30,7 +30,7 @@ import java.io.File;
 public interface ModuleVersionRepository {
     String getId();
 
-    ModuleVersionDescriptor getDependency(DependencyDescriptor dd, ResolveData data);
+    ModuleVersionDescriptor getDependency(DependencyDescriptor dd);
 
     File download(Artifact artifact);
 

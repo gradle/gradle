@@ -15,16 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
 
 import java.io.File;
 import java.text.ParseException;
@@ -58,9 +59,16 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
         final DependencyResolver loopback = this;
         return cacheLockingManager.useCache(String.format("Resolve %s", dd), new Factory<ResolvedModuleRevision>() {
             public ResolvedModuleRevision create() {
-                ModuleVersionDescriptor dependency = userResolverChain.getDependency(dd, data);
-                MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(dependency.getMetadataArtifact());
-                return new ResolvedModuleRevision(loopback, loopback, dependency.getDescriptor(), downloadReport);
+                ModuleVersionResolver dependency;
+                IvyContext ivyContext = IvyContext.pushNewCopyContext();
+                try {
+                    ivyContext.setResolveData(data);
+                    dependency = userResolverChain.create(dd);
+                } finally {
+                    IvyContext.popContext();
+                }
+                // TODO:DAZ Need to create a metadata download report here
+                return new ResolvedModuleRevision(loopback, loopback, dependency.getDescriptor(), null);
             }
         });
     }

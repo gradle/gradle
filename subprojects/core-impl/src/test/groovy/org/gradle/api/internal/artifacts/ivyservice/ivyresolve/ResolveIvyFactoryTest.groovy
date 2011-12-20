@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.configurations.ResolverProvider
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.IvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache
 import spock.lang.Specification
 
 class ResolveIvyFactoryTest extends Specification {
@@ -32,8 +31,7 @@ class ResolveIvyFactoryTest extends Specification {
     final ResolverProvider resolverProvider = Mock()
     final SettingsConverter settingsConverter = Mock()
     final ResolutionStrategyInternal resolutionStrategy = Mock()
-    final ArtifactResolutionCache artifactResolutionCache = Mock()
-    final ResolveIvyFactory factory = new ResolveIvyFactory(ivyFactory, resolverProvider, settingsConverter, artifactResolutionCache)
+    final ResolveIvyFactory factory = new ResolveIvyFactory(ivyFactory, resolverProvider, settingsConverter)
 
     def "creates Ivy instance"() {
         Ivy ivy = Mock()

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.resolve.ResolveData;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
@@ -60,21 +59,21 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         return delegate.isLocal();
     }
 
-    public ModuleVersionDescriptor getDependency(DependencyDescriptor dd, ResolveData data) {
+    public ModuleVersionDescriptor getDependency(DependencyDescriptor dd) {
         if (isLocal()) {
-            return delegate.getDependency(dd, data);
+            return delegate.getDependency(dd);
         }
 
-        return findModule(dd, data);
+        return findModule(dd);
     }
 
-    public ModuleVersionDescriptor findModule(DependencyDescriptor requestedDependencyDescriptor, ResolveData resolveData) {
+    public ModuleVersionDescriptor findModule(DependencyDescriptor requestedDependencyDescriptor) {
         DependencyDescriptor resolvedDependencyDescriptor = maybeUseCachedDynamicVersion(delegate, requestedDependencyDescriptor);
         CachedModuleLookup lookup = lookupModuleInCache(resolvedDependencyDescriptor);
         if (lookup.wasFound) {
             return lookup.module;
         }
-        return resolveModule(resolvedDependencyDescriptor, requestedDependencyDescriptor, resolveData);
+        return resolveModule(resolvedDependencyDescriptor, requestedDependencyDescriptor);
     }
 
     private DependencyDescriptor maybeUseCachedDynamicVersion(ModuleVersionRepository repository, DependencyDescriptor original) {
@@ -121,8 +120,8 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         return found(cachedModule);
     }
 
-    public ModuleVersionDescriptor resolveModule(DependencyDescriptor resolvedDependencyDescriptor, DependencyDescriptor requestedDependencyDescriptor, ResolveData resolveData) {
-        ModuleVersionDescriptor module = delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDependencyDescriptor, true), resolveData);
+    public ModuleVersionDescriptor resolveModule(DependencyDescriptor resolvedDependencyDescriptor, DependencyDescriptor requestedDependencyDescriptor) {
+        ModuleVersionDescriptor module = delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDependencyDescriptor, true));
 
         if (module == null) {
             moduleDescriptorCache.cacheModuleDescriptor(delegate, resolvedDependencyDescriptor.getDependencyRevisionId(), null, requestedDependencyDescriptor.isChanging());
