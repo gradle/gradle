@@ -21,11 +21,11 @@ import org.gradle.initialization.GradleLauncherAction
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.launcher.exec.InitializationAware
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
+import org.gradle.tooling.internal.provider.input.ProviderOperationParameters
 import spock.lang.Specification
 
 class EmbeddedGradleLauncherActionExecuterTest extends Specification {
-    final BuildOperationParametersVersion1 parameters = Mock()
+    final ProviderOperationParameters parameters = Mock()
     final GradleLauncherFactory gradleLauncherFactory = Mock()
     final GradleLauncher gradleLauncher = Mock()
     final BuildResult buildResult = Mock()

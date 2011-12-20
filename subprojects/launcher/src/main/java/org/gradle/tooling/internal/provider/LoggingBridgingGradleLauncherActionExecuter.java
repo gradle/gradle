@@ -20,12 +20,11 @@ import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.*;
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
 
 /**
- * A {@link org.gradle.launcher.exec.GradleLauncherActionExecuter} which routes Gradle logging to those listeners specified in the {@link BuildOperationParametersVersion1} provided with a tooling api build
+ * A {@link org.gradle.launcher.exec.GradleLauncherActionExecuter} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build
  * request.
  */
 public class LoggingBridgingGradleLauncherActionExecuter implements GradleLauncherActionExecuter<ProviderOperationParameters> {
