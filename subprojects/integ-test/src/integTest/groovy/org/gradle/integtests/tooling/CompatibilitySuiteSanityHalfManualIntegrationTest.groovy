@@ -21,11 +21,13 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.Project
+import spock.lang.Ignore
 import spock.lang.Timeout
 
 @MinToolingApiVersion('1.0-milestone-3')
 @MinTargetGradleVersion('1.0-milestone-3')
 @IncludeAllPermutations
+@Ignore //run when needed
 class CompatibilitySuiteSanityHalfManualIntegrationTest extends ToolingApiSpecification {
 
     def setup() {

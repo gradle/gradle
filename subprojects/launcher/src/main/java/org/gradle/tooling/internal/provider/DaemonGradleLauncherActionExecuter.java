@@ -17,18 +17,17 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.launcher.exec.ReportedException;
-import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 
 import java.io.File;
 
-public class DaemonGradleLauncherActionExecuter implements GradleLauncherActionExecuter<BuildOperationParametersVersion1> {
+public class DaemonGradleLauncherActionExecuter implements GradleLauncherActionExecuter<ProviderOperationParameters> {
     private final DaemonClient client;
     private final DaemonParameters parameters;
 
@@ -37,7 +36,7 @@ public class DaemonGradleLauncherActionExecuter implements GradleLauncherActionE
         this.parameters = parameters;
     }
 
-    public <T> T execute(GradleLauncherAction<T> action, BuildOperationParametersVersion1 actionParameters) {
+    public <T> T execute(GradleLauncherAction<T> action, ProviderOperationParameters actionParameters) {
         BuildActionParameters parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), actionParameters.getStartTime(),
                 this.parameters.getEffectiveSystemProperties(), System.getenv(), new File(System.getProperty("user.dir")));
         try {

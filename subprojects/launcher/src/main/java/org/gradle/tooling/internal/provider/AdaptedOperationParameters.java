@@ -29,11 +29,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * by Szczepan Faber, created at: 12/20/11
  */
-public class DefaultedOperationParameters implements BuildOperationParametersVersion1 {
+public class AdaptedOperationParameters implements ProviderOperationParameters {
 
     private final BuildOperationParametersVersion1 delegate;
 
-    public DefaultedOperationParameters(BuildOperationParametersVersion1 delegate) {
+    public AdaptedOperationParameters(BuildOperationParametersVersion1 delegate) {
         this.delegate = delegate;
     }
 

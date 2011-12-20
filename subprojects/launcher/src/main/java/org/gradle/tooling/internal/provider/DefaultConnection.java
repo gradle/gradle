@@ -63,43 +63,47 @@ public class DefaultConnection implements ConnectionVersion4 {
     }
 
     public void executeBuild(final BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
-        run(new ExecuteBuildAction(buildParameters.getTasks()), operationParameters);
+        run(new ExecuteBuildAction(buildParameters.getTasks()), new AdaptedOperationParameters(operationParameters));
     }
 
     public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
+        return getModelInternal(type, new AdaptedOperationParameters(operationParameters));
+    }
+
+    public <T> T getModelInternal(Class<T> type, ProviderOperationParameters operationParameters) {
         if (type == InternalBuildEnvironment.class) {
             //we don't really need to launch gradle to acquire this information, TODO SF refactor
             DaemonClientServices services = daemonClientServices(operationParameters);
             DaemonContext context = services.get(DaemonContext.class);
-            return new DefaultBuildEnvironment(GradleVersion.current().getVersion(), context.getJavaHome(), context.getDaemonOpts());
+            DefaultBuildEnvironment out = new DefaultBuildEnvironment(GradleVersion.current().getVersion(), context.getJavaHome(), context.getDaemonOpts());
+            return type.cast(out);
         }
-        DelegatingBuildModelAction action = new DelegatingBuildModelAction(type);
+        DelegatingBuildModelAction<T> action = new DelegatingBuildModelAction<T>(type);
         return run(action, operationParameters);
     }
 
-    private <T> T run(GradleLauncherAction<T> action, BuildOperationParametersVersion1 operationParameters) {
-        operationParameters = new DefaultedOperationParameters(operationParameters);
-        GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer = createExecuter(operationParameters);
+    private <T> T run(GradleLauncherAction<T> action, ProviderOperationParameters operationParameters) {
+        GradleLauncherActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters);
         ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters.getGradleUserHomeDir(),
                 operationParameters.getProjectDir(), operationParameters.isSearchUpwards(), operationParameters.getVerboseLogging(), action);
         return executer.execute(configuringAction, operationParameters);
     }
 
-    private GradleLauncherActionExecuter<BuildOperationParametersVersion1> createExecuter(BuildOperationParametersVersion1 operationParameters) {
+    private GradleLauncherActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters) {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             return embeddedExecuterSupport.getExecuter();
         } else {
             DaemonClientServices clientServices = daemonClientServices(operationParameters);
             DaemonClient client = clientServices.get(DaemonClient.class);
 
-            GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer = new DaemonGradleLauncherActionExecuter(client, clientServices.getDaemonParameters());
+            GradleLauncherActionExecuter<ProviderOperationParameters> executer = new DaemonGradleLauncherActionExecuter(client, clientServices.getDaemonParameters());
 
             Factory<LoggingManagerInternal> loggingManagerFactory = clientServices.getLoggingServices().getFactory(LoggingManagerInternal.class);
             return new LoggingBridgingGradleLauncherActionExecuter(executer, loggingManagerFactory);
         }
     }
 
-    private DaemonClientServices daemonClientServices(BuildOperationParametersVersion1 operationParameters) {
+    private DaemonClientServices daemonClientServices(ProviderOperationParameters operationParameters) {
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
 
         if (operationParameters.getVerboseLogging()) {

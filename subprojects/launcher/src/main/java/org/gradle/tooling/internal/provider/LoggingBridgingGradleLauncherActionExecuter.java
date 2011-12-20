@@ -27,16 +27,16 @@ import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
  * A {@link org.gradle.launcher.exec.GradleLauncherActionExecuter} which routes Gradle logging to those listeners specified in the {@link BuildOperationParametersVersion1} provided with a tooling api build
  * request.
  */
-public class LoggingBridgingGradleLauncherActionExecuter implements GradleLauncherActionExecuter<BuildOperationParametersVersion1> {
+public class LoggingBridgingGradleLauncherActionExecuter implements GradleLauncherActionExecuter<ProviderOperationParameters> {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
-    private final GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer;
+    private final GradleLauncherActionExecuter<ProviderOperationParameters> executer;
 
-    public LoggingBridgingGradleLauncherActionExecuter(GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer, Factory<LoggingManagerInternal> loggingManagerFactory) {
+    public LoggingBridgingGradleLauncherActionExecuter(GradleLauncherActionExecuter<ProviderOperationParameters> executer, Factory<LoggingManagerInternal> loggingManagerFactory) {
         this.executer = executer;
         this.loggingManagerFactory = loggingManagerFactory;
     }
 
-    public <T> T execute(GradleLauncherAction<T> action, BuildOperationParametersVersion1 actionParameters) {
+    public <T> T execute(GradleLauncherAction<T> action, ProviderOperationParameters actionParameters) {
         LoggingManagerInternal loggingManager = loggingManagerFactory.create();
         if (!Boolean.TRUE.equals(actionParameters.isEmbedded())) {
             loggingManager.disableStandardOutputCapture();

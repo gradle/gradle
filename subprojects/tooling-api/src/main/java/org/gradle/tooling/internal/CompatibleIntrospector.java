@@ -50,6 +50,7 @@ public class CompatibleIntrospector {
     public <T> T getSafely(T defaultValue, String methodName) {
         try {
             Method method = getMethod(methodName);
+            method.setAccessible(true);
             return (T) method.invoke(target);
         } catch (IncompatibleVersionException e) {
             return defaultValue;

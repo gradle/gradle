@@ -23,19 +23,18 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.launcher.exec.InitializationAware;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 
 /**
  * A {@link GradleLauncherActionExecuter} which executes an action locally.
  */
-public class EmbeddedGradleLauncherActionExecuter implements GradleLauncherActionExecuter<BuildOperationParametersVersion1> {
+public class EmbeddedGradleLauncherActionExecuter implements GradleLauncherActionExecuter<ProviderOperationParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
 
     public EmbeddedGradleLauncherActionExecuter(GradleLauncherFactory gradleLauncherFactory) {
         this.gradleLauncherFactory = gradleLauncherFactory;
     }
 
-    public <T> T execute(GradleLauncherAction<T> action, BuildOperationParametersVersion1 actionParameters) {
+    public <T> T execute(GradleLauncherAction<T> action, ProviderOperationParameters actionParameters) {
         StartParameter startParameter = new StartParameter();
         if (action instanceof InitializationAware) {
             InitializationAware initializationAware = (InitializationAware) action;
