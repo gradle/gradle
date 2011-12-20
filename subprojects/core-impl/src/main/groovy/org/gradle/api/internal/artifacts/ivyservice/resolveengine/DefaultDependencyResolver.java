@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.apache.ivy.core.resolve.ResolveData;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
@@ -51,11 +50,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     public ResolvedConfiguration resolve(ConfigurationInternal configuration) throws ResolveException {
         LOGGER.debug("Resolving {}", configuration);
 
-        IvyAdapter ivyAdapter = ivyFactory.create(configuration.getResolutionStrategy());
-        ResolveData resolveData = ivyAdapter.getResolveData(configuration.getName());
+        IvyAdapter ivyAdapter = ivyFactory.create(configuration);
 
-        DependencyToModuleResolver dependencyResolver = constructDependencyResolver(configuration, ivyAdapter.getDependencyToModuleResolver(resolveData));
-        ArtifactToFileResolver artifactResolver = constructArtifactResolver(ivyAdapter.getArtifactToFileResolver(resolveData));
+        DependencyToModuleResolver dependencyResolver = constructDependencyResolver(configuration, ivyAdapter.getDependencyToModuleResolver());
+        ArtifactToFileResolver artifactResolver = constructArtifactResolver(ivyAdapter.getArtifactToFileResolver());
 
         ModuleConflictResolver conflictResolver;
         if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
@@ -66,9 +64,9 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         DependencyGraphBuilder builder = new DefaultDependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, artifactResolver, dependencyResolver, conflictResolver);
         // Need to contextualize the builder to avoid a new Ivy instance being loaded when instantiating DefaultModuleDescriptor
-        DependencyGraphBuilder contextualizedBuilder = ivyAdapter.contextualize(DependencyGraphBuilder.class, builder, resolveData);
+        DependencyGraphBuilder contextualizedBuilder = ivyAdapter.contextualize(DependencyGraphBuilder.class, builder);
 
-        DefaultLenientConfiguration result = contextualizedBuilder.resolve(configuration, resolveData);
+        DefaultLenientConfiguration result = contextualizedBuilder.resolve(configuration, ivyAdapter.getResolveData());
         return new DefaultResolvedConfiguration(result);
     }
 

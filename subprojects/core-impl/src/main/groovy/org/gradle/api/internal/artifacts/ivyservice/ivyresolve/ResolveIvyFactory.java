@@ -16,10 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.Ivy;
+import org.apache.ivy.core.resolve.ResolveData;
+import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
@@ -27,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileSt
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
+import org.gradle.util.WrapUtil;
 import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 
 import java.util.List;
@@ -54,26 +58,43 @@ public class ResolveIvyFactory {
         this.cacheLockingManager = cacheLockingManager;
     }
 
-    public IvyAdapter create(ResolutionStrategyInternal resolutionStrategy) {
-        UserResolverChain userResolverChain = new UserResolverChain(moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache, artifactFileStore);
-        userResolverChain.setCachePolicy(resolutionStrategy.getCachePolicy());
+    public IvyAdapter create(ConfigurationInternal configuration) {
+        UserResolverChain userResolverChain = new UserResolverChain();
+        CachePolicy cachePolicy = configuration.getResolutionStrategy().getCachePolicy();
 
         LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME, userResolverChain, cacheLockingManager);
         List<DependencyResolver> rawResolvers = resolverProvider.getResolvers();
 
         // Unfortunately, WharfResolverMetadata requires the resolver to have settings to calculate an id.
-        // We then need to configure settings on the delegating resolver as well
+        // We then need to set the ivySettings on the delegating resolver as well
         IvySettings ivySettings = settingsConverter.convertForResolve(loopbackDependencyResolver, rawResolvers);
+        moduleDescriptorCache.setSettings(ivySettings);
+        Ivy ivy = ivyFactory.createIvy(ivySettings);
+        ResolveData resolveData = createResolveData(ivy, configuration.getName());
+
+        IvyContextualizer contextualizer = new IvyContextualizer(ivy, resolveData);
         for (DependencyResolver rawResolver : rawResolvers) {
             String resolverId = new WharfResolverMetadata(rawResolver).getId();
+
             CacheLockingDependencyResolver cacheLockingResolver = new CacheLockingDependencyResolver(rawResolver, cacheLockingManager);
             cacheLockingResolver.setSettings(ivySettings);
-            userResolverChain.add(resolverId, cacheLockingResolver);
+
+            ModuleVersionRepository moduleVersionRepository = new DependencyResolverAdapter(resolverId, cacheLockingResolver);
+            ModuleVersionRepository ivyContextualizedRepository = contextualizer.contextualize(ModuleVersionRepository.class, moduleVersionRepository);
+            ModuleVersionRepository cachingRepository =
+                    new CachingModuleVersionRepository(ivyContextualizedRepository, moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache, artifactFileStore, cachePolicy);
+            userResolverChain.add(cachingRepository);
         }
 
-        moduleDescriptorCache.setSettings(ivySettings);
-
-        Ivy ivy = ivyFactory.createIvy(ivySettings);
-        return new DefaultIvyAdapter(ivy, userResolverChain);
+        return new DefaultIvyAdapter(ivy, resolveData, userResolverChain);
     }
+    
+    private ResolveData createResolveData(Ivy ivy, String configurationName) {
+        ResolveOptions options = new ResolveOptions();
+        options.setDownload(false);
+        options.setConfs(WrapUtil.toArray(configurationName));
+        return new ResolveData(ivy.getResolveEngine(), options);
+    }
+
+    
 }

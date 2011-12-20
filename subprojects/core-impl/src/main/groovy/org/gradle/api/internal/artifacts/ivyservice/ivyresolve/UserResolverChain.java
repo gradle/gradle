@@ -21,17 +21,11 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.util.StringUtils;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,34 +36,15 @@ public class UserResolverChain implements DependencyToModuleResolver, ArtifactTo
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
 
     private final Map<ModuleRevisionId, ModuleVersionRepository> artifactRepositories = new HashMap<ModuleRevisionId, ModuleVersionRepository>();
-    private final ModuleResolutionCache moduleResolutionCache;
-    private final ModuleDescriptorCache moduleDescriptorCache;
-    private final ArtifactResolutionCache artifactResolutionCache;
-    private final ArtifactFileStore artifactFileStore;
     private final List<ModuleVersionRepository> moduleVersionRepositories = new ArrayList<ModuleVersionRepository>();
     private ResolverSettings settings;
-    private CachePolicy cachePolicy;
-
-    public UserResolverChain(ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
-                             ArtifactResolutionCache artifactResolutionCache, ArtifactFileStore artifactFileStore) {
-        this.moduleDescriptorCache = moduleDescriptorCache;
-        this.moduleResolutionCache = moduleResolutionCache;
-        this.artifactResolutionCache = artifactResolutionCache;
-        this.artifactFileStore = artifactFileStore;
-    }
 
     public void setSettings(ResolverSettings settings) {
         this.settings = settings;
     }
 
-    public void setCachePolicy(CachePolicy cachePolicy) {
-        this.cachePolicy = cachePolicy;
-    }
-
-    public void add(String id, DependencyResolver resolver) {
-        ModuleVersionRepository adapted = new DependencyResolverAdapter(id, resolver);
-        ModuleVersionRepository cachingRepository = new CachingModuleVersionRepository(adapted, moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache, artifactFileStore, cachePolicy);
-        moduleVersionRepositories.add(cachingRepository);
+    public void add(ModuleVersionRepository repository) {
+        moduleVersionRepositories.add(repository);
     }
 
     public ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor) {

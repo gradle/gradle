@@ -17,40 +17,36 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
-import org.gradle.util.WrapUtil;
 
 class DefaultIvyAdapter implements IvyAdapter {
     private final Ivy ivy;
+    private final ResolveData resolveData;
     private final VersionMatcher versionMatcher;
     private final UserResolverChain userResolver;
 
-    public DefaultIvyAdapter(Ivy ivy, UserResolverChain userResolverChain) {
+    public DefaultIvyAdapter(Ivy ivy, ResolveData resolveData, UserResolverChain userResolverChain) {
         this.ivy = ivy;
+        this.resolveData = resolveData;
         userResolver = userResolverChain;
         versionMatcher = ivy.getSettings().getVersionMatcher();
     }
 
-    public ResolveData getResolveData(String configurationName) {
-        ResolveOptions options = new ResolveOptions();
-        options.setDownload(false);
-        options.setConfs(WrapUtil.toArray(configurationName));
-        return new ResolveData(ivy.getResolveEngine(), options);
+    public ResolveData getResolveData() {
+        return resolveData;
     }
 
-    public DependencyToModuleResolver getDependencyToModuleResolver(ResolveData resolveData) {
-        DependencyToModuleResolver ivyContextualised = contextualize(DependencyToModuleResolver.class, userResolver, resolveData);
-        return new LazyDependencyToModuleResolver(ivyContextualised, versionMatcher);
+    public DependencyToModuleResolver getDependencyToModuleResolver() {
+        return new LazyDependencyToModuleResolver(userResolver, versionMatcher);
     }
 
-    public ArtifactToFileResolver getArtifactToFileResolver(ResolveData resolveData) {
-        return contextualize(ArtifactToFileResolver.class, userResolver, resolveData);
+    public ArtifactToFileResolver getArtifactToFileResolver() {
+        return userResolver;
     }
 
-    public <T> T contextualize(Class<T> type, T delegate, ResolveData resolveData) {
+    public <T> T contextualize(Class<T> type, T delegate) {
         return new IvyContextualizer(ivy, resolveData).contextualize(type, delegate);
     }
 }

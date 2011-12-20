@@ -20,11 +20,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
 
 public interface IvyAdapter {
-    ResolveData getResolveData(String configurationName);
+    ResolveData getResolveData();
 
-    DependencyToModuleResolver getDependencyToModuleResolver(ResolveData resolveData);
+    DependencyToModuleResolver getDependencyToModuleResolver();
 
-    ArtifactToFileResolver getArtifactToFileResolver(ResolveData resolveData);
+    ArtifactToFileResolver getArtifactToFileResolver();
 
-    <T> T contextualize(Class<T> type, T delegate, ResolveData resolveData);
+    <T> T contextualize(Class<T> type, T delegate);
 }
