@@ -25,6 +25,4 @@ public interface IvyAdapter {
     DependencyToModuleResolver getDependencyToModuleResolver();
 
     ArtifactToFileResolver getArtifactToFileResolver();
-
-    <T> T contextualize(Class<T> type, T delegate);
 }

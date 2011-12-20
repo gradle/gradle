@@ -99,7 +99,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     protected ModuleDescriptorFactory createModuleDescriptorFactory() {
-        return new DefaultModuleDescriptorFactory();
+        return new DefaultModuleDescriptorFactory(get(IvyFactory.class), get(SettingsConverter.class));
     }
 
     protected ExcludeRuleConverter createExcludeRuleConverter() {

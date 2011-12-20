@@ -46,7 +46,4 @@ class DefaultIvyAdapter implements IvyAdapter {
         return userResolver;
     }
 
-    public <T> T contextualize(Class<T> type, T delegate) {
-        return new IvyContextualizer(ivy, resolveData).contextualize(type, delegate);
-    }
 }

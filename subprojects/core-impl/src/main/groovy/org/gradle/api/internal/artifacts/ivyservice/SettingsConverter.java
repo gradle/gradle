@@ -29,4 +29,6 @@ public interface SettingsConverter {
     IvySettings convertForPublish(List<DependencyResolver> publishResolvers);
 
     IvySettings convertForResolve(DependencyResolver defaultResolver, List<DependencyResolver> resolvers);
+
+    IvySettings getForResolve();
 }

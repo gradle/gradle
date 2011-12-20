@@ -63,10 +63,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         }
 
         DependencyGraphBuilder builder = new DefaultDependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, artifactResolver, dependencyResolver, conflictResolver);
-        // Need to contextualize the builder to avoid a new Ivy instance being loaded when instantiating DefaultModuleDescriptor
-        DependencyGraphBuilder contextualizedBuilder = ivyAdapter.contextualize(DependencyGraphBuilder.class, builder);
-
-        DefaultLenientConfiguration result = contextualizedBuilder.resolve(configuration, ivyAdapter.getResolveData());
+        DefaultLenientConfiguration result = builder.resolve(configuration, ivyAdapter.getResolveData());
         return new DefaultResolvedConfiguration(result);
     }
 

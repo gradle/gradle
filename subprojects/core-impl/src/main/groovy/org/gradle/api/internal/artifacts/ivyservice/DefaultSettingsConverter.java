@@ -72,6 +72,13 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return resolveSettings;
     }
 
+    public IvySettings getForResolve() {
+        if (resolveSettings == null) {
+            resolveSettings = settingsFactory.create();
+        }
+        return resolveSettings;
+    }
+
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
         for (DependencyResolver dependencyResolver : allResolvers) {
             dependencyResolver.setSettings(ivySettings);
