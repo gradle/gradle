@@ -18,6 +18,8 @@ package org.gradle.tooling.internal;
 
 import org.gradle.tooling.model.IncompatibleVersionException;
 
+import java.lang.reflect.Method;
+
 /**
  * Very simple tool for finding out if instance of a protocol class supports given method.
  * <p>
@@ -29,19 +31,30 @@ import org.gradle.tooling.model.IncompatibleVersionException;
  *
  * by Szczepan Faber, created at: 12/9/11
  */
-public class CompatibilityChecker {
+public class CompatibleIntrospector {
 
     private final Object target;
 
-    public CompatibilityChecker(Object target) {
+    public CompatibleIntrospector(Object target) {
         this.target = target;
     }
 
-    public void assertSupports(String methodName) throws IncompatibleVersionException {
+    private Method getMethod(String methodName) {
         try {
-            target.getClass().getDeclaredMethod(methodName, new Class[0]);
+            return target.getClass().getDeclaredMethod(methodName, new Class[0]);
         } catch (NoSuchMethodException e) {
             throw new IncompatibleVersionException("The method: " + methodName + " is not supported on instance: " + target + ".\n", e);
+        }
+    }
+
+    public <T> T getSafely(T defaultValue, String methodName) {
+        try {
+            Method method = getMethod(methodName);
+            return (T) method.invoke(target);
+        } catch (IncompatibleVersionException e) {
+            return defaultValue;
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to get value reflectively", e);
         }
     }
 }

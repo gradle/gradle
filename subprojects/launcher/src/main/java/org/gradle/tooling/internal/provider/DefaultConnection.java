@@ -27,18 +27,14 @@ import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
-import org.gradle.tooling.internal.CompatibilityChecker;
 import org.gradle.tooling.internal.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.model.IncompatibleVersionException;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
 
 public class DefaultConnection implements ConnectionVersion4 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
@@ -82,20 +78,11 @@ public class DefaultConnection implements ConnectionVersion4 {
     }
 
     private <T> T run(GradleLauncherAction<T> action, BuildOperationParametersVersion1 operationParameters) {
+        operationParameters = new DefaultedOperationParameters(operationParameters);
         GradleLauncherActionExecuter<BuildOperationParametersVersion1> executer = createExecuter(operationParameters);
         ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters.getGradleUserHomeDir(),
-                operationParameters.getProjectDir(), operationParameters.isSearchUpwards(), getVerboseLogging(operationParameters), action);
+                operationParameters.getProjectDir(), operationParameters.isSearchUpwards(), operationParameters.getVerboseLogging(), action);
         return executer.execute(configuringAction, operationParameters);
-    }
-
-    private boolean getVerboseLogging(BuildOperationParametersVersion1 operationParameters) {
-        try {
-            //TODO SF don't like it at all. We need a better strategy.
-            new CompatibilityChecker(operationParameters).assertSupports("getVerboseLogging");
-            return operationParameters.getVerboseLogging();
-        } catch (IncompatibleVersionException e) {
-            return false;
-        }
     }
 
     private GradleLauncherActionExecuter<BuildOperationParametersVersion1> createExecuter(BuildOperationParametersVersion1 operationParameters) {
@@ -115,7 +102,7 @@ public class DefaultConnection implements ConnectionVersion4 {
     private DaemonClientServices daemonClientServices(BuildOperationParametersVersion1 operationParameters) {
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
 
-        if (getVerboseLogging(operationParameters)) {
+        if (operationParameters.getVerboseLogging()) {
             loggingServices.get(OutputEventRenderer.class).configure(LogLevel.DEBUG);
         }
 
@@ -129,23 +116,6 @@ public class DefaultConnection implements ConnectionVersion4 {
             int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
             parameters.setIdleTimeout(idleTimeout);
         }
-        return new DaemonClientServices(loggingServices, parameters, safeStandardInput(operationParameters));
-    }
-
-    private InputStream safeStandardInput(BuildOperationParametersVersion1 operationParameters) {
-        InputStream is;
-        try {
-            new CompatibilityChecker(operationParameters).assertSupports("getStandardInput");
-            is = operationParameters.getStandardInput();
-        } catch (IncompatibleVersionException e) {
-            return null;
-        }
-
-        if (is == null) {
-            //Tooling api means embedded use. We don't want to consume standard input if we don't own the process.
-            //Hence we use a dummy input stream by default
-            return new ByteArrayInputStream(new byte[0]);
-        }
-        return is;
+        return new DaemonClientServices(loggingServices, parameters, operationParameters.getStandardInput());
     }
 }
