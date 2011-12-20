@@ -175,11 +175,10 @@ project.description = text
         def allProgress = []
 
         concurrent.start {
-            def connector = new ConfigurableConnector(connector: toolingApi.connector())
-                .distributionOperation( { it.description = "download for 1"; Thread.sleep(500) } )
-                .forProjectDirectory(dist.file("build1"))
-
+            def connector = toolingApi.connector()
+            distributionOperation(connector, { it.description = "download for 1"; Thread.sleep(500) } )
             connector.forProjectDirectory(dist.file("build1"))
+
             def connection = connector.connect()
 
             try {
@@ -195,9 +194,9 @@ project.description = text
         }
 
         concurrent.start {
-            def connector = new ConfigurableConnector(connector: toolingApi.connector())
-                .distributionOperation( { it.description = "download for 2"; Thread.sleep(500) } )
-                .forProjectDirectory(dist.file("build2"))
+            def connector = toolingApi.connector()
+            distributionOperation(connector, { it.description = "download for 2"; Thread.sleep(500) } )
+            connector.forProjectDirectory(dist.file("build2"))
 
             def connection = connector.connect()
 
@@ -230,8 +229,8 @@ project.description = text
         when:
         threads.times { idx ->
             concurrent.start {
-                def connector = new ConfigurableConnector(connector: toolingApi.connector())
-                    .distributionProgressMessage("download for " + idx)
+                def connector = toolingApi.connector()
+                distributionProgressMessage(connector, "download for " + idx)
 
                 def connection = connector.connect()
 
@@ -252,18 +251,12 @@ project.description = text
         concurrent.finished()
     }
 
-    static class ConfigurableConnector extends GradleConnector {
-        @Delegate GradleConnector connector
+    void distributionProgressMessage(GradleConnector connector, String message) {
+        connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: { it.description = message} )
+    }
 
-        ConfigurableConnector distributionProgressMessage(String message) {
-            connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: { it.description = message} )
-            this
-        }
-
-        ConfigurableConnector distributionOperation(Closure operation) {
-            connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: operation )
-            this
-        }
+    void distributionOperation(GradleConnector connector, Closure operation) {
+        connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: operation )
     }
 
     static class ConfigurableDistribution implements Distribution {
