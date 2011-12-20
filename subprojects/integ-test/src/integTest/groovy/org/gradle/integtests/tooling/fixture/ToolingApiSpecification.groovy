@@ -38,22 +38,19 @@ abstract class ToolingApiSpecification extends Specification {
         this.VERSION.set(version)
     }
 
-    BasicGradleDistribution getTargetDist() {
-        VERSION.get() ?: dist
-    }
-
     void setup() {
-        def toolingApi = GradleVersion.current()
+        def consumerGradle = GradleVersion.current()
         def target = GradleVersion.version(VERSION.get().version)
-        LOGGER.info(" Using Tooling API consumer ${toolingApi}, provider ${target}")
-        boolean accept = accept(toolingApi, target)
+        LOGGER.info(" Using Tooling API consumer ${consumerGradle}, provider ${target}")
+        boolean accept = accept(consumerGradle, target)
         if (!accept) {
-            throw new AssumptionViolatedException("Test class ${getClass().name} does not work with tooling API ${toolingApi} and Gradle ${target}.")
+            throw new AssumptionViolatedException("Test class ${getClass().name} does not work with tooling API ${consumerGradle} and Gradle ${target}.")
         }
         this.toolingApi.withConnector {
-            if (toolingApi.version != target.version) {
-                LOGGER.info("Overriding daemon tooling API provider to use installation: " + targetDist);
-                it.useInstallation(new File(targetDist.gradleHomeDir.absolutePath))
+            if (consumerGradle.version != target.version) {
+                LOGGER.info("Overriding daemon tooling API provider to use installation: " + target);
+                def targetGradle = dist.previousVersion(target.version)
+                it.useInstallation(new File(targetGradle.gradleHomeDir.absolutePath))
                 it.embedded = false
             }
         }

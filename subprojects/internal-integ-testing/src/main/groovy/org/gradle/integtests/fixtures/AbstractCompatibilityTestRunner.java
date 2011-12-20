@@ -42,9 +42,15 @@ public abstract class AbstractCompatibilityTestRunner extends Runner {
     protected final List<BasicGradleDistribution> previous;
 
     protected AbstractCompatibilityTestRunner(Class<?> target) {
+        this(target, null);
+    }
+
+    protected AbstractCompatibilityTestRunner(Class<?> target, String versionStr) {
         this.target = target;
         previous = new ArrayList<BasicGradleDistribution>();
-        String versionStr = System.getProperty("org.gradle.integtest.versions", "latest");
+        if (versionStr == null) {
+            versionStr = System.getProperty("org.gradle.integtest.versions", "latest");
+        }
         List<String> versions;
         versions = Arrays.asList(
                 "0.8",

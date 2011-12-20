@@ -30,7 +30,15 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
 
     ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
-        super(target)
+        super(target, includesAllPermutations(target))
+    }
+
+    static String includesAllPermutations(Class target) {
+        if (target.getAnnotation(IncludeAllPermutations)) {
+            return "all";
+        } else {
+            return null; //just use whatever is the default
+        }
     }
 
     @Override
