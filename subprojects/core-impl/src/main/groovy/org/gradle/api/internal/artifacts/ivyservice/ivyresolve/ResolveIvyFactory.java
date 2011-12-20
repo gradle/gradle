@@ -68,11 +68,10 @@ public class ResolveIvyFactory {
         // Unfortunately, WharfResolverMetadata requires the resolver to have settings to calculate an id.
         // We then need to set the ivySettings on the delegating resolver as well
         IvySettings ivySettings = settingsConverter.convertForResolve(loopbackDependencyResolver, rawResolvers);
-        moduleDescriptorCache.setSettings(ivySettings);
         Ivy ivy = ivyFactory.createIvy(ivySettings);
         ResolveData resolveData = createResolveData(ivy, configuration.getName());
 
-        IvyContextualizer contextualizer = new IvyContextualizer(ivy, resolveData);
+        IvyContextualiser contextualiser = new IvyContextualiser(ivy, resolveData);
         for (DependencyResolver rawResolver : rawResolvers) {
             String resolverId = new WharfResolverMetadata(rawResolver).getId();
 
@@ -80,13 +79,14 @@ public class ResolveIvyFactory {
             cacheLockingResolver.setSettings(ivySettings);
 
             ModuleVersionRepository moduleVersionRepository = new DependencyResolverAdapter(resolverId, cacheLockingResolver);
-            ModuleVersionRepository ivyContextualizedRepository = contextualizer.contextualize(ModuleVersionRepository.class, moduleVersionRepository);
             ModuleVersionRepository cachingRepository =
-                    new CachingModuleVersionRepository(ivyContextualizedRepository, moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache, artifactFileStore, cachePolicy);
-            userResolverChain.add(cachingRepository);
+                    new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache, artifactFileStore, cachePolicy);
+            // Need to contextualise outside of caching, since parsing of module descriptors in the cache requires ivy context
+            ModuleVersionRepository ivyContextualisedRepository = contextualiser.contextualise(ModuleVersionRepository.class, cachingRepository);
+            userResolverChain.add(ivyContextualisedRepository);
         }
 
-        return new DefaultIvyAdapter(ivy, resolveData, userResolverChain);
+        return new DefaultIvyAdapter(resolveData, userResolverChain);
     }
     
     private ResolveData createResolveData(Ivy ivy, String configurationName) {

@@ -25,16 +25,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-public class IvyContextualizer {
+public class IvyContextualiser {
     private final Ivy ivy;
     private final ResolveData resolveData;
 
-    public IvyContextualizer(Ivy ivy, ResolveData resolveData) {
+    public IvyContextualiser(Ivy ivy, ResolveData resolveData) {
         this.ivy = ivy;
         this.resolveData = resolveData;
     }
     
-    public <T> T contextualize(Class<T> type, final T delegate) {
+    public <T> T contextualise(Class<T> type, final T delegate) {
         Object proxy = Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{type}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 IvyContext context = IvyContext.pushNewCopyContext();
@@ -50,5 +50,13 @@ public class IvyContextualizer {
             }
         });
         return type.cast(proxy);
+    }
+
+    public static IvyContext getIvyContext() {
+        IvyContext context = IvyContext.getContext();
+        if (context.peekIvy() == null || context.getResolveData() == null) {
+            throw new IllegalStateException("Ivy context not established");
+        }
+        return context;
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
@@ -42,8 +41,6 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
     private final ModuleDescriptorStore moduleDescriptorStore;
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> cache;
 
-    private IvySettings ivySettings;
-
     public DefaultModuleDescriptorCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactResolutionCache artifactResolutionCache) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
@@ -52,11 +49,6 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
 
         // TODO:DAZ inject this
         moduleDescriptorStore = new ModuleDescriptorStore(new ModuleDescriptorFileStore(cacheMetadata));
-    }
-
-    // TODO:DAZ This is a bit nasty
-    public void setSettings(IvySettings settings) {
-        this.ivySettings = settings;
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> getCache() {
@@ -78,7 +70,7 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         }
         ModuleDescriptor descriptor = null;
         if (!moduleDescriptorCacheEntry.isMissing) {
-            descriptor = moduleDescriptorStore.getModuleDescriptor(repository, moduleRevisionId, ivySettings);
+            descriptor = moduleDescriptorStore.getModuleDescriptor(repository, moduleRevisionId);
         }
         return new DefaultCachedModuleDescriptor(moduleDescriptorCacheEntry, descriptor, timeProvider);
     }

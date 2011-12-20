@@ -17,9 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.util.UncheckedException;
 
@@ -35,15 +36,16 @@ public class ModuleDescriptorStore {
         this.moduleDescriptorFileStore = moduleDescriptorFileStore;
     }
 
-    public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId, IvySettings ivySettings) {
+    public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
         File moduleDescriptorFile = moduleDescriptorFileStore.getModuleDescriptorFile(repository, moduleRevisionId);
-        return parseModuleDescriptorFile(moduleDescriptorFile, ivySettings);
+        return parseModuleDescriptorFile(moduleDescriptorFile);
     }
 
-    private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile, IvySettings ivySettings)  {
+    private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile)  {
+        ParserSettings settings = IvyContextualiser.getIvyContext().getSettings();
         try {
             URL result = moduleDescriptorFile.toURI().toURL();
-            return parser.parseDescriptor(ivySettings, result, false);
+            return parser.parseDescriptor(settings, result, false);
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
         }
