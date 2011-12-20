@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.next
+package org.gradle.integtests.tooling.m7
 
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
@@ -23,9 +23,8 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.Project
 import spock.lang.Timeout
 
-//TODO SF improve
-@MinToolingApiVersion(currentOnly = true)
-@MinTargetGradleVersion(currentOnly = true)
+@MinToolingApiVersion('1.0-milestone-7')
+@MinTargetGradleVersion('1.0-milestone-7')
 class ConsumingStandardInputIntegrationTest extends ToolingApiSpecification {
 
     def setup() {

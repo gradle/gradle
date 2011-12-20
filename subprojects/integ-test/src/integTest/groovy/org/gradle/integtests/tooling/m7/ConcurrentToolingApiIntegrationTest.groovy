@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.next
+package org.gradle.integtests.tooling.m7
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
@@ -33,8 +33,8 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-@MinToolingApiVersion(currentOnly = true)
-@MinTargetGradleVersion(currentOnly = true)
+@MinToolingApiVersion('1.0-milestone-7')
+@MinTargetGradleVersion('1.0-milestone-7')
 @Issue("GRADLE-1933")
 class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
 
