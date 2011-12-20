@@ -18,8 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.resolve.ResolveData;
+import org.gradle.util.UncheckedException;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
@@ -40,6 +42,8 @@ public class IvyContextualizer {
                     context.setIvy(ivy);
                     context.setResolveData(resolveData);
                     return method.invoke(delegate, args);
+                } catch (InvocationTargetException e) {
+                    throw UncheckedException.asUncheckedException(e.getTargetException());
                 } finally {
                     IvyContext.popContext();
                 }

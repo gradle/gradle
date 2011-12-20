@@ -46,7 +46,7 @@ import org.gradle.api.artifacts.ResolveException
 import spock.lang.Ignore
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 
-class DependencyGraphBuilderTest extends Specification {
+class DefaultDependencyGraphBuilderTest extends Specification {
     final ModuleDescriptorConverter moduleDescriptorConverter = Mock()
     final ResolvedArtifactFactory resolvedArtifactFactory = Mock()
     final ConfigurationInternal configuration = Mock()
@@ -57,7 +57,7 @@ class DependencyGraphBuilderTest extends Specification {
     final ArtifactToFileResolver artifactResolver = Mock()
     final VersionMatcher versionMatcher = Mock()
     final DefaultModuleDescriptor root = revision('root')
-    final DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, artifactResolver, dependencyResolver, conflictResolver)
+    final DefaultDependencyGraphBuilder builder = new DefaultDependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, artifactResolver, dependencyResolver, conflictResolver)
 
     def setup() {
         config(root, 'root', 'default')

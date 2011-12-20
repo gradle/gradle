@@ -44,6 +44,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
@@ -219,7 +220,11 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
             if (delegate == null) {
                 delegate = init();
             }
-            return method.invoke(delegate, args);
+            try {
+                return method.invoke(delegate, args);
+            } catch (InvocationTargetException e) {
+                throw UncheckedException.asUncheckedException(e.getTargetException());
+            }
         }
 
         private Resource init() {
