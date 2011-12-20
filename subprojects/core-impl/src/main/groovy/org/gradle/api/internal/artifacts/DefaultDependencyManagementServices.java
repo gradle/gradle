@@ -205,12 +205,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 get(ProgressLoggerFactory.class),
                 new IvySettingsFactory(
                         get(ArtifactCacheMetaData.class),
-                        get(FileStore.class)),
-                get(ModuleResolutionCache.class),
-                get(ModuleDescriptorCache.class),
-                get(ArtifactResolutionCache.class),
-                get(ArtifactFileStore.class),
-                get(CacheLockingManager.class)
+                        get(FileStore.class))
         );
     }
 
@@ -312,7 +307,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
             ResolveIvyFactory ivyFactory = new ResolveIvyFactory(
                     get(IvyFactory.class),
                     resolverProvider,
-                    get(SettingsConverter.class)
+                    get(SettingsConverter.class),
+                    get(ModuleResolutionCache.class),
+                    get(ModuleDescriptorCache.class),
+                    get(ArtifactResolutionCache.class),
+                    get(ArtifactFileStore.class),
+                    get(CacheLockingManager.class)
             );
 
             ResolvedArtifactFactory resolvedArtifactFactory = new ResolvedArtifactFactory(

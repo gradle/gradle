@@ -23,47 +23,24 @@ import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.*;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.ProgressLoggingTransferListener;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.util.WrapUtil;
-import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultSettingsConverter implements SettingsConverter {
     private final Factory<IvySettings> settingsFactory;
-    private final Map<String, IvyDependencyResolver> resolversById = new HashMap<String, IvyDependencyResolver>();
     private final TransferListener transferListener;
-    private final ModuleResolutionCache moduleResolutionCache;
-    private final ModuleDescriptorCache moduleDescriptorCache;
-    private final ArtifactResolutionCache artifactResolutionCache;
-    private final ArtifactFileStore artifactFileStore;
-    private final CacheLockingManager cacheLockingManager;
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
-    private UserResolverChain userResolverChain;
 
-    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory,
-                                    ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
-                                    ArtifactResolutionCache artifactResolutionCache, ArtifactFileStore artifactFileStore,
-                                    CacheLockingManager cacheLockingManager) {
+    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory) {
         this.settingsFactory = settingsFactory;
-        this.moduleResolutionCache = moduleResolutionCache;
-        this.moduleDescriptorCache = moduleDescriptorCache;
-        this.artifactResolutionCache = artifactResolutionCache;
-        this.artifactFileStore = artifactFileStore;
-        this.cacheLockingManager = cacheLockingManager;
         Message.setDefaultLogger(new IvyLoggingAdaper());
         transferListener = new ProgressLoggingTransferListener(progressLoggerFactory, DefaultSettingsConverter.class);
     }
@@ -78,45 +55,21 @@ public class DefaultSettingsConverter implements SettingsConverter {
         return publishSettings;
     }
 
-    public IvySettings convertForResolve(List<DependencyResolver> dependencyResolvers, ResolutionStrategyInternal resolutionStrategy) {
+    public IvySettings convertForResolve(DependencyResolver defaultResolver, List<DependencyResolver> resolvers) {
         if (resolveSettings == null) {
             resolveSettings = settingsFactory.create();
-            userResolverChain = createUserResolverChain();
-            LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(LOOPBACK_RESOLVER_NAME, userResolverChain, cacheLockingManager);
-            resolveSettings.addResolver(loopbackDependencyResolver);
-            resolveSettings.setDefaultResolver(LOOPBACK_RESOLVER_NAME);
+        } else {
+            resolveSettings.getResolvers().clear();
         }
 
-        moduleDescriptorCache.setSettings(resolveSettings);
-        userResolverChain.setCachePolicy(resolutionStrategy.getCachePolicy());
-        replaceResolvers(dependencyResolvers, userResolverChain);
-        return resolveSettings;
-    }
-
-    private UserResolverChain createUserResolverChain() {
-        UserResolverChain resolverChain = new UserResolverChain(moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache, artifactFileStore);
-        resolverChain.setSettings(resolveSettings);
-        return resolverChain;
-    }
-
-    private void replaceResolvers(List<DependencyResolver> resolvers, UserResolverChain chainResolver) {
-        for (DependencyResolver moduleVersionRepository : chainResolver.getResolvers()) {
-            resolveSettings.getResolvers().remove(moduleVersionRepository);
-        }
-        chainResolver.clearResolvers();
+        resolveSettings.addResolver(defaultResolver);
+        resolveSettings.setDefaultResolver(defaultResolver.getName());
+        
         for (DependencyResolver resolver : resolvers) {
-            resolver.setSettings(resolveSettings);
-            String resolverId = new WharfResolverMetadata(resolver).getId();
-            IvyDependencyResolver sharedResolver = resolversById.get(resolverId);
-            if (sharedResolver == null) {
-                initializeResolvers(resolveSettings, WrapUtil.toList(resolver));
-                sharedResolver = new CacheLockingDependencyResolver(resolver, cacheLockingManager);
-                resolversById.put(resolverId, sharedResolver);
-            }
-            resolveSettings.addResolver(sharedResolver);
-            assert resolveSettings.getResolver(resolver.getName()) == sharedResolver;
-            chainResolver.add(resolverId, sharedResolver);
+            resolveSettings.addResolver(resolver);
         }
+        initializeResolvers(resolveSettings, resolvers);
+        return resolveSettings;
     }
 
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {

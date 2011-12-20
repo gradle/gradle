@@ -46,7 +46,6 @@ public class UserResolverChain implements DependencyToModuleResolver, ArtifactTo
     private final ModuleDescriptorCache moduleDescriptorCache;
     private final ArtifactResolutionCache artifactResolutionCache;
     private final ArtifactFileStore artifactFileStore;
-    private final List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
     private final List<ModuleVersionRepository> moduleVersionRepositories = new ArrayList<ModuleVersionRepository>();
     private ResolverSettings settings;
     private CachePolicy cachePolicy;
@@ -68,7 +67,6 @@ public class UserResolverChain implements DependencyToModuleResolver, ArtifactTo
     }
 
     public void add(String id, DependencyResolver resolver) {
-        resolvers.add(resolver);
         ModuleVersionRepository adapted = new DependencyResolverAdapter(id, resolver);
         ModuleVersionRepository cachingRepository = new CachingModuleVersionRepository(adapted, moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache, artifactFileStore, cachePolicy);
         moduleVersionRepositories.add(cachingRepository);
@@ -176,15 +174,6 @@ public class UserResolverChain implements DependencyToModuleResolver, ArtifactTo
         }
 
         throw exceptionBuilder.buildException();
-    }
-
-    public void clearResolvers() {
-        resolvers.clear();
-        moduleVersionRepositories.clear();
-    }
-    
-    public List<DependencyResolver> getResolvers() {
-        return resolvers;
     }
 
     private class ModuleResolution implements ArtifactInfo {

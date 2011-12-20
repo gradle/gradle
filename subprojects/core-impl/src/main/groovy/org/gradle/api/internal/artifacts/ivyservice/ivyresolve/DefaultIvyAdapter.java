@@ -21,7 +21,6 @@ import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
 import org.gradle.util.WrapUtil;
 
 class DefaultIvyAdapter implements IvyAdapter {
@@ -29,10 +28,9 @@ class DefaultIvyAdapter implements IvyAdapter {
     private final VersionMatcher versionMatcher;
     private final UserResolverChain userResolver;
 
-    public DefaultIvyAdapter(Ivy ivy) {
+    public DefaultIvyAdapter(Ivy ivy, UserResolverChain userResolverChain) {
         this.ivy = ivy;
-        LoopbackDependencyResolver lookbackResolver = (LoopbackDependencyResolver) ivy.getSettings().getResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME);
-        userResolver = lookbackResolver.getUserResolverChain();
+        userResolver = userResolverChain;
         versionMatcher = ivy.getSettings().getVersionMatcher();
     }
 

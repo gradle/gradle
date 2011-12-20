@@ -86,8 +86,4 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
             }
         });
     }
-
-    public UserResolverChain getUserResolverChain() {
-        return userResolverChain;
-    }
 }
