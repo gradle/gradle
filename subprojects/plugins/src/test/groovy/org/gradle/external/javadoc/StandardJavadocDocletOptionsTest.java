@@ -91,6 +91,7 @@ public class StandardJavadocDocletOptionsTest {
         assertNull(options.getDocEncoding());
         assertFalse(options.isKeyWords());
         assertEmpty(options.getTags());
+        assertEmpty(options.getTaglets());
         assertEmpty(options.getTagletPath());
         assertFalse(options.isDocFilesSubDirs());
         assertEmpty(options.getExcludeDocFilesSubDir());
@@ -148,6 +149,7 @@ public class StandardJavadocDocletOptionsTest {
             one(optionFileMock).addStringOption("docencoding");
             one(optionFileMock).addBooleanOption("keywords");
             one(optionFileMock).addStringOption("tags");
+            one(optionFileMock).addStringOption("taglets");
             one(optionFileMock).addPathOption("tagletpath");
             one(optionFileMock).addBooleanOption("docfilessubdirs");
             one(optionFileMock).addStringsOption("excludedocfilessubdir", ":");
@@ -444,18 +446,27 @@ public class StandardJavadocDocletOptionsTest {
     }
 
     @Test
-    public void testFluentTagsAndTaglets() {
-        final String[] tagletsValue = new String[]{"com.sun.tools.doclets.ToDoTaglet"};
+    public void testFluentTags() {
         final String[] tagsValue = new String[]{"param", "return", "todo:a:\"To Do:\""};
 
         final List<String> tempList = new ArrayList<String>();
-        tempList.addAll(Arrays.asList(tagletsValue));
         tempList.addAll(Arrays.asList(tagsValue));
 
         final Object[] totalTagsValue = tempList.toArray();
-        assertEquals(options, options.taglets(tagletsValue));
         assertEquals(options, options.tags(tagsValue));
         assertArrayEquals(totalTagsValue, options.getTags().toArray());
+    }
+
+    @Test
+    public void testFluentTaglets() {
+        final String[] tagletsValue = new String[]{"com.sun.tools.doclets.ToDoTaglet"};
+
+        final List<String> tempList = new ArrayList<String>();
+        tempList.addAll(Arrays.asList(tagletsValue));
+
+        final Object[] totalTagletsValue = tempList.toArray();
+        assertEquals(options, options.taglets(tagletsValue));
+        assertArrayEquals(totalTagletsValue, options.getTaglets().toArray());
     }
 
     @Test
@@ -486,7 +497,7 @@ public class StandardJavadocDocletOptionsTest {
     }
 
     @Test
-    public void testFluetNoTimestamp() {
+    public void testFluentNoTimestamp() {
         assertEquals(options, options.noTimestamp());
         assertTrue(options.isNoTimestamp());
     }

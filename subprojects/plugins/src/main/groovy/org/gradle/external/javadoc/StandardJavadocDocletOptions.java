@@ -64,7 +64,8 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         charSet = addStringOption("charset");
         docEncoding = addStringOption("docencoding");
         keyWords = addBooleanOption("keywords");
-        tags = addStringsOption("tags");
+        tags = addMultilineStringsOption("tag");
+        taglets = addMultilineStringsOption("taglet");
         tagletPath = addPathOption("tagletpath");
         docFilesSubDirs = addBooleanOption("docfilessubdirs");
         excludeDocFilesSubDir = addStringsOption("excludedocfilessubdir", ":");
@@ -366,7 +367,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -linkoffline removes the constraint that the Javadoc tool have a web connection when generating the documentation.
      * <p/>
      * Another use is as a "hack" to update docs: After you have run javadoc on a full set of packages,
-     * then you can run javadoc again on onlya smaller set of changed packages,
+     * then you can run javadoc again on only a smaller set of changed packages,
      * so that the updated files can be inserted back into the original set. Examples are given below.
      * <p/>
      * The -linkoffline option takes two arguments -- the first for the string to be embedded in the &lt;a href> links,
@@ -807,7 +808,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
 
     /**
      * -tag  tagname:Xaoptcmf:"taghead".
-     * -taglet  class.
      */
     private final JavadocOptionFileOption<List<String>> tags;
 
@@ -828,12 +828,30 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return tags(Arrays.asList(tags));
     }
 
-    public StandardJavadocDocletOptions taglets(String... taglets) {
-        return tags(Arrays.asList(taglets));
-    }
-
     public StandardJavadocDocletOptions tagsFile(File tagsFile) {
         return (StandardJavadocDocletOptions) optionFiles(tagsFile);
+    }
+
+    /**
+     * -taglet  class.
+     */
+    private final JavadocOptionFileOption<List<String>> taglets;
+
+    public List<String> getTaglets() {
+        return taglets.getValue();
+    }
+
+    public void setTaglets(List<String> taglets) {
+        this.taglets.setValue(taglets);
+    }
+
+    public StandardJavadocDocletOptions taglets(List<String> taglets) {
+        this.taglets.getValue().addAll(taglets);
+        return this;
+    }
+
+    public StandardJavadocDocletOptions taglets(String... taglets) {
+        return taglets(Arrays.asList(taglets));
     }
 
     /**
