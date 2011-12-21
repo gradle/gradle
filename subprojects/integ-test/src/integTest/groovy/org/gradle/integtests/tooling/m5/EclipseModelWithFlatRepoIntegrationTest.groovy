@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling
+package org.gradle.integtests.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -23,7 +23,7 @@ import org.gradle.util.TestFile
 import spock.lang.Issue
 
 @MinTargetGradleVersion('1.0-milestone-5')
-class EclipseToolingApiIntegrationTest extends ToolingApiSpecification {
+class EclipseModelWithFlatRepoIntegrationTest extends ToolingApiSpecification {
     TestFile projectDir = dist.testDir
 
     @Issue("GRADLE-1621")
