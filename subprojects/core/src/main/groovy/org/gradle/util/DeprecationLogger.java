@@ -34,14 +34,14 @@ public class DeprecationLogger {
     public static void nagUserOfReplacedMethod(String methodName, String replacement) {
         if (METHODS.add(methodName)) {
             LOGGER.warn(String.format(
-                    "The %s method is deprecated and will be removed in the next version of Gradle. You should use the %s method instead.",
+                    "The %s method has been deprecated and will be removed in the next version of Gradle. Please use the %s method instead.",
                     methodName, replacement));
         }
     }
 
     public static void nagUserOfDiscontinuedMethod(String methodName) {
         if (METHODS.add(methodName)) {
-            LOGGER.warn(String.format("The %s method is deprecated and will be removed in the next version of Gradle.",
+            LOGGER.warn(String.format("The %s method has been deprecated and will be removed in the next version of Gradle.",
                     methodName));
         }
     }
@@ -49,7 +49,7 @@ public class DeprecationLogger {
     public static void nagUserOfReplacedNamedParameter(String parameterName, String replacement) {
         if (NAMED_PARAMETERS.add(parameterName)) {
             LOGGER.warn(String.format(
-                    "The %s named parameter is deprecated and will be removed in the next version of Gradle. You should use the %s named parameter instead.",
+                    "The %s named parameter has been deprecated and will be removed in the next version of Gradle. Please use the %s named parameter instead.",
                     parameterName, replacement));
         }
     }
