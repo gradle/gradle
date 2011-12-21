@@ -75,6 +75,14 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         return ConfigureUtil.configure(closure, this, false);
     }
 
+    public void addFirst(ArtifactRepository repository) {
+        add(0, repository);
+    }
+
+    public void addLast(ArtifactRepository repository) {
+        add(repository);
+    }
+
     public boolean add(DependencyResolver resolver, Closure configureClosure) {
         addInternal(resolver, configureClosure, addLastAction);
         return true;
@@ -85,12 +93,12 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         return true;
     }
 
-    public void addFirst(ArtifactRepository repository) {
-        add(0, repository);
+    public DependencyResolver addFirst(Object userDescription) {
+        return addFirst(userDescription, null);
     }
 
-    public void addLast(ArtifactRepository repository) {
-        add(repository);
+    public DependencyResolver addFirst(Object userDescription, Closure configureClosure) {
+        return addInternal(userDescription, configureClosure, addFirstAction);
     }
 
     @Deprecated
@@ -143,14 +151,6 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         });
     }
 
-    public DependencyResolver addFirst(Object userDescription) {
-        return addFirst(userDescription, null);
-    }
-
-    public DependencyResolver addFirst(Object userDescription, Closure configureClosure) {
-        return addInternal(userDescription, configureClosure, addFirstAction);
-    }
-
     private DependencyResolver addInternal(Object userDescription, Closure configureClosure, Action<ArtifactRepository> orderAction) {
         ArtifactRepository repository;
         if (userDescription instanceof ArtifactRepository) {
@@ -172,7 +172,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     public List<DependencyResolver> getResolvers() {
         List<DependencyResolver> returnedResolvers = new ArrayList<DependencyResolver>();
         for (ArtifactRepository repository : this) {
-            ((ArtifactRepositoryInternal) repository).createResolvers(returnedResolvers);
+            returnedResolvers.add(((ArtifactRepositoryInternal) repository).createResolver());
         }
         return returnedResolvers;
     }
@@ -235,9 +235,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     }
 
     protected <T extends DependencyResolver> T toResolver(Class<T> type, ArtifactRepository repository) {
-        List<DependencyResolver> resolvers = new ArrayList<DependencyResolver>();
-        ((ArtifactRepositoryInternal) repository).createResolvers(resolvers);
-        assert resolvers.size() == 1;
-        return type.cast(resolvers.get(0));
+        DependencyResolver resolver = ((ArtifactRepositoryInternal) repository).createResolver();
+        return type.cast(resolver);
     }
 }

@@ -35,12 +35,9 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         repository.dirs('a', 'b')
 
         when:
-        def repos = []
-        repository.createResolvers(repos)
+        def repo = repository.createResolver()
 
         then:
-        repos.size() == 1
-        def repo = repos[0]
         repo instanceof FileSystemResolver
         def expectedPatterns = [
                 "$dir1.absolutePath/[artifact]-[revision](-[classifier]).[ext]",
@@ -58,7 +55,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         _ * fileResolver.resolveFiles(_) >> new SimpleFileCollection()
 
         when:
-        repository.createResolvers([])
+        repository.createResolver()
 
         then:
         InvalidUserDataException e = thrown()

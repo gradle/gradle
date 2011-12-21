@@ -40,8 +40,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         fileResolver.resolveUri('pattern1') >> new URI('scheme:resource1')
 
         when:
-        def resolvers = []
-        repository.createResolvers(resolvers)
+        repository.createResolver()
 
         then:
         InvalidUserDataException e = thrown()
@@ -58,8 +57,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         fileResolver.resolveUri('pattern2') >> new URI('file:resource2')
 
         when:
-        def resolvers = []
-        repository.createResolvers(resolvers)
+        repository.createResolver()
 
         then:
         InvalidUserDataException e = thrown()
@@ -78,12 +76,9 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
-        def resolvers = []
-        repository.createResolvers(resolvers)
+        def resolver = repository.createResolver()
 
         then:
-        resolvers.size() == 1
-        def resolver = resolvers[0]
         resolver instanceof ResourceCollectionResolver
         resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
@@ -104,12 +99,9 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createFileTransport('name') >> new FileTransport('name')
 
         when:
-        def resolvers = []
-        repository.createResolvers(resolvers)
+        def resolver = repository.createResolver()
 
         then:
-        resolvers.size() == 1
-        def resolver = resolvers[0]
         resolver instanceof ResourceCollectionResolver
         resolver.repository instanceof FileResourceCollection
         resolver.name == 'name'
@@ -126,12 +118,9 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
-        def resolvers = []
-        repository.createResolvers(resolvers)
+        def resolver = repository.createResolver()
 
         then:
-        resolvers.size() == 1
-        def resolver = resolvers[0]
         resolver instanceof ResourceCollectionResolver
         resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
@@ -149,12 +138,9 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
-        def resolvers = []
-        repository.createResolvers(resolvers)
+        def resolver = repository.createResolver()
 
         then:
-        resolvers.size() == 1
-        def resolver = resolvers[0]
         resolver instanceof ResourceCollectionResolver
         resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
@@ -176,12 +162,9 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
-        def resolvers = []
-        repository.createResolvers(resolvers)
+        def resolver = repository.createResolver()
 
         then:
-        resolvers.size() == 1
-        def resolver = resolvers[0]
         resolver instanceof ResourceCollectionResolver
         resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
@@ -200,12 +183,9 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
-        def resolvers = []
-        repository.createResolvers(resolvers)
+        def resolver = repository.createResolver()
 
         then:
-        resolvers.size() == 1
-        def resolver = resolvers[0]
         resolver instanceof ResourceCollectionResolver
         resolver.repository instanceof HttpResourceCollection
         resolver.name == 'name'
@@ -227,12 +207,9 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         fileResolver.resolveUri('http://other/') >> new URI('http://other/')
 
         when:
-        def resolvers = []
-        repository.createResolvers(resolvers)
+        def resolver = repository.createResolver()
 
         then:
-        resolvers.size() == 1
-        def resolver = resolvers[0]
         resolver.artifactPatterns == ['http://host/[layoutPattern]', 'http://other/[additionalPattern]'] as List
         resolver.ivyPatterns == resolver.artifactPatterns
     }
@@ -242,7 +219,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ExternalArtifactCache))
 
         when:
-        repository.createResolvers([])
+        repository.createResolver()
 
         then:
         InvalidUserDataException e = thrown()

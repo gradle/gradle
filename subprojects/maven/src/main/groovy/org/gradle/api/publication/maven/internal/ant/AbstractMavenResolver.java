@@ -53,7 +53,6 @@ import org.gradle.util.AntUtil;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -92,8 +91,8 @@ public abstract class AbstractMavenResolver implements MavenResolver, Dependency
         this.name = name;
     }
 
-    public void createResolvers(Collection<DependencyResolver> resolvers) {
-        resolvers.add(this);
+    public DependencyResolver createResolver() {
+        return this;
     }
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {

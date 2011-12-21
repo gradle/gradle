@@ -28,7 +28,6 @@ import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
 
 import java.net.URI;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -72,7 +71,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         DeprecationLogger.nagUserWith(String.format("The IvyArtifactRepository.%s property has been deprecated. Please credentials { %s = 'value' } instead.", propertyName, replacementName));
     }
 
-    public void createResolvers(Collection<DependencyResolver> resolvers) {
+    public DependencyResolver createResolver() {
         URI uri = getUrl();
 
         Set<String> schemes = new LinkedHashSet<String>();
@@ -84,7 +83,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         layout.apply(uri, resolver);
         additionalPatternsLayout.apply(uri, resolver);
 
-        resolvers.add(resolver);
+        return resolver;
     }
 
     private PatternBasedResolver createResolver(Set<String> schemes) {

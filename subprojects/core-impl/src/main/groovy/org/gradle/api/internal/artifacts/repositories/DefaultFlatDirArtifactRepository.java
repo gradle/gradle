@@ -60,7 +60,7 @@ public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRe
         this.dirs.addAll(Arrays.asList(dirs));
     }
 
-    public void createResolvers(Collection<DependencyResolver> resolvers) {
+    public DependencyResolver createResolver() {
         Set<File> dirs = getDirs();
         if (dirs.isEmpty()) {
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
@@ -74,6 +74,6 @@ public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRe
         }
         resolver.setValidate(false);
         resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
-        resolvers.add(resolver);
+        return resolver;
     }
 }

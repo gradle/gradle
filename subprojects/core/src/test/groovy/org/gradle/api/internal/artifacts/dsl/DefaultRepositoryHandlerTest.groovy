@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.hamcrest.Matchers.notNullValue
 import static org.junit.Assert.assertEquals
 
 /**
@@ -188,7 +187,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
             will(returnValue(repoName))
             one(repository).setUrl(repoRoot)
             one(repository).setArtifactUrls([testUrl1, testUrl2])
-            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
+            allowing(repository).createResolver(); will(returnValue(expectedResolver))
         }
 
         assert repositoryHandler.mavenRepo([name: repoName, url: repoRoot, artifactUrls: [testUrl1, testUrl2]]).is(expectedResolver)
@@ -209,7 +208,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
             allowing(repository).getName()
             will(returnValue(repoName))
             one(repository).setUrl(repoRoot)
-            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
+            allowing(repository).createResolver(); will(returnValue(expectedResolver))
         }
 
         assert repositoryHandler.mavenRepo([name: repoName, url: repoRoot]).is(expectedResolver)
@@ -230,7 +229,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
             will(returnValue(null))
             one(repository).setUrl(repoRoot)
             one(repository).setArtifactUrls([testUrl2])
-            allowing(repository).createResolvers(withParam(notNullValue())); will { repos -> repos.add(expectedResolver) }
+            allowing(repository).createResolver(); will(returnValue(expectedResolver))
         }
 
         assert repositoryHandler.mavenRepo([url: repoRoot, artifactUrls: [testUrl2]]).is(expectedResolver)

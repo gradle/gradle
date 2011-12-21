@@ -73,7 +73,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         additionalUrls = toList(urls);
     }
 
-    public void createResolvers(Collection<DependencyResolver> resolvers) {
+    public DependencyResolver createResolver() {
         URI rootUri = getUrl();
         if (rootUri == null) {
             throw new InvalidUserDataException("You must specify a URL for a Maven repository.");
@@ -83,7 +83,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl, null);
         }
-        resolvers.add(resolver);
+        return resolver;
     }
 
     private RepositoryTransport getTransport(String scheme) {
