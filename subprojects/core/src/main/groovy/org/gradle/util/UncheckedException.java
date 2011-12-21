@@ -16,6 +16,8 @@
 
 package org.gradle.util;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * Wraps a checked exception. Carries no other context.
  */
@@ -29,5 +31,18 @@ public final class UncheckedException extends RuntimeException {
             return (RuntimeException) t;
         }
         return new UncheckedException(t);
+    }
+
+    /**
+     * Uwraps passed InvocationTargetException hence making the stack of exceptions cleaner without losing information.
+     * @param e to be unwrapped
+     * @return an instance of RuntimeException based on the target exception of the parameter.
+     */
+    public static RuntimeException unwrap(InvocationTargetException e) {
+        if (e.getTargetException() instanceof RuntimeException) {
+            return (RuntimeException) e.getTargetException();
+        } else {
+            return UncheckedException.asUncheckedException(e.getTargetException());
+        }
     }
 }

@@ -24,6 +24,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
+import org.gradle.tooling.model.internal.TestModel;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +48,7 @@ class DefaultProjectConnection implements ProjectConnection {
         modelTypeMap.put(GradleProject.class, InternalGradleProject.class);
         modelTypeMap.put(BasicIdeaProject.class, InternalBasicIdeaProject.class);
         modelTypeMap.put(BuildEnvironment.class, InternalBuildEnvironment.class);
+        modelTypeMap.put(TestModel.class, InternalTestModel.class);
     }
 
     public void close() {

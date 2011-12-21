@@ -21,15 +21,12 @@ import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.internal.consumer.DefaultModelBuilder
+import org.gradle.tooling.model.internal.TestModel
 
 @MinToolingApiVersion('1.0-milestone-7')
 @MinTargetGradleVersion('1.0-milestone-7')
 class DecentMessageForUnknownModelIntegrationTest extends ToolingApiSpecification {
-
-    def setup() {
-        //for debugging purposes:
-        toolingApi.isEmbedded = false
-    }
 
     class UnknownModel {}
 
@@ -40,5 +37,13 @@ class DecentMessageForUnknownModelIntegrationTest extends ToolingApiSpecificatio
         then:
         e instanceof UnsupportedVersionException //backwards compatibility
         e instanceof UnknownModelException
+    }
+
+    def "fails gracefully when building model unknown to given provider"() {
+        when:
+        def e = maybeFailWithConnection { it.getModel(TestModel.class) }
+
+        then:
+        e.message.contains(DefaultModelBuilder.INCOMPATIBLE_VERSION_HINT)
     }
 }

@@ -30,6 +30,9 @@ public class DefaultModelBuilder<T extends Element> extends AbstractLongRunningO
     private final Class<? extends ProjectVersion3> protocolType;
     private final AsyncConnection connection;
     private final ProtocolToModelAdapter adapter;
+    public final static String INCOMPATIBLE_VERSION_HINT =
+            "Most likely the model of that type is not supported in the target Gradle version."
+            + "\nTo resolve the problem you can change/upgrade the Gradle version the tooling api connects to.";
 
     public DefaultModelBuilder(Class<T> modelType, Class<? extends ProjectVersion3> protocolType, AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
         super(parameters);
@@ -50,7 +53,11 @@ public class DefaultModelBuilder<T extends Element> extends AbstractLongRunningO
         connection.getModel(protocolType, operationParameters(), new ResultHandlerAdapter<ProjectVersion3>(adaptingHandler) {
             @Override
             protected String connectionFailureMessage(Throwable failure) {
-                return String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
+                String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
+                if (failure instanceof UnsupportedOperationException) {
+                    message += "\n" + INCOMPATIBLE_VERSION_HINT;
+                }
+                return message;
             }
         });
     }

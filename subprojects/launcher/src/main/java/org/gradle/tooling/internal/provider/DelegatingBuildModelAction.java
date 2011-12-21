@@ -23,6 +23,7 @@ import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.util.UncheckedException;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 
 class DelegatingBuildModelAction<T> implements GradleLauncherAction<T>, Serializable {
     private transient GradleLauncherAction<T> action;
@@ -46,6 +47,8 @@ class DelegatingBuildModelAction<T> implements GradleLauncherAction<T>, Serializ
         ClassLoaderRegistry classLoaderRegistry = launcher.getGradle().getServices().get(ClassLoaderRegistry.class);
         try {
             action = (GradleLauncherAction<T>) classLoaderRegistry.getRootClassLoader().loadClass("org.gradle.tooling.internal.provider.BuildModelAction").getConstructor(Class.class).newInstance(type);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.unwrap(e);
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
         }
