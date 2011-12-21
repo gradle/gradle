@@ -39,7 +39,7 @@ public class BuildModelAction implements GradleLauncherAction<ProjectVersion3> {
             }
         }
 
-        throw new UnsupportedOperationException(String.format("Do not know how to build a model of type '%s'.", type.getSimpleName()));
+        throw new UnsupportedOperationException(String.format("I don't know how to build a model of type '%s'.", type.getSimpleName()));
     }
 
     public BuildResult run(GradleLauncher launcher) {

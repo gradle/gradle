@@ -13,26 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.integtests.tooling.fixture;
 
-package org.gradle.tooling.model;
+import java.lang.annotation.*;
 
-import java.io.File;
-import java.util.List;
-
-/**
- * Informs about the build environment, like Gradle version or jvm in use
- * <p>
- * Marked as deprecated because the API is not yet confirmed.
- * E.g. we will provide this information for sure, we just haven't yet confirmed the API.
- * <p>
- * Since 1.0-milestone-8
- */
-@Deprecated
-public interface BuildEnvironment extends Element {
-
-    String getGradleVersion();
-
-    File getJavaHome();
-
-    List<String> getJvmArguments();
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Inherited
+public @interface MaxTargetGradleVersion {
+    String value();
 }

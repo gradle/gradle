@@ -25,8 +25,8 @@ import org.gradle.tooling.internal.consumer.DefaultModelBuilder
 import org.gradle.tooling.model.internal.TestModel
 
 @MinToolingApiVersion('1.0-milestone-7')
-@MinTargetGradleVersion('1.0-milestone-7')
-class DecentMessageForUnknownModelIntegrationTest extends ToolingApiSpecification {
+@MinTargetGradleVersion('1.0-milestone-5')
+class UnknownModelFeedbackIntegrationTest extends ToolingApiSpecification {
 
     class UnknownModel {}
 
@@ -35,7 +35,7 @@ class DecentMessageForUnknownModelIntegrationTest extends ToolingApiSpecificatio
         def e = maybeFailWithConnection { it.getModel(UnknownModel.class) }
 
         then:
-        e instanceof UnsupportedVersionException //backwards compatibility
+        e instanceof UnsupportedVersionException
         e instanceof UnknownModelException
     }
 

@@ -33,6 +33,10 @@ class LazyConnectionTest extends Specification {
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final LazyConnection connection = new LazyConnection(distribution, implementationLoader, loggingProvider)
 
+    def setup() {
+        connection.modelProvider = Mock(ModelProvider)
+    }
+
     def createsConnectionOnDemandToExecuteBuild() {
         when:
         connection.executeBuild(buildParams, params)
@@ -51,7 +55,7 @@ class LazyConnectionTest extends Specification {
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
-        1 * connectionImpl.getModel(ProjectVersion3, params)
+        1 * connection.modelProvider.provide(connectionImpl, ProjectVersion3, params)
         0 * _._
     }
 
@@ -63,7 +67,7 @@ class LazyConnectionTest extends Specification {
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
-        1 * connectionImpl.getModel(ProjectVersion3, params)
+        1 * connection.modelProvider.provide(connectionImpl, ProjectVersion3, params)
         1 * connectionImpl.executeBuild(buildParams, params)
         0 * _._
     }
@@ -76,7 +80,7 @@ class LazyConnectionTest extends Specification {
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
-        1 * connectionImpl.getModel(ProjectVersion3, params)
+        1 * connection.modelProvider.provide(connectionImpl, ProjectVersion3, params)
         1 * connectionImpl.stop()
         0 * _._
     }

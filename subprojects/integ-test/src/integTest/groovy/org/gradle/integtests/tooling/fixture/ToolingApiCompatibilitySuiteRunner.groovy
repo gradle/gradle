@@ -85,6 +85,11 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             if (minTargetGradleVersion && GradleVersion.version(gradle.version) < extractVersion(minTargetGradleVersion)) {
                 return false
             }
+            MaxTargetGradleVersion maxTargetGradleVersion = target.getAnnotation(MaxTargetGradleVersion)
+            if (maxTargetGradleVersion && GradleVersion.version(gradle.version) > extractVersion(maxTargetGradleVersion)) {
+                return false
+            }
+
             return true
         }
 

@@ -39,16 +39,28 @@ class DefaultProjectConnection implements ProjectConnection {
         this.connection = connection;
         this.parameters = parameters;
         this.adapter = adapter;
-        modelTypeMap.put(Project.class, ProjectVersion3.class);
-        modelTypeMap.put(BuildableProject.class, BuildableProjectVersion1.class);
-        modelTypeMap.put(HierarchicalProject.class, HierarchicalProjectVersion1.class);
-        modelTypeMap.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion1.class);
-        modelTypeMap.put(EclipseProject.class, EclipseProjectVersion3.class);
-        modelTypeMap.put(IdeaProject.class, InternalIdeaProject.class);
-        modelTypeMap.put(GradleProject.class, InternalGradleProject.class);
-        modelTypeMap.put(BasicIdeaProject.class, InternalBasicIdeaProject.class);
-        modelTypeMap.put(BuildEnvironment.class, InternalBuildEnvironment.class);
-        modelTypeMap.put(TestModel.class, InternalTestModel.class);
+        modelTypeMap.putAll(getModelsUpToM6());
+        modelTypeMap.putAll(getModelsPostM6());
+    }
+
+    public static Map<Class<? extends Element>, Class<? extends ProjectVersion3>> getModelsUpToM6() {
+        Map<Class<? extends Element>, Class<? extends ProjectVersion3>> map = new HashMap<Class<? extends Element>, Class<? extends ProjectVersion3>>();
+        map.put(Project.class, ProjectVersion3.class);
+        map.put(BuildableProject.class, BuildableProjectVersion1.class);
+        map.put(HierarchicalProject.class, HierarchicalProjectVersion1.class);
+        map.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion1.class);
+        map.put(EclipseProject.class, EclipseProjectVersion3.class);
+        map.put(IdeaProject.class, InternalIdeaProject.class);
+        map.put(GradleProject.class, InternalGradleProject.class);
+        map.put(BasicIdeaProject.class, InternalBasicIdeaProject.class);
+        return map;
+    }
+
+    public static Map<Class<? extends Element>, Class<? extends ProjectVersion3>> getModelsPostM6() {
+        Map<Class<? extends Element>, Class<? extends ProjectVersion3>> map = new HashMap<Class<? extends Element>, Class<? extends ProjectVersion3>>();
+        map.put(BuildEnvironment.class, InternalBuildEnvironment.class);
+        map.put(TestModel.class, InternalTestModel.class);
+        return map;
     }
 
     public void close() {

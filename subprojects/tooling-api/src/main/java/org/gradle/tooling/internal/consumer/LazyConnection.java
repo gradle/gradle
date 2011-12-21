@@ -37,6 +37,7 @@ public class LazyConnection implements ConnectionVersion4 {
     private Set<Thread> executing = new HashSet<Thread>();
     private boolean stopped;
     private ConnectionVersion4 connection;
+    ModelProvider modelProvider = new ModelProvider();
 
     public LazyConnection(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider) {
         this.distribution = distribution;
@@ -90,7 +91,7 @@ public class LazyConnection implements ConnectionVersion4 {
     public ProjectVersion3 getModel(final Class<? extends ProjectVersion3> type, final BuildOperationParametersVersion1 operationParameters) {
         return withConnection(new ConnectionAction<ProjectVersion3>() {
             public ProjectVersion3 run(ConnectionVersion4 connection) {
-                return connection.getModel(type, operationParameters);
+                return modelProvider.provide(connection, type, operationParameters);
             }
         });
     }
