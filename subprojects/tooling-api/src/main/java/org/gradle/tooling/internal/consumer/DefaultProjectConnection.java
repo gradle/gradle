@@ -72,7 +72,11 @@ class DefaultProjectConnection implements ProjectConnection {
     private Class<? extends ProjectVersion3> mapToProtocol(Class<? extends Element> viewType) {
         Class<? extends ProjectVersion3> protocolViewType = modelTypeMap.get(viewType);
         if (protocolViewType == null) {
-            throw new UnsupportedVersionException(String.format("Model of type '%s' is not supported.", viewType.getSimpleName()));
+            throw new UnknownModelException(
+                    "Unknown model: '" + viewType.getSimpleName() + "'.\n"
+                        + "Most likely you are trying to acquire a model for a class that is not a valid Tooling API model class.\n"
+                        + "Review the documentation on the version of Tooling API you use to find out what models can be build."
+            );
         }
         return protocolViewType;
     }

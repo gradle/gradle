@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.model.Project
 import spock.lang.Specification
 
@@ -40,8 +40,7 @@ class DefaultProjectConnectionTest extends Specification {
         connection.model(TestBuild.class)
 
         then:
-        UnsupportedVersionException e = thrown()
-        e.message == 'Model of type \'TestBuild\' is not supported.'
+        thrown(UnknownModelException)
     }
 
     def closeStopsBackingConnection() {
