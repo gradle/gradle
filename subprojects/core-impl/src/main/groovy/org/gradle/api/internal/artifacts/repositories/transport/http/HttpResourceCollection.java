@@ -152,6 +152,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
 
     private void configureMethod(HttpMethod method) {
         method.setRequestHeader("User-Agent", "Gradle/" + GradleVersion.current().getVersion());
+        method.setRequestHeader("Accept-Encoding", "identity");
         method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, new HttpMethodRetryHandler() {
             public boolean retryMethod(HttpMethod method, IOException exception, int executionCount) {
                 return false;
@@ -270,6 +271,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
 
         private String downloadChecksum(String checksumUrl) {
             GetMethod get = new GetMethod(checksumUrl);
+            configureMethod(get);
             try {
                 int result = executeMethod(get);
                 if (wasSuccessful(result)) {
