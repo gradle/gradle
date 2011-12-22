@@ -138,7 +138,7 @@ public class ProtocolToModelAdapter {
             } catch (NoSuchMethodException e) {
                 //TODO SF - find a place for it in the documentation.
                 String methodName = method.getDeclaringClass().getSimpleName() + "." + method.getName();
-                throw Exceptions.incompatibleMethod(methodName, e);
+                throw Exceptions.unsupportedMethod(methodName, e);
             }
 
             LinkedList<Class<?>> queue = new LinkedList<Class<?>>();

@@ -31,10 +31,10 @@ public class VersionOnlyBuildEnvironment extends DefaultBuildEnvironment {
     }
 
     public File getJavaHome() {
-        throw Exceptions.incompatibleMethod("getJavaHome");
+        throw Exceptions.unsupportedMethod("getJavaHome");
     }
 
     public List<String> getJvmArguments() {
-        throw Exceptions.incompatibleMethod("getJvmArguments");
+        throw Exceptions.unsupportedMethod("getJvmArguments");
     }
 }

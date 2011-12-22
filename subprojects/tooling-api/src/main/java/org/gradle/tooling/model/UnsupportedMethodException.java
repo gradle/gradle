@@ -23,14 +23,13 @@ package org.gradle.tooling.model;
  * Typically, to resolve such problem you change/upgrade the target version of Gradle the tooling api is connected to.
  * Alternatively, you can handle and ignore this exception.
  */
-public class IncompatibleVersionException extends UnsupportedOperationException {
-    //TODO SF needs to be renamed because it overlaps with UnsupportedVersionException
+public class UnsupportedMethodException extends UnsupportedOperationException {
 
-    public IncompatibleVersionException(String s) {
+    public UnsupportedMethodException(String s) {
         super(s);
     }
 
-    public IncompatibleVersionException(String message, Throwable cause) {
+    public UnsupportedMethodException(String message, Throwable cause) {
         super(message, cause);
     }
 }

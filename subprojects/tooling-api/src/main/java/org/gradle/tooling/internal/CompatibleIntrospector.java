@@ -16,18 +16,12 @@
 
 package org.gradle.tooling.internal;
 
-import org.gradle.tooling.model.IncompatibleVersionException;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
 import java.lang.reflect.Method;
 
 /**
- * Very simple tool for finding out if instance of a protocol class supports given method.
- * <p>
- * It is useful when the target instance of the protocol object was created without
- * wrapping it in a decorating proxy ({@link org.gradle.tooling.internal.consumer.ProtocolToModelAdapter})
- * that normally throws the {@link IncompatibleVersionException}.
- * This also applies to older versions of Gradle, e.g. the protocol object was
- * created without proxy in one of the older versions of Gradle, even though currently it is wrapped in a decorating proxy.
+ * Uses reflection to find out / call methods.
  *
  * by Szczepan Faber, created at: 12/9/11
  */
@@ -43,7 +37,7 @@ public class CompatibleIntrospector {
         try {
             return target.getClass().getDeclaredMethod(methodName, new Class[0]);
         } catch (NoSuchMethodException e) {
-            throw new IncompatibleVersionException("The method: " + methodName + " is not supported on instance: " + target + ".\n", e);
+            throw new UnsupportedMethodException("The method: " + methodName + " is not supported on instance: " + target + ".\n", e);
         }
     }
 
@@ -52,7 +46,7 @@ public class CompatibleIntrospector {
             Method method = getMethod(methodName);
             method.setAccessible(true);
             return (T) method.invoke(target);
-        } catch (IncompatibleVersionException e) {
+        } catch (UnsupportedMethodException e) {
             return defaultValue;
         } catch (Exception e) {
             throw new RuntimeException("Unable to get value reflectively", e);

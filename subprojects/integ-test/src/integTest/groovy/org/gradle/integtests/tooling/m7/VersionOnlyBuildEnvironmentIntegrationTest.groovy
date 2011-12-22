@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.BuildEnvironment
-import org.gradle.tooling.model.IncompatibleVersionException
+import org.gradle.tooling.model.UnsupportedMethodException
 
 @MinToolingApiVersion('1.0-milestone-7')
 @MinTargetGradleVersion('1.0-milestone-3')
@@ -43,11 +43,13 @@ class VersionOnlyBuildEnvironmentIntegrationTest extends ToolingApiSpecification
         when:
         model.javaHome
         then:
-        thrown(IncompatibleVersionException)
+        def ex = thrown(UnsupportedMethodException)
+        ex instanceof UnsupportedOperationException //backwards compatibility
 
         when:
         model.jvmArguments
         then:
-        thrown(IncompatibleVersionException)
+        def e = thrown(UnsupportedMethodException)
+        e instanceof UnsupportedOperationException //backwards compatibility
     }
 }

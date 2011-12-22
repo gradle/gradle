@@ -16,19 +16,19 @@
 
 package org.gradle.tooling.model.internal;
 
-import org.gradle.tooling.model.IncompatibleVersionException;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
 /**
  * by Szczepan Faber, created at: 12/22/11
  */
 public class Exceptions {
 
-    public static IncompatibleVersionException incompatibleMethod(String method, Throwable cause) {
-        return new IncompatibleVersionException(formatMessage(method), cause);
+    public static UnsupportedMethodException unsupportedMethod(String method, Throwable cause) {
+        return new UnsupportedMethodException(formatMessage(method), cause);
     }
 
-    public static IncompatibleVersionException incompatibleMethod(String method) {
-        return new IncompatibleVersionException(formatMessage(method));
+    public static UnsupportedMethodException unsupportedMethod(String method) {
+        return new UnsupportedMethodException(formatMessage(method));
     }
 
     private static String formatMessage(String method) {
