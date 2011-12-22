@@ -16,9 +16,9 @@
 package org.gradle.api.plugins.quality;
 
 /**
- * Thrown when an exception happens in Findbugs processing.
+ * Thrown when an exception happens in FindBugs processing.
  */
-public class FindbugsException extends Exception {
+public class FindBugsException extends Exception {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -26,7 +26,7 @@ public class FindbugsException extends Exception {
      * The cause is not initialized, and may subsequently be
      * initialized by a call to {@link Throwable#initCause(Throwable)}.
      */
-    public FindbugsException() {
+    public FindBugsException() {
         super();
     }
 
@@ -37,7 +37,7 @@ public class FindbugsException extends Exception {
      * @param message the detail message. The detail message is saved for later
      * retrieval by the {@link Throwable#getMessage()} method.
      */
-    public FindbugsException(String message) {
+    public FindBugsException(String message) {
         super(message);
     }
 
@@ -51,7 +51,7 @@ public class FindbugsException extends Exception {
      * {@link Throwable#getCause()} method). (A null value is permitted,
      * and indicates that the cause is nonexistent or unknown.)
      */
-    public FindbugsException(Throwable cause) {
+    public FindBugsException(Throwable cause) {
         super(cause);
     }
     
@@ -66,7 +66,7 @@ public class FindbugsException extends Exception {
      * {@link Throwable#getCause()} method). (A null value is permitted,
      * and indicates that the cause is nonexistent or unknown.)
      */
-    public FindbugsException(String message, Throwable cause) {
+    public FindBugsException(String message, Throwable cause) {
         super(message, cause);
     }
 

@@ -26,9 +26,9 @@ import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.util.HelperUtil
 import org.junit.Test
 
-class FindbugsPluginTest {
+class FindBugsPluginTest {
     private final Project project = HelperUtil.createRootProject()
-    private final FindbugsPlugin plugin = new FindbugsPlugin()
+    private final FindBugsPlugin plugin = new FindBugsPlugin()
     
     
     @Test
@@ -40,7 +40,7 @@ class FindbugsPluginTest {
     @Test
     void apply_addsExtensionObjectsToProject() {
         plugin.apply(project)
-        assert project.extensions.findbugs instanceof FindbugsExtension
+        assert project.extensions.findbugs instanceof FindBugsExtension
     }
     
     @Test
@@ -56,8 +56,8 @@ class FindbugsPluginTest {
     
     private void verifyTaskForSet(String setName) {
         def taskSet = setName.substring(0, 1).toUpperCase() + setName.substring(1)
-        def task = project.tasks[FindbugsPlugin.FINDBUGS_TASK_NAME + taskSet]
-        assert task instanceof Findbugs
+        def task = project.tasks[FindBugsPlugin.FINDBUGS_TASK_NAME + taskSet]
+        assert task instanceof FindBugs
         assert task.defaultSource == project.sourceSets[setName].allJava
         assert task.classes == project.sourceSets[setName].classes
         assert task.resultsFile == project.file("build/findbugs/${setName}.xml")
@@ -69,7 +69,7 @@ class FindbugsPluginTest {
     void add_configuresAdditionalTasksDefinedByTheBuildScript() {
         plugin.apply(project)
         
-        def task = project.tasks.add('customFindbugs', Findbugs)
+        def task = project.tasks.add('customFindbugs', FindBugs)
         assert task.defaultSource == null
         assert task.classes == null
         assert task.resultsFile == null

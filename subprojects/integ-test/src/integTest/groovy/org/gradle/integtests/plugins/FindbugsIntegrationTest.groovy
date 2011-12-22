@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.plugins
 
-import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 
 import org.gradle.integtests.fixtures.ExecutionFailure
@@ -23,7 +22,7 @@ import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.junit.Before
 import org.junit.Test
 
-class FindbugsIntegrationTest extends AbstractIntegrationTest {
+class FindBugsIntegrationTest extends AbstractIntegrationTest {
     @Before
     void newBuild() {
         writeBuildFile()
@@ -56,7 +55,7 @@ class FindbugsIntegrationTest extends AbstractIntegrationTest {
         
         ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
 		failure.assertHasDescription('Execution failed for task \':findbugsMain\'')
-        failure.assertThatCause(startsWith('Findbugs reported warnings.'))
+        failure.assertThatCause(startsWith('FindBugs reported warnings.'))
 		testFile('build/findbugs/main.xml').assertContents(containsString('org.gradle.Class1'))
     }
     

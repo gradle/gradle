@@ -19,16 +19,16 @@ import org.gradle.api.Project
 
 /**
  * Extension specifying options for
- * the Findbugs plugin.
+ * the FindBugs plugin.
  * 
- * @see FindbugsPlugin
+ * @see FindBugsPlugin
  */
-class FindbugsExtension {
+class FindBugsExtension {
     private Project project
     
     /**
      * The name of the directory to use for
-     * Findbugs results.
+     * FindBugs results.
      */
     String resultsDirName
     
@@ -39,16 +39,16 @@ class FindbugsExtension {
      * Defaults the {@code resultsDirName} to "findbugs"
      * @param project
      */
-    FindbugsExtension(Project project) {
+    FindBugsExtension(Project project) {
         this.project = project
         resultsDirName = 'findbugs'
     }
     
     /**
-     * Gets the directory to be used for Findbugs results. This is determined
+     * Gets the directory to be used for FindBugs results. This is determined
      * using the {@code resultsDirName} property, evaluated relative to the
      * project's build directory.
-     * @return the results dir for Findbugs
+     * @return the results dir for FindBugs
      */
     File getResultsDir() {
         return project.fileResolver.withBaseDir(project.buildDir).resolve(resultsDirName)

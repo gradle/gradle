@@ -62,20 +62,20 @@ class PMDExtension {
    }
     
     /**
-     * Gets the directory to be used for Findbugs results. This is determined
+     * Gets the directory to be used for FindBugs results. This is determined
      * using the {@code resultsDirName} property, evaluated relative to the
      * project's build directory.
-     * @return the results dir for Findbugs
+     * @return the results dir for FindBugs
      */
     File getResultsDir() {
         return project.fileResolver.withBaseDir(project.buildDir).resolve(resultsDirName)
     }
     
     /**
-     * Gets the directory to be used for Findbugs reports. This is determined
+     * Gets the directory to be used for FindBugs reports. This is determined
      * using the {@code resultsDirName} property, evaluated relative to the
      * project's build directory.
-     * @return the reports  dir for Findbugs
+     * @return the reports  dir for FindBugs
      */
     File getReportsDir() {
         return project.fileResolver.withBaseDir(project.reportsDir).resolve(reportsDirName)

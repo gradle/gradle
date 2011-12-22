@@ -26,16 +26,16 @@ import org.gradle.api.tasks.compile.Compile
 /**
  * <p>
  * A {@link Plugin} which uses static analysis to look for bugs in Java code.  
- * This is done using the Findbugs tool.
+ * This is done using the FindBugs tool.
  * </p>
  * <p>
  * This plugin will automatically generate a task for each Java source set.
  * </p>
  * See {@link http://findbugs.sourceforge.net/} for more information.
- * @see Findbugs
- * @see FindbugsExtension
+ * @see FindBugs
+ * @see FindBugsExtension
  */
-class FindbugsPlugin implements Plugin<Project> {
+class FindBugsPlugin implements Plugin<Project> {
     private static final String FINDBUGS_TASK_NAME = 'findbugs'
     private static final String FINDBUGS_CONFIGURATION_NAME = 'findbugs'
     
@@ -51,7 +51,7 @@ class FindbugsPlugin implements Plugin<Project> {
             .setTransitive(true)
             .setDescription('The findbugs libraries to be used for this project.')
 
-        def extension = new FindbugsExtension(project)
+        def extension = new FindBugsExtension(project)
         project.extensions.findbugs = extension
 
         project.plugins.withType(JavaBasePlugin) {
@@ -61,24 +61,24 @@ class FindbugsPlugin implements Plugin<Project> {
 
     /**
      * Adds a dependency for the check task on all
-     * Findbugs tasks.
+     * FindBugs tasks.
      * @param project the project to configure the check task for
      */
     private void configureCheckTask(Project project) {
         def task = project.tasks[JavaBasePlugin.CHECK_TASK_NAME]
-        task.dependsOn project.tasks.withType(Findbugs)
+        task.dependsOn project.tasks.withType(FindBugs)
     }
 
     /**
-     * Configures Findbugs tasks for Java source sets.
+     * Configures FindBugs tasks for Java source sets.
      * @param project the project to configure findbugs for
      * @param convention the findbugs convention to use
      */
-    private void configureForJavaPlugin(final Project project, final FindbugsExtension extension) {
+    private void configureForJavaPlugin(final Project project, final FindBugsExtension extension) {
         configureCheckTask(project)
 
         project.convention.getPlugin(JavaPluginConvention).sourceSets.all { SourceSet set ->
-            def findbugs = project.tasks.add(set.getTaskName(FINDBUGS_TASK_NAME, null), Findbugs)
+            def findbugs = project.tasks.add(set.getTaskName(FINDBUGS_TASK_NAME, null), FindBugs)
             findbugs.description = "Run findbugs analysis for ${set.name} classes"
             findbugs.dependsOn project.tasks.withType(Compile)
             findbugs.conventionMapping.defaultSource = { set.allJava }
