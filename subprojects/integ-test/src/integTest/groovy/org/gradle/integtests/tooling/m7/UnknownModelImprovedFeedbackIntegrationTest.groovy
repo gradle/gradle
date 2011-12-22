@@ -19,25 +19,18 @@ package org.gradle.integtests.tooling.m7
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.UnknownModelException
-import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.internal.consumer.DefaultModelBuilder
+import org.gradle.tooling.model.internal.TestModel
 
 @MinToolingApiVersion('1.0-milestone-7')
-@MinTargetGradleVersion('1.0-milestone-3')
-class UnknownModelFeedbackIntegrationTest extends ToolingApiSpecification {
+@MinTargetGradleVersion('1.0-milestone-5')
+class UnknownModelImprovedFeedbackIntegrationTest extends ToolingApiSpecification {
 
-    class UnknownModel {}
-
-    def "fails gracefully when building unknown model"() {
-        //this test exposes a daemon issue that appears in M5 and M6
-        //basically when we ask to build a model for a an unknown type for given provider
-        //the daemon breaks and does not return anything to the client making the client waiting forever.
-
+    def "fails gracefully when building model unknown to given provider"() {
         when:
-        def e = maybeFailWithConnection { it.getModel(UnknownModel.class) }
+        def e = maybeFailWithConnection { it.getModel(TestModel.class) }
 
         then:
-        e instanceof UnsupportedVersionException
-        e instanceof UnknownModelException
+        e.message.contains(DefaultModelBuilder.INCOMPATIBLE_VERSION_HINT)
     }
 }
