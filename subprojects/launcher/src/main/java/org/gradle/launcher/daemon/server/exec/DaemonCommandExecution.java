@@ -15,12 +15,13 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.launcher.daemon.protocol.Command;
-import org.gradle.messaging.remote.internal.DisconnectAwareConnection;
-import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.protocol.Command;
+import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
+import org.gradle.messaging.remote.internal.DisconnectAwareConnection;
 
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * A continuation style object used to model the execution of a command.
@@ -36,21 +37,19 @@ public class DaemonCommandExecution {
     final private Command command;
     final private DaemonContext daemonContext;
     final private DaemonStateCoordinator daemonStateCoordinator;
-    final private LinkedList<DaemonCommandAction> actions;
+    final private List<DaemonCommandAction> actions;
 
     private Throwable exception;
     private Object result;
+    private final List<Runnable> finalizers = new LinkedList<Runnable>();
 
-    public DaemonCommandExecution(DisconnectAwareConnection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateCoordinator daemonStateCoordinator, DaemonCommandAction... actions) {
+    public DaemonCommandExecution(DisconnectAwareConnection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateCoordinator daemonStateCoordinator, List<DaemonCommandAction> actions) {
         this.connection = connection;
         this.command = command;
         this.daemonContext = daemonContext;
         this.daemonStateCoordinator = daemonStateCoordinator;
-        
-        this.actions = new LinkedList<DaemonCommandAction>();
-        for (DaemonCommandAction action : actions) {
-            this.actions.add(action);
-        }
+
+        this.actions = new LinkedList<DaemonCommandAction>(actions);
     }
 
     public DisconnectAwareConnection<Object> getConnection() {
@@ -128,5 +127,16 @@ public class DaemonCommandExecution {
     @Override
     public String toString() {
         return String.format("DaemonCommandExecution[command = %s, connection = %s]", command, connection);
+    }
+
+    public void addFinalizer(Runnable runnable) {
+        assert runnable != null;
+        finalizers.add(runnable);
+    }
+
+    public void executeFinalizers() {
+        for (Runnable finalizer : finalizers) {
+            finalizer.run();
+        }
     }
 }

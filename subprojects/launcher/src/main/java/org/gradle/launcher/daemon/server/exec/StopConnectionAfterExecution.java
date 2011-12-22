@@ -20,6 +20,9 @@ public class StopConnectionAfterExecution implements DaemonCommandAction {
     public void execute(DaemonCommandExecution execution) {
         try {
             execution.proceed();
+            //TODO SF this needs to be refactored down the road with consideration around exception handling
+            //for now, we'll just execute all finalizers here
+            execution.executeFinalizers();
         } finally {
             execution.getConnection().stop();
         }

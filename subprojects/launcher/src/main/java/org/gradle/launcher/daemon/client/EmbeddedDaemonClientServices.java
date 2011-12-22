@@ -26,6 +26,7 @@ import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.daemon.server.DaemonServerConnector;
 import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
+import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEvent;
@@ -51,9 +52,14 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
                 get(DaemonRegistry.class),
                 get(DaemonContext.class),
                 "password",
-                new DefaultDaemonCommandExecuter(getLoggingServices(), get(ExecutorFactory.class)), get(ExecutorFactory.class)
+                get(DaemonCommandExecuter.class),
+                get(ExecutorFactory.class)
             );
         }
+    }
+
+    protected DaemonCommandExecuter createDaemonCommandExecuter() {
+         return new DefaultDaemonCommandExecuter(getLoggingServices(), get(ExecutorFactory.class));
     }
 
     public EmbeddedDaemonClientServices(ServiceRegistry loggingServices, boolean displayOutput) {
