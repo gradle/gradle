@@ -15,15 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
-import spock.lang.Specification
-import org.gradle.api.internal.file.FileResolver
+import org.apache.ivy.plugins.repository.TransferListener
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import spock.lang.Specification
 
 class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
-    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver)
+    final RepositoryTransportFactory transportFactory = Mock()
+    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory)
 
     def "creates a repository with multiple root directories"() {
         given:

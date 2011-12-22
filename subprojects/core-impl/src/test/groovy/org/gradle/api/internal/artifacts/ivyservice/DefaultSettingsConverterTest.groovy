@@ -20,7 +20,6 @@ import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.internal.Factory
-import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
 
 class DefaultSettingsConverterTest extends Specification {
@@ -33,7 +32,7 @@ class DefaultSettingsConverterTest extends Specification {
     final Factory<IvySettings> ivySettingsFactory = Mock()
     final IvySettings ivySettings = new IvySettings()
 
-    DefaultSettingsConverter converter = new DefaultSettingsConverter(Mock(ProgressLoggerFactory), ivySettingsFactory)
+    DefaultSettingsConverter converter = new DefaultSettingsConverter(ivySettingsFactory)
 
     public void setup() {
         testResolver.name = 'resolver'

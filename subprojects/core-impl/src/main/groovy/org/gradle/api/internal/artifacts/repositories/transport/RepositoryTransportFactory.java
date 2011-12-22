@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
+import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
@@ -47,6 +48,12 @@ public class RepositoryTransportFactory {
     private RepositoryTransport decorate(RepositoryTransport original) {
         return new ListeningRepositoryTransport(original);
     }
+
+    public void attachListener(Repository repository) {
+        if (!repository.hasTransferListener(transferListener)) {
+            repository.addTransferListener(transferListener);
+        }
+    }
     
     private class ListeningRepositoryTransport implements RepositoryTransport {
         private final RepositoryTransport delegate;
@@ -61,9 +68,7 @@ public class RepositoryTransportFactory {
 
         public ResourceCollection getRepositoryAccessor() {
             ResourceCollection resourceCollection = delegate.getRepositoryAccessor();
-            if (!resourceCollection.hasTransferListener(transferListener)) {
-                resourceCollection.addTransferListener(transferListener);
-            }
+            attachListener(resourceCollection);
             return resourceCollection;
         }
 

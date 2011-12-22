@@ -18,15 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.repository.Repository;
-import org.apache.ivy.plugins.repository.TransferListener;
-import org.apache.ivy.plugins.resolver.*;
+import org.apache.ivy.plugins.resolver.AbstractResolver;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.repositories.ProgressLoggingTransferListener;
-import org.gradle.logging.ProgressLoggerFactory;
 
 import java.util.List;
 
@@ -35,14 +32,12 @@ import java.util.List;
  */
 public class DefaultSettingsConverter implements SettingsConverter {
     private final Factory<IvySettings> settingsFactory;
-    private final TransferListener transferListener;
     private IvySettings publishSettings;
     private IvySettings resolveSettings;
 
-    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory, Factory<IvySettings> settingsFactory) {
+    public DefaultSettingsConverter(Factory<IvySettings> settingsFactory) {
         this.settingsFactory = settingsFactory;
         Message.setDefaultLogger(new IvyLoggingAdaper());
-        transferListener = new ProgressLoggingTransferListener(progressLoggerFactory, DefaultSettingsConverter.class);
     }
 
     public IvySettings convertForPublish(List<DependencyResolver> publishResolvers) {
@@ -87,29 +82,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
             if (!(existingCacheManager instanceof NoOpRepositoryCacheManager) && !(existingCacheManager instanceof LocalFileRepositoryCacheManager)) {
                 ((AbstractResolver) dependencyResolver).setRepositoryCacheManager(ivySettings.getDefaultRepositoryCacheManager());
             }
-            attachListener(dependencyResolver);
         }
     }
-
-    private void attachListener(DependencyResolver dependencyResolver) {
-        if (dependencyResolver instanceof RepositoryResolver) {
-            Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
-            if (!repository.hasTransferListener(transferListener)) {
-                repository.addTransferListener(transferListener);
-            }
-        }
-        if (dependencyResolver instanceof DualResolver) {
-            DualResolver dualResolver = (DualResolver) dependencyResolver;
-            attachListener(dualResolver.getIvyResolver());
-            attachListener(dualResolver.getArtifactResolver());
-        }
-        if (dependencyResolver instanceof ChainResolver) {
-            ChainResolver chainResolver = (ChainResolver) dependencyResolver;
-            List<DependencyResolver> resolvers = chainResolver.getResolvers();
-            for (DependencyResolver resolver : resolvers) {
-                attachListener(resolver);
-            }
-        }
-    }
-
 }

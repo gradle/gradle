@@ -84,12 +84,12 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     }
 
     public boolean add(DependencyResolver resolver, Closure configureClosure) {
-        addInternal(resolver, configureClosure, addLastAction);
+        addCustomDependencyResolver(resolver, configureClosure, addLastAction);
         return true;
     }
 
     public boolean add(DependencyResolver resolver) {
-        addInternal(resolver, null, addLastAction);
+        addCustomDependencyResolver(resolver, null, addLastAction);
         return true;
     }
 
@@ -98,19 +98,19 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     }
 
     public DependencyResolver addFirst(Object userDescription, Closure configureClosure) {
-        return addInternal(userDescription, configureClosure, addFirstAction);
+        return addCustomDependencyResolver(userDescription, configureClosure, addFirstAction);
     }
 
     @Deprecated
     public DependencyResolver addLast(Object userDescription) {
         DeprecationLogger.nagUserOfReplacedMethod("ArtifactRepositoryContainer.addLast()", "maven() or add()");
-        return addInternal(userDescription, null, addLastAction);
+        return addCustomDependencyResolver(userDescription, null, addLastAction);
     }
 
     @Deprecated
     public DependencyResolver addLast(Object userDescription, Closure configureClosure) {
         DeprecationLogger.nagUserOfReplacedMethod("ArtifactRepositoryContainer.addLast()", "maven() or add()");
-        return addInternal(userDescription, configureClosure, addLastAction);
+        return addCustomDependencyResolver(userDescription, configureClosure, addLastAction);
     }
 
     public DependencyResolver addBefore(Object userDescription, String afterResolverName) {
@@ -122,7 +122,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
             throw new InvalidUserDataException("You must specify afterResolverName");
         }
         final ArtifactRepository after = getByName(afterResolverName);
-        return addInternal(userDescription, configureClosure, new Action<ArtifactRepository>() {
+        return addCustomDependencyResolver(userDescription, configureClosure, new Action<ArtifactRepository>() {
             public void execute(ArtifactRepository repository) {
                 DefaultArtifactRepositoryContainer.super.add(indexOf(after), repository);
             }
@@ -139,7 +139,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         }
         final ArtifactRepository before = getByName(beforeResolverName);
 
-        return addInternal(userDescription, configureClosure, new Action<ArtifactRepository>() {
+        return addCustomDependencyResolver(userDescription, configureClosure, new Action<ArtifactRepository>() {
             public void execute(ArtifactRepository repository) {
                 int insertPos = indexOf(before) + 1;
                 if (insertPos == size()) {
@@ -151,13 +151,8 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         });
     }
 
-    private DependencyResolver addInternal(Object userDescription, Closure configureClosure, Action<ArtifactRepository> orderAction) {
-        ArtifactRepository repository;
-        if (userDescription instanceof ArtifactRepository) {
-            repository = (ArtifactRepository) userDescription;
-        } else {
-            repository = resolverFactory.createRepository(userDescription);
-        }
+    private DependencyResolver addCustomDependencyResolver(Object userDescription, Closure configureClosure, Action<ArtifactRepository> orderAction) {
+        ArtifactRepository repository = resolverFactory.createRepository(userDescription);
         DependencyResolver resolver = toResolver(DependencyResolver.class, repository);
         ConfigureUtil.configure(configureClosure, resolver);
         addRepository(new FixedResolverArtifactRepository(resolver), "repository", orderAction);

@@ -20,6 +20,7 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 
 import java.io.File;
@@ -29,11 +30,13 @@ import static org.gradle.util.GUtil.toList;
 
 public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRepository, ArtifactRepositoryInternal {
     private final FileResolver fileResolver;
+    private final RepositoryTransportFactory repositoryTransportFactory;
     private String name;
     private List<Object> dirs = new ArrayList<Object>();
 
-    public DefaultFlatDirArtifactRepository(FileResolver fileResolver) {
+    public DefaultFlatDirArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory repositoryTransportFactory) {
         this.fileResolver = fileResolver;
+        this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
     public String getName() {
@@ -74,6 +77,7 @@ public class DefaultFlatDirArtifactRepository implements FlatDirectoryArtifactRe
         }
         resolver.setValidate(false);
         resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
+        repositoryTransportFactory.attachListener(resolver.getRepository());
         return resolver;
     }
 }

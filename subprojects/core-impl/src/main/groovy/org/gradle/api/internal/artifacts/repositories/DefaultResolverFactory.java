@@ -67,11 +67,11 @@ public class DefaultResolverFactory implements ResolverFactory {
         } else {
             throw new InvalidUserDataException(String.format("Cannot create a DependencyResolver instance from %s", userDescription));
         }
-        return new FixedResolverArtifactRepository(result);
+        return new CustomResolverArtifactRepository(result, transportFactory);
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
-        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver);
+        return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory);
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {

@@ -202,7 +202,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     protected SettingsConverter createSettingsConverter() {
         return new DefaultSettingsConverter(
-                get(ProgressLoggerFactory.class),
                 new IvySettingsFactory(
                         get(ArtifactCacheMetaData.class),
                         get(FileStore.class))
