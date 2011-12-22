@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
-import org.apache.ivy.plugins.repository.TransferListener
+import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
@@ -33,6 +33,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         def dir1 = new File('a')
         def dir2 = new File('b')
         _ * fileResolver.resolveFiles(['a', 'b']) >> new SimpleFileCollection(dir1, dir2)
+        1 * transportFactory.localCacheManager >> Mock(RepositoryCacheManager)
 
         and:
         repository.dirs('a', 'b')

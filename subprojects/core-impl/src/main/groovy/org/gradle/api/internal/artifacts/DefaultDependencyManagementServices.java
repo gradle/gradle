@@ -203,8 +203,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     protected SettingsConverter createSettingsConverter() {
         return new DefaultSettingsConverter(
                 new IvySettingsFactory(
-                        get(ArtifactCacheMetaData.class),
-                        get(FileStore.class))
+                        get(ArtifactCacheMetaData.class)
+                )
         );
     }
 
@@ -226,7 +226,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         cacheBuilder.addMilestone6();
         cacheBuilder.addMilestone3();
         cacheBuilder.addMavenLocal();
-        return new RepositoryTransportFactory(cacheBuilder.getExternalArtifactCache(), get(ProgressLoggerFactory.class));
+        return new RepositoryTransportFactory(cacheBuilder.getExternalArtifactCache(), get(ProgressLoggerFactory.class), get(FileStore.class));
     }
 
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {

@@ -15,19 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport.file;
 
+import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
 
 import java.io.File;
 import java.net.URI;
 
 public class FileTransport implements RepositoryTransport {
     private final String name;
+    private final RepositoryCacheManager repositoryCacheManager;
 
-    public FileTransport(String name) {
+    public FileTransport(String name, RepositoryCacheManager repositoryCacheManager) {
         this.name = name;
+        this.repositoryCacheManager = repositoryCacheManager;
     }
 
     public ResourceCollection getRepositoryAccessor() {
@@ -37,8 +39,7 @@ public class FileTransport implements RepositoryTransport {
     }
 
     public void configureCacheManager(AbstractResolver resolver) {
-        // TODO:DAZ Don't use this one ever
-        resolver.setRepositoryCacheManager(new LocalFileRepositoryCacheManager(name));
+        resolver.setRepositoryCacheManager(repositoryCacheManager);
     }
 
     public String convertToPath(URI uri) {

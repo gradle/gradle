@@ -16,10 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.plugins.repository.Repository;
-import org.apache.ivy.plugins.resolver.ChainResolver;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.DualResolver;
-import org.apache.ivy.plugins.resolver.RepositoryResolver;
+import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 
 import java.util.List;
@@ -31,6 +28,13 @@ public class CustomResolverArtifactRepository extends FixedResolverArtifactRepos
         super(resolver);
         this.repositoryTransportFactory = repositoryTransportFactory;
         attachListener(resolver);
+        configureCacheManager(resolver);
+    }
+
+    private void configureCacheManager(DependencyResolver resolver) {
+        if (resolver instanceof AbstractResolver) {
+            ((AbstractResolver) resolver).setRepositoryCacheManager(repositoryTransportFactory.getDownloadingCacheManager());
+        }
     }
 
     private void attachListener(DependencyResolver dependencyResolver) {

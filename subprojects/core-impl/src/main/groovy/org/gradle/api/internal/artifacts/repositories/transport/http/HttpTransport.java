@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
+import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
@@ -27,11 +28,13 @@ public class HttpTransport implements RepositoryTransport {
     private final String name;
     private final PasswordCredentials credentials;
     private final ExternalArtifactCache externalArtifactCache;
+    private final RepositoryCacheManager repositoryCacheManager;
 
-    public HttpTransport(String name, PasswordCredentials credentials, ExternalArtifactCache externalArtifactCache) {
+    public HttpTransport(String name, PasswordCredentials credentials, ExternalArtifactCache externalArtifactCache, RepositoryCacheManager repositoryCacheManager) {
         this.name = name;
         this.credentials = credentials;
         this.externalArtifactCache = externalArtifactCache;
+        this.repositoryCacheManager = repositoryCacheManager;
     }
 
     public ResourceCollection getRepositoryAccessor() {
@@ -42,7 +45,7 @@ public class HttpTransport implements RepositoryTransport {
     }
 
     public void configureCacheManager(AbstractResolver resolver) {
-        // Use the shared downloading cache manager
+        resolver.setRepositoryCacheManager(repositoryCacheManager);
     }
 
     public String convertToPath(URI uri) {

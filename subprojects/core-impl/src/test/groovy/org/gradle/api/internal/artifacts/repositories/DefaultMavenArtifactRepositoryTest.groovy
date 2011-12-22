@@ -15,19 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
+import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport
 import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
     final PasswordCredentials credentials = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
+    final RepositoryCacheManager cacheManager = Mock()
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(resolver, credentials, transportFactory)
 
     def "creates local repository"() {
@@ -35,7 +37,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createFileTransport('repo') >> new FileTransport('repo')
+        transportFactory.createFileTransport('repo') >> new FileTransport('repo', cacheManager)
 
         and:
         repository.name = 'repo'
@@ -55,7 +57,8 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         2 * credentials.getUsername() >> 'username'
         1 * credentials.getPassword() >> 'password'
-        transportFactory.createHttpTransport('repo', credentials) >> new HttpTransport('repo', credentials, Mock(ExternalArtifactCache))
+        transportFactory.createHttpTransport('repo', credentials) >> new HttpTransport('repo', credentials, Mock(ExternalArtifactCache), cacheManager)
+        cacheManager.name >> 'cache'
         0 * _._
 
         and:
@@ -78,7 +81,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
         _ * resolver.resolveUri('repo2') >> uri2
-        transportFactory.createHttpTransport('repo', credentials) >> new HttpTransport('repo', credentials, Mock(ExternalArtifactCache))
+        transportFactory.createHttpTransport('repo', credentials) >> new HttpTransport('repo', credentials, Mock(ExternalArtifactCache), cacheManager)
 
         and:
         repository.name = 'repo'

@@ -16,14 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalFileRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.NoOpRepositoryCacheManager;
 
 import java.util.List;
 
@@ -46,7 +42,9 @@ public class DefaultSettingsConverter implements SettingsConverter {
         } else {
             publishSettings.getResolvers().clear();
         }
-        initializeResolvers(publishSettings, publishResolvers);
+        for (DependencyResolver dependencyResolver : publishResolvers) {
+            dependencyResolver.setSettings(publishSettings);
+        }
         return publishSettings;
     }
 
@@ -63,7 +61,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
         for (DependencyResolver resolver : resolvers) {
             resolveSettings.addResolver(resolver);
         }
-        initializeResolvers(resolveSettings, resolvers);
         return resolveSettings;
     }
 
@@ -72,16 +69,5 @@ public class DefaultSettingsConverter implements SettingsConverter {
             resolveSettings = settingsFactory.create();
         }
         return resolveSettings;
-    }
-
-    private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
-        for (DependencyResolver dependencyResolver : allResolvers) {
-            dependencyResolver.setSettings(ivySettings);
-            RepositoryCacheManager existingCacheManager = dependencyResolver.getRepositoryCacheManager();
-            // Ensure that each resolver is sharing the same cache instance (ignoring caches which don't actually cache anything)
-            if (!(existingCacheManager instanceof NoOpRepositoryCacheManager) && !(existingCacheManager instanceof LocalFileRepositoryCacheManager)) {
-                ((AbstractResolver) dependencyResolver).setRepositoryCacheManager(ivySettings.getDefaultRepositoryCacheManager());
-            }
-        }
     }
 }
