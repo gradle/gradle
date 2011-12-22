@@ -16,16 +16,19 @@
 
 package org.gradle.integtests.tooling.m7
 
+import org.gradle.integtests.tooling.fixture.MaxTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.BuildEnvironment
+import org.gradle.tooling.model.IncompatibleVersionException
 
 @MinToolingApiVersion('1.0-milestone-7')
-@MinTargetGradleVersion('1.0-milestone-7')
-class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
+@MinTargetGradleVersion('1.0-milestone-3')
+@MaxTargetGradleVersion('1.0-milestone-6')
+class VersionOnlyBuildEnvironmentIntegrationTest extends ToolingApiSpecification {
 
-    def "informs about build environment"() {
+    def "informs about version"() {
         when:
         BuildEnvironment model = withConnection { it.getModel(BuildEnvironment.class) }
 
@@ -33,13 +36,18 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
         model.gradleVersion == targetDist.version
     }
 
-    def "informs about java versions"() {
-        when:
+    def "fails gracefully for other info"() {
+        given:
         BuildEnvironment model = withConnection { it.getModel(BuildEnvironment.class) }
 
-        then:
-        println "Find way to assert on: $model.jvmArguments and $model.javaHome"
+        when:
         model.javaHome
-        !model.jvmArguments.empty
+        then:
+        thrown(IncompatibleVersionException)
+
+        when:
+        model.jvmArguments
+        then:
+        thrown(IncompatibleVersionException)
     }
 }

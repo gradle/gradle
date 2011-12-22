@@ -16,17 +16,29 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.tooling.internal.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.internal.protocol.ProjectVersion3;
+import org.gradle.util.GradleVersion;
 
 /**
  * by Szczepan Faber, created at: 12/21/11
  */
 public class ModelProvider {
+
+    private final static GradleVersion M5 = GradleVersion.version("1.0-milestone-5");
+    private final static GradleVersion M6 = GradleVersion.version("1.0-milestone-6");
+
     public ProjectVersion3 provide(ConnectionVersion4 connection, Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
-        String ver = connection.getMetaData().getVersion();
-        if ("1.0-milestone-5".equals(ver) || "1.0-milestone-6".equals(ver)) {
+        GradleVersion version = GradleVersion.version(connection.getMetaData().getVersion());
+        if (type == InternalBuildEnvironment.class && version.compareTo(M6) <= 0) {
+            //early versions of provider do not support BuildEnvironment model
+            //since we know the gradle version at least we can give back some result
+            return new VersionOnlyBuildEnvironment(connection.getMetaData().getVersion());
+        }
+        if (version.equals(M5) || version.equals(M6)) {
             //those version require special handling because of the client hanging bug
             //it is due to the exception handing on the daemon side in M5 and M6
 

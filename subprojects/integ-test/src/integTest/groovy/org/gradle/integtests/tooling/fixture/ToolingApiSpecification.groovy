@@ -35,7 +35,11 @@ abstract class ToolingApiSpecification extends Specification {
     private static final ThreadLocal<BasicGradleDistribution> VERSION = new ThreadLocal<BasicGradleDistribution>()
 
     static void selectTargetDist(BasicGradleDistribution version) {
-        this.VERSION.set(version)
+        VERSION.set(version)
+    }
+
+    static BasicGradleDistribution getTargetDist() {
+        VERSION.get()
     }
 
     void setup() {

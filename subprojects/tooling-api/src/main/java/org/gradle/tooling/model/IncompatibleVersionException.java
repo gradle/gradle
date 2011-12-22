@@ -24,6 +24,7 @@ package org.gradle.tooling.model;
  * Alternatively, you can handle and ignore this exception.
  */
 public class IncompatibleVersionException extends UnsupportedOperationException {
+    //TODO SF needs to be renamed because it overlaps with UnsupportedVersionException
 
     public IncompatibleVersionException(String s) {
         super(s);
