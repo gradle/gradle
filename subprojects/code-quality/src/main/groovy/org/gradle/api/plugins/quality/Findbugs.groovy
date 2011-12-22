@@ -15,8 +15,8 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SourceTask
@@ -28,36 +28,28 @@ import org.gradle.api.tasks.VerificationTask
  * Gradle task that runs Findbugs analysis on your code.    
  * </p>
  * <p>
- * The main code of this is based on the Findbugs Ant task.  The task
- * was bypassed in order to make this task more flexible.
- * </p>
- * <p>
  * See {link: http://findbugs.sourceforge.net/} for more information
  * about the tool.
  * </p>
  */
 class Findbugs extends SourceTask implements VerificationTask {
+	
     /**
      * The additional classes that should be on the classpath during the analysis.  These classes
      * will not be analyzed.
      */
     @InputFiles FileCollection classpath = null
+	
     /**
      * The classes to analyze.
      */
     @InputFiles FileCollection classes = null
-    /**
-     * The properties to pass to findbugs.  These will be passed in order.
-     */
-    @Input List<String> findbugsProps = ['-sortByClass', '-timestampNow']
-    /**
-     * The JVM arguments to pass to the findbugs process.
-     */
-    @Input Map<String, String> systemProps = [:]
+	
     /**
      * Whether or not to allow the build to continue if there are warnings.
      */
     boolean ignoreFailures = false
+	
     /**
      * The file to place the XML results in.
      */
@@ -77,63 +69,24 @@ class Findbugs extends SourceTask implements VerificationTask {
      */
     @TaskAction
     void check() {
-        getResultsFile().parentFile.mkdirs()
+		String warningsProp = 'findbugsWarnings'
+		FileCollection pluginClasspath = project.configurations[FindbugsPlugin.FINDBUGS_CONFIGURATION_NAME]
+		getResultsFile().parentFile.mkdirs()
 		
-		if (getClasspath().files.size() > 0) {
-			findbugsProp '-auxclasspath', getClasspath().asPath
-		}
-		project.copy {
-			from getSource()
-			into getTemporaryDir()
-		}
-		findbugsProp '-sourcepath', getTemporaryDir().canonicalPath
-		findbugsProp '-xml'
-		findbugsProp '-outputFile', getResultsFile().canonicalPath
-		findbugsProp '-exitcode'
-		getClasses().files.each {
-			if (it.exists()) {
-				findbugsProp it.canonicalPath
+		ant.taskdef(name:'findbugs', classname:'edu.umd.cs.findbugs.anttask.FindBugsTask', classpath:pluginClasspath.asPath)
+		ant.findbugs(outputFile:getResultsFile(), failOnError:!getIgnoreFailures(), warningsProperty:warningsProp) {
+			pluginClasspath.addToAntBuilder(ant, 'classpath')
+			pluginClasspath.addToAntBuilder(ant, 'pluginList')
+			getClasspath().addToAntBuilder(ant, 'auxClasspath')
+			getSource().addToAntBuilder(ant, 'sourcePath')
+			getClasses().asFileTree.files.each {
+				'class'(location:it)
 			}
 		}
 		
-		def result = project.javaexec {
-			main = 'edu.umd.cs.findbugs.FindBugs2'
-			classpath project.configurations[FindbugsPlugin.FINDBUGS_CONFIGURATION_NAME]
-			args findbugsProps
-			systemProperties systemProps
-			ignoreExitValue = true
-			println commandLine
+		if (!ignoreFailures && ant.properties[warningsProp]) {
+			throw new GradleException("Findbugs reported warnings. See the report at ${getResultsFile()}.")
 		}
-		
-		def rc = result.exitValue
-        if ((rc & 0x4) != 0) {
-            throw new FindbugsException('Execution of findbugs failed.')
-        } else if ((rc & 0x2) != 0) {
-            this.logger.warn('Classes needed for analysis were missing')
-        }
-        if (!ignoreFailures && ((rc & 0x1) != 0)) {
-            throw new FindbugsException('Findbugs reported warnings.')
-        }
-    }
-    
-    /**
-     * Adds a property to the end of the list of 
-     * findbugs properties.
-     * @param props one or more {@code String} properties to add
-     */
-    void findbugsProp(String... props) {
-        findbugsProps.addAll(props)
-    }
-    
-    /**
-     * Adds a system property to the map of system properties.
-     * These are treated as JVM arguments
-     * 
-     * @param name the name of the system property
-     * @param value the value of the system property
-     */
-    void systemProp(String name, String value) {
-        this.systemProps[name] = value
     }
     
     /**
