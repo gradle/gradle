@@ -67,7 +67,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new ForwardClientInput(executorFactory),
             new ReturnResult(),
             new ResetDeprecationLogger(),
-            new CatchAndForwardDaemonFailureAsResult(),
+            new CatchAndForwardDaemonFailureAsResult(), //TODO SF Luke & me believe it can be removed. Let's get rid of it after Xmas.
             new WatchForDisconnection(),
             new ExecuteBuild(launcherFactory)
         ));
