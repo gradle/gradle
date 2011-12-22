@@ -88,8 +88,23 @@ public class ForwardClientInput implements DaemonCommandAction {
         };
 
         StoppableExecutor inputReceiverExecuter = executorFactory.create("daemon client input forwarder");
-        AsyncReceive<Object> inputReceiver = new AsyncReceive<Object>(inputReceiverExecuter, dispatcher, countDownInputOrConnectionClosedLatch);
+        final AsyncReceive<Object> inputReceiver = new AsyncReceive<Object>(inputReceiverExecuter, dispatcher, countDownInputOrConnectionClosedLatch);
         inputReceiver.receiveFrom(execution.getConnection());
+
+        execution.addFinalizer(new Runnable() {
+            public void run() {
+                // means we are going to sit here until the client disconnects, which we are expecting it to
+                // very soon because we are assuming we've just sent back the build result. We do this here
+                // in case the client tries to send input in between us sending back the result and it closing the connection.
+                try {
+                    inputOrConnectionClosedLatch.await();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.asUncheckedException(e);
+                } finally {
+                    inputReceiver.stop();
+                }
+            }
+        });
 
         try {
             new StdinSwapper().swap(replacementStdin, new Callable<Void>() {
@@ -101,18 +116,6 @@ public class ForwardClientInput implements DaemonCommandAction {
             replacementStdin.close();
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
-        } finally {
-            // means we are going to sit here until the client disconnects, which we are expecting it to 
-            // very soon because we are assuming we've just sent back the build result. We do this here
-            // in case the client tries to send input in between us sending back the result and it closing the connection.
-            try {
-                inputOrConnectionClosedLatch.await();
-            } catch (InterruptedException e) {
-                throw UncheckedException.asUncheckedException(e);
-            }
-            
-            inputReceiver.stop(); 
         }
     }
-
 }
