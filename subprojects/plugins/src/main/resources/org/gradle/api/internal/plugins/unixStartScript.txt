@@ -107,7 +107,7 @@ fi
 
 # For Darwin, add APP_NAME to the JAVA_OPTS as -Xdock:name
 if \$darwin; then
-    JAVA_OPTS="\$JAVA_OPTS -Xdock:name=\$APP_NAME"
+    JAVA_OPTS="\$JAVA_OPTS -Xdock:name=\$APP_NAME -Xdock:icon=\$APP_NAME/media/gradle.icns"
 # we may also want to set -Xdock:image
 fi
 
