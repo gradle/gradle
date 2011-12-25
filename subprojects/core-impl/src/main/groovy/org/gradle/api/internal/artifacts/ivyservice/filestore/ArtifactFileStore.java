@@ -13,20 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.artifactcache;
+package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 
 import java.io.File;
 
 public interface ArtifactFileStore {
-    String getArtifactPath(ArtifactRevisionId artifactId);
+    File add(ArtifactRevisionId artifactId, File contentFile);
 
-    File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File contentFile);
-
-    void removeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId);
+    File getTempFile();
 
     ExternalArtifactCache asExternalArtifactCache();
 }

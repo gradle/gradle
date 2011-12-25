@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.artifactcache;
 
+import org.apache.ivy.core.IvyPatternHelper;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
@@ -29,14 +32,12 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
     private final TimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
-    private final ArtifactFileStore artifactFileStore;
     private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> cache;
 
-    public SingleFileBackedArtifactResolutionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactFileStore artifactFileStore) {
+    public SingleFileBackedArtifactResolutionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
         this.cacheMetadata = cacheMetadata;
-        this.artifactFileStore = artifactFileStore;
     }
     
     private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> getCache() {
@@ -61,24 +62,27 @@ public class SingleFileBackedArtifactResolutionCache implements ArtifactResoluti
 
     public File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File artifactFile) {
         if (artifactFile == null) {
-            artifactFileStore.removeArtifactFile(repository, artifactId);
             getCache().put(createKey(repository, artifactId), createEntry(null));
             return null;
         } else {
-            File cacheFile = artifactFileStore.storeArtifactFile(repository, artifactId, artifactFile);
-            getCache().put(createKey(repository, artifactId), createEntry(cacheFile));
-            return cacheFile;
+            getCache().put(createKey(repository, artifactId), createEntry(artifactFile));
+            return artifactFile;
         }
     }
 
     public void expireCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifact) {
         getCache().remove(createKey(repository, artifact));
-        artifactFileStore.removeArtifactFile(repository, artifact);
     }
 
     private RevisionKey createKey(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
-        String artifactPath = artifactFileStore.getArtifactPath(artifactId);
+        String artifactPath = getArtifactKey(artifactId);
         return new RevisionKey(repository, artifactPath);
+    }
+
+    private String getArtifactKey(ArtifactRevisionId artifactId) {
+        String format = "[organisation]/[module](/[branch])/[revision]/[type]/[artifact](-[classifier])(.[ext])";
+        Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
+        return IvyPatternHelper.substitute(format, dummyArtifact);
     }
 
     private ArtifactResolutionCacheEntry createEntry(File artifactFile) {

@@ -20,11 +20,11 @@ import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore;
+import org.gradle.api.internal.artifacts.repositories.ProgressLoggingTransferListener;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.repositories.ProgressLoggingTransferListener;
 import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -37,7 +37,7 @@ public class RepositoryTransportFactory {
     private final RepositoryCacheManager downloadingCacheManager;
     private final RepositoryCacheManager localCacheManager;
 
-    public RepositoryTransportFactory(ExternalArtifactCache externalArtifactCache, ProgressLoggerFactory progressLoggerFactory, FileStore fileStore) {
+    public RepositoryTransportFactory(ExternalArtifactCache externalArtifactCache, ProgressLoggerFactory progressLoggerFactory, ArtifactFileStore fileStore) {
         this.externalArtifactCache = externalArtifactCache;
         this.transferListener = new ProgressLoggingTransferListener(progressLoggerFactory, RepositoryTransport.class);
         this.downloadingCacheManager = new DownloadingRepositoryCacheManager("downloading", fileStore);

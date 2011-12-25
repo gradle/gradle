@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator;
 
 import java.io.File;

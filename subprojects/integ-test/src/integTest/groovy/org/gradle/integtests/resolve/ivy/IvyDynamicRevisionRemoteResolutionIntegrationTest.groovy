@@ -516,6 +516,7 @@ task retrieve(type: Copy) {
         // Server will be hit to get updated versions
         server.expectGetMissing('/repo/group/projectA/1.1/ivy-1.1.xml.sha1')
         server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
+        server.expectGetMissing('/repo/group/projectA/1.1/projectA-1.1.jar.sha1')
         server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
 
         run 'retrieve'
@@ -592,6 +593,7 @@ task retrieve(type: Copy) {
         // Server will be hit to get updated versions
         server.expectGetMissing('/repo/group/projectA/1.1/ivy-1.1.xml.sha1')
         server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
+        server.expectGetMissing('/repo/group/projectA/1.1/projectA-1.1.jar.sha1')
         server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
         server.expectGet('/repo/group/projectA/1.1/other-1.1.jar', module.moduleDir.file('other-1.1.jar'))
 

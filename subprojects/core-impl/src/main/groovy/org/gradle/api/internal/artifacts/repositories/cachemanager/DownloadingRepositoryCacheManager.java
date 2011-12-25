@@ -31,7 +31,7 @@ import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.FileStore;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,9 +41,9 @@ import java.text.ParseException;
  * A cache manager for remote repositories, that downloads files and stores them in the FileStore provided.
  */
 public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheManager {
-    private final FileStore fileStore;
+    private final ArtifactFileStore fileStore;
 
-    public DownloadingRepositoryCacheManager(String name, FileStore fileStore) {
+    public DownloadingRepositoryCacheManager(String name, ArtifactFileStore fileStore) {
         super(name);
         this.fileStore = fileStore;
     }
@@ -92,7 +92,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
     private File downloadArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, ResolvedResource artifactRef) throws IOException {
         File tempFile = fileStore.getTempFile();
         resourceDownloader.download(artifact, artifactRef.getResource(), tempFile);
-        return fileStore.add(tempFile);
+        return fileStore.add(artifact.getId(), tempFile);
     }
 
     public ResolvedModuleRevision cacheModuleDescriptor(DependencyResolver resolver, final ResolvedResource resolvedResource, DependencyDescriptor dd, Artifact moduleArtifact, ResourceDownloader downloader, CacheMetadataOptions options) throws ParseException {
