@@ -56,10 +56,13 @@ public class PatternBasedExternalArtifactCache implements ExternalArtifactCache 
     }
 
     private String getArtifactPattern(ArtifactRevisionId artifactId) {
+        String substitute = pattern;
+        // Need to handle organisation values that have been munged for m2compatible
+        substitute = IvyPatternHelper.substituteToken(substitute, "organisation", artifactId.getModuleRevisionId().getOrganisation().replace('/', '.'));
+        substitute = IvyPatternHelper.substituteToken(substitute, "organisation-path", artifactId.getModuleRevisionId().getOrganisation().replace('.', '/'));
+
         Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
-        String substitute = IvyPatternHelper.substitute(pattern, dummyArtifact);
-        String organisationPath = artifactId.getModuleRevisionId().getOrganisation().replace('.', '/');
-        substitute = IvyPatternHelper.substituteToken(substitute, "organisation-path", organisationPath);
+        substitute = IvyPatternHelper.substitute(substitute, dummyArtifact);
         return substitute;
     }
     

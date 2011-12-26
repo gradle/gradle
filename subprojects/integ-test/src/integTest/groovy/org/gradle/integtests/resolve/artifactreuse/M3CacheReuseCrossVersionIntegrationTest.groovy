@@ -28,7 +28,7 @@ class M3CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpe
 
     def "uses cached artifacts from previous Gradle version"() {
         given:
-        def projectB = new MavenRepository(file('repo')).module('group', 'projectB').publish()
+        def projectB = new MavenRepository(file('repo')).module('org.name', 'projectB').publish()
 
         server.start()
         buildFile << """
@@ -37,7 +37,7 @@ repositories {
 }
 configurations { compile }
 dependencies {
-    compile 'group:projectB:1.0'
+    compile 'org.name:projectB:1.0'
 }
 
 task retrieve(type: Sync) {
@@ -49,7 +49,7 @@ task retrieve(type: Sync) {
         def userHome = file('user-home')
 
         when:
-        server.allowGet("/group", file('repo/group'));
+        server.allowGet("/org", file('repo/org'));
 
         and:
         version previous withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()
@@ -60,8 +60,8 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        server.expectGet("/group/projectB/1.0/projectB-1.0.pom", projectB.pomFile)
-        server.expectGet("/group/projectB/1.0/projectB-1.0.jar.sha1", projectB.sha1File(projectB.artifactFile))
+        server.expectGet("/org/name/projectB/1.0/projectB-1.0.pom", projectB.pomFile)
+        server.expectGet("/org/name/projectB/1.0/projectB-1.0.jar.sha1", projectB.sha1File(projectB.artifactFile))
 
         and:
         version current withUserHomeDir userHome withTasks 'retrieve' withArguments '-i' run()

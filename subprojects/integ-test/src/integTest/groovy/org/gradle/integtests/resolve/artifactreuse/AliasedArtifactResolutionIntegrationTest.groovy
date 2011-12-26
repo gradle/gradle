@@ -30,21 +30,21 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
         requireOwnUserHomeDir()
         init()
-        projectB = repo().module('group', 'projectB').publish()
-        ivyProjectB = ivyRepo().module('group', 'projectB').publish()
+        projectB = repo().module('org.name', 'projectB').publish()
+        ivyProjectB = ivyRepo().module('org.name', 'projectB').publish()
     }
 
     def "does not re-download maven artifact downloaded from a different maven repository when sha1 matches"() {
         when:
-        server.expectGet('/mavenRepo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-        server.expectGet('/mavenRepo1/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        server.expectGet('/mavenRepo1/org/name/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        server.expectGet('/mavenRepo1/org/name/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
         then:
         succeedsWith 'mavenRepository1'
 
         when:
-        server.expectGet('/mavenRepo2/group/projectB/1.0/projectB-1.0.pom.sha1', projectB.sha1File(projectB.pomFile))
-        server.expectGet('/mavenRepo2/group/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
+        server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.pom.sha1', projectB.sha1File(projectB.pomFile))
+        server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
 
         then:
         succeedsWith 'mavenRepository2'
@@ -52,15 +52,15 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not re-download ivy artifact downloaded from a different ivy repository when sha1 matches"() {
         when:
-        server.expectGet('/ivyRepo1/group/projectB/1.0/ivy-1.0.xml', ivyProjectB.ivyFile)
-        server.expectGet('/ivyRepo1/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        server.expectGet('/ivyRepo1/org.name/projectB/1.0/ivy-1.0.xml', ivyProjectB.ivyFile)
+        server.expectGet('/ivyRepo1/org.name/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
         then:
         succeedsWith 'ivyRepository1'
 
         when:
-        server.expectGet('/ivyRepo2/group/projectB/1.0/ivy-1.0.xml.sha1', ivyProjectB.sha1File(ivyProjectB.ivyFile))
-        server.expectGet('/ivyRepo2/group/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
+        server.expectGet('/ivyRepo2/org.name/projectB/1.0/ivy-1.0.xml.sha1', ivyProjectB.sha1File(ivyProjectB.ivyFile))
+        server.expectGet('/ivyRepo2/org.name/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
 
         then:
         succeedsWith 'ivyRepository2'
@@ -68,15 +68,15 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not re-download ivy artifact downloaded from a maven repository when sha1 matches"() {
         when:
-        server.expectGet('/mavenRepo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-        server.expectGet('/mavenRepo1/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        server.expectGet('/mavenRepo1/org/name/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        server.expectGet('/mavenRepo1/org/name/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
         then:
         succeedsWith 'mavenRepository1'
 
         when:
-        server.expectGet('/ivyRepo1/group/projectB/1.0/ivy-1.0.xml', ivyProjectB.ivyFile)
-        server.expectGet('/ivyRepo1/group/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
+        server.expectGet('/ivyRepo1/org.name/projectB/1.0/ivy-1.0.xml', ivyProjectB.ivyFile)
+        server.expectGet('/ivyRepo1/org.name/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
 
         then:
         succeedsWith 'ivyRepository1'
@@ -84,15 +84,15 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not re-download maven artifact downloaded from a ivy repository when sha1 matches"() {
         when:
-        server.expectGet('/ivyRepo1/group/projectB/1.0/ivy-1.0.xml', ivyProjectB.ivyFile)
-        server.expectGet('/ivyRepo1/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        server.expectGet('/ivyRepo1/org.name/projectB/1.0/ivy-1.0.xml', ivyProjectB.ivyFile)
+        server.expectGet('/ivyRepo1/org.name/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
         then:
         succeedsWith 'ivyRepository1'
 
         when:
-        server.expectGet('/mavenRepo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-        server.expectGet('/mavenRepo1/group/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
+        server.expectGet('/mavenRepo1/org/name/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        server.expectGet('/mavenRepo1/org/name/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
 
         then:
         succeedsWith 'mavenRepository1'
@@ -104,8 +104,8 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractIntegrationSpec {
         succeedsWith 'fileRepository'
 
         when:
-        server.expectGet('/mavenRepo2/group/projectB/1.0/projectB-1.0.pom.sha1', projectB.sha1File(projectB.pomFile))
-        server.expectGet('/mavenRepo2/group/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
+        server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.pom.sha1', projectB.sha1File(projectB.pomFile))
+        server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.jar.sha1', projectB.sha1File(projectB.artifactFile))
 
         then:
         succeedsWith 'mavenRepository2'
@@ -113,17 +113,17 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "does re-download maven artifact downloaded from a different URI when sha1 not found"() {
         when:
-        server.expectGet('/mavenRepo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-        server.expectGet('/mavenRepo1/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        server.expectGet('/mavenRepo1/org/name/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        server.expectGet('/mavenRepo1/org/name/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
         then:
         succeedsWith 'mavenRepository1'
 
         when:
-        server.expectGetMissing('/mavenRepo2/group/projectB/1.0/projectB-1.0.pom.sha1')
-        server.expectGet('/mavenRepo2/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-        server.expectGetMissing('/mavenRepo2/group/projectB/1.0/projectB-1.0.jar.sha1')
-        server.expectGet('/mavenRepo2/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        server.expectGetMissing('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.pom.sha1')
+        server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        server.expectGetMissing('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.jar.sha1')
+        server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
         then:
         succeedsWith 'mavenRepository2'
@@ -131,17 +131,17 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "does re-download maven artifact downloaded from a different URI when sha1 does not match"() {
         when:
-        server.expectGet('/mavenRepo1/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-        server.expectGet('/mavenRepo1/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        server.expectGet('/mavenRepo1/org/name/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        server.expectGet('/mavenRepo1/org/name/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
         then:
         succeedsWith 'mavenRepository1'
 
         when:
-        server.expectGet('/mavenRepo2/group/projectB/1.0/projectB-1.0.pom.sha1', projectB.md5File(projectB.pomFile))
-        server.expectGet('/mavenRepo2/group/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
-        server.expectGet('/mavenRepo2/group/projectB/1.0/projectB-1.0.jar.sha1', projectB.md5File(projectB.artifactFile))
-        server.expectGet('/mavenRepo2/group/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
+        server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.pom.sha1', projectB.md5File(projectB.pomFile))
+        server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.pom', projectB.pomFile)
+        server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.jar.sha1', projectB.md5File(projectB.artifactFile))
+        server.expectGet('/mavenRepo2/org/name/projectB/1.0/projectB-1.0.jar', projectB.artifactFile)
 
         then:
         succeedsWith 'mavenRepository2'
@@ -166,7 +166,7 @@ repositories {
 }
 configurations { compile }
 dependencies {
-    compile 'group:projectB:1.0'
+    compile 'org.name:projectB:1.0'
 }
 
 task retrieve(type: Sync) {
