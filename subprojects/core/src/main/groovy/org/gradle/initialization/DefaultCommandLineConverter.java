@@ -52,6 +52,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String EXCLUDE_TASK = "x";
     private static final String PROFILE = "profile";
     private static final String CONTINUE = "continue";
+    private static final String FORCE_RESOLVE = "force-resolve";
     private static final String PROJECT_CACHE_DIR = "project-cache-dir";
 
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
@@ -80,6 +81,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
         parser.option(CONTINUE).hasDescription("Continues task execution after a task failure. [experimental]");
+        parser.option(FORCE_RESOLVE).hasDescription("Bypasses the artifact cache, and forces all artifacts to be resolved");
     }
 
     @Override
@@ -179,7 +181,11 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         if (options.hasOption(CONTINUE)) {
             startParameter.setContinueOnFailure(true);
         }
-        
+
+        if (options.hasOption(FORCE_RESOLVE)) {
+            startParameter.setForceResolve(true);
+        }
+
         return startParameter;
     }
 }

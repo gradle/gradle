@@ -37,11 +37,15 @@ public class DefaultCachePolicy implements CachePolicy {
         return ageMillis >= dynamicVersionExpiry.getMillis();
     }
 
-    public boolean mustRefreshChangingModule(final ResolvedModuleVersion version, final long ageMillis) {
-        return ageMillis >= changingModuleExpiry.getMillis();
+    public boolean mustRefreshModule(ResolvedModuleVersion version, long ageMillis) {
+        return false;
     }
 
     public boolean mustRefreshMissingArtifact(long ageMillis) {
+        return ageMillis >= changingModuleExpiry.getMillis();
+    }
+
+    public boolean mustRefreshChangingModule(final ResolvedModuleVersion version, final long ageMillis) {
         return ageMillis >= changingModuleExpiry.getMillis();
     }
 

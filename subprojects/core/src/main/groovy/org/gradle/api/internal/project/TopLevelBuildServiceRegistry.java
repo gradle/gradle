@@ -23,6 +23,7 @@ import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicyOverride;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
@@ -122,6 +123,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         CacheFactory factory = get(CacheFactory.class);
         return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(),
                 startParameter.getCacheUsage(), factory);
+    }
+    
+    protected CachePolicyOverride createCachePolicyOverride() {
+        return new CachePolicyOverride(startParameter.isForceResolve());
     }
 
     protected ProjectEvaluator createProjectEvaluator() {

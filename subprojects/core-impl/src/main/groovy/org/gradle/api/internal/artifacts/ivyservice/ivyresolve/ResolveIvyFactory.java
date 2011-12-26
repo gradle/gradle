@@ -23,6 +23,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicyOverride;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
@@ -44,10 +45,12 @@ public class ResolveIvyFactory {
     private final ArtifactResolutionCache artifactResolutionCache;
     private final ArtifactFileStore artifactFileStore;
     private final CacheLockingManager cacheLockingManager;
+    private final CachePolicyOverride cachePolicyOverride;
 
     public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter, 
                              ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache, 
-                             ArtifactResolutionCache artifactResolutionCache, ArtifactFileStore artifactFileStore, CacheLockingManager cacheLockingManager) {
+                             ArtifactResolutionCache artifactResolutionCache, ArtifactFileStore artifactFileStore,
+                             CacheLockingManager cacheLockingManager, CachePolicyOverride cachePolicyOverride) {
         this.ivyFactory = ivyFactory;
         this.resolverProvider = resolverProvider;
         this.settingsConverter = settingsConverter;
@@ -56,11 +59,13 @@ public class ResolveIvyFactory {
         this.artifactResolutionCache = artifactResolutionCache;
         this.artifactFileStore = artifactFileStore;
         this.cacheLockingManager = cacheLockingManager;
+        this.cachePolicyOverride = cachePolicyOverride;
     }
 
     public IvyAdapter create(ConfigurationInternal configuration) {
         UserResolverChain userResolverChain = new UserResolverChain();
         CachePolicy cachePolicy = configuration.getResolutionStrategy().getCachePolicy();
+        cachePolicy = cachePolicyOverride.overrideCachePolicy(cachePolicy);
 
         LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME, userResolverChain, cacheLockingManager);
         List<DependencyResolver> rawResolvers = resolverProvider.getResolvers();

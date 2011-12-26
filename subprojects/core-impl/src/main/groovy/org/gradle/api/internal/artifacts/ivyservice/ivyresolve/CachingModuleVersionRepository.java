@@ -113,6 +113,11 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
                 return notFound();
             }
             LOGGER.debug("Found cached version of changing module: '{}'", resolvedModuleVersionId);
+        } else {
+            if (cachePolicy.mustRefreshModule(cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
+                LOGGER.debug("Cached meta-data for module must be refreshed: will perform fresh resolve of '{}'", resolvedModuleVersionId);
+                return notFound();
+            }
         }
 
         LOGGER.debug("Using cached module metadata for '{}'", resolvedModuleVersionId);

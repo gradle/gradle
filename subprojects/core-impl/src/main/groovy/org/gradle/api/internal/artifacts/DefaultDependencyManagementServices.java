@@ -26,6 +26,7 @@ import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicyOverride;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
@@ -301,7 +302,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(ModuleDescriptorCache.class),
                     get(ArtifactResolutionCache.class),
                     get(ArtifactFileStore.class),
-                    get(CacheLockingManager.class)
+                    get(CacheLockingManager.class),
+                    get(CachePolicyOverride.class)
             );
 
             ResolvedArtifactFactory resolvedArtifactFactory = new ResolvedArtifactFactory(

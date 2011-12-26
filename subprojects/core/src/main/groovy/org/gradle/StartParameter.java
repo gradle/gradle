@@ -73,6 +73,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean noOpt;
     private boolean profile;
     private boolean continueOnFailure;
+    private boolean forceResolve;
     private File projectCacheDir;
 
     /**
@@ -138,6 +139,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.profile = profile;
         startParameter.projectCacheDir = projectCacheDir;
         startParameter.continueOnFailure = continueOnFailure;
+        startParameter.forceResolve = forceResolve;
         return startParameter;
     }
 
@@ -157,6 +159,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.setShowStacktrace(getShowStacktrace());
         startParameter.profile = profile;
         startParameter.continueOnFailure = continueOnFailure;
+        startParameter.forceResolve = forceResolve;
         return startParameter;
     }
 
@@ -501,6 +504,14 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public void setContinueOnFailure(boolean continueOnFailure) {
         this.continueOnFailure = continueOnFailure;
+    }
+
+    public boolean isForceResolve() {
+        return forceResolve;
+    }
+
+    public void setForceResolve(boolean forceResolve) {
+        this.forceResolve = forceResolve;
     }
 
     @Override
