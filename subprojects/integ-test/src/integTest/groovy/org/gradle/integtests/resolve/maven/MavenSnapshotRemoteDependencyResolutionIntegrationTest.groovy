@@ -211,8 +211,8 @@ task retrieve(type: Sync) {
         file('libs/nonunique-1.0-SNAPSHOT.jar').assertHasNotChangedSince(nonUniqueJarSnapshot)
         
         when: "Server handles requests"
-        expectModuleServed(uniqueVersionModule, '/repo')
-        expectModuleServed(nonUniqueVersionModule, '/repo')
+        expectModuleServed(uniqueVersionModule, '/repo', true)
+        expectModuleServed(nonUniqueVersionModule, '/repo', true)
         
         and: "Resolve dependencies with cache expired"
         executer.withArguments("-PnoTimeout")
@@ -272,6 +272,7 @@ task retrieve(type: Sync) {
         when: "Server handles requests"
         server.resetExpectations()
         server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', module.moduleDir.file("maven-metadata.xml"))
+        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${module.pomFile.name}.sha1")
         server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${module.pomFile.name}", module.pomFile)
 
         // Retrieve again with zero timeout should check for updated snapshot
@@ -284,13 +285,17 @@ task retrieve(type: Sync) {
         file('build/testproject-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshot);
     }
 
-    private expectModuleServed(MavenModule module, def prefix) {
+    private expectModuleServed(MavenModule module, def prefix, boolean sha1requests = false) {
         def moduleName = module.artifactId;
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}", module.pomFile)
         // TODO - should only ask for metadata once
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}", module.artifactFile)
+
+        if (sha1requests) {
+            server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}.sha1", module.sha1File(module.pomFile))
+        }
     }
 
     private expectModuleMissing(MavenModule module, def prefix) {
