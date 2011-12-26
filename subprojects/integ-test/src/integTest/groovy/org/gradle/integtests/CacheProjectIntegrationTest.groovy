@@ -110,8 +110,7 @@ class CacheProjectIntegrationTest {
 
     private TestFile findDependencyCacheDir() {
         def cacheVersion = DefaultCacheLockingManager.CACHE_LAYOUT_VERSION
-        // Find the first directory under 'artifacts': it will be the resolver key
-        def resolverArtifactCache = new TestFile(userHomeDir.file("caches/artifacts-${cacheVersion}/artifacts").listFiles().first())
+        def resolverArtifactCache = new TestFile(userHomeDir.file("caches/artifacts-${cacheVersion}/filestore"))
         return resolverArtifactCache.file("commons-io/commons-io/")
     }
 

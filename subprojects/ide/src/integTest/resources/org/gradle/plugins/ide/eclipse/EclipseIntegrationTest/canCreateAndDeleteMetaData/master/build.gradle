@@ -111,10 +111,11 @@ String getExpectedXml(File file) {
 
 String getActualXml(File file) {
     def homeDir = gradle.gradleUserHomeDir.absolutePath.replace(File.separator, '/')
-    def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/artifacts-\\d+/artifacts/[a-z0-9]+/")
-    def text = file.text.replaceAll(pattern, "@CACHE_DIR@/@REPO@/")
-    pattern = Pattern.compile("GRADLE_USER_HOME/artifacts-\\d+/artifacts/[a-z0-9]+/")
-    text = text.replaceAll(pattern, "GRADLE_USER_HOME/@REPO@/")
+    def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/artifacts-\\d+/filestore/([^/]+/[^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
+    def text = file.text.replaceAll(pattern, '@CACHE_DIR@/$1/@SHA1@/')
+
+    pattern = Pattern.compile("GRADLE_USER_HOME/artifacts-\\d+/filestore/([^/]+/[^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
+    text = text.replaceAll(pattern, 'GRADLE_USER_HOME/@CACHE@/$1/@SHA1@/')
     return text
 }
 

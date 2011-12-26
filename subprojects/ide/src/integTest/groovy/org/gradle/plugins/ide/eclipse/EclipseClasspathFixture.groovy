@@ -83,7 +83,7 @@ class EclipseClasspathFixture {
         }
 
         void assertHasCachedJar(String group, String module, String version) {
-            assert entry.@path ==~ cachePath(group, module, version) + Pattern.quote("jar/${module}-${version}.jar")
+            assert entry.@path ==~ cachePath(group, module, version, "jar") + Pattern.quote("${module}-${version}.jar")
         }
 
         void assertHasSource(File jar) {
@@ -95,11 +95,11 @@ class EclipseClasspathFixture {
         }
 
         void assertHasCachedSource(String group, String module, String version) {
-            assert entry.@sourcepath ==~ cachePath(group, module, version) + Pattern.quote("source/${module}-${version}-sources.jar")
+            assert entry.@sourcepath ==~ cachePath(group, module, version, "source") + Pattern.quote("${module}-${version}-sources.jar")
         }
 
-        private String cachePath(String group, String module, String version) {
-            return Pattern.quote("${userHomeDir.absolutePath.replace(File.separator, '/')}") + "/caches/artifacts-${artifactCacheVersion}/artifacts/\\w+/" + Pattern.quote("${group}/${module}/${version}/")
+        private String cachePath(String group, String module, String version, String type) {
+            return Pattern.quote("${userHomeDir.absolutePath.replace(File.separator, '/')}") + "/caches/artifacts-${artifactCacheVersion}/filestore/" + Pattern.quote("${group}/${module}/${version}/${type}/") + "\\w+/"
         }
 
         private def getArtifactCacheVersion() {
