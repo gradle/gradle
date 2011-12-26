@@ -34,6 +34,10 @@ public class ExternalArtifactCacheBuilder {
         composite.addExternalArtifactCache(artifactFileStore.asExternalArtifactCache());
     }
 
+    public void addMilestone7() {
+        addExternalCache(new File(rootCachesDirectory, "artifacts-7"), "*/[organisation]/[module](/[branch])/[revision]/[type]/[artifact]-[revision](-[classifier])(.[ext])");
+    }
+
     public void addMilestone6() {
         addExternalCache(new File(rootCachesDirectory, "artifacts-4"), "[organisation]/[module](/[branch])/*/[type]s/[artifact]-[revision](-[classifier])(.[ext])");
         addExternalCache(new File(rootCachesDirectory, "artifacts-4"), "[organisation]/[module](/[branch])/*/pom.originals/[artifact]-[revision](-[classifier])(.[ext])");

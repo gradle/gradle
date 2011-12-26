@@ -212,6 +212,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
         ExternalArtifactCacheBuilder cacheBuilder = new ExternalArtifactCacheBuilder(get(ArtifactCacheMetaData.class), get(LocalMavenCacheLocator.class));
         cacheBuilder.addCurrent(get(ArtifactFileStore.class));
+        cacheBuilder.addMilestone7();
         cacheBuilder.addMilestone6();
         cacheBuilder.addMilestone3();
         cacheBuilder.addMavenLocal();
