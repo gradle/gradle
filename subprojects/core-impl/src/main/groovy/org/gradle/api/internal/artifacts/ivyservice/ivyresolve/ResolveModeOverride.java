@@ -13,18 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.configurations.dynamicversion;
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.ResolveMode;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
-public class CachePolicyOverride {
+import java.io.File;
+
+public class ResolveModeOverride {
     private final CachePolicy overridePolicy;
+    private final ResolveMode resolveMode;
 
-    public CachePolicyOverride(ResolveMode resolveMode) {
+    public ResolveModeOverride(ResolveMode resolveMode) {
+        this.resolveMode = resolveMode;
         this.overridePolicy = createOverridePolicy(resolveMode);
     }
-    
+
     private CachePolicy createOverridePolicy(ResolveMode resolveMode) {
         switch (resolveMode) {
             case FORCE:
@@ -39,6 +47,13 @@ public class CachePolicyOverride {
     public CachePolicy overrideCachePolicy(CachePolicy original) {
         if (overridePolicy != null) {
             return overridePolicy;
+        }
+        return original;
+    }
+
+    public ModuleVersionRepository overrideModuleVersionRepository(ModuleVersionRepository original) {
+        if (resolveMode == ResolveMode.OFFLINE) {
+            return new OfflineModuleVersionRepository(original);
         }
         return original;
     }
@@ -64,6 +79,35 @@ public class CachePolicyOverride {
 
         public boolean mustRefreshMissingArtifact(long ageMillis) {
             return mustRefresh;
+        }
+    }
+
+    private static class OfflineModuleVersionRepository implements ModuleVersionRepository {
+        private final ModuleVersionRepository delegate;
+        public OfflineModuleVersionRepository(ModuleVersionRepository delegate) {
+            this.delegate = delegate;
+        }
+
+        public String getId() {
+            return delegate.getId();
+        }
+
+        public boolean isLocal() {
+            return delegate.isLocal();
+        }
+
+        public ModuleVersionDescriptor getDependency(DependencyDescriptor dd) {
+            if (isLocal()) {
+                return delegate.getDependency(dd);
+            }
+            throw new ModuleVersionResolveException("No cached version available for offline mode");
+        }
+
+        public File download(Artifact artifact) {
+            if (isLocal()) {
+                return delegate.download(artifact);
+            }
+            throw ArtifactResolutionExceptionBuilder.downloadFailure(artifact, "No cached version available for offline mode");
         }
     }
 }

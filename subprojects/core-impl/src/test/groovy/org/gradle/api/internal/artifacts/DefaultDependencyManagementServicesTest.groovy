@@ -36,6 +36,7 @@ import org.gradle.util.TimeProvider
 import spock.lang.Specification
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
+import org.gradle.ResolveMode
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -81,6 +82,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         given:
         _ * parent.get(Instantiator.class) >> instantiator
         _ * parent.get(StartParameter.class) >> startParameter
+        startParameter.resolveMode >> ResolveMode.STANDARD
         1 * instantiator.newInstance(DefaultRepositoryHandler.class, _, _) >> repositoryHandler
         1 * instantiator.newInstance(DefaultConfigurationContainer.class, !null, instantiator,
                 domainObjectContext, listenerManager, dependencyMetaDataProvider) >> configurationContainer

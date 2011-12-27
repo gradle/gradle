@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import org.hamcrest.Matchers
 
 class ResolveModeIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -109,6 +110,34 @@ task retrieve(type: Sync) {
         then:
         file('libs').assertHasDescendants('unique-1.0-SNAPSHOT.jar')
         file('libs/unique-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshot)
+    }
+
+    public void "does not attempt to contact server when resolve flag is set to offline"() {
+        given:
+        server.start()
+
+        and:
+        buildFile << """
+repositories {
+    maven { url "http://localhost:${server.port}/repo" }
+}
+configurations { compile }
+dependencies { compile 'org.name:projectA:1.2' }
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+}
+"""
+
+        when:
+        executer.withArguments("--resolve=offline")
+
+        then:
+        fails 'listJars'
+
+        and:
+        failure.assertHasDescription('Execution failed for task \':listJars\'.')
+        failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
+        failure.assertThatCause(Matchers.containsString('No cached version available for offline mode'))
     }
 
     MavenRepository repo() {
