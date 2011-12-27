@@ -408,9 +408,9 @@ task retrieve(type: Copy) {
         and: "Server handles requests"
         server.resetExpectations()
         // Server will be hit to get updated versions
-        server.expectGetMissing('/repo/group/projectA/1.1/ivy-1.1.xml.sha1')
+        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml.sha1', module.sha1File(module.ivyFile))
         server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
-        server.expectGetMissing('/repo/group/projectA/1.1/projectA-1.1.jar.sha1')
+        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar.sha1', module.sha1File(module.jarFile))
         server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
         server.expectGet('/repo/group/projectA/1.1/other-1.1.jar', module.moduleDir.file('other-1.1.jar'))
         server.expectGet('/repo/group/projectB/2.0/ivy-2.0.xml', moduleB.ivyFile)
@@ -457,7 +457,6 @@ task retrieve(type: Copy) {
         def jarSnapshot = file('build/projectA-1.1.jar').snapshot()
 
         when:
-        waitOneSecondSoThatPublicationDateWillHaveChanged()
         module.publishWithChangedContent()
 
         and:
@@ -509,7 +508,6 @@ task retrieve(type: Copy) {
         def snapshot = jarFile.snapshot()
 
         when:
-        waitOneSecondSoThatPublicationDateWillHaveChanged();
         module.publishWithChangedContent()
 
         server.resetExpectations()
@@ -575,7 +573,6 @@ task retrieve(type: Copy) {
 
         when: "Module meta-data is changed and artifacts are modified"
         module.artifact([name: 'other'])
-        waitOneSecondSoThatPublicationDateWillHaveChanged()
         module.publishWithChangedContent()
 
         and: "We request 1.1 (changing), with module meta-data cached. No server requests."
@@ -605,13 +602,6 @@ task retrieve(type: Copy) {
         file('build').assertHasDescendants('projectA-1.1.jar', 'other-1.1.jar')
         jarFile.assertHasChangedSince(snapshot)
         jarFile.assertIsCopyOf(module.jarFile)
-    }
-
-    private def waitOneSecondSoThatPublicationDateWillHaveChanged() {
-        // TODO:DAZ Remove this
-        // Ivy checks the publication date to see if it's _really_ changed, won't delete the artifacts if not.
-        // So wait a second to ensure the date will be different.
-        Thread.sleep(1000)
     }
 
     IvyRepository ivyRepo(def dir = 'ivy-repo') {

@@ -17,12 +17,13 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +108,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         }
         if (cachedModuleDescriptor.isChangingModule() || resolvedDependencyDescriptor.isChanging()) {
             if (cachePolicy.mustRefreshChangingModule(cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
-                // TODO:DAZ Move expiring of changing module artifacts into here, once we can rely on sha1 comparison to prevent re-download
+                expireArtifactsForChangingModule(delegate, cachedModuleDescriptor.getModuleDescriptor());
                 LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}'", resolvedModuleVersionId);
                 return notFound();
             }
@@ -120,6 +121,12 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         return found(cachedModule);
     }
 
+    private void expireArtifactsForChangingModule(ModuleVersionRepository repository, ModuleDescriptor descriptor) {
+        for (Artifact artifact : descriptor.getAllArtifacts()) {
+            artifactResolutionCache.expireCachedArtifactResolution(repository, artifact.getId());
+        }
+    }
+    
     public ModuleVersionDescriptor resolveModule(DependencyDescriptor resolvedDependencyDescriptor, DependencyDescriptor requestedDependencyDescriptor) {
         ModuleVersionDescriptor module = delegate.getDependency(ForceChangeDependencyDescriptor.forceChangingFlag(resolvedDependencyDescriptor, true));
 

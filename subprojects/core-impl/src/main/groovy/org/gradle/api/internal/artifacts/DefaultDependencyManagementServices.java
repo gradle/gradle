@@ -35,7 +35,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.SingleFileBackedArtifactResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.DefaultArtifactResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.DefaultClientModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
@@ -173,8 +173,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return new DefaultModuleDescriptorCache(
                 get(ArtifactCacheMetaData.class),
                 get(TimeProvider.class),
-                get(CacheLockingManager.class),
-                get(ArtifactResolutionCache.class));
+                get(CacheLockingManager.class)
+        );
     }
 
     protected ArtifactFileStore createArtifactFileStore() {
@@ -182,7 +182,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     protected ArtifactResolutionCache createArtifactResolutionCache() {
-        return new SingleFileBackedArtifactResolutionCache(
+        return new DefaultArtifactResolutionCache(
                 get(ArtifactCacheMetaData.class),
                 get(TimeProvider.class),
                 get(CacheLockingManager.class)

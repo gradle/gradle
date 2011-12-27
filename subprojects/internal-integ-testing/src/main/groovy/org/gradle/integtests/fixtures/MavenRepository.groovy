@@ -187,7 +187,8 @@ class MavenModule {
   <groupId>$groupId</groupId>
   <artifactId>$artifactId</artifactId>
   <packaging>$type</packaging>
-  <version>$version</version>"""
+  <version>$version</version>
+  <description>Published on $publishTimestamp</description>"""
 
         if (parentPomSection) {
            pomFile << "\n$parentPomSection\n"

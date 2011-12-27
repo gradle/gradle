@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.util.TimeProvider;
@@ -37,15 +35,13 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
 
-    private final ArtifactResolutionCache artifactResolutionCache;
     private final ModuleDescriptorStore moduleDescriptorStore;
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> cache;
 
-    public DefaultModuleDescriptorCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactResolutionCache artifactResolutionCache) {
+    public DefaultModuleDescriptorCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
         this.cacheMetadata = cacheMetadata;
-        this.artifactResolutionCache = artifactResolutionCache;
 
         // TODO:DAZ inject this
         moduleDescriptorStore = new ModuleDescriptorStore(new ModuleDescriptorFileStore(cacheMetadata));
@@ -81,34 +77,8 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
             getCache().put(createKey(repository, moduleRevisionId), createMissingEntry(isChanging));
         } else {
             LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), isChanging);
-            expireArtifactsForChangingModuleIfRequired(repository, moduleDescriptor, isChanging);
-    
-            // TODO:DAZ Cache will already be locked, due to prior call to getCachedModuleDescriptor. This locking should be more explicit
             moduleDescriptorStore.putModuleDescriptor(repository, moduleDescriptor);
             getCache().put(createKey(repository, moduleRevisionId), createEntry(isChanging));
-        }
-    }
-
-    private void expireArtifactsForChangingModuleIfRequired(ModuleVersionRepository repository, ModuleDescriptor newDescriptor, boolean newDescriptorIsChanging) {
-        // Expire all cached artifacts if either the cached module descriptor was changing, or the new module descriptor is changing
-        CachedModuleDescriptor cachedModuleDescriptor = getCachedModuleDescriptor(repository, newDescriptor.getModuleRevisionId());
-        if (cachedModuleDescriptor == null) {
-            return;
-        }
-        if (cachedModuleDescriptor.isChangingModule() || newDescriptorIsChanging) {
-            ModuleDescriptor oldDescriptor = cachedModuleDescriptor.getModuleDescriptor();
-            // Only do this if the publication date has changed
-            // TODO:DAZ Get rid of this and rely on sha1 files to prevent re-download.
-            // Will then be able to do before resolving the module, rather than waiting until we have the new descriptor to compare
-            if (oldDescriptor.getResolvedPublicationDate().getTime() != newDescriptor.getResolvedPublicationDate().getTime()) {
-                expireArtifacts(repository, oldDescriptor);
-            }
-        }
-    }
-
-    private void expireArtifacts(ModuleVersionRepository repository, ModuleDescriptor descriptor) {
-        for (Artifact artifact : descriptor.getAllArtifacts()) {
-            artifactResolutionCache.expireCachedArtifactResolution(repository, artifact.getId());
         }
     }
 

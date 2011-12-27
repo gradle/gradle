@@ -196,7 +196,6 @@ task retrieve(type: Sync) {
         def nonUniqueJarSnapshot = file('libs/nonunique-1.0-SNAPSHOT.jar').assertIsCopyOf(nonUniqueVersionModule.artifactFile).snapshot()
 
         when: "Republish the snapshots"
-        waitOneSecondSoThatPublicationDateWillHaveChanged()
         uniqueVersionModule.publishWithChangedContent()
         nonUniqueVersionModule.publishWithChangedContent()
 
@@ -213,7 +212,7 @@ task retrieve(type: Sync) {
         when: "Server handles requests"
         expectModuleServed(uniqueVersionModule, '/repo', true)
         expectModuleServed(nonUniqueVersionModule, '/repo', true)
-        
+
         and: "Resolve dependencies with cache expired"
         executer.withArguments("-PnoTimeout")
         run 'retrieve'
@@ -222,13 +221,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('unique-1.0-SNAPSHOT.jar', 'nonunique-1.0-SNAPSHOT.jar')
         file('libs/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(uniqueVersionModule.artifactFile).assertHasChangedSince(uniqueJarSnapshot)
         file('libs/nonunique-1.0-SNAPSHOT.jar').assertIsCopyOf(nonUniqueVersionModule.artifactFile).assertHasChangedSince(nonUniqueJarSnapshot);
-    }
-
-    private def waitOneSecondSoThatPublicationDateWillHaveChanged() {
-        // TODO:DAZ Remove this
-        // Ivy checks the publication date to see if it's _really_ changed, won't delete the artifacts if not.
-        // So wait a second to ensure the date will be different.
-        Thread.sleep(1000)
     }
 
     def "does not download snapshot artifacts after expiry when snapshot has not changed"() {
@@ -271,9 +263,7 @@ task retrieve(type: Sync) {
 
         when: "Server handles requests"
         server.resetExpectations()
-        server.expectGet('/repo/org/gradle/testproject/1.0-SNAPSHOT/maven-metadata.xml', module.moduleDir.file("maven-metadata.xml"))
-        server.expectGetMissing("/repo/org/gradle/testproject/1.0-SNAPSHOT/${module.pomFile.name}.sha1")
-        server.expectGet("/repo/org/gradle/testproject/1.0-SNAPSHOT/${module.pomFile.name}", module.pomFile)
+        expectReuseModuleArtifacts(module, '/repo')
 
         // Retrieve again with zero timeout should check for updated snapshot
         and: 
@@ -294,8 +284,18 @@ task retrieve(type: Sync) {
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}", module.artifactFile)
 
         if (sha1requests) {
-            server.expectGetMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}.sha1")
+            server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}.sha1", module.sha1File(module.pomFile))
+            server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}.sha1", module.sha1File(module.artifactFile))
         }
+    }
+
+    private expectReuseModuleArtifacts(MavenModule module, def prefix) {
+        def moduleName = module.artifactId;
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}.sha1", module.sha1File(module.pomFile))
+        // TODO - should only ask for metadata once
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}.sha1", module.sha1File(module.artifactFile))
     }
 
     private expectModuleMissing(MavenModule module, def prefix) {

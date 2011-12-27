@@ -28,13 +28,13 @@ import org.gradle.util.TimeProvider;
 import java.io.File;
 import java.io.Serializable;
 
-public class SingleFileBackedArtifactResolutionCache implements ArtifactResolutionCache {
+public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
     private final TimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
     private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> cache;
 
-    public SingleFileBackedArtifactResolutionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public DefaultArtifactResolutionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
         this.cacheMetadata = cacheMetadata;
