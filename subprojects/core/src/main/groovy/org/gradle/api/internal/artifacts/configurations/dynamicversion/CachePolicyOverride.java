@@ -15,37 +15,55 @@
  */
 package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
+import org.gradle.ResolveMode;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 
 public class CachePolicyOverride {
-    private final boolean forceResolve;
+    private final CachePolicy overridePolicy;
 
-    public CachePolicyOverride(boolean forceResolve) {
-        this.forceResolve = forceResolve;
+    public CachePolicyOverride(ResolveMode resolveMode) {
+        this.overridePolicy = createOverridePolicy(resolveMode);
+    }
+    
+    private CachePolicy createOverridePolicy(ResolveMode resolveMode) {
+        switch (resolveMode) {
+            case FORCE:
+                return new ForceResolveCachePolicy(true);
+            case OFFLINE:
+                return new ForceResolveCachePolicy(false);
+            default:
+                return null;
+        }
     }
 
     public CachePolicy overrideCachePolicy(CachePolicy original) {
-        if (forceResolve) {
-            return new ForceResolveCachePolicy();
+        if (overridePolicy != null) {
+            return overridePolicy;
         }
         return original;
     }
 
     private static class ForceResolveCachePolicy implements CachePolicy {
+        private final boolean mustRefresh;
+
+        public ForceResolveCachePolicy(boolean mustRefresh) {
+            this.mustRefresh = mustRefresh;
+        }
+
         public boolean mustRefreshDynamicVersion(ResolvedModuleVersion version, long ageMillis) {
-            return true;
+            return mustRefresh;
         }
 
         public boolean mustRefreshModule(ResolvedModuleVersion version, long ageMillis) {
-            return true;
+            return mustRefresh;
         }
 
         public boolean mustRefreshChangingModule(ResolvedModuleVersion version, long ageMillis) {
-            return true;
+            return mustRefresh;
         }
 
         public boolean mustRefreshMissingArtifact(long ageMillis) {
-            return true;
+            return mustRefresh;
         }
     }
 }

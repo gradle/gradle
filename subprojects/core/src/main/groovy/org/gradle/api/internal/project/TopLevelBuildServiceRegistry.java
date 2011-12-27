@@ -126,7 +126,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
     
     protected CachePolicyOverride createCachePolicyOverride() {
-        return new CachePolicyOverride(startParameter.isForceResolve());
+        return new CachePolicyOverride(startParameter.getResolveMode());
     }
 
     protected ProjectEvaluator createProjectEvaluator() {

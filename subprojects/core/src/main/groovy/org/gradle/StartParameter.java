@@ -64,6 +64,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     private File gradleUserHomeDir;
     private CacheUsage cacheUsage = CacheUsage.ON;
+    private ResolveMode resolveMode = ResolveMode.STANDARD;
     private ScriptSource buildScriptSource;
     private ScriptSource settingsScriptSource;
     private ProjectSpec defaultProjectSelector;
@@ -73,7 +74,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean noOpt;
     private boolean profile;
     private boolean continueOnFailure;
-    private boolean forceResolve;
     private File projectCacheDir;
 
     /**
@@ -127,6 +127,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.systemPropertiesArgs = systemPropertiesArgs;
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
         startParameter.cacheUsage = cacheUsage;
+        startParameter.resolveMode = resolveMode;
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
         startParameter.initScripts = new ArrayList<File>(initScripts); 
@@ -139,7 +140,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.profile = profile;
         startParameter.projectCacheDir = projectCacheDir;
         startParameter.continueOnFailure = continueOnFailure;
-        startParameter.forceResolve = forceResolve;
         return startParameter;
     }
 
@@ -154,12 +154,12 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         StartParameter startParameter = new StartParameter();
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
         startParameter.cacheUsage = cacheUsage;
+        startParameter.resolveMode = resolveMode;
         startParameter.setLogLevel(getLogLevel());
         startParameter.setColorOutput(isColorOutput());
         startParameter.setShowStacktrace(getShowStacktrace());
         startParameter.profile = profile;
         startParameter.continueOnFailure = continueOnFailure;
-        startParameter.forceResolve = forceResolve;
         return startParameter;
     }
 
@@ -388,6 +388,14 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         this.cacheUsage = cacheUsage;
     }
 
+    public ResolveMode getResolveMode() {
+        return resolveMode;
+    }
+
+    public void setResolveMode(ResolveMode resolveMode) {
+        this.resolveMode = resolveMode;
+    }
+
     public boolean isDryRun() {
         return dryRun;
     }
@@ -504,14 +512,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public void setContinueOnFailure(boolean continueOnFailure) {
         this.continueOnFailure = continueOnFailure;
-    }
-
-    public boolean isForceResolve() {
-        return forceResolve;
-    }
-
-    public void setForceResolve(boolean forceResolve) {
-        this.forceResolve = forceResolve;
     }
 
     @Override
