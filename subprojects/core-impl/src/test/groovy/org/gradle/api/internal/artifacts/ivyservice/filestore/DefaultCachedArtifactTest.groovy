@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.filestore
 
-import org.apache.ivy.util.ChecksumHelper
+import org.gradle.util.HashUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
@@ -32,7 +32,7 @@ public class DefaultCachedArtifactTest extends Specification {
         def DefaultCachedArtifact cachedArtifact = new DefaultCachedArtifact(origin)
 
         then:
-        cachedArtifact.sha1 == ChecksumHelper.computeAsString(origin, 'sha1')
+        cachedArtifact.sha1 == HashUtil.createHashString(origin, 'SHA1')
         cachedArtifact.contentLength == origin.length()
         cachedArtifact.lastModified == origin.lastModified()
     }
@@ -54,7 +54,7 @@ public class DefaultCachedArtifactTest extends Specification {
         origin.setLastModified(11)
 
         then:
-        cachedArtifact.sha1 != ChecksumHelper.computeAsString(origin, 'sha1')
+        cachedArtifact.sha1 != HashUtil.createHashString(origin, 'SHA1')
         cachedArtifact.contentLength != origin.length()
         cachedArtifact.lastModified != origin.lastModified()
 

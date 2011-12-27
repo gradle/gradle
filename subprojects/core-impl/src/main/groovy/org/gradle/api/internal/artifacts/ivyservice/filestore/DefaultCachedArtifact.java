@@ -15,11 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
-import org.apache.ivy.util.ChecksumHelper;
-import org.gradle.util.UncheckedException;
+import org.gradle.util.HashUtil;
 
 import java.io.File;
-import java.io.IOException;
 
 public class DefaultCachedArtifact implements CachedArtifact {
     private final File origin;
@@ -51,10 +49,6 @@ public class DefaultCachedArtifact implements CachedArtifact {
     }
 
     private String getChecksum(File contentFile) {
-        try {
-            return ChecksumHelper.computeAsString(contentFile, "sha1");
-        } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
+        return HashUtil.createHashString(contentFile, "SHA1");
     }
 }

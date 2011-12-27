@@ -29,21 +29,21 @@ import java.io.IOException;
  * @author Hans Dockter
  */
 public class HashUtil {
-    public static String createHash(String scriptText) {
+    public static byte[] createHash(String scriptText, String algorithm) {
         MessageDigest messageDigest;
         try {
-            messageDigest = MessageDigest.getInstance("MD5");
+            messageDigest = MessageDigest.getInstance(algorithm);
         } catch (NoSuchAlgorithmException e) {
             throw UncheckedException.asUncheckedException(e);
         }
         messageDigest.update(scriptText.getBytes());
-        return new BigInteger(1, messageDigest.digest()).toString(32);
+        return messageDigest.digest();
     }
 
-    public static byte[] createHash(File file) {
+    public static byte[] createHash(File file, String algorithm) {
         MessageDigest messageDigest;
         try {
-            messageDigest = MessageDigest.getInstance("MD5");
+            messageDigest = MessageDigest.getInstance(algorithm);
         } catch (NoSuchAlgorithmException e) {
             throw UncheckedException.asUncheckedException(e);
         }
@@ -65,5 +65,21 @@ public class HashUtil {
             throw new UncheckedIOException(e);
         }
         return messageDigest.digest();
+    }
+
+    public static String createMD5(String scriptText) {
+        return createHashString(scriptText, "MD5");
+    }
+
+    public static String createHashString(String scriptText, String algorithm) {
+        return byteToString(createHash(scriptText, algorithm));
+    }
+
+    public static String createHashString(File file, String algorithm) {
+        return byteToString(createHash(file, algorithm));
+    }
+
+    private static String byteToString(byte[] digest) {
+        return new BigInteger(1, digest).toString(16);
     }
 }

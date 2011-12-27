@@ -16,10 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 import org.apache.ivy.plugins.repository.Resource;
-import org.apache.ivy.util.ChecksumHelper;
 import org.apache.ivy.util.CopyProgressListener;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifact;
-import org.gradle.util.UncheckedException;
+import org.gradle.util.HashUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -94,12 +93,7 @@ class CachedHttpResource extends AbstractHttpResource {
     }
 
     private String getChecksum(File contentFile) {
-        // TODO:DAZ Use our own implementation, shared with DefaultCachedResource
-        try {
-            return ChecksumHelper.computeAsString(contentFile, "sha1");
-        } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
+        return HashUtil.createHashString(contentFile, "SHA1");
     }
     
 }

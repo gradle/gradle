@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 
-import org.apache.ivy.util.ChecksumHelper
 import org.apache.ivy.util.CopyProgressListener
 import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifact
+import org.gradle.util.HashUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
@@ -53,7 +53,7 @@ public class CachedHttpResourceTest extends Specification {
 
         then:
         cachedArtifact.origin >> origin
-        cachedArtifact.sha1 >> ChecksumHelper.computeAsString(origin, "sha1")
+        cachedArtifact.sha1 >> HashUtil.createHashString(origin, "SHA1")
 
         and:
         destination.assertIsCopyOf(origin)

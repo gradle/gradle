@@ -21,6 +21,6 @@ import java.io.File;
 
 public class DefaultHasher implements Hasher {
     public byte[] hash(File file) {
-        return HashUtil.createHash(file);
+        return HashUtil.createHash(file, "MD5");
     }
 }

@@ -19,14 +19,11 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.apache.ivy.util.ChecksumHelper;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
-import org.gradle.util.UncheckedException;
-import org.jfrog.wharf.ivy.util.WharfUtils;
+import org.gradle.util.HashUtil;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Random;
 
 public class DefaultArtifactFileStore implements ArtifactFileStore {
@@ -61,12 +58,7 @@ public class DefaultArtifactFileStore implements ArtifactFileStore {
     }
 
     private String getChecksum(File contentFile) {
-        try {
-            String sha1 = ChecksumHelper.computeAsString(contentFile, "sha1");
-            return WharfUtils.getCleanChecksum(sha1);
-        } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
+        return HashUtil.createHashString(contentFile, "SHA1");
     }
 
     private File getArtifactFile(ArtifactRevisionId artifactId, String sha1) {

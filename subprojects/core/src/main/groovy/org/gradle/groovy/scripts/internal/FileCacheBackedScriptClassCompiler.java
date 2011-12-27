@@ -42,7 +42,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
     public <T extends Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass) {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("source.filename", source.getFileName());
-        properties.put("source.hash", HashUtil.createHash(source.getResource().getText()));
+        properties.put("source.hash", HashUtil.createMD5(source.getResource().getText()));
 
         String cacheName = String.format("scripts/%s/%s/%s", source.getClassName(), scriptBaseClass.getSimpleName(), transformer.getId());
         PersistentCache cache = cacheRepository.cache(cacheName)

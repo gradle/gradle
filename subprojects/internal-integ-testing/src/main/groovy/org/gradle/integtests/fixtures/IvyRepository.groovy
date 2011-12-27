@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.gradle.util.TestFile
-import junit.framework.AssertionFailedError
 import java.util.regex.Pattern
-import java.security.MessageDigest
+import junit.framework.AssertionFailedError
+import org.gradle.util.HashUtil
+import org.gradle.util.TestFile
 
 class IvyRepository {
     final TestFile rootDir
@@ -152,9 +152,7 @@ class IvyModule {
     }
 
     private String getHash(File file, String algorithm) {
-        MessageDigest messageDigest = MessageDigest.getInstance(algorithm)
-        messageDigest.update(file.bytes)
-        return new BigInteger(1, messageDigest.digest()).toString(16)
+        return HashUtil.createHashString(file, algorithm)
     }
 
     TestFile sha1File(File file) {

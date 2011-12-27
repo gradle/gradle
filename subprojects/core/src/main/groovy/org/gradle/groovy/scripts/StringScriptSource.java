@@ -27,7 +27,7 @@ public class StringScriptSource implements ScriptSource {
     }
 
     public String getClassName() {
-        return "script_" + HashUtil.createHash(resource.getText());
+        return "script_" + HashUtil.createMD5(resource.getText());
     }
 
     public Resource getResource() {
