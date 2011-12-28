@@ -220,6 +220,9 @@ binDistImage = copySpec {
             from configurations.plugins - configurations.runtime
         }
     }
+    into('media') {
+        from('media')
+    }
 }
 
 allDistImage = copySpec {
