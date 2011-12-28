@@ -34,7 +34,7 @@ public class DefaultCachePolicy implements CachePolicy {
     }
 
     public boolean mustRefreshDynamicVersion(final ResolvedModuleVersion version, final long ageMillis) {
-        return ageMillis >= dynamicVersionExpiry.getMillis();
+        return ageMillis > dynamicVersionExpiry.getMillis();
     }
 
     public boolean mustRefreshModule(ResolvedModuleVersion version, long ageMillis) {
@@ -42,11 +42,11 @@ public class DefaultCachePolicy implements CachePolicy {
     }
 
     public boolean mustRefreshMissingArtifact(long ageMillis) {
-        return ageMillis >= changingModuleExpiry.getMillis();
+        return ageMillis > changingModuleExpiry.getMillis();
     }
 
     public boolean mustRefreshChangingModule(final ResolvedModuleVersion version, final long ageMillis) {
-        return ageMillis >= changingModuleExpiry.getMillis();
+        return ageMillis > changingModuleExpiry.getMillis();
     }
 
     private static class Duration {

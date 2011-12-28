@@ -28,7 +28,6 @@ import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveModeOverride;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
@@ -47,6 +46,7 @@ import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.DefaultArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCacheBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveModeOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
@@ -64,7 +64,7 @@ import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.cache.CacheRepository;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.util.TimeProvider;
+import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.WrapUtil;
 
 import java.util.List;
@@ -161,11 +161,15 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 get(CacheRepository.class)
         );
     }
+    
+    protected BuildCommencedTimeProvider createBuildTimeProvider() {
+        return new BuildCommencedTimeProvider();
+    }
 
     protected ModuleResolutionCache createModuleResolutionCache() {
         return new SingleFileBackedModuleResolutionCache(
                 get(ArtifactCacheMetaData.class),
-                get(TimeProvider.class),
+                get(BuildCommencedTimeProvider.class),
                 get(CacheLockingManager.class)
         );
     }
@@ -173,21 +177,21 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     protected ModuleDescriptorCache createModuleDescriptorCache() {
         return new DefaultModuleDescriptorCache(
                 get(ArtifactCacheMetaData.class),
-                get(TimeProvider.class),
+                get(BuildCommencedTimeProvider.class),
+                get(CacheLockingManager.class)
+        );
+    }
+
+    protected ArtifactResolutionCache createArtifactResolutionCache() {
+        return new DefaultArtifactResolutionCache(
+                get(ArtifactCacheMetaData.class),
+                get(BuildCommencedTimeProvider.class),
                 get(CacheLockingManager.class)
         );
     }
 
     protected ArtifactFileStore createArtifactFileStore() {
         return new DefaultArtifactFileStore(get(ArtifactCacheMetaData.class));
-    }
-
-    protected ArtifactResolutionCache createArtifactResolutionCache() {
-        return new DefaultArtifactResolutionCache(
-                get(ArtifactCacheMetaData.class),
-                get(TimeProvider.class),
-                get(CacheLockingManager.class)
-        );
     }
 
     protected SettingsConverter createSettingsConverter() {

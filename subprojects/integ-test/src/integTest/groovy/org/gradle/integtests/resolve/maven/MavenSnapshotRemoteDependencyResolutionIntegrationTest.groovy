@@ -23,7 +23,7 @@ import org.junit.Rule
 
 class MavenSnapshotRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
-    
+
     def "setup"() {
         requireOwnUserHomeDir()
     }
@@ -208,7 +208,7 @@ task retrieve(type: Sync) {
         then:
         file('libs/unique-1.0-SNAPSHOT.jar').assertHasNotChangedSince(uniqueJarSnapshot)
         file('libs/nonunique-1.0-SNAPSHOT.jar').assertHasNotChangedSince(nonUniqueJarSnapshot)
-        
+
         when: "Server handles requests"
         expectModuleServed(uniqueVersionModule, '/repo', true)
         expectModuleServed(nonUniqueVersionModule, '/repo', true)
@@ -216,7 +216,7 @@ task retrieve(type: Sync) {
         and: "Resolve dependencies with cache expired"
         executer.withArguments("-PnoTimeout")
         run 'retrieve'
-        
+
         then:
         file('libs').assertHasDescendants('unique-1.0-SNAPSHOT.jar', 'nonunique-1.0-SNAPSHOT.jar')
         file('libs/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(uniqueVersionModule.artifactFile).assertHasChangedSince(uniqueJarSnapshot)
@@ -256,7 +256,7 @@ task retrieve(type: Sync) {
 
         and:
         run 'retrieve'
-        
+
         then:
         file('build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
         def snapshot = file('build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifactFile).snapshot()
@@ -266,13 +266,55 @@ task retrieve(type: Sync) {
         expectReuseModuleArtifacts(module, '/repo')
 
         // Retrieve again with zero timeout should check for updated snapshot
-        and: 
+        and:
         def result = run 'retrieve'
-        
+
         then:
         // TODO:DAZ
 //        result.assertTaskSkipped(':retrieve')
         file('build/testproject-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshot);
+    }
+
+    def "does not download snaphost artifacts more than once per build"() {
+        server.start()
+        given:
+        def module = repo().module("org.gradle", "testproject", "1.0-SNAPSHOT")
+        module.publish()
+
+        and:
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+allprojects {
+    repositories {
+        maven { url "http://localhost:${server.port}/repo" }
+    }
+
+    configurations { compile }
+
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
+
+    dependencies {
+        compile "org.gradle:testproject:1.0-SNAPSHOT"
+    }
+
+    task retrieve(type: Sync) {
+        into 'build'
+        from configurations.compile
+    }
+}
+"""
+        when: "Module is requested once"
+        expectModuleServed(module, '/repo')
+
+        then:
+        run 'retrieve'
+
+        and:
+        file('build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
+        file('a/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
+        file('b/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
     }
 
     private expectModuleServed(MavenModule module, def prefix, boolean sha1requests = false) {
