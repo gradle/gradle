@@ -67,19 +67,19 @@ public class HashUtil {
         return messageDigest.digest();
     }
 
-    public static String createMD5(String scriptText) {
-        return createHashString(scriptText, "MD5");
+    public static String createShortMD5(String scriptText) {
+        return createHashString(scriptText, "MD5", 32);
     }
 
-    public static String createHashString(String scriptText, String algorithm) {
-        return byteToString(createHash(scriptText, algorithm));
+    public static String createHashString(String scriptText, String algorithm, int radix) {
+        return byteToString(createHash(scriptText, algorithm), radix);
     }
 
     public static String createHashString(File file, String algorithm) {
-        return byteToString(createHash(file, algorithm));
+        return byteToString(createHash(file, algorithm), 16);
     }
 
-    private static String byteToString(byte[] digest) {
-        return new BigInteger(1, digest).toString(16);
+    private static String byteToString(byte[] digest, int radix) {
+        return new BigInteger(1, digest).toString(radix);
     }
 }

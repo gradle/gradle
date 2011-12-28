@@ -61,7 +61,7 @@ public class UriScriptSource implements ScriptSource {
             className.setLength(Math.min(className.length(), 30));
             className.append('_');
             String path = sourceUri.toString();
-            className.append(HashUtil.createMD5(path));
+            className.append(HashUtil.createShortMD5(path));
 
             this.className = className.toString();
         }

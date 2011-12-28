@@ -44,7 +44,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
     public ZipFileTree(File zipFile, File tmpDir) {
         this.zipFile = zipFile;
-        String expandDirName = String.format("%s_%s", zipFile.getName(), HashUtil.createMD5(zipFile.getAbsolutePath()));
+        String expandDirName = String.format("%s_%s", zipFile.getName(), HashUtil.createShortMD5(zipFile.getAbsolutePath()));
         this.tmpDir = new File(tmpDir, expandDirName);
     }
 
