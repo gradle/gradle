@@ -17,7 +17,6 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.os.ProcessEnvironment;
-import org.gradle.os.jna.NativeEnvironment;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -28,7 +27,11 @@ import java.util.Properties;
  * Aims to make the local environment the same as the client's environment.
  */
 public class EstablishBuildEnvironment extends BuildCommandOnly {
-    private final ProcessEnvironment processEnvironment = NativeEnvironment.current();
+    private final ProcessEnvironment processEnvironment;
+
+    public EstablishBuildEnvironment(ProcessEnvironment processEnvironment) {
+        this.processEnvironment = processEnvironment;
+    }
 
     protected void doBuild(DaemonCommandExecution execution, Build build) {
         Properties originalSystemProperties = new Properties();

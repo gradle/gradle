@@ -33,8 +33,8 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.os.NativeServices;
 import org.gradle.os.ProcessEnvironment;
-import org.gradle.os.jna.NativeEnvironment;
 import org.gradle.util.Jvm;
 import org.hamcrest.Matcher;
 
@@ -48,7 +48,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
-    private final ProcessEnvironment processEnvironment = NativeEnvironment.current();
+    private final ProcessEnvironment processEnvironment = new NativeServices().get(ProcessEnvironment.class);
 
     @Override
     protected ExecutionResult doRun() {

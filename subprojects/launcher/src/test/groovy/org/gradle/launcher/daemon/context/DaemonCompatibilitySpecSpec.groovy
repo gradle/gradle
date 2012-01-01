@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.context
 
 import spock.lang.*
 import org.gradle.util.ConfigureUtil
+import org.gradle.os.ProcessEnvironment
 
 class DaemonCompatibilitySpecSpec extends Specification {
 
@@ -32,7 +33,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def createContext(Closure config) {
-        def builder = new DaemonContextBuilder()
+        def builder = new DaemonContextBuilder({ 12L } as ProcessEnvironment)
         builder.daemonRegistryDir = new File("dir")
         ConfigureUtil.configure(config, builder).create()
     }

@@ -33,6 +33,7 @@ import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
+import org.gradle.os.ProcessEnvironment;
 
 /**
  * Wires together the embedded daemon client.
@@ -59,7 +60,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     }
 
     protected DaemonCommandExecuter createDaemonCommandExecuter() {
-         return new DefaultDaemonCommandExecuter(getLoggingServices(), get(ExecutorFactory.class));
+         return new DefaultDaemonCommandExecuter(getLoggingServices(), get(ExecutorFactory.class), get(ProcessEnvironment.class));
     }
 
     public EmbeddedDaemonClientServices(ServiceRegistry loggingServices, boolean displayOutput) {

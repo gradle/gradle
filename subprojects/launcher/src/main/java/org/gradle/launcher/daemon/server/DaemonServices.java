@@ -25,6 +25,8 @@ import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
+import org.gradle.os.NativeServices;
+import org.gradle.os.ProcessEnvironment;
 import org.gradle.process.internal.JvmOptions;
 
 import java.io.File;
@@ -50,8 +52,16 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new DefaultExecutorFactory();
     }
 
+    protected ProcessEnvironment createProcessEnvironment() {
+        return get(NativeServices.class).get(ProcessEnvironment.class);
+    }
+    
+    protected NativeServices createNativeServices() {
+        return new NativeServices();
+    }
+    
     protected DaemonContext createDaemonContext() {
-        DaemonContextBuilder builder = new DaemonContextBuilder();
+        DaemonContextBuilder builder = new DaemonContextBuilder(get(ProcessEnvironment.class));
         builder.setDaemonRegistryDir(daemonBaseDir);
         builder.setIdleTimeout(idleTimeoutMs);
 
@@ -70,7 +80,8 @@ public class DaemonServices extends DefaultServiceRegistry {
                 "password",
                 new DefaultDaemonCommandExecuter(
                         loggingServices,
-                        get(ExecutorFactory.class)),
+                        get(ExecutorFactory.class),
+                        get(ProcessEnvironment.class)),
                 get(ExecutorFactory.class));
     }
 

@@ -25,6 +25,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.DisconnectAwareConnectionDecorator;
+import org.gradle.os.ProcessEnvironment;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -36,11 +37,13 @@ import java.util.List;
 public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
 
     private final ExecutorFactory executorFactory;
-    final private LoggingManagerInternal loggingManager;
-    final private GradleLauncherFactory launcherFactory;
+    private final LoggingManagerInternal loggingManager;
+    private final GradleLauncherFactory launcherFactory;
+    private final ProcessEnvironment processEnvironment;
 
-    public DefaultDaemonCommandExecuter(ServiceRegistry loggingServices, ExecutorFactory executorFactory) {
+    public DefaultDaemonCommandExecuter(ServiceRegistry loggingServices, ExecutorFactory executorFactory, ProcessEnvironment processEnvironment) {
         this.executorFactory = executorFactory;
+        this.processEnvironment = processEnvironment;
         this.loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
         this.launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
     }
@@ -56,13 +59,13 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
     }
 
     protected List<DaemonCommandAction> createActions() {
-        return new LinkedList(Arrays.asList(
+        return new LinkedList<DaemonCommandAction>(Arrays.asList(
             new StopConnectionAfterExecution(),
             new HandleClientDisconnectBeforeSendingCommand(),
             new CatchAndForwardDaemonFailure(),
             new HandleStop(),
             new StartBuildOrRespondWithBusy(),
-            new EstablishBuildEnvironment(),
+            new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingManager), // from this point down, logging is sent back to the client
             new ForwardClientInput(executorFactory),
             new ReturnResult(),

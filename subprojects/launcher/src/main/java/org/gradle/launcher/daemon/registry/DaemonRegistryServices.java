@@ -23,8 +23,8 @@ import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.os.NativeServices;
 import org.gradle.os.ProcessEnvironment;
-import org.gradle.os.jna.NativeEnvironment;
 
 import java.io.File;
 import java.util.HashMap;
@@ -53,7 +53,11 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
     }
 
     protected ProcessEnvironment createProcessEnvironment() {
-        return NativeEnvironment.current();
+        return get(NativeServices.class).get(ProcessEnvironment.class);
+    }
+
+    protected NativeServices createNativeServices() {
+        return new NativeServices();
     }
 
     protected DaemonDir createDaemonDir() {

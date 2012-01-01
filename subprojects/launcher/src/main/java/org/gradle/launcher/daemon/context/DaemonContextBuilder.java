@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon.context;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.Factory;
-import org.gradle.os.jna.NativeEnvironment;
+import org.gradle.os.ProcessEnvironment;
 import org.gradle.util.Jvm;
 
 import java.io.File;
@@ -39,9 +39,9 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     private Integer idleTimeout;
     private List<String> daemonOpts = Lists.newArrayList();
 
-    public DaemonContextBuilder() {
+    public DaemonContextBuilder(ProcessEnvironment processEnvironment) {
         javaHome = canonicalise(Jvm.current().getJavaHome());
-        pid = NativeEnvironment.current().maybeGetPid();
+        pid = processEnvironment.maybeGetPid();
     }
 
     public File getJavaHome() {

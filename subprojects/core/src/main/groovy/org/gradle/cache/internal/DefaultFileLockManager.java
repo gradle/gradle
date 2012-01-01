@@ -184,7 +184,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 lockedFiles.remove(target);
                 // Also releases any locks
                 try {
-                    if (!lock.isShared()) {
+                    if (lock != null && !lock.isShared()) {
                         // Discard information region
                         lockFileAccess.setLength(INFORMATION_REGION_POS);
                     }

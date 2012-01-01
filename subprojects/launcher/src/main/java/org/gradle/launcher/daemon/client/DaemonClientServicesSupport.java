@@ -28,6 +28,7 @@ import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
+import org.gradle.os.*;
 
 import java.io.InputStream;
 
@@ -51,8 +52,16 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         return loggingServices;
     }
 
+    protected ProcessEnvironment createProcessEnvironment() {
+        return get(NativeServices.class).get(ProcessEnvironment.class);
+    }
+    
+    protected NativeServices createNativeServices() {
+        return new NativeServices();
+    }
+
     protected DaemonContext createDaemonContext() {
-        DaemonContextBuilder builder = new DaemonContextBuilder();
+        DaemonContextBuilder builder = new DaemonContextBuilder(get(ProcessEnvironment.class));
         configureDaemonContextBuilder(builder);
         return builder.create();
     }
