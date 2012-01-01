@@ -16,15 +16,16 @@
 package org.gradle.util
 
 import java.util.zip.ZipInputStream
-
 import org.apache.commons.lang.StringUtils
 import org.apache.tools.ant.taskdefs.Expand
 import org.apache.tools.ant.taskdefs.Untar
 import org.gradle.api.UncheckedIOException
+import org.gradle.os.NativeServices
 import org.gradle.os.OperatingSystem
-
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import org.jruby.ext.posix.POSIX
+import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
 
 class TestFileHelper {
     TestFile file
@@ -93,7 +94,7 @@ class TestFileHelper {
     }
 
     String getPermissions() {
-        def stat = org.gradle.os.PosixUtil.current().stat(file.absolutePath)
+        def stat = new NativeServices().get(POSIX).stat(file.absolutePath)
         [6, 3, 0].collect {
             def m = stat.mode() >> it
             [m & 4 ? 'r' : '-', m & 2 ? 'w' : '-', m & 1 ? 'x' : '-']
@@ -107,7 +108,7 @@ class TestFileHelper {
             mode |= permissions[9 - pos - 1] == 'x' ? 1 << pos : 0
             return mode
         }
-        def retval = org.gradle.os.PosixUtil.current().chmod(file.absolutePath, m)
+        def retval = new NativeServices().get(POSIX).chmod(file.absolutePath, m)
         if (retval != 0) {
             throw new UncheckedIOException("Could not set permissions of '${file}' to '${permissions}'.")
         }
