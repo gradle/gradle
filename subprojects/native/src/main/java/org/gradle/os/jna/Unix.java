@@ -20,7 +20,10 @@ import org.gradle.os.NativeIntegrationException;
 
 import java.io.File;
 
-class Unix extends AbstractNativeEnvironment {
+/**
+ * Uses JNA to drive the POSIX API provided by libc
+ */
+public class Unix extends AbstractNativeEnvironment {
     private static final int LOTS_OF_CHARS = 2048;
     private final UnixLibC libc = (UnixLibC) Native.loadLibrary("c", UnixLibC.class);
 

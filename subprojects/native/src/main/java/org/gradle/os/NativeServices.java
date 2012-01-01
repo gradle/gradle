@@ -15,13 +15,15 @@
  */
 package org.gradle.os;
 
-import org.gradle.os.jna.NativeEnvironment;
+import org.gradle.os.jna.Unix;
+import org.gradle.os.jna.UnsupportedEnvironment;
+import org.gradle.os.jna.Windows;
 import org.jruby.ext.posix.POSIX;
 
 public class NativeServices {
     public <T> T get(Class<T> type) {
         if (type.isAssignableFrom(ProcessEnvironment.class)) {
-            return type.cast(NativeEnvironment.current());
+            return type.cast(createProcessEnvironment());
         }
         if (type.isAssignableFrom(OperatingSystem.class)) {
             return type.cast(OperatingSystem.current());
@@ -30,5 +32,20 @@ public class NativeServices {
             return type.cast(PosixUtil.current());
         }
         throw new IllegalArgumentException(String.format("Do not know how to create service of type %s.", type.getSimpleName()));
+    }
+
+    protected ProcessEnvironment createProcessEnvironment() {
+        try {
+            if (OperatingSystem.current().isUnix()) {
+                return new Unix();
+            } else if (OperatingSystem.current().isWindows()) {
+                return new Windows();
+            } else {
+                return new UnsupportedEnvironment();
+            }
+        } catch (LinkageError e) {
+            // Thrown when jna cannot initialize the native stuff
+            return new UnsupportedEnvironment();
+        }
     }
 }

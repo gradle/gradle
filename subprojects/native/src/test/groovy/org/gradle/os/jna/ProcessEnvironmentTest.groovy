@@ -15,19 +15,19 @@
  */
 package org.gradle.os.jna
 
+import org.gradle.os.NativeServices
 import org.gradle.os.ProcessEnvironment
+import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TemporaryFolder
-import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Issue
 
-class NativeEnvironmentTest extends Specification {
+class ProcessEnvironmentTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
     @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
-    final ProcessEnvironment env = NativeEnvironment.current()
+    final ProcessEnvironment env = new NativeServices().get(ProcessEnvironment)
 
     @Requires(TestPrecondition.SET_ENV_VARIABLE)
     def "can set and remove environment variable"() {
@@ -75,15 +75,5 @@ class NativeEnvironmentTest extends Specification {
         expect:
         env.pid != null
         env.maybeGetPid() == env.pid
-    }
-
-    @Issue("GRADLE-1776")
-    def "returns an environment even if an unknown OS is encountered (instead of failing)"() {
-        System.setProperty("os.arch", "unknown")
-        System.setProperty("os.name", "unknown")
-        System.setProperty("os.version", "unknown")
-
-        expect:
-        NativeEnvironment.current() != null
     }
 }
