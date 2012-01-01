@@ -38,11 +38,11 @@ public class TerminalDetectorFactoryTest extends Specification {
         def spec = new TerminalDetectorFactory().create(new JnaBootPathConfigurer(temp.dir))
 
         then:
-        spec instanceof TerminalDetector
+        spec instanceof PosixBackedTerminalDetector
     }
 
     @Issue("GRADLE-1776")
-    def "should assume no terminal is available when jna library not found"() {
+    def "should assume no terminal is available when JNA library not found"() {
         given:
         def configurer = Mock(JnaBootPathConfigurer)
         configurer.configure() >> { throw new NativeIntegrationUnavailableException("foo") }

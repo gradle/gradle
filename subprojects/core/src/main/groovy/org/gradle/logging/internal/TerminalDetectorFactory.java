@@ -21,8 +21,10 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.os.NativeIntegrationUnavailableException;
+import org.gradle.os.NativeServices;
 import org.gradle.os.OperatingSystem;
 import org.gradle.os.jna.JnaBootPathConfigurer;
+import org.jruby.ext.posix.POSIX;
 
 import java.io.FileDescriptor;
 
@@ -36,7 +38,10 @@ public class TerminalDetectorFactory {
     public Spec<FileDescriptor> create(JnaBootPathConfigurer jnaBootPathConfigurer) {
         try {
             jnaBootPathConfigurer.configure();
-            return new TerminalDetector();
+            if (OperatingSystem.current().isWindows()) {
+                return new WindowsTerminalDetector();
+            }
+            return new PosixBackedTerminalDetector(new NativeServices().get(POSIX.class));
         } catch (NativeIntegrationUnavailableException e) {
             LOGGER.info("Unable to initialise the native integration for current platform: " + OperatingSystem.current() + ". Details: " + e.getMessage());
             return Specs.satisfyNone();

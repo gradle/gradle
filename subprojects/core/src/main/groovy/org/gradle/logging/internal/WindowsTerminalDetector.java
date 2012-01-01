@@ -18,39 +18,20 @@ package org.gradle.logging.internal;
 
 import org.fusesource.jansi.WindowsAnsiOutputStream;
 import org.gradle.api.specs.Spec;
-import org.gradle.os.OperatingSystem;
-import org.gradle.os.PosixUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;
 import java.io.IOException;
 
-public class TerminalDetector implements Spec<FileDescriptor> {
-
+public class WindowsTerminalDetector implements Spec<FileDescriptor> {
     public boolean isSatisfiedBy(FileDescriptor element) {
-        if (OperatingSystem.current().isWindows()) {
-            // Use Jansi's detection mechanism
-            try {
-                new WindowsAnsiOutputStream(new ByteArrayOutputStream());
-                return true;
-            } catch (IOException ignore) {
-                // Not attached to a console
-                return false;
-            }
-        }
-
-        // Use jna-posix to determine if we're connected to a terminal
-        if (!PosixUtil.current().isatty(element)) {
+        // Use Jansi's detection mechanism
+        try {
+            new WindowsAnsiOutputStream(new ByteArrayOutputStream());
+            return true;
+        } catch (IOException ignore) {
+            // Not attached to a console
             return false;
         }
-
-        // Dumb terminal doesn't support control codes. Should really be using termcap database.
-        String term = System.getenv("TERM");
-        if (term != null && term.equals("dumb")) {
-            return false;
-        }
-
-        // Assume a terminal
-        return true;
     }
 }
