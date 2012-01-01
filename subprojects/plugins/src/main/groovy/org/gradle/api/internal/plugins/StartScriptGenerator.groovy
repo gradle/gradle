@@ -21,24 +21,36 @@ import org.gradle.util.AntUtil
 import org.apache.tools.ant.taskdefs.Chmod
 
 class StartScriptGenerator {
-    /** The display name of the application     */
+    /**
+     * The display name of the application
+     */
     String applicationName
 
-    /** The environment variable to use to provide additional options to the JVM     */
+    /**
+     * The environment variable to use to provide additional options to the JVM
+     */
     String optsEnvironmentVar
 
-    /** The environment variable to use to control exit value (windows only)     */
+    /**
+     * The environment variable to use to control exit value (windows only)
+     */
     String exitEnvironmentVar
 
     String mainClassName
 
-    /** The classpath, relative to the application home directory     */
+    /**
+     * The classpath, relative to the application home directory.
+     */
     Iterable<String> classpath
 
-    /** The path of the script, relative to the application home directory    */
+    /**
+     * The path of the script, relative to the application home directory.
+     */
     String scriptRelPath
 
-    /** This system property to use to pass the script name to the application. May be null     */
+    /**
+     * This system property to use to pass the script name to the application. May be null.
+     */
     String appNameSystemProperty
 
     private final engine = new SimpleTemplateEngine()
