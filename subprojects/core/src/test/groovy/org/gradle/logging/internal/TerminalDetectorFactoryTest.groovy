@@ -16,13 +16,14 @@
 
 package org.gradle.logging.internal;
 
-import org.gradle.logging.internal.JnaBootPathConfigurer.JnaNotAvailableException
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
 import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
+import org.gradle.os.jna.JnaBootPathConfigurer
+import org.gradle.os.NativeIntegrationUnavailableException
 
 /**
  * @author: Szczepan Faber, created at: 9/12/11
@@ -44,7 +45,7 @@ public class TerminalDetectorFactoryTest extends Specification {
     def "should assume no terminal is available when jna library not found"() {
         given:
         def configurer = Mock(JnaBootPathConfigurer)
-        configurer.configure() >> { throw new JnaNotAvailableException("foo") }
+        configurer.configure() >> { throw new NativeIntegrationUnavailableException("foo") }
 
         when:
         def spec = new TerminalDetectorFactory().create(configurer)

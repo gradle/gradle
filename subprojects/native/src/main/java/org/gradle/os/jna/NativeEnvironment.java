@@ -36,7 +36,7 @@ public class NativeEnvironment {
             } else if (OperatingSystem.current().isWindows()) {
                 return new Windows();
             } else {
-                LOGGER.warn("Unable to initialize native environment. Updating env variables and working directory will not be possible. Operating system: {}", OperatingSystem.current());
+                LOGGER.warn("Unable to initialize native environment. Updating environment variables and working directory will not be possible. Operating system: {}", OperatingSystem.current());
                 return new UnsupportedEnvironment();
             }
         } catch (LinkageError e) {

@@ -23,6 +23,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.logging.internal.*;
+import org.gradle.os.jna.JnaBootPathConfigurer;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.TrueTimeProvider;
 

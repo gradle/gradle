@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.logging.internal;
+package org.gradle.os.jna;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.os.NativeIntegrationException;
+import org.gradle.os.NativeIntegrationUnavailableException;
 import org.gradle.os.OperatingSystem;
 
 import java.io.File;
@@ -30,7 +30,6 @@ import java.io.InputStream;
  * @author: Szczepan Faber, created at: 9/12/11
  */
 public class JnaBootPathConfigurer {
-
     private final File storageDir;
 
     /**
@@ -45,7 +44,7 @@ public class JnaBootPathConfigurer {
         this.storageDir = storageDir;
     }
 
-    public void configure() {
+    public void configure() throws NativeIntegrationUnavailableException {
         File tmpDir = new File(storageDir, "jna");
         tmpDir.mkdirs();
         String jnaLibName = OperatingSystem.current().isMacOsX() ? "libjnidispatch.jnilib" : System.mapLibraryName("jnidispatch");
@@ -55,7 +54,7 @@ public class JnaBootPathConfigurer {
             try {
                 InputStream lib = getClass().getResourceAsStream(resourceName);
                 if (lib == null) {
-                    throw new JnaNotAvailableException(String.format("Could not locate JNA native lib resource '%s'.", resourceName));
+                    throw new NativeIntegrationUnavailableException(String.format("Could not locate JNA native library resource '%s'.", resourceName));
                 }
                 try {
                     FileOutputStream outputStream = new FileOutputStream(libFile);
@@ -68,15 +67,9 @@ public class JnaBootPathConfigurer {
                     lib.close();
                 }
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw new NativeIntegrationException(String.format("Could not create JNA native library '%s'.", libFile), e);
             }
         }
         System.setProperty("jna.boot.library.path", tmpDir.getAbsolutePath());
-    }
-
-    static class JnaNotAvailableException extends GradleException {
-        public JnaNotAvailableException(String message) {
-            super(message);
-        }
     }
 }

@@ -20,7 +20,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.os.NativeIntegrationUnavailableException;
 import org.gradle.os.OperatingSystem;
+import org.gradle.os.jna.JnaBootPathConfigurer;
 
 import java.io.FileDescriptor;
 
@@ -35,9 +37,8 @@ public class TerminalDetectorFactory {
         try {
             jnaBootPathConfigurer.configure();
             return new TerminalDetector();
-        } catch (JnaBootPathConfigurer.JnaNotAvailableException e) {
-            LOGGER.info("Unable to find native jna lib for current platform: " + OperatingSystem.current()
-                    + ". Details: " + e.getMessage());
+        } catch (NativeIntegrationUnavailableException e) {
+            LOGGER.info("Unable to initialise the native integration for current platform: " + OperatingSystem.current() + ". Details: " + e.getMessage());
             return Specs.satisfyNone();
         }
     }
