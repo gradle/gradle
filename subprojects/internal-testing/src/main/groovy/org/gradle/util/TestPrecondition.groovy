@@ -25,6 +25,9 @@ enum TestPrecondition {
     JNA({
         !UNKNOWN_OS.fulfilled
     }),
+    NO_JNA({
+        UNKNOWN_OS.fulfilled
+    }),
     SYMLINKS({
         FileSystems.default.canCreateSymbolicLink()
     }),

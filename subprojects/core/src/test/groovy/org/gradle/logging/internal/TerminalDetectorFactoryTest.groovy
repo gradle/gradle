@@ -16,14 +16,14 @@
 
 package org.gradle.logging.internal;
 
+
+import org.gradle.os.jna.JnaBootPathConfigurer
+import org.gradle.util.Requires
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
-import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import org.gradle.os.jna.JnaBootPathConfigurer
-import org.gradle.os.NativeIntegrationUnavailableException
 
 /**
  * @author: Szczepan Faber, created at: 9/12/11
@@ -32,8 +32,8 @@ public class TerminalDetectorFactoryTest extends Specification {
     @Rule
     public def temp = new TemporaryFolder()
 
-    @Requires(TestPrecondition.JNA)
-    def "should configure jna library"() {
+    @Requires([TestPrecondition.JNA, TestPrecondition.NOT_WINDOWS])
+    def "should configure JNA library"() {
         when:
         def spec = new TerminalDetectorFactory().create(new JnaBootPathConfigurer(temp.dir))
 
@@ -41,14 +41,20 @@ public class TerminalDetectorFactoryTest extends Specification {
         spec instanceof PosixBackedTerminalDetector
     }
 
-    @Issue("GRADLE-1776")
-    def "should assume no terminal is available when JNA library not found"() {
-        given:
-        def configurer = Mock(JnaBootPathConfigurer)
-        configurer.configure() >> { throw new NativeIntegrationUnavailableException("foo") }
-
+    @Requires([TestPrecondition.JNA, TestPrecondition.WINDOWS])
+    def "should configure JNA library on Windows"() {
         when:
-        def spec = new TerminalDetectorFactory().create(configurer)
+        def spec = new TerminalDetectorFactory().create(new JnaBootPathConfigurer(temp.dir))
+
+        then:
+        spec instanceof WindowsTerminalDetector
+    }
+
+    @Issue("GRADLE-1776")
+    @Requires(TestPrecondition.NO_JNA)
+    def "should assume no terminal is available when JNA library is not available"() {
+        when:
+        def spec = new TerminalDetectorFactory().create(new JnaBootPathConfigurer(temp.dir))
 
         then:
         !spec.isSatisfiedBy(FileDescriptor.out)
