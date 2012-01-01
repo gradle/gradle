@@ -58,7 +58,7 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
             case "notify-send":
                 return new NotifySend(processOperations, iconProvider)
             case "snarl":
-                return new Snarl()
+                return new Snarl(iconProvider)
             case "growl":
                 if (Jvm.current().java6Compatible && Jvm.current().supportsAppleScript) {
                     try {

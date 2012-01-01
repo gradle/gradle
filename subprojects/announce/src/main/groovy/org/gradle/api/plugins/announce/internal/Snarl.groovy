@@ -21,6 +21,11 @@ import org.gradle.api.plugins.announce.Announcer
 class Snarl implements Announcer {
     private static final float SNP_VERSION = 1.1f
     private static final String HEAD = "type=SNP#?version=" + SNP_VERSION
+    private final IconProvider iconProvider
+
+    Snarl(IconProvider iconProvider) {
+        this.iconProvider = iconProvider
+    }
 
     public void send(String title, String message) {
         send(InetAddress.getByName(null), title, message)
@@ -48,7 +53,7 @@ class Snarl implements Announcer {
                 formatProperty("class", "alert"),
                 formatProperty("title", title),
                 formatProperty("text", message),
-                formatProperty("icon", null),
+                formatProperty("icon", iconProvider.getIcon(32, 32)?.absolutePath),
                 formatProperty("timeout", "10")]
 
         HEAD + properties.join('') + "\r\n"
