@@ -207,7 +207,11 @@ zipRootFolder = "$archivesBaseName-${-> version}"
 
 binDistImage = copySpec {
     from('src/toplevel') {
+        exclude 'media/**'
         expand(version: version)
+    }
+    from('src/toplevel') {
+        include 'media/**'
     }
     from project(':docs').outputs.distDocs
     into('bin') {
@@ -219,9 +223,6 @@ binDistImage = copySpec {
         into('plugins') {
             from configurations.plugins - configurations.runtime
         }
-    }
-    into('media') {
-        from('media')
     }
 }
 
