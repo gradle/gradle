@@ -20,9 +20,11 @@ import org.gradle.os.OperatingSystem
 
 class GrowlNotifyBackedAnnouncer extends Growl {
     private final Project project
+    private final IconProvider iconProvider
 
-    GrowlNotifyBackedAnnouncer(Project project) {
+    GrowlNotifyBackedAnnouncer(Project project, IconProvider iconProvider) {
         this.project = project
+        this.iconProvider = iconProvider
     }
 
     void send(String title, String message) {
@@ -32,7 +34,12 @@ class GrowlNotifyBackedAnnouncer extends Growl {
         }
         project.exec {
             executable exe
-            args '-m', message, title
+            args '-m', message
+            def icon = iconProvider.getIcon(48, 48)
+            if (icon) {
+                args '--image', icon.absolutePath
+            }
+            args '-t', title
         }
     }
 

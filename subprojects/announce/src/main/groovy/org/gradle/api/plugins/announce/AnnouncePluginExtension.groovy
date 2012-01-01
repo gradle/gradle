@@ -20,6 +20,9 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.Project
 import org.gradle.api.plugins.announce.internal.AnnouncerFactory
 import org.gradle.api.plugins.announce.internal.DefaultAnnouncerFactory
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.GradleDistributionLocator
+import org.gradle.api.plugins.announce.internal.DefaultIconProvider
 
 class AnnouncePluginExtension {
     private static final Logger logger = Logging.getLogger(AnnouncePlugin)
@@ -39,9 +42,9 @@ class AnnouncePluginExtension {
     private final Project project
     AnnouncerFactory announcerFactory
 
-    AnnouncePluginExtension(project) {
+    AnnouncePluginExtension(ProjectInternal project) {
         this.project = project
-        this.announcerFactory = new DefaultAnnouncerFactory(this)
+        this.announcerFactory = new DefaultAnnouncerFactory(this, new DefaultIconProvider(project.services.get(GradleDistributionLocator)))
     }
 
     /**

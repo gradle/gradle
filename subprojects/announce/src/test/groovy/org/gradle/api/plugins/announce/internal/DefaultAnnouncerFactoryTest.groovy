@@ -25,13 +25,13 @@ import spock.lang.Specification
  * @author Hans Dockter
  */
 class DefaultAnnouncerFactoryTest extends Specification {
-    AnnouncePluginExtension announcePluginConvention = new AnnouncePluginExtension(project)
-    DefaultAnnouncerFactory announcerFactory = new DefaultAnnouncerFactory(announcePluginConvention)
-    Project project = HelperUtil.createRootProject()
+    final project = HelperUtil.createRootProject()
+    final extension = new AnnouncePluginExtension(project)
+    final announcerFactory = new DefaultAnnouncerFactory(extension, null)
 
     def createForTwitter() {
-        announcePluginConvention.username = 'username'
-        announcePluginConvention.password = 'password'
+        extension.username = 'username'
+        extension.password = 'password'
 
         when:
         def announcer = announcerFactory.createAnnouncer('twitter')
@@ -39,8 +39,8 @@ class DefaultAnnouncerFactoryTest extends Specification {
         then:
         announcer instanceof IgnoreUnavailableAnnouncer
         def twitter = announcer.announcer
-        twitter.username == announcePluginConvention.username
-        twitter.password == announcePluginConvention.password
+        twitter.username == extension.username
+        twitter.password == extension.password
     }
 
     def createForSnarl() {

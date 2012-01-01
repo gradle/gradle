@@ -15,10 +15,10 @@
  */
 package org.gradle.api.plugins.announce.internal
 
-import org.gradle.api.plugins.announce.Announcer
 import org.gradle.api.InvalidUserDataException
-import org.gradle.os.OperatingSystem
 import org.gradle.api.plugins.announce.AnnouncePluginExtension
+import org.gradle.api.plugins.announce.Announcer
+import org.gradle.os.OperatingSystem
 import org.gradle.util.Jvm
 
 /**
@@ -26,9 +26,11 @@ import org.gradle.util.Jvm
  */
 class DefaultAnnouncerFactory implements AnnouncerFactory {
     private final AnnouncePluginExtension announcePluginConvention
+    private final IconProvider iconProvider
 
-    DefaultAnnouncerFactory(announcePluginConvention) {
+    DefaultAnnouncerFactory(AnnouncePluginExtension announcePluginConvention, IconProvider iconProvider) {
         this.announcePluginConvention = announcePluginConvention
+        this.iconProvider = iconProvider
     }
 
     Announcer createAnnouncer(String type) {
@@ -55,14 +57,14 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
             case "snarl":
                 return new Snarl()
             case "growl":
-                if (Jvm.current().supportsAppleScript) {
+                if (Jvm.current().java6Compatible && Jvm.current().supportsAppleScript) {
                     try {
-                        return getClass().getClassLoader().loadClass("org.gradle.api.plugins.announce.internal.AppleScriptBackedGrowlAnnouncer").newInstance()
+                        return getClass().getClassLoader().loadClass("org.gradle.api.plugins.announce.internal.AppleScriptBackedGrowlAnnouncer").newInstance(iconProvider)
                     } catch (ClassNotFoundException e) {
                         // Ignore and fall back to growl notify
                     }
                 }
-                return new GrowlNotifyBackedAnnouncer(announcePluginConvention.project)
+                return new GrowlNotifyBackedAnnouncer(announcePluginConvention.project, iconProvider)
             default:
                 return null
         }

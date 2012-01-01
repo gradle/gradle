@@ -19,6 +19,12 @@ import javax.script.ScriptEngine
 import javax.script.ScriptEngineManager
 
 class AppleScriptBackedGrowlAnnouncer extends Growl {
+    private final IconProvider iconProvider
+
+    AppleScriptBackedGrowlAnnouncer(IconProvider iconProvider) {
+        this.iconProvider = iconProvider
+    }
+
     void send(String title, String message) {
         ScriptEngineManager mgr = new ScriptEngineManager();
         ScriptEngine engine = mgr.getEngineByName("AppleScript");
@@ -34,10 +40,13 @@ return isRunning
             throw new AnnouncerUnavailableException("Growl is not running.")
         }
 
-        String script = """
+        def icon = iconProvider.getIcon(48, 48)
+        def iconDef = icon ? "image from location \"${icon.absolutePath}\"" : ""
+
+        def script = """
 tell application "GrowlHelperApp"
 register as application "Gradle" all notifications {"Build Notification"} default notifications {"Build Notification"}
-notify with name "Build Notification" title "${escape(title)}" description "${escape(message)}" application name "Gradle"
+notify with name "Build Notification" title "${escape(title)}" description "${escape(message)}" application name "Gradle"${iconDef}
 end tell
 """
 
