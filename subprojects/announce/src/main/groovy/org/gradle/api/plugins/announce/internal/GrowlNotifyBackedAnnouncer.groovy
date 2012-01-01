@@ -15,15 +15,15 @@
  */
 package org.gradle.api.plugins.announce.internal
 
-import org.gradle.api.Project
+import org.gradle.api.internal.ProcessOperations
 import org.gradle.os.OperatingSystem
 
 class GrowlNotifyBackedAnnouncer extends Growl {
-    private final Project project
+    private final ProcessOperations processOperations
     private final IconProvider iconProvider
 
-    GrowlNotifyBackedAnnouncer(Project project, IconProvider iconProvider) {
-        this.project = project
+    GrowlNotifyBackedAnnouncer(ProcessOperations processOperations, IconProvider iconProvider) {
+        this.processOperations = processOperations
         this.iconProvider = iconProvider
     }
 
@@ -32,7 +32,7 @@ class GrowlNotifyBackedAnnouncer extends Growl {
         if (exe == null) {
             throw new AnnouncerUnavailableException("Could not find 'growlnotify' in path.")
         }
-        project.exec {
+        processOperations.exec {
             executable exe
             args '-m', message
             def icon = iconProvider.getIcon(48, 48)

@@ -20,6 +20,7 @@ import org.gradle.api.plugins.announce.AnnouncePluginExtension
 import org.gradle.api.plugins.announce.Announcer
 import org.gradle.os.OperatingSystem
 import org.gradle.util.Jvm
+import org.gradle.api.internal.ProcessOperations
 
 /**
  * @author Hans Dockter
@@ -27,10 +28,12 @@ import org.gradle.util.Jvm
 class DefaultAnnouncerFactory implements AnnouncerFactory {
     private final AnnouncePluginExtension announcePluginConvention
     private final IconProvider iconProvider
+    private final ProcessOperations processOperations
 
-    DefaultAnnouncerFactory(AnnouncePluginExtension announcePluginConvention, IconProvider iconProvider) {
+    DefaultAnnouncerFactory(AnnouncePluginExtension announcePluginConvention, ProcessOperations processOperations, IconProvider iconProvider) {
         this.announcePluginConvention = announcePluginConvention
         this.iconProvider = iconProvider
+        this.processOperations = processOperations
     }
 
     Announcer createAnnouncer(String type) {
@@ -53,7 +56,7 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
                 String password = announcePluginConvention.password
                 return new Twitter(username, password)
             case "notify-send":
-                return new NotifySend(announcePluginConvention.project)
+                return new NotifySend(processOperations, iconProvider)
             case "snarl":
                 return new Snarl()
             case "growl":
@@ -64,7 +67,7 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
                         // Ignore and fall back to growl notify
                     }
                 }
-                return new GrowlNotifyBackedAnnouncer(announcePluginConvention.project, iconProvider)
+                return new GrowlNotifyBackedAnnouncer(processOperations, iconProvider)
             default:
                 return null
         }

@@ -16,10 +16,9 @@
 
 package org.gradle.api.plugins.announce.internal;
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+
+import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.plugins.announce.Announcer
-import org.gradle.api.Project
 import org.gradle.os.OperatingSystem
 
 /**
@@ -29,12 +28,12 @@ import org.gradle.os.OperatingSystem
  */
 
 class NotifySend implements Announcer {
-    private static final Logger logger = LoggerFactory.getLogger(NotifySend)
+    private final IconProvider iconProvider
+    private final ProcessOperations processOperations
 
-    private final Project project
-
-    NotifySend(Project project) {
-        this.project = project
+    NotifySend(ProcessOperations processOperations, IconProvider iconProvider) {
+        this.processOperations = processOperations
+        this.iconProvider = iconProvider
     }
 
     void send(String title, String message) {
@@ -42,8 +41,12 @@ class NotifySend implements Announcer {
         if (exe == null) {
             throw new AnnouncerUnavailableException("Could not find 'notify-send' in the path.")
         }
-        project.exec {
+        processOperations.exec {
             executable exe
+            def icon = iconProvider.getIcon(32, 32)
+            if (icon) {
+                args '-i', icon.absolutePath
+            }
             args title, message
         }
     }
