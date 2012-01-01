@@ -72,7 +72,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         return getFactory(LoggingManagerInternal.class).create();
     }
 
-    protected FileOperations createFileOperations() {
+    protected DefaultFileOperations createFileOperations() {
         return new DefaultFileOperations(get(FileResolver.class), project.getTasks(), get(TemporaryFileProvider.class));
     }
 

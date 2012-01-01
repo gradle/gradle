@@ -37,11 +37,13 @@ import org.gradle.process.ExecResult
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.DeprecationLogger
 import org.gradle.api.internal.file.*
+import org.gradle.api.internal.ProcessOperations
 
 abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class)
     private ServiceRegistry services
     private FileOperations fileOperations
+    private ProcessOperations processOperations
     private LoggingManager loggingManager
 
     def void init(Object target, ServiceRegistry services) {
@@ -55,6 +57,7 @@ abstract class DefaultScript extends BasicScript {
         } else {
             fileOperations = new DefaultFileOperations(new IdentityFileResolver(), null, null)
         }
+        processOperations = fileOperations
     }
 
     FileResolver getFileResolver() {
@@ -146,11 +149,11 @@ abstract class DefaultScript extends BasicScript {
     }
 
     ExecResult javaexec(Closure closure) {
-        return fileOperations.javaexec(closure);
+        return processOperations.javaexec(closure);
     }
 
     ExecResult exec(Closure closure) {
-        return fileOperations.exec(closure);
+        return processOperations.exec(closure);
     }
 
     LoggingManager getLogging() {

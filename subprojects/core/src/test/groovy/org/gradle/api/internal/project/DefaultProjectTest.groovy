@@ -78,7 +78,7 @@ class DefaultProjectTest {
 
     DefaultProject project, child1, child2, childchild
 
-    ProjectEvaluator projectEvaluator
+    ProjectEvaluator projectEvaluator = context.mock(ProjectEvaluator.class)
 
     IProjectRegistry projectRegistry
 
@@ -86,43 +86,35 @@ class DefaultProjectTest {
 
     groovy.lang.Script testScript
 
-    ScriptSource script;
+    ScriptSource script = context.mock(ScriptSource.class)
 
     ServiceRegistry serviceRegistryMock
     ServiceRegistryFactory projectServiceRegistryFactoryMock
-    TaskContainerInternal taskContainerMock
-    Factory<AntBuilder> antBuilderFactoryMock
+    TaskContainerInternal taskContainerMock = context.mock(TaskContainerInternal.class)
+    Factory<AntBuilder> antBuilderFactoryMock = context.mock(Factory.class)
     AntBuilder testAntBuilder
 
-    DefaultConfigurationContainer configurationContainerMock;
-    RepositoryHandler repositoryHandlerMock
-    DependencyFactory dependencyFactoryMock
+    DefaultConfigurationContainer configurationContainerMock = context.mock(DefaultConfigurationContainer.class)
+    RepositoryHandler repositoryHandlerMock = context.mock(RepositoryHandler.class)
+    DependencyFactory dependencyFactoryMock = context.mock(DependencyFactory.class)
     DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)
     PluginContainer pluginContainerMock = context.mock(PluginContainer)
     ScriptHandler scriptHandlerMock = context.mock(ScriptHandler)
     DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider)
-    Gradle build;
+    Gradle build = context.mock(GradleInternal)
     Convention convention = new DefaultConvention();
-    FileOperations fileOperationsMock
-    LoggingManagerInternal loggingManagerMock;
+    FileOperations fileOperationsMock = context.mock(FileOperations)
+    ProcessOperations processOperationsMock = context.mock(ProcessOperations)
+    LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class)
     Instantiator instantiatorMock = context.mock(Instantiator)
 
     @Before
     void setUp() {
         rootDir = new File("/path/root").absoluteFile
 
-        dependencyFactoryMock = context.mock(DependencyFactory.class)
-        loggingManagerMock = context.mock(LoggingManagerInternal.class)
-        taskContainerMock = context.mock(TaskContainerInternal.class);
-        antBuilderFactoryMock = context.mock(Factory.class)
         testAntBuilder = new DefaultAntBuilder()
         context.checking {
             allowing(antBuilderFactoryMock).create(); will(returnValue(testAntBuilder))
-        }
-        configurationContainerMock = context.mock(DefaultConfigurationContainer.class)
-        repositoryHandlerMock =  context.mock(RepositoryHandler.class);
-        script = context.mock(ScriptSource.class)
-        context.checking {
             allowing(script).getDisplayName(); will(returnValue('[build file]'))
             allowing(script).getClassName(); will(returnValue('scriptClass'))
             allowing(scriptHandlerMock).getSourceFile(); will(returnValue(new File(rootDir, TEST_BUILD_FILE_NAME)))
@@ -132,13 +124,10 @@ class DefaultProjectTest {
 
         testTask = HelperUtil.createTask(DefaultTask)
 
-        projectEvaluator = context.mock(ProjectEvaluator.class)
         projectRegistry = new DefaultProjectRegistry()
 
         projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, 'parent')
         serviceRegistryMock = context.mock(ServiceRegistryFactory.class, 'project')
-        build = context.mock(GradleInternal.class)
-        fileOperationsMock = context.mock(FileOperations.class)
 
         context.checking {
             allowing(projectServiceRegistryFactoryMock).createFor(withParam(notNullValue())); will(returnValue(serviceRegistryMock))
@@ -160,8 +149,8 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
             allowing(serviceRegistryMock).get(FileResolver); will(returnValue([toString: { -> "file resolver" }] as FileResolver))
             allowing(serviceRegistryMock).get(Instantiator); will(returnValue(instantiatorMock))
-            allowing(serviceRegistryMock).get(FileOperations);
-            will(returnValue(fileOperationsMock))
+            allowing(serviceRegistryMock).get(FileOperations); will(returnValue(fileOperationsMock))
+            allowing(serviceRegistryMock).get(ProcessOperations); will(returnValue(processOperationsMock))
             allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptPluginFactory))
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)

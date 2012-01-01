@@ -20,12 +20,13 @@ package org.gradle.groovy.scripts
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.logging.StandardOutputCapture
+import org.gradle.api.internal.ProcessOperations
 
 /**
  * @author Hans Dockter
  *
  */
-abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, FileOperations {
+abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, FileOperations, ProcessOperations {
     private StandardOutputCapture standardOutputCapture
     private Object target
 

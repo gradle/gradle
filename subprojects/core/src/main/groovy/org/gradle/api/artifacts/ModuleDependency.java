@@ -23,8 +23,6 @@ import java.util.Set;
 /**
  * <p>A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current
  * project.</p>
- *
- * <p>A module dependency is an entity. Its key consists of the fields {@code group, name, version, configuration}.</p>
  */
 public interface ModuleDependency extends Dependency {
     /**

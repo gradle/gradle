@@ -22,6 +22,7 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
@@ -31,7 +32,7 @@ import org.gradle.groovy.scripts.ScriptAware;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.logging.StandardOutputCapture;
 
-public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations, DomainObjectContext, DependencyMetaDataProvider {
+public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations, ProcessOperations, DomainObjectContext, DependencyMetaDataProvider {
     ProjectInternal getParent();
 
     ProjectInternal getRootProject();

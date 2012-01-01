@@ -105,6 +105,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private FileResolver fileResolver;
     private FileOperations fileOperations;
+    private ProcessOperations processOperations;
 
     private Factory<AntBuilder> antBuilderFactory;
 
@@ -174,6 +175,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         taskContainer = services.newInstance(TaskContainerInternal.class);
         implicitTasksContainer = services.newInstance(TaskContainerInternal.class);
         fileOperations = services.get(FileOperations.class);
+        processOperations = services.get(ProcessOperations.class);
         projectEvaluator = services.get(ProjectEvaluator.class);
         repositoryHandler = services.get(RepositoryHandler.class);
         configurationContainer = services.get(ConfigurationContainerInternal.class);
@@ -817,11 +819,11 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public ExecResult javaexec(Closure closure) {
-        return fileOperations.javaexec(closure);
+        return processOperations.javaexec(closure);
     }
 
     public ExecResult exec(Closure closure) {
-        return fileOperations.exec(closure);
+        return processOperations.exec(closure);
     }
 
     public ServiceRegistryFactory getServices() {
