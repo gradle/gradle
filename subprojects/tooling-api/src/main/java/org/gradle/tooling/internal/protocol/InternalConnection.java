@@ -25,7 +25,7 @@ public interface InternalConnection extends ConnectionVersion4, InternalProtocol
      * Fetches a snapshot of the model for the project. This method is generic so that we're not locked
      * to building particular model type.
      * <p>
-     * The other method on the interface, e.g. {@link #getModel(Class, BuildOperationParametersVersion1)} should be considered deprecated (TODO SF: deperecate?)
+     * The other method on the interface, e.g. {@link #getModel(Class, BuildOperationParametersVersion1)} should be considered deprecated
      *
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.

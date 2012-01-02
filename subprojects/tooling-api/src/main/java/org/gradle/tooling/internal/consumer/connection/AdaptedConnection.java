@@ -38,6 +38,7 @@ public class AdaptedConnection implements ConsumerConnection {
         return delegate.getMetaData();
     }
 
+    @SuppressWarnings({"deprecation"})
     public <T> T getModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException {
         if (delegate instanceof InternalConnection) {
             return ((InternalConnection) delegate).getTheModel(type, operationParameters);

@@ -38,10 +38,13 @@ public interface ConnectionVersion4 {
 
     /**
      * Fetches a snapshot of the model for the project.
+     * <p>
+     * Deprecated, please use {@link InternalConnection#getTheModel(Class, BuildOperationParametersVersion1)}
      *
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
      */
+    @Deprecated
     ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException;
 
     /**
