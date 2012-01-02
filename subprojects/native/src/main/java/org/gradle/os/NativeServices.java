@@ -31,6 +31,9 @@ public class NativeServices {
         if (type.isAssignableFrom(POSIX.class)) {
             return type.cast(PosixUtil.current());
         }
+        if (type.isAssignableFrom(FileSystem.class)) {
+            return type.cast(FileSystems.getDefault());
+        }
         throw new IllegalArgumentException(String.format("Do not know how to create service of type %s.", type.getSimpleName()));
     }
 

@@ -15,8 +15,8 @@
  */
 package org.gradle.os
 
-import spock.lang.Specification
 import org.jruby.ext.posix.POSIX
+import spock.lang.Specification
 
 class NativeServicesTest extends Specification {
     final NativeServices services = new NativeServices()
@@ -34,6 +34,11 @@ class NativeServicesTest extends Specification {
     def "makes a POSIX available"() {
         expect:
         services.get(POSIX) != null
+    }
+
+    def "makes a FileSystem available"() {
+        expect:
+        services.get(FileSystem) != null
     }
 
     def "fails for unknown type"() {

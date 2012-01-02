@@ -28,6 +28,7 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
+import org.gradle.os.FileSystems;
 
 import java.util.Map;
 
@@ -100,7 +101,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
     public StartParameter convert(ParsedCommandLine options, StartParameter startParameter) throws CommandLineArgumentException {
         loggingConfigurationCommandLineConverter.convert(options, startParameter);
-        FileResolver resolver = new BaseDirFileResolver(startParameter.getCurrentDir());
+        FileResolver resolver = new BaseDirFileResolver(FileSystems.getDefault(), startParameter.getCurrentDir());
 
         Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options);
         startParameter.getSystemPropertiesArgs().putAll(systemProperties);

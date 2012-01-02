@@ -38,6 +38,7 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Specification
+import org.gradle.os.FileSystems
 
 public class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock()
@@ -320,7 +321,7 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def resolver() {
-        return new BaseDirFileResolver(tmpDir.testDir)
+        return new BaseDirFileResolver(FileSystems.default, tmpDir.testDir)
     }
 }
 

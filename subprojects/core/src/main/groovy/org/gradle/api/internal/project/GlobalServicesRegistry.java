@@ -32,6 +32,7 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
+import org.gradle.os.FileSystem;
 import org.gradle.os.NativeServices;
 import org.gradle.os.ProcessEnvironment;
 import org.gradle.util.ClassLoaderFactory;
@@ -100,7 +101,11 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
     protected ProcessEnvironment createProcessEnvironment() {
         return get(NativeServices.class).get(ProcessEnvironment.class);
     }
-    
+
+    protected FileSystem createFileSystem() {
+        return get(NativeServices.class).get(FileSystem.class);
+    }
+
     protected NativeServices createNativeServices() {
         return new NativeServices();
     }

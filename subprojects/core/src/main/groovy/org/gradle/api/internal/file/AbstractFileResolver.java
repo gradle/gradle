@@ -23,7 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.resources.ReadableResource;
-import org.gradle.os.FileSystems;
+import org.gradle.os.FileSystem;
 import org.gradle.os.OperatingSystem;
 import org.gradle.util.GUtil;
 
@@ -41,9 +41,14 @@ import java.util.regex.Pattern;
 public abstract class AbstractFileResolver implements FileResolver {
     private static final Pattern URI_SCHEME = Pattern.compile("[a-zA-Z][a-zA-Z0-9+-\\.]*:.+");
     private static final Pattern ENCODED_URI = Pattern.compile("%([0-9a-fA-F]{2})");
+    private final FileSystem fileSystem;
+
+    protected AbstractFileResolver(FileSystem fileSystem) {
+        this.fileSystem = fileSystem;
+    }
 
     public FileResolver withBaseDir(Object path) {
-        return new BaseDirFileResolver(resolve(path));
+        return new BaseDirFileResolver(fileSystem, resolve(path));
     }
 
     public File resolve(Object path) {
@@ -89,7 +94,7 @@ public abstract class AbstractFileResolver implements FileResolver {
                 resolvedPath = File.separator + resolvedPath;
             }
             File candidate = new File(resolvedPath);
-            if (FileSystems.getDefault().isCaseSensitive()) {
+            if (fileSystem.isCaseSensitive()) {
                 return candidate;
             }
 
@@ -194,7 +199,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         for (File file : File.listRoots()) {
             String rootPath = file.getAbsolutePath();
             String normalisedStr = str;
-            if (!FileSystems.getDefault().isCaseSensitive()) {
+            if (!fileSystem.isCaseSensitive()) {
                 rootPath = rootPath.toLowerCase();
                 normalisedStr = normalisedStr.toLowerCase();
             }

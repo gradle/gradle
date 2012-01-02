@@ -175,7 +175,6 @@ class BaseDirFileResolverSpec extends Specification {
     }
 
     def createLink(File link, File target) {
-        link.parentFile.mkdirs()
         FileSystems.default.createSymbolicLink(link, target)
     }
 
@@ -190,6 +189,6 @@ class BaseDirFileResolverSpec extends Specification {
     }
 
     def normalize(Object path, File baseDir = tmpDir.dir) {
-        new BaseDirFileResolver(baseDir).resolve(path)
+        new BaseDirFileResolver(FileSystems.default, baseDir).resolve(path)
     }
 }

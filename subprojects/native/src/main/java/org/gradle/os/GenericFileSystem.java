@@ -52,6 +52,7 @@ class GenericFileSystem implements FileSystem {
     }
 
     private int doCreateSymbolicLink(File link, File target) {
+        link.getParentFile().mkdirs();
         try {
             return PosixUtil.current().symlink(target.getPath(), link.getPath());
         } catch (UnsatisfiedLinkError e) {

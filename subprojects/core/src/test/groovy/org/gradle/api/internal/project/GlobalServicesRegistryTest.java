@@ -36,11 +36,13 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.internal.DefaultLoggingManagerFactory;
 import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.os.*;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.DefaultClassLoaderFactory;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class GlobalServicesRegistryTest {
@@ -120,5 +122,15 @@ public class GlobalServicesRegistryTest {
     @Test
     public void providesAFileLockManager() {
         assertThat(registry.get(FileLockManager.class), instanceOf(DefaultFileLockManager.class));
+    }
+
+    @Test
+    public void providesAProcessEnvironment() {
+        assertThat(registry.get(ProcessEnvironment.class), notNullValue());
+    }
+
+    @Test
+    public void providesAFileSystem() {
+        assertThat(registry.get(FileSystem.class), notNullValue());
     }
 }

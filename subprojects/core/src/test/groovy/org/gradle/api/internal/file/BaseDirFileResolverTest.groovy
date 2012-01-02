@@ -29,6 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.os.FileSystems
 
 /**
  * @author Hans Dockter
@@ -46,7 +47,7 @@ class BaseDirFileResolverTest {
 
     @Before public void setUp() {
         baseDir = rootDir.dir
-        baseDirConverter = new BaseDirFileResolver(baseDir)
+        baseDirConverter = new BaseDirFileResolver(FileSystems.default, baseDir)
         testFile = new File(baseDir, 'testfile')
         testDir = new File(baseDir, 'testdir')
     }

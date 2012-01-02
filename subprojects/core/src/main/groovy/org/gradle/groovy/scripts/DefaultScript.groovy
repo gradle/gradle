@@ -38,6 +38,7 @@ import org.gradle.util.ConfigureUtil
 import org.gradle.util.DeprecationLogger
 import org.gradle.api.internal.file.*
 import org.gradle.api.internal.ProcessOperations
+import org.gradle.os.FileSystems
 
 abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class)
@@ -53,7 +54,7 @@ abstract class DefaultScript extends BasicScript {
         if (target instanceof FileOperations) {
             fileOperations = target
         } else if (scriptSource.resource.file) {
-            fileOperations = new DefaultFileOperations(new BaseDirFileResolver(scriptSource.resource.file.parentFile), null, null)
+            fileOperations = new DefaultFileOperations(new BaseDirFileResolver(FileSystems.default, scriptSource.resource.file.parentFile), null, null)
         } else {
             fileOperations = new DefaultFileOperations(new IdentityFileResolver(), null, null)
         }

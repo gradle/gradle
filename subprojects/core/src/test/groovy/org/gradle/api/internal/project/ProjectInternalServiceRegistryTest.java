@@ -42,6 +42,7 @@ import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.os.FileSystem;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -91,6 +92,8 @@ public class ProjectInternalServiceRegistryTest {
             will(returnValue(dependencyManagementServices));
             allowing(parent).get(Instantiator.class);
             will(returnValue(new DirectInstantiator()));
+            allowing(parent).get(FileSystem.class);
+            will(returnValue(context.mock(FileSystem.class)));
         }});
     }
 

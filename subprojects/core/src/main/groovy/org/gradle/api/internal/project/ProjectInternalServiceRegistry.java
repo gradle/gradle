@@ -46,6 +46,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.os.FileSystem;
 
 import java.io.File;
 
@@ -65,7 +66,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected FileResolver createFileResolver() {
-        return new BaseDirFileResolver(project.getProjectDir());
+        return new BaseDirFileResolver(get(FileSystem.class), project.getProjectDir());
     }
 
     protected LoggingManagerInternal createLoggingManager() {
