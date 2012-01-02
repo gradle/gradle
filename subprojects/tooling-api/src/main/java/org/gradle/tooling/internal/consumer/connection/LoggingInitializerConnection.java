@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.consumer.SynchronizedLogging;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;

@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.consumer
 
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
+import org.gradle.tooling.internal.consumer.async.AsyncConnection
 import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.Project

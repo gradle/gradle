@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.consumer.async;
 
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Adapts a {@link ConsumerConnection} to an {@link AsyncConnection}.
  */
-class DefaultAsyncConnection implements AsyncConnection {
+public class DefaultAsyncConnection implements AsyncConnection {
     private final ConsumerConnection connection;
     private final StoppableExecutor executor;
     private final AtomicBoolean closed = new AtomicBoolean();

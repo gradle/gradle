@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.consumer
 
 import org.gradle.tooling.UnknownModelException
+import org.gradle.tooling.internal.consumer.async.AsyncConnection
 import org.gradle.tooling.model.Project
 import spock.lang.Specification
 

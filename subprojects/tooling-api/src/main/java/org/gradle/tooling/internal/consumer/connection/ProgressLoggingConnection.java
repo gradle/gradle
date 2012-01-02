@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLogger;
@@ -21,7 +21,7 @@ import org.gradle.logging.internal.ProgressCompleteEvent;
 import org.gradle.logging.internal.ProgressEvent;
 import org.gradle.logging.internal.ProgressListener;
 import org.gradle.logging.internal.ProgressStartEvent;
-import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;

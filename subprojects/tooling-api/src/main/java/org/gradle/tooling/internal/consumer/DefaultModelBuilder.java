@@ -19,6 +19,7 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.model.Element;
 
 import java.io.InputStream;

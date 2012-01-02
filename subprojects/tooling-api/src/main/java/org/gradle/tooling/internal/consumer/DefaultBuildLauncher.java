@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.model.Task;
 

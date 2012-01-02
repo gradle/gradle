@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.*;
+import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
