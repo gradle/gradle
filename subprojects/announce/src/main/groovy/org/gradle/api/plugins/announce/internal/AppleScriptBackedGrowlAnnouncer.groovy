@@ -31,7 +31,7 @@ class AppleScriptBackedGrowlAnnouncer extends Growl {
 
         String isRunning = """
 tell application "System Events"
-set isRunning to count of (every process whose name is "GrowlHelperApp") > 0
+set isRunning to count of (every process whose bundle identifier is "com.Growl.GrowlHelperApp") > 0
 end tell
 return isRunning
 """
@@ -44,7 +44,7 @@ return isRunning
         def iconDef = icon ? "image from location \"${icon.absolutePath}\"" : ""
 
         def script = """
-tell application "GrowlHelperApp"
+tell application id "com.Growl.GrowlHelperApp"
 register as application "Gradle" all notifications {"Build Notification"} default notifications {"Build Notification"}
 notify with name "Build Notification" title "${escape(title)}" description "${escape(message)}" application name "Gradle"${iconDef}
 end tell
