@@ -50,4 +50,8 @@ public class AdaptedConnection implements ConsumerConnection {
     public void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) throws IllegalStateException {
         delegate.executeBuild(buildParameters, operationParameters);
     }
+
+    public ConnectionVersion4 getDelegate() {
+        return delegate;
+    }
 }

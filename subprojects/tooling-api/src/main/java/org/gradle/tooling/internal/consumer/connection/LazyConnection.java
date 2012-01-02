@@ -22,7 +22,6 @@ import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.util.UncheckedException;
 
 import java.util.HashSet;
@@ -121,11 +120,7 @@ public class LazyConnection implements ConsumerConnection {
             if (connection == null) {
                 // Hold the lock while creating the connection. Not generally good form.
                 // In this instance, blocks other threads from creating the connection at the same time
-
-                // ConnectionVersion4 is a part of the protocol so this is what loader (provider part) creates.
-                ConnectionVersion4 connectionVersion4 = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory());
-                // Adopting the connection to a refactoring friendly type that the consumer owns
-                connection = new AdaptedConnection(connectionVersion4);
+                connection = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory());
             }
             return connection;
         } finally {

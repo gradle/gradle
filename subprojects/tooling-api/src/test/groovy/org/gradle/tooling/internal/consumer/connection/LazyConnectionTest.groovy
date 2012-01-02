@@ -22,7 +22,6 @@ import org.gradle.tooling.internal.consumer.ModelProvider
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1
-import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import spock.lang.Specification
 
 class LazyConnectionTest extends Specification {
@@ -30,7 +29,7 @@ class LazyConnectionTest extends Specification {
     final ToolingImplementationLoader implementationLoader = Mock()
     final BuildParametersVersion1 buildParams = Mock()
     final BuildOperationParametersVersion1 params = Mock()
-    final ConnectionVersion4 connectionImpl = Mock()
+    final ConsumerConnection consumerConnection = Mock()
     final LoggingProvider loggingProvider = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final LazyConnection connection = new LazyConnection(distribution, implementationLoader, loggingProvider)
@@ -47,8 +46,8 @@ class LazyConnectionTest extends Specification {
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
-        1 * connectionImpl.executeBuild(buildParams, params)
+        1 * implementationLoader.create(distribution, progressLoggerFactory) >> consumerConnection
+        1 * consumerConnection.executeBuild(buildParams, params)
         0 * _._
     }
 
@@ -58,7 +57,7 @@ class LazyConnectionTest extends Specification {
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
+        1 * implementationLoader.create(distribution, progressLoggerFactory) >> consumerConnection
         1 * connection.modelProvider.provide(!null, SomeModel, params)
         0 * _._
     }
@@ -70,11 +69,10 @@ class LazyConnectionTest extends Specification {
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
-        1 * connection.modelProvider.provide(!null, SomeModel, params)
-        1 * connectionImpl.executeBuild(buildParams, params)
-        //TODO SF push down the ConsumerConnection to the loaders and update the tests
-        //TODO SF review remainging usages of ProjectVersion3 and ConnectionVersion4
+        1 * implementationLoader.create(distribution, progressLoggerFactory) >> consumerConnection
+        1 * connection.modelProvider.provide(consumerConnection, SomeModel, params)
+        1 * consumerConnection.executeBuild(buildParams, params)
+        //TODO SF review remaining usages of ProjectVersion3
         0 * _._
     }
 
@@ -85,9 +83,9 @@ class LazyConnectionTest extends Specification {
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
-        1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
-        1 * connection.modelProvider.provide(!null, SomeModel, params)
-        1 * connectionImpl.stop()
+        1 * implementationLoader.create(distribution, progressLoggerFactory) >> consumerConnection
+        1 * connection.modelProvider.provide(consumerConnection, SomeModel, params)
+        1 * consumerConnection.stop()
         0 * _._
     }
 

@@ -19,7 +19,6 @@ import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.actor.ActorFactory
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.consumer.Distribution
-import org.gradle.tooling.internal.consumer.TestConnection
 import org.gradle.util.ClasspathUtil
 import org.gradle.util.GradleVersion
 import org.gradle.util.TemporaryFolder
@@ -45,11 +44,11 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         ] as Set)
 
         when:
-        def factory = loader.create(distribution, loggerFactory)
+        def adaptedConnection = loader.create(distribution, loggerFactory)
 
         then:
-        factory.class != TestConnection.class
-        factory.class.name == TestConnection.class.name
+        adaptedConnection.delegate.class != TestConnection.class //different classloaders
+        adaptedConnection.delegate.class.name == TestConnection.class.name
     }
 
     private getToolingApiResourcesDir() {
