@@ -672,6 +672,16 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return ignoreFailures;
     }
 
+    public VerificationTask setDisplayViolations(boolean displayViolations) {
+        //TODO replace stub implementation
+        return null;
+    }
+
+    public boolean isDisplayViolations() {
+        //TODO replace stub implementation
+        return false;
+    }
+
     /**
      * {@inheritDoc}
      */

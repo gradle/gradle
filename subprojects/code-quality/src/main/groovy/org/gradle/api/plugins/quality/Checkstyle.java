@@ -123,6 +123,16 @@ public class Checkstyle extends SourceTask implements VerificationTask {
         return ignoreFailures;
     }
 
+    public VerificationTask setDisplayViolations(boolean displayViolations) {
+        //TODO replace stub implementation
+        return this;
+    }
+
+    public boolean isDisplayViolations() {
+        //TODO replace stub implementation
+        return false;
+    }
+
     /**
      * {@inheritDoc}
      */
