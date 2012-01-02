@@ -18,11 +18,14 @@ package org.gradle.tooling.internal.consumer
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection
+import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
+import org.gradle.tooling.internal.protocol.BuildParametersVersion1
+import org.gradle.tooling.internal.protocol.ProgressListenerVersion1
 import spock.lang.Specification
-import org.gradle.tooling.internal.protocol.*
 
 class ProgressLoggingConnectionTest extends Specification {
-    final ConnectionVersion4 target = Mock()
+    final ConsumerConnection target = Mock()
     final BuildOperationParametersVersion1 params = Mock()
     final ProgressListenerVersion1 listener = Mock()
     final ProgressLogger progressLogger = Mock()
@@ -31,9 +34,11 @@ class ProgressLoggingConnectionTest extends Specification {
     final LoggingProvider loggingProvider = Mock()
     final ProgressLoggingConnection connection = new ProgressLoggingConnection(target, loggingProvider)
 
+    static class SomeModel {}
+
     def notifiesProgressListenerOfStartAndEndOfFetchingModel() {
         when:
-        connection.getModel(ProjectVersion3, params)
+        connection.getModel(SomeModel, params)
 
         then:
         1 * loggingProvider.getListenerManager() >> listenerManager
@@ -42,7 +47,7 @@ class ProgressLoggingConnectionTest extends Specification {
         1 * progressLoggerFactory.newOperation(ProgressLoggingConnection.class) >> progressLogger
         1 * progressLogger.setDescription('Load projects')
         1 * progressLogger.started()
-        1 * target.getModel(ProjectVersion3, params)
+        1 * target.getModel(SomeModel, params)
         1 * progressLogger.completed()
         1 * listenerManager.removeListener(!null)
         _ * params.progressListener >> listener

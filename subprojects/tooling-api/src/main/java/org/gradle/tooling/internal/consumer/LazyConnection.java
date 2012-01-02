@@ -15,8 +15,13 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.tooling.internal.consumer.connection.AdaptedConnection;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
+import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.util.UncheckedException;
 
 import java.util.HashSet;
@@ -26,9 +31,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * A {@link ConnectionVersion4} implementation which creates the actual connection implementation on demand.
+ * Creates the actual connection implementation on demand.
  */
-public class LazyConnection implements ConnectionVersion4 {
+public class LazyConnection implements ConsumerConnection {
     private final Distribution distribution;
     private final ToolingImplementationLoader implementationLoader;
     private final LoggingProvider loggingProvider;
@@ -36,7 +41,7 @@ public class LazyConnection implements ConnectionVersion4 {
     private final Condition condition = lock.newCondition();
     private Set<Thread> executing = new HashSet<Thread>();
     private boolean stopped;
-    private ConnectionVersion4 connection;
+    private ConsumerConnection connection;
     ModelProvider modelProvider = new ModelProvider();
 
     public LazyConnection(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider) {
@@ -46,7 +51,7 @@ public class LazyConnection implements ConnectionVersion4 {
     }
 
     public void stop() {
-        ConnectionVersion4 connection = null;
+        ConsumerConnection connection = null;
         lock.lock();
         try {
             stopped = true;
@@ -81,16 +86,16 @@ public class LazyConnection implements ConnectionVersion4 {
 
     public void executeBuild(final BuildParametersVersion1 buildParameters, final BuildOperationParametersVersion1 operationParameters) {
         withConnection(new ConnectionAction<Object>() {
-            public Object run(ConnectionVersion4 connection) {
+            public Object run(ConsumerConnection connection) {
                 connection.executeBuild(buildParameters, operationParameters);
                 return null;
             }
         });
     }
 
-    public ProjectVersion3 getModel(final Class<? extends ProjectVersion3> type, final BuildOperationParametersVersion1 operationParameters) {
-        return withConnection(new ConnectionAction<ProjectVersion3>() {
-            public ProjectVersion3 run(ConnectionVersion4 connection) {
+    public <T> T getModel(final Class<T> type, final BuildOperationParametersVersion1 operationParameters) {
+        return withConnection(new ConnectionAction<T>() {
+            public T run(ConsumerConnection connection) {
                 return modelProvider.provide(connection, type, operationParameters);
             }
         });
@@ -98,14 +103,14 @@ public class LazyConnection implements ConnectionVersion4 {
 
     private <T> T withConnection(ConnectionAction<T> action) {
         try {
-            ConnectionVersion4 connection = onStartAction();
+            ConsumerConnection connection = onStartAction();
             return action.run(connection);
         } finally {
             onEndAction();
         }
     }
 
-    private ConnectionVersion4 onStartAction() {
+    private ConsumerConnection onStartAction() {
         lock.lock();
         try {
             if (stopped) {
@@ -115,7 +120,11 @@ public class LazyConnection implements ConnectionVersion4 {
             if (connection == null) {
                 // Hold the lock while creating the connection. Not generally good form.
                 // In this instance, blocks other threads from creating the connection at the same time
-                connection = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory());
+
+                // ConnectionVersion4 is a part of the protocol so this is what loader (provider part) creates.
+                ConnectionVersion4 connectionVersion4 = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory());
+                // Adopting the connection to a refactoring friendly type that the consumer owns
+                connection = new AdaptedConnection(connectionVersion4);
             }
             return connection;
         } finally {
@@ -134,6 +143,6 @@ public class LazyConnection implements ConnectionVersion4 {
     }
 
     private interface ConnectionAction<T> {
-        T run(ConnectionVersion4 connection);
+        T run(ConsumerConnection connection);
     }
 }

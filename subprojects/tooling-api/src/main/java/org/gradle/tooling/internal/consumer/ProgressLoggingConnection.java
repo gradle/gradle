@@ -21,16 +21,20 @@ import org.gradle.logging.internal.ProgressCompleteEvent;
 import org.gradle.logging.internal.ProgressEvent;
 import org.gradle.logging.internal.ProgressListener;
 import org.gradle.logging.internal.ProgressStartEvent;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
+import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
+import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
 /**
- * A {@link ConnectionVersion4} implementation which provides some high-level progress information.
+ * Provides some high-level progress information.
  */
-public class ProgressLoggingConnection implements ConnectionVersion4 {
-    private final ConnectionVersion4 connection;
+public class ProgressLoggingConnection implements ConsumerConnection {
+    private final ConsumerConnection connection;
     private final LoggingProvider loggingProvider;
 
-    public ProgressLoggingConnection(ConnectionVersion4 connection, LoggingProvider loggingProvider) {
+    public ProgressLoggingConnection(ConsumerConnection connection, LoggingProvider loggingProvider) {
         this.connection = connection;
         this.loggingProvider = loggingProvider;
     }
@@ -45,16 +49,16 @@ public class ProgressLoggingConnection implements ConnectionVersion4 {
 
     public void executeBuild(final BuildParametersVersion1 buildParameters, final BuildOperationParametersVersion1 operationParameters) {
         run("Execute build", operationParameters, new BuildAction<Void>() {
-            public Void run(ConnectionVersion4 connection) {
+            public Void run(ConsumerConnection connection) {
                 connection.executeBuild(buildParameters, operationParameters);
                 return null;
             }
         });
     }
 
-    public ProjectVersion3 getModel(final Class<? extends ProjectVersion3> type, final BuildOperationParametersVersion1 operationParameters) {
-        return run("Load projects", operationParameters, new BuildAction<ProjectVersion3>() {
-            public ProjectVersion3 run(ConnectionVersion4 connection) {
+    public <T> T getModel(final Class<T> type, final BuildOperationParametersVersion1 operationParameters) {
+        return run("Load projects", operationParameters, new BuildAction<T>() {
+            public T run(ConsumerConnection connection) {
                 return connection.getModel(type, operationParameters);
             }
         });
@@ -79,7 +83,7 @@ public class ProgressLoggingConnection implements ConnectionVersion4 {
     }
 
     private interface BuildAction<T> {
-        T run(ConnectionVersion4 connection);
+        T run(ConsumerConnection connection);
     }
 
     private static class ProgressListenerAdapter implements ProgressListener {

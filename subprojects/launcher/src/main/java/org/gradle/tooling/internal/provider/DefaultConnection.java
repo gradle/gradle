@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-public class DefaultConnection implements ConnectionVersion4 {
+public class DefaultConnection implements InternalConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final EmbeddedExecuterSupport embeddedExecuterSupport;
 
@@ -64,24 +64,26 @@ public class DefaultConnection implements ConnectionVersion4 {
     public void stop() {
     }
 
-    public void executeBuild(final BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) {
-        run(new ExecuteBuildAction(buildParameters.getTasks()), new AdaptedOperationParameters(operationParameters));
+    public void executeBuild(final BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 parameters) {
+        run(new ExecuteBuildAction(buildParameters.getTasks()), new AdaptedOperationParameters(parameters));
     }
 
-    public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) {
-        return getModelInternal(type, new AdaptedOperationParameters(operationParameters));
+    @Deprecated //getTheModel method has much convenient interface, e.g. avoids locking to building only models of a specific type
+    public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 parameters) {
+        return getTheModel(type, parameters);
     }
 
-    public <T> T getModelInternal(Class<T> type, ProviderOperationParameters operationParameters) {
+    public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
+        ProviderOperationParameters adaptedParameters = new AdaptedOperationParameters(parameters);
         if (type == InternalBuildEnvironment.class) {
-            //we don't really need to launch gradle to acquire this information, TODO SF refactor
-            DaemonClientServices services = daemonClientServices(operationParameters);
+            //we don't really need to launch gradle to acquire information needed for BuildEnvironment
+            DaemonClientServices services = daemonClientServices(adaptedParameters);
             DaemonContext context = services.get(DaemonContext.class);
             DefaultBuildEnvironment out = new DefaultBuildEnvironment(GradleVersion.current().getVersion(), context.getJavaHome(), context.getDaemonOpts());
             return type.cast(out);
         }
         DelegatingBuildModelAction<T> action = new DelegatingBuildModelAction<T>(type);
-        return run(action, operationParameters);
+        return run(action, adaptedParameters);
     }
 
     private <T> T run(GradleLauncherAction<T> action, ProviderOperationParameters operationParameters) {

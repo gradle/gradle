@@ -26,7 +26,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
     final AsyncConnection protocolConnection = Mock()
     final ProtocolToModelAdapter adapter = Mock()
     final ConnectionParameters parameters = Mock()
-    final DefaultModelBuilder<Project> builder = new DefaultModelBuilder<Project>(Project, ProjectVersion3, protocolConnection, adapter, parameters)
+    final DefaultModelBuilder<Project, ProjectVersion3> builder = new DefaultModelBuilder<Project, ProjectVersion3>(Project, ProjectVersion3, protocolConnection, adapter, parameters)
 
     def getModelDelegatesToProtocolConnectionToFetchModel() {
         ResultHandler<Project> handler = Mock()

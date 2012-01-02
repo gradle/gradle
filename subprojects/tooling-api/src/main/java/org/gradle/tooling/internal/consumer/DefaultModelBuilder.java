@@ -19,22 +19,21 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.internal.protocol.ProjectVersion3;
 import org.gradle.tooling.model.Element;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class DefaultModelBuilder<T extends Element> extends AbstractLongRunningOperation implements ModelBuilder<T> {
+public class DefaultModelBuilder<T extends Element, P> extends AbstractLongRunningOperation implements ModelBuilder<T> {
     private final Class<T> modelType;
-    private final Class<? extends ProjectVersion3> protocolType;
+    private final Class<P> protocolType;
     private final AsyncConnection connection;
     private final ProtocolToModelAdapter adapter;
     public final static String INCOMPATIBLE_VERSION_HINT =
             "Most likely the model of that type is not supported in the target Gradle version."
             + "\nTo resolve the problem you can change/upgrade the Gradle version the tooling api connects to.";
 
-    public DefaultModelBuilder(Class<T> modelType, Class<? extends ProjectVersion3> protocolType, AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
+    public DefaultModelBuilder(Class<T> modelType, Class<P> protocolType, AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
         super(parameters);
         this.modelType = modelType;
         this.protocolType = protocolType;
@@ -49,8 +48,8 @@ public class DefaultModelBuilder<T extends Element> extends AbstractLongRunningO
     }
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
-        ResultHandler<ProjectVersion3> adaptingHandler = new ProtocolToModelAdaptingHandler(handler);
-        connection.getModel(protocolType, operationParameters(), new ResultHandlerAdapter<ProjectVersion3>(adaptingHandler) {
+        ResultHandler<P> adaptingHandler = new ProtocolToModelAdaptingHandler(handler);
+        connection.getModel(protocolType, operationParameters(), new ResultHandlerAdapter<P>(adaptingHandler) {
             @Override
             protected String connectionFailureMessage(Throwable failure) {
                 String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
@@ -63,37 +62,37 @@ public class DefaultModelBuilder<T extends Element> extends AbstractLongRunningO
     }
 
     @Override
-    public DefaultModelBuilder<T> setStandardOutput(OutputStream outputStream) {
+    public DefaultModelBuilder<T, P> setStandardOutput(OutputStream outputStream) {
         super.setStandardOutput(outputStream);
         return this;
     }
 
     @Override
-    public DefaultModelBuilder<T> setStandardError(OutputStream outputStream) {
+    public DefaultModelBuilder<T, P> setStandardError(OutputStream outputStream) {
         super.setStandardError(outputStream);
         return this;
     }
 
     @Override
-    public DefaultModelBuilder<T> setStandardInput(InputStream inputStream) {
+    public DefaultModelBuilder<T, P> setStandardInput(InputStream inputStream) {
         super.setStandardInput(inputStream);
         return this;
     }
 
     @Override
-    public DefaultModelBuilder<T> addProgressListener(ProgressListener listener) {
+    public DefaultModelBuilder<T, P> addProgressListener(ProgressListener listener) {
         super.addProgressListener(listener);
         return this;
     }
 
-    private class ProtocolToModelAdaptingHandler implements ResultHandler<ProjectVersion3> {
+    private class ProtocolToModelAdaptingHandler implements ResultHandler<P> {
         private final ResultHandler<? super T> handler;
 
         public ProtocolToModelAdaptingHandler(ResultHandler<? super T> handler) {
             this.handler = handler;
         }
 
-        public void onComplete(ProjectVersion3 result) {
+        public void onComplete(P result) {
             handler.onComplete(adapter.adapt(modelType, result));
 
         }

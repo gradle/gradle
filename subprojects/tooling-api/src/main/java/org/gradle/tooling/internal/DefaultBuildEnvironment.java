@@ -57,15 +57,4 @@ public class DefaultBuildEnvironment implements BuildEnvironment, InternalBuildE
     public String getDescription() {
         return null;
     }
-
-    //TODO SF - figure out a way of getting rid of such methods
-    //Unfortunately, at this moment ProjectVersion3 is bolted into a lot of classes
-    //e.g. all models available from tooling api need to inherit from ProjectVersion3 at the moment
-    public String getPath() {
-        throw new UnsupportedOperationException("Build environment does not provide 'path' information");
-    }
-
-    public File getProjectDirectory() {
-        throw new UnsupportedOperationException("Build environment does not provide 'project directory' information");
-    }
 }

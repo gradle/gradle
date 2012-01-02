@@ -31,7 +31,7 @@ import java.util.Map;
 
 class DefaultProjectConnection implements ProjectConnection {
     private final AsyncConnection connection;
-    private final Map<Class<? extends Element>, Class<? extends ProjectVersion3>> modelTypeMap = new HashMap<Class<? extends Element>, Class<? extends ProjectVersion3>>();
+    private final Map<Class<? extends Element>, Class> modelTypeMap = new HashMap<Class<? extends Element>, Class>();
     private ProtocolToModelAdapter adapter;
     private final ConnectionParameters parameters;
 
@@ -43,8 +43,8 @@ class DefaultProjectConnection implements ProjectConnection {
         modelTypeMap.putAll(getModelsPostM6());
     }
 
-    public static Map<Class<? extends Element>, Class<? extends ProjectVersion3>> getModelsUpToM6() {
-        Map<Class<? extends Element>, Class<? extends ProjectVersion3>> map = new HashMap<Class<? extends Element>, Class<? extends ProjectVersion3>>();
+    public static Map<Class<? extends Element>, Class> getModelsUpToM6() {
+        Map<Class<? extends Element>, Class> map = new HashMap<Class<? extends Element>, Class>();
         map.put(Project.class, ProjectVersion3.class);
         map.put(BuildableProject.class, BuildableProjectVersion1.class);
         map.put(HierarchicalProject.class, HierarchicalProjectVersion1.class);
@@ -56,8 +56,8 @@ class DefaultProjectConnection implements ProjectConnection {
         return map;
     }
 
-    public static Map<Class<? extends Element>, Class<? extends ProjectVersion3>> getModelsPostM6() {
-        Map<Class<? extends Element>, Class<? extends ProjectVersion3>> map = new HashMap<Class<? extends Element>, Class<? extends ProjectVersion3>>();
+    public static Map<Class<? extends Element>, Class> getModelsPostM6() {
+        Map<Class<? extends Element>, Class> map = new HashMap<Class<? extends Element>, Class>();
         map.put(BuildEnvironment.class, InternalBuildEnvironment.class);
         map.put(TestModel.class, InternalTestModel.class);
         return map;
@@ -80,11 +80,11 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     public <T extends Element> ModelBuilder<T> model(Class<T> modelType) {
-        return new DefaultModelBuilder<T>(modelType, mapToProtocol(modelType), connection, adapter, parameters);
+        return new DefaultModelBuilder<T, Class>(modelType, mapToProtocol(modelType), connection, adapter, parameters);
     }
 
-    private Class<? extends ProjectVersion3> mapToProtocol(Class<? extends Element> viewType) {
-        Class<? extends ProjectVersion3> protocolViewType = modelTypeMap.get(viewType);
+    private Class mapToProtocol(Class<? extends Element> viewType) {
+        Class protocolViewType = modelTypeMap.get(viewType);
         if (protocolViewType == null) {
             throw new UnknownModelException(
                     "Unknown model: '" + viewType.getSimpleName() + "'.\n"

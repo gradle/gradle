@@ -16,19 +16,22 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
+import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
 
 /**
  * The idea is to initialize the logging infrastructure before we actually build the model or run a build.
  * <p>
  * by Szczepan Faber, created at: 12/14/11
  */
-public class LoggingInitializerConnection implements ConnectionVersion4 {
+public class LoggingInitializerConnection implements ConsumerConnection {
 
-    private final ConnectionVersion4 connection;
+    private final ConsumerConnection connection;
     private final SynchronizedLogging synchronizedLogging;
 
-    public LoggingInitializerConnection(ConnectionVersion4 connection, SynchronizedLogging synchronizedLogging) {
+    public LoggingInitializerConnection(ConsumerConnection connection, SynchronizedLogging synchronizedLogging) {
         this.connection = connection;
         this.synchronizedLogging = synchronizedLogging;
     }
@@ -41,7 +44,7 @@ public class LoggingInitializerConnection implements ConnectionVersion4 {
         return connection.getMetaData();
     }
 
-    public ProjectVersion3 getModel(Class<? extends ProjectVersion3> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T getModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException {
         synchronizedLogging.init();
         return connection.getModel(type, operationParameters);
     }

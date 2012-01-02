@@ -20,7 +20,6 @@ import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
-import org.gradle.tooling.internal.protocol.ProjectVersion3
 import spock.lang.Specification
 
 class LazyConnectionTest extends Specification {
@@ -32,6 +31,8 @@ class LazyConnectionTest extends Specification {
     final LoggingProvider loggingProvider = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final LazyConnection connection = new LazyConnection(distribution, implementationLoader, loggingProvider)
+
+    static class SomeModel {}
 
     def setup() {
         connection.modelProvider = Mock(ModelProvider)
@@ -50,37 +51,39 @@ class LazyConnectionTest extends Specification {
 
     def createsConnectionOnDemandToBuildModel() {
         when:
-        connection.getModel(ProjectVersion3, params)
+        connection.getModel(SomeModel, params)
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
-        1 * connection.modelProvider.provide(connectionImpl, ProjectVersion3, params)
+        1 * connection.modelProvider.provide(!null, SomeModel, params)
         0 * _._
     }
 
     def reusesConnection() {
         when:
-        connection.getModel(ProjectVersion3, params)
+        connection.getModel(SomeModel, params)
         connection.executeBuild(buildParams, params)
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
-        1 * connection.modelProvider.provide(connectionImpl, ProjectVersion3, params)
+        1 * connection.modelProvider.provide(!null, SomeModel, params)
         1 * connectionImpl.executeBuild(buildParams, params)
+        //TODO SF push down the ConsumerConnection to the loaders and update the tests
+        //TODO SF review remainging usages of ProjectVersion3 and ConnectionVersion4
         0 * _._
     }
 
     def stopsConnectionOnStop() {
         when:
-        connection.getModel(ProjectVersion3, params)
+        connection.getModel(SomeModel, params)
         connection.stop()
 
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory) >> connectionImpl
-        1 * connection.modelProvider.provide(connectionImpl, ProjectVersion3, params)
+        1 * connection.modelProvider.provide(!null, SomeModel, params)
         1 * connectionImpl.stop()
         0 * _._
     }
@@ -97,7 +100,7 @@ class LazyConnectionTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        connection.getModel(ProjectVersion3, params)
+        connection.getModel(SomeModel, params)
 
         then:
         RuntimeException e = thrown()

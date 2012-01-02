@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * by Szczepan Faber, created at: 12/17/11
  */
-public interface InternalBuildEnvironment extends ProjectVersion3, InternalProtocolInterface {
+public interface InternalBuildEnvironment extends InternalProtocolInterface {
 
     String getGradleVersion();
 

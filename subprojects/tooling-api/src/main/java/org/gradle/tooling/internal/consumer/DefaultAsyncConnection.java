@@ -17,19 +17,22 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
+import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
+import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Adapts a {@link ConnectionVersion4} to an {@link AsyncConnection}.
+ * Adapts a {@link ConsumerConnection} to an {@link AsyncConnection}.
  */
 class DefaultAsyncConnection implements AsyncConnection {
-    private final ConnectionVersion4 connection;
+    private final ConsumerConnection connection;
     private final StoppableExecutor executor;
     private final AtomicBoolean closed = new AtomicBoolean();
 
-    public DefaultAsyncConnection(ConnectionVersion4 connection, ExecutorFactory executorFactory) {
+    public DefaultAsyncConnection(ConsumerConnection connection, ExecutorFactory executorFactory) {
         this.connection = connection;
         executor = executorFactory.create("Connection worker");
     }
@@ -47,9 +50,9 @@ class DefaultAsyncConnection implements AsyncConnection {
         });
     }
 
-    public void getModel(final Class<? extends ProjectVersion3> type, final BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super ProjectVersion3> handler) throws UnsupportedOperationException, IllegalStateException {
-        runLater(handler, new ConnectionAction<ProjectVersion3>() {
-            public ProjectVersion3 run() {
+    public <T> void getModel(final Class<T> type, final BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<T> handler) throws UnsupportedOperationException, IllegalStateException {
+        runLater(handler, new ConnectionAction<T>() {
+            public T run() {
                 return connection.getModel(type, operationParameters);
             }
         });

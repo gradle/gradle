@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.consumer;
+
+package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
-import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
 
-public interface AsyncConnection {
-    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException;
-
-    <T> void getModel(Class<T> type, BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<T> handler) throws UnsupportedOperationException, IllegalStateException;
+/**
+ * by Szczepan Faber, created at: 12/22/11
+ */
+public interface ConsumerConnection {
 
     void stop();
 
-    String getDisplayName();
+    ConnectionMetaDataVersion1 getMetaData();
+
+    <T> T getModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException;
+
+    void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) throws IllegalStateException;
 }
