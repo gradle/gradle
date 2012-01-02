@@ -79,6 +79,27 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         0 * _._
     }
 
+    def "provides compatibility hint on failure"() {
+        ResultHandler<Project> handler = Mock()
+        ResultHandlerVersion1<ProjectVersion3> adaptedHandler
+        RuntimeException failure = new UnsupportedOperationException()
+        GradleConnectionException wrappedFailure
+
+        when:
+        builder.get(handler)
+
+        then:
+        1 * protocolConnection.getModel(!null, !null, !null) >> {args -> adaptedHandler = args[2]}
+
+        when:
+        adaptedHandler.onFailure(failure)
+
+        then:
+        1 * handler.onFailure(!null) >> {args -> wrappedFailure = args[0] }
+        wrappedFailure.message.contains(DefaultModelBuilder.INCOMPATIBLE_VERSION_HINT)
+        wrappedFailure.cause.is(failure)
+    }
+
     def getModelBlocksUntilResultReceivedFromProtocolConnection() {
         def supplyResult = waitsForAsyncCallback()
         ProjectVersion3 result = Mock()
