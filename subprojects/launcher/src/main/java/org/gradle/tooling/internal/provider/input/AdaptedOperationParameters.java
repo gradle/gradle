@@ -16,9 +16,9 @@
 
 package org.gradle.tooling.internal.provider.input;
 
-import org.gradle.tooling.internal.CompatibleIntrospector;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
+import org.gradle.tooling.internal.reflect.CompatibleIntrospector;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

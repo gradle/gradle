@@ -13,33 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal;
 
-import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
+package org.gradle.tooling.internal.impl.idea;
+
+import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultExternalDependency implements ExternalDependencyVersion1, Serializable {
-    private final File file;
-    private final File javadoc;
-    private final File source;
+/**
+ * @author: Szczepan Faber, created at: 7/27/11
+ */
+public class DefaultIdeaSourceDirectory implements IdeaSourceDirectory, Serializable {
 
-    public DefaultExternalDependency(File file, File javadoc, File source) {
-        this.file = file;
-        this.javadoc = javadoc;
-        this.source = source;
+    private File directory;
+
+    public File getDirectory() {
+        return directory;
     }
 
-    public File getFile() {
-        return file;
+    public DefaultIdeaSourceDirectory setDirectory(File directory) {
+        this.directory = directory;
+        return this;
     }
 
-    public File getJavadoc() {
-        return javadoc;
-    }
-
-    public File getSource() {
-        return source;
+    @Override
+    public String toString() {
+        return "DefaultIdeaSourceDirectory{"
+                + "directory=" + directory
+                + '}';
     }
 }

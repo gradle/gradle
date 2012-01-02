@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.idea;
+package org.gradle.tooling.internal.impl.idea;
 
 import org.gradle.api.GradleException;
 import org.gradle.tooling.internal.protocol.InternalIdeaProject;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal;
+package org.gradle.tooling.internal.reflect;
 
 import org.gradle.tooling.model.UnsupportedMethodException;
 
