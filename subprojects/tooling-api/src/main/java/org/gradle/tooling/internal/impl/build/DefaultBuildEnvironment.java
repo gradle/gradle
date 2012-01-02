@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal;
+package org.gradle.tooling.internal.impl.build;
 
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
-import org.gradle.tooling.model.BuildEnvironment;
+import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.model.build.GradleEnvironment;
+import org.gradle.tooling.model.build.JavaEnvironment;
 
 import java.io.File;
 import java.io.Serializable;
@@ -38,16 +40,24 @@ public class DefaultBuildEnvironment implements BuildEnvironment, InternalBuildE
         this.jvmArguments = jvmArguments;
     }
 
-    public String getGradleVersion() {
-        return gradleVersion;
+    public GradleEnvironment getGradle() {
+        return new GradleEnvironment() {
+            public String getGradleVersion() {
+                return gradleVersion;
+            }
+        };
     }
 
-    public File getJavaHome() {
-        return javaHome;
-    }
+    public JavaEnvironment getJava() {
+        return new JavaEnvironment() {
+            public File getJavaHome() {
+                return javaHome;
+            }
 
-    public List<String> getJvmArguments() {
-        return jvmArguments;
+            public List<String> getJvmArguments() {
+                return jvmArguments;
+            }
+        };
     }
 
     public String getName() {

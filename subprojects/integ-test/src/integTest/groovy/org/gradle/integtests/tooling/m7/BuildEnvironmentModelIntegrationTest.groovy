@@ -19,7 +19,7 @@ package org.gradle.integtests.tooling.m7
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.BuildEnvironment
+import org.gradle.tooling.model.build.BuildEnvironment
 
 @MinToolingApiVersion('1.0-milestone-7')
 @MinTargetGradleVersion('1.0-milestone-7')
@@ -30,7 +30,7 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
         BuildEnvironment model = withConnection { it.getModel(BuildEnvironment.class) }
 
         then:
-        model.gradleVersion == targetDist.version
+        model.gradle.gradleVersion == targetDist.version
     }
 
     def "informs about java versions"() {
@@ -38,8 +38,8 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
         BuildEnvironment model = withConnection { it.getModel(BuildEnvironment.class) }
 
         then:
-        println "Find way to assert on: $model.jvmArguments and $model.javaHome"
-        model.javaHome
-        !model.jvmArguments.empty
+        println "Find way to assert on: $model.java.jvmArguments and $model.java.javaHome"
+        model.java.javaHome
+        !model.java.jvmArguments.empty
     }
 }

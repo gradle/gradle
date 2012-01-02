@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
-
 /**
- * Marker interface for the internal protocol purposes.
- * Corresponding client facing model is {@link org.gradle.tooling.model.build.BuildEnvironment}
- * <p>
- * by Szczepan Faber, created at: 12/17/11
+ * Models the build environment information like gradle or java versions
  */
-public interface InternalBuildEnvironment extends InternalProtocolInterface {}
+package org.gradle.tooling.model.build;

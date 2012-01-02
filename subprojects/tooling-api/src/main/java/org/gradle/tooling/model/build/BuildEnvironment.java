@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model;
+package org.gradle.tooling.model.build;
 
-import java.io.File;
-import java.util.List;
+import org.gradle.tooling.model.Element;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
 /**
- * Informs about the build environment, like Gradle version or jvm in use
+ * Informs about the build environment, like Gradle version or the java home in use.
  * <p>
  * Marked as deprecated because the API is not yet confirmed.
  * E.g. we will provide this information for sure, we just haven't yet confirmed the API.
@@ -30,9 +30,16 @@ import java.util.List;
 @Deprecated
 public interface BuildEnvironment extends Element {
 
-    String getGradleVersion();
+    /**
+     * Informs about the gradle environment, for example the gradle version.
+     */
+    GradleEnvironment getGradle();
 
-    File getJavaHome();
-
-    List<String> getJvmArguments();
+    /**
+     * Informs about the java environment, for example the java home or the jvm args used.
+     *
+     * @throws org.gradle.tooling.model.UnsupportedMethodException
+     * when the gradle version the tooling api is connected to does not support the java environment information.
+     */
+    JavaEnvironment getJava() throws UnsupportedMethodException;
 }

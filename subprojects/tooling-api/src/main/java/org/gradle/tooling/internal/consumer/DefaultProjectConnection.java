@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.internal.protocol.eclipse.HierarchicalEclipseProjectVersion1;
 import org.gradle.tooling.model.*;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.idea.BasicIdeaProject;

@@ -14,27 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal;
-
-import org.gradle.tooling.model.internal.Exceptions;
+package org.gradle.tooling.model.build;
 
 import java.io.File;
 import java.util.List;
 
 /**
- * by Szczepan Faber, created at: 12/22/11
+ * Informs about the java environment, for example the java home or the jvm args used.
  */
-public class VersionOnlyBuildEnvironment extends DefaultBuildEnvironment {
+public interface JavaEnvironment {
 
-    public VersionOnlyBuildEnvironment(String gradleVersion) {
-        super(gradleVersion, null, null);
-    }
+    /**
+     * The java home used for gradle operations (e.g. running tasks or acquiring model information, etc).
+     */
+    File getJavaHome();
 
-    public File getJavaHome() {
-        throw Exceptions.unsupportedMethod("getJavaHome");
-    }
-
-    public List<String> getJvmArguments() {
-        throw Exceptions.unsupportedMethod("getJvmArguments");
-    }
+    /**
+     * The jvm arguments used for the java process that handles gradle operations (e.g. running tasks or acquiring model information, etc).
+     */
+    List<String> getJvmArguments();
 }
