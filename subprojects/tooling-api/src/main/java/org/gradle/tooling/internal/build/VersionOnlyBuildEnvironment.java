@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.impl.eclipse
 
-import spock.lang.Specification
+package org.gradle.tooling.internal.build;
 
-class DefaultEclipseProjectTest extends Specification {
-    def usesPathForToStringValue() {
-        def project = new DefaultEclipseProject("name", ":path", null, null, [])
+import org.gradle.tooling.model.build.JavaEnvironment;
+import org.gradle.tooling.model.internal.Exceptions;
 
-        expect:
-        project.toString() == "project ':path'"
+/**
+ * by Szczepan Faber, created at: 12/22/11
+ */
+public class VersionOnlyBuildEnvironment extends DefaultBuildEnvironment {
+
+    public VersionOnlyBuildEnvironment(String gradleVersion) {
+        super(gradleVersion, null, null);
+    }
+
+    public JavaEnvironment getJava() {
+        throw Exceptions.unsupportedMethod("getJava");
     }
 }

@@ -13,34 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.tooling.internal.eclipse;
 
-package org.gradle.tooling.internal.impl.idea;
-
-import org.gradle.tooling.model.idea.IdeaSourceDirectory;
+import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 
 import java.io.File;
 import java.io.Serializable;
 
-/**
- * @author: Szczepan Faber, created at: 7/27/11
- */
-public class DefaultIdeaSourceDirectory implements IdeaSourceDirectory, Serializable {
+public class DefaultEclipseExternalDependency implements ExternalDependencyVersion1, Serializable {
+    private final File file;
+    private final File javadoc;
+    private final File source;
 
-    private File directory;
-
-    public File getDirectory() {
-        return directory;
+    public DefaultEclipseExternalDependency(File file, File javadoc, File source) {
+        this.file = file;
+        this.javadoc = javadoc;
+        this.source = source;
     }
 
-    public DefaultIdeaSourceDirectory setDirectory(File directory) {
-        this.directory = directory;
-        return this;
+    public File getFile() {
+        return file;
     }
 
-    @Override
-    public String toString() {
-        return "DefaultIdeaSourceDirectory{"
-                + "directory=" + directory
-                + '}';
+    public File getJavadoc() {
+        return javadoc;
+    }
+
+    public File getSource() {
+        return source;
     }
 }

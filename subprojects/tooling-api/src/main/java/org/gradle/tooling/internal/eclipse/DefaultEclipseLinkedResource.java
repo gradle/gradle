@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.impl.eclipse;
+package org.gradle.tooling.internal.eclipse;
 
 import org.gradle.tooling.internal.protocol.eclipse.EclipseLinkedResourceVersion1;
 

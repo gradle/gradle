@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.impl.gradle;
+package org.gradle.tooling.internal.gradle;
 
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;

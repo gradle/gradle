@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.impl.idea;
+package org.gradle.tooling.internal.idea;
 
 import org.gradle.tooling.model.idea.IdeaCompilerOutput;
 

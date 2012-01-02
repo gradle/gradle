@@ -13,33 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.impl.eclipse;
+package org.gradle.tooling.internal.eclipse;
 
-import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultEclipseExternalDependency implements ExternalDependencyVersion1, Serializable {
-    private final File file;
-    private final File javadoc;
-    private final File source;
+public class DefaultEclipseSourceDirectory implements EclipseSourceDirectoryVersion1, Serializable {
+    private final String path;
+    private final File directory;
 
-    public DefaultEclipseExternalDependency(File file, File javadoc, File source) {
-        this.file = file;
-        this.javadoc = javadoc;
-        this.source = source;
+    public DefaultEclipseSourceDirectory(String path, File directory) {
+        this.path = path;
+        this.directory = directory;
     }
 
-    public File getFile() {
-        return file;
+    @Override
+    public String toString() {
+        return String.format("source directory '%s'", path);
     }
 
-    public File getJavadoc() {
-        return javadoc;
+    public File getDirectory() {
+        return directory;
     }
 
-    public File getSource() {
-        return source;
+    public String getPath() {
+        return path;
     }
 }

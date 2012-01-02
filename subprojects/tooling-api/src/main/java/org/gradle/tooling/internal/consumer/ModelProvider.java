@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.impl.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.util.GradleVersion;
