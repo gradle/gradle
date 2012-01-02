@@ -17,7 +17,7 @@ package org.gradle.os.jna;
 
 import com.sun.jna.Library;
 
-public interface UnixLibC extends Library {
+public interface LibC extends Library {
     //CHECKSTYLE:OFF
     public int setenv(String name, String value, int overwrite);
     public int unsetenv(String name);

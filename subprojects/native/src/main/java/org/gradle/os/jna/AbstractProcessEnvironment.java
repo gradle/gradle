@@ -21,7 +21,7 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.Map;
 
-public abstract class AbstractNativeEnvironment implements ProcessEnvironment {
+public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
     //for updates to private JDK caches of the environment state
     private final ReflectiveEnvironment reflectiveEnvironment = new ReflectiveEnvironment();
 

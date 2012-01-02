@@ -15,9 +15,9 @@
  */
 package org.gradle.os;
 
-import org.gradle.os.jna.Unix;
+import org.gradle.os.jna.PosixBackedProcessEnvironment;
 import org.gradle.os.jna.UnsupportedEnvironment;
-import org.gradle.os.jna.Windows;
+import org.gradle.os.jna.WindowsProcessEnvironment;
 import org.jruby.ext.posix.POSIX;
 
 public class NativeServices {
@@ -40,9 +40,9 @@ public class NativeServices {
     protected ProcessEnvironment createProcessEnvironment() {
         try {
             if (OperatingSystem.current().isUnix()) {
-                return new Unix();
+                return new PosixBackedProcessEnvironment();
             } else if (OperatingSystem.current().isWindows()) {
-                return new Windows();
+                return new WindowsProcessEnvironment();
             } else {
                 return new UnsupportedEnvironment();
             }

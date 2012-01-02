@@ -24,7 +24,7 @@ import java.io.File;
 /**
  * Uses JNA to drive the functions provided by kernel32.dll
  */
-public class Windows extends AbstractNativeEnvironment {
+public class WindowsProcessEnvironment extends AbstractProcessEnvironment {
     private static final int LOTS_OF_CHARS = 2048;
     private final Kernel32 kernel32 = Kernel32.INSTANCE;
 

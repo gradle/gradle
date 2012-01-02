@@ -23,9 +23,9 @@ import java.io.File;
 /**
  * Uses JNA to drive the POSIX API provided by libc
  */
-public class Unix extends AbstractNativeEnvironment {
+public class PosixBackedProcessEnvironment extends AbstractProcessEnvironment {
     private static final int LOTS_OF_CHARS = 2048;
-    private final UnixLibC libc = (UnixLibC) Native.loadLibrary("c", UnixLibC.class);
+    private final LibC libc = (LibC) Native.loadLibrary("c", LibC.class);
 
     public void setNativeEnvironmentVariable(String name, String value) {
         int retval = libc.setenv(name, value, 1);
