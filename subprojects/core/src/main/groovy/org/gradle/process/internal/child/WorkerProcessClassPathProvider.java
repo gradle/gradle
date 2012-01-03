@@ -46,6 +46,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         if (name.equals("WORKER_PROCESS")) {
             // TODO - split out a logging project and use its classpath, instead of hardcoding logging dependencies here
             Set<File> classpath = new LinkedHashSet<File>();
+            classpath.addAll(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
             classpath.addAll(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
             classpath.addAll(moduleRegistry.getModule("gradle-cli").getImplementationClasspath());
             classpath.addAll(moduleRegistry.getExternalModule("slf4j-api").getClasspath());
