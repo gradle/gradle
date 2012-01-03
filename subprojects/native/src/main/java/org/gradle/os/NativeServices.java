@@ -15,26 +15,26 @@
  */
 package org.gradle.os;
 
+import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.os.jna.PosixBackedProcessEnvironment;
 import org.gradle.os.jna.UnsupportedEnvironment;
 import org.gradle.os.jna.WindowsProcessEnvironment;
 import org.jruby.ext.posix.POSIX;
 
-public class NativeServices {
-    public <T> T get(Class<T> type) {
-        if (type.isAssignableFrom(ProcessEnvironment.class)) {
-            return type.cast(createProcessEnvironment());
-        }
-        if (type.isAssignableFrom(OperatingSystem.class)) {
-            return type.cast(OperatingSystem.current());
-        }
-        if (type.isAssignableFrom(POSIX.class)) {
-            return type.cast(PosixUtil.current());
-        }
-        if (type.isAssignableFrom(FileSystem.class)) {
-            return type.cast(FileSystems.getDefault());
-        }
-        throw new IllegalArgumentException(String.format("Do not know how to create service of type %s.", type.getSimpleName()));
+/**
+ * Provides various native platform integration services.
+ */
+public class NativeServices extends DefaultServiceRegistry {
+    protected OperatingSystem createOperatingSystem() {
+        return OperatingSystem.current();
+    }
+
+    protected POSIX createPOSIX() {
+        return PosixUtil.current();
+    }
+
+    protected FileSystem createFileSystem() {
+        return FileSystems.getDefault();
     }
 
     protected ProcessEnvironment createProcessEnvironment() {

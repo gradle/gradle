@@ -1,0 +1,11 @@
+/*
+ * A set of generic services and utilities.
+ *
+ * Should have a very small set of dependencies.
+ */
+dependencies {
+    groovy libraries.groovy
+    compile libraries.slf4j_api
+}
+
+useTestFixtures()

@@ -16,7 +16,6 @@
 
 package org.gradle.messaging.concurrent;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +79,7 @@ public class CompositeStoppable implements Stoppable {
                 try {
                     closeable.close();
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.asUncheckedException(e);
                 }
             }
         };

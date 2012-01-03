@@ -40,13 +40,4 @@ class NativeServicesTest extends Specification {
         expect:
         services.get(FileSystem) != null
     }
-
-    def "fails for unknown type"() {
-        when:
-        services.get(String)
-
-        then:
-        IllegalArgumentException e = thrown()
-        assert e.message == 'Do not know how to create service of type String.'
-    }
 }
