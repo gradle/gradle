@@ -18,7 +18,7 @@ task generatePom {
     doLast {
         dependencies {
             configurations.publishCompile.allDependencies.withType(ProjectDependency).each {
-                publishRuntime "org.gradle:gradle-${it.dependencyProject.name}:${version}"
+                publishRuntime "org.gradle:${it.dependencyProject.archivesBaseName}:${version}"
             }
             configurations.publishCompile.allDependencies.withType(ExternalModuleDependency).each {
                 publishRuntime it

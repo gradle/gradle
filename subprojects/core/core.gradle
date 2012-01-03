@@ -24,6 +24,7 @@ dependencies {
     groovy libraries.groovy
 
     publishCompile libraries.slf4j_api
+    publishCompile project(":baseServices")
 
     compile libraries.asm
     compile libraries.ant
@@ -44,7 +45,6 @@ dependencies {
     compile libraries.commons_httpclient
 
     compile project(":cli")
-    compile project(":baseServices")
     compile project(":native")
 
     runtime libraries.log4j_to_slf4j

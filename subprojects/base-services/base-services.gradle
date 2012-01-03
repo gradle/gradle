@@ -8,7 +8,8 @@ apply from: "$rootDir/gradle/classycle.gradle"
 
 dependencies {
     groovy libraries.groovy
-    compile libraries.slf4j_api
+
+    publishCompile libraries.slf4j_api
 }
 
 useTestFixtures()

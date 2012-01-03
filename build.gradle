@@ -418,7 +418,7 @@ def groovyProjects() {
 }
 
 def publishedProjects() {
-    [project(':core'), project(':toolingApi'), project(':wrapper')]
+    [project(':core'), project(':toolingApi'), project(':wrapper'), project(':baseServices')]
 }
 
 def pluginProjects() {
