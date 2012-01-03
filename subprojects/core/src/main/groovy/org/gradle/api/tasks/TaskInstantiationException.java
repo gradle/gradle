@@ -21,6 +21,10 @@ import org.gradle.api.GradleException;
  * A {@code TaskInstantiationException} is thrown when a task cannot be instantiated for some reason.
  */
 public class TaskInstantiationException extends GradleException {
+    public TaskInstantiationException(String message) {
+        this(message, null);
+    }
+
     public TaskInstantiationException(String message, Throwable cause) {
         super(message, cause);
     }

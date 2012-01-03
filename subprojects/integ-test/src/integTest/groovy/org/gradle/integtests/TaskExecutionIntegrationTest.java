@@ -19,6 +19,7 @@ package org.gradle.integtests;
 import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest;
 import org.gradle.util.TestFile;
 import org.junit.Test;
+import spock.lang.Issue;
 
 import static org.hamcrest.Matchers.*;
 
@@ -150,5 +151,14 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
         usingBuildFile(buildFile).withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d", ":sub:c", ":sub:d");
         // Unknown task
         usingBuildFile(buildFile).withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"));
+    }
+
+    @Test
+    @Issue("http://issues.gradle.org/browse/GRADLE-2022")
+    public void tryingToInstantiateTaskDirectlyFailsWithGoodErrorMessage() {
+        usingBuildFile(testFile("build.gradle").write("new DefaultTask()")).
+        withTasks("tasks").
+        runWithFailure().
+        assertHasCause("Task of type 'org.gradle.api.DefaultTask' has been instantiated directly which is not supported");
     }
 }

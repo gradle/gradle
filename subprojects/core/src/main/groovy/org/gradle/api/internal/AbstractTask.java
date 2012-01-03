@@ -40,6 +40,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
@@ -97,12 +98,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private static TaskInfo taskInfo() {
-        TaskInfo taskInfo = nextInstance.get();
-        assert taskInfo != null;
-        return taskInfo;
+        return nextInstance.get();
     }
 
     private AbstractTask(TaskInfo taskInfo) {
+        if (taskInfo == null) {
+            throw new TaskInstantiationException(String.format("Task of type '%s' has been instantiated directly which is not supported. Tasks can only be created using the DSL.", getClass().getName()));
+        }
+
         this.project = taskInfo.project;
         this.name = taskInfo.name;
         assert project != null;

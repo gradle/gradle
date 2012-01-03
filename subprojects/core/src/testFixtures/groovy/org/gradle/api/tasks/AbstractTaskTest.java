@@ -17,10 +17,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.project.AbstractProject;
@@ -39,6 +36,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import spock.lang.Issue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -337,5 +335,17 @@ public abstract class AbstractTaskTest {
             }
         };
     }
-
+    
+    @Test
+    @Issue("http://issues.gradle.org/browse/GRADLE-2022")
+    public void testGoodErrorMessageWhenTaskInstantiatedDirectly() {
+        try {
+            Class<? extends AbstractTask> clazz = getTask().getClass();
+            clazz.newInstance();
+            throw new RuntimeException("Direct instantiation of " + clazz + " should have produced an exception");
+        } catch (Exception e) {
+            assertEquals(TaskInstantiationException.class, e.getClass());
+            assert e.getMessage().contains("has been instantiated directly which is not supported");
+        }
+    }
 }
