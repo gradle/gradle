@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePoli
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,19 +35,17 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
     private final ArtifactResolutionCache artifactResolutionCache;
-    private final ArtifactFileStore artifactFileStore;
 
     private final CachePolicy cachePolicy;
 
     private final ModuleVersionRepository delegate;
 
     public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
-                                          ArtifactResolutionCache artifactResolutionCache, ArtifactFileStore artifactFileStore, CachePolicy cachePolicy) {
+                                          ArtifactResolutionCache artifactResolutionCache, CachePolicy cachePolicy) {
         this.delegate = delegate;
         this.moduleDescriptorCache = moduleDescriptorCache;
         this.moduleResolutionCache = moduleResolutionCache;
         this.artifactResolutionCache = artifactResolutionCache;
-        this.artifactFileStore = artifactFileStore;
         this.cachePolicy = cachePolicy;
     }
 

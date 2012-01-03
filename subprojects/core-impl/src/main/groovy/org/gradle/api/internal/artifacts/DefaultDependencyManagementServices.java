@@ -303,7 +303,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(ModuleResolutionCache.class),
                     get(ModuleDescriptorCache.class),
                     get(ArtifactResolutionCache.class),
-                    get(ArtifactFileStore.class),
                     get(CacheLockingManager.class),
                     resolveModeOverride
             );

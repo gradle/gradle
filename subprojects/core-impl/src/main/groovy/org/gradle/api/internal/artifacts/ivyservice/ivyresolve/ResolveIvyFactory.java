@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePoli
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
@@ -42,13 +41,12 @@ public class ResolveIvyFactory {
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
     private final ArtifactResolutionCache artifactResolutionCache;
-    private final ArtifactFileStore artifactFileStore;
     private final CacheLockingManager cacheLockingManager;
     private final ResolveModeOverride resolveModeOverride;
 
-    public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter, 
-                             ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache, 
-                             ArtifactResolutionCache artifactResolutionCache, ArtifactFileStore artifactFileStore,
+    public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter,
+                             ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
+                             ArtifactResolutionCache artifactResolutionCache,
                              CacheLockingManager cacheLockingManager, ResolveModeOverride resolveModeOverride) {
         this.ivyFactory = ivyFactory;
         this.resolverProvider = resolverProvider;
@@ -56,7 +54,6 @@ public class ResolveIvyFactory {
         this.moduleResolutionCache = moduleResolutionCache;
         this.moduleDescriptorCache = moduleDescriptorCache;
         this.artifactResolutionCache = artifactResolutionCache;
-        this.artifactFileStore = artifactFileStore;
         this.cacheLockingManager = cacheLockingManager;
         this.resolveModeOverride = resolveModeOverride;
     }
@@ -85,7 +82,7 @@ public class ResolveIvyFactory {
             ModuleVersionRepository moduleVersionRepository = new DependencyResolverAdapter(resolverId, cacheLockingResolver);
             moduleVersionRepository = resolveModeOverride.overrideModuleVersionRepository(moduleVersionRepository);
             ModuleVersionRepository cachingRepository =
-                    new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache, artifactFileStore, cachePolicy);
+                    new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache, cachePolicy);
             // Need to contextualise outside of caching, since parsing of module descriptors in the cache requires ivy settings, which is provided via the context atm
             ModuleVersionRepository ivyContextualisedRepository = contextualiser.contextualise(ModuleVersionRepository.class, cachingRepository);
             userResolverChain.add(ivyContextualisedRepository);
