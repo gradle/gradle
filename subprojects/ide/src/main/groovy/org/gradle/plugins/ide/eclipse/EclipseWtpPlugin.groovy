@@ -105,6 +105,7 @@ class EclipseWtpPlugin extends IdePlugin {
                     component.minusConfigurations = []
                     component.classesDeployPath = "/"
                     component.libDeployPath = "/lib"
+                    component.conventionMapping.sourceDirs = { [project.file { project.appDirName }] as Set }
                     project.plugins.withType(JavaPlugin) {
                         component.conventionMapping.sourceDirs = { getMainSourceDirs(project) }
                     }

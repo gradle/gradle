@@ -152,4 +152,12 @@ class EclipseWtpPluginTest extends Specification {
         GenerateEclipseClasspath eclipseClasspath = project.tasks.eclipseClasspath
         assert eclipseClasspath.plusConfigurations == configurations
     }
+
+    def applyToEarProjectWithoutJavaPlugin_shouldUseAppDirInWtpComponentSource() {
+        when:
+        project.apply(plugin: 'ear')
+        wtpPlugin.apply(project)
+        then:
+        project.eclipseWtpComponent.sourceDirs == [project.file(project.appDirName)] as Set
+    }
 }
