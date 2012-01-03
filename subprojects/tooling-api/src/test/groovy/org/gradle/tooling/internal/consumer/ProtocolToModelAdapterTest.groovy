@@ -15,7 +15,12 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency
+import org.gradle.tooling.internal.idea.DefaultIdeaSingleEntryLibraryDependency
 import org.gradle.tooling.model.DomainObjectSet
+import org.gradle.tooling.model.idea.IdeaDependency
+import org.gradle.tooling.model.idea.IdeaModuleDependency
+import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
@@ -123,6 +128,19 @@ class ProtocolToModelAdapterTest extends Specification {
         protocolModel.name >> { throw failure }
         RuntimeException e = thrown()
         e == failure
+    }
+
+    def "adapts idea dependencies"() {
+        def libraryDep = new GroovyClassLoader().loadClass(DefaultIdeaSingleEntryLibraryDependency.class.getCanonicalName()).newInstance()
+        def moduleDep = new GroovyClassLoader().loadClass(DefaultIdeaModuleDependency.class.getCanonicalName()).newInstance()
+
+        when:
+        def library = adapter.adapt(IdeaDependency.class, libraryDep)
+        def module  = adapter.adapt(IdeaDependency.class, moduleDep)
+
+        then:
+        library instanceof IdeaSingleEntryLibraryDependency
+        module instanceof IdeaModuleDependency
     }
 }
 
