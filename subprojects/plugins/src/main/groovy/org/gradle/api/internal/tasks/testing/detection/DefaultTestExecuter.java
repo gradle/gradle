@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.detection;
 
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;

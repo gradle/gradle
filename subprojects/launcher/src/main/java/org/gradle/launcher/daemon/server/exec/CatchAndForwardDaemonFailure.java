@@ -18,8 +18,8 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.protocol.DaemonFailure;
-import org.gradle.util.UncheckedException;
 
 /**
  * Wraps the rest of the command execution in a try catch in order to forward any internal

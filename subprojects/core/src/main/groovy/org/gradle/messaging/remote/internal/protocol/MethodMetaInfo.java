@@ -15,8 +15,8 @@
  */
 package org.gradle.messaging.remote.internal.protocol;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.remote.internal.Message;
-import org.gradle.util.UncheckedException;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;

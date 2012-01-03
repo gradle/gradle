@@ -17,7 +17,9 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.Synchronizer;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.UnknownServiceException;
+import org.gradle.internal.Factory;
 
 /**
  * TODO SF - along with other Services related stuff and Synchronizer,

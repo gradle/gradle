@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 
 
 import spock.lang.Specification
+import org.gradle.internal.service.ServiceRegistry
 
 /**
  * by Szczepan Faber, created at: 11/24/11

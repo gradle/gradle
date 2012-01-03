@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

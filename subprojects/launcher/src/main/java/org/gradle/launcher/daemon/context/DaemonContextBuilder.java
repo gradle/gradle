@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.context;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.os.ProcessEnvironment;
 import org.gradle.util.Jvm;
 

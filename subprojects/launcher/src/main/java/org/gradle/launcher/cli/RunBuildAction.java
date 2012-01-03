@@ -17,11 +17,11 @@ package org.gradle.launcher.cli;
 
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.launcher.exec.ExecutionListener;
 

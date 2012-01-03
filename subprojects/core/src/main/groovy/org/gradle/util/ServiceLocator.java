@@ -16,10 +16,10 @@
 package org.gradle.util;
 
 import org.gradle.api.internal.DirectInstantiator;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.UnknownServiceException;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.Instantiator;
-import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.api.internal.project.UnknownServiceException;
 
 import java.io.BufferedReader;
 import java.io.IOException;

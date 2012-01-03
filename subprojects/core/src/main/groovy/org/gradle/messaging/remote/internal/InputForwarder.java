@@ -16,10 +16,10 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.Action;
+import org.gradle.internal.Stoppable;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.LineBufferingOutputStream;
-import org.gradle.util.UncheckedException;
-import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 

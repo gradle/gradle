@@ -15,7 +15,7 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.standalone;
 
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;

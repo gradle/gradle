@@ -19,13 +19,13 @@ package org.gradle.process.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.listener.AsyncListenerBroadcast;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
-import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.io.InputStream;

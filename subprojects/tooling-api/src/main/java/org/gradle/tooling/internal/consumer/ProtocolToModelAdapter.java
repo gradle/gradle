@@ -15,12 +15,12 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-import org.gradle.util.UncheckedException;
 
 import java.lang.reflect.*;
 import java.util.*;

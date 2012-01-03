@@ -22,6 +22,7 @@ package org.gradle.util;
 
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
+import org.gradle.internal.UncheckedException;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.jmock.Expectations;

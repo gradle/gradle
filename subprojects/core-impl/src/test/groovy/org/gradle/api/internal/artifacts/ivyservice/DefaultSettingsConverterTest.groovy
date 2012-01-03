@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
-import org.gradle.api.internal.Factory
+import org.gradle.internal.Factory
 import spock.lang.Specification
 
 class DefaultSettingsConverterTest extends Specification {

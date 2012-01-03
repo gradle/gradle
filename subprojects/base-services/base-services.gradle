@@ -1,7 +1,8 @@
 /*
  * A set of generic services and utilities.
  *
- * Should have a very small set of dependencies.
+ * Should have a very small set of dependencies, and should be appropriate to embed in an external
+ * application (eg as part of the tooling API).
  */
 dependencies {
     groovy libraries.groovy

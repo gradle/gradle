@@ -21,7 +21,7 @@ package org.gradle.groovy.scripts
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.project.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.api.logging.LoggingManager
 import org.gradle.logging.StandardOutputCapture
 import org.gradle.util.HelperUtil

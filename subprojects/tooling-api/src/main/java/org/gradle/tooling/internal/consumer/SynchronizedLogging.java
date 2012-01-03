@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.Operation;
 import org.gradle.api.internal.Synchronizer;
 import org.gradle.listener.DefaultListenerManager;

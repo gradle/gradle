@@ -16,8 +16,8 @@
 
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.ClassLoaderObjectInputStream;
-import org.gradle.util.UncheckedException;
 
 import java.io.*;
 import java.lang.reflect.Constructor;

@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.AntBuilder;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
 import org.gradle.api.internal.tasks.compile.IncrementalJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;

@@ -17,6 +17,7 @@
 package org.gradle.util;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.lang.reflect.Method;

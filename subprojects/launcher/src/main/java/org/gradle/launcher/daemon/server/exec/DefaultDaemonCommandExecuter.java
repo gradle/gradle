@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.daemon.context.DaemonContext;

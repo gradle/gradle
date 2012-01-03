@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.internal.Factory;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 

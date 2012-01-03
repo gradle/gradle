@@ -16,7 +16,7 @@
 
 package org.gradle.messaging.dispatch;
 
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

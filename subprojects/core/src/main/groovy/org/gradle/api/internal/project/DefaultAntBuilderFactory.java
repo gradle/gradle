@@ -18,7 +18,7 @@ package org.gradle.api.internal.project;
 import org.apache.tools.ant.BuildListener;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Project;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 
 /**
  * @author Hans Dockter

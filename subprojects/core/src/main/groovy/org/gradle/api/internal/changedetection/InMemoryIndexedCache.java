@@ -17,7 +17,7 @@ package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.*;
 import java.util.HashMap;

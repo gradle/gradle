@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.concurrent
+package org.gradle.internal
 
 import spock.lang.Specification
 

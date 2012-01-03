@@ -18,8 +18,8 @@ package org.gradle.messaging.dispatch;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.internal.UncheckedException;
 import org.gradle.listener.ListenerNotificationException;
-import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

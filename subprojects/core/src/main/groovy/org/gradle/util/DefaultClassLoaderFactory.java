@@ -15,6 +15,8 @@
  */
 package org.gradle.util;
 
+import org.gradle.internal.UncheckedException;
+
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParserFactory;

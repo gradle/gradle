@@ -17,10 +17,10 @@ package org.gradle.integtests.openapi;
 
 import org.gradle.integtests.fixtures.GradleDistribution;
 import org.gradle.integtests.fixtures.RuleHelper;
+import org.gradle.internal.UncheckedException;
 import org.gradle.openapi.external.ui.DualPaneUIVersion1;
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1;
 import org.gradle.openapi.external.ui.UIFactory;
-import org.gradle.util.UncheckedException;
 import org.junit.Assert;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;

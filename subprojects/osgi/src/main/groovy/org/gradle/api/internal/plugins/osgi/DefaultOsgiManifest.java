@@ -17,13 +17,13 @@ package org.gradle.api.internal.plugins.osgi;
 
 import aQute.lib.osgi.Analyzer;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.plugins.osgi.OsgiManifest;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
-import org.gradle.util.UncheckedException;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;

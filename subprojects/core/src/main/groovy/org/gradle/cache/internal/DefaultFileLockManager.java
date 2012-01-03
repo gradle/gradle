@@ -15,9 +15,9 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

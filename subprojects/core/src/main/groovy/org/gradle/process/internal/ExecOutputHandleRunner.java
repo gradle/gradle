@@ -18,7 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.internal.CompositeStoppable;
 
 import java.io.InputStream;
 import java.io.OutputStream;

@@ -16,7 +16,7 @@
 package org.gradle.util
 
 import spock.lang.Specification
-import org.gradle.api.internal.project.UnknownServiceException
+import org.gradle.internal.service.UnknownServiceException
 
 class ServiceLocatorTest extends Specification {
     final ClassLoader classLoader = Mock()

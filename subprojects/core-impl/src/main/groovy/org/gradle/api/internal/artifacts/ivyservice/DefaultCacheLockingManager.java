@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;

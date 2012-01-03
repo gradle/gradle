@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+package org.gradle.internal.service;
 
-import org.gradle.api.internal.Factory;
-import org.gradle.messaging.concurrent.CompositeStoppable;
-import org.gradle.messaging.concurrent.Stoppable;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.Factory;
+import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.Stoppable;
+import org.gradle.internal.UncheckedException;
 
 import java.lang.reflect.*;
 import java.util.LinkedList;

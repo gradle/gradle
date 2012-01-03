@@ -17,7 +17,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.ProjectState;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 public class ProjectStateInternal implements ProjectState {
     private boolean executing;

@@ -16,7 +16,7 @@
 package org.gradle.configuration;
 
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
 import java.io.Serializable;

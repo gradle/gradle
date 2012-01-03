@@ -20,12 +20,12 @@ import org.gradle.api.logging.Logging;
 
 import org.gradle.api.Action;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.Stoppable;
 import org.gradle.launcher.daemon.protocol.IoCommand;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.messaging.remote.internal.InputForwarder;
 import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 

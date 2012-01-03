@@ -15,8 +15,8 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.internal.project.DefaultServiceRegistry;
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;

@@ -17,9 +17,9 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.Action;
+import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.Stoppable;
 import org.gradle.messaging.concurrent.AsyncStoppable;
-import org.gradle.messaging.concurrent.CompositeStoppable;
-import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.MessagingServer;

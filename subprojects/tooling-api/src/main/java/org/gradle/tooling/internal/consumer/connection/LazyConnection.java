@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.ModelProvider;
@@ -22,7 +23,6 @@ import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
-import org.gradle.util.UncheckedException;
 
 import java.util.HashSet;
 import java.util.Set;

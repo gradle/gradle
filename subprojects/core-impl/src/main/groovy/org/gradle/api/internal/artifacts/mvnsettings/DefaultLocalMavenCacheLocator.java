@@ -19,8 +19,8 @@ import org.apache.maven.settings.DefaultMavenSettingsBuilder;
 import org.apache.maven.settings.MavenSettingsBuilder;
 import org.apache.maven.settings.Settings;
 import org.gradle.api.internal.artifacts.PlexusLoggerAdapter;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.SystemProperties;
-import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

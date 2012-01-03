@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts
 import org.gradle.StartParameter
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.Factory
+import org.gradle.internal.Factory
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.project.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.listener.ListenerManager

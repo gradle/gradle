@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+package org.gradle.internal;
 
-public class UnknownServiceException extends IllegalArgumentException {
-    private final Class<?> type;
-
-    public UnknownServiceException(Class<?> type, String message) {
-        super(message);
-        this.type = type;
-    }
-
-    public Class<?> getType() {
-        return type;
-    }
+/**
+ * Represents an object which performs concurrent activity.
+ */
+public interface Stoppable {
+    /**
+     * <p>Requests a graceful stop of this object. Blocks until all concurrent activity has been completed.</p>
+     *
+     * <p>If this object has already been stopped, this method does nothing.</p>
+     */
+    void stop();
 }

@@ -15,8 +15,8 @@
  */
 package org.gradle.launcher.cli
 
-import org.gradle.api.internal.Factory
-import org.gradle.api.internal.project.ServiceRegistry
+import org.gradle.internal.Factory
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.cli.CommandLineConverter
 import org.gradle.logging.LoggingConfiguration
 import org.gradle.logging.LoggingManagerInternal

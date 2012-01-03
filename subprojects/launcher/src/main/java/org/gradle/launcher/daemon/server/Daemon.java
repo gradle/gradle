@@ -17,13 +17,13 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Stoppable;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.protocol.DaemonFailure;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.Connection;

@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.internal.generator;
 
 
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 
 public abstract class PropertiesPersistableConfigurationObject extends AbstractPersistableConfigurationObject {

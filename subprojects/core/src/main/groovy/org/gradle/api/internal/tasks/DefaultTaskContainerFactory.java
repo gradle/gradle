@@ -16,7 +16,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 

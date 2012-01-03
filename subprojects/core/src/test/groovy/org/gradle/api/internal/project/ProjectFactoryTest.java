@@ -20,7 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.groovy.scripts.ScriptSource;

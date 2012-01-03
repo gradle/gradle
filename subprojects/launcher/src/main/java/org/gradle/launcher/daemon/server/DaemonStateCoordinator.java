@@ -16,10 +16,10 @@
 
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.Stoppable;
+import org.gradle.internal.UncheckedException;
 import org.gradle.api.logging.Logging;
 
-import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 

@@ -16,13 +16,13 @@
 package org.gradle.cache.internal;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.Serializer;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.util.ArrayList;

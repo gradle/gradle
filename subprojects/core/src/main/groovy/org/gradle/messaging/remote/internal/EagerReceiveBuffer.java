@@ -18,7 +18,7 @@ package org.gradle.messaging.remote.internal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.dispatch.Receive;
 import org.gradle.messaging.dispatch.AsyncReceive;
 import org.gradle.messaging.dispatch.Dispatch;

@@ -15,7 +15,7 @@
  */
 package org.gradle.os;
 
-import org.gradle.api.internal.project.DefaultServiceRegistry;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.os.jna.PosixBackedProcessEnvironment;
 import org.gradle.os.jna.UnsupportedEnvironment;
 import org.gradle.os.jna.WindowsProcessEnvironment;

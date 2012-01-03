@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.internal.Stoppable;
 import org.gradle.messaging.dispatch.AsyncDispatch;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.DispatchFailureHandler;

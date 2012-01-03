@@ -21,6 +21,8 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.changedetection.TaskCacheLockHandlingBuildExecuter;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.execution.*;
 import org.gradle.listener.ListenerManager;
 

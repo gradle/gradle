@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.cpp.cdt.tasks
 
-import org.gradle.api.internal.Factory
+import org.gradle.internal.Factory
 import org.gradle.listener.ActionBroadcast
 
 import org.gradle.plugins.ide.api.GeneratorTask

@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.Success;

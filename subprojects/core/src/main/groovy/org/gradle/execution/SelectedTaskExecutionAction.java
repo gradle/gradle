@@ -18,7 +18,7 @@ package org.gradle.execution;
 import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractMultiCauseException;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.util.ArrayList;
 import java.util.List;

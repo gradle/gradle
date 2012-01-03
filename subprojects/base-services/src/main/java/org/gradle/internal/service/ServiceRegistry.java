@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+package org.gradle.internal.service;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 
 /**
  * A registry of services.

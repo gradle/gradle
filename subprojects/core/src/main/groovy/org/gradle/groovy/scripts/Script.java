@@ -16,7 +16,7 @@
 
 package org.gradle.groovy.scripts;
 
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.StandardOutputCapture;
 
 /**

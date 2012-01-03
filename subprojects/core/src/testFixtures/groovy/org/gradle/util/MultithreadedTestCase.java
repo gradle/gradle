@@ -19,6 +19,7 @@ package org.gradle.util;
 import groovy.lang.Closure;
 import junit.framework.AssertionFailedError;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.hamcrest.Matcher;

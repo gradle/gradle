@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.dispatch;
 
-import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.internal.Stoppable;
 
 public interface StoppableDispatch<T> extends Dispatch<T>, Stoppable {
     /**

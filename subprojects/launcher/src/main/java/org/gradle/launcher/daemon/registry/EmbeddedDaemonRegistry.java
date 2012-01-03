@@ -17,10 +17,10 @@ package org.gradle.launcher.daemon.registry;
 
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.concurrent.CompositeStoppable;
 
 import java.util.ArrayList;
 import java.util.List;

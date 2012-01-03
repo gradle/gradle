@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.messaging.concurrent.ExecutorFactory;
@@ -25,7 +26,6 @@ import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.AsyncReceive;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.util.StdinSwapper;
-import org.gradle.util.UncheckedException;
 
 import java.io.IOException;
 import java.io.PipedInputStream;

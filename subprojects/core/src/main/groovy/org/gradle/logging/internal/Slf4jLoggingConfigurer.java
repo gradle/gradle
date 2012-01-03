@@ -28,7 +28,7 @@ import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;

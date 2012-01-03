@@ -17,9 +17,11 @@
 package org.gradle.messaging.concurrent;
 
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.Stoppable;
+import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.dispatch.DispatchException;
 import org.gradle.messaging.dispatch.ExceptionTrackingFailureHandler;
-import org.gradle.util.UncheckedException;
 
 import java.util.Set;
 import java.util.concurrent.*;

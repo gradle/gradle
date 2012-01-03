@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.messaging.concurrent;
+package org.gradle.internal;
 
 /**
- * Represents an object which performs concurrent activity.
+ * A generic factory which creates instances of type T.
+ *
+ * @param <T> The type of object created.
  */
-public interface Stoppable {
+public interface Factory<T> {
     /**
-     * <p>Requests a graceful stop of this object. Blocks until all concurrent activity has been completed.</p>
-     *
-     * <p>If this object has already been stopped, this method does nothing.</p>
+     * Creates a new instance of type T.
+     * @return The instance. Never returns null.
      */
-    void stop();
+    T create();
 }

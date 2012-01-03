@@ -20,7 +20,7 @@ import org.gradle.GradleLauncher;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;

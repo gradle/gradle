@@ -22,8 +22,8 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
-import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.util.*;

@@ -15,9 +15,9 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.util.UncheckedException;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;

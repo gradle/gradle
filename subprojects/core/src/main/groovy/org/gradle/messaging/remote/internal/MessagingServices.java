@@ -15,11 +15,11 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.api.internal.project.DefaultServiceRegistry;
-import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.internal.Stoppable;
 import org.gradle.messaging.dispatch.DiscardingFailureHandler;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.MessagingServer;
@@ -28,7 +28,7 @@ import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryProtocolSerializer;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.UUIDGenerator;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;

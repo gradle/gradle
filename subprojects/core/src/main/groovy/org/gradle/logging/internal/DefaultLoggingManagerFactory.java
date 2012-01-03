@@ -16,7 +16,7 @@
 
 package org.gradle.logging.internal;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 public class DefaultLoggingManagerFactory implements Factory<LoggingManagerInternal> {

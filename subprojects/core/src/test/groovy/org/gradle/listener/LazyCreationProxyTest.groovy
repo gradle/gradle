@@ -16,7 +16,7 @@
 package org.gradle.listener
 
 import spock.lang.Specification
-import org.gradle.api.internal.Factory
+import org.gradle.internal.Factory
 import java.util.concurrent.Callable
 
 class LazyCreationProxyTest extends Specification {

@@ -16,6 +16,7 @@
 package org.gradle.util;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;

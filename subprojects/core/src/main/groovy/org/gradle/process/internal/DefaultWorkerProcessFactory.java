@@ -17,7 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.remote.Address;

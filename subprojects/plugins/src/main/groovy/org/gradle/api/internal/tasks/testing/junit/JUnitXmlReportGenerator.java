@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProc
 import org.gradle.api.internal.tasks.testing.results.TestState;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

@@ -17,7 +17,7 @@ package org.gradle.api.internal
 
 import spock.lang.Specification
 
-import org.gradle.util.UncheckedException
+import org.gradle.internal.UncheckedException
 
 class DirectInstantiatorTest extends Specification {
     final DirectInstantiator instantiator = new DirectInstantiator()

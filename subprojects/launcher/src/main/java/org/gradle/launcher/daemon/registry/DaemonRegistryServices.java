@@ -15,11 +15,11 @@
  */
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.cache.Cache;
 import org.gradle.api.internal.cache.CacheAccessSerializer;
 import org.gradle.api.internal.cache.MapBackedCache;
-import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLockManager;

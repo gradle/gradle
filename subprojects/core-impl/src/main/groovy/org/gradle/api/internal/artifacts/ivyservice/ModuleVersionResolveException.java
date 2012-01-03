@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.Contextual;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.util.ArrayList;
 import java.util.Collection;

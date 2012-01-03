@@ -15,6 +15,7 @@
  */
 package org.gradle.util;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 
 import java.io.IOException;

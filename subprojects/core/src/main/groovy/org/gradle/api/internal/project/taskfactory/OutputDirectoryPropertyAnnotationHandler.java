@@ -19,8 +19,8 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.lang.annotation.Annotation;

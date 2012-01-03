@@ -26,7 +26,7 @@ import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 

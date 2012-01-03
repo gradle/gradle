@@ -23,7 +23,7 @@ import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.publication.maven.internal.DefaultMavenDeployment;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;

@@ -15,11 +15,11 @@
  */
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.concurrent.AsyncStoppable;
-import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.dispatch.*;
 import org.gradle.util.TrueTimeProvider;
-import org.gradle.util.UncheckedException;
 
 import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;

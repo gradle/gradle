@@ -22,8 +22,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.ReflectionUtil;
-import org.gradle.util.UncheckedException;
 
 import java.util.Collection;
 import java.util.Collections;

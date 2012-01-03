@@ -18,12 +18,12 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.util.DistributionLocator;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.UncheckedException;
 import org.gradle.wrapper.*;
 
 import java.io.File;

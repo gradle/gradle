@@ -17,7 +17,7 @@ package org.gradle.groovy.scripts
 
 import spock.lang.Specification
 import org.gradle.logging.StandardOutputCapture
-import org.gradle.api.internal.project.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler
 

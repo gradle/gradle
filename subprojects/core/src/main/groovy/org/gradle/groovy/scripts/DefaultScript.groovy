@@ -24,7 +24,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction
-import org.gradle.api.internal.project.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
