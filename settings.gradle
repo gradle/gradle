@@ -39,6 +39,7 @@ include 'ear'
 include 'native'
 include 'internalTesting'
 include 'internalIntegTesting'
+include 'website'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->
