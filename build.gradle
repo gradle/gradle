@@ -306,7 +306,7 @@ def guessMaxForks() {
 
 task testedDists(dependsOn: [assemble, check])
 
-task nightlyBuild(dependsOn: [clean, testedDists, ':docs:uploadDocs'])
+task nightlyBuild(dependsOn: [clean, testedDists])
 
 task install(type: Install) {
     description = 'Installs the minimal distribution into directory $gradle_installPath'
@@ -380,7 +380,7 @@ task releaseArtifacts {
     description = 'Builds the release artifacts'
     //TODO SF - this task name is inconsistent because other releaseXxx tasks actually upload some content somewhere. Should be called something like 'buildReleaseArtifacts'
     group = 'release'
-    dependsOn releaseVersion, assemble, ':docs:websiteDocs'
+    dependsOn releaseVersion, assemble
 }
 
 task checkJavaVersion << {
@@ -402,7 +402,7 @@ task incrementNextVersion << {
 
 task uploadAll {
     description = 'Uploads binaries, sources and documentation. Does not upload the website! Useful when release procedure breaks at upload and only upload tasks should executed again'
-    dependsOn uploadArchives, uploadDists, ':docs:uploadDocs'
+    dependsOn uploadArchives, uploadDists
 }
 
 task wrapper(type: Wrapper) {

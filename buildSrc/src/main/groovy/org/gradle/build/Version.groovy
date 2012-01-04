@@ -84,4 +84,20 @@ class Version {
             'https://gradle.artifactoryonline.com/gradle/libs-snapshots-local'
         }
     }
+
+    def docUrl(docLabel) {
+        "http://www.gradle.org/doc/${-> release ? 'current' : toString()}/$docLabel"
+    }
+
+    def getJavadocUrl() {
+        docUrl("javadoc")
+    }
+
+    def getGroovydocUrl() {
+        docUrl("groovydoc")
+    }
+
+    def getDsldocUrl() {
+        docUrl("dsl")
+    }
 }
