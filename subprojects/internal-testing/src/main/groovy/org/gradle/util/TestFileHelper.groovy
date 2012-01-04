@@ -132,6 +132,6 @@ class TestFileHelper {
         if (process.waitFor() != 0) {
             throw new RuntimeException("Could not execute $file: $error")
         }
-        return [output: output, error: error]
+        return [out: output, error: error]
     }
 }
