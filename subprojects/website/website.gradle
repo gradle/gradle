@@ -25,6 +25,14 @@ tasks.withType(SshTask) {
     password = project.hasProperty('websiteScpUserPassword') ? project.websiteScpUserPassword : null
 }
 
+// fail early if we don't have credentials to connect to the host
+gradle.taskGraph.whenReady { graph ->
+    if (tasks.withType(SshTask).any { graph.hasTask(it) }) {
+        project.websiteScpUserName
+        project.websiteScpUserPassword
+    }
+}
+
 uploadPath = { "/var/local/gradle-build-uploads/$it" }
 
 // There's a script on the host that will allow running certain commands as sudo, to enable
@@ -49,10 +57,3 @@ task uploadDocs(type: Scp) {
     }
 }
 
-// fail early if we don't have credentials to connect to the host
-gradle.taskGraph.whenReady { graph ->
-    if (tasks.withType(SshTask).any { graph.hasTask(it) }) {
-        project.websiteScpUserName
-        project.websiteScpUserPassword
-    }
-}
