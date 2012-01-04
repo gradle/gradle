@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.os.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

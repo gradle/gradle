@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.os.jna;
+package org.gradle.internal.nativeplatform.jna;
 
-import org.gradle.os.*;
+import org.gradle.internal.nativeplatform.*;
 
 import java.io.File;
 import java.util.LinkedList;

@@ -31,7 +31,7 @@ import org.gradle.openapi.external.foundation.RequestVersion1
 import org.gradle.openapi.external.foundation.TaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1
-import org.gradle.os.OperatingSystem
+import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.openapi.external.ui.*
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition

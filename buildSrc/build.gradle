@@ -46,3 +46,4 @@ configurations {
 
 apply from: '../gradle/compile.gradle'
 apply from: '../gradle/codeQuality.gradle'
+apply from: '../gradle/classycle.gradle'

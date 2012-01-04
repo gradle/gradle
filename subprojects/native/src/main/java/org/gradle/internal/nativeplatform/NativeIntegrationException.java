@@ -13,23 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.os
+package org.gradle.internal.nativeplatform;
 
-import spock.lang.Specification
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-
-@Requires(TestPrecondition.WINDOWS)
-class WindowsFileSystemTest extends Specification {
-    def fs = FileSystems.default
-
-    def "is case insensitive"() {
-        expect:
-        !fs.caseSensitive
+public class NativeIntegrationException extends RuntimeException {
+    public NativeIntegrationException(String message) {
+        super(message);
     }
 
-    def "cannot create symbolic link"() {
-        expect:
-        !fs.canCreateSymbolicLink()
+    public NativeIntegrationException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

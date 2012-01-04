@@ -17,10 +17,10 @@
 package org.gradle.integtests.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.os.OperatingSystem
+import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.testing.AvailableJavaHomes
 import org.gradle.util.Jvm
-import org.gradle.os.FileSystems
+import org.gradle.internal.nativeplatform.FileSystems
 
 import org.junit.Test
 import spock.lang.Issue

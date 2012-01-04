@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon.context
 
 import spock.lang.*
 import org.gradle.util.ConfigureUtil
-import org.gradle.os.ProcessEnvironment
+import org.gradle.internal.nativeplatform.ProcessEnvironment
 
 class DaemonCompatibilitySpecSpec extends Specification {
 

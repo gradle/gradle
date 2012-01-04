@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.os.FileSystems;
+import org.gradle.internal.nativeplatform.FileSystems;
 
 import java.io.File;
 

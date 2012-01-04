@@ -36,8 +36,8 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
-import org.gradle.os.FileSystem;
-import org.gradle.os.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.FileSystem;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.DefaultClassLoaderFactory;
 

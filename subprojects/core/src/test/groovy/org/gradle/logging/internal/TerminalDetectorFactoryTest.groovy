@@ -17,7 +17,7 @@
 package org.gradle.logging.internal;
 
 
-import org.gradle.os.jna.JnaBootPathConfigurer
+import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer
 import org.gradle.util.Requires
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition

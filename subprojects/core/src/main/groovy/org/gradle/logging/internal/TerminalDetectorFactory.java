@@ -20,10 +20,10 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.nativeplatform.NativeIntegrationUnavailableException;
+import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer;
 import org.gradle.internal.nativeplatform.services.NativeServices;
-import org.gradle.os.NativeIntegrationUnavailableException;
-import org.gradle.os.OperatingSystem;
-import org.gradle.os.jna.JnaBootPathConfigurer;
 import org.jruby.ext.posix.POSIX;
 
 import java.io.FileDescriptor;

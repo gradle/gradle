@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.os.jna;
+package org.gradle.internal.nativeplatform.jna;
 
 import com.sun.jna.Native;
 import com.sun.jna.WString;
-import org.gradle.os.NativeIntegrationException;
+import org.gradle.internal.nativeplatform.NativeIntegrationException;
 
 import java.io.File;
 

@@ -24,7 +24,7 @@ import org.gradle.api.internal.cache.MapBackedCache;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.os.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 
 import java.io.File;
 import java.util.HashMap;

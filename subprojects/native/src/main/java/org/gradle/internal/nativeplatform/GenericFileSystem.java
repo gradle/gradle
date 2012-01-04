@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.os;
+package org.gradle.internal.nativeplatform;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;

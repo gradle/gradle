@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.ExecResult
-import org.gradle.os.OperatingSystem
+import org.gradle.internal.nativeplatform.OperatingSystem
 
 class ScriptExecuter extends ExecHandleBuilder {
     @Override

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.os.jna;
+package org.gradle.internal.nativeplatform.jna;
 
 import com.sun.jna.*;
 

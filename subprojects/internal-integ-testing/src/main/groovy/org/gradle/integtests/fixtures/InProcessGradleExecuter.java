@@ -34,7 +34,7 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.os.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.util.Jvm;
 import org.hamcrest.Matcher;
 

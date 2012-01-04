@@ -25,7 +25,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.DisconnectAwareConnectionDecorator;
-import org.gradle.os.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 
 import java.util.Arrays;
 import java.util.LinkedList;

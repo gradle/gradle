@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon.server
 
 import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.logging.LoggingServiceRegistry
-import org.gradle.os.ProcessEnvironment
+import org.gradle.internal.nativeplatform.ProcessEnvironment
 import spock.lang.Specification
 
 class DaemonServicesTest extends Specification {

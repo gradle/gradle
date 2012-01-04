@@ -29,7 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.os.FileSystems
+import org.gradle.internal.nativeplatform.FileSystems
 
 /**
  * @author Hans Dockter

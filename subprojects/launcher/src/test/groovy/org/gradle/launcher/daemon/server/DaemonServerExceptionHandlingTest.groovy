@@ -31,7 +31,7 @@ import org.gradle.messaging.concurrent.ExecutorFactory
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.os.ProcessEnvironment
+import org.gradle.internal.nativeplatform.ProcessEnvironment
 
 /**
  * by Szczepan Faber, created at: 12/21/11

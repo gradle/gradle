@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.os;
+package org.gradle.internal.nativeplatform;
 
 import java.lang.reflect.Field;
 import java.util.Map;

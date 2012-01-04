@@ -24,7 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.*
-import org.gradle.os.OperatingSystem
+import org.gradle.internal.nativeplatform.OperatingSystem
 
 class ApplicationIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()

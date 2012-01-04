@@ -16,6 +16,8 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.internal.nativeplatform.jna.WindowsProcessStarter;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.api.logging.Logger;
@@ -24,8 +26,6 @@ import org.gradle.util.GradleVersion;
 import org.gradle.util.Jvm;
 import org.gradle.util.GUtil;
 import org.gradle.api.GradleException;
-import org.gradle.os.OperatingSystem;
-import org.gradle.os.jna.WindowsProcessStarter;
 
 import java.io.File;
 import java.util.ArrayList;

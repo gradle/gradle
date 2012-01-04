@@ -38,7 +38,7 @@ import org.gradle.util.ConfigureUtil
 import org.gradle.util.DeprecationLogger
 import org.gradle.api.internal.file.*
 import org.gradle.api.internal.ProcessOperations
-import org.gradle.os.FileSystems
+import org.gradle.internal.nativeplatform.FileSystems
 
 abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class)

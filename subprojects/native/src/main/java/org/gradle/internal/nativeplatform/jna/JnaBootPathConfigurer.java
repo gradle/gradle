@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.os.jna;
+package org.gradle.internal.nativeplatform.jna;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.os.NativeIntegrationException;
-import org.gradle.os.NativeIntegrationUnavailableException;
-import org.gradle.os.OperatingSystem;
+import org.gradle.internal.nativeplatform.NativeIntegrationException;
+import org.gradle.internal.nativeplatform.NativeIntegrationUnavailableException;
+import org.gradle.internal.nativeplatform.OperatingSystem;
 
 import java.io.File;
 import java.io.FileOutputStream;

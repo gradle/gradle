@@ -21,7 +21,7 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.api.internal.file.BaseDirFileResolver
-import org.gradle.os.FileSystems
+import org.gradle.internal.nativeplatform.FileSystems
 
 /**
  * @author Hans Dockter

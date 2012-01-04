@@ -26,9 +26,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cli.*;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.configuration.ImplicitTasksConfigurer;
+import org.gradle.internal.nativeplatform.FileSystems;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
-import org.gradle.os.FileSystems;
 
 import java.util.Map;
 

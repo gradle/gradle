@@ -21,7 +21,7 @@ import org.apache.tools.ant.taskdefs.Expand
 import org.apache.tools.ant.taskdefs.Untar
 import org.gradle.api.UncheckedIOException
 import org.gradle.internal.nativeplatform.services.NativeServices
-import org.gradle.os.OperatingSystem
+import org.gradle.internal.nativeplatform.OperatingSystem
 import org.jruby.ext.posix.POSIX
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat

@@ -26,7 +26,7 @@ import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.os.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.process.internal.JvmOptions;
 
 import java.io.File;

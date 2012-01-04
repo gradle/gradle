@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.os;
+package org.gradle.internal.nativeplatform;
 
-public abstract class FileSystems {
-    /**
-     * Returns the default file system. The default file system is defined as the file system
-     * that holds the <tt>java.io.tmpdir</tt> directory.
-     *
-     * @return the default file system
-     */
-    public static FileSystem getDefault() {
-        return DefaultFileSystem.INSTANCE;
-    }
-    
-    private static class DefaultFileSystem {
-        static final FileSystem INSTANCE = new GenericFileSystem();    
+/**
+ * Thrown when the native integration for the current platform is not available for some reason (eg unsupported operating system, cannot load native library, etc).
+ */
+public class NativeIntegrationUnavailableException extends NativeIntegrationException {
+    public NativeIntegrationUnavailableException(String message) {
+        super(message);
     }
 }

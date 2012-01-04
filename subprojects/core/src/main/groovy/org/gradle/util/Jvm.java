@@ -17,7 +17,7 @@
 package org.gradle.util;
 
 import org.apache.tools.ant.util.JavaEnvUtils;
-import org.gradle.os.OperatingSystem;
+import org.gradle.internal.nativeplatform.OperatingSystem;
 
 import java.io.File;
 import java.util.HashMap;

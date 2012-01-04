@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.os.jna;
+package org.gradle.internal.nativeplatform;
 
-import com.sun.jna.Library;
-
-public interface LibC extends Library {
-    //CHECKSTYLE:OFF
-    public int setenv(String name, String value, int overwrite);
-    public int unsetenv(String name);
-    public String getcwd(byte[] out, int size);
-    public int chdir(String dirAbsolutePath);
-    public int errno();
-    public int getpid();
-    //CHECKSTYLE:ON
+public abstract class FileSystems {
+    /**
+     * Returns the default file system. The default file system is defined as the file system
+     * that holds the <tt>java.io.tmpdir</tt> directory.
+     *
+     * @return the default file system
+     */
+    public static FileSystem getDefault() {
+        return DefaultFileSystem.INSTANCE;
+    }
+    
+    private static class DefaultFileSystem {
+        static final FileSystem INSTANCE = new GenericFileSystem();    
+    }
 }

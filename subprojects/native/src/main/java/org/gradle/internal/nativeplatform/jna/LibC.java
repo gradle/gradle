@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.os;
+package org.gradle.internal.nativeplatform.jna;
 
-public class NativeIntegrationException extends RuntimeException {
-    public NativeIntegrationException(String message) {
-        super(message);
-    }
+import com.sun.jna.Library;
 
-    public NativeIntegrationException(String message, Throwable cause) {
-        super(message, cause);
-    }
+public interface LibC extends Library {
+    //CHECKSTYLE:OFF
+    public int setenv(String name, String value, int overwrite);
+    public int unsetenv(String name);
+    public String getcwd(byte[] out, int size);
+    public int chdir(String dirAbsolutePath);
+    public int errno();
+    public int getpid();
+    //CHECKSTYLE:ON
 }
