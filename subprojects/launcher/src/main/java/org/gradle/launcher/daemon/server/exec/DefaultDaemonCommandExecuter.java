@@ -15,9 +15,10 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
@@ -25,7 +26,6 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.DisconnectAwareConnectionDecorator;
-import org.gradle.internal.nativeplatform.ProcessEnvironment;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -70,7 +70,6 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new ForwardClientInput(executorFactory),
             new ReturnResult(),
             new ResetDeprecationLogger(),
-            new CatchAndForwardDaemonFailureAsResult(), //TODO SF Luke & me believe it can be removed. Let's get rid of it after Xmas.
             new WatchForDisconnection(),
             new ExecuteBuild(launcherFactory)
         ));
