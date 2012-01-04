@@ -304,6 +304,9 @@ task docs {
     group = 'documentation'
 }
 
+task docsZip(type: Zip) {
+    from project.outputs.docs
+}
 
 
 class Docbook2Xhtml extends SourceTask {

@@ -304,9 +304,10 @@ def guessMaxForks() {
     return Math.max(2, (int) (processors / 2))
 }
 
-task testedDists(dependsOn: [assemble, check])
 
-task nightlyBuild(dependsOn: [clean, testedDists])
+def isNightlyBuild() {
+    gradle.taskGraph.hasTask(nightlyBuild)
+}
 
 task install(type: Install) {
     description = 'Installs the minimal distribution into directory $gradle_installPath'
@@ -323,6 +324,8 @@ task installAll(type: Install) {
     with allDistImage
     installDirProperyName = 'gradle_installPath'
 }
+
+task testedDists(dependsOn: [assemble, check])
 
 uploadDists {
     dependsOn testedDists
@@ -360,6 +363,11 @@ task ciBuild {
 task commitBuild {
     description = 'Commit build performed by the CI server'
     dependsOn testedDists
+}
+
+task nightlyBuild {
+    description = 'Nightly build performed by the CI server'
+    dependsOn testedDists, "uploadAll"
 }
 
 gradle.taskGraph.whenReady {graph ->
@@ -402,7 +410,7 @@ task incrementNextVersion << {
 
 task uploadAll {
     description = 'Uploads binaries, sources and documentation. Does not upload the website! Useful when release procedure breaks at upload and only upload tasks should executed again'
-    dependsOn uploadArchives, uploadDists
+    dependsOn uploadArchives, uploadDists, "website:uploadDocs"
 }
 
 task wrapper(type: Wrapper) {
