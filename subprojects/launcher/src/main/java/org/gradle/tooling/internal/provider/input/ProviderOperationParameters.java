@@ -18,7 +18,9 @@ package org.gradle.tooling.internal.provider.input;
 
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 
+import java.io.File;
 import java.io.InputStream;
+import java.util.List;
 
 /**
  * Defines what information is needed on the provider side regarding the build operation.
@@ -30,4 +32,8 @@ public interface ProviderOperationParameters extends BuildOperationParametersVer
     boolean getVerboseLogging();
 
     InputStream getStandardInput();
+
+    File getJavaHome(File defaultJavaHome);
+
+    List<String> getJvmArguments(List<String> defaultJvmArgs);
 }

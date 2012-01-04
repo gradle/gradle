@@ -23,6 +23,7 @@ import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class AbstractLongRunningOperation implements LongRunningOperation {
@@ -110,6 +111,14 @@ public class AbstractLongRunningOperation implements LongRunningOperation {
 
         public InputStream getStandardInput() {
             return stdin;
+        }
+
+        public File getJavaHome() {
+            return parameters.getJavaHome();
+        }
+
+        public List<String> getJvmArguments() {
+            return parameters.getJvmArguments();
         }
     }
 }

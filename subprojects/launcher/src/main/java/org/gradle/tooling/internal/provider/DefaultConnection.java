@@ -16,9 +16,9 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.Factory;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.internal.Factory;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -33,10 +33,14 @@ import org.gradle.tooling.internal.provider.input.AdaptedOperationParameters;
 import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.Jvm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.List;
+
+import static org.gradle.util.GFileUtils.canonicalise;
 
 public class DefaultConnection implements InternalConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
@@ -115,15 +119,23 @@ public class DefaultConnection implements InternalConnection {
         }
 
         File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
-        DaemonParameters parameters = new DaemonParameters();
+        DaemonParameters daemonParams = new DaemonParameters();
+
         boolean searchUpwards = operationParameters.isSearchUpwards() != null ? operationParameters.isSearchUpwards() : true;
-        parameters.configureFromBuildDir(operationParameters.getProjectDir(), searchUpwards);
-        parameters.configureFromGradleUserHome(gradleUserHomeDir);
-        parameters.configureFromSystemProperties(System.getProperties());
+        daemonParams.configureFromBuildDir(operationParameters.getProjectDir(), searchUpwards);
+        daemonParams.configureFromGradleUserHome(gradleUserHomeDir);
+        daemonParams.configureFromSystemProperties(System.getProperties());
+
+        //override the params with the explicit settings provided by the tooling api
+        List<String> defaultJvmArgs = daemonParams.getAllJvmArgs();
+        daemonParams.setJvmArgs(operationParameters.getJvmArguments(defaultJvmArgs));
+        File defaultJavaHome = canonicalise(Jvm.current().getJavaHome());
+        daemonParams.setJavaHome(operationParameters.getJavaHome(defaultJavaHome));
+
         if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
             int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
-            parameters.setIdleTimeout(idleTimeout);
+            daemonParams.setIdleTimeout(idleTimeout);
         }
-        return new DaemonClientServices(loggingServices, parameters, operationParameters.getStandardInput());
+        return new DaemonClientServices(loggingServices, daemonParams, operationParameters.getStandardInput());
     }
 }

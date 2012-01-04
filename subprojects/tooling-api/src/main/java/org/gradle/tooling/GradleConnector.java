@@ -97,6 +97,36 @@ public abstract class GradleConnector {
     public abstract GradleConnector useGradleUserHomeDir(File gradleUserHomeDir);
 
     /**
+     * If the target gradle version supports it you can use this setting
+     * to specify the java home directory to use for the gradle process.
+     * If the target gradle version does not support it your setting is ignored and Gradle uses reasonable defaults.
+     * <p>
+     * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as java or gradle environment.
+     * If you want to get hold of this information you can ask tooling API to build this model
+     * <p>
+     * If not configured or null passed the sensible default will be used
+     *
+     * @param javaHome to use for the gradle process
+     * @return this
+     */
+    public abstract GradleConnector hintJavaHome(File javaHome);
+
+    /**
+     * If the target gradle version supports it you can use this setting
+     * to specify the java vm arguments to use for gradle process.
+     * If the target gradle version does not support it your setting is ignored and Gradle uses reasonable defaults.
+     * <p>
+     * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as java or gradle environment.
+     * If you want to get hold of this information you can ask tooling API to build this model
+     * <p>
+     * If not configured or null passed the sensible default will be used
+     *
+     * @param jvmArguments to use for the gradle process
+     * @return this
+     */
+    public abstract GradleConnector hintJvmArguments(String... jvmArguments);
+
+    /**
      * Creates a connection to the project in the specified project directory. You should call {@link org.gradle.tooling.ProjectConnection#close()} when you are finished with the connection.
      *
      * @return The connection. Never return null.

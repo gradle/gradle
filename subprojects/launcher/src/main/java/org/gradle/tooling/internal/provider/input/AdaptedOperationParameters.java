@@ -24,6 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,20 +33,43 @@ import java.util.concurrent.TimeUnit;
 public class AdaptedOperationParameters implements ProviderOperationParameters {
 
     private final BuildOperationParametersVersion1 delegate;
+    private CompatibleIntrospector introspector;
 
     public AdaptedOperationParameters(BuildOperationParametersVersion1 delegate) {
         this.delegate = delegate;
+        introspector = new CompatibleIntrospector(delegate);
     }
 
     public InputStream getStandardInput() {
         //Tooling api means embedded use. We don't want to consume standard input if we don't own the process.
         //Hence we use a dummy input stream by default
         ByteArrayInputStream safeDummy = new ByteArrayInputStream(new byte[0]);
-        return new CompatibleIntrospector(delegate).getSafely(safeDummy, "getStandardInput");
+        ByteArrayInputStream input = introspector.getSafely(safeDummy, "getStandardInput");
+        if (input == null) {
+            return safeDummy;
+        }
+        return input;
     }
 
     public boolean getVerboseLogging() {
-        return new CompatibleIntrospector(delegate).getSafely(false, "getVerboseLogging");
+        return introspector.getSafely(false, "getVerboseLogging");
+    }
+
+    public File getJavaHome(File defaultJavaHome) {
+        File javaHome = introspector.getSafely(defaultJavaHome, "getJavaHome");
+        //TODO SF generalize
+        if (javaHome == null) {
+            return defaultJavaHome;
+        }
+        return javaHome;
+    }
+
+    public List<String> getJvmArguments(List<String> defaultJvmArgs) {
+        List<String> args = introspector.getSafely(defaultJvmArgs, "getJvmArguments");
+        if (args == null) {
+            return defaultJvmArgs;
+        }
+        return args;
     }
 
     public File getProjectDir() {

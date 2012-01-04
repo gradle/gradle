@@ -55,7 +55,7 @@ abstract class ToolingApiSpecification extends Specification {
                 LOGGER.info("Overriding daemon tooling API provider to use installation: " + target);
                 def targetGradle = dist.previousVersion(target.version)
                 it.useInstallation(new File(targetGradle.gradleHomeDir.absolutePath))
-                it.embedded = false
+                it.embedded(false)
             }
         }
     }

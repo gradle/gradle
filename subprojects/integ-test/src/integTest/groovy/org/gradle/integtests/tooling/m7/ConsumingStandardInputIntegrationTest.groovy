@@ -50,6 +50,23 @@ description = System.in.text
     }
 
     @Timeout(10)
+    def "works well if the standard input configured with null"() {
+        given:
+        dist.file('build.gradle')  << """
+description = System.in.text
+"""
+        when:
+        Project model = (Project) withConnection { ProjectConnection connection ->
+            def model = connection.model(Project.class)
+            model.standardInput = null
+            model.get()
+        }
+
+        then:
+        model.description == null
+    }
+
+    @Timeout(10)
     def "does not consume input when not explicitly provided"() {
         given:
         dist.file('build.gradle')  << """

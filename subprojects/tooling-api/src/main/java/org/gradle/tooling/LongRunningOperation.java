@@ -50,6 +50,10 @@ public interface LongRunningOperation {
 
     /**
      * Sets the standard {@link java.io.InputStream} that will be used by builds. Useful when the tooling api drives interactive builds.
+     * <p>
+     * If not configured or null passed the dummy input stream with zero bytes is used to avoid.
+     * <p>
+     * If the target gradle version does not support consuming standard input then this setting will have no effect.
      *
      * @param inputStream The input stream
      * @return this

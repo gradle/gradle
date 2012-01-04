@@ -43,6 +43,7 @@ public class DaemonParameters {
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
     private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
     private boolean enabled;
+    private File javaHome;
 
     public DaemonParameters() {
         jvmOptions.setAllJvmArgs(Arrays.asList("-Xmx1024m", "-XX:MaxPermSize=256m"));
@@ -70,6 +71,18 @@ public class DaemonParameters {
 
     public List<String> getJvmArgs() {
         return jvmOptions.getAllJvmArgsWithoutSystemProperties();
+    }
+
+    public List<String> getAllJvmArgs() {
+        return jvmOptions.getAllJvmArgs();
+    }
+
+    public File getJavaHome() {
+        return javaHome;
+    }
+
+    public void setJavaHome(File javaHome) {
+        this.javaHome = javaHome;
     }
 
     public Map<String, String> getSystemProperties() {
@@ -146,5 +159,4 @@ public class DaemonParameters {
             enabled = propertyValue.toString().equalsIgnoreCase("true");
         }
     }
-
 }

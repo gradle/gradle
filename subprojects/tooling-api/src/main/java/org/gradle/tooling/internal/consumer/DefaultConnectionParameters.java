@@ -16,52 +16,90 @@
 package org.gradle.tooling.internal.consumer;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultConnectionParameters implements ConnectionParameters {
-    private final File gradleUserHomeDir;
-    private final File projectDir;
-    private final Boolean searchUpwards;
-    private final Boolean embedded;
-    private final Integer daemonMaxIdleTimeValue;
-    private final TimeUnit daemonMaxIdleTimeUnits;
-    private final boolean verboseLogging;
-
-    public DefaultConnectionParameters(File projectDir, File gradleUserHomeDir, Boolean searchUpwards, Boolean embedded, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, boolean verboseLogging) {
-        this.projectDir = projectDir;
-        this.gradleUserHomeDir = gradleUserHomeDir;
-        this.searchUpwards = searchUpwards;
-        this.embedded = embedded;
-        this.daemonMaxIdleTimeValue = daemonMaxIdleTimeValue;
-        this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
-        this.verboseLogging = verboseLogging;
-    }
+    private File gradleUserHomeDir;
+    private File projectDir;
+    private Boolean searchUpwards;
+    private Boolean embedded;
+    private Integer daemonMaxIdleTimeValue;
+    private TimeUnit daemonMaxIdleTimeUnits;
+    private boolean verboseLogging;
+    private File javaHome;
+    private List<String> jvmArguments;
 
     public File getGradleUserHomeDir() {
         return gradleUserHomeDir;
+    }
+
+    public void setGradleUserHomeDir(File gradleUserHomeDir) {
+        this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
     public File getProjectDir() {
         return projectDir;
     }
 
+    public void setProjectDir(File projectDir) {
+        this.projectDir = projectDir;
+    }
+
     public Boolean isSearchUpwards() {
         return searchUpwards;
+    }
+
+    public void setSearchUpwards(Boolean searchUpwards) {
+        this.searchUpwards = searchUpwards;
     }
 
     public Boolean isEmbedded() {
         return embedded;
     }
 
+    public void setEmbedded(Boolean embedded) {
+        this.embedded = embedded;
+    }
+
     public Integer getDaemonMaxIdleTimeValue() {
         return daemonMaxIdleTimeValue;
+    }
+
+    public void setDaemonMaxIdleTimeValue(Integer daemonMaxIdleTimeValue) {
+        this.daemonMaxIdleTimeValue = daemonMaxIdleTimeValue;
     }
 
     public TimeUnit getDaemonMaxIdleTimeUnits() {
         return daemonMaxIdleTimeUnits;
     }
 
+    public void setDaemonMaxIdleTimeUnits(TimeUnit daemonMaxIdleTimeUnits) {
+        this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
+    }
+
     public boolean getVerboseLogging() {
         return verboseLogging;
+    }
+
+    public void setVerboseLogging(boolean verboseLogging) {
+        this.verboseLogging = verboseLogging;
+    }
+
+    public File getJavaHome() {
+        return javaHome;
+    }
+
+    public void setJavaHome(File javaHome) {
+        this.javaHome = javaHome;
+    }
+
+    public List<String> getJvmArguments() {
+        return jvmArguments;
+    }
+
+    public void setJvmArguments(String ... jvmArguments) {
+        this.jvmArguments = jvmArguments != null? Arrays.asList(jvmArguments) : null;
     }
 }

@@ -34,8 +34,6 @@ import java.util.List;
  */
 public class DefaultIdeaModule implements Serializable, IdeaModule {
 
-//    public static final long serialVersionUID = 1L;
-
     private String name;
     private List<? extends IdeaContentRoot> contentRoots = new LinkedList<IdeaContentRoot>();
     private IdeaProject parent;

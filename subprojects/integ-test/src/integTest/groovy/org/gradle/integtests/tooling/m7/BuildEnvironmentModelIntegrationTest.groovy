@@ -38,8 +38,68 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
         BuildEnvironment model = withConnection { it.getModel(BuildEnvironment.class) }
 
         then:
-        println "Find way to assert on: $model.java.jvmArguments and $model.java.javaHome"
         model.java.javaHome
         !model.java.jvmArguments.empty
+    }
+
+    def "configures the java settings"() {
+        given:
+        def connector = toolingApi.connector()
+            .hintJavaHome(new File("hey"))
+            .hintJvmArguments("-Xmx333m", "-Xms13m")
+
+        when:
+        //TODO SF generalize to withConnection
+        def connection = connector.connect()
+        def model
+        try {
+            model = connection.getModel(BuildEnvironment.class)
+        } finally {
+            connection.close()
+        }
+
+        then:
+        model.java.javaHome == new File("hey")
+        model.java.jvmArguments.contains("-Xmx333m")
+        model.java.jvmArguments.contains("-Xms13m")
+        //TODO SF add coverage so that we really check the java home / args inside the build rather than checking the env model
+    }
+
+    def "uses sensible java defaults if nulls configured"() {
+        given:
+        def connector = toolingApi.connector()
+            .hintJavaHome(null)
+            .hintJvmArguments(null)
+
+        when:
+        def connection = connector.connect()
+        def model
+        try {
+            model = connection.getModel(BuildEnvironment.class)
+        } finally {
+            connection.close()
+        }
+
+        then:
+        model.java.javaHome
+        !model.java.jvmArguments.empty
+    }
+
+    def "may use no jvm args if requested"() {
+        given:
+        def connector = toolingApi.connector()
+            .hintJvmArguments(new String[0])
+
+        when:
+        def connection = connector.connect()
+        def model
+        try {
+            model = connection.getModel(BuildEnvironment.class)
+        } finally {
+            connection.close()
+        }
+
+        then:
+        model.java.jvmArguments == []
     }
 }
