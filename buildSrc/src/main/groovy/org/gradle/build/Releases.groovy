@@ -29,8 +29,7 @@ class Releases {
     }
 
     String getNextVersion() {
-        assert releasesFile.exists()
-        def releases = new XmlParser().parse(releasesFile)
+        def releases = load()
         def next = releases.next
         assert next && next[0].'@version'
         return next[0].'@version'
@@ -76,9 +75,13 @@ class Releases {
         return new SimpleDateFormat("yyyyMMddHHmmssZ").format(project.version.buildTime)
     }
 
-    private modifyTo(File destination, Closure modifications) {
+    private load() {
         assert releasesFile.exists()
-        def releases = new XmlParser().parse(releasesFile)
+        new XmlParser().parse(releasesFile)
+    }
+
+    private modifyTo(File destination, Closure modifications) {
+        def releases = load()
         project.configure(releases, modifications)
         destination.withPrintWriter { writer -> new XmlNodePrinter(writer, "  ").print(releases) }
     }
