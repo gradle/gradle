@@ -23,7 +23,6 @@ import org.gradle.build.GenerateReleasesXml
 import org.gradle.os.OperatingSystem
 
 apply plugin: 'base'
-apply from: "${rootDir}/gradle/ssh.gradle"
 
 configurations {
     userGuideStyleSheets
