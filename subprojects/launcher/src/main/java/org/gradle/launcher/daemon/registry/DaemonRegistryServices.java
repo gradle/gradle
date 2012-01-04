@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.registry;
 
+import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.api.internal.cache.Cache;
@@ -23,7 +24,6 @@ import org.gradle.api.internal.cache.MapBackedCache;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.os.NativeServices;
 import org.gradle.os.ProcessEnvironment;
 
 import java.io.File;

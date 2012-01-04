@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.os;
+package org.gradle.internal.nativeplatform.services;
 
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.os.*;
 import org.gradle.os.jna.PosixBackedProcessEnvironment;
 import org.gradle.os.jna.UnsupportedEnvironment;
 import org.gradle.os.jna.WindowsProcessEnvironment;

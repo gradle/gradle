@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.os
+package org.gradle.internal.nativeplatform.services
 
+import org.gradle.os.FileSystem
+import org.gradle.os.OperatingSystem
+import org.gradle.os.ProcessEnvironment
 import org.jruby.ext.posix.POSIX
 import spock.lang.Specification
 

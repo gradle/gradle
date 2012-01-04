@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -25,7 +26,6 @@ import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.os.NativeServices;
 import org.gradle.os.ProcessEnvironment;
 import org.gradle.process.internal.JvmOptions;
 

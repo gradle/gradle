@@ -15,7 +15,7 @@
  */
 package org.gradle.os.jna
 
-import org.gradle.os.NativeServices
+import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.os.ProcessEnvironment
 import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
