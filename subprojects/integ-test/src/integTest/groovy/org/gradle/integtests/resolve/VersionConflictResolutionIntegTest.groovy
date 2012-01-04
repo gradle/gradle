@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.junit.Test
 import static org.hamcrest.Matchers.containsString
 

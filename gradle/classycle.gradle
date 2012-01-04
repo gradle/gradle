@@ -13,12 +13,14 @@ sourceSets.all { sourceSet ->
         inputs.files sourceSet.output
         outputs.file reportFile
         doLast {
+            if (!sourceSet.output.classesDir.directory) {
+                return;
+            }
             ant.taskdef(name: "classycleDependencyCheck", classname: "classycle.ant.DependencyCheckingTask", classpath: configurations.classycle.asPath)
             reportFile.parentFile.mkdirs()
             ant.classycleDependencyCheck(reportFile: reportFile, failOnUnwantedDependencies: true, mergeInnerClasses: true,
                 """
                     check absenceOfPackageCycles > 1 in org.gradle.*
-                    check absenceOfClassCycles > 1 in org.gradle.*
                 """
             ) {
                 fileset(dir: sourceSet.output.classesDir)

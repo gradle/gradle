@@ -1,5 +1,7 @@
 import org.gradle.os.OperatingSystem
 
+apply from: "$rootDir/gradle/classycle.gradle"
+
 dependencies {
     groovy libraries.groovy
 

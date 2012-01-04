@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.custom
 
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.junit.Rule
 
 class IvyUrlResolverIntegrationTest extends AbstractIntegrationSpec {

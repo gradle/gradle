@@ -16,7 +16,7 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class IvyWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     public void "published WAR only for mixed java and WAR project"() {

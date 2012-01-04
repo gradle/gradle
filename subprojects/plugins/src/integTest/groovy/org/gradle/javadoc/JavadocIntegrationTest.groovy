@@ -17,7 +17,7 @@ package org.gradle.javadoc
 
 import org.junit.Rule
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 class JavadocIntegrationTest extends AbstractIntegrationSpec {

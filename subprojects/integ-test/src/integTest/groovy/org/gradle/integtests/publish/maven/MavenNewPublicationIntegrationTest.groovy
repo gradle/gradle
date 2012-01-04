@@ -18,7 +18,7 @@ package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.SystemProperties
 import org.gradle.util.TestFile
 import org.junit.Rule

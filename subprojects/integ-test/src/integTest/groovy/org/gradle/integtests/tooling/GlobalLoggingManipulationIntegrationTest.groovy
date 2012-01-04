@@ -16,7 +16,7 @@
 package org.gradle.integtests.tooling
 
 import java.util.logging.LogManager
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.model.BuildableProject
 

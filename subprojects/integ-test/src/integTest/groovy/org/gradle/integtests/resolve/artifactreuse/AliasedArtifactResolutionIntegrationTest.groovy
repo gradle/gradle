@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.junit.Rule
 import spock.lang.Ignore
 import org.gradle.integtests.fixtures.*

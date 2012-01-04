@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.fixtures.internal
+package org.gradle.integtests.fixtures
 
-import spock.lang.Specification
-
-import org.junit.runner.RunWith
-import org.gradle.integtests.fixtures.BasicGradleDistribution
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.junit.Rule
-import org.gradle.integtests.fixtures.CrossVersionTestRunner
 import org.gradle.util.TestFile
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.junit.Rule
+import org.junit.runner.RunWith
+import spock.lang.Specification
 
 @RunWith(CrossVersionTestRunner)
 abstract class CrossVersionIntegrationSpec extends Specification {

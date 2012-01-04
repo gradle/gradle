@@ -17,6 +17,8 @@
 /*
     Provides generally useful test utilities, used for unit and integration testing.
 */
+apply from: "$rootDir/gradle/classycle.gradle"
+
 dependencies {
     groovy libraries.groovy
 

@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.publish.ivy
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.IvyRepository
 
 class IvyJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {

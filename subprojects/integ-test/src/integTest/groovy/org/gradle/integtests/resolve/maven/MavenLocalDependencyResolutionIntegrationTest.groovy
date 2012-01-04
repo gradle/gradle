@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MavenLocalDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {

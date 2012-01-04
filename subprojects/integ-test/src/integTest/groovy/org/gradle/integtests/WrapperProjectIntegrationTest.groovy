@@ -19,7 +19,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.junit.Before
 import org.junit.Test
 import static org.hamcrest.Matchers.containsString

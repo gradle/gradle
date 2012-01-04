@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.hamcrest.Matchers

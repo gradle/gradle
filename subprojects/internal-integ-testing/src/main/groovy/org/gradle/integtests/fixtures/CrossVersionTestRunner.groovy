@@ -15,8 +15,6 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
-
 /**
  * <p>Executes instances of {@link CrossVersionIntegrationSpec} against each previous Gradle version.
  *

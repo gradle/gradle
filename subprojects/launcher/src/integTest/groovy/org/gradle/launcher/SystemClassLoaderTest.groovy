@@ -15,10 +15,7 @@
  */
 package org.gradle.launcher
 
-import spock.lang.*
-
 import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.internal.*
 
 /**
  * Verifies that Gradle doesn't pollute the system class loader.

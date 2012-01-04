@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.internal.*
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ApplicationIntegrationSpec extends AbstractIntegrationSpec {
 

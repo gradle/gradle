@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 
 class ResolveCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 

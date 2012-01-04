@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class FlatDirResolveIntegrationTest extends AbstractIntegrationSpec {
     def "can resolve dependencies from a flat dir repository"() {

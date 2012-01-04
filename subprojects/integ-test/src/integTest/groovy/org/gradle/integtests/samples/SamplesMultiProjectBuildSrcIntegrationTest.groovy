@@ -18,7 +18,6 @@ package org.gradle.integtests.samples
 import org.junit.*
 
 import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.internal.*
 
 class SamplesMultiProjectBuildSrcIntegrationTest extends AbstractIntegrationSpec {
 

@@ -16,7 +16,7 @@
 package org.gradle.plugins.cpp
 
 import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.internal.*
+
 import org.junit.*
 
 class CppSamplesSpec extends AbstractIntegrationSpec {

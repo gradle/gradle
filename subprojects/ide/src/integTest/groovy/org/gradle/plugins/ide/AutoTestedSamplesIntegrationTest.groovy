@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide
 
-import org.gradle.integtests.fixtures.internal.AbstractAutoTestedSamplesTest
+import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
 import org.junit.Test
 
 /**

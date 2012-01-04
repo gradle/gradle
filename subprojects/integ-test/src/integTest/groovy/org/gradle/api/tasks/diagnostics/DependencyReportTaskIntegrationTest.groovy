@@ -15,7 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 

@@ -17,7 +17,7 @@
 package org.gradle.plugins.signing
 
 import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.internal.*
+
 import org.junit.*
 
 class SigningSamplesSpec extends AbstractIntegrationSpec {

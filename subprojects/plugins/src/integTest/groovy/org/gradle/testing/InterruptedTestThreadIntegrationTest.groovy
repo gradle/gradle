@@ -16,7 +16,6 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.internal.*
 
 import spock.lang.*
 

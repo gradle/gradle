@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.internal
+package org.gradle.integtests.fixtures
 
 /**
  * @author: Szczepan Faber, created at: 3/28/11

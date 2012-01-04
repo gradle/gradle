@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling.fixture
 import java.util.concurrent.TimeUnit
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.internal.IntegrationTestHint
+import org.gradle.integtests.fixtures.IntegrationTestHint
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException

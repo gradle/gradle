@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ear
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.junit.Before
 import org.junit.Test
 import spock.lang.Issue

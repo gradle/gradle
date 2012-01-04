@@ -17,7 +17,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.ArtifactBuilder
 import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TestFile
 import org.gradle.util.TextUtil
 

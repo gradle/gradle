@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.announce
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildAnnouncementsPluginIntegrationTest extends AbstractIntegrationSpec {
     def "does not blow up when a local notification mechanism is not available"() {

@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.fixtures.internal
+package org.gradle.integtests.fixtures
 
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.integtests.fixtures.*
 
 /**
  * Spockified version of AbstractIntegrationTest.

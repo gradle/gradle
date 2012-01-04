@@ -15,7 +15,7 @@
  */
 package org.gradle.api.file
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import static org.gradle.util.TextUtil.escapeString
 
 import spock.lang.Unroll

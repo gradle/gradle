@@ -16,11 +16,8 @@
 package org.gradle.plugins.cpp
 
 import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.internal.*
 
 import static org.gradle.util.TextUtil.escapeString
-
-import spock.lang.*
 
 class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
 

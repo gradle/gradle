@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.tooling
 
-import org.gradle.integtests.fixtures.internal.IntegrationTestHint
+import org.gradle.integtests.fixtures.IntegrationTestHint
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.integtests.fixtures.*

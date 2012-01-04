@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule

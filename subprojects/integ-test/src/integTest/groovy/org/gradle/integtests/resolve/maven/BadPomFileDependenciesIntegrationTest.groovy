@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 class BadPomFileDependenciesIntegrationTest extends AbstractIntegrationSpec {

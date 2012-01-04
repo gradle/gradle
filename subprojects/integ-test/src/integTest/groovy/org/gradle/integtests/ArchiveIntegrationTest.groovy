@@ -18,7 +18,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.gradle.util.TestPrecondition
 import org.junit.Rule

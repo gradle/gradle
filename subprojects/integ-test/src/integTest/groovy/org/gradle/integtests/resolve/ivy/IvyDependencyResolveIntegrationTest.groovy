@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class IvyDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {

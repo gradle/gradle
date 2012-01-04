@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test

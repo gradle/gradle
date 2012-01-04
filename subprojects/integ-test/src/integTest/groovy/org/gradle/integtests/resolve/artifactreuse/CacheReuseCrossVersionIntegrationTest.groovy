@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.artifactreuse
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.TargetGradleVersions
-import org.gradle.integtests.fixtures.internal.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.junit.Rule
 
 @TargetGradleVersions(['1.0-milestone-6'])

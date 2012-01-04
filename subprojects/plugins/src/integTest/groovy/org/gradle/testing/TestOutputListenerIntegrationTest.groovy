@@ -16,7 +16,7 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue

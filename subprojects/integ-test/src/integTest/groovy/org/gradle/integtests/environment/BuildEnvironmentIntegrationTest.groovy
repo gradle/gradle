@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.environment
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.os.OperatingSystem
 import org.gradle.testing.AvailableJavaHomes
 import org.gradle.util.Jvm

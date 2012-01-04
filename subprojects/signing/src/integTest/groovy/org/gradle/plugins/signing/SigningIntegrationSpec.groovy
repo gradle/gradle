@@ -16,8 +16,7 @@
 package org.gradle.plugins.signing
 
 import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.internal.*
-import org.gradle.util.*
+
 import static org.gradle.util.TextUtil.*
 import org.junit.*
 

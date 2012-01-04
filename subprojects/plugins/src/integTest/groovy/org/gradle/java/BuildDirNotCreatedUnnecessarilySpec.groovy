@@ -18,7 +18,6 @@ package org.gradle.java
 import spock.lang.*
 
 import org.gradle.integtests.fixtures.*
-import org.gradle.integtests.fixtures.internal.*
 
 @Issue("http://issues.gradle.org/browse/GRADLE-1885")
 class BuildDirNotCreatedUnnecessarilySpec extends AbstractIntegrationSpec {
