@@ -138,7 +138,7 @@ eclipse {
     }
 
     @Test
-    void enablesBeforeAndWhenHooksForJdt() {
+    void enablesBeforeAndWhenAndWithPropertiesHooksForJdt() {
         //given
         def jdtFile = file('.settings/org.eclipse.jdt.core.prefs')
         jdtFile << '''
@@ -164,12 +164,16 @@ eclipse {
         assert '1.1' != it.targetCompatibility.toString()
         it.targetCompatibility = JavaVersion.toVersion('1.1')
       }
+      withProperties {
+        hooks << 'withProperties'
+        it.dummy = 'testValue'
+      }
     }
   }
 }
 
 eclipseJdt.doLast() {
-  assert hooks == ['beforeMerged', 'whenMerged']
+  assert hooks == ['beforeMerged', 'whenMerged', 'withProperties']
 }
         """
 
@@ -177,6 +181,7 @@ eclipseJdt.doLast() {
 
         //then
         assert jdt.contains('targetPlatform=1.1')
+        assert jdt.contains('dummy=testValue')
     }
 
     protected def contains(String ... contents) {

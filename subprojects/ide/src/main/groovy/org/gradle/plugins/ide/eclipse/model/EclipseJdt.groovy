@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.JavaVersion
-import org.gradle.plugins.ide.api.FileContentMerger
+import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -42,6 +42,12 @@ import org.gradle.util.ConfigureUtil
  *       //and after gradle build information is merged
  *       whenMerged { jdt
  *         //you can tinker with the {@link Jdt} here
+ *       }
+ *       
+ *       //withProperties allows addition of properties not currently
+ *       //modeled by Gradle
+ *       withProperties { properties ->
+ *           //you can tinker with the {@link java.util.Properties} here
  *       }
  *     }
  *   }
@@ -80,7 +86,8 @@ class EclipseJdt {
      * <p>
      * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link Jdt}
      * <p>
-     *
+     * The object passed to withProperties{} closures is of type {@link java.util.Properties}
+     * <p>
      * For example see docs for {@link EclipseJdt}
      */
     void file(Closure closure) {
@@ -90,5 +97,9 @@ class EclipseJdt {
     /**
      * See {@link #file(Closure) }
      */
-    FileContentMerger file = new FileContentMerger()
+    final PropertiesFileContentMerger file
+    
+    EclipseJdt(PropertiesFileContentMerger file) {
+        this.file = file
+    }
 }
