@@ -1,6 +1,7 @@
 
 project.Scp = Scp.class
 project.SshExec = SshExec.class
+project.SshTask = SshTask.class
 
 configurations {
     sshAntTask
@@ -59,6 +60,18 @@ class Scp extends SshTask {
         ant.sshexec(host: host, username: userName, password: password, command: "mkdir -p ${destinationDir}")
         ant.scp(remotetodir: "${userName}@${host}:${destinationDir}", password: password) {
             fileset(dir: sourceDir)
+        }
+    }
+
+    void sourceDir(Object source) {
+        if (source instanceof Buildable) {
+            dependsOn source
+        }
+
+        if (source instanceof FileCollection) {
+            sourceDir = source.singleFile
+        } else {
+            sourceDir = project.files(source)
         }
     }
 }
