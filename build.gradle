@@ -410,7 +410,7 @@ task wrapper(type: Wrapper) {
 }
 
 def groovyProjects() {
-    subprojects.findAll { it.name != 'docs' }
+    subprojects.findAll { !(it.name in ["docs", "website"]) }
 }
 
 def publishedProjects() {
