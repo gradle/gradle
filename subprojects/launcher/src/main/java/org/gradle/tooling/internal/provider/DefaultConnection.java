@@ -33,14 +33,11 @@ import org.gradle.tooling.internal.provider.input.AdaptedOperationParameters;
 import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.Jvm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
-
-import static org.gradle.util.GFileUtils.canonicalise;
 
 public class DefaultConnection implements InternalConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
@@ -129,7 +126,7 @@ public class DefaultConnection implements InternalConnection {
         //override the params with the explicit settings provided by the tooling api
         List<String> defaultJvmArgs = daemonParams.getAllJvmArgs();
         daemonParams.setJvmArgs(operationParameters.getJvmArguments(defaultJvmArgs));
-        File defaultJavaHome = canonicalise(Jvm.current().getJavaHome());
+        File defaultJavaHome = daemonParams.getJavaHome();
         daemonParams.setJavaHome(operationParameters.getJavaHome(defaultJavaHome));
 
         if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {

@@ -27,11 +27,14 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
+import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+
+import static org.gradle.util.GFileUtils.canonicalise;
 
 public class DaemonParameters {
     public static final String IDLE_TIMEOUT_SYS_PROPERTY = "org.gradle.daemon.idletimeout";
@@ -46,6 +49,7 @@ public class DaemonParameters {
     private File javaHome;
 
     public DaemonParameters() {
+        javaHome = canonicalise(Jvm.current().getJavaHome());
         jvmOptions.setAllJvmArgs(Arrays.asList("-Xmx1024m", "-XX:MaxPermSize=256m"));
     }
 
