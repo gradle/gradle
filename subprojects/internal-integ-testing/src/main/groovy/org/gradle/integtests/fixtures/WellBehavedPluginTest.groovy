@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.fixtures
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
-
 abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     abstract getPluginId()
