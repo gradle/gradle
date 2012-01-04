@@ -72,7 +72,6 @@ class LazyConnectionTest extends Specification {
         1 * implementationLoader.create(distribution, progressLoggerFactory) >> consumerConnection
         1 * connection.modelProvider.provide(consumerConnection, SomeModel, params)
         1 * consumerConnection.executeBuild(buildParams, params)
-        //TODO SF review remaining usages of ProjectVersion3
         0 * _._
     }
 

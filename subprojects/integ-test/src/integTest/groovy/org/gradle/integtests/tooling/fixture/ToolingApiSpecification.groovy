@@ -17,6 +17,7 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.tooling.GradleConnector
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -69,6 +70,14 @@ abstract class ToolingApiSpecification extends Specification {
 
     def withConnection(Closure cl) {
         toolingApi.withConnection(cl)
+    }
+
+    def withConnection(GradleConnector connector, Closure cl) {
+        toolingApi.withConnection(connector, cl)
+    }
+
+    def connector() {
+        toolingApi.connector()
     }
 
     def maybeFailWithConnection(Closure cl) {

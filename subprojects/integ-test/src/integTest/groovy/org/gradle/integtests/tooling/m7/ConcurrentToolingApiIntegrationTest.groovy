@@ -175,26 +175,22 @@ project.description = text
         def allProgress = []
 
         concurrent.start {
-            def connector = toolingApi.connector()
+            def connector = connector()
             distributionOperation(connector, { it.description = "download for 1"; Thread.sleep(500) } )
             connector.forProjectDirectory(dist.file("build1"))
 
-            def connection = connector.connect()
-
-            try {
+            toolingApi.withConnection(connector) { connection ->
                 def build = connection.newBuild()
                 def operation = new ConfigurableOperation(build)
                 build.forTasks('foo1').run()
                 assert operation.progressMessages.contains("download for 1")
                 assert !operation.progressMessages.contains("download for 2")
                 allProgress << operation.progressMessages
-            } finally {
-                connection.close()
             }
         }
 
         concurrent.start {
-            def connector = toolingApi.connector()
+            def connector = connector()
             distributionOperation(connector, { it.description = "download for 2"; Thread.sleep(500) } )
             connector.forProjectDirectory(dist.file("build2"))
 
@@ -229,7 +225,7 @@ project.description = text
         when:
         threads.times { idx ->
             concurrent.start {
-                def connector = toolingApi.connector()
+                def connector = connector()
                 distributionProgressMessage(connector, "download for " + idx)
 
                 def connection = connector.connect()
@@ -337,13 +333,8 @@ System.err.println 'this is stderr: $idx'
     }
 
     def withConnectionInDir(String dir, Closure cl) {
-        GradleConnector connector = toolingApi.connector()
+        GradleConnector connector = connector()
         connector.forProjectDirectory(dist.file(dir))
-        ProjectConnection connection = connector.connect()
-        try {
-            return cl(connection)
-        } finally {
-            connection.close();
-        }
+        withConnection(connector, cl)
     }
 }

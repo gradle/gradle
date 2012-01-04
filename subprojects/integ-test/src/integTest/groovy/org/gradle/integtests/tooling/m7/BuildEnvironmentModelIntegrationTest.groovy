@@ -44,18 +44,13 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
 
     def "configures the java settings"() {
         given:
-        def connector = toolingApi.connector()
+        def connector = connector()
             .hintJavaHome(new File("hey"))
             .hintJvmArguments("-Xmx333m", "-Xms13m")
 
         when:
-        //TODO SF generalize to withConnection
-        def connection = connector.connect()
-        def model
-        try {
-            model = connection.getModel(BuildEnvironment.class)
-        } finally {
-            connection.close()
+        BuildEnvironment model = withConnection(connector) {
+            it.getModel(BuildEnvironment.class)
         }
 
         then:
@@ -67,17 +62,13 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
 
     def "uses sensible java defaults if nulls configured"() {
         given:
-        def connector = toolingApi.connector()
+        def connector = connector()
             .hintJavaHome(null)
             .hintJvmArguments(null)
 
         when:
-        def connection = connector.connect()
-        def model
-        try {
-            model = connection.getModel(BuildEnvironment.class)
-        } finally {
-            connection.close()
+        BuildEnvironment model = withConnection(connector) {
+            it.getModel(BuildEnvironment.class)
         }
 
         then:
@@ -87,16 +78,12 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
 
     def "may use no jvm args if requested"() {
         given:
-        def connector = toolingApi.connector()
+        def connector = connector()
             .hintJvmArguments(new String[0])
 
         when:
-        def connection = connector.connect()
-        def model
-        try {
-            model = connection.getModel(BuildEnvironment.class)
-        } finally {
-            connection.close()
+        BuildEnvironment model = withConnection(connector) {
+            it.getModel(BuildEnvironment.class)
         }
 
         then:

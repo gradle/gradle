@@ -42,6 +42,10 @@ class ToolingApi {
 
     def withConnection(Closure cl) {
         GradleConnector connector = connector()
+        withConnection(connector, cl)
+    }
+
+    def withConnection(GradleConnector connector, Closure cl) {
         try {
             withConnectionRaw(connector, cl)
         } catch (UnsupportedVersionException e) {
