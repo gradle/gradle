@@ -80,7 +80,7 @@ class Releases {
         new XmlParser().parse(releasesFile)
     }
 
-    private modifyTo(File destination, Closure modifications) {
+    public modifyTo(File destination, Closure modifications) {
         def releases = load()
         project.configure(releases, modifications)
         destination.withPrintWriter { writer -> new XmlNodePrinter(writer, "  ").print(releases) }
