@@ -516,6 +516,10 @@ public class TestFile extends File implements TestFileContext {
             throw new RuntimeException(e);
         }
     }
+    
+    public Map<String, ?> exec() {
+        return new TestFileHelper(this).exec();
+    }
 
     public class Snapshot {
         private final long modTime;
