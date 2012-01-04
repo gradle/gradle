@@ -57,7 +57,29 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
         model.java.javaHome == new File("hey")
         model.java.jvmArguments.contains("-Xmx333m")
         model.java.jvmArguments.contains("-Xms13m")
-        //TODO SF add coverage so that we really check the java home / args inside the build rather than checking the env model
+    }
+
+    def "the jvm arguments are used in the build"() {
+        given:
+        //this test does not make any sense in embedded mode
+        toolingApi.isEmbedded = false
+
+        def connector = connector()
+            .hintJvmArguments("-Xmx333m", "-Xms13m")
+
+        dist.file('build.gradle') << """
+def inputArgs = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments
+assert inputArgs.contains('-Xmx333m')
+assert inputArgs.contains('-Xms13m')
+"""
+
+        when:
+        withConnection(connector) {
+            it.newBuild().forTasks('tasks').run()
+        }
+
+        then:
+        noExceptionThrown()
     }
 
     def "uses sensible java defaults if nulls configured"() {
