@@ -19,33 +19,10 @@ import spock.lang.*
 
 import org.gradle.integtests.fixtures.*
 
-@Issue("http://issues.gradle.org/browse/GRADLE-1885")
-class BuildDirNotCreatedUnnecessarilySpec extends AbstractIntegrationSpec {
+class JavaPluginGoodBehaviourTest extends WellBehavedPluginTest {
 
-    boolean getBuildDirExists() {
-        file("build").exists()
+    @Override
+    def getPluginId() {
+        "java"
     }
-
-    def "existence of jar task should not create build directory"() {
-        given:
-        buildFile << "apply plugin: 'java'"
-
-        when:
-        run "tasks"
-
-        then:
-        !buildDirExists
-    }
-
-    def "existence of war task should not create build directory"() {
-        given:
-        buildFile << "apply plugin: 'ear'"
-
-        when:
-        run "tasks"
-
-        then:
-        !buildDirExists
-    }
-
 }
