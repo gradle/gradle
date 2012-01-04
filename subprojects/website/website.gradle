@@ -93,6 +93,11 @@ task generateReleasesXml() {
                 def currentVersion
                 def currentBuildTime
                 if (this.project.version.release) {
+                    
+                    /*
+                        We are doing a release build.
+                        We are relying on the project.releases.incrementNextVersion() NOT being called yet.
+                    */
                     currentVersion = this.project.version
                     currentBuildTime = this.project.version.timestamp
                     release(version: currentVersion, "build-time": currentBuildTime, current: true)
