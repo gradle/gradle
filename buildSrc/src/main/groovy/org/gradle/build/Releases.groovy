@@ -37,13 +37,12 @@ class Releases {
     }
 
     void generateTo(File resourceFile) {
-        assert releasesFile.exists()
-        def releases = new XmlParser().parse(releasesFile)
-        releases.next.each { releases.remove(it) }
-        releases.current[0].'@version' = project.version.versionNumber
-        releases.current[0].'@build-time' = formattedBuildTime
-        releases.current[0].'@type' = project.version.release ? 'release' : 'snapshot'
-        resourceFile.withPrintWriter { writer -> new XmlNodePrinter(writer).print(releases) }
+        modifyTo(resourceFile) {
+            next.each { remove(it) }
+            current[0].'@version' = this.project.version.versionNumber
+            current[0].'@build-time' = this.formattedBuildTime
+            current[0].'@type' = this.project.version.release ? 'release' : 'snapshot'
+        }
     }
 
     String calculateNextVersion(String version) {
@@ -60,21 +59,27 @@ class Releases {
     }
 
     void incrementNextVersion() {
-        assert releasesFile.exists()
-        def releases = new XmlParser().parse(releasesFile)
-        def nextRelease = releases.next[0]
-        assert nextRelease && nextRelease.'@version'
-        def thisRelease = nextRelease.'@version'
-        nextRelease.@version = calculateNextVersion(thisRelease)
-        def currentRelease = releases.current[0]
-        assert currentRelease
-        currentRelease + {
-            release(version: thisRelease, "build-time": formattedBuildTime)
+        modifyTo(releasesFile) {
+            def nextRelease = next[0]
+            assert nextRelease && nextRelease.'@version'
+            def thisRelease = nextRelease.'@version'
+            nextRelease.@version = this.calculateNextVersion(thisRelease)
+            def currentRelease = current[0]
+            assert currentRelease
+            currentRelease + {
+                release(version: thisRelease, "build-time": this.formattedBuildTime)
+            }
         }
-        releasesFile.withWriter { writer -> new XmlNodePrinter(new IndentPrinter(writer, "    ")).print(releases) }
     }
 
     private String getFormattedBuildTime() {
         return new SimpleDateFormat("yyyyMMddHHmmssZ").format(project.version.buildTime)
+    }
+
+    private modifyTo(File destination, Closure modifications) {
+        assert releasesFile.exists()
+        def releases = new XmlParser().parse(releasesFile)
+        project.configure(releases, modifications)
+        destination.withPrintWriter { writer -> new XmlNodePrinter(writer, "  ").print(releases) }
     }
 }

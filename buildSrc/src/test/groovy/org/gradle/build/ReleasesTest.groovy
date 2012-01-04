@@ -93,9 +93,9 @@ class ReleasesTest extends Specification {
     def updatesReleasesXmlToIncrementNextVersion() {
         releasesXml << '''
 <releases>
-    <next version="1.0-milestone-2"/>
-    <current version="${version}" build-time="${build=time}"/>
-    <release version="previous" build-time="20101220123412-0200"/>
+  <next version="1.0-milestone-2"/>
+  <current version="${version}" build-time="${build=time}"/>
+  <release version="previous" build-time="20101220123412-0200"/>
 </releases>
 '''
         project.version = [buildTime: buildTime]
@@ -105,10 +105,10 @@ class ReleasesTest extends Specification {
 
         then:
         releasesXml.text == """<releases>
-    <next version="1.0-milestone-3"/>
-    <current version="\${version}" build-time="\${build=time}"/>
-    <release version="1.0-milestone-2" build-time="${dateFormat.format(buildTime)}"/>
-    <release version="previous" build-time="20101220123412-0200"/>
+  <next version="1.0-milestone-3"/>
+  <current version="\${version}" build-time="\${build=time}"/>
+  <release version="1.0-milestone-2" build-time="${dateFormat.format(buildTime)}"/>
+  <release version="previous" build-time="20101220123412-0200"/>
 </releases>
 """
     }
