@@ -22,7 +22,6 @@ package org.gradle.util;
 
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
-import org.gradle.internal.UncheckedException;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.jmock.Expectations;
@@ -67,7 +66,7 @@ public class JUnit4GroovyMockery extends JUnit4Mockery {
                     try {
                         field.set(mock, true);
                     } catch (IllegalAccessException e) {
-                        throw UncheckedException.asUncheckedException(e);
+                        throw new RuntimeException(e);
                     }
                     break;
                 }

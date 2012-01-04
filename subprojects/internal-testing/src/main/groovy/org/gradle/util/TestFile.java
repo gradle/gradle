@@ -18,25 +18,19 @@ package org.gradle.util;
 
 import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.Tar;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.DeleteAction;
-import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.file.copy.DeleteActionImpl;
-import org.gradle.internal.nativeplatform.FileSystems;
-import org.gradle.internal.nativeplatform.OperatingSystem;
-import org.gradle.process.ExecResult;
-import org.gradle.process.internal.DefaultExecAction;
-import org.gradle.process.internal.ExecAction;
 import org.hamcrest.Matcher;
 
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -88,14 +82,18 @@ public class TestFile extends File implements TestFileContext {
         for (Object p : path) {
             current = new File(current, p.toString());
         }
-        return GFileUtils.canonicalise(current);
+        try {
+            return current.getCanonicalFile();
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("Could not canonicalise '%s'.", current), e);
+        }
     }
 
     public TestFile file(Object... path) {
         try {
             return new TestFile(this, path);
         } catch (RuntimeException e) {
-            throw new UncheckedIOException(String.format("Could not locate file '%s' relative to '%s'.", Arrays.toString(path), this), e);
+            throw new RuntimeException(String.format("Could not locate file '%s' relative to '%s'.", Arrays.toString(path), this), e);
         }
     }
 
@@ -115,7 +113,7 @@ public class TestFile extends File implements TestFileContext {
         try {
             FileUtils.writeStringToFile(this, content.toString());
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not write to test file '%s'", this), e);
+            throw new RuntimeException(String.format("Could not write to test file '%s'", this), e);
         }
         return this;
     }
@@ -126,7 +124,7 @@ public class TestFile extends File implements TestFileContext {
             DefaultGroovyMethods.leftShift(this, content);
             return this;
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not append to test file '%s'", this), e);
+            throw new RuntimeException(String.format("Could not append to test file '%s'", this), e);
         }
     }
 
@@ -135,7 +133,7 @@ public class TestFile extends File implements TestFileContext {
         try {
             return FileUtils.readFileToString(this);
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not read from test file '%s'", this), e);
+            throw new RuntimeException(String.format("Could not read from test file '%s'", this), e);
         }
     }
 
@@ -150,7 +148,7 @@ public class TestFile extends File implements TestFileContext {
                 inStream.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new RuntimeException(e);
         }
         Map<String, String> map = new HashMap<String, String>();
         for (Object key : properties.keySet()) {
@@ -169,7 +167,7 @@ public class TestFile extends File implements TestFileContext {
                 jarFile.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -189,7 +187,7 @@ public class TestFile extends File implements TestFileContext {
                 reader.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -209,14 +207,14 @@ public class TestFile extends File implements TestFileContext {
             try {
                 FileUtils.copyDirectory(this, target);
             } catch (IOException e) {
-                throw new UncheckedIOException(String.format("Could not copy test directory '%s' to '%s'", this,
+                throw new RuntimeException(String.format("Could not copy test directory '%s' to '%s'", this,
                         target), e);
             }
         } else {
             try {
                 FileUtils.copyFile(this, target);
             } catch (IOException e) {
-                throw new UncheckedIOException(String.format("Could not copy test file '%s' to '%s'", this, target), e);
+                throw new RuntimeException(String.format("Could not copy test file '%s' to '%s'", this, target), e);
             }
         }
     }
@@ -229,40 +227,26 @@ public class TestFile extends File implements TestFileContext {
         try {
             FileUtils.copyURLToFile(resource, this);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new RuntimeException(e);
         }
     }
     
     public void moveToDirectory(File target) {
         if (target.exists() && !target.isDirectory()) {
-                throw new UncheckedIOException(String.format("Target '%s' is not a directory", target));
+                throw new RuntimeException(String.format("Target '%s' is not a directory", target));
         }
         try {
             FileUtils.moveFileToDirectory(this, target, true);
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not move test file '%s' to directory '%s'", this, target), e);
+            throw new RuntimeException(String.format("Could not move test file '%s' to directory '%s'", this, target), e);
         }
-    }
-
-    public TestFile linkTo(File target) {
-        getParentFile().createDir();
-        try {
-            FileSystems.getDefault().createSymbolicLink(getAbsoluteFile(), target);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return this;
-    }
-
-    public TestFile linkTo(String target) {
-        return linkTo(new File(target));
     }
 
     public TestFile touch() {
         try {
             FileUtils.touch(this);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new RuntimeException(e);
         }
         assertIsFile();
         return this;
@@ -332,14 +316,22 @@ public class TestFile extends File implements TestFileContext {
         assertIsFile();
         other.assertIsFile();
         assertEquals(String.format("%s is not the same length as %s", this, other), other.length(), this.length());
-        assertTrue(String.format("%s does not have the same content as %s", this, other), Arrays.equals(HashUtil.createHash(this, "MD5"), HashUtil.createHash(other, "MD5")));
+        assertTrue(String.format("%s does not have the same content as %s", this, other), Arrays.equals(getHash("MD5"), other.getHash("MD5")));
         return this;
     }
 
-    public TestFile assertPermissions(Matcher<String> matcher) {
-        if (OperatingSystem.current().isUnix()) {
-            assertThat(String.format("mismatched permissions for '%s'", this), getPermissions(), matcher);
+    private byte[] getHash(String algorithm) {
+        try {
+            MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
+            messageDigest.update(FileUtils.readFileToByteArray(this));
+            return messageDigest.digest();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+    }
+
+    public TestFile assertPermissions(Matcher<String> matcher) {
+        assertThat(String.format("mismatched permissions for '%s'", this), getPermissions(), matcher);
         return this;
     }
 
@@ -408,8 +400,7 @@ public class TestFile extends File implements TestFileContext {
     }
 
     public TestFile deleteDir() {
-        DeleteAction delete = new DeleteActionImpl(new IdentityFileResolver());
-        delete.delete(this);
+        FileUtils.deleteQuietly(this);
         return this;
     }
 
@@ -420,7 +411,7 @@ public class TestFile extends File implements TestFileContext {
     public TestFile maybeDeleteDir() {
         try {
             deleteDir();
-        } catch (UncheckedIOException e) {
+        } catch (RuntimeException e) {
             // Ignore
         }
         return this;
@@ -431,7 +422,7 @@ public class TestFile extends File implements TestFileContext {
         try {
             assertTrue(isFile() || createNewFile());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new RuntimeException(e);
         }
         return this;
     }
@@ -447,7 +438,7 @@ public class TestFile extends File implements TestFileContext {
         zip.setDestFile(zipFile);
         zip.setBasedir(this);
         zip.setExcludes("**");
-        AntUtil.execute(zip);
+        execute(zip);
         return zipFile;
     }
 
@@ -455,7 +446,7 @@ public class TestFile extends File implements TestFileContext {
         Zip zip = new Zip();
         zip.setBasedir(this);
         zip.setDestFile(zipFile);
-        AntUtil.execute(zip);
+        execute(zip);
         return this;
     }
 
@@ -463,7 +454,7 @@ public class TestFile extends File implements TestFileContext {
         Tar tar = new Tar();
         tar.setBasedir(this);
         tar.setDestFile(zipFile);
-        AntUtil.execute(tar);
+        execute(tar);
         return this;
     }
 
@@ -472,7 +463,7 @@ public class TestFile extends File implements TestFileContext {
         tar.setBasedir(this);
         tar.setDestFile(tarFile);
         tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "gzip"));
-        AntUtil.execute(tar);
+        execute(tar);
         return this;
     }
 
@@ -481,8 +472,13 @@ public class TestFile extends File implements TestFileContext {
         tar.setBasedir(this);
         tar.setDestFile(tarFile);
         tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "bzip2"));
-        AntUtil.execute(tar);
+        execute(tar);
         return this;
+    }
+
+    private void execute(Task task) {
+        task.setProject(new Project());
+        task.execute();
     }
 
     public Snapshot snapshot() {
@@ -517,7 +513,7 @@ public class TestFile extends File implements TestFileContext {
                 stream.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -527,90 +523,7 @@ public class TestFile extends File implements TestFileContext {
 
         public Snapshot() {
             modTime = lastModified();
-            hash = HashUtil.createHash(TestFile.this, "MD5");
+            hash = getHash("MD5");
         }
-    }
-
-    public class TestFileExec {
-        private final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        private final ByteArrayOutputStream err = new ByteArrayOutputStream();
-
-        private final ExecAction action;
-
-        public TestFileExec() {
-            action = new DefaultExecAction();
-            action.setErrorOutput(err);
-            action.setStandardOutput(out);
-            action.workingDir(TestFile.this.getParentFile());
-            action.executable(TestFile.this);
-        }
-
-        public TestFileExec workingDir(File file) {
-            action.workingDir(file);
-            return this;
-        }
-
-        public TestFileExec args(Object... args) {
-            action.args(args);
-            return this;
-        }
-
-        public TestFileExec input(String input) {
-            return input(new ByteArrayInputStream(input.getBytes()));
-        }
-
-        public TestFileExec input(String enc, String input) {
-            try {
-                return input(new ByteArrayInputStream(input.getBytes(enc)));
-            } catch (java.io.UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
-            }
-            
-        }
-
-        public TestFileExec input(InputStream input) {
-            action.setStandardInput(input);
-            return this;
-        }
-
-        public TestFileExecResult execute() {
-            return new TestFileExecResult(action.execute(), out, err);
-        }
-    }
-
-    public static class TestFileExecResult {
-        private final ExecResult result;
-        private final ByteArrayOutputStream out;
-        private final ByteArrayOutputStream err;
-
-        public TestFileExecResult(ExecResult result, ByteArrayOutputStream out, ByteArrayOutputStream err) {
-            this.result = result;
-            this.out = out;
-            this.err = err;
-        }
-
-        public ExecResult getResult() {
-            return result;
-        }
-
-        public String getOut() {
-            return out.toString();
-        }
-
-        public String getErr() {
-            return err.toString();
-        }
-    }
-
-    TestFileExecResult exec(Object... args) {
-        return exec(args, null);
-    }
-
-    TestFileExecResult exec(Object[] args, Closure configure) {
-        TestFileExec exec = new TestFileExec().args(args);
-        if (configure != null) {
-            ConfigureUtil.configure(configure, exec);
-        }
-        return exec.execute();
     }
 }

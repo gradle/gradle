@@ -24,7 +24,7 @@ import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.internal.nativeplatform.OperatingSystem
-import org.gradle.testing.AvailableJavaHomes
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Jvm
 import org.junit.Rule
 import org.slf4j.LoggerFactory

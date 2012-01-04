@@ -30,6 +30,7 @@ sourceSets {
 
 dependencies {
     testFixturesUsageCompile sourceSets.testFixtures.output
+    testFixturesCompile libraries.junit, libraries.jmock, libraries.spock
 }
 
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet

@@ -62,6 +62,7 @@ dependencies {
 
     reports 'css3-pie:css3-pie:1.0beta3'
 }
+useTestFixtures(project: ':native')
 
 test {
     jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'

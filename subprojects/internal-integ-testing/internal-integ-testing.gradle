@@ -23,3 +23,5 @@ dependencies {
     compile project(':native')
     compile libraries.jetty
 }
+
+useTestFixtures(sourceSet: 'main')
