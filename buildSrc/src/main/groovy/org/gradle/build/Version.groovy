@@ -95,22 +95,6 @@ class Version {
         isReleaseProvider()
     }
 
-    String getDistributionUrl() {
-        if (release) {
-            'https://gradle.artifactoryonline.com/gradle/distributions'
-        } else {
-            'https://gradle.artifactoryonline.com/gradle/distributions-snapshots'
-        }
-    }
-
-    String getLibsUrl() {
-        if (release) {
-            'https://gradle.artifactoryonline.com/gradle/libs-releases-local'
-        } else {
-            'https://gradle.artifactoryonline.com/gradle/libs-snapshots-local'
-        }
-    }
-
     def docUrl(docLabel) {
         "http://www.gradle.org/doc/${-> release ? 'current' : toString()}/$docLabel"
     }
