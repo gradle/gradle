@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 apply plugin: "base"
 evaluationDependsOn ":docs"
 
@@ -45,11 +44,11 @@ task uploadDocs(type: Scp) {
     isDir false
     source project(":docs").docsZip
     destination = uploadPath("docs/${->isNightlyBuild() ? 'nightly' : project.version}.zip")
-    
+
     doLast {
         // unpack the zip to the right place and fix the perms
         ssh asSudo("move-docs", isNightlyBuild() ? 'nightly' : project.version)
-        
+
         if (project.version.release) {
             // update the “current” symlink in the docs dir
             ssh asSudo("mark-current-docs", project.version)
@@ -57,3 +56,120 @@ task uploadDocs(type: Scp) {
     }
 }
 
+task generateReleasesXml() {
+    outputFile = file("$buildDir/releases.xml")
+    outputs.file outputFile
+    outputs.upToDateWhen { false }
+
+    doLast {
+        project.releases.modifyTo(outputFile) {
+            def releases = release
+
+            current[0] + {
+                def readVersion = { label ->
+                    def text = new URL("http://gradle.org/versions/$label").text
+                    new groovy.json.JsonSlurper().parseText(text)
+                }
+
+                // nightly
+                def nightlyVersion
+                def nightlyBuildTime
+                if (this.project.isNightlyBuild()) {
+                    nightlyVersion = this.project.version
+                    nightlyBuildTime = this.project.version.timestamp
+                } else {
+                    def nightlyRemote = readVersion("nightly")
+                    nightlyVersion = nightlyRemote.version
+                    nightlyBuildTime = nightlyRemote.buildTime
+                }
+
+                release(version: nightlyVersion, "build-time": nightlyBuildTime, nightly: true, snapshot: true)
+
+                // rc
+                def rcRemote = readVersion("release-candidate")
+                release(version: rcRemote.version, "build-time": rcRemote.buildTime, "rc-for": rcRemote.rcFor, snapshot: true)
+
+                // current
+                def currentVersion
+                def currentBuildTime
+                if (this.project.version.release) {
+                    currentVersion = this.project.version
+                    currentBuildTime = this.project.version.timestamp
+                    release(version: currentVersion, "build-time": currentBuildTime, current: true)
+                } else {
+                    def currentRemote = readVersion("current")
+                    currentVersion = currentRemote.version
+
+                    def currentRelease = releases.find { it.@version == currentVersion }
+                    assert currentRelease : "didn't find $currentVersion in source releases.xml"
+                    currentRelease.@current = true
+                }
+            }
+
+            [next, current]*.each { remove(it) }
+        }
+    }
+}
+
+task checkoutRepo(type: Exec) {
+    checkoutDir = file("$buildDir/repo-master")
+    onlyIf { !checkoutDir.exists() }
+    executable "git"
+    args "clone", "git@github.com:gradleware/web.git", checkoutDir
+}
+
+task pushReleasesXml {
+    dependsOn checkoutRepo, generateReleasesXml
+    outputs.upToDateWhen { false }
+    repo = project.file("$project.buildDir/repo-$name")
+
+    doLast {
+        def masterCheckout = project.checkoutRepo.checkoutDir
+        def gitOnMasterCheckout = { Object[] cliArgs ->
+            project.exec {
+                workingDir masterCheckout
+                executable "git"
+                args cliArgs
+            }
+        }
+
+        gitOnMasterCheckout "reset", "--hard", "HEAD"
+        gitOnMasterCheckout "clean", "-f", "-d"
+        gitOnMasterCheckout "pull"
+
+        project.delete repo
+
+        // Gradle copy chokes on the symlinks
+        ant.copy(todir: repo) {
+            fileset(dir: masterCheckout, defaultexcludes: false)
+        }
+
+        def releasesXml = new File(repo, "provided/release-data/releases.xml")
+        releasesXml.text = generateReleasesXml.outputFile.text
+
+        def gitOnTaskRepo = { Object[] cliArgs ->
+            project.exec {
+                workingDir repo
+                executable "git"
+                args cliArgs
+            }
+        }
+
+        def message = "updating releases.xml from "
+        if (project.version.release) {
+            message += "release build"
+        } else if (isNightlyBuild()) {
+            message += "nightly build"
+        } else {
+            message += "adhoc build"
+        }
+
+        gitOnTaskRepo "add", releasesXml.absolutePath
+        gitOnTaskRepo "commit", "-m", "[gradle-build] $message"
+
+        if (!project.hasProperty("noPushReleasesXml")) {
+            gitOnTaskRepo "push"
+        }
+    }
+
+}
