@@ -28,6 +28,8 @@ abstract class SshTask extends DefaultTask {
     @Input
     String password
 
+    boolean verbose = false
+
     @TaskAction
     def executeActions() {
         ant.taskdef(name: 'scp',
@@ -42,37 +44,48 @@ abstract class SshTask extends DefaultTask {
     }
 
     abstract void doActions()
+
+    protected withInfoLogging(Closure action) {
+        def oldLogLevel = logging.level
+        logging.level = [LogLevel.INFO, oldLogLevel].min()
+        try {
+            action()
+        } finally {
+            if (oldLogLevel) {
+                logging.level = oldLogLevel
+            }
+        }
+    }
+
+    def scpFile(source, destination) {
+        withInfoLogging {
+            ant.scp(localFile: project.files(source).singleFile, remoteToFile: "${userName}@${host}:${destination}", password: password, verbose: verbose)
+        }
+    }
+
+    def scpDir(source, destination) {
+        withInfoLogging {
+            ant.sshexec(host: host, username: userName, password: password, command: "mkdir -p ${destination}")
+            ant.scp(remoteTodir: "${userName}@${host}:${destination}", password: password, verbose: verbose) {
+                project.files(source).addToAntBuilder(ant, "fileSet", FileCollection.AntType.FileSet)
+            }
+        }
+    }
+
+    def ssh(Object... commandLine) {
+        withInfoLogging {
+            ant.sshexec(host: host, username: userName, password: password, command: commandLine.join(' '))
+        }
+    }
 }
 
 class Scp extends SshTask {
-
-    def from(Object path) {
-        source << path
-    }
-
-    @InputDirectory
-    File sourceDir
-
-    @Input
-    String destinationDir
+    @InputFiles @SkipWhenEmpty source
+    @Input destination
+    boolean isDir = false
 
     void doActions() {
-        ant.sshexec(host: host, username: userName, password: password, command: "mkdir -p ${destinationDir}")
-        ant.scp(remotetodir: "${userName}@${host}:${destinationDir}", password: password) {
-            fileset(dir: sourceDir)
-        }
-    }
-
-    void sourceDir(Object source) {
-        if (source instanceof Buildable) {
-            dependsOn source
-        }
-
-        if (source instanceof FileCollection) {
-            sourceDir = source.singleFile
-        } else {
-            sourceDir = project.files(source)
-        }
+        isDir ? scpDir(source, destination) : scpFile(source, destination)
     }
 }
 
@@ -87,7 +100,7 @@ class SshExec extends SshTask {
     @Override
     void doActions() {
         commandLines.each { commandLine ->
-            ant.sshexec(host: host, username: userName, password: password, command: commandLine.join(' '))
+            ssh(*commandLine)
         }
     }
 }
