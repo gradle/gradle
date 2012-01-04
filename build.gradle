@@ -410,7 +410,7 @@ task incrementNextVersion << {
 
 task uploadAll {
     description = 'Uploads binaries, sources and documentation. Does not upload the website! Useful when release procedure breaks at upload and only upload tasks should executed again'
-    dependsOn uploadArchives, uploadDists, "website:uploadDocs"
+    dependsOn uploadArchives, uploadDists, "website:uploadDocs", "website:pushReleasesXml"
 }
 
 task wrapper(type: Wrapper) {
