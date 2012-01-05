@@ -96,9 +96,11 @@ task generateReleasesXml() {
                 }
 
                 // rc
-                def rcRemote = readVersion("release-candidate")
-                if (rcRemote) {
-                    release(version: rcRemote.version, "build-time": rcRemote.buildTime, "rc-for": rcRemote.rcFor, snapshot: true)
+                if (!this.project.version.release) { // wipe out the rc if we are in a final release
+                    def rcRemote = readVersion("release-candidate")
+                    if (rcRemote) {
+                        release(version: rcRemote.version, "build-time": rcRemote.buildTime, "rc-for": rcRemote.rcFor, snapshot: true)
+                    }
                 }
 
                 // current
