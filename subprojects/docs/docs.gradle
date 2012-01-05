@@ -175,12 +175,10 @@ task remoteUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
     inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
-    gradle.taskGraph.whenReady {
-        javadocUrl = project.version.javadocUrl
-        groovydocUrl = project.version.groovydocUrl
-        dsldocUrl = project.version.dsldocUrl
-        websiteUrl = 'http://www.gradle.org'
-    }
+    javadocUrl = project.version.javadocUrl
+    groovydocUrl = project.version.groovydocUrl
+    dsldocUrl = project.version.dsldocUrl
+    websiteUrl = 'http://www.gradle.org'
 }
 
 task userguideHtml(type: Docbook2Xhtml, dependsOn: userguideDocbook) {
@@ -278,12 +276,10 @@ task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideSty
     tags << 'standalone'
     sourceFile = new File(userguideSrcDir, 'installation.xml')
     destFile = new File(docbookSrc, 'installation.xml')
-    gradle.taskGraph.whenReady {
-        javadocUrl = project.version.javadocUrl
-        groovydocUrl = project.version.groovydocUrl
-        dsldocUrl = project.version.dsldocUrl
-        websiteUrl = 'http://www.gradle.org'
-    }
+    javadocUrl = project.version.javadocUrl
+    groovydocUrl = project.version.groovydocUrl
+    dsldocUrl = project.version.dsldocUrl
+    websiteUrl = 'http://www.gradle.org'
 }
 
 task distDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
