@@ -112,7 +112,7 @@ class Version {
     }
 
     def docUrl(docLabel) {
-        "http://www.gradle.org/doc/${-> release ? 'current' : toString()}/$docLabel"
+        "http://www.gradle.org/doc/${-> release ? 'current' : versionNumber}/$docLabel"
     }
 
     def getJavadocUrl() {
