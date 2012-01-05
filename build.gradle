@@ -30,7 +30,7 @@ import org.gradle.build.Releases
  */
 
 releases = new Releases(project(':core').file('src/releases.xml'), project)
-version = Version.forProject(project)
+version = new Version(project)
 
 defaultTasks 'assemble'
 
