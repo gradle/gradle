@@ -96,10 +96,16 @@ task generateReleasesXml() {
                 }
 
                 // rc
-                if (!this.project.version.release) { // wipe out the rc if we are in a final release
-                    def rcRemote = readVersion("release-candidate")
-                    if (rcRemote) {
-                        release(version: rcRemote.version, "build-time": rcRemote.buildTime, "rc-for": rcRemote.rcFor, snapshot: true)
+                if (!this.project.isFinalReleaseBuild()) { // wipe out the rc if we are in a final release
+                    if (this.project.isRcBuild()) {
+                        def nextNode = next[0]
+                        assert nextNode
+                        release(version: this.project.version, "build-time": this.project.version.timestamp, "rc-for": nextNode.@version, snapshot: true)
+                    } else {
+                        def rcRemote = readVersion("release-candidate")
+                        if (rcRemote) {
+                            release(version: rcRemote.version, "build-time": rcRemote.buildTime, "rc-for": rcRemote.rcFor, snapshot: true)
+                        }
                     }
                 }
 
