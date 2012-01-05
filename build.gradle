@@ -144,6 +144,35 @@ allprojects {
     version = this.version
 
     apply from: "$rootDir/gradle/conventions-dsl.gradle"
+    
+    isDevBuild = {
+        gradle.taskGraph.hasTask(developerBuild)
+    }
+
+    isCIBuild = {
+        gradle.taskGraph.hasTask(ciBuild)
+    }
+
+    isCommitBuild = {
+        gradle.taskGraph.hasTask(commitBuild)
+    }
+
+    isFinalReleaseBuild = {
+        gradle.taskGraph.hasTask(releaseVersion)
+    }
+
+    isRcBuild = {
+        gradle.taskGraph.hasTask(rcVersion)
+    }
+
+    isNightlyBuild = {
+        gradle.taskGraph.hasTask(nightlyBuild)
+    }
+
+    isReleaseBuild = { // Are we doing any kind of “release”? i.e. final, nightly or rc
+        isFinalReleaseBuild() || isNightlyBuild() || isRcBuild()
+    }
+    
 }
 
 configure(groovyProjects()) {
@@ -289,34 +318,6 @@ task intTestImage(type: Sync) {
     doLast { task ->
         ant.chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")
     }
-}
-
-def isDevBuild() {
-    gradle.taskGraph.hasTask(developerBuild)
-}
-
-def isCIBuild() {
-    gradle.taskGraph.hasTask(ciBuild)
-}
-
-def isCommitBuild() {
-    gradle.taskGraph.hasTask(commitBuild)
-}
-
-def isFinalReleaseBuild() {
-    gradle.taskGraph.hasTask(releaseVersion)
-}
-
-def isRcBuild() {
-    gradle.taskGraph.hasTask(rcVersion)
-}
-
-def isNightlyBuild() {
-    gradle.taskGraph.hasTask(nightlyBuild)
-}
-
-def isReleaseBuild() { // Are we doing any kind of “release”? i.e. final, nightly or rc
-    isFinalReleaseBuild() || isNightlyBuild() || isRcBuild()
 }
 
 gradle.taskGraph.whenReady {
