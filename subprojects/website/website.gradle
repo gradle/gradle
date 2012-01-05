@@ -170,30 +170,36 @@ task pushReleasesXml {
         }
 
         def releasesXml = new File(repo, "provided/release-data/releases.xml")
-        releasesXml.text = generateReleasesXml.outputFile.text
+        def checkedInReleasesXmlText = releasesXml.text
+        def newReleasesXmlText = generateReleasesXml.outputFile.text
+        if (checkedInReleasesXmlText != newReleasesXmlText) {
+            releasesXml.text = newReleasesXmlText
 
-        def gitOnTaskRepo = { Object[] cliArgs ->
-            project.exec {
-                workingDir repo
-                executable "git"
-                args cliArgs
+            def gitOnTaskRepo = { Object[] cliArgs ->
+                project.exec {
+                    workingDir repo
+                    executable "git"
+                    args cliArgs
+                }
             }
-        }
 
-        def message = "updating releases.xml from "
-        if (project.version.release) {
-            message += "release build"
-        } else if (isNightlyBuild()) {
-            message += "nightly build"
+            def message = "updating releases.xml from "
+            if (project.version.release) {
+                message += "release build"
+            } else if (isNightlyBuild()) {
+                message += "nightly build"
+            } else {
+                message += "adhoc build"
+            }
+
+            gitOnTaskRepo "add", releasesXml.absolutePath
+            gitOnTaskRepo "commit", "-m", "[gradle-build] $message"
+
+            if (!project.hasProperty("noPushReleasesXml")) {
+                gitOnTaskRepo "push"
+            }
         } else {
-            message += "adhoc build"
-        }
-
-        gitOnTaskRepo "add", releasesXml.absolutePath
-        gitOnTaskRepo "commit", "-m", "[gradle-build] $message"
-
-        if (!project.hasProperty("noPushReleasesXml")) {
-            gitOnTaskRepo "push"
+            println "Not pushing new releases.xml to site as there were no changes after generation"
         }
     }
 
