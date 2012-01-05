@@ -63,7 +63,8 @@ public abstract class AbstractCompatibilityTestRunner extends Runner {
                 "1.0-milestone-3",
                 "1.0-milestone-4",
                 "1.0-milestone-5",
-                "1.0-milestone-6");
+                "1.0-milestone-6",
+                "1.0-milestone-7");
         if (!versionStr.equals("all")) {
             versions = Collections.singletonList(versions.get(versions.size() - 1));
         }
