@@ -73,16 +73,16 @@ test {
 task releasesResource(type: GenerateReleasesXml) {
     destFile = new File(generatedResourcesDir, "org/gradle/releases.xml")
 }
-sourceSets.main.output.dir generatedResourcesDir, buildBy: releasesResource
+sourceSets.main.output.dir generatedResourcesDir, builtBy: releasesResource
 
 task reportResources(type: Copy) {
     from configurations.reports
     into "$generatedResourcesDir/org/gradle/reporting"
 }
-sourceSets.main.output.dir generatedResourcesDir, buildBy: reportResources
+sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
 
 task pluginsManifest(type: PluginsManifest)
-sourceSets.main.output.dir generatedResourcesDir, buildBy: pluginsManifest
+sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
 
 class PluginsManifest extends DefaultTask {
     @OutputFile

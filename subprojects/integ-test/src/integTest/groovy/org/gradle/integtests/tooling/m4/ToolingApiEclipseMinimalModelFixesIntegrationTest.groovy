@@ -53,7 +53,7 @@ project(':child') {
         projectDir.file('build.gradle').text = '''
 apply plugin: 'java'
 
-sourceSets.main.output.dir "$buildDir/foo", buildBy: 'generateResources'
+sourceSets.main.output.dir "$buildDir/foo", builtBy: 'generateResources'
 
 task generateResources << {
   assert false : 'should not be called when building minimal model'
