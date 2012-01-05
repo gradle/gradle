@@ -42,14 +42,12 @@ import org.gradle.api.tasks.*
 public class UserGuideTransformTask extends DefaultTask {
     @Input
     String getVersion() { return project.version.toString() }
-    @Input
-    String javadocUrl
-    @Input
-    String groovydocUrl
-    @Input
-    String dsldocUrl
-    @Input
-    String websiteUrl
+
+    def javadocUrl
+    def groovydocUrl
+    def dsldocUrl
+    def websiteUrl
+
     @InputFile
     File sourceFile
     @InputFile
@@ -64,6 +62,22 @@ public class UserGuideTransformTask extends DefaultTask {
     FileCollection classpath;
 
     final SampleElementValidator validator = new SampleElementValidator();
+
+    @Input String getJavadocUrl() {
+        javadocUrl
+    }
+
+    @Input String getGroovydocUrl() {
+        groovydocUrl
+    }
+
+    @Input String getDsldocUrl() {
+        dsldocUrl
+    }
+
+    @Input String getWebsiteUrl() {
+        websiteUrl
+    }
 
     @TaskAction
     def transform() {

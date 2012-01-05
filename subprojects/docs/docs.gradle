@@ -23,7 +23,6 @@ import org.gradle.build.GenerateReleasesXml
 import org.gradle.os.OperatingSystem
 
 apply plugin: 'base'
-apply from: "${rootDir}/gradle/ssh.gradle"
 
 configurations {
     userGuideStyleSheets
@@ -40,8 +39,6 @@ dependencies {
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
 }
 
-RemoteLocations remoteLocations = new RemoteLocations(version: version)
-
 srcDocsDir = file('src/docs')
 userguideSrcDir = new File(srcDocsDir, 'userguide')
 cssSrcDir = new File(srcDocsDir, 'css')
@@ -52,7 +49,6 @@ distDocsDir = new File(buildDir, 'distDocs')
 samplesDir = file("$buildDir/samples")
 docbookSrc = new File(project.buildDir, 'src')
 samplesSrcDir = file('src/samples')
-websiteDocs = new File(buildDir, 'websiteDocs')
 
 outputs = [:]
 outputs.samples = files(samplesDir) {
@@ -179,12 +175,10 @@ task remoteUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
     inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
-    gradle.taskGraph.whenReady {
-        javadocUrl = remoteLocations.javadocUrl
-        groovydocUrl = remoteLocations.groovydocUrl
-        dsldocUrl = remoteLocations.dsldocUrl
-        websiteUrl = 'http://www.gradle.org'
-    }
+    javadocUrl = project.version.javadocUrl
+    groovydocUrl = project.version.groovydocUrl
+    dsldocUrl = project.version.dsldocUrl
+    websiteUrl = 'http://www.gradle.org'
 }
 
 task userguideHtml(type: Docbook2Xhtml, dependsOn: userguideDocbook) {
@@ -282,54 +276,16 @@ task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideSty
     tags << 'standalone'
     sourceFile = new File(userguideSrcDir, 'installation.xml')
     destFile = new File(docbookSrc, 'installation.xml')
-    gradle.taskGraph.whenReady {
-        javadocUrl = remoteLocations.javadocUrl
-        groovydocUrl = remoteLocations.groovydocUrl
-        dsldocUrl = remoteLocations.dsldocUrl
-        websiteUrl = 'http://www.gradle.org'
-    }
+    javadocUrl = project.version.javadocUrl
+    groovydocUrl = project.version.groovydocUrl
+    dsldocUrl = project.version.dsldocUrl
+    websiteUrl = 'http://www.gradle.org'
 }
 
 task distDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
     source userguideFragmentSrc.destFile
     destFile = new File(distDocsDir, 'getting-started.html')
     stylesheetName = 'standaloneHtml.xsl'
-}
-
-task websiteUserguideSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples, samplesDocbook]) {
-    inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
-    inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
-    sourceFile = new File(userguideSrcDir, 'userguide.xml')
-    destFile = new File(docbookSrc, 'website.xml')
-    tags << 'website'
-    gradle.taskGraph.whenReady {
-        javadocUrl = remoteLocations.javadocUrl
-        groovydocUrl = remoteLocations.groovydocUrl
-        dsldocUrl = remoteLocations.dsldocUrl
-        websiteUrl = ''
-    }
-}
-
-task websiteUserguide(type: Docbook2Xhtml, dependsOn: websiteUserguideSrc) {
-    source websiteUserguideSrc.destFile
-    destFile = new File(websiteDocs, 'website.html')
-    stylesheetName = 'websiteHtml.xsl'
-    resources = fileTree {
-        from userguideSrcDir
-        include 'img/*.png'
-    }
-    resources += fileTree {
-        from cssSrcDir
-        include '*.css'
-    }
-}
-
-task websiteReleasesXml(type: GenerateReleasesXml) {
-    destFile = new File(websiteDocs, 'releases.xml')
-}
-
-task websiteDocs {
-    dependsOn websiteUserguide, websiteReleasesXml
 }
 
 task userguide {
@@ -344,52 +300,10 @@ task docs {
     group = 'documentation'
 }
 
-task uploadDocs(dependsOn: docs, type: Scp) {
-    sourceDir = docsDir
-    host = 'gradle01.managed.contegix.com'
-    gradle.taskGraph.whenReady {
-        destinationDir = remoteLocations.docsUploadDir
-    }
-    userName = project.hasProperty('websiteScpUserName') ? project.websiteScpUserName : null
-    password = project.hasProperty('websiteScpUserPassword') ? project.websiteScpUserPassword : null
-}
-gradle.taskGraph.whenReady { graph ->
-    if (graph.hasTask(uploadDocs)) {
-        // fail early
-        project.websiteScpUserName
-        project.websiteScpUserPassword
-    }
+task docsZip(type: Zip) {
+    from project.outputs.docs
 }
 
-class RemoteLocations {
-    def version
-
-    static final GRADLE_ORG_URL = "http://www.gradle.org"
-
-    String getDistributionUploadUrl() {
-        version.isRelease() ? 'https://dav.codehaus.org/dist/gradle' : 'https://dav.codehaus.org/snapshots.dist/gradle'
-    }
-
-    String getDocsUploadDir() {
-        '/var/www/domains/gradle.org/www/htdocs/' + docsRemoteDir
-    }
-
-    String getDocsRemoteDir() {
-        'releases/' + (version.isRelease() ? version.toString() : 'latest') + '/docs'
-    }
-
-    String getJavadocUrl() {
-        "$GRADLE_ORG_URL/${getDocsRemoteDir()}/javadoc"
-    }
-
-    String getGroovydocUrl() {
-        "$GRADLE_ORG_URL/${getDocsRemoteDir()}/groovydoc"
-    }
-
-    String getDsldocUrl() {
-        "$GRADLE_ORG_URL/${getDocsRemoteDir()}/dsl"
-    }
-}
 
 class Docbook2Xhtml extends SourceTask {
     @InputFiles

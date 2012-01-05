@@ -118,7 +118,7 @@ class IntegTestConvention {
         if (!project.tasks.findByName('ciBuild') || !project.gradle.taskGraph.populated) {
             return null
         }
-        if (project.isCIBuild()) {
+        if (project.isCIBuild() || project.isReleaseBuild() ) {
             return 'forking'
         }
         return 'embedded'

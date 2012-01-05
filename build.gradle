@@ -30,7 +30,7 @@ import org.gradle.build.Releases
  */
 
 releases = new Releases(project(':core').file('src/releases.xml'), project)
-version = new Version(project)
+version = Version.forProject(project)
 
 defaultTasks 'assemble'
 
@@ -303,14 +303,23 @@ def isCommitBuild() {
     gradle.taskGraph.hasTask(commitBuild)
 }
 
+def isFinalReleaseBuild() {
+    gradle.taskGraph.hasTask(releaseVersion)
+}
+
+def isNightlyBuild() {
+    gradle.taskGraph.hasTask(nightlyBuild)
+}
+
+// Are we doing any kind of “release”? i.e. final, nightly or rc
+def isReleaseBuild() {
+    isFinalReleaseBuild() || isNightlyBuild()
+}
+
 def guessMaxForks() {
     int processors = Runtime.runtime.availableProcessors()
     return Math.max(2, (int) (processors / 2))
 }
-
-task testedDists(dependsOn: [assemble, check])
-
-task nightlyBuild(dependsOn: [clean, testedDists, ':docs:uploadDocs'])
 
 task install(type: Install) {
     description = 'Installs the minimal distribution into directory $gradle_installPath'
@@ -328,6 +337,8 @@ task installAll(type: Install) {
     installDirProperyName = 'gradle_installPath'
 }
 
+task testedDists(dependsOn: [assemble, check])
+
 uploadDists {
     dependsOn testedDists
     uploadDescriptor = false
@@ -335,8 +346,10 @@ uploadDists {
         repositories {
             ivy {
                 artifactPattern "${version.distributionUrl}/[artifact]-[revision](-[classifier]).[ext]"
-                userName = artifactoryUserName
-                password = artifactoryUserPassword
+                credentials {
+                    username = artifactoryUserName
+                    password = artifactoryUserPassword
+                }
             }
         }
     }
@@ -366,6 +379,11 @@ task commitBuild {
     dependsOn testedDists
 }
 
+task nightlyBuild {
+    description = 'Nightly build performed by the CI server'
+    dependsOn testedDists, "uploadAll"
+}
+
 gradle.taskGraph.whenReady {graph ->
     if (graph.hasTask(ciBuild)) {
         subprojects { reportsDirName = "$rootProject.reportsDir/${path.replaceFirst(':', '').replaceAll(':', '.')}" }
@@ -384,7 +402,7 @@ task releaseArtifacts {
     description = 'Builds the release artifacts'
     //TODO SF - this task name is inconsistent because other releaseXxx tasks actually upload some content somewhere. Should be called something like 'buildReleaseArtifacts'
     group = 'release'
-    dependsOn releaseVersion, assemble, ':docs:websiteDocs'
+    dependsOn releaseVersion, assemble
 }
 
 task checkJavaVersion << {
@@ -406,7 +424,7 @@ task incrementNextVersion << {
 
 task uploadAll {
     description = 'Uploads binaries, sources and documentation. Does not upload the website! Useful when release procedure breaks at upload and only upload tasks should executed again'
-    dependsOn uploadArchives, uploadDists, ':docs:uploadDocs'
+    dependsOn uploadArchives, uploadDists, "website:uploadDocs", "website:pushReleasesXml"
 }
 
 task wrapper(type: Wrapper) {
@@ -414,7 +432,7 @@ task wrapper(type: Wrapper) {
 }
 
 def groovyProjects() {
-    subprojects.findAll { it.name != 'docs' }
+    subprojects.findAll { !(it.name in ["docs", "website"]) }
 }
 
 def publishedProjects() {

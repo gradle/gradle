@@ -17,14 +17,15 @@ package org.gradle.build
 
 import java.text.SimpleDateFormat
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 
 class Version {
-    String versionNumber
-    Date buildTime
-    Boolean release = null
+    private final Closure versionNumberProvider
+    final Date buildTime
+    private final Closure isReleaseProvider
 
-    def Version(project) {
-        this.versionNumber = project.releases.nextVersion
+    static forProject(Project project) {
+        def versionNumber = project.releases.nextVersion
         File timestampFile = new File(project.buildDir, 'timestamp.txt')
         if (timestampFile.isFile()) {
             boolean uptodate = true
@@ -42,31 +43,56 @@ class Version {
             timestampFile.parentFile.mkdirs()
             timestampFile.createNewFile()
         }
-        buildTime = new Date(timestampFile.lastModified())
+        def buildTime = createDateFormat().format(new Date(timestampFile.lastModified()))
 
-        project.gradle.taskGraph.whenReady {graph ->
+        def release = null
+        project.gradle.taskGraph.whenReady { graph ->
             if (graph.hasTask(':releaseVersion')) {
                 release = true
             } else {
-                this.versionNumber += "-" + getTimestamp()
+                versionNumber += "-" + buildTime
                 release = false
             }
         }
+
+        def isRelease = {
+            if (release == null) {
+                throw new GradleException("Can't determine whether this is a release build before the task graph is populated")
+            }
+            release
+        }
+
+        new Version({ versionNumber }, buildTime, isRelease)
+    }
+
+    Version(Closure versionNumberProvider, String buildTime, Closure isReleaseProvider) {
+        this(versionNumberProvider, createDateFormat().parse(buildTime), isReleaseProvider)
+    }
+
+    Version(Closure versionNumberProvider, Date buildTime, Closure isReleaseProvider) {
+        this.versionNumberProvider = versionNumberProvider
+        this.buildTime = buildTime
+        this.isReleaseProvider = isReleaseProvider
+    }
+
+    static createDateFormat() {
+        new SimpleDateFormat('yyyyMMddHHmmssZ')
     }
 
     String toString() {
         versionNumber
     }
 
+    String getVersionNumber() {
+        versionNumberProvider()
+    }
+
     String getTimestamp() {
-        new SimpleDateFormat('yyyyMMddHHmmssZ').format(buildTime)
+        createDateFormat().format(buildTime)
     }
 
     boolean isRelease() {
-        if (release == null) {
-            throw new GradleException("Can't determine whether this is a release build before the task graph is populated")
-        }
-        return release
+        isReleaseProvider()
     }
 
     String getDistributionUrl() {
@@ -83,5 +109,21 @@ class Version {
         } else {
             'https://gradle.artifactoryonline.com/gradle/libs-snapshots-local'
         }
+    }
+
+    def docUrl(docLabel) {
+        "http://www.gradle.org/doc/${-> release ? 'current' : versionNumber}/$docLabel"
+    }
+
+    def getJavadocUrl() {
+        docUrl("javadoc")
+    }
+
+    def getGroovydocUrl() {
+        docUrl("groovydoc")
+    }
+
+    def getDsldocUrl() {
+        docUrl("dsl")
     }
 }

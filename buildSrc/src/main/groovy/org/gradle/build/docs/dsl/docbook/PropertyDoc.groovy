@@ -35,6 +35,9 @@ class PropertyDoc {
         this.metaData = propertyMetaData
         id = "${referringClass.className}:$name"
         this.comment = comment
+        if (additionalValues == null) {
+            throw new NullPointerException("additionalValues constructor var is null for referringClass: $referringClass")
+        }
         this.additionalValues = additionalValues
     }
 

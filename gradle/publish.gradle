@@ -53,8 +53,10 @@ uploadArchives {
         repositories {
             ivy {
                 artifactPattern "${version.libsUrl}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]"
-                userName = artifactoryUserName
-                password = artifactoryUserPassword
+                credentials {
+                    username = artifactoryUserName
+                    password = artifactoryUserPassword
+                }
             }
         }
     }
