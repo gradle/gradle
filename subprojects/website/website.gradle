@@ -184,10 +184,12 @@ task pushReleasesXml {
             }
 
             def message = "updating releases.xml from "
-            if (project.version.release) {
-                message += "release build"
+            if (isFinalReleaseBuild()) {
+                message += "final release build"
             } else if (isNightlyBuild()) {
                 message += "nightly build"
+            } else if (isRcBuild()) {
+                message += "release-candidate build"
             } else {
                 message += "adhoc build"
             }
