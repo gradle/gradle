@@ -64,7 +64,6 @@ public class UserGuideTransformTask extends DefaultTask {
     final SampleElementValidator validator = new SampleElementValidator();
 
     @Input String getJavadocUrl() {
-        println "javadocUrl: $javadocUrl"
         javadocUrl
     }
 
