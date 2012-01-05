@@ -83,6 +83,8 @@ class Releases {
     public modifyTo(File destination, Closure modifications) {
         def releases = load()
         project.configure(releases, modifications)
+        destination.parentFile.mkdirs()
+        destination.createNewFile()
         destination.withPrintWriter { writer -> new XmlNodePrinter(writer, "  ").print(releases) }
     }
 }
