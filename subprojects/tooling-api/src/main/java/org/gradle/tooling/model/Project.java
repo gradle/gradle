@@ -20,7 +20,8 @@ import java.io.File;
 /**
  * Represents a project of some kind.
  *
- * @deprecated Use {@link Element} or one of its subtypes instead.
+ * @deprecated If you acquire Project model via the tooling api, please use {@link GradleProject} instead.
+ * For internal purposes use {@link Element} or one of its subtypes instead.
  */
 @Deprecated
 public interface Project extends Element {

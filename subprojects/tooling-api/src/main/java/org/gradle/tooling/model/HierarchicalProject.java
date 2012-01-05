@@ -18,7 +18,8 @@ package org.gradle.tooling.model;
 /**
  * Represents a project which belongs to some hierarchy.
  *
- * @deprecated Use {@link HierarchicalElement} or one of its subtypes instead.
+ * @deprecated If you acquire this model via the tooling api, please use {@link GradleProject} instead.
+ * For internal purposes use {@link HierarchicalElement} or one of its subtypes instead.
  */
 @Deprecated
 public interface HierarchicalProject extends Project, HierarchicalElement {
