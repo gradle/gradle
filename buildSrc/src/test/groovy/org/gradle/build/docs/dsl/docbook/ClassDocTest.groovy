@@ -334,7 +334,7 @@ class ClassDocTest extends XmlSpecification {
     }
 
     def propertyDoc(Map<String, ?> args = [:], String name) {
-        return new PropertyDoc(classMetaData(), property(name, null), [parse("<para>$name comment</para>")], args.additionalValues)
+        return new PropertyDoc(classMetaData(), property(name, null), [parse("<para>$name comment</para>")], args.additionalValues ?: [])
     }
 
     def method(String name, ClassMetaData classMetaData) {
