@@ -67,8 +67,14 @@ task generateReleasesXml() {
 
             current[0] + {
                 def readVersion = { label ->
-                    def text = new URL("http://gradle.org/versions/$label").text
-                    new groovy.json.JsonSlurper().parseText(text)
+                    try {
+                        def text = new URL("http://gradle.org/versions/$label").text
+                        new groovy.json.JsonSlurper().parseText(text)
+                    } catch (FileNotFoundException e) {
+                        // service returns 404 if there is no version with that label,
+                        // so we get a FileNotFoundException from URL.text
+                        null
+                    }
                 }
 
                 // nightly
@@ -87,7 +93,9 @@ task generateReleasesXml() {
 
                 // rc
                 def rcRemote = readVersion("release-candidate")
-                release(version: rcRemote.version, "build-time": rcRemote.buildTime, "rc-for": rcRemote.rcFor, snapshot: true)
+                if (rcRemote) {
+                    release(version: rcRemote.version, "build-time": rcRemote.buildTime, "rc-for": rcRemote.rcFor, snapshot: true)
+                }
 
                 // current
                 def currentVersion
