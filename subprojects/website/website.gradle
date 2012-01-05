@@ -43,11 +43,11 @@ task uploadDocs(type: Scp) {
     verbose true
     isDir false
     source project(":docs").docsZip
-    destination = uploadPath("docs/${->isNightlyBuild() ? 'nightly' : project.version}.zip")
+    destination = uploadPath("docs/${->project.version.label}.zip")
 
     doLast {
         // unpack the zip to the right place and fix the perms
-        ssh asSudo("move-docs", isNightlyBuild() ? 'nightly' : project.version)
+        ssh asSudo("move-docs", project.version.label)
 
         if (project.version.release) {
             // update the “current” symlink in the docs dir
