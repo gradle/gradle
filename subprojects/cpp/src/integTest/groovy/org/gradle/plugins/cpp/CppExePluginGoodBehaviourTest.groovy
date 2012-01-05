@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.java
+package org.gradle.plugins.cpp
 
-import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-class JavaPluginGoodBehaviourTest extends WellBehavedPluginTest {
+class CppExePluginGoodBehaviourTest extends WellBehavedPluginTest {
     @Override
     def getPluginId() {
-        "java"
-    }
-
-    @Override
-    String getMainTask() {
-        return "build"
+        return "cpp-exe"
     }
 }

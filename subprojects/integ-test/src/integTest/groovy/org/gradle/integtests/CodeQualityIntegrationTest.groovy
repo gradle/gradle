@@ -28,6 +28,7 @@ class CodeQualityIntegrationTest extends AbstractIntegrationTest {
     public void handlesEmptyProjects() {
         testFile('build.gradle') << '''
 apply plugin: 'groovy'
+apply plugin: 'java'
 apply plugin: 'code-quality'
 '''
         inTestDirectory().withTasks('check').run()

@@ -135,7 +135,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler {
 
     // special filecollection version because filecollection may be buildable
     void source(FileCollection files) {
-        task.inputs.files files
+        task.inputs.source files
         setting {
             it.args(*files*.absolutePath)
         }

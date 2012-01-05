@@ -21,16 +21,6 @@ import org.junit.Test;
 
 public class WebProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
-    public void handlesEmptyProject() {
-        TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns(
-                "apply plugin: 'war'"
-        );
-
-        usingBuildFile(buildFile).withTasks("build").run();
-    }
-
-    @Test
     public void createsAWar() {
         testFile("settings.gradle").writelns("rootProject.name = 'test'");
         TestFile buildFile = testFile("build.gradle");

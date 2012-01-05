@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests;
+package org.gradle.plugins.cpp
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest;
-import org.junit.Test;
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-public class AntlrIntegrationTest extends AbstractIntegrationTest {
-    @Test
-    public void handlesEmptyProject() {
-        testFile("build.gradle").writelns("apply plugin: 'antlr'");
-        inTestDirectory().withTasks("build").run();
+class CppLibPluginGoodBehaviourTest extends WellBehavedPluginTest {
+    @Override
+    def getPluginId() {
+        return "cpp-lib"
     }
 }

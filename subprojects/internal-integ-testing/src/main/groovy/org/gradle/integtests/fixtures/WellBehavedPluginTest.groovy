@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@ package org.gradle.integtests.fixtures
 abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     abstract getPluginId()
+    
+    String getMainTask() {
+        return "assemble"
+    }
 
     def "plugin does not force creation of build dir during configuration"() {
         given:
@@ -29,5 +33,13 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
         then:
         !file("build").exists()
+    }
+
+    def "plugin can build with empty project"() {
+        given:
+        buildFile << "apply plugin: '${getPluginId()}'"
+
+        expect:
+        succeeds mainTask
     }
 }
