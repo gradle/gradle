@@ -334,8 +334,10 @@ uploadDists {
         repositories {
             ivy {
                 artifactPattern "${version.distributionUrl}/[artifact]-[revision](-[classifier]).[ext]"
-                userName = artifactoryUserName
-                password = artifactoryUserPassword
+                credentials {
+                    username = artifactoryUserName
+                    password = artifactoryUserPassword
+                }
             }
         }
     }
