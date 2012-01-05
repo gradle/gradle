@@ -49,7 +49,7 @@ class DaemonServerSendingBackFailureTest extends Specification {
         given:
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
-                return new DefaultDaemonCommandExecuter(getLoggingServices(), get(ExecutorFactory.class)) {
+                return new DefaultDaemonCommandExecuter(getLoggingServices(), get(ExecutorFactory.class), createProcessEnvironment()) {
                     List<DaemonCommandAction> createActions() {
                         def actions = super.createActions();
                         def failingAction = { throw new RuntimeException("boo!") } as DaemonCommandAction
