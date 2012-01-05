@@ -166,7 +166,7 @@ allprojects {
     }
 
     isNightlyBuild = {
-        gradle.taskGraph.hasTask(nightlyBuild)
+        gradle.taskGraph.hasTask(nightlyVersion)
     }
 
     isReleaseBuild = { // Are we doing any kind of “release”? i.e. final, nightly or rc
@@ -389,9 +389,11 @@ task commitBuild {
     dependsOn testedDists
 }
 
+task nightlyVersion
+
 task nightlyBuild {
     description = 'Nightly build performed by the CI server'
-    dependsOn testedDists, "uploadAll"
+    dependsOn nightlyVersion, testedDists, "uploadAll"
 }
 
 gradle.taskGraph.whenReady {graph ->
