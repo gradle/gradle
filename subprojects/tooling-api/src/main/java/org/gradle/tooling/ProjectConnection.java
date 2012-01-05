@@ -20,7 +20,28 @@ import org.gradle.tooling.model.Element;
 /**
  * Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link org.gradle.tooling.GradleConnector#connect()}.
  *
- * <h2>Thread safety</h2>
+ * <pre autoTested=''>
+ * ProjectConnection connection = GradleConnector.newConnector()
+ *    .forProjectDirectory(new File("someFolder"))
+ *    .connect();
+ *
+ * try {
+ *    //obtain some information from the build
+ *    BuildEnvironment environment = connection.model(BuildEnvironment.class)
+ *      .get();
+ *
+ *    //run some tasks
+ *    connection.newBuild()
+ *      .forTasks("tasks")
+ *      .setStandardOutput(System.out)
+ *      .run();
+ *
+ * } finally {
+ *    connection.close();
+ * }
+ * </pre>
+ *
+ * <h3>Thread safety information</h3>
  *
  * <p>All implementations of {@code ProjectConnection} are thread-safe, and may be shared by any number of threads.</p>
  *
