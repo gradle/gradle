@@ -95,6 +95,64 @@ task retrieve(type: Sync) {
         file('libs/projectB-2.2.jar').assertIsCopyOf(projectB2.jarFile)
     }
 
+    def "uses latest version with correct status for latest.release and latest.milestone"() {
+        server.start()
+        def repo = ivyRepo()
+
+        given:
+        buildFile << """
+repositories {
+    ivy {
+        url "http://localhost:${server.port}/repo"
+    }
+}
+
+configurations {
+    release
+    milestone
+}
+
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+}
+
+dependencies {
+    release group: "group", name: "projectA", version: "latest.release"
+    milestone group: "group", name: "projectA", version: "latest.milestone"
+}
+
+task retrieve(dependsOn: ['retrieveRelease', 'retrieveMilestone'])
+
+task retrieveRelease(type: Sync) {
+    from configurations.release
+    into 'release'
+}
+
+task retrieveMilestone(type: Sync) {
+    from configurations.milestone
+    into 'milestone'
+}
+"""
+
+        when: "Versions are published"
+        repo.module("group", "projectA", "1.0").withStatus('release').publish()
+        repo.module('group', 'projectA', '1.1').withStatus('milestone').publish()
+        repo.module('group', 'projectA', '1.2').withStatus('integration').publish()
+        repo.module("group", "projectA", "2.0").withStatus('release').publish()
+        repo.module('group', 'projectA', '2.1').withStatus('milestone').publish()
+        repo.module('group', 'projectA', '2.2').withStatus('integration').publish()
+
+        and: "Server handles requests"
+        server.allowGet('/repo', repo.rootDir)
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('release').assertHasDescendants('projectA-2.0.jar')
+        file('milestone').assertHasDescendants('projectA-2.1.jar')
+    }
+
     def "checks new repositories before returning any cached value"() {
         server.start()
 

@@ -45,6 +45,7 @@ class IvyModule {
     final List dependencies = []
     final Map<String, Map> configurations = [:]
     final List artifacts = []
+    String status = "integration"
     int publishCount
 
     IvyModule(TestFile moduleDir, String organisation, String module, String revision) {
@@ -77,6 +78,11 @@ class IvyModule {
         return this
     }
 
+    IvyModule withStatus(String status) {
+        this.status = status;
+        return this
+    }
+
     File getIvyFile() {
         return moduleDir.file("ivy-${revision}.xml")
     }
@@ -104,6 +110,7 @@ class IvyModule {
 	<info organisation="${organisation}"
 		module="${module}"
 		revision="${revision}"
+		status="${status}"
 	/>
 	<configurations>"""
         configurations.each { name, config ->
