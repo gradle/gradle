@@ -85,11 +85,15 @@ task generateReleasesXml() {
                     nightlyBuildTime = this.project.version.timestamp
                 } else {
                     def nightlyRemote = readVersion("nightly")
-                    nightlyVersion = nightlyRemote.version
-                    nightlyBuildTime = nightlyRemote.buildTime
+                    if (nightlyRemote) {
+                        nightlyVersion = nightlyRemote.version
+                        nightlyBuildTime = nightlyRemote.buildTime
+                    }
                 }
 
-                release(version: nightlyVersion, "build-time": nightlyBuildTime, nightly: true, snapshot: true)
+                if (nightlyVersion && nightlyBuildTime) {
+                    release(version: nightlyVersion, "build-time": nightlyBuildTime, nightly: true, snapshot: true)
+                }
 
                 // rc
                 def rcRemote = readVersion("release-candidate")
