@@ -307,13 +307,22 @@ def isFinalReleaseBuild() {
     gradle.taskGraph.hasTask(releaseVersion)
 }
 
+def isRcBuild() {
+    gradle.taskGraph.hasTask(rcVersion)
+}
+
 def isNightlyBuild() {
     gradle.taskGraph.hasTask(nightlyBuild)
 }
 
-// Are we doing any kind of “release”? i.e. final, nightly or rc
-def isReleaseBuild() {
-    isFinalReleaseBuild() || isNightlyBuild()
+def isReleaseBuild() { // Are we doing any kind of “release”? i.e. final, nightly or rc
+    isFinalReleaseBuild() || isNightlyBuild() || isRcBuild()
+}
+
+gradle.taskGraph.whenReady {
+    if (([isFinalReleaseBuild(), isNightlyBuild(), isRcBuild()].findAll { it }).size() > 1) {
+        throw new GradleException("This appears to be more than one type of release: final - ${isFinalReleaseBuild()}, rc - ${isRcBuild()}, nightly - ${isNightlyBuild() }")
+    }
 }
 
 def guessMaxForks() {
@@ -393,6 +402,14 @@ gradle.taskGraph.whenReady {graph ->
 // A marker task which causes the release version to be used when it is present in the task graph
 task releaseVersion
 //TODO SF - this task name is inconsistent because other releaseXxx tasks actually upload some content somewhere. Should be called something like 'markReleaseVersion'
+
+// A marker task which indicates that we are building an rc of some sort
+task rcVersion
+
+task rc {
+    description "Builds a release candidate for the next release"
+    dependsOn rcVersion, testedDists, "uploadAll"
+}
 
 task tag(type: Tag)
 
