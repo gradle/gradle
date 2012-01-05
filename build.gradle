@@ -299,14 +299,22 @@ def isCommitBuild() {
     gradle.taskGraph.hasTask(commitBuild)
 }
 
-def guessMaxForks() {
-    int processors = Runtime.runtime.availableProcessors()
-    return Math.max(2, (int) (processors / 2))
+def isFinalReleaseBuild() {
+    gradle.taskGraph.hasTask(releaseVersion)
 }
-
 
 def isNightlyBuild() {
     gradle.taskGraph.hasTask(nightlyBuild)
+}
+
+// Are we doing any kind of “release”? i.e. final, nightly or rc
+def isReleaseBuild() {
+    isFinalReleaseBuild() || isNightlyBuild()
+}
+
+def guessMaxForks() {
+    int processors = Runtime.runtime.availableProcessors()
+    return Math.max(2, (int) (processors / 2))
 }
 
 task install(type: Install) {
