@@ -80,7 +80,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     protected ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter() {
-        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = get(DependencyDescriptorFactory.class);
+        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = get(DependencyDescriptorFactoryDelegate.class);
         return new ResolveModuleDescriptorConverter(
                 get(ModuleDescriptorFactory.class),
                 get(ConfigurationsToModuleDescriptorConverter.class),
@@ -112,9 +112,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return new DefaultConfigurationsToModuleDescriptorConverter();
     }
 
-    protected DependencyDescriptorFactory createDependencyDescriptorFactory() {
+    protected DependencyDescriptorFactoryDelegate createDependencyDescriptorFactory() {
         DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
-        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
+        DependencyDescriptorFactoryDelegate dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
                 new ClientModuleDependencyDescriptorFactory(
                         get(ExcludeRuleConverter.class),
                         clientModuleDescriptorFactory,

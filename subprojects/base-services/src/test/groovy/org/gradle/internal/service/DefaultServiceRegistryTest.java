@@ -80,6 +80,7 @@ public class DefaultServiceRegistryTest {
     @Test
     public void returnsAddedServiceInstance() {
         BigDecimal value = BigDecimal.TEN;
+        DefaultServiceRegistry registry = new DefaultServiceRegistry();
         registry.add(BigDecimal.class, value);
         assertThat(registry.get(BigDecimal.class), sameInstance(value));
         assertThat(registry.get(Number.class), sameInstance((Object) value));
@@ -98,9 +99,33 @@ public class DefaultServiceRegistryTest {
     }
 
     @Test
+    public void usesOverriddenFactoryMethodToCreateServiceInstance() {
+        TestRegistry registry = new TestRegistry(){
+            @Override
+            protected String createString() {
+                return "overridden";
+            }
+        };
+        assertThat(registry.get(String.class), equalTo("overridden"));
+    }
+
+    @Test
+    public void failsWhenMultipleServiceFactoriesCanCreateRequestedServiceType() {
+        ServiceRegistry registry = new RegistryWithAmbiguousFactoryMethods();
+        assertThat(registry.get(String.class), equalTo("hello"));
+
+        try {
+            registry.get(Object.class);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), equalTo("Multiple services of type Object available in RegistryWithAmbiguousFactoryMethods."));
+        }
+    }
+
+    @Test
     public void usesDecoratorMethodToDecorateParentServiceInstance() {
         final ServiceRegistry parent = context.mock(ServiceRegistry.class);
-        TestRegistry registry = new TestRegistry(parent);
+        ServiceRegistry registry = new RegistryWithDecoratorMethods(parent);
 
         context.checking(new Expectations() {{
             one(parent).get(Long.class);
@@ -111,9 +136,20 @@ public class DefaultServiceRegistryTest {
     }
 
     @Test
+    public void decoratorMethodFailsWhenNoParentRegistry() {
+        try {
+            new RegistryWithDecoratorMethods();
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), equalTo("Cannot use decorator methods when no parent registry is provided."));
+        }
+    }
+
+    @Test
     public void canGetServiceAsFactoryWhenTheServiceImplementsFactoryInterface() {
         assertThat(registry.getFactory(BigDecimal.class), instanceOf(TestFactory.class));
         assertThat(registry.getFactory(BigDecimal.class), sameInstance((Object) registry.getFactory(BigDecimal.class)));
+        assertThat(registry.getFactory(Number.class), sameInstance((Object) registry.getFactory(BigDecimal.class)));
     }
 
     @Test
@@ -151,7 +187,7 @@ public class DefaultServiceRegistryTest {
     public void usesDecoratorMethodToDecorateParentFactoryInstance() {
         final ServiceRegistry parent = context.mock(ServiceRegistry.class);
         final Factory<Long> factory = context.mock(Factory.class);
-        TestRegistry registry = new TestRegistry(parent);
+        ServiceRegistry registry = new RegistryWithDecoratorMethods(parent);
 
         context.checking(new Expectations() {{
             one(parent).getFactory(Long.class);
@@ -171,6 +207,18 @@ public class DefaultServiceRegistryTest {
             fail();
         } catch (IllegalArgumentException e) {
             assertThat(e.getMessage(), equalTo("No factory for objects of type String available in TestRegistry."));
+        }
+    }
+
+    @Test
+    public void failsWhenMultipleFactoriesAreAvailableForServiceType() {
+        ServiceRegistry registry = new RegistryWithAmbiguousFactoryMethods();
+
+        try {
+            registry.getFactory(Object.class);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), equalTo("Multiple factories for objects of type Object available in RegistryWithAmbiguousFactoryMethods."));
         }
     }
 
@@ -268,6 +316,17 @@ public class DefaultServiceRegistryTest {
     }
 
     @Test
+    public void prefersRegisteredServicesOverNestedServices() {
+        final ServiceRegistry parent = context.mock(ServiceRegistry.class);
+        final ServiceRegistry nested = context.mock(ServiceRegistry.class);
+        final TestRegistry registry = new TestRegistry(parent);
+        registry.add(nested);
+        registry.add(BigDecimal.class, BigDecimal.ONE);
+
+        assertThat(registry.get(BigDecimal.class), equalTo(BigDecimal.ONE));
+    }
+
+    @Test
     public void prefersNestedServicesOverParentServices() {
         final ServiceRegistry parent = context.mock(ServiceRegistry.class);
         final ServiceRegistry nested = context.mock(ServiceRegistry.class);
@@ -350,16 +409,25 @@ public class DefaultServiceRegistryTest {
             return get(Integer.class).toString();
         }
 
-        protected Long createLong(Long value) {
-            return value + 10;
-        }
-
         protected Integer createInt() {
             return 12;
         }
 
         protected Factory<BigDecimal> createTestFactory() {
             return new TestFactory();
+        }
+    }
+
+    private static class RegistryWithDecoratorMethods extends DefaultServiceRegistry {
+        public RegistryWithDecoratorMethods() {
+        }
+
+        public RegistryWithDecoratorMethods(ServiceRegistry parent) {
+            super(parent);
+        }
+
+        protected Long createLong(Long value) {
+            return value + 10;
         }
 
         protected Factory<Long> createLongFactory(final Factory<Long> factory) {
@@ -372,6 +440,32 @@ public class DefaultServiceRegistryTest {
     }
 
     private static class SubType extends TestRegistry {
+    }
+
+    private static class RegistryWithAmbiguousFactoryMethods extends DefaultServiceRegistry {
+        Object createObject() {
+            return "hello";
+        }
+        
+        String createString() {
+            return "hello";
+        }
+        
+        Factory<Object> createObjectFactory() {
+            return new Factory<Object>() {
+                public Object create() {
+                    return createObject();
+                }
+            };
+        }
+        
+        Factory<String> createStringFactory() {
+            return new Factory<String>() {
+                public String create() {
+                    return createString();
+                }
+            };
+        }
     }
 
     private static class TestFactory implements Factory<BigDecimal> {

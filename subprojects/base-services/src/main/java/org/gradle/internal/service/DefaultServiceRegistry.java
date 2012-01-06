@@ -15,14 +15,13 @@
  */
 package org.gradle.internal.service;
 
-import org.gradle.internal.Factory;
 import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.Factory;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.UncheckedException;
 
 import java.lang.reflect.*;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * A hierarchical {@link ServiceRegistry} implementation.
@@ -33,23 +32,21 @@ import java.util.List;
  *
  * <li>Calling {@link #add(ServiceRegistry)} to register a set of services.</li>
  *
- * <li>Adding a factory method. A factory method should have a name that starts with 'create', take no parameters, and
- * have a non-void return type. For example, <code>protected SomeService createSomeService() { .... }</code>.</li>
+ * <li>Adding a factory method. A factory method should have a name that starts with 'create', take no parameters, and have a non-void return type. For example, <code>protected SomeService
+ * createSomeService() { .... }</code>.</li>
  *
- * <li>Adding a decorator method. A decorator method should have a name that starts with 'decorate', take a single
- * parameter, and a have a non-void return type. The before invoking the method, the parameter is located in the parent
- * service registry and then passed to the method.</li>
+ * <li>Adding a decorator method. A decorator method should have a name that starts with 'decorate', take a single parameter, and a have a non-void return type. The before invoking the method, the
+ * parameter is located in the parent service registry and then passed to the method.</li>
  *
  * </ul>
  *
- * <p>Service instances are created on demand. {@link #getFactory(Class)} looks for a service instance which implements
- * {@code Factory<T>} where {@code T} is the expected type.</p>.
+ * <p>Service instances are created on demand. {@link #getFactory(Class)} looks for a service instance which implements {@code Factory<T>} where {@code T} is the expected type.</p>.
  *
- * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses
- * its parent registry, if any, to locate the service.</p>
+ * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
  */
 public class DefaultServiceRegistry implements ServiceRegistry {
     private final List<Provider> providers = new LinkedList<Provider>();
+    private final OwnServices ownServices;
     private final List<Provider> registeredProviders;
     private final ServiceRegistry parent;
     private boolean closed;
@@ -60,14 +57,14 @@ public class DefaultServiceRegistry implements ServiceRegistry {
 
     public DefaultServiceRegistry(ServiceRegistry parent) {
         this.parent = parent;
+        this.ownServices = new OwnServices();
+        providers.add(ownServices);
         if (parent != null) {
             providers.add(new ParentServices());
         }
-        registeredProviders = providers.subList(0, 0);
-        for (Class<?> type = getClass(); type != Object.class; type = type.getSuperclass()) {
-            findFactoryMethods(type);
-            findDecoratorMethods(type);
-        }
+        registeredProviders = providers.subList(1, 1);
+
+        findProviderMethods();
     }
 
     @Override
@@ -75,23 +72,39 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         return getClass().getSimpleName();
     }
 
-    private void findFactoryMethods(Class<?> type) {
+    private void findProviderMethods() {
+        Set<String> factoryMethods = new HashSet<String>();
+        Set<String> decoratorMethods = new HashSet<String>();
+        for (Class<?> type = getClass(); type != Object.class; type = type.getSuperclass()) {
+            findFactoryMethods(type, factoryMethods, ownServices);
+            findDecoratorMethods(type, decoratorMethods, ownServices);
+        }
+    }
+
+    private void findFactoryMethods(Class<?> type, Set<String> factoryMethods, OwnServices ownServices) {
         for (Method method : type.getDeclaredMethods()) {
             if (method.getName().startsWith("create")
                     && method.getParameterTypes().length == 0
                     && method.getReturnType() != Void.class) {
-                registeredProviders.add(0, new FactoryMethodService(method));
+                if (factoryMethods.add(method.getName())) {
+                    ownServices.add(new FactoryMethodService(method));
+                }
             }
         }
     }
 
-    private void findDecoratorMethods(Class<?> type) {
+    private void findDecoratorMethods(Class<?> type, Set<String> decoratorMethods, OwnServices ownServices) {
         for (Method method : type.getDeclaredMethods()) {
             if (method.getName().startsWith("create")
                     && method.getParameterTypes().length == 1
                     && method.getReturnType() != Void.class
                     && method.getParameterTypes()[0].equals(method.getReturnType())) {
-                registeredProviders.add(0, new DecoratorMethodService(method));
+                if (parent == null) {
+                    throw new IllegalArgumentException("Cannot use decorator methods when no parent registry is provided.");
+                }
+                if (decoratorMethods.add(method.getName())) {
+                    ownServices.add(new DecoratorMethodService(method));
+                }
             }
         }
     }
@@ -107,12 +120,11 @@ public class DefaultServiceRegistry implements ServiceRegistry {
      * Adds a service to this registry. The given object is closed when this registry is closed.
      */
     public <T> void add(Class<T> serviceType, final T serviceInstance) {
-        registeredProviders.add(0, new FixedInstanceService<T>(serviceType, serviceInstance));
+        ownServices.add(new FixedInstanceService<T>(serviceType, serviceInstance));
     }
 
     /**
-     * Closes all services for this registry. For each service, if the service has a public void close() method, that
-     * method is called to close the service.
+     * Closes all services for this registry. For each service, if the service has a public void close() method, that method is called to close the service.
      */
     public void close() {
         try {
@@ -173,9 +185,55 @@ public class DefaultServiceRegistry implements ServiceRegistry {
     }
 
     interface Provider extends Stoppable {
+        /**
+         * Locates a service instance of the given type. Returns null if this provider does not provide a service of this type.
+         */
         <T> T getService(Class<T> serviceType);
 
+        /**
+         * Locates a factory for services of the given type. Returns null if this provider does not provide any services of this type.
+         */
         <T> Factory<T> getFactory(Class<T> type);
+    }
+
+    private class OwnServices implements Provider {
+        private final List<Provider> providers = new ArrayList<Provider>();
+
+        public <T> Factory<T> getFactory(Class<T> type) {
+            Factory<T> match = null;
+            for (Provider provider : providers) {
+                Factory<T> factory = provider.getFactory(type);
+                if (factory != null) {
+                    if (match != null) {
+                        throw new IllegalArgumentException(String.format("Multiple factories for objects of type %s available in %s.", type.getSimpleName(), DefaultServiceRegistry.this.toString()));
+                    }
+                    match = factory;
+                }
+            }
+            return match;
+        }
+
+        public <T> T getService(Class<T> serviceType) {
+            T match = null;
+            for (Provider provider : providers) {
+                T service = provider.getService(serviceType);
+                if (service != null) {
+                    if (match != null) {
+                        throw new IllegalArgumentException(String.format("Multiple services of type %s available in %s.", serviceType.getSimpleName(), DefaultServiceRegistry.this.toString()));
+                    }
+                    match = service;
+                }
+            }
+            return match;
+        }
+
+        public void stop() {
+            new CompositeStoppable(providers).stop();
+        }
+
+        public void add(Provider provider) {
+            this.providers.add(provider);
+        }
     }
 
     private static abstract class ManagedObjectProvider<T> implements Provider {
@@ -240,21 +298,28 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             return getFactory(serviceType, elementType);
         }
 
-        private Factory getFactory(Type type, Class elementType) {
+        private <T> Factory<T> getFactory(Type type, Class<T> elementType) {
             Class c = toClass(type);
             if (!Factory.class.isAssignableFrom(c)) {
                 return null;
             }
 
             if (type instanceof ParameterizedType) {
+                // Check if type is Factory<? extends ElementType>
                 ParameterizedType parameterizedType = (ParameterizedType) type;
-                if (parameterizedType.getRawType().equals(Factory.class) && parameterizedType.getActualTypeArguments()[0].equals(elementType)) {
-                    return getService(Factory.class);
+                if (parameterizedType.getRawType().equals(Factory.class)) {
+                    Type actualType = parameterizedType.getActualTypeArguments()[0];
+                    if (actualType instanceof Class<?> && elementType.isAssignableFrom((Class<?>) actualType)) {
+                        @SuppressWarnings("unchecked")
+                        Factory<T> f = getService(Factory.class);
+                        return f;
+                    }
                 }
             }
 
+            // Check if type extends Factory<? extends ElementType>
             for (Type interfaceType : c.getGenericInterfaces()) {
-                Factory f = getFactory(interfaceType, elementType);
+                Factory<T> f = getFactory(interfaceType, elementType);
                 if (f != null) {
                     return f;
                 }
