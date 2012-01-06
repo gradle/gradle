@@ -30,6 +30,9 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.plugins.conflict.ConflictManager;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.BasicResolver;
+import org.apache.ivy.plugins.latest.ArtifactInfo;
+import org.apache.ivy.plugins.repository.Resource;
+import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver;
 import org.apache.ivy.plugins.resolver.util.MDResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.plugins.resolver.util.ResolverHelper;
@@ -39,6 +42,7 @@ import org.apache.ivy.util.ChecksumHelper;
 import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
+import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,8 +98,8 @@ public class ResourceCollectionResolver extends BasicResolver {
 
     protected ResolvedResource findResourceUsingPatterns(ModuleRevisionId moduleRevision,
             List patternList, Artifact artifact, ResourceMDParser rmdparser, Date date) {
-        List resolvedResources = new ArrayList();
-        Set foundRevisions = new HashSet();
+        List<ResolvedResource> resolvedResources = new ArrayList<ResolvedResource>();
+        Set<String> foundRevisions = new HashSet<String>();
         boolean dynamic = getSettings().getVersionMatcher().isDynamic(moduleRevision);
         boolean stop = false;
         for (Iterator iter = patternList.iterator(); iter.hasNext() && !stop;) {
@@ -111,105 +115,80 @@ public class ResourceCollectionResolver extends BasicResolver {
         }
 
         if (resolvedResources.size() > 1) {
-            ResolvedResource[] rress = (ResolvedResource[]) resolvedResources
-                    .toArray(new ResolvedResource[resolvedResources.size()]);
-            return findResource(rress, rmdparser, moduleRevision, date);
+            ResolvedResource[] rress = resolvedResources.toArray(new ResolvedResource[resolvedResources.size()]);
+            List<ResolvedResource> sortedResources = getLatestStrategy().sort(rress);
+            return sortedResources.get(sortedResources.size() - 1);
         } else if (resolvedResources.size() == 1) {
-            return (ResolvedResource) resolvedResources.get(0);
+            return resolvedResources.get(0);
         } else {
             return null;
         }
     }
 
-    public ResolvedResource findResource(ResolvedResource[] rress, ResourceMDParser rmdparser,
-            ModuleRevisionId mrid, Date date) {
+    public ResolvedResource findLatestResource(ModuleRevisionId mrid, String[] versions, ResourceMDParser rmdparser, Date date, String pattern, Artifact artifact) throws IOException {
         String name = getName();
         VersionMatcher versionMatcher = getSettings().getVersionMatcher();
 
         ResolvedResource found = null;
-        List sorted = getLatestStrategy().sort(rress);
-        List rejected = new ArrayList();
-        List foundBlacklisted = new ArrayList();
-        IvyContext context = IvyContext.getContext();
 
-        for (ListIterator iter = sorted.listIterator(sorted.size()); iter.hasPrevious();) {
-            ResolvedResource rres = (ResolvedResource) iter.previous();
-            // we start by filtering based on information already available,
-            // even though we don't even know if the resource actually exist.
-            // But checking for existence is most of the time more costly than checking
-            // name, blacklisting and first level version matching
-            if (filterNames(new ArrayList(Collections.singleton(rres.getRevision()))).isEmpty()) {
-                Message.debug("\t" + name + ": filtered by name: " + rres);
-                continue;
-            }
-            ModuleRevisionId foundMrid = ModuleRevisionId.newInstance(mrid, rres.getRevision());
+        List<String> sorted = sortVersionsLatestFirst(versions);
+        List<String> rejected = new ArrayList<String>();
 
-            ResolveData data = context.getResolveData();
-            if (data != null
-                    && data.getReport() != null
-                    && data.isBlacklisted(data.getReport().getConfiguration(), foundMrid)) {
-                Message.debug("\t" + name + ": blacklisted: " + rres);
-                rejected.add(rres.getRevision() + " (blacklisted)");
-                foundBlacklisted.add(foundMrid);
-                continue;
-            }
+        for (String version : sorted) {
+            ModuleRevisionId foundMrid = ModuleRevisionId.newInstance(mrid, version);
 
             if (!versionMatcher.accept(mrid, foundMrid)) {
-                Message.debug("\t" + name + ": rejected by version matcher: " + rres);
-                rejected.add(rres.getRevision());
+                Message.debug("\t" + name + ": rejected by version matcher: " + version);
+                rejected.add(version);
                 continue;
             }
-            if (!rres.getResource().exists()) {
-                Message.debug("\t" + name + ": unreachable: " + rres
-                    + "; res=" + rres.getResource());
-                rejected.add(rres.getRevision() + " (unreachable)");
+
+            // Here we are initialising the resource: ensure we close it if we don't return it...
+            String resourcePath = IvyPatternHelper.substitute(pattern, foundMrid, artifact);
+            Resource resource = getResource(resourcePath, artifact);
+            String description = version + " [" + resource + "]";
+            if (!resource.exists()) {
+                Message.debug("\t" + name + ": unreachable: " + description);
+                rejected.add(version + " (unreachable)");
+                cleanupResource(resource);
                 continue;
             }
-            if ((date != null && rres.getLastModified() > date.getTime())) {
-                Message.verbose("\t" + name + ": too young: " + rres);
-                rejected.add(rres.getRevision() + " (" + rres.getLastModified() + ")");
+            if ((date != null && resource.getLastModified() > date.getTime())) {
+                Message.verbose("\t" + name + ": too young: " + description);
+                rejected.add(version + " (" + resource.getLastModified() + ")");
+                cleanupResource(resource);
                 continue;
             }
             if (versionMatcher.needModuleDescriptor(mrid, foundMrid)) {
-                ResolvedResource r = rmdparser.parse(rres.getResource(), rres.getRevision());
-                if (r == null) {
-                    Message.debug("\t" + name
-                        + ": impossible to get module descriptor resource: " + rres);
-                    rejected.add(rres.getRevision() + " (no or bad MD)");
+                MDResolvedResource parsedResource = rmdparser.parse(resource, version);
+                if (parsedResource == null) {
+                    Message.debug("\t" + name + ": impossible to get module descriptor resource: " + description);
+                    rejected.add(version + " (no or bad MD)");
+                    cleanupResource(resource);
                     continue;
                 }
-                ModuleDescriptor md = ((MDResolvedResource) r).getResolvedModuleRevision()
-                        .getDescriptor();
+                ModuleDescriptor md = parsedResource.getResolvedModuleRevision().getDescriptor();
                 if (md.isDefault()) {
-                    Message.debug("\t" + name + ": default md rejected by version matcher"
-                            + "requiring module descriptor: " + rres);
-                    rejected.add(rres.getRevision() + " (MD)");
+                    Message.debug("\t" + name + ": default md rejected by version matcher requiring module descriptor: " + description);
+                    rejected.add(version + " (MD)");
+                    cleanupResource(resource);
                     continue;
                 } else if (!versionMatcher.accept(mrid, md)) {
-                    Message.debug("\t" + name + ": md rejected by version matcher: " + rres);
-                    rejected.add(rres.getRevision() + " (MD)");
+                    Message.debug("\t" + name + ": md rejected by version matcher: " + description);
+                    rejected.add(version + " (MD)");
+                    cleanupResource(resource);
                     continue;
-                } else {
-                    found = r;
                 }
-            } else {
-                found = rres;
-            }
 
-            if (found != null) {
+                found = parsedResource;
                 break;
             }
+            found = new ResolvedResource(resource, version);
+            break;
         }
+
         if (found == null && !rejected.isEmpty()) {
             logAttempt(rejected.toString());
-        }
-        if (found == null && !foundBlacklisted.isEmpty()) {
-            // all acceptable versions have been blacklisted, this means that an unsolvable conflict
-            // has been found
-            DependencyDescriptor dd = context.getDependencyDescriptor();
-            IvyNode parentNode = context.getResolveData().getNode(dd.getParentRevisionId());
-            ConflictManager cm = parentNode.getConflictManager(mrid.getModuleId());
-            cm.handleAllBlacklistedRevisions(dd, foundBlacklisted);
         }
 
         return found;
@@ -258,20 +237,42 @@ public class ResourceCollectionResolver extends BasicResolver {
             return null;
         }
     }
-
-    private ResolvedResource findDynamicResourceUsingPattern(ResourceMDParser resourceParser, ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, Date date) {
+    
+    private ResolvedResource findDynamicResourceUsingPattern(ResourceMDParser resourceParser, ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact, Date date) throws IOException {
         logAttempt(IvyPatternHelper.substitute(pattern, ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY)), artifact));
-        ResolvedResource[] resourceResources = listResources(moduleRevisionId, pattern, artifact);
-        if (resourceResources == null) {
-            LOGGER.debug("Unable to list resources for {}: pattern={}", moduleRevisionId, pattern);
+        String[] versions = listVersions(moduleRevisionId, pattern, artifact);
+        if (versions == null) {
+            LOGGER.debug("Unable to list versions for {}: pattern={}", moduleRevisionId, pattern);
             return null;
         } else {
-            ResolvedResource found = findResource(resourceResources, resourceParser, moduleRevisionId, date);
+            ResolvedResource found = findLatestResource(moduleRevisionId, versions, resourceParser, date, pattern, artifact);
             if (found == null) {
                 LOGGER.debug("No resource found for {}: pattern={}", moduleRevisionId, pattern);
             }
             return found;
         }
+    }
+
+    private void cleanupResource(Resource resource) {
+        if (resource instanceof HttpResource) {
+            ((HttpResource) resource).close();
+        }
+    }
+
+    private List<String> sortVersionsLatestFirst(String[] versions) {
+        ArtifactInfo[] artifactInfos = new ArtifactInfo[versions.length];
+        for (int i = 0; i < versions.length; i++) {
+            String version = versions[i];
+            artifactInfos[i] = new VersionArtifactInfo(version);
+        }
+        List<ArtifactInfo> sorted = getLatestStrategy().sort(artifactInfos);
+        Collections.reverse(sorted);
+
+        List<String> sortedVersions = new ArrayList<String>();
+        for (ArtifactInfo info : sorted) {
+            sortedVersions.add(info.getRevision());
+        }
+        return sortedVersions;
     }
 
     protected Resource getResource(String source) throws IOException {
@@ -282,44 +283,11 @@ public class ResourceCollectionResolver extends BasicResolver {
         return repository.getResource(source, target.getId());
     }
 
-    /**
-     * List all revisions as resolved resources for the given artifact in the given repository using the given pattern, and using the given module id except its revision.
-     *
-     * @param moduleRevisionId the module revision id to look for (except revision)
-     * @param pattern the pattern to use to locate the revisions
-     * @param artifact the artifact to find
-     * @return an array of ResolvedResource, all pointing to a different revision of the given Artifact.
-     */
-    protected ResolvedResource[] listResources(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
-        // substitute all but revision
+    protected String[] listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
         ModuleRevisionId idWithoutRevision = ModuleRevisionId.newInstance(moduleRevisionId, IvyPatternHelper.getTokenString(IvyPatternHelper.REVISION_KEY));
         String partiallyResolvedPattern = IvyPatternHelper.substitute(pattern, idWithoutRevision, artifact);
         LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
-
-        String[] revisions = ResolverHelper.listTokenValues(repository, partiallyResolvedPattern, IvyPatternHelper.REVISION_KEY);
-        if (revisions != null) {
-            LOGGER.debug("Found revisions: {}", Arrays.asList(revisions));
-            List<ResolvedResource> resources = new ArrayList<ResolvedResource>(revisions.length);
-            for (String revision : revisions) {
-                String resourcePath = IvyPatternHelper.substituteToken(partiallyResolvedPattern, IvyPatternHelper.REVISION_KEY, revision);
-                try {
-                    Resource resource = getResource(resourcePath, artifact);
-                    if (resource != null) {
-                        // we do not test if the resource actually exist here, it would cause
-                        // a lot of checks which are not always necessary depending on the usage
-                        // which is done of the returned ResolvedResource array
-                        resources.add(new ResolvedResource(resource, revision));
-                    }
-                } catch (IOException e) {
-                    LOGGER.warn("Could not get resource listed by repository:" + resourcePath, e);
-                }
-            }
-            if (revisions.length != resources.size()) {
-                LOGGER.debug("Found resolved resources: {}", resources);
-            }
-            return resources.toArray(new ResolvedResource[resources.size()]);
-        }
-        return null;
+        return ResolverHelper.listTokenValues(repository, partiallyResolvedPattern, IvyPatternHelper.REVISION_KEY);
     }
 
     protected long get(Resource resource, File destination) throws IOException {
@@ -397,7 +365,11 @@ public class ResourceCollectionResolver extends BasicResolver {
     protected boolean exist(String path) {
         try {
             Resource resource = repository.getResource(path);
-            return resource.exists();
+            try {
+                return resource.exists();
+            } finally {
+                cleanupResource(resource);
+            }
         } catch (IOException e) {
             return false;
         }
@@ -467,5 +439,21 @@ public class ResourceCollectionResolver extends BasicResolver {
         return ModuleRevisionId.newInstance(mrid.getOrganisation().replace('.', '/'),
             mrid.getName(), mrid.getBranch(), mrid.getRevision(),
             mrid.getQualifiedExtraAttributes());
+    }
+    
+    private class VersionArtifactInfo implements ArtifactInfo {
+        private final String version;
+
+        private VersionArtifactInfo(String version) {
+            this.version = version;
+        }
+
+        public String getRevision() {
+            return version;
+        }
+
+        public long getLastModified() {
+            return 0;
+        }
     }
 }

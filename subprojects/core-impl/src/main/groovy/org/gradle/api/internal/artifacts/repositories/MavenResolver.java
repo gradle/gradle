@@ -183,29 +183,13 @@ public class MavenResolver extends ResourceCollectionResolver implements Pattern
         return null;
     }
 
-    protected ResolvedResource[] listResources(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
+    @Override
+    protected String[] listVersions(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
         List<String> revisions = listRevisionsWithMavenMetadata(moduleRevisionId.getModuleId().getAttributes());
         if (revisions != null) {
-            LOGGER.debug("Found revisions: {}", revisions);
-            List<ResolvedResource> resources = new ArrayList<ResolvedResource>();
-            for (String revision : revisions) {
-                String resolvedPattern = IvyPatternHelper.substitute(
-                        pattern, ModuleRevisionId.newInstance(moduleRevisionId, revision), artifact);
-                try {
-                    Resource res = getResource(resolvedPattern, artifact);
-                    if ((res != null) && res.exists()) {
-                        resources.add(new ResolvedResource(res, revision));
-                    }
-                } catch (IOException e) {
-                    LOGGER.warn("impossible to get resource from name listed by maven-metadata.xml: " + resources, e);
-                }
-            }
-            return resources.toArray(new ResolvedResource[resources.size()]);
-        } else {
-            // maven metadata not available or something went wrong,
-            // use default listing capability
-            return super.listResources(moduleRevisionId, pattern, artifact);
+            return revisions.toArray(new String[revisions.size()]);
         }
+        return super.listVersions(moduleRevisionId, pattern, artifact);
     }
 
     protected void findTokenValues(Collection names, List patterns, Map tokenValues, String token) {

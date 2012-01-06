@@ -37,4 +37,7 @@ public abstract class AbstractHttpResource implements HttpResource {
             output.close();
         }
     }
+
+    public void close() {
+    }
 }

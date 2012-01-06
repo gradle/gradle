@@ -77,4 +77,9 @@ class HttpGetResource extends AbstractHttpResource {
         LOGGER.debug("Attempting to download resource {}.", source);
         return method.getResponseBodyAsStream();
     }
+
+    @Override
+    public void close() {
+        method.abort();
+    }
 }
