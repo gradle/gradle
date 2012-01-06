@@ -50,4 +50,6 @@ public interface BuildOperationParametersVersion1 extends LongRunningOperationPa
     TimeUnit getDaemonMaxIdleTimeUnits();
 
     long getStartTime();
+
+    boolean getVerboseLogging();
 }

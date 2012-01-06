@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.m7
+package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
@@ -33,8 +33,8 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-@MinToolingApiVersion('1.0-milestone-7')
-@MinTargetGradleVersion('1.0-milestone-7')
+@MinToolingApiVersion('1.0-milestone-8')
+@MinTargetGradleVersion('1.0-milestone-8')
 @Issue("GRADLE-1933")
 class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
 
@@ -47,6 +47,8 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         concurrent.shortTimeout = 30000
         new ConnectorServices().reset()
     }
+
+    //TODO SF some tests can be split to M7
 
     def "handles concurrent scenario"() {
         dist.file('build.gradle')  << "apply plugin: 'java'"
@@ -61,7 +63,7 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
     }
 
     @Ignore
-    //TODO SF enable this test after releasing 1.7
+    //TODO SF enable this test after releasing M8 or check if it's all good with M7
     def "handles concurrent builds with different target Gradle version"() {
         dist.file('build.gradle')  << "apply plugin: 'java'"
 

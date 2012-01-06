@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.protocol;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -41,4 +42,11 @@ public interface LongRunningOperationParametersVersion1 {
      * @return The listener. Must not be null.
      */
     ProgressListenerVersion1 getProgressListener();
+
+    /**
+     * Returns the input stream to that can be consumed.
+     *
+     * @return The input stream. May be null.
+     */
+    InputStream getStandardInput();
 }

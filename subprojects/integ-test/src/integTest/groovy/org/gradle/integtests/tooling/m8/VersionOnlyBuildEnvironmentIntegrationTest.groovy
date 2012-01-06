@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.m7
+package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.tooling.fixture.MaxTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
@@ -23,9 +23,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.build.BuildEnvironment
 
-@MinToolingApiVersion('1.0-milestone-7')
+@MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-3')
-@MaxTargetGradleVersion('1.0-milestone-6')
+@MaxTargetGradleVersion('1.0-milestone-6') //TODO SF make it working with target M7, too
 class VersionOnlyBuildEnvironmentIntegrationTest extends ToolingApiSpecification {
 
     def "informs about version"() {
