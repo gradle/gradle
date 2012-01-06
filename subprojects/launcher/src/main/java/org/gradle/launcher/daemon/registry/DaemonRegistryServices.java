@@ -15,16 +15,16 @@
  */
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.internal.nativeplatform.services.NativeServices;
-import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.cache.Cache;
 import org.gradle.api.internal.cache.CacheAccessSerializer;
 import org.gradle.api.internal.cache.MapBackedCache;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.service.DefaultServiceRegistry;
 
 import java.io.File;
 import java.util.HashMap;
@@ -45,19 +45,12 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
 
     public DaemonRegistryServices(File daemonBaseDir) {
         this(daemonBaseDir, REGISTRY_CACHE);
+        add(new NativeServices());
     }
 
     protected DaemonRegistryServices(File daemonBaseDir, Cache<File, DaemonRegistry> daemonRegistryCache) {
         this.daemonBaseDir = daemonBaseDir;
         this.daemonRegistryCache = daemonRegistryCache;
-    }
-
-    protected ProcessEnvironment createProcessEnvironment() {
-        return get(NativeServices.class).get(ProcessEnvironment.class);
-    }
-
-    protected NativeServices createNativeServices() {
-        return new NativeServices();
     }
 
     protected DaemonDir createDaemonDir() {

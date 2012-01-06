@@ -15,13 +15,13 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.internal.nativeplatform.*;
-import org.gradle.internal.nativeplatform.services.NativeServices;
-import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
@@ -47,18 +47,11 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
     public DaemonClientServicesSupport(ServiceRegistry loggingServices, InputStream buildStandardInput) {
         this.loggingServices = loggingServices;
         this.buildStandardInput = buildStandardInput;
+        add(new NativeServices());
     }
 
     public ServiceRegistry getLoggingServices() {
         return loggingServices;
-    }
-
-    protected ProcessEnvironment createProcessEnvironment() {
-        return get(NativeServices.class).get(ProcessEnvironment.class);
-    }
-    
-    protected NativeServices createNativeServices() {
-        return new NativeServices();
     }
 
     protected DaemonContext createDaemonContext() {

@@ -22,22 +22,21 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
-import org.gradle.internal.nativeplatform.services.NativeServices;
-import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.cache.internal.*;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.internal.Factory;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
-import org.gradle.internal.nativeplatform.FileSystem;
-import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.DefaultClassLoaderFactory;
 
@@ -51,6 +50,7 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
 
     public GlobalServicesRegistry(ServiceRegistry loggingServices) {
         super(loggingServices);
+        add(new NativeServices());
     }
 
     protected CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter() {
@@ -101,18 +101,6 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
         return new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DirectInstantiator());
     }
 
-    protected ProcessEnvironment createProcessEnvironment() {
-        return get(NativeServices.class).get(ProcessEnvironment.class);
-    }
-
-    protected FileSystem createFileSystem() {
-        return get(NativeServices.class).get(FileSystem.class);
-    }
-
-    protected NativeServices createNativeServices() {
-        return new NativeServices();
-    }
-    
     protected FileLockManager createFileLockManager() {
         return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(get(ProcessEnvironment.class)));
     }

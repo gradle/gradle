@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -26,7 +27,6 @@ import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.process.internal.JvmOptions;
 
 import java.io.File;
@@ -45,6 +45,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         this.idleTimeoutMs = idleTimeoutMs;
         this.loggingServices = loggingServices;
 
+        add(new NativeServices());
         add(new DaemonRegistryServices(daemonBaseDir));
     }
 
@@ -52,14 +53,6 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new DefaultExecutorFactory();
     }
 
-    protected ProcessEnvironment createProcessEnvironment() {
-        return get(NativeServices.class).get(ProcessEnvironment.class);
-    }
-    
-    protected NativeServices createNativeServices() {
-        return new NativeServices();
-    }
-    
     protected DaemonContext createDaemonContext() {
         DaemonContextBuilder builder = new DaemonContextBuilder(get(ProcessEnvironment.class));
         builder.setDaemonRegistryDir(daemonBaseDir);

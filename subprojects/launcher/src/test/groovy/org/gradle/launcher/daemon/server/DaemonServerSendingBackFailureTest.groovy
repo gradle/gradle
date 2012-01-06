@@ -31,6 +31,7 @@ import org.gradle.messaging.concurrent.ExecutorFactory
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.internal.nativeplatform.ProcessEnvironment
 
 /**
  * by Szczepan Faber, Luke Daley created at: 12/22/11
@@ -49,7 +50,7 @@ class DaemonServerSendingBackFailureTest extends Specification {
         given:
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
-                return new DefaultDaemonCommandExecuter(getLoggingServices(), get(ExecutorFactory.class), createProcessEnvironment()) {
+                return new DefaultDaemonCommandExecuter(getLoggingServices(), get(ExecutorFactory.class), get(ProcessEnvironment.class)) {
                     List<DaemonCommandAction> createActions() {
                         def actions = super.createActions();
                         def failingAction = { throw new RuntimeException("boo!") } as DaemonCommandAction
