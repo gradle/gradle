@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyModule
 import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.junit.Rule
 
 class IvyDynamicRevisionRemoteResolutionIntegrationTest extends AbstractIntegrationSpec {
@@ -93,6 +93,56 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-2.2.jar')
         file('libs/projectA-1.2.jar').assertIsCopyOf(projectA2.jarFile)
         file('libs/projectB-2.2.jar').assertIsCopyOf(projectB2.jarFile)
+    }
+
+
+    def "determines latest version with jar only"() {
+        server.start()
+        def repo = ivyRepo()
+
+        given:
+        buildFile << """
+repositories {
+  ivy {
+      url "http://localhost:${server.port}"
+  }
+}
+
+configurations { compile }
+
+dependencies {
+  compile group: "group", name: "projectA", version: "1.+"
+}
+
+task retrieve(type: Sync) {
+  from configurations.compile
+  into 'libs'
+}
+"""
+
+        when: "Version 1.1 is published"
+        def projectA11 = repo.module("group", "projectA", "1.1").publish()
+        def projectA12 = repo.module("group", "projectA", "1.2").publish()
+        def projectA20 = repo.module("group", "projectA", "2.0").publish()
+
+        and: "Server handles requests"
+        server.expectGetDirectoryListing("/${projectA12.organisation}/${projectA12.module}/", projectA12.moduleDir.parentFile)
+        server.expectGetMissing("/${projectA20.organisation}/${projectA20.module}/${projectA20.revision}/ivy-${projectA20.revision}.xml")
+        server.expectGetMissing("/${projectA12.organisation}/${projectA12.module}/${projectA12.revision}/ivy-${projectA12.revision}.xml")
+        server.expectGetMissing("/${projectA11.organisation}/${projectA11.module}/${projectA11.revision}/ivy-${projectA11.revision}.xml")
+
+        // TODO:DAZ Should not list twice
+        server.expectGetDirectoryListing("/${projectA12.organisation}/${projectA12.module}/", projectA12.moduleDir.parentFile)
+        server.expectGet("/${projectA20.organisation}/${projectA20.module}/${projectA20.revision}/${projectA20.module}-${projectA20.revision}.jar", projectA20.jarFile)
+        server.expectGet("/${projectA12.organisation}/${projectA12.module}/${projectA12.revision}/${projectA12.module}-${projectA12.revision}.jar", projectA12.jarFile)
+        // TODO:DAZ Should not require second jarfile request
+        server.expectGet("/${projectA12.organisation}/${projectA12.module}/${projectA12.revision}/${projectA12.module}-${projectA12.revision}.jar", projectA12.jarFile)
+
+        and:
+        run 'retrieve'
+
+        then: "Version 1.2 is used"
+        file('libs').assertHasDescendants('projectA-1.2.jar')
     }
 
     def "uses latest version with correct status for latest.release and latest.milestone"() {
