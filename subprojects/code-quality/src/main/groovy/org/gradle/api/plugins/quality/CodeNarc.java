@@ -24,13 +24,12 @@ import java.io.File;
 /**
  * Runs CodeNarc against some source files.
  */
-public class CodeNarc extends SourceTask implements VerificationTask {
+public class CodeNarc extends CodeQualityTask {
     private AntCodeNarc antCodeNarc = new AntCodeNarc();
 
     private File configFile;
     private String reportFormat;
     private File reportFile;
-    private boolean ignoreFailures;
 
     @TaskAction
     public void check() {
@@ -90,28 +89,4 @@ public class CodeNarc extends SourceTask implements VerificationTask {
         this.reportFile = reportFile;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isIgnoreFailures() {
-        return ignoreFailures;
-    }
-
-    public VerificationTask setDisplayViolations(boolean displayViolations) {
-        //TODO replace stub implementation
-        return null;
-    }
-
-    public boolean isDisplayViolations() {
-        //TODO replace stub implementation
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CodeNarc setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
-        return this;
-    }
 }

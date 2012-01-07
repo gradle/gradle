@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Runs Checkstyle against some source files.
  */
-public class Checkstyle extends SourceTask implements VerificationTask {
+public class Checkstyle extends CodeQualityTask {
     private File configFile;
 
     private File resultFile;
@@ -36,8 +36,6 @@ public class Checkstyle extends SourceTask implements VerificationTask {
     private Map<String, Object> properties = new HashMap<String, Object>();
 
     private AntCheckstyle antCheckstyle = new AntCheckstyle();
-
-    private boolean ignoreFailures;
 
     @TaskAction
     public void check() {
@@ -114,30 +112,5 @@ public class Checkstyle extends SourceTask implements VerificationTask {
 
     public void setProperties(Map<String, Object> properties) {
         this.properties = properties;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isIgnoreFailures() {
-        return ignoreFailures;
-    }
-
-    public VerificationTask setDisplayViolations(boolean displayViolations) {
-        //TODO replace stub implementation
-        return this;
-    }
-
-    public boolean isDisplayViolations() {
-        //TODO replace stub implementation
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Checkstyle setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
-        return this;
     }
 }
