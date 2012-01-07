@@ -58,10 +58,9 @@ task retrieve(type: Sync) {
 """
 
         when: "Version 1.1 is published"
-        def projectA1 = repo.module("group", "projectA", "1.1")
-        projectA1.publish()
-        def projectB1 = repo.module("group", "projectB", "1.1")
-        projectB1.publish()
+        def projectA1 = repo.module("group", "projectA", "1.1").publish()
+        repo.module("group", "projectA", "2.0").publish()
+        def projectB1 = repo.module("group", "projectB", "1.1").publish()
 
         and: "Server handles requests"
         serveUpDynamicRevision(projectA1)
@@ -76,10 +75,8 @@ task retrieve(type: Sync) {
         file('libs/projectB-1.1.jar').assertIsCopyOf(projectB1.jarFile)
 
         when: "New versions are published"
-        def projectA2 = repo.module("group", "projectA", "1.2")
-        projectA2.publish()
-        def projectB2 = repo.module("group", "projectB", "2.2")
-        projectB2.publish()
+        def projectA2 = repo.module("group", "projectA", "1.2").publish()
+        def projectB2 = repo.module("group", "projectB", "2.2").publish()
 
         and: "Server handles requests"
         server.resetExpectations()
@@ -123,7 +120,7 @@ task retrieve(type: Sync) {
         when: "Version 1.1 is published"
         def projectA11 = repo.module("group", "projectA", "1.1").publish()
         def projectA12 = repo.module("group", "projectA", "1.2").publish()
-        def projectA20 = repo.module("group", "projectA", "2.0").publish()
+        repo.module("group", "projectA", "2.0").publish()
 
         and: "Server handles requests"
         server.expectGetDirectoryListing("/${projectA12.organisation}/${projectA12.module}/", projectA12.moduleDir.parentFile)
@@ -132,8 +129,7 @@ task retrieve(type: Sync) {
 
         // TODO:DAZ Should not list twice
         server.expectGetDirectoryListing("/${projectA12.organisation}/${projectA12.module}/", projectA12.moduleDir.parentFile)
-        server.expectGet("/${projectA12.organisation}/${projectA12.module}/${projectA12.revision}/${projectA12.module}-${projectA12.revision}.jar", projectA12.jarFile)
-        // TODO:DAZ Should not require second jarfile request
+        server.expectHead("/${projectA12.organisation}/${projectA12.module}/${projectA12.revision}/${projectA12.module}-${projectA12.revision}.jar", projectA12.jarFile)
         server.expectGet("/${projectA12.organisation}/${projectA12.module}/${projectA12.revision}/${projectA12.module}-${projectA12.revision}.jar", projectA12.jarFile)
 
         and:

@@ -110,7 +110,7 @@ public class MavenResolver extends ResourceCollectionResolver implements Pattern
             ModuleRevisionId moduleRevisionId = convertM2IdForResourceSearch(dd.getDependencyRevisionId());
 
             if (moduleRevisionId.getRevision().endsWith("SNAPSHOT")) {
-                ResolvedResource resolvedResource = findSnapshotDescriptor(dd, data, moduleRevisionId);
+                ResolvedResource resolvedResource = findSnapshotDescriptor(dd, data, moduleRevisionId, true);
                 if (resolvedResource != null) {
                     return resolvedResource;
                 }
@@ -118,13 +118,13 @@ public class MavenResolver extends ResourceCollectionResolver implements Pattern
 
             Artifact pomArtifact = DefaultArtifact.newPomArtifact(moduleRevisionId, data.getDate());
             ResourceMDParser parser = getRMDParser(dd, data);
-            return findResourceUsingPatterns(moduleRevisionId, getIvyPatterns(), pomArtifact, parser, data.getDate());
+            return findResourceUsingPatterns(moduleRevisionId, getIvyPatterns(), pomArtifact, parser, data.getDate(), true);
         }
 
         return null;
     }
 
-    private ResolvedResource findSnapshotDescriptor(DependencyDescriptor dd, ResolveData data, ModuleRevisionId moduleRevisionId) {
+    private ResolvedResource findSnapshotDescriptor(DependencyDescriptor dd, ResolveData data, ModuleRevisionId moduleRevisionId, boolean forDownload) {
         String rev = findUniqueSnapshotVersion(moduleRevisionId);
         if (rev != null) {
             // here it would be nice to be able to store the resolved snapshot version, to avoid
@@ -134,37 +134,35 @@ public class MavenResolver extends ResourceCollectionResolver implements Pattern
 
             // replace the revision token in file name with the resolved revision
             String pattern = getWholePattern().replaceFirst("\\-\\[revision\\]", "-" + rev);
-            return findResourceUsingPattern(moduleRevisionId, pattern,
-                    DefaultArtifact.newPomArtifact(
-                            moduleRevisionId, data.getDate()), getRMDParser(dd, data), data.getDate());
+            Artifact pomArtifact = DefaultArtifact.newPomArtifact(moduleRevisionId, data.getDate());
+            return findResourceUsingPattern(moduleRevisionId, pattern, pomArtifact, getRMDParser(dd, data), data.getDate(), forDownload);
         }
         return null;
     }
 
-    protected ResolvedResource findArtifactRef(Artifact artifact, Date date) {
+    protected ResolvedResource getArtifactRef(Artifact artifact, Date date, boolean forDownload) {
         ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
         if (isM2compatible()) {
             moduleRevisionId = convertM2IdForResourceSearch(moduleRevisionId);
         }
 
         if (moduleRevisionId.getRevision().endsWith("SNAPSHOT")) {
-            ResolvedResource resolvedResource = findSnapshotArtifact(artifact, date, moduleRevisionId);
+            ResolvedResource resolvedResource = findSnapshotArtifact(artifact, date, moduleRevisionId, forDownload);
             if (resolvedResource != null) {
                 return resolvedResource;
             }
         }
         ResourceMDParser parser = getDefaultRMDParser(artifact.getModuleRevisionId().getModuleId());
-        return findResourceUsingPatterns(moduleRevisionId, getArtifactPatterns(), artifact, parser, date);
+        return findResourceUsingPatterns(moduleRevisionId, getArtifactPatterns(), artifact, parser, date, forDownload);
     }
 
-    private ResolvedResource findSnapshotArtifact(Artifact artifact, Date date, ModuleRevisionId moduleRevisionId) {
+    private ResolvedResource findSnapshotArtifact(Artifact artifact, Date date, ModuleRevisionId moduleRevisionId, boolean forDownload) {
         String rev = findUniqueSnapshotVersion(moduleRevisionId);
         if (rev != null) {
             // replace the revision token in file name with the resolved revision
             // TODO:DAZ We're not using all available artifact patterns here, only the "main" pattern. This means that snapshot artifacts will not be resolved in additional artifact urls.
             String pattern = getWholePattern().replaceFirst("\\-\\[revision\\]", "-" + rev);
-            return findResourceUsingPattern(moduleRevisionId, pattern, artifact,
-                    getDefaultRMDParser(artifact.getModuleRevisionId().getModuleId()), date);
+            return findResourceUsingPattern(moduleRevisionId, pattern, artifact, getDefaultRMDParser(artifact.getModuleRevisionId().getModuleId()), date, forDownload);
         }
         return null;
     }

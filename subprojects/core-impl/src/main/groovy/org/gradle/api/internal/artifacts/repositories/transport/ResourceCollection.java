@@ -25,5 +25,7 @@ import java.io.IOException;
 public interface ResourceCollection extends Repository {
     Resource getResource(String source, ArtifactRevisionId artifactId) throws IOException;
 
+    Resource getResource(String source, ArtifactRevisionId artifactRevisionId, boolean forDownload) throws IOException;
+
     void downloadResource(Resource res, File destination) throws IOException;
 }

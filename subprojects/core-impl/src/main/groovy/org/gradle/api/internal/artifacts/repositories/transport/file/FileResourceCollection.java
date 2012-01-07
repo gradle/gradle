@@ -28,6 +28,10 @@ public class FileResourceCollection extends FileRepository implements ResourceCo
         return getResource(source);
     }
 
+    public Resource getResource(String source, ArtifactRevisionId artifactRevisionId, boolean forDownload) throws IOException {
+        return getResource(source);
+    }
+
     public void downloadResource(Resource res, File destination) throws IOException {
         get(res.getName(), destination);
     }

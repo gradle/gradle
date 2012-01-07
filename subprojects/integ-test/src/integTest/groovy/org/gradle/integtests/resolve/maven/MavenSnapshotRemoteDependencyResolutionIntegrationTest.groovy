@@ -346,7 +346,7 @@ allprojects {
         server.expectGetMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${moduleName}-1.0-SNAPSHOT.pom")
         // TODO - should only ask for metadata once
         server.expectGetMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml")
-        server.expectGetMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${moduleName}-1.0-SNAPSHOT.jar")
+        server.expectHeadMissing("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${moduleName}-1.0-SNAPSHOT.jar")
     }
 
     MavenRepository repo() {

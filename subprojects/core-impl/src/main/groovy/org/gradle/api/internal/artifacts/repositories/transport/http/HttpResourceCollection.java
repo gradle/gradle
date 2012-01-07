@@ -15,15 +15,24 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
-import org.apache.commons.httpclient.*;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.HttpMethodRetryHandler;
+import org.apache.commons.httpclient.URIException;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.apache.ivy.plugins.repository.*;
+import org.apache.ivy.plugins.repository.AbstractRepository;
+import org.apache.ivy.plugins.repository.BasicResource;
+import org.apache.ivy.plugins.repository.RepositoryCopyProgressListener;
+import org.apache.ivy.plugins.repository.Resource;
+import org.apache.ivy.plugins.repository.TransferEvent;
 import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.url.ApacheURLLister;
 import org.gradle.api.UncheckedIOException;
@@ -77,16 +86,24 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         List<CachedArtifact> cachedArtifacts = new ArrayList<CachedArtifact>();
         externalArtifactCache.addMatchingCachedArtifacts(artifactId, cachedArtifacts);
 
-        HttpResource resource = init(source, cachedArtifacts);
+        HttpResource resource = initGet(source, cachedArtifacts);
         resources.put(source, resource);
         return resource;
+    }
+
+    public Resource getResource(String source, ArtifactRevisionId artifactRevisionId, boolean forDownload) throws IOException {
+        if (forDownload) {
+            return getResource(source, artifactRevisionId);
+        }
+        LOGGER.debug("Constructing HEAD resource: {}", source);
+        return initHead(source);
     }
 
     public HttpResource getResource(String source) throws IOException {
         return getResource(source, null);
     }
 
-    private HttpResource init(String source, List<CachedArtifact> candidates) {
+    private HttpResource initGet(String source, List<CachedArtifact> candidates) {
         // First see if we can use any of the candidates directly.
         if (candidates.size() > 0) {
             CachedHttpResource cachedResource = findCachedResource(source, candidates);
@@ -112,6 +129,27 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
             throw new UncheckedIOException(String.format("Could not GET '%s'. Received status code %s from server: %s", source, result, method.getStatusText()));
         }
         LOGGER.info("Resource found. [HTTP GET: {}]", source);
+        return new HttpGetResource(source, method);
+    }
+
+    private HttpResource initHead(String source) {
+        HeadMethod method = new HeadMethod(source);
+        configureMethod(method);
+        int result;
+        try {
+            result = executeMethod(method);
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Could not HEAD '%s'.", source), e);
+        }
+        if (result == 404) {
+            LOGGER.info("Resource missing. [HTTP HEAD: {}]", source);
+            return new MissingHttpResource(source);
+        }
+        if (!wasSuccessful(result)) {
+            LOGGER.info("Failed to get resource: {} ({}). [HTTP HEAD: {}]", new Object[]{result, method.getStatusText(), source});
+            throw new UncheckedIOException(String.format("Could not HEAD '%s'. Received status code %s from server: %s", source, result, method.getStatusText()));
+        }
+        LOGGER.info("Resource found. [HTTP HEAD: {}]", source);
         return new HttpGetResource(source, method);
     }
 

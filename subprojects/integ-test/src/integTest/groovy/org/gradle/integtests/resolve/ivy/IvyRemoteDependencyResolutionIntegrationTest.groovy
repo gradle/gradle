@@ -131,8 +131,7 @@ task listJars << {
 
         // Handles missing in repo1
         server.expectGetMissing('/repo1/group/projectB/1.0/ivy-1.0.xml')
-        // TODO - this shouldn't happen - resolver is trying to generate metadata based on presence of jar
-        server.expectGetMissing('/repo1/group/projectB/1.0/projectB-1.0.jar')
+        server.expectHeadMissing('/repo1/group/projectB/1.0/projectB-1.0.jar')
 
         server.expectGet('/repo2/group/projectB/1.0/ivy-1.0.xml', moduleB.ivyFile)
         server.expectGet('/repo2/group/projectB/1.0/projectB-1.0.jar', moduleB.jarFile)
@@ -248,7 +247,7 @@ task showMissing << { println configurations.missing.files }
 
         when:
         server.expectGetMissing('/group/projectA/1.2/ivy-1.2.xml')
-        server.expectGetMissing('/group/projectA/1.2/projectA-1.2.jar')
+        server.expectHeadMissing('/group/projectA/1.2/projectA-1.2.jar')
         fails("showMissing")
 
         then:

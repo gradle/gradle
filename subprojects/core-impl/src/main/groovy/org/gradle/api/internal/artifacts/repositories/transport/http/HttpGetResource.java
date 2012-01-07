@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.ivy.plugins.repository.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +29,9 @@ class HttpGetResource extends AbstractHttpResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpGetResource.class);
 
     private final String source;
-    private final GetMethod method;
+    private final HttpMethodBase method;
 
-    public HttpGetResource(String source, GetMethod method) {
+    public HttpGetResource(String source, HttpMethodBase method) {
         this.source = source;
         this.method = method;
     }
