@@ -19,8 +19,11 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.Resource;
 
+import java.io.File;
 import java.io.IOException;
 
 public interface ResourceCollection extends Repository {
     Resource getResource(String source, ArtifactRevisionId artifactId) throws IOException;
+
+    void downloadResource(Resource res, File destination) throws IOException;
 }

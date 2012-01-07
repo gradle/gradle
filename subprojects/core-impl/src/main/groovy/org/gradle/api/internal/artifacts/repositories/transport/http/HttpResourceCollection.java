@@ -155,7 +155,14 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
     }
 
     public void get(String source, File destination) throws IOException {
-        HttpResource resource = resources.get(source);
+        throw new UnsupportedOperationException();
+    }
+
+    public void downloadResource(Resource res, File destination) throws IOException {
+        if (!(res instanceof HttpResource)) {
+            throw new IllegalArgumentException("Can only download HttpResource");
+        }
+        HttpResource resource = (HttpResource) res;
         fireTransferInitiated(resource, TransferEvent.REQUEST_GET);
         try {
             progress.setTotalLength(resource.getContentLength());

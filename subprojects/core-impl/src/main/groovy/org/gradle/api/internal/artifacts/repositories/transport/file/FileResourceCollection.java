@@ -20,10 +20,15 @@ import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.file.FileRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
 
+import java.io.File;
 import java.io.IOException;
 
 public class FileResourceCollection extends FileRepository implements ResourceCollection {
     public Resource getResource(String source, ArtifactRevisionId artifactId) throws IOException {
         return getResource(source);
+    }
+
+    public void downloadResource(Resource res, File destination) throws IOException {
+        get(res.getName(), destination);
     }
 }
