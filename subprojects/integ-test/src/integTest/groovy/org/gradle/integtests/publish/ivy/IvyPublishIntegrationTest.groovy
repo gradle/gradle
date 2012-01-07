@@ -153,6 +153,7 @@ uploadArchives {
     @Test
     public void reportsFailedPublishToHttpRepository() {
         server.start()
+        def repositoryUrl = "http://localhost:${server.port}"
         server.addBroken("/")
 
         dist.testFile("build.gradle") << """
@@ -160,7 +161,7 @@ apply plugin: 'java'
 uploadArchives {
     repositories {
         ivy {
-            url "http://localhost:${server.port}"
+            url "${repositoryUrl}"
         }
     }
 }
@@ -176,7 +177,7 @@ uploadArchives {
         result = executer.withTasks("uploadArchives").runWithFailure()
         result.assertHasDescription('Execution failed for task \':uploadArchives\'.')
         result.assertHasCause('Could not publish configuration \':archives\'.')
-        result.assertHasCause('java.net.ConnectException: Connection refused')
+        result.assertHasCause("org.apache.http.conn.HttpHostConnectException: Connection to ${repositoryUrl} refused")
     }
 
         @Test

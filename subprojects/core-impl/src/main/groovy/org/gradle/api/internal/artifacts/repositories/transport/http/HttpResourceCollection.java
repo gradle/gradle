@@ -259,6 +259,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         method.setEntity(new FileEntity(source, "application/octet-stream"));
         LOGGER.debug("Performing HTTP PUT: {}", method.getURI());
         HttpResponse response = client.execute(method);
+        EntityUtils.consume(response.getEntity());
         if (!wasSuccessful(response)) {
             throw new IOException(String.format("Could not PUT '%s'. Received status code %s from server: %s",
                                                 destination, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
