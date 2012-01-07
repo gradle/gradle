@@ -190,17 +190,6 @@ public class MavenResolver extends ResourceCollectionResolver implements Pattern
         return super.listVersions(moduleRevisionId, pattern, artifact);
     }
 
-    protected void findTokenValues(Collection names, List patterns, Map tokenValues, String token) {
-        if (IvyPatternHelper.REVISION_KEY.equals(token)) {
-            List<String> revisions = listRevisionsWithMavenMetadata(tokenValues);
-            if (revisions != null) {
-                names.addAll(filterNames(revisions));
-                return;
-            }
-        }
-        super.findTokenValues(names, patterns, tokenValues, token);
-    }
-
     private List<String> listRevisionsWithMavenMetadata(Map tokenValues) {
         String metadataLocation = IvyPatternHelper.substituteTokens(root + "[organisation]/[module]/maven-metadata.xml", tokenValues);
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);

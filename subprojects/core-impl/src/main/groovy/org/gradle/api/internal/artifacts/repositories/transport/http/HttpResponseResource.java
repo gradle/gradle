@@ -15,26 +15,26 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
-import org.slf4j.LoggerFactory;
-
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
-import org.apache.ivy.plugins.repository.Resource;
 import org.gradle.api.UncheckedIOException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 
-class HttpGetResource extends AbstractHttpResource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpGetResource.class);
+class HttpResponseResource extends AbstractHttpResource {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpResponseResource.class);
 
+    private final String method;
     private final String source;
     private final HttpResponse response;
 
-    public HttpGetResource(String source, HttpResponse response) {
+    public HttpResponseResource(String method, String source, HttpResponse response) {
+        this.method = method;
         this.source = source;
         this.response = response;
     }
@@ -45,7 +45,7 @@ class HttpGetResource extends AbstractHttpResource {
 
     @Override
     public String toString() {
-        return "HttpResource: " + getName();
+        return String.format("Http %s Resource: %s", method, source);
     }
 
     public long getLastModified() {
@@ -72,10 +72,6 @@ class HttpGetResource extends AbstractHttpResource {
         return false;
     }
 
-    public Resource clone(String cloneName) {
-        throw new UnsupportedOperationException();
-    }
-
     public InputStream openStream() throws IOException {
         LOGGER.debug("Attempting to download resource {}.", source);
         return response.getEntity().getContent();
@@ -89,4 +85,5 @@ class HttpGetResource extends AbstractHttpResource {
             throw new UncheckedIOException(e);
         }
     }
+
 }

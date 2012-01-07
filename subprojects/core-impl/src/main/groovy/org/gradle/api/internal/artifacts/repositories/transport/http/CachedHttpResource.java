@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
-import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.util.CopyProgressListener;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifact;
 import org.gradle.util.HashUtil;
@@ -62,10 +61,6 @@ class CachedHttpResource extends AbstractHttpResource {
         return true;
     }
 
-    public Resource clone(String cloneName) {
-        throw new UnsupportedOperationException();
-    }
-
     public InputStream openStream() throws IOException {
         return new FileInputStream(cachedArtifact.getOrigin());
     }
@@ -95,5 +90,4 @@ class CachedHttpResource extends AbstractHttpResource {
     private String getChecksum(File contentFile) {
         return HashUtil.createHashString(contentFile, "SHA1");
     }
-    
 }

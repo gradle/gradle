@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
+import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.util.CopyProgressListener;
 import org.apache.ivy.util.FileUtil;
 
@@ -38,6 +39,11 @@ public abstract class AbstractHttpResource implements HttpResource {
         }
     }
 
+    public Resource clone(String cloneName) {
+        throw new UnsupportedOperationException();
+    }
+
     public void close() {
     }
+
 }

@@ -23,6 +23,7 @@ import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.auth.BasicScheme;
@@ -64,6 +65,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceCollection.class);
     private final DefaultHttpClient client = new DefaultHttpClient();
     private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
+    private final List<HttpResource> openResources = new ArrayList<HttpResource>();
 
     private final ExternalArtifactCache externalArtifactCache;
     private final UsernamePasswordCredentials httpClientCredentials;
@@ -88,66 +90,63 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         });
     }
 
-    public HttpResource getResource(final String source, ArtifactRevisionId artifactId) throws IOException {
-        // TODO:DAZ Add failsafe resource cleanup.
-
-        LOGGER.debug("Constructing GET resource: {}", source);
-
-        List<CachedArtifact> cachedArtifacts = new ArrayList<CachedArtifact>();
-        externalArtifactCache.addMatchingCachedArtifacts(artifactId, cachedArtifacts);
-
-        HttpResource resource = initGet(source, cachedArtifacts);
-        return resource;
-    }
-
-    public Resource getResource(String source, ArtifactRevisionId artifactRevisionId, boolean forDownload) throws IOException {
-        if (forDownload) {
-            return getResource(source, artifactRevisionId);
-        }
-        LOGGER.debug("Constructing HEAD resource: {}", source);
-        return initHead(source);
-    }
-
     public HttpResource getResource(String source) throws IOException {
         return getResource(source, null);
     }
 
-    private HttpResource initGet(String source, List<CachedArtifact> candidates) {
+    public HttpResource getResource(final String source, ArtifactRevisionId artifactId) throws IOException {
+        return getResource(source, artifactId, true);
+    }
+
+    public HttpResource getResource(String source, ArtifactRevisionId artifactId, boolean forDownload) throws IOException {
+        abortOpenResources();
+        if (forDownload) {
+            HttpResource httpResource = initGet(source, artifactId);
+            return recordOpenGetResource(httpResource);
+        }
+        return initHead(source);
+    }
+
+    private void abortOpenResources() {
+        for (HttpResource openResource : openResources) {
+            LOGGER.warn("Forcing close on abandoned resource: " + openResource);
+            openResource.close();
+        }
+        openResources.clear();
+    }
+
+    private HttpResource recordOpenGetResource(HttpResource httpResource) {
+        if (httpResource instanceof HttpResponseResource) {
+            openResources.add(httpResource);
+        }
+        return httpResource;
+    }
+
+    private HttpResource initGet(String source, ArtifactRevisionId artifactId) {
+        LOGGER.debug("Constructing GET resource: {}", source);
+        
+        List<CachedArtifact> candidateArtifacts = new ArrayList<CachedArtifact>();
+        externalArtifactCache.addMatchingCachedArtifacts(artifactId, candidateArtifacts);
+
         // First see if we can use any of the candidates directly.
-        if (candidates.size() > 0) {
-            CachedHttpResource cachedResource = findCachedResource(source, candidates);
+        if (candidateArtifacts.size() > 0) {
+            CachedHttpResource cachedResource = findCachedResource(source, candidateArtifacts);
             if (cachedResource != null) {
                 return cachedResource;
             }
         }
 
         HttpGet request = new HttpGet(source);
-        configureMethod(request);
-        HttpResponse response;
-        try {
-            response = executeMethod(request);
-        } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not GET '%s'.", source), e);
-        }
-        if (wasMissing(response)) {
-            LOGGER.info("Resource missing. [HTTP GET: {}]", source);
-            return new MissingHttpResource(source);
-        }
-        if (!wasSuccessful(response)) {
-            LOGGER.info("Failed to get resource: {}. [HTTP GET: {}]", response.getStatusLine(), source);
-            throw new UncheckedIOException(String.format("Could not GET '%s'. Received status code %s from server: %s",
-                                                         source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
-        }
-        LOGGER.info("Resource found. [HTTP GET: {}]", source);
-        return new HttpGetResource(source, response);
+        return processHttpRequest(source, request);
     }
 
     private HttpResource initHead(String source) {
+        LOGGER.debug("Constructing HEAD resource: {}", source);
         HttpHead request = new HttpHead(source);
         return processHttpRequest(source, request);
     }
 
-    private HttpResource processHttpRequest(String source, HttpHead request) {
+    private HttpResource processHttpRequest(String source, HttpRequestBase request) {
         String method = request.getMethod();
         configureMethod(request);
         HttpResponse response;
@@ -166,7 +165,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
                                                          method, source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
         }
         LOGGER.info("Resource found. [HTTP {}: {}]", method, source);
-        return new HttpGetResource(source, response);
+        return new HttpResponseResource(method, source, response);
     }
 
     private CachedHttpResource findCachedResource(String source, List<CachedArtifact> candidates) {
@@ -231,6 +230,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
             throw UncheckedException.asUncheckedException(e);
         } finally {
             progress.setTotalLength(null);
+            openResources.remove(resource);
         }
     }
 

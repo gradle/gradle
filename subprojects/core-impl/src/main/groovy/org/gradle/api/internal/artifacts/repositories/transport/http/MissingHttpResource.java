@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
-import org.apache.ivy.plugins.repository.Resource;
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -32,12 +30,12 @@ class MissingHttpResource extends AbstractHttpResource {
         return "MissingResource: " + getName();
     }
 
-    public Resource clone(String cloneName) {
-        throw new UnsupportedOperationException();
-    }
-
     public String getName() {
         return source;
+    }
+
+    public boolean exists() {
+        return false;
     }
 
     public long getLastModified() {
@@ -46,10 +44,6 @@ class MissingHttpResource extends AbstractHttpResource {
 
     public long getContentLength() {
         throw new UnsupportedOperationException();
-    }
-
-    public boolean exists() {
-        return false;
     }
 
     public boolean isLocal() {
