@@ -223,7 +223,7 @@ class HttpServer implements MethodRule {
         expect(path, false, ['PUT'], withAuthentication(path, username, password, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 if (request.remoteUser != username) {
-                    response.sendError(500, 'unexpected username')
+                    response.sendError(500, "unexpected username '${request.remoteUser}'")
                     return
                 }
                 destFile.bytes = request.inputStream.bytes
@@ -256,7 +256,7 @@ class HttpServer implements MethodRule {
         return new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 if (request.remoteUser != username) {
-                    response.sendError(500, 'unexpected username')
+                    response.sendError(500, "unexpected username2 '${request.remoteUser}'")
                     return
                 }
                 handler.handle(target, request, response, dispatch)

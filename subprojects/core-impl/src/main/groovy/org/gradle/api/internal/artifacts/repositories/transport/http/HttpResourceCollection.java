@@ -15,25 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.HttpMethodRetryHandler;
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.HeadMethod;
-import org.apache.commons.httpclient.methods.PutMethod;
-import org.apache.commons.httpclient.methods.RequestEntity;
-import org.apache.commons.httpclient.params.HttpMethodParams;
-import org.apache.commons.io.output.CloseShieldOutputStream;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.FileEntity;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.repository.AbstractRepository;
 import org.apache.ivy.plugins.repository.BasicResource;
 import org.apache.ivy.plugins.repository.RepositoryCopyProgressListener;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.repository.TransferEvent;
-import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.url.ApacheURLLister;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
@@ -49,45 +51,52 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.net.ProxySelector;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A repository which uses commons-httpclient to access resources using HTTP/HTTPS.
  */
 public class HttpResourceCollection extends AbstractRepository implements ResourceCollection {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceCollection.class);
-    private final Map<String, HttpResource> resources = new HashMap<String, HttpResource>();
-    private final HttpClient client = new HttpClient();
-    private final HttpProxySettings proxySettings;
+    private final DefaultHttpClient client = new DefaultHttpClient();
     private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
 
     private final ExternalArtifactCache externalArtifactCache;
+    private final UsernamePasswordCredentials httpClientCredentials;
 
     public HttpResourceCollection(HttpSettings httpSettings, ExternalArtifactCache externalArtifactCache) {
         PasswordCredentials credentials = httpSettings.getCredentials();
         if (GUtil.isTrue(credentials.getUsername())) {
-            client.getParams().setAuthenticationPreemptive(true);
-            client.getState().setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword()));
+            httpClientCredentials = new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
+        } else {
+            httpClientCredentials = null;
         }
-        this.proxySettings = httpSettings.getProxySettings();
         this.externalArtifactCache = externalArtifactCache;
+
+        // Use standard JVM proxy settings
+        ProxySelectorRoutePlanner routePlanner = new ProxySelectorRoutePlanner(client.getConnectionManager().getSchemeRegistry(), ProxySelector.getDefault());
+        client.setRoutePlanner(routePlanner);
+
+        client.setHttpRequestRetryHandler(new HttpRequestRetryHandler() {
+            public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
+                return false;
+            }
+        });
     }
 
     public HttpResource getResource(final String source, ArtifactRevisionId artifactId) throws IOException {
+        // TODO:DAZ Add failsafe resource cleanup.
+
         LOGGER.debug("Constructing GET resource: {}", source);
 
         List<CachedArtifact> cachedArtifacts = new ArrayList<CachedArtifact>();
         externalArtifactCache.addMatchingCachedArtifacts(artifactId, cachedArtifacts);
 
         HttpResource resource = initGet(source, cachedArtifacts);
-        resources.put(source, resource);
         return resource;
     }
 
@@ -112,45 +121,52 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
             }
         }
 
-        GetMethod method = new GetMethod(source);
-        configureMethod(method);
-        int result;
+        HttpGet request = new HttpGet(source);
+        configureMethod(request);
+        HttpResponse response;
         try {
-            result = executeMethod(method);
+            response = executeMethod(request);
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not GET '%s'.", source), e);
         }
-        if (result == 404) {
+        if (wasMissing(response)) {
             LOGGER.info("Resource missing. [HTTP GET: {}]", source);
             return new MissingHttpResource(source);
         }
-        if (!wasSuccessful(result)) {
-            LOGGER.info("Failed to get resource: {} ({}). [HTTP GET: {}]", new Object[]{result, method.getStatusText(), source});
-            throw new UncheckedIOException(String.format("Could not GET '%s'. Received status code %s from server: %s", source, result, method.getStatusText()));
+        if (!wasSuccessful(response)) {
+            LOGGER.info("Failed to get resource: {}. [HTTP GET: {}]", response.getStatusLine(), source);
+            throw new UncheckedIOException(String.format("Could not GET '%s'. Received status code %s from server: %s",
+                                                         source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
         }
         LOGGER.info("Resource found. [HTTP GET: {}]", source);
-        return new HttpGetResource(source, method);
+        return new HttpGetResource(source, response);
     }
 
     private HttpResource initHead(String source) {
-        HeadMethod method = new HeadMethod(source);
-        configureMethod(method);
-        int result;
+        HttpHead request = new HttpHead(source);
+        return processHttpRequest(source, request);
+    }
+
+    private HttpResource processHttpRequest(String source, HttpHead request) {
+        String method = request.getMethod();
+        configureMethod(request);
+        HttpResponse response;
         try {
-            result = executeMethod(method);
+            response = executeMethod(request);
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not HEAD '%s'.", source), e);
+            throw new UncheckedIOException(String.format("Could not %s '%s'.", method, source), e);
         }
-        if (result == 404) {
-            LOGGER.info("Resource missing. [HTTP HEAD: {}]", source);
+        if (wasMissing(response)) {
+            LOGGER.info("Resource missing. [HTTP {}: {}]", method, source);
             return new MissingHttpResource(source);
         }
-        if (!wasSuccessful(result)) {
-            LOGGER.info("Failed to get resource: {} ({}). [HTTP HEAD: {}]", new Object[]{result, method.getStatusText(), source});
-            throw new UncheckedIOException(String.format("Could not HEAD '%s'. Received status code %s from server: %s", source, result, method.getStatusText()));
+        if (!wasSuccessful(response)) {
+            LOGGER.info("Failed to get resource: {}. [HTTP {}: {}]", new Object[]{method, response.getStatusLine(), source});
+            throw new UncheckedIOException(String.format("Could not %s '%s'. Received status code %s from server: %s",
+                                                         method, source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
         }
-        LOGGER.info("Resource found. [HTTP HEAD: {}]", source);
-        return new HttpGetResource(source, method);
+        LOGGER.info("Resource found. [HTTP {}: {}]", method, source);
+        return new HttpGetResource(source, response);
     }
 
     private CachedHttpResource findCachedResource(String source, List<CachedArtifact> candidates) {
@@ -173,22 +189,24 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
     }
 
     private String downloadChecksum(String checksumUrl) {
-        GetMethod get = new GetMethod(checksumUrl);
+        HttpGet get = new HttpGet(checksumUrl);
         configureMethod(get);
         try {
-            int result = executeMethod(get);
-            if (wasSuccessful(result)) {
-                return WharfUtils.getCleanChecksum(get.getResponseBodyAsString());
+            HttpResponse httpResponse = executeMethod(get);
+            if (wasSuccessful(httpResponse)) {
+                String checksumValue = EntityUtils.toString(httpResponse.getEntity());
+                return WharfUtils.getCleanChecksum(checksumValue);
             }
-            if (result != 404) {
-                LOGGER.info("Request for checksum at {} failed: {}", checksumUrl, get.getStatusText());
+            if (!wasMissing(httpResponse)) {
+                LOGGER.info("Request for checksum at {} failed: {}", checksumUrl, httpResponse.getStatusLine());
             }
             return null;
         } catch (IOException e) {
             LOGGER.warn("Checksum missing at {} due to: {}", checksumUrl, e.getMessage());
             return null;
         } finally {
-            get.releaseConnection();
+            // TODO:DAZ Don't need this
+            get.abort();
         }
     }
 
@@ -236,49 +254,40 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
     }
 
     private void doPut(File source, String destination) throws IOException {
-        PutMethod method = new PutMethod(destination);
+        HttpPut method = new HttpPut(destination);
         configureMethod(method);
-        method.setRequestEntity(new FileRequestEntity(source));
-        int result = executeMethod(method);
-        if (!wasSuccessful(result)) {
-            throw new IOException(String.format("Could not PUT '%s'. Received status code %s from server: %s", destination, result, method.getStatusText()));
+        method.setEntity(new FileEntity(source, "application/octet-stream"));
+        LOGGER.debug("Performing HTTP PUT: {}", method.getURI());
+        HttpResponse response = client.execute(method);
+        if (!wasSuccessful(response)) {
+            throw new IOException(String.format("Could not PUT '%s'. Received status code %s from server: %s",
+                                                destination, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
         }
     }
 
-    private void configureMethod(HttpMethod method) {
-        method.setRequestHeader("User-Agent", "Gradle/" + GradleVersion.current().getVersion());
-        method.setRequestHeader("Accept-Encoding", "identity");
-        method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, new HttpMethodRetryHandler() {
-            public boolean retryMethod(HttpMethod method, IOException exception, int executionCount) {
-                return false;
+    private void configureMethod(HttpRequest method) {
+        method.addHeader("User-Agent", "Gradle/" + GradleVersion.current().getVersion());
+        method.addHeader("Accept-Encoding", "identity");
+
+        // Do preemptive authentication
+        if (httpClientCredentials != null) {
+            try {
+                method.addHeader(new BasicScheme().authenticate(httpClientCredentials, method));
+            } catch (AuthenticationException e) {
+                throw UncheckedException.asUncheckedException(e);
             }
-        });
+        }
     }
 
-    private int executeMethod(HttpMethod method) throws IOException {
+    private HttpResponse executeMethod(HttpUriRequest method) throws IOException {
         LOGGER.debug("Performing HTTP GET: {}", method.getURI());
-        configureProxyIfRequired(method);
-        return client.executeMethod(method);
-    }
-
-    private void configureProxyIfRequired(HttpMethod method) throws URIException {
-        HttpProxySettings.HttpProxy proxy = proxySettings.getProxy(method.getURI().getHost());
-        if (proxy != null) {
-            setProxyForClient(client, proxy);
-        } else {
-            client.getHostConfiguration().setProxyHost(null);
+        HttpResponse httpResponse = client.execute(method);
+        // Consume content for non-successful, responses. This avoids the connection being left open.
+        if (!wasSuccessful(httpResponse)) {
+            EntityUtils.consume(httpResponse.getEntity());
+            return httpResponse;
         }
-    }
-
-    private void setProxyForClient(HttpClient httpClient, HttpProxySettings.HttpProxy proxy) {
-        // Only set proxy host once
-        if (client.getHostConfiguration().getProxyHost() != null) {
-            return;
-        }
-        httpClient.getHostConfiguration().setProxy(proxy.host, proxy.port);
-        if (proxy.username != null) {
-            httpClient.getState().setProxyCredentials(AuthScope.ANY, new UsernamePasswordCredentials(proxy.username, proxy.password));
-        }
+        return httpResponse;
     }
 
     public List list(String parent) throws IOException {
@@ -295,36 +304,13 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         return null;
     }
 
-    private boolean wasSuccessful(int result) {
-        return result >= 200 && result < 300;
+    private boolean wasMissing(HttpResponse response) {
+        int statusCode = response.getStatusLine().getStatusCode();
+        return statusCode == 404;
     }
 
-    private class FileRequestEntity implements RequestEntity {
-        private final File source;
-
-        public FileRequestEntity(File source) {
-            this.source = source;
-        }
-
-        public boolean isRepeatable() {
-            return false;
-        }
-
-        public void writeRequest(OutputStream out) throws IOException {
-            FileInputStream inputStream = new FileInputStream(source);
-            try {
-                FileUtil.copy(inputStream, new CloseShieldOutputStream(out), progress);
-            } finally {
-                inputStream.close();
-            }
-        }
-
-        public long getContentLength() {
-            return source.length();
-        }
-
-        public String getContentType() {
-            return "application/octet-stream";
-        }
+    private boolean wasSuccessful(HttpResponse response) {
+        int statusCode = response.getStatusLine().getStatusCode();
+        return statusCode >= 200 && statusCode < 300;
     }
 }

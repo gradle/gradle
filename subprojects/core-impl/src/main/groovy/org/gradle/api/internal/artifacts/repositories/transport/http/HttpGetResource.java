@@ -15,11 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.ivy.plugins.repository.Resource;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
+import org.apache.ivy.plugins.repository.Resource;
+import org.gradle.api.UncheckedIOException;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,11 +32,11 @@ class HttpGetResource extends AbstractHttpResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpGetResource.class);
 
     private final String source;
-    private final HttpMethodBase method;
+    private final HttpResponse response;
 
-    public HttpGetResource(String source, HttpMethodBase method) {
+    public HttpGetResource(String source, HttpResponse response) {
         this.source = source;
-        this.method = method;
+        this.response = response;
     }
 
     public String getName() {
@@ -46,7 +49,7 @@ class HttpGetResource extends AbstractHttpResource {
     }
 
     public long getLastModified() {
-        Header responseHeader = method.getResponseHeader("last-modified");
+        Header responseHeader = response.getFirstHeader("last-modified");
         if (responseHeader == null) {
             return 0;
         }
@@ -58,7 +61,7 @@ class HttpGetResource extends AbstractHttpResource {
     }
 
     public long getContentLength() {
-        return method.getResponseContentLength();
+        return response.getEntity().getContentLength();
     }
 
     public boolean exists() {
@@ -75,11 +78,15 @@ class HttpGetResource extends AbstractHttpResource {
 
     public InputStream openStream() throws IOException {
         LOGGER.debug("Attempting to download resource {}.", source);
-        return method.getResponseBodyAsStream();
+        return response.getEntity().getContent();
     }
 
     @Override
     public void close() {
-        method.abort();
+        try {
+            EntityUtils.consume(response.getEntity());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
