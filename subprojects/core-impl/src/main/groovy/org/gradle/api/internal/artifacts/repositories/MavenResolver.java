@@ -183,10 +183,6 @@ public class MavenResolver extends ResourceCollectionResolver implements Pattern
         return null;
     }
 
-    protected String getModuleDescriptorExtension() {
-        return "pom";
-    }
-
     protected ResolvedResource[] listResources(ModuleRevisionId moduleRevisionId, String pattern, Artifact artifact) {
         List<String> revisions = listRevisionsWithMavenMetadata(moduleRevisionId.getModuleId().getAttributes());
         if (revisions != null) {
