@@ -47,6 +47,11 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
         return id;
     }
 
+    @Override
+    public String toString() {
+        return String.format("Repository '%s'", resolver.getName());
+    }
+
     public boolean isLocal() {
         return resolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager;
     }

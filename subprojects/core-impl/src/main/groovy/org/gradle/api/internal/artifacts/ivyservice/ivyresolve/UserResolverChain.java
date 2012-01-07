@@ -51,7 +51,7 @@ public class UserResolverChain implements DependencyToModuleResolver, ArtifactTo
         ModuleResolution latestResolved = findLatestModule(dependencyDescriptor);
         if (latestResolved != null) {
             ModuleVersionDescriptor downloadedModule = latestResolved.module;
-            LOGGER.debug("Found module '{}' using resolver '{}'", downloadedModule, latestResolved.repository);
+            LOGGER.debug("Found module '{}' using resolver '{}'", downloadedModule.getId(), latestResolved.repository);
             rememberResolverToUseForArtifactDownload(latestResolved.repository, downloadedModule);
             return downloadedModule;
         }

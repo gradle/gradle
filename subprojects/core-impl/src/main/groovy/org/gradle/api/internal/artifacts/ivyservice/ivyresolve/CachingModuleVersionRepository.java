@@ -53,6 +53,11 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         return delegate.getId();
     }
 
+    @Override
+    public String toString() {
+        return "Caching " + delegate.toString();
+    }
+
     public boolean isLocal() {
         return delegate.isLocal();
     }
