@@ -127,13 +127,11 @@ task retrieve(type: Sync) {
 
         and: "Server handles requests"
         server.expectGetDirectoryListing("/${projectA12.organisation}/${projectA12.module}/", projectA12.moduleDir.parentFile)
-        server.expectGetMissing("/${projectA20.organisation}/${projectA20.module}/${projectA20.revision}/ivy-${projectA20.revision}.xml")
         server.expectGetMissing("/${projectA12.organisation}/${projectA12.module}/${projectA12.revision}/ivy-${projectA12.revision}.xml")
         server.expectGetMissing("/${projectA11.organisation}/${projectA11.module}/${projectA11.revision}/ivy-${projectA11.revision}.xml")
 
         // TODO:DAZ Should not list twice
         server.expectGetDirectoryListing("/${projectA12.organisation}/${projectA12.module}/", projectA12.moduleDir.parentFile)
-        server.expectGet("/${projectA20.organisation}/${projectA20.module}/${projectA20.revision}/${projectA20.module}-${projectA20.revision}.jar", projectA20.jarFile)
         server.expectGet("/${projectA12.organisation}/${projectA12.module}/${projectA12.revision}/${projectA12.module}-${projectA12.revision}.jar", projectA12.jarFile)
         // TODO:DAZ Should not require second jarfile request
         server.expectGet("/${projectA12.organisation}/${projectA12.module}/${projectA12.revision}/${projectA12.module}-${projectA12.revision}.jar", projectA12.jarFile)

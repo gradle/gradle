@@ -112,6 +112,11 @@ public class ResourceCollectionResolver extends BasicResolver {
         if (resolvedResources.size() > 1) {
             ResolvedResource[] rress = resolvedResources.toArray(new ResolvedResource[resolvedResources.size()]);
             List<ResolvedResource> sortedResources = getLatestStrategy().sort(rress);
+            // Discard all but the last, which is returned
+            for (int i = 0; i < sortedResources.size() - 1; i++) {
+                ResolvedResource resolvedResource = sortedResources.get(i);
+                discardResource(resolvedResource.getResource());
+            }
             return sortedResources.get(sortedResources.size() - 1);
         } else if (resolvedResources.size() == 1) {
             return resolvedResources.get(0);
@@ -145,13 +150,13 @@ public class ResourceCollectionResolver extends BasicResolver {
             if (!resource.exists()) {
                 Message.debug("\t" + name + ": unreachable: " + description);
                 rejected.add(version + " (unreachable)");
-                cleanupResource(resource);
+                discardResource(resource);
                 continue;
             }
             if ((date != null && resource.getLastModified() > date.getTime())) {
                 Message.verbose("\t" + name + ": too young: " + description);
                 rejected.add(version + " (" + resource.getLastModified() + ")");
-                cleanupResource(resource);
+                discardResource(resource);
                 continue;
             }
             if (versionMatcher.needModuleDescriptor(mrid, foundMrid)) {
@@ -159,19 +164,19 @@ public class ResourceCollectionResolver extends BasicResolver {
                 if (parsedResource == null) {
                     Message.debug("\t" + name + ": impossible to get module descriptor resource: " + description);
                     rejected.add(version + " (no or bad MD)");
-                    cleanupResource(resource);
+                    discardResource(resource);
                     continue;
                 }
                 ModuleDescriptor md = parsedResource.getResolvedModuleRevision().getDescriptor();
                 if (md.isDefault()) {
                     Message.debug("\t" + name + ": default md rejected by version matcher requiring module descriptor: " + description);
                     rejected.add(version + " (MD)");
-                    cleanupResource(resource);
+                    discardResource(resource);
                     continue;
                 } else if (!versionMatcher.accept(mrid, md)) {
                     Message.debug("\t" + name + ": md rejected by version matcher: " + description);
                     rejected.add(version + " (MD)");
-                    cleanupResource(resource);
+                    discardResource(resource);
                     continue;
                 }
 
@@ -248,7 +253,7 @@ public class ResourceCollectionResolver extends BasicResolver {
         }
     }
 
-    private void cleanupResource(Resource resource) {
+    private void discardResource(Resource resource) {
         if (resource instanceof HttpResource) {
             ((HttpResource) resource).close();
         }
@@ -363,7 +368,7 @@ public class ResourceCollectionResolver extends BasicResolver {
             try {
                 return resource.exists();
             } finally {
-                cleanupResource(resource);
+                discardResource(resource);
             }
         } catch (IOException e) {
             return false;
