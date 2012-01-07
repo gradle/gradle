@@ -39,7 +39,7 @@ public class Checkstyle extends CodeQualityTask {
 
     @TaskAction
     public void check() {
-        antCheckstyle.checkstyle(getAnt(), getSource(), getConfigFile(), getResultFile(), getClasspath(), getProperties(), isIgnoreFailures());
+        antCheckstyle.checkstyle(getAnt(), getSource(), getConfigFile(), getResultFile(), getClasspath(), getProperties(), isIgnoreFailures(), isDisplayViolations());
     }
 
     /**

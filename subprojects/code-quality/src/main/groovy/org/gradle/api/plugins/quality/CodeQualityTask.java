@@ -23,8 +23,8 @@ import org.gradle.api.tasks.VerificationTask;
 */
 public abstract class CodeQualityTask extends SourceTask implements VerificationTask {
 
-    private boolean ignoreFailures;
-    private boolean displayViolations;
+    private boolean ignoreFailures = false;
+    private boolean displayViolations = true;
 
     /**
      * {@inheritDoc}
@@ -45,16 +45,15 @@ public abstract class CodeQualityTask extends SourceTask implements Verification
      * {@inheritDoc}
      */
     public VerificationTask setDisplayViolations(boolean displayViolations) {
-        //TODO replace stub implementation
-        return null;
+        this.displayViolations = displayViolations;
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
     public boolean isDisplayViolations() {
-        //TODO replace stub implementation
-        return false;
+        return displayViolations;
     }
 
 }
