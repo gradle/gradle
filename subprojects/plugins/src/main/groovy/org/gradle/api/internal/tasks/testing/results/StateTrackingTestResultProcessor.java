@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.util.HashMap;
@@ -24,8 +25,9 @@ import java.util.Map;
 
 public abstract class StateTrackingTestResultProcessor implements TestResultProcessor {
     private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
+    private Map<Object, TestState> garbage = new HashMap<Object, TestState>();
 
-    public void started(TestDescriptorInternal test, TestStartEvent event) {
+    public final void started(TestDescriptorInternal test, TestStartEvent event) {
         TestDescriptorInternal parent = null;
         if (event.getParentId() != null) {
             parent = executing.get(event.getParentId()).test;
@@ -40,7 +42,7 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
         started(state);
     }
 
-    public void completed(Object testId, TestCompleteEvent event) {
+    public final void completed(Object testId, TestCompleteEvent event) {
         TestState testState = executing.remove(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format(
@@ -50,9 +52,27 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
 
         testState.completed(event);
         completed(testState);
+
+        //(SF) Let's garbage collect the test descriptor when the test suite is finished
+        //this way we keep the completed tests for a while longer
+        //in case the output event arrives shortly after completion of the test
+        //and we need to have a matching descriptor to inform the user which test this output belongs to.
+
+        //This approach should generally work because at the moment we reset capturing output per suite
+        //(see CaptureTestOutputTestResultProcessor) and that reset happens earlier in the chain.
+        //So in theory when suite is completed, the output redirector has been already stopped
+        //and there shouldn't be any output events passed
+        //See also GRADLE-2035
+
+        //It's far from perfect, so let's call it a first iteration before some serious refactoring
+        if (testState.test.isComposite()) {
+            garbage = new HashMap<Object, TestState>();
+        } else {
+            garbage.put(testId, testState);
+        }
     }
 
-    public void failure(Object testId, Throwable result) {
+    public final void failure(Object testId, Throwable result) {
         TestState testState = executing.get(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format(
@@ -62,7 +82,23 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
         testState.failures.add(result);
     }
 
-    public void output(Object testId, TestOutputEvent event) {
+    public final void output(Object testId, TestOutputEvent event) {
+        TestState state = executing.get(testId);
+        if (state == null) {
+            //see the earlier comment about garbage collecting the descriptors
+            state = garbage.get(testId);
+        }
+        TestDescriptor descriptor;
+        if (state != null) {
+            descriptor = state.test;
+        } else {
+            //in theory this should not happen
+            descriptor = new UnknownTestDescriptor();
+        }
+        output(descriptor, event);
+    }
+
+    protected void output(TestDescriptor descriptor, TestOutputEvent event) {
         // Don't care
     }
 
