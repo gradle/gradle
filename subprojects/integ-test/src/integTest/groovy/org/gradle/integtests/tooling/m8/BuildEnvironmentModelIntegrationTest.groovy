@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.m8
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.build.BuildEnvironment
 
 @MinToolingApiVersion('1.0-milestone-8')
@@ -31,84 +32,45 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
 
         then:
         model.gradle.gradleVersion == targetDist.version
-    }
-
-    def "informs about java versions"() {
-        when:
-        BuildEnvironment model = withConnection { it.getModel(BuildEnvironment.class) }
-
-        then:
         model.java.javaHome
         !model.java.jvmArguments.empty
     }
 
-    def "configures the java settings"() {
+    def "informs about java args as in the build script"() {
         given:
-        def connector = connector()
-            .hintJavaHome(new File("hey"))
-            .hintJvmArguments("-Xmx333m", "-Xms13m")
+        dist.file('build.gradle') << "description = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.toString()"
 
         when:
-        BuildEnvironment model = withConnection(connector) {
-            it.getModel(BuildEnvironment.class)
-        }
+        BuildEnvironment env = withConnection { it.getModel(BuildEnvironment.class) }
+        Project project = withConnection { it.getModel(Project.class) }
 
         then:
-        model.java.javaHome == new File("hey")
-        model.java.jvmArguments.contains("-Xmx333m")
-        model.java.jvmArguments.contains("-Xms13m")
+        env.java.jvmArguments.each {
+            project.description.contains(it)
+        }
     }
 
-    def "the jvm arguments are used in the build"() {
+    def "informs about java home as in the build script"() {
         given:
-        //this test does not make any sense in embedded mode
-        toolingApi.isEmbedded = false
-
-        def connector = connector()
-            .hintJvmArguments("-Xmx333m", "-Xms13m")
-
-        dist.file('build.gradle') << """
-def inputArgs = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments
-assert inputArgs.contains('-Xmx333m')
-assert inputArgs.contains('-Xms13m')
-"""
+        dist.file('build.gradle') << "description = Jvm.current().javaHome.toString()"
 
         when:
-        withConnection(connector) {
-            it.newBuild().forTasks('tasks').run()
-        }
+        BuildEnvironment env = withConnection { it.getModel(BuildEnvironment.class) }
+        Project project = withConnection { it.getModel(Project.class) }
 
         then:
-        noExceptionThrown()
+        env.java.javaHome.toString() == project.description
     }
 
-    def "uses sensible java defaults if nulls configured"() {
+    def "informs about gradle version as in the build script"() {
         given:
-        def connector = connector()
-            .hintJavaHome(null)
-            .hintJvmArguments(null)
+        dist.file('build.gradle') << "description = GradleVersion.current().getVersion()"
 
         when:
-        BuildEnvironment model = withConnection(connector) {
-            it.getModel(BuildEnvironment.class)
-        }
+        BuildEnvironment env = withConnection { it.getModel(BuildEnvironment.class) }
+        Project project = withConnection { it.getModel(Project.class) }
 
         then:
-        model.java.javaHome
-        !model.java.jvmArguments.empty
-    }
-
-    def "may use no jvm args if requested"() {
-        given:
-        def connector = connector()
-            .hintJvmArguments(new String[0])
-
-        when:
-        BuildEnvironment model = withConnection(connector) {
-            it.getModel(BuildEnvironment.class)
-        }
-
-        then:
-        model.java.jvmArguments == []
+        env.gradle.gradleVersion == project.description
     }
 }
