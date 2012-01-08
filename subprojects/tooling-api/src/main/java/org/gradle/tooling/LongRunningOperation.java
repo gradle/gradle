@@ -16,6 +16,7 @@
 
 package org.gradle.tooling;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -59,6 +60,36 @@ public interface LongRunningOperation {
      * @return this
      */
     LongRunningOperation setStandardInput(InputStream inputStream);
+
+    /**
+     * If the target gradle version supports it you can use this setting
+     * to specify the java home directory to use for the long running operation.
+     * If the target gradle version does not support it your setting is ignored and reasonable defaults are used.
+     * <p>
+     * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as java or gradle environment.
+     * If you want to get hold of this information you can ask tooling API to build this model
+     * <p>
+     * If not configured or null passed the sensible default will be used
+     *
+     * @param javaHome to use for the gradle process
+     * @return this
+     */
+    LongRunningOperation setJavaHome(File javaHome);
+
+    /**
+     * If the target gradle version supports it you can use this setting
+     * to specify the java vm arguments to use for the long running operation.
+     * If the target gradle version does not support it your setting is ignored and reasonable defaults are used.
+     * <p>
+     * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as java or gradle environment.
+     * If you want to get hold of this information you can ask tooling API to build this model
+     * <p>
+     * If not configured or null passed the sensible default will be used
+     *
+     * @param jvmArguments to use for the gradle process
+     * @return this
+     */
+    LongRunningOperation setJvmArguments(String... jvmArguments);
 
     /**
      * Adds a progress listener which will receive progress events as the operation runs.

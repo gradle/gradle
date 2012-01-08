@@ -22,6 +22,7 @@ import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.model.Task;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -71,6 +72,18 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation implements Build
     @Override
     public DefaultBuildLauncher setStandardInput(InputStream inputStream) {
         super.setStandardInput(inputStream);
+        return this;
+    }
+
+    @Override
+    public DefaultBuildLauncher setJavaHome(File javaHome) {
+        super.setJavaHome(javaHome);
+        return this;
+    }
+
+    @Override
+    public DefaultBuildLauncher setJvmArguments(String... jvmArguments) {
+        super.setJvmArguments(jvmArguments);
         return this;
     }
 

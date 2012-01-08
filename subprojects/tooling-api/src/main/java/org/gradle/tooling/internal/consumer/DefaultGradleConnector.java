@@ -74,16 +74,6 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
-    public GradleConnector hintJavaHome(File javaHome) {
-        connectionParameters.setJavaHome(javaHome);
-        return this;
-    }
-
-    public GradleConnector hintJvmArguments(String... jvmArguments) {
-        connectionParameters.setJvmArguments(jvmArguments);
-        return this;
-    }
-
     public GradleConnector searchUpwards(boolean searchUpwards) {
         connectionParameters.setSearchUpwards(searchUpwards);
         return this;

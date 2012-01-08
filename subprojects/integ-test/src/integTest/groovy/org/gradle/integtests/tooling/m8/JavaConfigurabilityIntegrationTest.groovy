@@ -27,53 +27,51 @@ class JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
 
     def setup() {
         //this test does not make any sense in embedded mode
+        //as we don't own the process
         toolingApi.isEmbedded = false
     }
 
     def "configures the java settings"() {
-        given:
-        def connector = connector()
-            .hintJavaHome(new File("hey"))
-            .hintJvmArguments("-Xmx333m", "-Xms13m")
-
         when:
-        BuildEnvironment model = withConnection(connector) {
-            it.getModel(BuildEnvironment.class)
+        BuildEnvironment env = withConnection {
+            def model = it.model(BuildEnvironment.class)
+            model
+                .setJavaHome(new File("hey"))
+                .setJvmArguments("-Xmx333m", "-Xms13m")
+                .get()
         }
 
         then:
-        model.java.javaHome == new File("hey")
-        model.java.jvmArguments.contains("-Xmx333m")
-        model.java.jvmArguments.contains("-Xms13m")
+        env.java.javaHome == new File("hey")
+        env.java.jvmArguments.contains("-Xmx333m")
+        env.java.jvmArguments.contains("-Xms13m")
     }
 
     def "uses sensible java defaults if nulls configured"() {
-        given:
-        def connector = connector()
-            .hintJavaHome(null)
-            .hintJvmArguments(null)
-
         when:
-        BuildEnvironment model = withConnection(connector) {
-            it.getModel(BuildEnvironment.class)
+        BuildEnvironment env = withConnection {
+            def model = it.model(BuildEnvironment.class)
+            model
+                .setJavaHome(new File("hey"))
+                .setJvmArguments("-Xmx333m", "-Xms13m")
+                .get()
         }
 
         then:
-        model.java.javaHome
-        !model.java.jvmArguments.empty
+        env.java.javaHome
+        !env.java.jvmArguments.empty
     }
 
     def "may use no jvm args if requested"() {
-        given:
-        def connector = connector()
-            .hintJvmArguments(new String[0])
-
         when:
-        BuildEnvironment model = withConnection(connector) {
-            it.getModel(BuildEnvironment.class)
+        BuildEnvironment env = withConnection {
+            def model = it.model(BuildEnvironment.class)
+            model
+                .setJvmArguments(new String[0])
+                .get()
         }
 
         then:
-        model.java.jvmArguments == []
+        env.java.jvmArguments == []
     }
 }

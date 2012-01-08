@@ -23,6 +23,7 @@ import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -33,6 +34,9 @@ public class AbstractLongRunningOperation implements LongRunningOperation {
 
     private final ProgressListenerAdapter progressListener = new ProgressListenerAdapter();
     private final ConnectionParameters parameters;
+
+    private File javaHome;
+    private List<String> jvmArguments;
 
     public AbstractLongRunningOperation(ConnectionParameters parameters) {
         this.parameters = parameters;
@@ -55,6 +59,16 @@ public class AbstractLongRunningOperation implements LongRunningOperation {
 
     public AbstractLongRunningOperation addProgressListener(ProgressListener listener) {
         progressListener.add(listener);
+        return this;
+    }
+
+    public AbstractLongRunningOperation setJavaHome(File javaHome) {
+        this.javaHome = javaHome;
+        return this;
+    }
+
+    public AbstractLongRunningOperation setJvmArguments(String ... jvmArguments) {
+        this.jvmArguments = jvmArguments != null? Arrays.asList(jvmArguments) : null;
         return this;
     }
 
@@ -114,11 +128,11 @@ public class AbstractLongRunningOperation implements LongRunningOperation {
         }
 
         public File getJavaHome() {
-            return parameters.getJavaHome();
+            return javaHome;
         }
 
         public List<String> getJvmArguments() {
-            return parameters.getJvmArguments();
+            return jvmArguments;
         }
     }
 }

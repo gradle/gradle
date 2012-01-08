@@ -16,8 +16,6 @@
 package org.gradle.tooling.internal.consumer;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultConnectionParameters implements ConnectionParameters {
@@ -28,8 +26,6 @@ public class DefaultConnectionParameters implements ConnectionParameters {
     private Integer daemonMaxIdleTimeValue;
     private TimeUnit daemonMaxIdleTimeUnits;
     private boolean verboseLogging;
-    private File javaHome;
-    private List<String> jvmArguments;
 
     public File getGradleUserHomeDir() {
         return gradleUserHomeDir;
@@ -85,21 +81,5 @@ public class DefaultConnectionParameters implements ConnectionParameters {
 
     public void setVerboseLogging(boolean verboseLogging) {
         this.verboseLogging = verboseLogging;
-    }
-
-    public File getJavaHome() {
-        return javaHome;
-    }
-
-    public void setJavaHome(File javaHome) {
-        this.javaHome = javaHome;
-    }
-
-    public List<String> getJvmArguments() {
-        return jvmArguments;
-    }
-
-    public void setJvmArguments(String ... jvmArguments) {
-        this.jvmArguments = jvmArguments != null? Arrays.asList(jvmArguments) : null;
     }
 }

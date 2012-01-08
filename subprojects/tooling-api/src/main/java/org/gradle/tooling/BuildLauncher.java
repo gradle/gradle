@@ -17,6 +17,7 @@ package org.gradle.tooling;
 
 import org.gradle.tooling.model.Task;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -78,6 +79,16 @@ public interface BuildLauncher extends LongRunningOperation {
      * {@inheritDoc}
      */
     BuildLauncher setStandardInput(InputStream inputStream);
+
+    /**
+     * {@inheritDoc}
+     */
+    BuildLauncher setJavaHome(File javaHome);
+
+    /**
+     * {@inheritDoc}
+     */
+    BuildLauncher setJvmArguments(String... jvmArguments);
 
     /**
      * {@inheritDoc}

@@ -17,6 +17,7 @@ package org.gradle.tooling;
 
 import org.gradle.tooling.model.Element;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -57,6 +58,16 @@ public interface ModelBuilder<T extends Element> extends LongRunningOperation {
      * {@inheritDoc}
      */
     ModelBuilder<T> setStandardInput(InputStream inputStream);
+
+    /**
+     * {@inheritDoc}
+     */
+    ModelBuilder<T> setJavaHome(File javaHome);
+
+    /**
+     * {@inheritDoc}
+     */
+    ModelBuilder<T> setJvmArguments(String... jvmArguments);
 
     /**
      * {@inheritDoc}

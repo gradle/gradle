@@ -22,6 +22,7 @@ import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.model.Element;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -77,6 +78,18 @@ public class DefaultModelBuilder<T extends Element, P> extends AbstractLongRunni
     @Override
     public DefaultModelBuilder<T, P> setStandardInput(InputStream inputStream) {
         super.setStandardInput(inputStream);
+        return this;
+    }
+
+    @Override
+    public DefaultModelBuilder<T, P> setJavaHome(File javaHome) {
+        super.setJavaHome(javaHome);
+        return this;
+    }
+
+    @Override
+    public DefaultModelBuilder<T, P> setJvmArguments(String... jvmArguments) {
+        super.setJvmArguments(jvmArguments);
         return this;
     }
 

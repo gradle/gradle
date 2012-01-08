@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.consumer;
 
 import java.io.File;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public interface ConnectionParameters {
@@ -42,8 +41,4 @@ public interface ConnectionParameters {
      * Whether to log debug statements eagerly
      */
     boolean getVerboseLogging();
-
-    File getJavaHome();
-
-    List<String> getJvmArguments();
 }
