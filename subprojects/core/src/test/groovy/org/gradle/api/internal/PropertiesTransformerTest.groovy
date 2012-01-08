@@ -16,8 +16,6 @@
 package org.gradle.api.internal
 
 import org.gradle.api.Action
-import org.gradle.util.TextUtil
-
 import spock.lang.Specification
 
 class PropertiesTransformerTest extends Specification {
@@ -79,17 +77,20 @@ class PropertiesTransformerTest extends Specification {
         props(changed:'new', added:'value') == result
     }
     
-    def 'can transform to a Writer'() {
+    def 'can transform to an OutputStream'() {
         given:
         transformer.addAction { Properties props ->
             props.added = 'value'
         }
-        StringWriter writer = new StringWriter()
+        ByteArrayOutputStream outstr = new ByteArrayOutputStream()
+
         when:
-        transformer.transform(new Properties(), writer)
-        def result = writer.toString().split(TextUtil.getPlatformLineSeparator())
+        transformer.transform(new Properties(), outstr)
+
         then:
-        result.findAll { !it.startsWith('#') } == ['added=value']
+        def result = new Properties()
+        result.load(new ByteArrayInputStream(outstr.toByteArray()))
+        result == [added: 'value']
     }
     
     Properties props(Map map) {

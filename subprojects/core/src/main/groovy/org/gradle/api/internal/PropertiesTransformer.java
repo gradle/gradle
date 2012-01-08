@@ -16,17 +16,14 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.Properties;
-
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.listener.ActionBroadcast;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Properties;
 
 /**
  * Transformer implementation to support modification of Properties objects.
@@ -44,10 +41,10 @@ public class PropertiesTransformer implements Transformer<Properties, Properties
 
     /**
      * Adds an action to be executed when properties are transformed.
-     * @param action the closure to add
+     * @param closure the closure to add
      */
     public void addAction(Closure closure) {
-        actions.add((Action<Properties>) DefaultGroovyMethods.asType(closure, Action.class));
+        actions.add(closure);
     }
     
     /**
@@ -60,20 +57,6 @@ public class PropertiesTransformer implements Transformer<Properties, Properties
         return doTransform(original);
     }
     
-    /**
-     * Transforms a properties object and write them out to a writer.
-     * This will modify the original properties.
-     * @param original the properties to transform
-     * @param destination the writer to write the properties to
-     */
-    public void transform(Properties original, Writer destination) {
-        try {
-            doTransform(original).store(destination, "");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     /**
      * Transforms a properties object and write them out to a stream.
      * This will modify the original properties.
