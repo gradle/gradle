@@ -16,10 +16,12 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.PropertiesTransformer
+
 import spock.lang.Specification
 
 class JdtTest extends Specification {
-    final Jdt jdt = new Jdt()
+    final Jdt jdt = new Jdt(new PropertiesTransformer())
 
     def defaultsForJava1_3Source() {
         Properties properties = new Properties()
