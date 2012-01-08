@@ -59,7 +59,7 @@ integTestTasks.all {
     systemProperties['org.gradle.integtest.versions'] = 'latest'
 
     onOutput { test, event ->
-        if (test instanceof org.gradle.api.internal.tasks.testing.results.UnknownTestDescriptor) {
+        if (test.class.canonicalName == 'org.gradle.api.internal.tasks.testing.results.UnknownTestDescriptor') {
             //TODO SF temporarily validating the theory related to GRADLE-2035
             throw new AssertionError("This should not happen. If you see this failure on CI, please tell Szczepan.")
         }
