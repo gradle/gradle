@@ -18,39 +18,17 @@ package org.gradle.api.plugins.quality
 import org.gradle.api.Project
 
 /**
- * Extension specifying options for
- * the JDepend plugin.
+ * Configuration options for the JDepend plugin.
  * 
  * @see JDependPlugin
  */
-class JDependExtension {
-    private Project project
-    
-    /**
-     * The name of the directory to use for
-     * JDepend results.
-     */
-    String resultsDirName
-    
-    /**
-     * Creates a convention instance tied
-     * to the specified project.
-     * 
-     * Defaults the {@code resultsDirName} to "jdepend"
-     * @param project
-     */
+class JDependExtension extends CodeQualityExtension {
     JDependExtension(Project project) {
-        this.project = project
-        resultsDirName = 'jdepend'
+        super(project)
     }
-    
+
     /**
-     * Gets the directory to be used for JDepend results. This is determined
-     * using the {@code resultsDirName} property, evaluated relative to the
-     * project's build directory.
-     * @return the results dir for JDepend
+     * The directory where JDepend reports will be saved. Defaults to <tt>$reportsDir/jdepend</tt>.
      */
-    File getResultsDir() {
-        return project.fileResolver.withBaseDir(project.buildDir).resolve(resultsDirName)
-    }
+    File reportsDir
 }

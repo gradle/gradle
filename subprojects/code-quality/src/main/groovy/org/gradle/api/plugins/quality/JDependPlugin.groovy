@@ -16,12 +16,10 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Plugin
-import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.compile.Compile
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.Instantiator
 
 /**
  * <p>
@@ -33,57 +31,75 @@ import org.gradle.api.tasks.compile.Compile
  * This plugin will automatically generate a task for each Java source set.
  * </p>
  * See {@link http://www.clarkware.com/software/JDepend.html} for more information.
+ *
+ * @see JDependExtension
  * @see JDepend
- * @see JDependConvention
  */
-class JDependPlugin implements Plugin<Project> {
-    private static final String JDEPEND_TASK_NAME = 'jdepend'
-    private static final String JDEPEND_CONFIGURATION_NAME = 'jdepend'
-    
-    /**
-     * Applies the plugin to the specified project.
-     * @param project the project to apply this plugin too
-     */
-    void apply(Project project) {
-        project.plugins.apply(ReportingBasePlugin)
-        
-        project.configurations.add(JDEPEND_CONFIGURATION_NAME)
-            .setVisible(false)
-            .setTransitive(true)
-            .setDescription('The jdepend libraries to be used for this project.')
+class JDependPlugin implements Plugin<ProjectInternal> {
+    private ProjectInternal project
+    private Instantiator instantiator
+    private JDependExtension extension
 
-        def extension = new JDependExtension(project)
+    void apply(ProjectInternal project) {
+        this.project = project
+        instantiator = project.services.get(Instantiator)
+
+        project.plugins.apply(JavaBasePlugin)
+
+        configureJDependConfiguration()
+        configureJDependExtension()
+        configureJDependTasks()
+        configureCheckTask()
+    }
+
+    private void configureJDependConfiguration() {
+        project.configurations.add('jdepend').with {
+            visible = false
+            transitive = true
+            description = 'The JDepend libraries to be used for this project.'
+        }
+    }
+
+    private void configureJDependExtension() {
+        extension = instantiator.newInstance(JDependExtension, project)
         project.extensions.jdepend = extension
-
-        project.plugins.withType(JavaBasePlugin) {
-            configureForJavaPlugin(project, extension)
+        extension.with {
+            toolVersion = "2.9.1"
+        }
+        extension.conventionMapping.with {
+            reportsDir = { new File(project.reportsDir, "jdepend") }
         }
     }
 
-    /**
-     * Adds a dependency for the check task on the all
-     * JDepend tasks.
-     * @param project the project to configure the check task for
-     */
-    private void configureCheckTask(Project project) {
-        def task = project.tasks[JavaBasePlugin.CHECK_TASK_NAME]
-        task.dependsOn project.tasks.withType(JDepend)
+    private void configureJDependTasks() {
+        project.sourceSets.all { SourceSet sourceSet ->
+            def task = project.tasks.add(sourceSet.getTaskName('jdepend', null), JDepend)
+            task.with {
+                dependsOn(sourceSet.output)
+                description = "Run JDepend analysis for ${sourceSet.name} classes"
+            }
+            task.conventionMapping.with {
+                jdependClassPath = {
+                    def config = project.configurations['jdepend']
+                    if (config.dependencies.empty) {
+                        project.dependencies {
+                            jdepend "jdepend:jdepend:$extension.toolVersion"
+                            jdepend("org.apache.ant:ant-jdepend:1.8.2") {
+                                exclude module: "ant"
+                                exclude module: "ant-launcher"
+                            }
+                        }
+                    }
+                    config
+                }
+                classesDir = { sourceSet.output.classesDir }
+                reportFile = { new File(extension.reportsDir, "${sourceSet.name}.xml") }
+                ignoreFailures = { extension.ignoreFailures }
+            }
+        }
     }
 
-    /**
-     * Configures JDepend tasks for Java source sets.
-     * @param project the project to configure jdepend for
-     * @param convention the jdepend conventions to use
-     */
-    private void configureForJavaPlugin(final Project project, final JDependExtension extension) {
-        configureCheckTask(project)
-        
-        project.convention.getPlugin(JavaPluginConvention).sourceSets.all { SourceSet set ->
-            def jdepend = project.tasks.add(set.getTaskName(JDEPEND_TASK_NAME, null), JDepend)
-            jdepend.description = "Run jdepend analysis for ${set.name} classes"
-            jdepend.dependsOn project.tasks.withType(Compile)
-            jdepend.conventionMapping.classesDir = { set.output.classesDir }
-            jdepend.conventionMapping.resultsFile = { new File(extension.resultsDir, "${set.name}.xml") }
-        }
+    private void configureCheckTask() {
+        project.tasks['check'].dependsOn { extension.sourceSets.collect { it.getTaskName('jdepend', null) }}
     }
 }
