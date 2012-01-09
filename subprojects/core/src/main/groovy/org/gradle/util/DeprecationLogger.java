@@ -24,18 +24,39 @@ import java.util.Set;
 
 public class DeprecationLogger {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeprecationLogger.class);
+    private static final Set<String> PLUGINS = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> METHODS = Collections.synchronizedSet(new HashSet<String>());
+    private static final Set<String> PROPERTIES = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> NAMED_PARAMETERS = Collections.synchronizedSet(new HashSet<String>());
 
     public static void reset() {
+        PLUGINS.clear();
         METHODS.clear();
+        PROPERTIES.clear();
+        NAMED_PARAMETERS.clear();
     }
 
+    public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
+        if (PLUGINS.add(pluginName)) {
+            LOGGER.warn(String.format(
+                    "The %s plugin has been deprecated and will be removed in the next version of Gradle. Please use the %s plugin instead.",
+                    pluginName, replacement));
+        }
+    }
+    
     public static void nagUserOfReplacedMethod(String methodName, String replacement) {
         if (METHODS.add(methodName)) {
             LOGGER.warn(String.format(
                     "The %s method has been deprecated and will be removed in the next version of Gradle. Please use the %s method instead.",
                     methodName, replacement));
+        }
+    }
+
+    public static void nagUserOfReplacedProperty(String propertyName, String replacement) {
+        if (METHODS.add(propertyName)) {
+            LOGGER.warn(String.format(
+                    "The %s property has been deprecated and will be removed in the next version of Gradle. Please use the %s property instead.",
+                    propertyName, replacement));
         }
     }
 
