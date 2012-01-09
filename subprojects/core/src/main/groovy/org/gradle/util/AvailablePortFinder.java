@@ -22,51 +22,27 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.util.NoSuchElementException;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Random;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Finds currently available server ports within a certain port range.
- * Code originally taken from Apache MINA.
+ * Finds currently available server ports within a certain port range. Code originally taken from Apache MINA.
  *
- * <em>Note:</em> If possible, it's preferable to let the party creating the server socket
- * select the port (e.g. with <tt>new ServerSocket(0)</tt>) and then query it for the port
- * chosen. With this class, there is always a risk that someone else grabs the port between
- * the time it is returned from <tt>getNextAvailable()</tt> and the time the socket is created.
+ * <em>Note:</em> If possible, it's preferable to let the party creating the server socket select the port (e.g. with <tt>new ServerSocket(0)</tt>) and then query it for the port chosen. With this
+ * class, there is always a risk that someone else grabs the port between the time it is returned from <tt>getNextAvailable()</tt> and the time the socket is created.
  *
  * @author <a href="http://mina.apache.org">Apache MINA Project</a>
  * @see <a href="http://www.iana.org/assignments/port-numbers">IANA.org</a>
  */
 @ThreadSafe
 public class AvailablePortFinder {
-    public static final int MIN_WELL_KNOWN_PORT = 0;
+    private static final int MIN_PRIVATE_PORT = 49152;
+    private static final int MAX_PRIVATE_PORT = 65535;
 
-    public static final int MAX_WELL_KNOWN_PORT = 1023;
-
-    public static final int MIN_REGISTERED_PORT = 1024;
-
-    public static final int MAX_REGISTERED_PORT = 49151;
-
-    public static final int MIN_PRIVATE_PORT = 49152;
-
-    public static final int MAX_PRIVATE_PORT = 65535;
-
-    public static final int MIN_PORT = MIN_WELL_KNOWN_PORT;
-
-    public static final int MAX_PORT = MAX_PRIVATE_PORT;
-
-    private final int fromPort;
-    private final int toPort;
-
-    private final AtomicInteger candidateCounter = new AtomicInteger(0);
-
-    /**
-     * Creates a port finder that operates on well-known and registered ports.
-     *
-     * @return a port finder that operates on well-known and registered ports
-     */
-    public static AvailablePortFinder create() {
-        return new AvailablePortFinder(MIN_WELL_KNOWN_PORT, MAX_REGISTERED_PORT);
-    }
+    private final Lock lock = new ReentrantLock();
+    private final int startPort;
+    private int current;
 
     /**
      * Creates a port finder that operates on private ports.
@@ -74,108 +50,67 @@ public class AvailablePortFinder {
      * @return a port finder that operates on private ports
      */
     public static AvailablePortFinder createPrivate() {
-        return new AvailablePortFinder(MIN_PRIVATE_PORT, MAX_PRIVATE_PORT);
+        return new AvailablePortFinder();
+    }
+
+    public AvailablePortFinder() {
+        startPort = new Random().nextInt(MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) + MIN_PRIVATE_PORT;
+        current = startPort;
     }
 
     /**
-     * Creates a port finder that operates within the specified port range.
+     * Gets the next available port.
      *
-     * @param fromPort the lower bound of the port range (inclusive)
-     * @param toPort the upper bound of the port range (inclusive)
-     *
-     * @return a port finder that operates within the specified port range
-     */
-    public static AvailablePortFinder create(int fromPort, int toPort) {
-        return new AvailablePortFinder(fromPort, toPort);
-    }
-
-    private AvailablePortFinder(int fromPort, int toPort) {
-        if (fromPort < MIN_PORT || toPort > MAX_PORT || fromPort > toPort) {
-            throw new IllegalArgumentException("Invalid port range");
-        }
-
-        this.fromPort = fromPort;
-        this.toPort = toPort;
-    }
-
-    /**
-     * Returns the lower bound of the port range (inclusive).
-     *
-     * @return the lower bound of the port range (inclusive)
-     */
-    public int getFromPort() {
-        return fromPort;
-    }
-
-    /**
-     * Returns the upper bound of the port range (inclusive).
-     *
-     * @return the upper bound of the port range (inclusive)
-     */
-    public int getToPort() {
-        return toPort;
-    }
-
-    /**
-     * Gets the next available port. Every port in the range is tried at most once.
-     * Tries to avoid returning the same port on successive invocations (but it may
-     * happen if no other available ports are found).
-     *
-     * @throws NoSuchElementException if no available port is found
+     * <p>Tries to avoid returning the same port on successive invocations (but it may happen if no other available ports are found).
      *
      * @return the next available port
+     * @throws NoSuchElementException if no available port is found
      */
     public int getNextAvailable() {
-        int range = toPort - fromPort + 1;
-        int curr = candidateCounter.getAndIncrement();
-        int last = curr + range;
-        while (curr < last) {
-            int candidate = fromPort + curr % range;
-            if (available(candidate)) {
-                return candidate;
+        lock.lock();
+        try {
+            while (true) {
+                if (current >= MAX_PRIVATE_PORT) {
+                    current = MIN_PRIVATE_PORT;
+                } else {
+                    current++;
+                }
+                if (current == startPort) {
+                    throw new NoSuchElementException("Could not find an available port within port range.");
+                }
+                int candidate = current;
+                if (available(candidate)) {
+                    return candidate;
+                }
             }
-            curr = candidateCounter.getAndIncrement();
+        } finally {
+            lock.unlock();
         }
-
-        throw new NoSuchElementException("Could not find an available port within port range");
     }
 
     /**
      * Checks to see if a specific port is available.
      *
      * @param port the port to check for availability
-     *
      * @return <tt>true</tt> if the port is available, <tt>false</tt> otherwise
      */
-    public boolean available(int port) {
-        if (port < fromPort || port > toPort) {
-            throw new IllegalArgumentException("Port outside port range: " + port);
-        }
-
-        ServerSocket ss = null;
-        DatagramSocket ds = null;
+    private boolean available(int port) {
         try {
-            ss = new ServerSocket(port);
-            ss.setReuseAddress(true);
-            ds = new DatagramSocket(port);
-            ds.setReuseAddress(true);
-            return true;
-        } catch (IOException ignored) {
-            /* checkstyle drives me nuts */
-        } finally {
-            if (ds != null) {
+            ServerSocket ss = new ServerSocket(port);
+            try {
+                ss.setReuseAddress(true);
+            } finally {
+                ss.close();
+            }
+            DatagramSocket ds = new DatagramSocket(port);
+            try {
+                ds.setReuseAddress(true);
+            } finally {
                 ds.close();
             }
-
-            if (ss != null) {
-                try {
-                    ss.close();
-                } catch (IOException ignored) {
-                    /* checkstyle drives me nuts */
-                }
-            }
+            return true;
+        } catch (IOException e) {
+            return false;
         }
-
-        return false;
     }
 }
