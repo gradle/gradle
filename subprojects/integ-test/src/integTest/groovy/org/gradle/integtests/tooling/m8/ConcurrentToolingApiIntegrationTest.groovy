@@ -47,8 +47,6 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         new ConnectorServices().reset()
     }
 
-    //TODO SF some tests can be split to M7
-
     def "handles concurrent scenario"() {
         dist.file('build.gradle')  << "apply plugin: 'java'"
 
