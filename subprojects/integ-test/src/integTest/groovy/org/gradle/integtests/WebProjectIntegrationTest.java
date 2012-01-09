@@ -39,7 +39,6 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
                 "apply plugin: 'war'",
-                "jar.enabled = true",
                 "buildDir = 'output'",
                 "libsDirName = 'archives'",
                 "archivesBaseName = 'test'",
@@ -57,7 +56,6 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
                 "apply plugin: 'war'",
-                "jar.enabled = true",
                 "version = ''"
         );
         testFile("src/main/resources/org/gradle/resource.file").write("some resource");

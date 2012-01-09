@@ -49,43 +49,48 @@ class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can execute servlet"() {
+        def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
+
         given:
         // Inject some int test stuff
         sample.dir.file('build.gradle') << """
-def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
+httpPort = ${portFinder.nextAvailable}
+stopPort = ${portFinder.nextAvailable}
 
-httpPort = portFinder.nextAvailable
-stopPort = portFinder.nextAvailable
-println "http port = \$httpPort, stop port = \$stopPort"
-
-[jettyRun, jettyRunWar]*.daemon = true
-
-task runTest(dependsOn: jettyRun) << {
-    callServlet()
-}
-
-task runWarTest(dependsOn: jettyRunWar) << {
-    callServlet()
-}
-
-private void callServlet() {
+task runTest << {
     URL url = new URL("http://localhost:\$httpPort/quickstart")
-    println url.text
-    jettyStop.execute()
+    long expiry = System.currentTimeMillis() + 20000
+    while (System.currentTimeMillis() <= expiry) {
+        try {
+            println url.text
+            return
+        } catch (ConnectException e) {
+            Thread.sleep(200)
+        }
+    }
+    throw new RuntimeException("Timeout waiting for jetty to become available.")
 }
 
 """
 
         when:
         sample sample
-        run 'runTest'
+        def runJetty = executer.withTasks("jettyRun").start()
+
+        sample sample
+        run 'runTest', 'jettyStop'
+        runJetty.waitForFinish()
 
         then:
         output.contains('hello Gradle')
 
         when:
         sample sample
-        run 'runWarTest'
+        def runJettyWar = executer.withTasks("jettyRunWar").start()
+
+        sample sample
+        run 'runTest', 'jettyStop'
+        runJettyWar.waitForFinish()
 
         then:
         output.contains('hello Gradle')
