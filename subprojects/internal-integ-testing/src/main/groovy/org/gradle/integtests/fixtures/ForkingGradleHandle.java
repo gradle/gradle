@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.internal.Factory;
 import org.gradle.process.ExecResult;
@@ -50,8 +51,8 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         }
 
         AbstractExecHandleBuilder execBuilder = execHandleFactory.create();
-        execBuilder.setStandardOutput(new TeeOutputStream(System.out, standardOutput));
-        execBuilder.setErrorOutput(new TeeOutputStream(System.err, errorOutput));
+        execBuilder.setStandardOutput(new CloseShieldOutputStream(new TeeOutputStream(System.out, standardOutput)));
+        execBuilder.setErrorOutput(new CloseShieldOutputStream(new TeeOutputStream(System.err, errorOutput)));
         execHandle = execBuilder.build();
 
         execHandle.start();
