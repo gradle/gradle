@@ -17,7 +17,7 @@ package org.gradle.api.plugins.quality
 
 import static org.hamcrest.Matchers.*
 
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JDependIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
