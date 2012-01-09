@@ -15,9 +15,11 @@
  */
 package org.gradle.api.plugins.quality
 
-import static org.hamcrest.Matchers.*
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.hamcrest.Matcher
+
+import static org.hamcrest.Matchers.*
+import static org.gradle.util.Matchers.containsLine
 
 class FindBugsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -35,8 +37,8 @@ class FindBugsIntegrationTest extends AbstractIntegrationSpec {
         
         expect:
         succeeds("check")
-		file("build/reports/findbugs/main.xml").text.contains("org.gradle.Class1")
-		file("build/reports/findbugs/test.xml").text.contains("org.gradle.Class1Test")
+		file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
+		file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
     
     void "analyze bad code"() {
@@ -46,9 +48,13 @@ class FindBugsIntegrationTest extends AbstractIntegrationSpec {
         fails("check")
 		failure.assertHasDescription("Execution failed for task ':findbugsMain'")
         failure.assertThatCause(startsWith("FindBugs reported warnings."))
-		file("build/reports/findbugs/main.xml").text.contains("org.gradle.Class1")
+		file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
     }
-    
+
+    private Matcher<String> containsClass(String className) {
+        containsLine(containsString(className.replace(".", File.separator)))
+    }
+  
     private void writeBuildFile() {
         file("build.gradle") << """
         apply plugin: "java"
