@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.consumer.async.AsyncConnection
 import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.Project
+import org.gradle.tooling.model.internal.Exceptions
 import org.gradle.util.ConcurrentSpecification
 
 class DefaultModelBuilderTest extends ConcurrentSpecification {
@@ -96,7 +97,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
 
         then:
         1 * handler.onFailure(!null) >> {args -> wrappedFailure = args[0] }
-        wrappedFailure.message.contains(DefaultModelBuilder.INCOMPATIBLE_VERSION_HINT)
+        wrappedFailure.message.contains(Exceptions.INCOMPATIBLE_VERSION_HINT)
         wrappedFailure.cause.is(failure)
     }
 

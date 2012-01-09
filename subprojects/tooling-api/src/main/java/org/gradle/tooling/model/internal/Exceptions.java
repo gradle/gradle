@@ -23,19 +23,31 @@ import org.gradle.tooling.model.UnsupportedMethodException;
  */
 public class Exceptions {
 
-    public static UnsupportedMethodException unsupportedMethod(String method, Throwable cause) {
-        return new UnsupportedMethodException(formatMessage(method), cause);
+    public final static String INCOMPATIBLE_VERSION_HINT =
+            "Most likely the model of that type is not supported in the target Gradle version."
+            + "\nTo resolve the problem you can change/upgrade the Gradle version the tooling api connects to.";
+
+    public static UnsupportedMethodException unsupportedModelMethod(String method, Throwable cause) {
+        return new UnsupportedMethodException(formatUnsupportedModelMethod(method), cause);
     }
 
-    public static UnsupportedMethodException unsupportedMethod(String method) {
-        return new UnsupportedMethodException(formatMessage(method));
+    public static UnsupportedMethodException unsupportedModelMethod(String method) {
+        return new UnsupportedMethodException(formatUnsupportedModelMethod(method));
     }
 
-    private static String formatMessage(String method) {
-        return String.format("Method not found. The version of Gradle you connect to does not support this method: %s()\n"
-                        + "Most likely, this method was added in one of the later versions of Gradle.\n"
-                        + "To resolve the problem you can change/upgrade the target version of Gradle you connect to.\n"
-                        + "Alternatively, you can handle and ignore this exception."
-                        , method);
+    private static String formatUnsupportedModelMethod(String method) {
+        return String.format("Unsupported: %s()." +
+                "\nThe version of Gradle you connect to does not support that method."
+                + "\nTo resolve the problem you can change/upgrade the target version of Gradle you connect to."
+                + "\nAlternatively, you can handle and ignore this exception."
+                , method);
+    }
+
+    public static UnsupportedMethodException unsupportedOperationConfiguration(String operation) {
+        return new UnsupportedMethodException(String.format("Unsupported: %s." +
+                "\nThe version of Gradle you connect to does not support this configuration option."
+                + "\nTo resolve the problem you can change/upgrade the target version of Gradle you connect to."
+                + "\nAlternatively, please stop using this configuration option."
+                , operation));
     }
 }

@@ -43,6 +43,7 @@ public class LazyConnection implements ConsumerConnection {
     private boolean stopped;
     private ConsumerConnection connection;
     ModelProvider modelProvider = new ModelProvider();
+    FeatureValidator featureValidator = new FeatureValidator();
 
     public LazyConnection(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider) {
         this.distribution = distribution;
@@ -87,6 +88,7 @@ public class LazyConnection implements ConsumerConnection {
     public void executeBuild(final BuildParametersVersion1 buildParameters, final BuildOperationParametersVersion1 operationParameters) {
         withConnection(new ConnectionAction<Object>() {
             public Object run(ConsumerConnection connection) {
+                featureValidator.validate(connection.getMetaData().getVersion(), operationParameters);
                 connection.executeBuild(buildParameters, operationParameters);
                 return null;
             }
@@ -96,6 +98,7 @@ public class LazyConnection implements ConsumerConnection {
     public <T> T getModel(final Class<T> type, final BuildOperationParametersVersion1 operationParameters) {
         return withConnection(new ConnectionAction<T>() {
             public T run(ConsumerConnection connection) {
+                featureValidator.validate(connection.getMetaData().getVersion(), operationParameters);
                 return modelProvider.provide(connection, type, operationParameters);
             }
         });

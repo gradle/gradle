@@ -21,6 +21,8 @@ import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
 import org.gradle.tooling.model.Element;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.tooling.model.internal.Exceptions;
 
 import java.io.File;
 import java.io.InputStream;
@@ -31,9 +33,6 @@ public class DefaultModelBuilder<T extends Element, P> extends AbstractLongRunni
     private final Class<P> protocolType;
     private final AsyncConnection connection;
     private final ProtocolToModelAdapter adapter;
-    public final static String INCOMPATIBLE_VERSION_HINT =
-            "Most likely the model of that type is not supported in the target Gradle version."
-            + "\nTo resolve the problem you can change/upgrade the Gradle version the tooling api connects to.";
 
     public DefaultModelBuilder(Class<T> modelType, Class<P> protocolType, AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
         super(parameters);
@@ -55,8 +54,9 @@ public class DefaultModelBuilder<T extends Element, P> extends AbstractLongRunni
             @Override
             protected String connectionFailureMessage(Throwable failure) {
                 String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
-                if (failure instanceof UnsupportedOperationException) {
-                    message += "\n" + INCOMPATIBLE_VERSION_HINT;
+                if (!(failure instanceof UnsupportedMethodException) &&
+                        failure instanceof UnsupportedOperationException) {
+                    message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
                 }
                 return message;
             }
