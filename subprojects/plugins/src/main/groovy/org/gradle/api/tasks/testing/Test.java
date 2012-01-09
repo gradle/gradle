@@ -368,7 +368,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         testFramework.report();
 
-        if (!isIgnoreFailures() && listener.hadFailures()) {
+        if (!getIgnoreFailures() && listener.hadFailures()) {
             throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
         }
     }
@@ -668,16 +668,15 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Input
-    public boolean isIgnoreFailures() {
+    public Boolean getIgnoreFailures() {
         return ignoreFailures;
     }
 
     /**
      * {@inheritDoc}
      */
-    public Test setIgnoreFailures(boolean ignoreFailures) {
+    public void setIgnoreFailures(Boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
-        return this;
     }
 
     public TestFramework getTestFramework() {
@@ -738,7 +737,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Specifies that JUnit should be used to execute the tests.
      *
-     * @param testFrameworkConfigure A closure used to configure the JUint options. This closure is passed an instance
+     * @param testFrameworkConfigure A closure used to configure the JUnit options. This closure is passed an instance
      * of type {@link org.gradle.api.tasks.testing.junit.JUnitOptions}.
      */
     public void useJUnit(Closure testFrameworkConfigure) {

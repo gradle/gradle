@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests
+package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.util.TestFile
@@ -24,12 +24,22 @@ import static org.hamcrest.Matchers.*
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 
 class CodeQualityIntegrationTest extends AbstractIntegrationTest {
+    {
+        // without this, running from IDE gives ANTLR class loader conflict
+        executer.withForkingExecuter()
+
+        // code-quality plugin is deprecated
+        executer.withDeprecationChecksDisabled()
+    }
+
     @Test
     public void handlesEmptyProjects() {
         testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: 'code-quality'
+repositories { mavenCentral() }
+dependencies { groovy localGroovy() }
 '''
         inTestDirectory().withTasks('check').run()
     }
@@ -39,6 +49,7 @@ apply plugin: 'code-quality'
         testFile('build.gradle') << '''
 apply plugin: 'java'
 apply plugin: 'code-quality'
+repositories { mavenCentral() }
 '''
         writeCheckstyleConfig()
 
@@ -56,6 +67,7 @@ apply plugin: 'code-quality'
         testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
+repositories { mavenCentral() }
 dependencies { groovy localGroovy() }
 '''
         writeCheckstyleConfig()
@@ -78,6 +90,8 @@ dependencies { groovy localGroovy() }
         testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
+repositories { mavenCentral() }
+dependencies { groovy localGroovy() }
 '''
         writeCheckstyleConfig()
 
@@ -96,6 +110,8 @@ apply plugin: 'code-quality'
         testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
+repositories { mavenCentral() }
+dependencies { groovy localGroovy() }
 '''
         writeCheckstyleConfig()
 
@@ -104,7 +120,7 @@ apply plugin: 'code-quality'
 
         ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
         failure.assertHasDescription('Execution failed for task \':checkstyleMain\'')
-        failure.assertThatCause(startsWith('Checkstyle check violations were found in main Java source. See the report at'))
+        failure.assertThatCause(startsWith('Checkstyle rule violations were found. See the report at'))
 
         testFile('build/checkstyle/main.xml').assertExists()
     }
@@ -114,6 +130,7 @@ apply plugin: 'code-quality'
         testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
+repositories { mavenCentral() }
 dependencies { groovy localGroovy() }
 '''
         writeCodeNarcConfigFile()
@@ -132,6 +149,8 @@ dependencies { groovy localGroovy() }
         testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
+repositories { mavenCentral() }
+dependencies { groovy localGroovy() }
 '''
 
         writeCodeNarcConfigFile()
@@ -149,6 +168,7 @@ apply plugin: 'code-quality'
         testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
+repositories { mavenCentral() }
 dependencies { groovy localGroovy() }
 '''
 
@@ -158,7 +178,7 @@ dependencies { groovy localGroovy() }
 
         ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
         failure.assertHasDescription('Execution failed for task \':codenarcMain\'')
-        failure.assertThatCause(startsWith('CodeNarc check violations were found in main Groovy source. See the report at '))
+        failure.assertThatCause(startsWith('CodeNarc rule violations were found. See the report at '))
 
         testFile('build/reports/codenarc/main.html').assertExists()
     }

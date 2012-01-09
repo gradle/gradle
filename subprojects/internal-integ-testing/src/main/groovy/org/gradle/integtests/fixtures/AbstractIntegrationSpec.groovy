@@ -26,8 +26,8 @@ import spock.lang.Specification
  */
 class AbstractIntegrationSpec extends Specification {
     
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule final GradleDistribution distribution = new GradleDistribution()
+    @Rule final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     ExecutionResult result
     ExecutionFailure failure

@@ -54,8 +54,8 @@ class CodeQualityPluginTest {
         assertThat(task.defaultSource, equalTo(project.sourceSets.main.allJava))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/main.xml")))
-        assertThat(task.properties, equalTo(project.checkstyleProperties))
-        assertThat(task, dependsOn())
+        assertThat(task.configProperties, equalTo(project.checkstyleProperties))
+        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
 
         task = project.tasks[CodeQualityPlugin.CHECKSTYLE_TEST_TASK]
         assertThat(task, instanceOf(Checkstyle))
@@ -63,7 +63,7 @@ class CodeQualityPluginTest {
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/test.xml")))
         assertThat(task.properties, equalTo(project.checkstyleProperties))
-        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
+        assertThat(task, dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME))
 
         project.sourceSets.add('custom')
         task = project.tasks['checkstyleCustom']
@@ -72,7 +72,7 @@ class CodeQualityPluginTest {
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/custom.xml")))
         assertThat(task.properties, equalTo(project.checkstyleProperties))
-        assertThat(task, dependsOn())
+        assertThat(task, dependsOn("customClasses"))
 
         task = project.tasks[JavaBasePlugin.CHECK_TASK_NAME]
         assertThat(task, dependsOn(hasItems(CodeQualityPlugin.CHECKSTYLE_MAIN_TASK, CodeQualityPlugin.CHECKSTYLE_TEST_TASK, 'checkstyleCustom')))
@@ -111,20 +111,5 @@ class CodeQualityPluginTest {
         assertThat(task, dependsOn(hasItem(CodeQualityPlugin.CODE_NARC_MAIN_TASK)))
         assertThat(task, dependsOn(hasItem(CodeQualityPlugin.CODE_NARC_TEST_TASK)))
         assertThat(task, dependsOn(hasItem('codenarcCustom')))
-    }
-
-    @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
-        plugin.apply(project)
-
-        def task = project.tasks.add('customCheckstyle', Checkstyle)
-        assertThat(task.source, isEmpty())
-        assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
-        assertThat(task.resultFile, nullValue())
-        assertThat(task.classpath, nullValue())
-
-        task = project.tasks.add('customCodeNarc', CodeNarc)
-        assertThat(task.source, isEmpty())
-        assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
-        assertThat(task.reportFile, nullValue())
     }
 }

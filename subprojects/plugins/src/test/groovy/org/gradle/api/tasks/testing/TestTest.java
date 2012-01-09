@@ -104,7 +104,7 @@ public class TestTest extends AbstractConventionTaskTest {
         assertNull(test.getTestReportDir());
         assertThat(test.getIncludes(), isEmpty());
         assertThat(test.getExcludes(), isEmpty());
-        assertFalse(test.isIgnoreFailures());
+        assertFalse(test.getIgnoreFailures());
     }
 
     @org.junit.Test

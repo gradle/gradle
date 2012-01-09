@@ -13,13 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-dependencies {
-    groovy libraries.groovy
 
-    compile project(':core')
-    compile project(':plugins')
-
-    compile libraries.slf4j_api
-}
-
-useTestFixtures()
+/**
+ * Plugins which measure and enforce code quality.
+ */
+package org.gradle.api.plugins.quality
