@@ -16,16 +16,18 @@
 
 package org.gradle.integtests.tooling.m8
 
+import org.gradle.integtests.tooling.fixture.MaxTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.internal.Exceptions
-import org.gradle.integtests.tooling.fixture.*
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-3')
 @MaxTargetGradleVersion('1.0-milestone-7')
-@IncludeAllPermutations
 class StrictLongRunningOperationIntegrationTest extends ToolingApiSpecification {
 
     def setup() {
