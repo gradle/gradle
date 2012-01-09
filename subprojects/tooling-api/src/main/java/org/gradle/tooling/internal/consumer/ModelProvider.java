@@ -29,10 +29,11 @@ public class ModelProvider {
 
     private final static GradleVersion M5 = GradleVersion.version("1.0-milestone-5");
     private final static GradleVersion M6 = GradleVersion.version("1.0-milestone-6");
+    private final static GradleVersion M7 = GradleVersion.version("1.0-milestone-7");
 
     public <T> T provide(ConsumerConnection connection, Class<T> type, ConsumerOperationParameters operationParameters) {
         GradleVersion version = GradleVersion.version(connection.getMetaData().getVersion());
-        if (type == InternalBuildEnvironment.class && version.compareTo(M6) <= 0) {
+        if (type == InternalBuildEnvironment.class && version.compareTo(M7) <= 0) {
             //early versions of provider do not support BuildEnvironment model
             //since we know the gradle version at least we can give back some result
             VersionOnlyBuildEnvironment out = new VersionOnlyBuildEnvironment(connection.getMetaData().getVersion());

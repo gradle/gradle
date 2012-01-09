@@ -25,7 +25,7 @@ import org.gradle.tooling.model.build.BuildEnvironment
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-3')
-@MaxTargetGradleVersion('1.0-milestone-6') //TODO SF make it working with target M7, too
+@MaxTargetGradleVersion('1.0-milestone-7')
 class VersionOnlyBuildEnvironmentIntegrationTest extends ToolingApiSpecification {
 
     def "informs about version"() {

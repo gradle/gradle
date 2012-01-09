@@ -36,15 +36,15 @@ public class Exceptions {
     }
 
     private static String formatUnsupportedModelMethod(String method) {
-        return String.format("Unsupported: %s."
+        return String.format("Unsupported method: %s."
                 + "\nThe version of Gradle you connect to does not support that method."
                 + "\nTo resolve the problem you can change/upgrade the target version of Gradle you connect to."
-                + "\nAlternatively, you can handle and ignore this exception."
+                + "\nAlternatively, you can ignore this exception and read other information from the model."
                 , method);
     }
 
     public static UnsupportedMethodException unsupportedOperationConfiguration(String operation) {
-        return new UnsupportedMethodException(String.format("Unsupported: %s."
+        return new UnsupportedMethodException(String.format("Unsupported configuration: %s."
                 + "\nYou configured the LongRunningOperation (ModelBuilder or BuildLauncher) with an unsupported option."
                 + "\nThe version of Gradle you connect to does not support this configuration option."
                 + "\nTo resolve the problem you can change/upgrade the target version of Gradle you connect to."
