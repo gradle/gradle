@@ -314,7 +314,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected GradleHandle doStart() {
-        throw new UnsupportedOperationException(String.format("A %s does not support running asynchronously.", getClass().getSimpleName()));
+        throw new UnsupportedOperationException(String.format("%s does not support running asynchronously.", getClass().getSimpleName()));
     }
 
     protected abstract ExecutionResult doRun();

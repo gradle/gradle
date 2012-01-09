@@ -26,15 +26,20 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
-import org.gradle.internal.nativeplatform.services.NativeServices;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.launcher.Main;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.util.Jvm;
 import org.hamcrest.Matcher;
 
@@ -73,6 +78,21 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
                     outputListener.writer.toString(), errorListener.writer.toString(), e);
         }
+    }
+
+    @Override
+    protected GradleHandle doStart() {
+        return new ForkingGradleHandle(new Factory<JavaExecHandleBuilder>() {
+            public JavaExecHandleBuilder create() {
+                JavaExecHandleBuilder builder = new JavaExecHandleBuilder(new IdentityFileResolver());
+                builder.workingDir(getWorkingDir());
+                Set<File> classpath = new DefaultModuleRegistry().getFullClasspath();
+                builder.classpath(classpath);
+                builder.setMain(Main.class.getName());
+                builder.args(getAllArgs());
+                return builder;
+            }
+        }).start();
     }
 
     private BuildResult doRun(final OutputListenerImpl outputListener, OutputListenerImpl errorListener,
