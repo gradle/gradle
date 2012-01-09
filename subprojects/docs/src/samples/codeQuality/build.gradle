@@ -1,5 +1,6 @@
 // START SNIPPET use-plugin
-apply plugin: 'code-quality'
+apply plugin: 'checkstyle'
+apply plugin: 'codenarc'
 // END SNIPPET use-plugin
 apply plugin: 'groovy'
 
