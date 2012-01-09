@@ -139,16 +139,17 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         return builder;
     }
 
-    public GradleHandle createHandle() {
-        return new ForkingGradleHandle(this);
+    @Override
+    public GradleHandle doStart() {
+        return new ForkingGradleHandle(this).start();
     }
 
     protected ExecutionResult doRun() {
-        return createHandle().start().waitForFinish();
+        return start().waitForFinish();
     }
 
     protected ExecutionFailure doRunWithFailure() {
-        return createHandle().start().waitForFailure();
+        return start().waitForFailure();
     }
 
     private String formatGradleOpts() {

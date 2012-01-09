@@ -46,7 +46,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         if(!args.remove("-Dorg.gradle.jvmargs=")){
             args.add(0, "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m");
         }
-        
+
         return args;
     }
 }

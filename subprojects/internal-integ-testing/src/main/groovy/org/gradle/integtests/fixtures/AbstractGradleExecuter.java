@@ -289,8 +289,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return allArgs;
     }
 
-    public GradleHandle createHandle() {
-        throw new UnsupportedOperationException(String.format("A %s does not support creating handles.", getClass().getSimpleName()));
+    public final GradleHandle start() {
+        try {
+            return doStart();
+        } finally {
+            reset();
+        }
     }
 
     public final ExecutionResult run() {
@@ -307,6 +311,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         } finally {
             reset();
         }
+    }
+
+    protected GradleHandle doStart() {
+        throw new UnsupportedOperationException(String.format("A %s does not support running asynchronously.", getClass().getSimpleName()));
     }
 
     protected abstract ExecutionResult doRun();

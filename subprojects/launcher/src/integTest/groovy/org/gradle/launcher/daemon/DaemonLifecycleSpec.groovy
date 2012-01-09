@@ -17,14 +17,13 @@
 package org.gradle.launcher.daemon
 
 import ch.qos.logback.classic.Level
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.GradleHandles
+import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
-import org.gradle.internal.nativeplatform.OperatingSystem
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Jvm
 import org.junit.Rule
 import org.slf4j.LoggerFactory
@@ -32,6 +31,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Specification
 import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
 import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
+import org.gradle.integtests.fixtures.GradleHandle
 
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
@@ -44,11 +44,10 @@ import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
 class DaemonLifecycleSpec extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter(daemon)
-    @Rule public final GradleHandles handles = new GradleHandles()
 
     def daemonIdleTimeout = 5
 
-    def builds = []
+    final List<GradleHandle> builds = []
     def foregroundDaemons = []
 
     // set this to change the java home used to launch any gradle, set back to null to use current JVM
@@ -68,25 +67,24 @@ class DaemonLifecycleSpec extends Specification {
 
     void startBuild() {
         run {
-            builds << handles.createHandle {
-                withTasks("watch")
-                withArguments(
-                        "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}",
-                        "--info",
-                        "-Dorg.gradle.jvmargs=-ea")
-                if (javaHome) {
-                    withJavaHome(javaHome)
-                }
-                usingProjectDirectory buildDirWithScript(builds.size(), """
-                    task('watch') << {
-                        println "waiting for stop file"
-                        while(!file("stop").exists()) {
-                            sleep 100
-                        }
-                        println 'noticed stop file, finishing'
+            executer.withTasks("watch")
+            executer.withArguments(
+                    "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}",
+                    "--info",
+                    "-Dorg.gradle.jvmargs=-ea")
+            if (javaHome) {
+                executer.withJavaHome(javaHome)
+            }
+            executer.usingProjectDirectory buildDirWithScript(builds.size(), """
+                task('watch') << {
+                    println "waiting for stop file"
+                    while(!file("stop").exists()) {
+                        sleep 100
                     }
-                """)
-            }.start()
+                    println 'noticed stop file, finishing'
+                }
+            """)
+            builds << executer.start()
         }
     }
 
@@ -108,12 +106,11 @@ class DaemonLifecycleSpec extends Specification {
     }
 
     void stopDaemonsNow() {
-        handles.createHandle {
-            withArguments("--stop", "--info")
-            if (javaHome) {
-                withJavaHome(javaHome)
-            }
-        }.start().waitForFinish()
+        executer.withArguments("--stop", "--info")
+        if (javaHome) {
+            executer.withJavaHome(javaHome)
+        }
+        executer.run()
     }
 
     void startForegroundDaemon() {
@@ -129,12 +126,11 @@ class DaemonLifecycleSpec extends Specification {
     }
 
     void startForegroundDaemonNow() {
-        foregroundDaemons << handles.createHandle {
-            if (javaHome) {
-                withJavaHome(javaHome)
-            }
-            withArguments("--foreground", "--info")
-        }.start()
+        if (javaHome) {
+            executer.withJavaHome(javaHome)
+        }
+        executer.withArguments("--foreground", "--info")
+        foregroundDaemons << executer.start()
     }
 
     void killForegroundDaemon(int num = 0) {
@@ -347,7 +343,7 @@ class DaemonLifecycleSpec extends Specification {
         // The daemon crashed so didn't remove itself from the registry.
         // This doesn't produce a registry state change, so we have to test
         // That we are still in the same state this way
-        run { assert handles.daemonRegistry.busy.size() == 1; }
+        run { assert executer.daemonRegistry.busy.size() == 1; }
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
@@ -408,7 +404,7 @@ assert System.getProperty('some-prop') == 'some-value'
 
     def cleanup() {
         try {
-            sequenceBuilder.build(handles.daemonRegistry).run()
+            sequenceBuilder.build(executer.daemonRegistry).run()
         } finally {
             stopDaemonsNow()
         }

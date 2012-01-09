@@ -132,9 +132,9 @@ public interface GradleExecuter {
     DaemonRegistry getDaemonRegistry();
 
     /**
-     * Creates a handle that allows a build to be executed asynchronously.
+     * Starts executing the build asynchronously.
      *
      * @return the handle, never null.
      */
-    GradleHandle createHandle();
+    GradleHandle start();
 }
