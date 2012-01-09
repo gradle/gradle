@@ -20,12 +20,10 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.internal.Exceptions
-import spock.lang.IgnoreRest
 import org.gradle.integtests.tooling.fixture.*
 
 @MinToolingApiVersion('1.0-milestone-8')
-//@MinTargetGradleVersion('1.0-milestone-3')
-@MinTargetGradleVersion('1.0-milestone-7')
+@MinTargetGradleVersion('1.0-milestone-3')
 @MaxTargetGradleVersion('1.0-milestone-7')
 @IncludeAllPermutations
 class StrictLongRunningOperationIntegrationTest extends ToolingApiSpecification {
@@ -36,19 +34,18 @@ class StrictLongRunningOperationIntegrationTest extends ToolingApiSpecification 
         toolingApi.isEmbedded = false
     }
 
-    @IgnoreRest
     def "fails eagerly when java home unsupported for model"() {
         when:
         Exception e = maybeFailWithConnection {
             def model = it.model(BuildEnvironment.class)
-            model.setJavaHome(new File("hey")).get()
+            model.setJavaHome(new File("hey"))
+            model.get()
         }
 
         then:
         assertExceptionInformative(e, "setJavaHome()")
     }
 
-    @IgnoreRest
     def "fails eagerly when java home unsupported for build"() {
         when:
         Exception e = maybeFailWithConnection {
@@ -58,8 +55,32 @@ class StrictLongRunningOperationIntegrationTest extends ToolingApiSpecification 
         }
 
         then:
-        e.printStackTrace()
         assertExceptionInformative(e, "setJavaHome()")
+    }
+
+    def "fails eagerly when java args unsupported"() {
+        when:
+        Exception e = maybeFailWithConnection {
+            def model = it.model(BuildEnvironment.class)
+            model.setJvmArguments("-Xmx512m")
+            model.get()
+        }
+
+        then:
+        assertExceptionInformative(e, "setJvmArguments()")
+    }
+
+    def "fails eagerly when standard input unsupported"() {
+        when:
+        Exception e = maybeFailWithConnection {
+            def model = it.model(BuildEnvironment.class)
+            model.setStandardInput(new ByteArrayInputStream('yo!'.bytes))
+            model.get()
+        }
+
+        then:
+        assertExceptionInformative(e, "setStandardInput()")
+        e.printStackTrace()
     }
 
     void assertExceptionInformative(Exception actual, String expectedMessageSubstring) {
