@@ -16,75 +16,96 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Plugin
-import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.compile.Compile
+import org.gradle.api.internal.Instantiator
+import org.gradle.api.internal.project.ProjectInternal
 
 /**
+ * A plugin for the <a href="http://findbugs.sourceforge.net">FindBugs</a> byte code analyzer.
+ *
  * <p>
- * A {@link Plugin} which uses static analysis to look for bugs in Java code.  
- * This is done using the FindBugs tool.
- * </p>
+ * Declares a <tt>findbugs</tt> configuration which needs to be configured with the FindBugs library to be used.
+ * Additional plugins can be added to the <tt>findbugsPlugins</tt> configuration.
+ *
  * <p>
- * This plugin will automatically generate a task for each Java source set.
- * </p>
- * See {@link http://findbugs.sourceforge.net/} for more information.
+ * For projects that have the Java (base) plugin applied, a {@link FindBugs} task is
+ * created for each source set.
+ *
  * @see FindBugs
  * @see FindBugsExtension
  */
-class FindBugsPlugin implements Plugin<Project> {
-    private static final String FINDBUGS_TASK_NAME = 'findbugs'
-    private static final String FINDBUGS_CONFIGURATION_NAME = 'findbugs'
+class FindBugsPlugin implements Plugin<ProjectInternal> {
+    private ProjectInternal project
+    private Instantiator instantiator
+    private FindBugsExtension extension
+
+    void apply(ProjectInternal project) {
+        this.project = project
+        instantiator = project.services.get(Instantiator)
     
-    /**
-     * Applies the plugin to the specified project.
-     * @param project the project to apply this plugin to
-     */
-    void apply(Project project) {
-        project.plugins.apply(ReportingBasePlugin)
+        project.plugins.apply(JavaBasePlugin)
 
-        project.configurations.add(FINDBUGS_CONFIGURATION_NAME)
-            .setVisible(false)
-            .setTransitive(true)
-            .setDescription('The findbugs libraries to be used for this project.')
+        configureFindBugsConfigurations()
+        configureFindBugsExtension()
+        configureFindBugsTasks()
+        configureCheckTask()
+    }
 
-        def extension = new FindBugsExtension(project)
+    private configureFindBugsConfigurations() {
+        project.configurations.add('findbugs').with {
+            visible = false
+            transitive = true
+            description = 'The FindBugs libraries to be used for this project.'
+        }
+
+        project.configurations.add('findbugsPlugins').with {
+            visible = false
+            transitive = true
+            description = 'The FindBugs plugins to be used for this project.'
+        }
+    }
+
+    private configureFindBugsExtension() {
+        extension = instantiator.newInstance(FindBugsExtension, project)
         project.extensions.findbugs = extension
-
-        project.plugins.withType(JavaBasePlugin) {
-            configureForJavaPlugin(project, extension)
+        extension.with {
+            toolVersion = "1.3.9" // 2.0.0 isn't yet available from Maven Central
+        }
+        extension.conventionMapping.with {
+            reportsDir = { new File(project.reportsDir, "findbugs") }
         }
     }
 
-    /**
-     * Adds a dependency for the check task on all
-     * FindBugs tasks.
-     * @param project the project to configure the check task for
-     */
-    private void configureCheckTask(Project project) {
-        def task = project.tasks[JavaBasePlugin.CHECK_TASK_NAME]
-        task.dependsOn project.tasks.withType(FindBugs)
+    private void configureFindBugsTasks() {
+        project.sourceSets.all { SourceSet sourceSet ->
+            def task = project.tasks.add(sourceSet.getTaskName('findbugs', null), FindBugs)
+            task.with {
+                description = "Run FindBugs analysis for ${sourceSet.name} classes"
+                pluginClasspath = project.configurations['findbugsPlugins']
+                classes = sourceSet.output
+            }
+            task.conventionMapping.with {
+                findbugsClasspath = {
+                    def config = project.configurations['findbugs']
+                    if (config.dependencies.empty) {
+                        project.dependencies {
+                            findbugs "com.google.code.findbugs:findbugs:$extension.toolVersion"
+                            findbugs "com.google.code.findbugs:findbugs-ant:$extension.toolVersion"
+                        }
+                    }
+                    config
+                }
+                defaultSource = { sourceSet.allJava }
+                classpath = { sourceSet.compileClasspath }
+                reportFile = { new File(extension.reportsDir, "${sourceSet.name}.xml") }
+                ignoreFailures = { extension.ignoreFailures }
+            }
+        }
     }
 
-    /**
-     * Configures FindBugs tasks for Java source sets.
-     * @param project the project to configure findbugs for
-     * @param convention the findbugs convention to use
-     */
-    private void configureForJavaPlugin(final Project project, final FindBugsExtension extension) {
-        configureCheckTask(project)
-
-        project.convention.getPlugin(JavaPluginConvention).sourceSets.all { SourceSet set ->
-            def findbugs = project.tasks.add(set.getTaskName(FINDBUGS_TASK_NAME, null), FindBugs)
-            findbugs.description = "Run findbugs analysis for ${set.name} classes"
-            findbugs.dependsOn project.tasks.withType(Compile)
-            findbugs.conventionMapping.defaultSource = { set.allJava }
-            findbugs.conventionMapping.classpath = { set.compileClasspath }
-            findbugs.conventionMapping.classes = { set.output }
-            findbugs.conventionMapping.resultsFile = { new File(extension.resultsDir, "${set.name}.xml") }
-        }
+    private void configureCheckTask() {
+        project.tasks['check'].dependsOn { extension.sourceSets.collect { it.getTaskName('findbugs', null) }}
     }
 }
