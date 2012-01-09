@@ -30,7 +30,7 @@ import static org.gradle.util.Matchers.containsLine;
 import static org.gradle.util.Matchers.matchesRegexp;
 
 /**
- * A Junit rule which provides a {@link GradleExecuter} implementation that executes Gradle using a given {@link
+ * A JUnit rule which provides a {@link GradleExecuter} implementation that executes Gradle using a given {@link
  * GradleDistribution}. If not supplied in the constructor, this rule locates a field on the test object with type
  * {@link GradleDistribution}.
  *
@@ -44,7 +44,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     private boolean workingDirSet;
     private boolean userHomeSet;
     private boolean deprecationChecksOn = true;
-    private final Executer executerType;
+    private Executer executerType;
 
     public enum Executer {
         embedded(false),
@@ -89,12 +89,11 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         if (dist == null) {
             dist = RuleHelper.getField(target, GradleDistribution.class);
         }
-        reset();
         return base;
     }
 
     @Override
-    public GradleExecuter reset() {
+    public GradleDistributionExecuter reset() {
         super.reset();
         workingDirSet = false;
         userHomeSet = false;
@@ -104,14 +103,14 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     }
 
     @Override
-    public GradleExecuter inDirectory(File directory) {
+    public GradleDistributionExecuter inDirectory(File directory) {
         super.inDirectory(directory);
         workingDirSet = true;
         return this;
     }
 
     @Override
-    public GradleExecuter withUserHomeDir(File userHomeDir) {
+    public GradleDistributionExecuter withUserHomeDir(File userHomeDir) {
         super.withUserHomeDir(userHomeDir);
         userHomeSet = true;
         return this;
@@ -119,6 +118,13 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     public GradleDistributionExecuter withDeprecationChecksDisabled() {
         deprecationChecksOn = false;
+        return this;
+    }
+    
+    public GradleDistributionExecuter withForkingExecuter() {
+        if (!executerType.forks) {
+            executerType = Executer.forking;
+        }
         return this;
     }
 
