@@ -15,9 +15,11 @@
  */
 package org.gradle.api.plugins.quality
 
-import static org.hamcrest.Matchers.*
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.hamcrest.Matcher
+
+import static org.hamcrest.Matchers.*
+import static org.gradle.util.Matchers.containsLine
 
 class PmdIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -53,8 +55,8 @@ class PmdIntegrationTest extends AbstractIntegrationSpec {
         fails("check")
 		failure.assertHasDescription("Execution failed for task ':pmdTest'")
 		failure.assertThatCause(containsString("PMD found 2 rule violations"))
-        file("build/reports/pmd/main.xml").assertContents(not(containsString("org/gradle/Class1")))
-		file("build/reports/pmd/test.xml").assertContents(containsString("org/gradle/Class1Test"))
+        file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
+		file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
     
     private void writeBuildFile() {
@@ -66,5 +68,9 @@ repositories {
     mavenCentral()
 }
         """
+    }
+
+    private Matcher<String> containsClass(String className) {
+        containsLine(containsString(className.replace(".", File.separator)))
     }
 }

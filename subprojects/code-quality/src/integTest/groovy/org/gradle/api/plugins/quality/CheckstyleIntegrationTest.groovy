@@ -43,14 +43,10 @@ class CheckstyleIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds('check')
-        file("build/reports/checkstyle/main.xml").text.contains("org/gradle/Class1")
-        file("build/reports/checkstyle/main.xml").text.contains("org/gradle/Class2")
-        file("build/reports/checkstyle/test.xml").text.contains("org/gradle/TestClass1")
-        file("build/reports/checkstyle/test.xml").text.contains("org/gradle/TestClass2")
-    }
-
-    private Matcher<String> containsClass(String className) {
-        return containsLine(containsString(className.replace(".", File.separator) + ".java"))
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.Class1"))
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.Class2"))
+        file("build/reports/checkstyle/test.xml").assertContents(containsClass("org.gradle.TestClass1"))
+        file("build/reports/checkstyle/test.xml").assertContents(containsClass("org.gradle.TestClass2"))
     }
 
     def "analyze bad code"() {
@@ -63,8 +59,12 @@ class CheckstyleIntegrationTest extends AbstractIntegrationSpec {
         fails("check")
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at"))
-        file("build/reports/checkstyle/main.xml").text.contains("org/gradle/class1")
-        file("build/reports/checkstyle/main.xml").text.contains("org/gradle/class2")
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
+    }
+
+    private Matcher<String> containsClass(String className) {
+        containsLine(containsString(className.replace(".", File.separator)))
     }
 
     private void writeBuildFile() {
