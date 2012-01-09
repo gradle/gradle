@@ -17,60 +17,123 @@ package org.gradle.api.plugins.quality
 
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.util.HelperUtil
-import org.junit.Test
+import org.gradle.api.tasks.SourceSet
 
-class PMDPluginTest {
-    private final Project project = HelperUtil.createRootProject()
-    private final PMDPlugin plugin = new PMDPlugin()
-    
-    
-    @Test
-    void apply_appliesReportingBasePlugin() {
-        plugin.apply(project)
-        assert project.plugins.hasPlugin(ReportingBasePlugin)
-    }
-    
-    @Test
-    void apply_addsExtensionObjectsToProject() {
-        plugin.apply(project)
-        assert project.extensions.pmd instanceof PMDExtension
-    }
-    
-    @Test
-    void apply_createsTasksAndAppliesMappingsForEachJavaSourceSet() {
-        plugin.apply(project)
+import spock.lang.Specification
 
-        project.plugins.apply(JavaPlugin)
-        project.sourceSets.add('custom')
-        verifyTaskForSet('main')
-        verifyTaskForSet('test')
-        verifyTaskForSet('custom')
+import static spock.util.matcher.HamcrestSupport.that
+
+class PmdPluginTest extends Specification {
+    Project project = HelperUtil.createRootProject()
+
+    def setup() {
+        project.plugins.apply(PmdPlugin)
     }
-    
-    private void verifyTaskForSet(String setName) {
-        def taskSet = setName.substring(0, 1).toUpperCase() + setName.substring(1)
-        def task = project.tasks[PMDPlugin.PMD_TASK_NAME + taskSet]
-        assert task instanceof PMD
-        assert task.defaultSource == project.sourceSets[setName].allJava
-        assert task.resultsFile == project.file("build/pmd/${setName}.xml")
-        assert task.reportsFile == project.file("build/reports/pmd/${setName}.html")
-        
-        assertThat(project.tasks[JavaBasePlugin.CHECK_TASK_NAME], dependsOn(hasItem(task.name)))
+
+    def "applies java-base plugin"() {
+        expect:
+        project.plugins.hasPlugin(JavaBasePlugin)
     }
-    
-    @Test
-    void add_configuresAdditionalTasksDefinedByTheBuildScript() {
-        plugin.apply(project)
-        
-        def task = project.tasks.add('customPMD', PMD)
-        assert task.defaultSource == null
-        assert task.resultsFile == null
+
+    def "configures pmd configuration"() {
+        def config = project.configurations.findByName("pmd")
+
+        expect:
+        config != null
+        !config.visible
+        config.transitive
+        config.description == 'The PMD libraries to be used for this project.'
+    }
+
+    def "configures pmd extension"() {
+        expect:
+        PmdExtension extension = project.extensions.pmd
+        extension.ruleSets == ["basic"]
+        extension.ruleSetFiles.empty
+        extension.xmlReportsDir == project.file("build/reports/pmd")
+        extension.htmlReportsDir == project.file("build/reports/pmd")
+        extension.ignoreFailures == false
+    }
+
+    def "configures pmd task for each source set"() {
+        project.sourceSets {
+            main
+            test
+            other
+        }
+
+        expect:
+        configuresPmdTask("pmdMain", project.sourceSets.main)
+        configuresPmdTask("pmdTest", project.sourceSets.test)
+        configuresPmdTask("pmdOther", project.sourceSets.other)
+    }
+
+    private void configuresPmdTask(String taskName, SourceSet sourceSet) {
+        def task = project.tasks.findByName(taskName)
+        assert task instanceof Pmd
+        task.with {
+            assert description == "Run PMD analysis for ${sourceSet.name} classes"
+            defaultSource == sourceSet.allJava
+            assert pmdClassPath == project.configurations.pmd
+            assert ruleSets == ["basic"]
+            assert ruleSetFiles.empty
+            assert xmlReportFile == project.file("build/reports/pmd/${sourceSet.name}.xml")
+            assert htmlReportFile == project.file("build/reports/pmd/${sourceSet.name}.html")
+            assert ignoreFailures == false
+        }
+    }
+
+    def "adds pmd tasks to check lifecycle task"() {
+        project.sourceSets {
+            main
+            test
+            other
+        }
+
+        expect:
+        that(project.tasks['check'], dependsOn(hasItems("pmdMain", "pmdTest", "pmdOther")))
+    }
+
+    def "can customize settings via extension"() {
+        project.sourceSets {
+            main
+            test
+            other
+        }
+
+        project.pmd {
+            sourceSets = [project.sourceSets.main]
+            ruleSets = ["braces", "unusedcode"]
+            ruleSetFiles = project.files("my-ruleset.xml")
+            xmlReportsDir = project.file("pmd-xml-reports")
+            htmlReportsDir = project.file("pmd-html-reports")
+            ignoreFailures = true
+        }
+
+        expect:
+        hasCustomizedSettings("pmdMain", project.sourceSets.main)
+        hasCustomizedSettings("pmdTest", project.sourceSets.test)
+        hasCustomizedSettings("pmdOther", project.sourceSets.other)
+        that(project.check, dependsOn(hasItem('pmdMain')))
+        that(project.check, dependsOn(not(hasItems('pmdTest', 'pmdOther'))))
+    }
+
+    private void hasCustomizedSettings(String taskName, SourceSet sourceSet) {
+        def task = project.tasks.findByName(taskName)
+        assert task instanceof Pmd
+        task.with {
+            assert description == "Run PMD analysis for ${sourceSet.name} classes"
+            defaultSource == sourceSet.allJava
+            assert pmdClassPath == project.configurations.pmd
+            assert ruleSets == ["braces", "unusedcode"]
+            assert ruleSetFiles.files == project.files("my-ruleset.xml").files
+            assert xmlReportFile == project.file("pmd-xml-reports/${sourceSet.name}.xml")
+            assert htmlReportFile == project.file("pmd-html-reports/${sourceSet.name}.html")
+            assert ignoreFailures == true
+        }
     }
 }

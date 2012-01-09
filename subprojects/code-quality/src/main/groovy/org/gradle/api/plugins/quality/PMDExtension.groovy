@@ -15,69 +15,66 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.api.file.FileCollection
 import org.gradle.api.Project
 
 /**
- * Extension specifying options for
- * the PMD plugin.
+ * Configuration options for the PMD plugin.
+ *
+ * @see PmdPlugin
  */
-class PMDExtension {
-    private Project project
-    
+class PmdExtension extends CodeQualityExtension {
+    PmdExtension(Project project) {
+        super(project)
+    }
+
     /**
-     * Location of the html report
-     */
-    String reportsDirName
-    
-    /**
-     * Location of the xml results
-     */
-    String resultsDirName
-    
-    /**
-     * Paths to ruleset files.
-     */
-    Set<String> rulesets = [] as Set
-    
-    /**
-     * Creates an extension instance tied
-     * to the specified project.
+     *
+     * The built-in rule sets to be used. See the <a href="http://pmd.sourceforge.net/rules/index.html">official list</a> of built-in rule sets.
+     * Defaults to <tt>basic</tt>.
      * 
-     * Defaults the {@code resultsDirName} and 
-     * {@code reportsDirName} to "pmd"
-     * @param project
+     * Example: ruleSets = ["basic", "braces"]
      */
-    PMDExtension(Project project) {
-        this.project = project
-        this.reportsDirName = this.resultsDirName = 'pmd'
-        rulesets.add(project.file('config/pmd/rulesets.xml'))
-    }
+    List<String> ruleSets
     
     /**
-    * Adds a ruleset file path to the set.
-    * @param rulesets the ruleset path to add
-    */
-   void rulesets(String... rulesets) {
-       this.rulesets.addAll(rulesets)
-   }
-    
-    /**
-     * Gets the directory to be used for FindBugs results. This is determined
-     * using the {@code resultsDirName} property, evaluated relative to the
-     * project's build directory.
-     * @return the results dir for FindBugs
+     * Convenience method for adding rule sets.
+     *
+     * Example: ruleSets "basic", "braces"
+     *
+     * @param ruleSets the rule sets to be added
      */
-    File getResultsDir() {
-        return project.fileResolver.withBaseDir(project.buildDir).resolve(resultsDirName)
+    void ruleSets(String... ruleSets) {
+        this.ruleSets.addAll(ruleSets)
     }
-    
+
     /**
-     * Gets the directory to be used for FindBugs reports. This is determined
-     * using the {@code resultsDirName} property, evaluated relative to the
-     * project's build directory.
-     * @return the reports  dir for FindBugs
+     * The custom rule set files to be used. See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for
+     * how to author a rule set file. Defaults to <tt>none</tt>.
+     *
+     * Example: ruleSetFiles = files("config/pmd/myRuleSet.xml")
+     *
      */
-    File getReportsDir() {
-        return project.fileResolver.withBaseDir(project.reportsDir).resolve(reportsDirName)
+    FileCollection ruleSetFiles
+
+    /**
+     * Convenience method for adding rule set files.
+     *
+     * Example: ruleSetFiles "config/pmd/myRuleSet.xml"
+     *
+     * @param ruleSetFiles the rule set files to be added
+     */
+    void ruleSetFiles(Object... ruleSetFiles) {
+        this.ruleSetFiles.add(project.files(ruleSetFiles))
     }
+
+    /**
+     * The directory in which XML reports will be saved. Defaults to <tt>$reportsDir/pmd</tt>.
+     */
+    File xmlReportsDir
+
+    /**
+     * The directory in which HTML reports will be saved. Defaults to <tt>$reportsDir/pmd</tt>.
+     */
+    File htmlReportsDir
 }

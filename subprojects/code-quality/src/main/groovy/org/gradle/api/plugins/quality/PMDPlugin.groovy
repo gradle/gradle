@@ -16,74 +16,91 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Plugin
-import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.plugins.ReportingBasePlugin
+
+import org.gradle.api.internal.Instantiator
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.SourceSet
 
 /**
+ *  A plugin for the <a href="http://pmd.sourceforge.net/">PMD source code analyzer.
  * <p>
- * A {@link Plugin} that generates code quality metrics by
- * scanning your source packages.  This is done using the
- * PMD tool.  
- * </p>
+ * Declares a <tt>findbugs</tt> configuration which needs to be configured with the FindBugs library to be used.
+ * Additional plugins can be added to the <tt>findbugsPlugins</tt> configuration.
  * <p>
- * This plugin will automatically generate a task for each Java source set.
- * </p>
- * See {@link http://pmd.sourceforge.net/} for more information.
- * @see PMD
- * @see PMDExtension
+ * For each source set that is to be analyzed, a {@link Pmd} task is created and configured to analyze all Java code.
+ * <p
+ * All PMD tasks (including user-defined ones) are added to the <tt>check</tt> lifecycle task.
+ *
+ * @see PmdExtension
+ * @see Pmd
  */
-class PMDPlugin implements Plugin<Project> {
-    private static final PMD_TASK_NAME = 'pmd'
-    private static final PMD_CONFIGURATION_NAME = 'pmd'
-    
-    /**
-     * Applies the plugin to the specified project.
-     * @param project the project to apply this plugin too
-     */
-    void apply(Project project) {
-        project.plugins.apply(ReportingBasePlugin)
-        
-        project.configurations.add(PMD_CONFIGURATION_NAME)
-            .setVisible(false)
-            .setTransitive(true)
-            .setDescription('The jdepend libraries to be used for this project.')
+class PmdPlugin implements Plugin<ProjectInternal> {
+    private ProjectInternal project
+    private Instantiator instantiator
+    private PmdExtension extension
 
-        def extension = new PMDExtension(project)
+    void apply(ProjectInternal project) {
+        this.project = project
+        instantiator = project.services.get(Instantiator)
+
+        project.plugins.apply(JavaBasePlugin)
+
+        configurePmdConfiguration()
+        configurePmdExtension()
+        configurePmdTasks()
+        configureCheckTask()
+    }
+
+    private void configurePmdExtension() {
+        extension = instantiator.newInstance(PmdExtension, project)
         project.extensions.pmd = extension
-
-        project.plugins.withType(JavaBasePlugin) {
-            configureForJavaPlugin(project, extension)
+        extension.with {
+            toolVersion = "4.3"
+            ruleSets = ["basic"]
+            ruleSetFiles = project.files()
+        }
+        extension.conventionMapping.with {
+            xmlReportsDir = { new File(project.reportsDir, "pmd") }
+            htmlReportsDir = { new File(project.reportsDir, "pmd") }
         }
     }
 
-    /**
-    * Adds a dependency for the check task on the all
-    * PMD tasks.
-    * @param project the project to configure the check task for
-    */
-   private void configureCheckTask(Project project) {
-       def task = project.tasks[JavaBasePlugin.CHECK_TASK_NAME]
-       task.dependsOn project.tasks.withType(PMD)
-   }
-   
-   /**
-    * Configures PMD tasks for Java source sets.
-    * @param project the project to configure PMD for
-    * @param convention the PMD conventions to use
-    */
-   private void configureForJavaPlugin(final Project project, final PMDExtension extension) {
-       configureCheckTask(project)
-       
-       project.convention.getPlugin(JavaPluginConvention).sourceSets.all { SourceSet set ->
-           def pmd = project.tasks.add(set.getTaskName(PMD_TASK_NAME, null), PMD)
-           pmd.description = "Run PMD analysis for ${set.name} source files."
-           pmd.conventionMapping.defaultSource = { set.allJava }
-           pmd.conventionMapping.rulesets = { extension.rulesets }
-           pmd.conventionMapping.resultsFile = { new File(extension.resultsDir, "${set.name}.xml") }
-           pmd.conventionMapping.reportsFile = { new File(extension.reportsDir, "${set.name}.html") }
-       }
-   }
+    private configurePmdConfiguration() {
+        project.configurations.add('pmd').with {
+            visible = false
+            transitive = true
+            description = 'The PMD libraries to be used for this project.'
+        }
+    }
+
+    private void configurePmdTasks() {
+        project.sourceSets.all { SourceSet sourceSet ->
+            def task = project.tasks.add(sourceSet.getTaskName('pmd', null), Pmd)
+            task.with {
+                description = "Run PMD analysis for ${sourceSet.name} classes"
+            }
+            task.conventionMapping.with {
+                pmdClassPath = {
+                    def config = project.configurations['pmd']
+                    if (config.dependencies.empty) {
+                        project.dependencies {
+                            pmd "pmd:pmd:$extension.toolVersion"
+                        }
+                    }
+                    config
+                }
+                defaultSource = { sourceSet.allJava }
+                ruleSets = { extension.ruleSets }
+                ruleSetFiles = { extension.ruleSetFiles }
+                xmlReportFile = { new File(extension.xmlReportsDir, "${sourceSet.name}.xml") }
+                htmlReportFile = { new File(extension.htmlReportsDir, "${sourceSet.name}.html") }
+                ignoreFailures = { extension.ignoreFailures }
+            }
+        }
+    }
+
+    private void configureCheckTask() {
+        project.tasks['check'].dependsOn { extension.sourceSets.collect { it.getTaskName('pmd', null) }}
+    }
 }
