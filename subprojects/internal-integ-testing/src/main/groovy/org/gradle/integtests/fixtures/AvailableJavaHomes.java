@@ -15,32 +15,47 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.internal.nativeplatform.OperatingSystem;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.Jvm;
+
 import java.io.File;
 
 /**
- * Allows the tests to get hold of an alternative JAVA_HOME when needed.
- *
- * This is used in the DaemonLifecycleSpec to test that daemons don't use difference JAVA_HOME's between client and browser.
+ * Allows the tests to get hold of an alternative Java installation when needed.
  */
 abstract public class AvailableJavaHomes {
 
-    public static File getJavaHome(String label) {
-        String value = System.getenv().get(getEnvVarName(label));
+    private static File getJavaHome(String label) {
+        String value = System.getenv().get(String.format("JDK_%s", label));
         return value == null ? null : GFileUtils.canonicalise(new File(value));
-    }
-
-    public static String getEnvVarName(String label) {
-        return String.format("JDK_%s", label);
     }
 
     public static File getBestAlternative() {
         Jvm jvm = Jvm.current();
+
+        // Use environment variables
+        File javaHome = null;
         if (jvm.isJava6Compatible()) {
-            return firstAvailable("15", "17");
+            javaHome = firstAvailable("15", "17");
         } else if (jvm.isJava5Compatible()) {
-            return firstAvailable("16", "17");
+            javaHome = firstAvailable("16", "17");
+        }
+        if (javaHome != null) {
+            return javaHome;
+        }
+
+        if (OperatingSystem.current().isMacOsX()) {
+            File registeredJvms = new File("/Library/Java/JavaVirtualMachines");
+            if (registeredJvms.isDirectory()) {
+                for (File candidate : registeredJvms.listFiles()) {
+                    javaHome = GFileUtils.canonicalise(new File(candidate, "Contents/Home"));
+                    if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome, "bin/java").isFile()) {
+                        return javaHome;
+                    }
+                }
+            }
+            return null;
         } else {
             return null;
         }
