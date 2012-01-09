@@ -20,7 +20,7 @@ import org.gradle.messaging.dispatch.DispatchFailureHandler
 import org.gradle.util.ConcurrentSpecification
 import spock.lang.Ignore
 
-@Ignore //TODO SF why ignored?
+@Ignore
 class AsyncConnectionAdapterTest extends ConcurrentSpecification {
     final Connection<String> connection = Mock()
     final Dispatch<String> incoming = Mock()

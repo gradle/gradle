@@ -569,8 +569,6 @@ task checkDeps << {
         executer.withTasks("checkDeps").run()
     }
 
-    //TODO SF turn into IntegSpec
-
     @Test
     void "takes newest dynamic version when dynamic version forced"() {
         //given
