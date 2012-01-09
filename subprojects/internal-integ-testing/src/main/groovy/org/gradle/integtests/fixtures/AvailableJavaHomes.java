@@ -55,10 +55,20 @@ abstract public class AvailableJavaHomes {
                     }
                 }
             }
-            return null;
-        } else {
-            return null;
+        } else if (OperatingSystem.current().isLinux()) {
+            // Ubuntu specific
+            File installedJvms = new File("/usr/lib/jvm");
+            if (installedJvms.isDirectory()) {
+                for (File candidate : installedJvms.listFiles()) {
+                    javaHome = GFileUtils.canonicalise(candidate);
+                    if (!javaHome.equals(jvm.getJavaHome()) && javaHome.isDirectory() && new File(javaHome, "bin/java").isFile()) {
+                        return javaHome;
+                    }
+                }
+            }
         }
+
+        return null;
     }
 
     public static File firstAvailable(String... labels) {
