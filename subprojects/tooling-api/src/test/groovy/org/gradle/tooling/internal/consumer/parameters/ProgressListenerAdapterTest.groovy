@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.consumer
+package org.gradle.tooling.internal.consumer.parameters
 
-import spock.lang.Specification
 import org.gradle.tooling.ProgressListener
+import spock.lang.Specification
 
 class ProgressListenerAdapterTest extends Specification {
     final ProgressListener listener = Mock()

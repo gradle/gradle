@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer.async;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
@@ -41,7 +41,7 @@ public class DefaultAsyncConnection implements AsyncConnection {
         return connection.getMetaData().getDisplayName();
     }
 
-    public void executeBuild(final BuildParametersVersion1 buildParameters, final BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException {
+    public void executeBuild(final BuildParametersVersion1 buildParameters, final ConsumerOperationParameters operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException {
         runLater(handler, new ConnectionAction<Void>() {
             public Void run() {
                 connection.executeBuild(buildParameters, operationParameters);
@@ -50,7 +50,7 @@ public class DefaultAsyncConnection implements AsyncConnection {
         });
     }
 
-    public <T> void getModel(final Class<T> type, final BuildOperationParametersVersion1 operationParameters, ResultHandlerVersion1<T> handler) throws UnsupportedOperationException, IllegalStateException {
+    public <T> void getModel(final Class<T> type, final ConsumerOperationParameters operationParameters, ResultHandlerVersion1<T> handler) throws UnsupportedOperationException, IllegalStateException {
         runLater(handler, new ConnectionAction<T>() {
             public T run() {
                 return connection.getModel(type, operationParameters);

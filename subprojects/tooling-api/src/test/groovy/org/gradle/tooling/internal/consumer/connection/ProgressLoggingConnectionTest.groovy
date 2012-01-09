@@ -19,14 +19,14 @@ import org.gradle.listener.ListenerManager
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.LoggingProvider
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1
 import spock.lang.Specification
 
 class ProgressLoggingConnectionTest extends Specification {
     final ConsumerConnection target = Mock()
-    final BuildOperationParametersVersion1 params = Mock()
+    final ConsumerOperationParameters params = Mock()
     final ProgressListenerVersion1 listener = Mock()
     final ProgressLogger progressLogger = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()

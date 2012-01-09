@@ -16,7 +16,11 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.internal.protocol.InternalConnection;
 
 /**
  * An implementation that wraps a protocol instance that has rigid compatibility policy.
@@ -39,7 +43,7 @@ public class AdaptedConnection implements ConsumerConnection {
     }
 
     @SuppressWarnings({"deprecation"})
-    public <T> T getModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> T getModel(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         if (delegate instanceof InternalConnection) {
             return ((InternalConnection) delegate).getTheModel(type, operationParameters);
         } else {
@@ -47,7 +51,7 @@ public class AdaptedConnection implements ConsumerConnection {
         }
     }
 
-    public void executeBuild(BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 operationParameters) throws IllegalStateException {
+    public void executeBuild(BuildParametersVersion1 buildParameters, ConsumerOperationParameters operationParameters) throws IllegalStateException {
         delegate.executeBuild(buildParameters, operationParameters);
     }
 

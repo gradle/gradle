@@ -20,6 +20,7 @@ import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConnection;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.Element;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
@@ -28,14 +29,15 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class DefaultModelBuilder<T extends Element, P> extends AbstractLongRunningOperation implements ModelBuilder<T> {
+public class DefaultModelBuilder<T extends Element, P> implements ModelBuilder<T> {
     private final Class<T> modelType;
     private final Class<P> protocolType;
     private final AsyncConnection connection;
     private final ProtocolToModelAdapter adapter;
+    private ConsumerOperationParameters operationParameters;
 
     public DefaultModelBuilder(Class<T> modelType, Class<P> protocolType, AsyncConnection connection, ProtocolToModelAdapter adapter, ConnectionParameters parameters) {
-        super(parameters);
+        operationParameters = new ConsumerOperationParameters(parameters);
         this.modelType = modelType;
         this.protocolType = protocolType;
         this.connection = connection;
@@ -50,12 +52,12 @@ public class DefaultModelBuilder<T extends Element, P> extends AbstractLongRunni
 
     public void get(final ResultHandler<? super T> handler) throws IllegalStateException {
         ResultHandler<P> adaptingHandler = new ProtocolToModelAdaptingHandler(handler);
-        connection.getModel(protocolType, operationParameters(), new ResultHandlerAdapter<P>(adaptingHandler) {
+        connection.getModel(protocolType, operationParameters, new ResultHandlerAdapter<P>(adaptingHandler) {
             @Override
             protected String connectionFailureMessage(Throwable failure) {
                 String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
-                if (!(failure instanceof UnsupportedMethodException) &&
-                        failure instanceof UnsupportedOperationException) {
+                if (!(failure instanceof UnsupportedMethodException)
+                        && failure instanceof UnsupportedOperationException) {
                     message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
                 }
                 return message;
@@ -63,39 +65,33 @@ public class DefaultModelBuilder<T extends Element, P> extends AbstractLongRunni
         });
     }
 
-    @Override
     public DefaultModelBuilder<T, P> setStandardOutput(OutputStream outputStream) {
-        super.setStandardOutput(outputStream);
+        operationParameters.setStandardOutput(outputStream);
         return this;
     }
 
-    @Override
     public DefaultModelBuilder<T, P> setStandardError(OutputStream outputStream) {
-        super.setStandardError(outputStream);
+        operationParameters.setStandardError(outputStream);
         return this;
     }
 
-    @Override
     public DefaultModelBuilder<T, P> setStandardInput(InputStream inputStream) {
-        super.setStandardInput(inputStream);
+        operationParameters.setStandardInput(inputStream);
         return this;
     }
 
-    @Override
     public DefaultModelBuilder<T, P> setJavaHome(File javaHome) {
-        super.setJavaHome(javaHome);
+        operationParameters.setJavaHome(javaHome);
         return this;
     }
 
-    @Override
     public DefaultModelBuilder<T, P> setJvmArguments(String... jvmArguments) {
-        super.setJvmArguments(jvmArguments);
+        operationParameters.setJvmArguments(jvmArguments);
         return this;
     }
 
-    @Override
     public DefaultModelBuilder<T, P> addProgressListener(ProgressListener listener) {
-        super.addProgressListener(listener);
+        operationParameters.addProgressListener(listener);
         return this;
     }
 

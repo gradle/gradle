@@ -20,7 +20,7 @@ import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.LoggingProvider
 import org.gradle.tooling.internal.consumer.ModelProvider
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1
 import spock.lang.Specification
 
@@ -28,7 +28,7 @@ class LazyConnectionTest extends Specification {
     final Distribution distribution = Mock()
     final ToolingImplementationLoader implementationLoader = Mock()
     final BuildParametersVersion1 buildParams = Mock()
-    final BuildOperationParametersVersion1 params = Mock()
+    final ConsumerOperationParameters params = Mock()
     final ConsumerConnection consumerConnection = Mock()
     final LoggingProvider loggingProvider = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
@@ -38,6 +38,7 @@ class LazyConnectionTest extends Specification {
 
     def setup() {
         connection.modelProvider = Mock(ModelProvider)
+        connection.featureValidator = Mock(FeatureValidator)
     }
 
     def createsConnectionOnDemandToExecuteBuild() {
@@ -48,6 +49,7 @@ class LazyConnectionTest extends Specification {
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory) >> consumerConnection
         1 * consumerConnection.executeBuild(buildParams, params)
+        1 * connection.featureValidator.validate(consumerConnection, params)
         0 * _._
     }
 
@@ -59,6 +61,7 @@ class LazyConnectionTest extends Specification {
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory) >> consumerConnection
         1 * connection.modelProvider.provide(!null, SomeModel, params)
+        1 * connection.featureValidator.validate(consumerConnection, params)
         0 * _._
     }
 
@@ -72,6 +75,7 @@ class LazyConnectionTest extends Specification {
         1 * implementationLoader.create(distribution, progressLoggerFactory) >> consumerConnection
         1 * connection.modelProvider.provide(consumerConnection, SomeModel, params)
         1 * consumerConnection.executeBuild(buildParams, params)
+        2 * connection.featureValidator.validate(consumerConnection, params)
         0 * _._
     }
 
@@ -84,6 +88,7 @@ class LazyConnectionTest extends Specification {
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory) >> consumerConnection
         1 * connection.modelProvider.provide(consumerConnection, SomeModel, params)
+        1 * connection.featureValidator.validate(consumerConnection, params)
         1 * consumerConnection.stop()
         0 * _._
     }

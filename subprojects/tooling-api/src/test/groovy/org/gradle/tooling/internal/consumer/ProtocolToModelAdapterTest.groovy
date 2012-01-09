@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer
 import org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency
 import org.gradle.tooling.internal.idea.DefaultIdeaSingleEntryLibraryDependency
 import org.gradle.tooling.model.DomainObjectSet
+import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaDependency
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
@@ -111,9 +112,8 @@ class ProtocolToModelAdapterTest extends Specification {
         model.project
 
         then:
-        UnsupportedOperationException e = thrown()
+        UnsupportedMethodException e = thrown()
         e.message.contains "TestModel.getProject()"
-        e.message.contains "Method not found"
     }
 
     def propagatesExceptionThrownByProtocolObject() {

@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.util.GradleVersion;
 
@@ -30,7 +30,7 @@ public class ModelProvider {
     private final static GradleVersion M5 = GradleVersion.version("1.0-milestone-5");
     private final static GradleVersion M6 = GradleVersion.version("1.0-milestone-6");
 
-    public <T> T provide(ConsumerConnection connection, Class<T> type, BuildOperationParametersVersion1 operationParameters) {
+    public <T> T provide(ConsumerConnection connection, Class<T> type, ConsumerOperationParameters operationParameters) {
         GradleVersion version = GradleVersion.version(connection.getMetaData().getVersion());
         if (type == InternalBuildEnvironment.class && version.compareTo(M6) <= 0) {
             //early versions of provider do not support BuildEnvironment model

@@ -20,7 +20,7 @@ import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.ModelProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
 
@@ -42,6 +42,7 @@ public class LazyConnection implements ConsumerConnection {
     private Set<Thread> executing = new HashSet<Thread>();
     private boolean stopped;
     private ConsumerConnection connection;
+
     ModelProvider modelProvider = new ModelProvider();
     FeatureValidator featureValidator = new FeatureValidator();
 
@@ -85,20 +86,20 @@ public class LazyConnection implements ConsumerConnection {
         };
     }
 
-    public void executeBuild(final BuildParametersVersion1 buildParameters, final BuildOperationParametersVersion1 operationParameters) {
+    public void executeBuild(final BuildParametersVersion1 buildParameters, final ConsumerOperationParameters operationParameters) {
         withConnection(new ConnectionAction<Object>() {
             public Object run(ConsumerConnection connection) {
-                featureValidator.validate(connection.getMetaData().getVersion(), operationParameters);
+                featureValidator.validate(connection, operationParameters);
                 connection.executeBuild(buildParameters, operationParameters);
                 return null;
             }
         });
     }
 
-    public <T> T getModel(final Class<T> type, final BuildOperationParametersVersion1 operationParameters) {
+    public <T> T getModel(final Class<T> type, final ConsumerOperationParameters operationParameters) {
         return withConnection(new ConnectionAction<T>() {
             public T run(ConsumerConnection connection) {
-                featureValidator.validate(connection.getMetaData().getVersion(), operationParameters);
+                featureValidator.validate(connection, operationParameters);
                 return modelProvider.provide(connection, type, operationParameters);
             }
         });

@@ -22,6 +22,7 @@ import org.gradle.logging.internal.ProgressEvent;
 import org.gradle.logging.internal.ProgressListener;
 import org.gradle.logging.internal.ProgressStartEvent;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
@@ -47,7 +48,7 @@ public class ProgressLoggingConnection implements ConsumerConnection {
         return connection.getMetaData();
     }
 
-    public void executeBuild(final BuildParametersVersion1 buildParameters, final BuildOperationParametersVersion1 operationParameters) {
+    public void executeBuild(final BuildParametersVersion1 buildParameters, final ConsumerOperationParameters operationParameters) {
         run("Execute build", operationParameters, new BuildAction<Void>() {
             public Void run(ConsumerConnection connection) {
                 connection.executeBuild(buildParameters, operationParameters);
@@ -56,7 +57,7 @@ public class ProgressLoggingConnection implements ConsumerConnection {
         });
     }
 
-    public <T> T getModel(final Class<T> type, final BuildOperationParametersVersion1 operationParameters) {
+    public <T> T getModel(final Class<T> type, final ConsumerOperationParameters operationParameters) {
         return run("Load projects", operationParameters, new BuildAction<T>() {
             public T run(ConsumerConnection connection) {
                 return connection.getModel(type, operationParameters);
