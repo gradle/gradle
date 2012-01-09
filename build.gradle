@@ -79,7 +79,11 @@ libraries.jetty = dependencies.module("org.mortbay.jetty:jetty:6.1.25") {
     dependency libraries.servlet_api
 }
 
-libraries.commons_httpclient = 'org.apache.httpcomponents:httpclient:4.1.2'
+libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:httpclient:4.1.2') {
+    dependency "org.apache.httpcomponents:httpcore:4.1.2@jar"
+    dependency libraries.jcl_to_slf4j
+    dependency "commons-codec:commons-codec:1.4@jar"
+}
 
 libraries.maven_ant_tasks = dependencies.module("org.apache.maven:maven-ant-tasks:2.1.3") {
     libraries.ant
