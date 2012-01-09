@@ -17,7 +17,6 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.project.ProjectInternal
