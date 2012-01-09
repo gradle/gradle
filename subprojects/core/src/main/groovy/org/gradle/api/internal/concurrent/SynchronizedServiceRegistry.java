@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project;
+package org.gradle.api.internal.concurrent;
 
-import org.gradle.api.internal.Synchronizer;
+import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.UnknownServiceException;
-import org.gradle.internal.Factory;
 
 /**
- * TODO SF - along with other Services related stuff and Synchronizer,
- * move to a better package, internal.service for instance
- *
  * by Szczepan Faber, created at: 11/24/11
  */
 public class SynchronizedServiceRegistry implements ServiceRegistry {

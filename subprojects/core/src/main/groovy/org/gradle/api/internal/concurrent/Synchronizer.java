@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.concurrent;
 
+import org.gradle.api.internal.Operation;
 import org.gradle.internal.Factory;
 
 import java.util.concurrent.locks.Lock;

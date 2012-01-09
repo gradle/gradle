@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project;
+package org.gradle.api.internal.concurrent;
 
 
-import spock.lang.Specification
 import org.gradle.internal.service.ServiceRegistry
+import spock.lang.Specification
 
 /**
  * by Szczepan Faber, created at: 11/24/11
