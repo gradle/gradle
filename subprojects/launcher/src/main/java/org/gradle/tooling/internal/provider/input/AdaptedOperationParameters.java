@@ -44,11 +44,7 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
         //Tooling api means embedded use. We don't want to consume standard input if we don't own the process.
         //Hence we use a dummy input stream by default
         ByteArrayInputStream safeDummy = new ByteArrayInputStream(new byte[0]);
-        ByteArrayInputStream input = introspector.getSafely(safeDummy, "getStandardInput");
-        if (input == null) {
-            return safeDummy;
-        }
-        return input;
+        return maybeGet(safeDummy, "getStandardInput");
     }
 
     public boolean getVerboseLogging() {
@@ -56,20 +52,19 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
     }
 
     public File getJavaHome(File defaultJavaHome) {
-        File javaHome = introspector.getSafely(defaultJavaHome, "getJavaHome");
-        //TODO SF generalize
-        if (javaHome == null) {
-            return defaultJavaHome;
-        }
-        return javaHome;
+        return maybeGet(defaultJavaHome, "getJavaHome");
     }
 
     public List<String> getJvmArguments(List<String> defaultJvmArgs) {
-        List<String> args = introspector.getSafely(defaultJvmArgs, "getJvmArguments");
-        if (args == null) {
-            return defaultJvmArgs;
+        return maybeGet(defaultJvmArgs, "getJvmArguments");
+    }
+
+    private <T> T maybeGet(T defaultValue, String methodName) {
+        T out = introspector.getSafely(defaultValue, methodName);
+        if (out == null) {
+            return defaultValue;
         }
-        return args;
+        return out;
     }
 
     public File getProjectDir() {
