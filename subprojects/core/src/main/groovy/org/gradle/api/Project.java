@@ -1266,7 +1266,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     /**
      * <p>Adds a closure to be called immediately after this project has been evaluated. The project is passed to the
      * closure as a parameter. Such a listener gets notified when the build file belonging to this project has been
-     * executed. A parent project may for example add such a listener to its child project. Such a listener can futher
+     * executed. A parent project may for example add such a listener to its child project. Such a listener can further
      * configure those child projects based on the state of the child projects after their build files have been
      * run.</p>
      *

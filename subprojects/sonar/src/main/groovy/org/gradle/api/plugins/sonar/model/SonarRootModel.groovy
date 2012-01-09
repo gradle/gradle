@@ -249,7 +249,7 @@ class SonarProject {
     String version
 
     /**
-     * The date when analyis was performed. Format is <tt>yyyy-MM-dd</tt>
+     * The date when analysis was performed. Format is <tt>yyyy-MM-dd</tt>
      * (e.g. <tt>2010-12-25</tt>). Defaults to the current date.
      */
     @SonarProperty("sonar.projectDate")
