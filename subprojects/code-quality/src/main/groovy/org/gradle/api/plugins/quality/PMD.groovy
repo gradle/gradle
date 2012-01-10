@@ -22,6 +22,7 @@ import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.VerificationTask
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Input
 
 /**
  * Runs a set of static code analysis rules on Java source code files and
