@@ -106,7 +106,7 @@ public class Wrapper extends DefaultTask {
 
         writeProperties(getPropertiesFile());
 
-        URL jarFileSource = getClass().getResource("/gradle-wrapper.jar");
+        URL jarFileSource = Wrapper.class.getResource("/gradle-wrapper.jar");
         if (jarFileSource == null) {
             throw new GradleException("Cannot locate wrapper JAR resource.");
         }
