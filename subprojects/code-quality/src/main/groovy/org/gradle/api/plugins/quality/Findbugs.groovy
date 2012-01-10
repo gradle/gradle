@@ -53,7 +53,7 @@ class FindBugs extends SourceTask implements VerificationTask {
      * Whether or not to allow the build to continue if there are warnings.
      */
     Boolean ignoreFailures
-	
+    
     /**
      * The file in which the FindBugs output will be saved.
      */
@@ -61,21 +61,21 @@ class FindBugs extends SourceTask implements VerificationTask {
     
     @TaskAction
     void run() {
-		String warningsProp = 'findbugsWarnings'
+        String warningsProp = 'findbugsWarnings'
 
-		getReportFile().parentFile.mkdirs()
+        getReportFile().parentFile.mkdirs()
 
-		ant.taskdef(name: 'findbugs', classname: 'edu.umd.cs.findbugs.anttask.FindBugsTask', classpath: getFindbugsClasspath().asPath)
-		ant.findbugs(outputFile: getReportFile(), failOnError: !getIgnoreFailures(), warningsProperty: warningsProp) {
-			getFindbugsClasspath().addToAntBuilder(ant, 'classpath')
-			getPluginClasspath().addToAntBuilder(ant, 'pluginList')
-			getClasspath().addToAntBuilder(ant, 'auxClasspath')
-			getSource().addToAntBuilder(ant, 'sourcePath')
-			getClasses().asFileTree.files.each { 'class'(location: it) }
+        ant.taskdef(name: 'findbugs', classname: 'edu.umd.cs.findbugs.anttask.FindBugsTask', classpath: getFindbugsClasspath().asPath)
+        ant.findbugs(outputFile: getReportFile(), failOnError: !getIgnoreFailures(), warningsProperty: warningsProp) {
+            getFindbugsClasspath().addToAntBuilder(ant, 'classpath')
+            getPluginClasspath().addToAntBuilder(ant, 'pluginList')
+            getClasspath().addToAntBuilder(ant, 'auxClasspath')
+            getSource().addToAntBuilder(ant, 'sourcePath')
+            getClasses().asFileTree.files.each { 'class'(location: it) }
         }
-		
-		if (!ignoreFailures && ant.properties[warningsProp]) {
-			throw new GradleException("FindBugs reported warnings. See the report at ${getReportFile()}.")
-		}
+        
+        if (!ignoreFailures && ant.properties[warningsProp]) {
+            throw new GradleException("FindBugs reported warnings. See the report at ${getReportFile()}.")
+        }
     }
 }
