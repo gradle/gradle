@@ -66,6 +66,7 @@
     <xi:include href='osgi.xml'/>
     <xi:include href='eclipsePlugin.xml'/>
     <xi:include href='ideaPlugin.xml'/>
+    <xi:include href='toolingApi.xml'/>
     <xi:include href='antlrPlugin.xml'/>
     <xi:include href='projectReports.xml'/>
     <xi:include href='announcePlugin.xml'/>
