@@ -20,6 +20,7 @@ import ch.qos.logback.classic.Level
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.GradleHandle
 import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
@@ -29,9 +30,9 @@ import org.junit.Rule
 import org.slf4j.LoggerFactory
 import spock.lang.IgnoreIf
 import spock.lang.Specification
+import spock.lang.Timeout
 import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
 import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
-import org.gradle.integtests.fixtures.GradleHandle
 
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
@@ -320,6 +321,7 @@ class DaemonLifecycleSpec extends Specification {
         foregroundDaemonFailed()
     }
 
+    @Timeout(60)
     def "tearing down daemon process produces nice error message for client"() {
         when:
         startForegroundDaemon()
