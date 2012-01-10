@@ -15,7 +15,7 @@ tasks.withType(SshTask) {
     sshAntClasspath = configurations.sshAntTask
 }
 
-abstract class SshTask extends DefaultTask {
+class SshTask extends DefaultTask {
     @InputFiles
     FileCollection sshAntClasspath
 
@@ -30,20 +30,21 @@ abstract class SshTask extends DefaultTask {
 
     boolean verbose = false
 
-    @TaskAction
-    def executeActions() {
-        ant.taskdef(name: 'scp',
-                classname: 'org.apache.tools.ant.taskdefs.optional.ssh.Scp',
-                classpath: sshAntClasspath.asPath,
-                loaderref: 'ssh')
-        ant.taskdef(name: 'sshexec',
-                classname: 'org.apache.tools.ant.taskdefs.optional.ssh.SSHExec',
-                classpath: sshAntClasspath.asPath,
-                loaderref: 'ssh')
-        doActions()
+    private boolean antInited = false
+    
+    protected initAnt() {
+        if (!antInited) {
+            ant.taskdef(name: 'scp',
+                    classname: 'org.apache.tools.ant.taskdefs.optional.ssh.Scp',
+                    classpath: sshAntClasspath.asPath,
+                    loaderref: 'ssh')
+            ant.taskdef(name: 'sshexec',
+                    classname: 'org.apache.tools.ant.taskdefs.optional.ssh.SSHExec',
+                    classpath: sshAntClasspath.asPath,
+                    loaderref: 'ssh')
+            antInited = true
+        }
     }
-
-    abstract void doActions()
 
     protected withInfoLogging(Closure action) {
         def oldLogLevel = logging.level
@@ -58,12 +59,14 @@ abstract class SshTask extends DefaultTask {
     }
 
     def scpFile(source, destination) {
+        initAnt()
         withInfoLogging {
             ant.scp(localFile: project.files(source).singleFile, remoteToFile: "${userName}@${host}:${destination}", password: password, verbose: verbose)
         }
     }
 
     def scpDir(source, destination) {
+        initAnt()
         withInfoLogging {
             ant.sshexec(host: host, username: userName, password: password, command: "mkdir -p ${destination}")
             ant.scp(remoteTodir: "${userName}@${host}:${destination}", password: password, verbose: verbose) {
@@ -73,6 +76,7 @@ abstract class SshTask extends DefaultTask {
     }
 
     def ssh(Object... commandLine) {
+        initAnt()
         withInfoLogging {
             ant.sshexec(host: host, username: userName, password: password, command: commandLine.join(' '))
         }
@@ -84,6 +88,7 @@ class Scp extends SshTask {
     @Input destination
     boolean isDir = false
 
+    @TaskAction
     void doActions() {
         isDir ? scpDir(source, destination) : scpFile(source, destination)
     }
@@ -97,7 +102,7 @@ class SshExec extends SshTask {
         commandLines << commandLine
     }
 
-    @Override
+    @TaskAction
     void doActions() {
         commandLines.each { commandLine ->
             ssh(*commandLine)

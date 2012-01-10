@@ -56,6 +56,17 @@ task uploadDocs(type: Scp) {
     }
 }
 
+def dists = rootProject.configurations.dists
+task uploadDistributions(type: SshTask, dependsOn: [rootProject.testedDists, dists.allArtifacts.buildDependencies]) {
+    verbose true
+    doFirst {
+        dists.allArtifacts.each { artifact ->
+            scpFile artifact.file, uploadPath("distributions/${artifact.file.name}")
+        }
+        ssh asSudo("move-distributions", project.version, project.version.release ? "release" : "snapshot")
+    }
+}
+
 task generateReleasesXml() {
     outputFile = file("$buildDir/releases.xml")
     outputs.file outputFile
