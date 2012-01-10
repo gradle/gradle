@@ -46,10 +46,6 @@ public class CodeQualityPlugin implements Plugin<Project> {
     private void configureCheckstyle() {
         project.plugins.apply(CheckstylePlugin)
 
-        project.dependencies {
-            checkstyle 'com.puppycrawl.tools:checkstyle:5.5'
-        }
-
         def javaPluginConvention = new JavaCodeQualityPluginConvention(project)
         project.convention.plugins.javaCodeQuality = javaPluginConvention
 
@@ -62,10 +58,6 @@ public class CodeQualityPlugin implements Plugin<Project> {
 
     private void configureCodeNarc() {
         project.plugins.apply(CodeNarcPlugin)
-
-        project.dependencies {
-            codenarc 'org.codenarc:CodeNarc:0.16.1'
-        }
 
         def groovyPluginConvention = new GroovyCodeQualityPluginConvention(project)
         project.convention.plugins.groovyCodeQuality = groovyPluginConvention
