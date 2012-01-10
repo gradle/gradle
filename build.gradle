@@ -448,9 +448,23 @@ task uploadAll {
     dependsOn uploadArchives, uploadDists, "website:uploadDocs", "website:pushReleasesXml"
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '1.0-milestone-4-20110508123756+0200'
+def wrapperUpdateTask = { name, label ->
+    task "${name}Wrapper"(type: Wrapper) {
+        doFirst {
+            try {
+                def version = new groovy.json.JsonSlurper().parseText(new URL("http://gradle.org/versions/$label").text)
+                println "updating wrapper to $label version: $version.version (downloadUrl: $version.downloadUrl)"
+                distributionUrl version.downloadUrl
+            } catch (FileNotFoundException e) {
+                throw new GradleException("Cannot update wrapper to '${label}' version as there is currently no version of that label")
+            }
+        }
+    }
 }
+
+wrapperUpdateTask("nightly", "nightly")
+wrapperUpdateTask("rc", "release-candidate")
+wrapperUpdateTask("current", "current")
 
 def groovyProjects() {
     subprojects.findAll { !(it.name in ["docs", "website"]) }
