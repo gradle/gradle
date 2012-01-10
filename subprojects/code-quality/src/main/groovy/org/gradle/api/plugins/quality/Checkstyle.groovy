@@ -46,6 +46,7 @@ class Checkstyle extends SourceTask implements VerificationTask {
      * The properties available for use in the configuration file. These are substituted into the configuration
      * file.
      */
+    @Input
     Map<String, Object> configProperties
 
     /**

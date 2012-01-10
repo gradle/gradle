@@ -33,6 +33,7 @@ class Pmd extends SourceTask implements VerificationTask {
     /**
      * The class path containing the PMD library to be used.
      */
+    @InputFiles
     FileCollection pmdClassPath
 
     /**
@@ -40,6 +41,7 @@ class Pmd extends SourceTask implements VerificationTask {
      *
      * Example: ruleSets = ["basic", "braces"]
      */
+    @Input
     List<String> ruleSets
 
     /**
