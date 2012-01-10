@@ -41,17 +41,6 @@ abstract class CodeQualityExtension {
     Collection<SourceSet> sourceSets = project.sourceSets
 
     /**
-     * Convenience method for adding source sets to be analyzed as part of the <tt>check</tt> and <tt>build</tt> tasks.
-     *
-     * Example: sourceSets "main"
-     */
-    void sourceSets(String... names) {
-        for (name in names) {
-            sourceSets << project.sourceSets[name]
-        }
-    }
-
-    /**
      * Whether or not to allow the build to continue if there are warnings. Defaults to <tt>false</tt>.
      *
      * Example: ignoreFailures = true
