@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AutoTestedSamplesUtil
 import org.gradle.util.Jvm
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
@@ -32,7 +31,6 @@ public class AutoTestedSamplesToolingApiTest extends Specification {
 
     @Rule public final TemporaryFolder temp = new TemporaryFolder()
 
-    @Ignore
     void runSamples() {
         expect:
 
@@ -56,5 +54,44 @@ public class Sample {
         }
     }
 
-    void tryCompile(final String source) {}
+    /**
+     * The implementation should never assume we're running against jdk6.
+     * Hence the impl is quite awkward and does all interaction with java6 compiler api reflectively.
+     *
+     * @param source
+     */
+    void tryCompile(final String source) {
+        //TODO SF generalize and move the test out of integ tests, add unit tests
+        def sourceFile = temp.dir.file("Sample.java")
+        sourceFile.text = source
+
+        def compiler = ("javax.tools.ToolProvider" as Class).getSystemJavaCompiler()
+        def fileManager = compiler.getStandardFileManager(null, null, null);
+
+        def location = ("javax.tools.StandardLocation" as Class).CLASS_OUTPUT
+        fileManager.setLocation(location, Arrays.asList(temp.dir));
+
+        def checkDiagnostic = { diagnostic ->
+            if (diagnostic.kind.name() == 'ERROR') {
+                String[] lines = source.split("\n")
+                int lineNo = diagnostic.lineNumber - 1
+
+                def message = "Compilation error in sample in line: \n" + lines[lineNo] + "\n" + diagnostic + "\n"
+                message = message - sourceFile.absolutePath
+                throw new AssertionError(message)
+            }
+        }
+
+        def diagnosticListener = checkDiagnostic.asType("javax.tools.DiagnosticListener" as Class)
+
+        def input = fileManager.getJavaFileObjectsFromFiles(Arrays.asList(sourceFile))
+        compiler.getTask(null,
+            fileManager,
+            diagnosticListener,
+            null,
+            null,
+            input).call();
+
+        fileManager.close();
+    }
 }
