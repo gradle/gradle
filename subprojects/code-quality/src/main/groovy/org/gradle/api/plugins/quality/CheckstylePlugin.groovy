@@ -69,7 +69,7 @@ class CheckstylePlugin implements Plugin<Project> {
                 classpath = sourceSet.output
             }
             task.conventionMapping.with {
-                checkstyleClassPath = {
+                checkstyleClasspath = {
                     def config = project.configurations['checkstyle']
                     if (config.dependencies.empty) {
                         project.dependencies {

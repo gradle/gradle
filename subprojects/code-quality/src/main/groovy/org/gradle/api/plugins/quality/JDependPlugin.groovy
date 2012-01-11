@@ -79,7 +79,7 @@ class JDependPlugin implements Plugin<ProjectInternal> {
                 description = "Run JDepend analysis for ${sourceSet.name} classes"
             }
             task.conventionMapping.with {
-                jdependClassPath = {
+                jdependClasspath = {
                     def config = project.configurations['jdepend']
                     if (config.dependencies.empty) {
                         project.dependencies {

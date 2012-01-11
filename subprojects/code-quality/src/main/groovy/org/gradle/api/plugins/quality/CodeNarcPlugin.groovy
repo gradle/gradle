@@ -67,7 +67,7 @@ class CodeNarcPlugin implements Plugin<Project> {
                 description = "Run CodeNarc analysis for ${sourceSet.name} classes"
             }
             task.conventionMapping.with {
-                codeNarcClassPath = {
+                codenarcClasspath = {
                     def config = project.configurations['codenarc']
                     if (config.dependencies.empty) {
                         project.dependencies {

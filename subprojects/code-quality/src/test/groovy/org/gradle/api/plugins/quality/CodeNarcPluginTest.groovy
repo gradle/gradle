@@ -79,7 +79,7 @@ class CodeNarcPluginTest extends Specification {
         task.with {
             assert description == "Run CodeNarc analysis for ${sourceSet.name} classes"
             assert defaultSource == sourceSet.allGroovy
-            assert codeNarcClasspath == project.configurations.codenarc
+            assert codenarcClasspath == project.configurations.codenarc
             assert configFile == project.file("config/codenarc/codenarc.xml")
             assert reportFormat == "html"
             assert reportFile == project.file("build/reports/codenarc/${sourceSet.name}.html")
@@ -127,7 +127,7 @@ class CodeNarcPluginTest extends Specification {
         task.with {
             assert description == "Run CodeNarc analysis for ${sourceSet.name} classes"
             assert defaultSource == sourceSet.allGroovy
-            assert codeNarcClasspath == project.configurations.codenarc
+            assert codenarcClasspath == project.configurations.codenarc
             assert configFile == project.file("codenarc-config")
             assert reportFormat == "xml"
             assert reportFile == project.file("codenarc-reports/${sourceSet.name}.xml")

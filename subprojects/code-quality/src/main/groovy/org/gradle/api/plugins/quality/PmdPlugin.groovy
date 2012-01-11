@@ -81,7 +81,7 @@ class PmdPlugin implements Plugin<ProjectInternal> {
                 description = "Run PMD analysis for ${sourceSet.name} classes"
             }
             task.conventionMapping.with {
-                pmdClassPath = {
+                pmdClasspath = {
                     def config = project.configurations['pmd']
                     if (config.dependencies.empty) {
                         project.dependencies {
