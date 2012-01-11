@@ -70,7 +70,7 @@ class FindBugsPlugin implements Plugin<ProjectInternal> {
         extension = instantiator.newInstance(FindBugsExtension, project)
         project.extensions.findbugs = extension
         extension.with {
-            toolVersion = "1.3.9" // 2.0.0 isn't yet available from Maven Central
+            toolVersion = "2.0.0"
         }
         extension.conventionMapping.with {
             reportsDir = { new File(project.reportsDir, "findbugs") }
@@ -83,7 +83,6 @@ class FindBugsPlugin implements Plugin<ProjectInternal> {
             task.with {
                 description = "Run FindBugs analysis for ${sourceSet.name} classes"
                 pluginClasspath = project.configurations['findbugsPlugins']
-                classes = sourceSet.output
             }
             task.conventionMapping.with {
                 findbugsClasspath = {
@@ -97,6 +96,14 @@ class FindBugsPlugin implements Plugin<ProjectInternal> {
                     config
                 }
                 defaultSource = { sourceSet.allJava }
+                classes = {
+                    // the simple "classes = sourceSet.output" may lead to non-existing resources directory
+                    // being passed to FindBugs Ant task, resulting in an error
+                    project.fileTree {
+                        from sourceSet.output.classesDir
+                        builtBy sourceSet.output
+                    }
+                } 
                 classpath = { sourceSet.compileClasspath }
                 reportFile = { new File(extension.reportsDir, "${sourceSet.name}.xml") }
                 ignoreFailures = { extension.ignoreFailures }

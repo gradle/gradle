@@ -22,6 +22,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.VerificationTask
+import org.gradle.api.tasks.SkipWhenEmpty
 
 /**
  * Analyzes code with <a href="http://findbugs.sourceforge.net">FindBugs</a>.
@@ -30,24 +31,29 @@ class FindBugs extends SourceTask implements VerificationTask {
     /**
      * The classes to be analyzed.
      */
-    @InputFiles FileCollection classes
+    @SkipWhenEmpty
+    @InputFiles
+    FileCollection classes
 
     /**
      * Compile class path for the classes to be analyzed.
      * The classes on this class path are used during analysis
      * but aren't analyzed themselves.
      */
-    @InputFiles FileCollection classpath
+    @InputFiles
+    FileCollection classpath
 
     /**
      * Class path holding the FindBugs library.
      */
-    @InputFiles FileCollection findbugsClasspath
+    @InputFiles
+    FileCollection findbugsClasspath
 
     /**
      * Class path holding any additional FindBugs plugins.
      */
-    @InputFiles FileCollection pluginClasspath
+    @InputFiles
+    FileCollection pluginClasspath
 
     /**
      * Whether or not to allow the build to continue if there are warnings.
@@ -57,25 +63,39 @@ class FindBugs extends SourceTask implements VerificationTask {
     /**
      * The file in which the FindBugs output will be saved.
      */
-    @OutputFile File reportFile
+    @OutputFile
+    File reportFile
     
     @TaskAction
     void run() {
-        String warningsProp = 'findbugsWarnings'
+        String errorProp = 'findbugsError'
+		String warningsProp = 'findbugsWarnings'
 
         getReportFile().parentFile.mkdirs()
 
-        ant.taskdef(name: 'findbugs', classname: 'edu.umd.cs.findbugs.anttask.FindBugsTask', classpath: getFindbugsClasspath().asPath)
-        ant.findbugs(outputFile: getReportFile(), failOnError: !getIgnoreFailures(), warningsProperty: warningsProp) {
+		ant.taskdef(name: 'findbugs', classname: 'edu.umd.cs.findbugs.anttask.FindBugsTask', classpath: getFindbugsClasspath().asPath)
+		ant.findbugs(debug: logger.isDebugEnabled(), outputFile: getReportFile(), errorProperty: errorProp, warningsProperty: warningsProp) {
             getFindbugsClasspath().addToAntBuilder(ant, 'classpath')
             getPluginClasspath().addToAntBuilder(ant, 'pluginList')
-            getClasspath().addToAntBuilder(ant, 'auxClasspath')
-            getSource().addToAntBuilder(ant, 'sourcePath')
-            getClasses().asFileTree.files.each { 'class'(location: it) }
+            getClasses().addToAntBuilder(ant, 'auxAnalyzepath')
+            // FindBugs can't handle either of the following being empty on Windows
+            // leads to strange (parsing?) errors like "file src/main/java/-exitcode not found"
+            addUnlessEmpty(getClasspath(), 'auxClasspath')
+            addUnlessEmpty(getSource(), 'sourcePath')
         }
-        
-        if (!ignoreFailures && ant.properties[warningsProp]) {
-            throw new GradleException("FindBugs reported warnings. See the report at ${getReportFile()}.")
+		
+        if (ant.properties[errorProp]) {
+            throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.")
+        }
+      
+		if (ant.properties[warningsProp] && !ignoreFailures) {
+			throw new GradleException("FindBugs rule violations were found. See the report at ${getReportFile()}.")
+		}
+    }
+
+    protected void addUnlessEmpty(FileCollection files, String nodeName) {
+        if (!files.empty) {
+          files.addToAntBuilder(ant, nodeName)
         }
     }
 }

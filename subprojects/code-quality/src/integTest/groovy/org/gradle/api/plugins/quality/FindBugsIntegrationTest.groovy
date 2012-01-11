@@ -47,7 +47,7 @@ class FindBugsIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails("check")
 		failure.assertHasDescription("Execution failed for task ':findbugsMain'")
-        failure.assertThatCause(startsWith("FindBugs reported warnings."))
+        failure.assertThatCause(startsWith("FindBugs rule violations were found. See the report at"))
 		file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
     }
 
