@@ -137,7 +137,6 @@ task dslDocbook(type: AssembleDslDocTask, dependsOn: [dslMetaData]) {
 
 task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook]) {
     inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
-    inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
     sourceFile = dslDocbook.destFile
     destFile = new File(docbookSrc, 'dsl-standalone.xml')
     javadocUrl = '../javadoc'
@@ -161,7 +160,6 @@ task dslHtml(type: Docbook2Xhtml) {
 
 task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
     inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
-    inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'userguide.xml')
     javadocUrl = '../javadoc'
@@ -172,7 +170,6 @@ task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samples
 
 task remoteUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
     inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
-    inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
     javadocUrl = project.version.javadocUrl
