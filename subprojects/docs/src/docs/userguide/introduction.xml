@@ -71,9 +71,5 @@
             guide. You can find out more about contributing to the documentation at the
             <ulink url="website:contributing.html">Gradle web site</ulink>.
         </para>
-        <para>You can find more examples, and some additions to this user guide, on the
-            <ulink url="http://docs.codehaus.org/display/GRADLE/User+guide">wiki</ulink>.
-            You can also contribute your own examples and extra content there.
-        </para>
     </section>
 </chapter>
