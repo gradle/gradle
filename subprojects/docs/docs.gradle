@@ -61,6 +61,7 @@ outputs.docs = files(docsDir) {
     builtBy 'javadoc', 'groovydoc', 'userguide', 'dslHtml'
 }
 
+allUserguideSrc = fileTree(dir: userguideSrcDir, includes: ['*.xml'])
 
 tasks.withType(Docbook2Xhtml) {
     dependsOn userguideStyleSheets
@@ -136,7 +137,7 @@ task dslDocbook(type: AssembleDslDocTask, dependsOn: [dslMetaData]) {
 }
 
 task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook]) {
-    inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
+    inputs.files allUserguideSrc
     sourceFile = dslDocbook.destFile
     destFile = new File(docbookSrc, 'dsl-standalone.xml')
     javadocUrl = '../javadoc'
@@ -159,7 +160,7 @@ task dslHtml(type: Docbook2Xhtml) {
 }
 
 task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
-    inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
+    inputs.files allUserguideSrc
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'userguide.xml')
     javadocUrl = '../javadoc'
@@ -169,7 +170,7 @@ task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samples
 }
 
 task remoteUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
-    inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
+    inputs.files allUserguideSrc
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
     javadocUrl = project.version.javadocUrl
