@@ -27,8 +27,15 @@ import java.util.Set;
 
 /**
  * A {@code Configuration} represents a group of artifacts and their dependencies.
+ * Find more information about declaring dependencies to a configuration
+ * or about managing configurations in docs for {@link ConfigurationContainer}
  * <p>
- * See also examples on managing configurations in {@link ConfigurationContainer}
+ * Configuration is an instance of a {@link FileCollection}
+ * that contains all dependencies (see also {@link #getAllDependencies()}) but not artifacts.
+ * If you want to refer to the artifacts declared in this configuration
+ * please use {@link #getArtifacts()} or {@link #getAllArtifacts()}.
+ * Read more about declaring artifacts in the configuration in docs for {@link org.gradle.api.artifacts.dsl.ArtifactHandler}
+ * <p>
  */
 public interface Configuration extends FileCollection {
 
