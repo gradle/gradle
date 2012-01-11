@@ -76,7 +76,7 @@ class FindBugsPluginTest extends Specification {
             assert description == "Run FindBugs analysis for ${sourceSet.name} classes"
             assert defaultSource == sourceSet.allJava
             assert findbugsClasspath == project.configurations.findbugs
-            assert classes == sourceSet.output
+            assert classes.empty // no classes to analyze
             assert reportFile == project.file("build/reports/findbugs/${sourceSet.name}.xml")
             assert ignoreFailures == false
         }
