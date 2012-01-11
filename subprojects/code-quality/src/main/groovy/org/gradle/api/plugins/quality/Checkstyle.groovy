@@ -70,7 +70,7 @@ class Checkstyle extends SourceTask implements VerificationTask {
     @Deprecated
     void setProperties(Map<String, Object> properties) {
         DeprecationLogger.nagUserOfReplacedProperty("properties", "configProperties")
-        configProperties = properties
+        setConfigProperties(properties)
     }
 
     /**
@@ -94,7 +94,7 @@ class Checkstyle extends SourceTask implements VerificationTask {
     @Deprecated
     void setResultFile(File file) {
         DeprecationLogger.nagUserOfReplacedProperty("resultFile", "reportFile")
-        reportFile = file
+        setReportFile(file)
     }
 
     /**
