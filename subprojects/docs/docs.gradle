@@ -115,8 +115,8 @@ task samplesDocbook(type: AssembleSamplesDocTask) {
     destFile = new File(docbookSrc, 'samplesList.xml')
 }
 
-task samplesDocs(type: Docbook2Xhtml, dependsOn: samplesDocbook) {
-    source samplesDocbook.destFile
+task samplesDocs(type: Docbook2Xhtml) {
+    source samplesDocbook
     destFile = new File(samples.destDir, 'readme.html')
     stylesheetName = 'standaloneHtml.xsl'
 }
@@ -146,8 +146,8 @@ task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook])
     websiteUrl = 'http://www.gradle.org'
 }
 
-task dslHtml(type: Docbook2Xhtml, dependsOn: dslStandaloneDocbook) {
-    source dslStandaloneDocbook.destFile
+task dslHtml(type: Docbook2Xhtml) {
+    source dslStandaloneDocbook
     destDir = new File(docsDir, 'dsl')
     stylesheetName = 'dslHtml.xsl'
     resources = fileTree {
@@ -181,8 +181,8 @@ task remoteUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
     websiteUrl = 'http://www.gradle.org'
 }
 
-task userguideHtml(type: Docbook2Xhtml, dependsOn: userguideDocbook) {
-    source userguideDocbook.destFile
+task userguideHtml(type: Docbook2Xhtml) {
+    source userguideDocbook
     destDir = userguideDir
     stylesheetName = 'userGuideHtml.xsl'
     resources = fileTree {
@@ -195,8 +195,8 @@ task userguideHtml(type: Docbook2Xhtml, dependsOn: userguideDocbook) {
     }
 }
 
-task userguideSingleHtml(type: Docbook2Xhtml, dependsOn: userguideDocbook) {
-    source userguideDocbook.destFile
+task userguideSingleHtml(type: Docbook2Xhtml) {
+    source userguideDocbook
     destFile = new File(userguideDir, 'userguide_single.html')
     stylesheetName = 'userGuideSingleHtml.xsl'
     resources = fileTree {
@@ -209,8 +209,8 @@ task userguideSingleHtml(type: Docbook2Xhtml, dependsOn: userguideDocbook) {
     }
 }
 
-task userguideXhtml(type: Docbook2Xhtml, dependsOn: remoteUserguideDocbook) {
-    source remoteUserguideDocbook.destFile
+task userguideXhtml(type: Docbook2Xhtml) {
+    source remoteUserguideDocbook
     destFile = new File(buildDir, 'tmp/userguidePdf/userguidePdf.html')
     stylesheetName = 'userGuidePdf.xsl'
     resources = fileTree {
@@ -282,8 +282,8 @@ task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideSty
     websiteUrl = 'http://www.gradle.org'
 }
 
-task distDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
-    source userguideFragmentSrc.destFile
+task distDocs(type: Docbook2Xhtml) {
+    source userguideFragmentSrc
     destFile = new File(distDocsDir, 'getting-started.html')
     stylesheetName = 'standaloneHtml.xsl'
 }
