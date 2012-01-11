@@ -137,7 +137,6 @@ task dslDocbook(type: AssembleDslDocTask, dependsOn: [dslMetaData]) {
 }
 
 task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook]) {
-    inputs.files allUserguideSrc
     sourceFile = dslDocbook.destFile
     destFile = new File(docbookSrc, 'dsl-standalone.xml')
     javadocUrl = '../javadoc'
