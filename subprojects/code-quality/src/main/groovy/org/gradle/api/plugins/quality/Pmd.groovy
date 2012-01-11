@@ -35,7 +35,7 @@ class Pmd extends SourceTask implements VerificationTask {
      * The class path containing the PMD library to be used.
      */
     @InputFiles
-    FileCollection pmdClassPath
+    FileCollection pmdClasspath
 
     /**
      * The built-in rule sets to be used. See the <a href="http://pmd.sourceforge.net/rules/index.html">official list</a> of built-in rule sets.
@@ -79,7 +79,7 @@ class Pmd extends SourceTask implements VerificationTask {
 
     @TaskAction
     void run() {
-        ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask', classpath: getPmdClassPath().asPath)
+        ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask', classpath: getPmdClasspath().asPath)
         ant.pmd(failOnRuleViolation: !getIgnoreFailures()) {
             getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
             getRuleSets().each {

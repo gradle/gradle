@@ -79,7 +79,7 @@ class CheckstylePluginTest extends Specification {
         task.with {
             assert description == "Run Checkstyle analysis for ${sourceSet.name} classes"
             assert defaultSource == sourceSet.allJava
-            assert checkstyleClassPath == project.configurations["checkstyle"]
+            assert checkstyleClasspath == project.configurations["checkstyle"]
             assert classpath == sourceSet.output
             assert configFile == project.file("config/checkstyle/checkstyle.xml")
             assert configProperties == [:]
@@ -128,7 +128,7 @@ class CheckstylePluginTest extends Specification {
         task.with {
             assert description == "Run Checkstyle analysis for ${sourceSet.name} classes"
             assert defaultSource == sourceSet.allJava
-            assert checkstyleClassPath == project.configurations["checkstyle"]
+            assert checkstyleClasspath == project.configurations["checkstyle"]
             assert configFile == project.file("checkstyle-config")
             assert configProperties == [foo: "foo"]
             assert reportFile == project.file("checkstyle-reports/${sourceSet.name}.xml")

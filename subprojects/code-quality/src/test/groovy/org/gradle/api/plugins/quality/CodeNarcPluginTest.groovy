@@ -19,7 +19,6 @@ import org.gradle.api.Project
 import org.gradle.util.HelperUtil
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.Task
 
 import spock.lang.Specification
 
@@ -80,7 +79,7 @@ class CodeNarcPluginTest extends Specification {
         task.with {
             assert description == "Run CodeNarc analysis for ${sourceSet.name} classes"
             assert defaultSource == sourceSet.allGroovy
-            assert codeNarcClassPath == project.configurations.codenarc
+            assert codeNarcClasspath == project.configurations.codenarc
             assert configFile == project.file("config/codenarc/codenarc.xml")
             assert reportFormat == "html"
             assert reportFile == project.file("build/reports/codenarc/${sourceSet.name}.html")
@@ -128,7 +127,7 @@ class CodeNarcPluginTest extends Specification {
         task.with {
             assert description == "Run CodeNarc analysis for ${sourceSet.name} classes"
             assert defaultSource == sourceSet.allGroovy
-            assert codeNarcClassPath == project.configurations.codenarc
+            assert codeNarcClasspath == project.configurations.codenarc
             assert configFile == project.file("codenarc-config")
             assert reportFormat == "xml"
             assert reportFile == project.file("codenarc-reports/${sourceSet.name}.xml")

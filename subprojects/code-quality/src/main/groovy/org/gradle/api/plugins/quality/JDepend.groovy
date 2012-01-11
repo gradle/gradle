@@ -32,7 +32,7 @@ class JDepend extends DefaultTask implements VerificationTask {
      * The class path containing the JDepend library to be used.
      */
     @InputFiles
-    FileCollection jdependClassPath
+    FileCollection jdependClasspath
 
     /**
      * The directory containing the classes to be analyzed.
@@ -60,7 +60,7 @@ class JDepend extends DefaultTask implements VerificationTask {
     @TaskAction
     void run() {
         ant.taskdef(name: 'jdepend', classname: 'org.apache.tools.ant.taskdefs.optional.jdepend.JDependTask',
-                classpath: getJdependClassPath().asPath)
+                classpath: getJdependClasspath().asPath)
         ant.jdepend(format: 'xml', outputFile: getReportFile(), haltOnError: !getIgnoreFailures()) {
             classespath {
                 pathElement(location: getClassesDir())

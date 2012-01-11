@@ -78,7 +78,7 @@ class PmdPluginTest extends Specification {
         task.with {
             assert description == "Run PMD analysis for ${sourceSet.name} classes"
             defaultSource == sourceSet.allJava
-            assert pmdClassPath == project.configurations.pmd
+            assert pmdClasspath == project.configurations.pmd
             assert ruleSets == ["basic"]
             assert ruleSetFiles.empty
             assert xmlReportFile == project.file("build/reports/pmd/${sourceSet.name}.xml")
@@ -128,7 +128,7 @@ class PmdPluginTest extends Specification {
         task.with {
             assert description == "Run PMD analysis for ${sourceSet.name} classes"
             defaultSource == sourceSet.allJava
-            assert pmdClassPath == project.configurations.pmd
+            assert pmdClasspath == project.configurations.pmd
             assert ruleSets == ["braces", "unusedcode"]
             assert ruleSetFiles.files == project.files("my-ruleset.xml").files
             assert xmlReportFile == project.file("pmd-xml-reports/${sourceSet.name}.xml")

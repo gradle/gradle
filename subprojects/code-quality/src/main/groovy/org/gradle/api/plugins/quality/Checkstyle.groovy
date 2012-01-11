@@ -28,7 +28,7 @@ class Checkstyle extends SourceTask implements VerificationTask {
      * The class path containing the Checkstyle library to be used.
      */
     @InputFiles
-    FileCollection checkstyleClassPath
+    FileCollection checkstyleClasspath
 
     /**
      * The class path containing the compiled classes for the source files to be analyzed.
@@ -106,7 +106,7 @@ class Checkstyle extends SourceTask implements VerificationTask {
     public void run() {
         def propertyName = "org.gradle.checkstyle.violations"
 
-        ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask', classpath: getCheckstyleClassPath().asPath)
+        ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask', classpath: getCheckstyleClasspath().asPath)
 
         ant.checkstyle(config: getConfigFile(), failOnViolation: false, failureProperty: propertyName) {
             getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)

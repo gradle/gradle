@@ -74,7 +74,7 @@ class JDependPluginTest extends Specification {
         assert task instanceof JDepend
         task.with {
             assert description == "Run JDepend analysis for ${sourceSet.name} classes"
-            assert jdependClassPath == project.configurations.jdepend
+            assert jdependClasspath == project.configurations.jdepend
             assert classesDir == sourceSet.output.classesDir
             assert reportFile == project.file("build/reports/jdepend/${sourceSet.name}.xml")
             assert ignoreFailures == false
@@ -118,7 +118,7 @@ class JDependPluginTest extends Specification {
         assert task instanceof JDepend
         task.with {
             assert description == "Run JDepend analysis for ${sourceSet.name} classes"
-            assert jdependClassPath == project.configurations.jdepend
+            assert jdependClasspath == project.configurations.jdepend
             assert classesDir == sourceSet.output.classesDir
             assert reportFile == project.file("jdepend-reports/${sourceSet.name}.xml")
             assert ignoreFailures == true

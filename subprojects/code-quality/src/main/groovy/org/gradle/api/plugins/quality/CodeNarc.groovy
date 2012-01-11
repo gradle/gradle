@@ -30,7 +30,7 @@ class CodeNarc extends SourceTask implements VerificationTask {
      * The class path containing the CodeNarc library to be used.
      */
     @InputFiles
-    FileCollection codeNarcClassPath
+    FileCollection codeNarcClasspath
 
     /**
      * The CodeNarc configuration file to use.
@@ -59,7 +59,7 @@ class CodeNarc extends SourceTask implements VerificationTask {
     void run() {
         logging.captureStandardOutput(LogLevel.INFO)
 
-        ant.taskdef(name: 'codenarc', classname: 'org.codenarc.ant.CodeNarcTask', classpath: getCodeNarcClassPath().asPath)
+        ant.taskdef(name: 'codenarc', classname: 'org.codenarc.ant.CodeNarcTask', classpath: getCodeNarcClasspath().asPath)
 
         try {
             ant.codenarc(ruleSetFiles: "file:${getConfigFile()}", maxPriority1Violations: 0, maxPriority2Violations: 0, maxPriority3Violations: 0) {
