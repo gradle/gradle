@@ -61,8 +61,6 @@ outputs.docs = files(docsDir) {
     builtBy 'javadoc', 'groovydoc', 'userguide', 'dslHtml'
 }
 
-allUserguideSrc = fileTree(dir: userguideSrcDir, includes: ['*.xml'])
-
 tasks.withType(Docbook2Xhtml) {
     dependsOn userguideStyleSheets
     classpath = configurations.userGuideTask
@@ -159,23 +157,25 @@ task dslHtml(type: Docbook2Xhtml) {
 }
 
 task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
-    inputs.files allUserguideSrc
-    sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'userguide.xml')
     javadocUrl = '../javadoc'
     groovydocUrl = '../groovydoc'
     dsldocUrl = '../dsl'
-    websiteUrl = 'http://www.gradle.org'
 }
 
 task remoteUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
-    inputs.files allUserguideSrc
-    sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
     javadocUrl = project.version.javadocUrl
     groovydocUrl = project.version.groovydocUrl
     dsldocUrl = project.version.dsldocUrl
-    websiteUrl = 'http://www.gradle.org'
+}
+
+configure([userguideDocbook, remoteUserguideDocbook]) {
+    // The master userguide.xml pulls these files in via xi:include, making them input
+    inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
+
+    sourceFile new File(userguideSrcDir, 'userguide.xml')
+    websiteUrl 'http://www.gradle.org'
 }
 
 task userguideHtml(type: Docbook2Xhtml) {
