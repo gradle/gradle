@@ -30,12 +30,14 @@ import java.util.Map;
 public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMetaData> {
     private final String className;
     private final String simpleName;
+    private final String packageName;
     private LinkMetaData.Style style;
     private final Map<String, MethodLinkMetaData> methods = new HashMap<String, MethodLinkMetaData>();
 
     public ClassLinkMetaData(ClassMetaData classMetaData) {
         this.className = classMetaData.getClassName();
         this.simpleName = classMetaData.getSimpleName();
+        this.packageName = classMetaData.getPackageName();
         this.style = classMetaData.isGroovy() ? LinkMetaData.Style.Groovydoc : LinkMetaData.Style.Javadoc;
         for (MethodMetaData method : classMetaData.getDeclaredMethods()) {
             addMethod(method, style);
@@ -44,6 +46,10 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
 
     public LinkMetaData getClassLink() {
         return new LinkMetaData(style, simpleName, null);
+    }
+
+    public String getPackageName() {
+        return packageName;
     }
 
     public LinkMetaData getMethod(String method) {

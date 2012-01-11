@@ -136,19 +136,16 @@ public class UserGuideTransformTask extends DefaultTask {
             Element ulinkElement = doc.createElement('ulink')
 
             String href
-            switch (style) {
-                case 'dsldoc':
-                    href = "$dsldocUrl/${className}.html"
-                    break
-                case 'groovydoc':
-                    href = "$groovydocUrl/${className.replace('.', '/')}.html"
-                    break;
-                case 'javadoc':
-                    href = "$javadocUrl/${className.replace('.', '/')}.html"
-                    break;
-                default:
-                    throw new InvalidUserDataException("Unknown api link style '$style'.")
+            if (style == 'dsldoc') {
+                "$dsldocUrl/${className}.html"
+            } else if (style == "groovydoc" || style == "javadoc") {
+                def base = style == "groovydoc" ? groovydocUrl : javadocUrl
+                def packageName = classMetaData.packageName
+                href = "$base/${packageName.replace('.', '/')}/${className.substring(packageName.length()+1)}.html"
+            } else {
+                throw new InvalidUserDataException("Unknown api link style '$style'.")
             }
+
             if (linkMetaData.urlFragment) {
                 href = "$href#$linkMetaData.urlFragment"
             }
