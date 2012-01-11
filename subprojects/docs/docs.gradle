@@ -156,6 +156,7 @@ task dslHtml(type: Docbook2Xhtml) {
     }
 }
 
+// This is used in the distribution and for the online version
 task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
     destFile = new File(docbookSrc, 'userguide.xml')
     javadocUrl = '../javadoc'
@@ -163,14 +164,15 @@ task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samples
     dsldocUrl = '../dsl'
 }
 
-task remoteUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
+// This is used for the PDF, where we need absolute links to the javadoc etc.
+task pdfUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
     javadocUrl = project.version.javadocUrl
     groovydocUrl = project.version.groovydocUrl
     dsldocUrl = project.version.dsldocUrl
 }
 
-configure([userguideDocbook, remoteUserguideDocbook]) {
+configure([userguideDocbook, pdfUserguideDocbook]) {
     // The master userguide.xml pulls these files in via xi:include, making them input
     inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
 
@@ -207,7 +209,7 @@ task userguideSingleHtml(type: Docbook2Xhtml) {
 }
 
 task userguideXhtml(type: Docbook2Xhtml) {
-    source remoteUserguideDocbook
+    source pdfUserguideDocbook
     destFile = new File(buildDir, 'tmp/userguidePdf/userguidePdf.html')
     stylesheetName = 'userGuidePdf.xsl'
     resources = fileTree {
