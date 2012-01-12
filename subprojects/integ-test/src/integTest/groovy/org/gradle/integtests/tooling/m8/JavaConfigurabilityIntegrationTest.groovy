@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.m8
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.build.BuildEnvironment
 
 @MinToolingApiVersion('1.0-milestone-8')
@@ -73,5 +74,24 @@ class JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
 
         then:
         env.java.jvmArguments == []
+    }
+
+    def "tooling api provided jvm args take precedence over gradle.properties"() {
+        dist.file('build.gradle') << """
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx23m')
+assert System.getProperty('some-prop') == 'BBB'
+"""
+        dist.file('gradle.properties') << "org.gradle.jvmargs=-Dsome-prop=AAA -Xmx16m"
+        //TODO SF should we combine the different properties?
+
+        when:
+        def model = withConnection {
+            it.model(Project.class)
+                .setJvmArguments('-Dsome-prop=BBB', '-Xmx23m')
+                .get()
+        }
+
+        then:
+        model != null
     }
 }
