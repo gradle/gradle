@@ -51,34 +51,22 @@ public abstract class AbstractCompatibilityTestRunner extends Runner {
         if (versionStr == null) {
             versionStr = System.getProperty("org.gradle.integtest.versions", "latest");
         }
-        List<String> versions;
-        versions = Arrays.asList(
-                "0.8",
-                "0.9-rc-3",
-                "0.9",
-                "0.9.1",
-                "0.9.2",
-                "1.0-milestone-1",
-                "1.0-milestone-2",
-                "1.0-milestone-3",
-                "1.0-milestone-4",
-                "1.0-milestone-5",
-                "1.0-milestone-6",
-                "1.0-milestone-7");
+        ReleasedVersions previousVersions = new ReleasedVersions(current);
         if (!versionStr.equals("all")) {
-            versions = Collections.singletonList(versions.get(versions.size() - 1));
-        }
-        for (String version : versions) {
-            BasicGradleDistribution previous = current.previousVersion(version);
-            if (!previous.worksWith(Jvm.current())) {
-                executions.add(new IgnoredVersion(previous, "does not work with current JVM"));
-                continue;
+            previous.add(previousVersions.getLast());
+        } else {
+            List<BasicGradleDistribution> all = previousVersions.getAll();
+            for (BasicGradleDistribution previous : all) {
+                if (!previous.worksWith(Jvm.current())) {
+                    executions.add(new IgnoredVersion(previous, "does not work with current JVM"));
+                    continue;
+                }
+                if (!previous.worksWith(OperatingSystem.current())) {
+                    executions.add(new IgnoredVersion(previous, "does not work with current OS"));
+                    continue;
+                }
+                this.previous.add(previous);
             }
-            if (!previous.worksWith(OperatingSystem.current())) {
-                executions.add(new IgnoredVersion(previous, "does not work with current OS"));
-                continue;
-            }
-            this.previous.add(previous);
         }
     }
 

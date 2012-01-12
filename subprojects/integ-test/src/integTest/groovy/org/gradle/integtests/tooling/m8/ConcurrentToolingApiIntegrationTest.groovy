@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
+import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
@@ -30,7 +31,6 @@ import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 
 @MinToolingApiVersion('1.0-milestone-8')
@@ -48,7 +48,7 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         new ConnectorServices().reset()
     }
 
-    def "handles concurrent scenario"() {
+    def "handles the same target gradle version concurrently"() {
         dist.file('build.gradle')  << "apply plugin: 'java'"
 
         when:
@@ -60,14 +60,18 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         concurrent.finished()
     }
 
-    @Ignore
-    //TODO SF ignore until we fix the potential logback issue
-    def "handles concurrent builds with different target Gradle version"() {
+    def "handles different target gradle versions concurrently"() {
+        given:
+        def current = getTargetDist()
+        def previous = new ReleasedVersions(dist).getPreviousOf(current)
+        assert current != previous
+        println "Combination of versions used: current - $current, previous - $previous"
+
         dist.file('build.gradle')  << "apply plugin: 'java'"
 
         when:
-        threads.times { concurrent.start { useToolingApi() } }
-        threads.times { concurrent.start { useToolingApi(dist.previousVersion("1.0-milestone-7"))} }
+        concurrent.start { useToolingApi(current) }
+        concurrent.start { useToolingApi(previous)}
 
         then:
         concurrent.finished()
