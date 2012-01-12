@@ -10,9 +10,9 @@ You can download released versions and nightly build artifacts from http://gradl
 
 ## Building
 
-Naturally, Gradle builds itself with Gradle. Gradle provides an innovative [wrapper](http://gradle.org/docs/current/userguide/gradle_wrapper.html) that allows you to work with a Gradle build without having to manually install Gradle. The wrapper is a batch script on Windows and a shell script on other operating systems. You should always build the Gradle project via wrapper.
+Naturally, Gradle builds itself with Gradle. Gradle provides an innovative [wrapper](http://gradle.org/docs/current/userguide/gradle_wrapper.html) that allows you to work with a Gradle build without having to manually install Gradle. The wrapper is a batch script on Windows and a shell script on other operating systems.
 
-You should use the wrapper to build the gradle project. Generally, you should use wrapper for any wrapper-powered project because it guarantees building with compatible gradle version.
+You should use the wrapper to build the gradle project. Generally, you should use wrapper for any wrapper-powered project because it guarantees building with the Gradle version that the build was intended to use.
 
 To build the entire Gradle project, you should run the following in the root of the checkout.
 
@@ -72,7 +72,7 @@ Please see the readme in in the [docs subproject](https://github.com/gradle/grad
 
 ### IntelliJ IDEA
 
-To open the gradle project in IDEA, simply run the following task from the root:
+To open the Gradle project in IDEA, simply run the following task from the root:
 
     ./gradlew idea
 
