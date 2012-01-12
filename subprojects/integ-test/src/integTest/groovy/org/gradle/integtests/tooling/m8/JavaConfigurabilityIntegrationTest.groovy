@@ -106,8 +106,7 @@ assert System.getProperty('some-prop') == 'BBB'
                 .run()
         }
 
-        then:
-        //behaves sanely, and the exception contains useful info
+        then: "behaves sanely, and the exception contains useful info"
     }
 
     @Ignore
@@ -121,7 +120,6 @@ assert System.getProperty('some-prop') == 'BBB'
                 .run()
         }
 
-        then:
-        //behaves sanely, and the exception contains useful info
+        then: "behaves sanely, and the exception contains useful info"
     }
 }
