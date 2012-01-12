@@ -1,4 +1,4 @@
-The docs project produces the [userguide](http://gradle.org.docs/current/userguide/userguide.html), [DSL reference](http://gradle.org/docs/current/dsl/), [javadoc](http://gradle.org/docs/current/javadoc/) and [groovydoc](http://gradle.org/docs/current/groovydoc/) (as well as some other minor bits).
+The docs project produces the [userguide](http://gradle.org/docs/current/userguide/userguide.html), [DSL reference](http://gradle.org/docs/current/dsl/), [javadoc](http://gradle.org/docs/current/javadoc/) and [groovydoc](http://gradle.org/docs/current/groovydoc/) (as well as some other minor bits).
 
 The following is some help for working with the docs, all file paths are relative to this directory unless specified otherwise.
 
