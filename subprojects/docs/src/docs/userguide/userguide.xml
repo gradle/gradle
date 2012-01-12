@@ -40,6 +40,7 @@
     <xi:include href='overview.xml'/>
     <xi:include href='tutorials.xml'/>
     <xi:include href='installation.xml'/>
+    <xi:include href='troubleshooting.xml'/>
     <xi:include href='buildScriptsTutorial.xml'/>
     <xi:include href='javaTutorial.xml'/>
     <xi:include href='artifactDependenciesTutorial.xml'/>
