@@ -17,23 +17,10 @@
 package org.gradle.tooling.model;
 
 /**
- * Described model element
+ * A Model that is buildable by the Tooling API.
+ * Models contain various information regarding the build.
+ * Models are typically tailored to specific domain (for example build environment or IDE, etc.)
  *
- * @since 1.0-milestone-5
+ * @since 1.0-milestone-8
  */
-public interface Element extends Model {
-
-    /**
-     * Returns the name. Note that the name is not a unique identifier.
-     *
-     * @return The name.
-     */
-    String getName();
-
-    /**
-     * Returns the description.
-     *
-     * @return The description. May be null.
-     */
-    String getDescription();
-}
+public interface Model {}

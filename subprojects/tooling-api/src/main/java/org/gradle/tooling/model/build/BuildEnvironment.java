@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.model.build;
 
-import org.gradle.tooling.model.Element;
+import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
 /**
@@ -27,7 +27,7 @@ import org.gradle.tooling.model.UnsupportedMethodException;
  * <p>
  * @since 1.0-milestone-8
  */
-public interface BuildEnvironment extends Element {
+public interface BuildEnvironment extends Model {
 
     /**
      * Informs about the gradle environment, for example the gradle version.

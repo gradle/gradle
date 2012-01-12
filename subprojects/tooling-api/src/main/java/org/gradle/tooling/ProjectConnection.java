@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.tooling.model.Element;
+import org.gradle.tooling.model.Model;
 
 /**
  * Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link org.gradle.tooling.GradleConnector#connect()}.
@@ -63,7 +63,7 @@ public interface ProjectConnection {
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When this connection has been closed or is closing.
      */
-    <T extends Element> T getModel(Class<T> viewType) throws UnsupportedVersionException,
+    <T extends Model> T getModel(Class<T> viewType) throws UnsupportedVersionException,
             UnknownModelException, BuildException, GradleConnectionException, IllegalStateException;
 
     /**
@@ -76,7 +76,7 @@ public interface ProjectConnection {
      * @throws UnknownModelException When you are building a model unknown to the Tooling API,
      *  for example you attempt to build a model of a type does not come from the Tooling API.
      */
-    <T extends Element> void getModel(Class<T> viewType, ResultHandler<? super T> handler) throws IllegalStateException, UnknownModelException;
+    <T extends Model> void getModel(Class<T> viewType, ResultHandler<? super T> handler) throws IllegalStateException, UnknownModelException;
 
     /**
      * Creates a launcher which can be used to execute a build.
@@ -94,7 +94,7 @@ public interface ProjectConnection {
      * @throws UnknownModelException When you are building a model unknown to the Tooling API,
      *  for example you attempt to build a model of a type does not come from the Tooling API.
      */
-    <T extends Element> ModelBuilder<T> model(Class<T> modelType) throws UnknownModelException;
+    <T extends Model> ModelBuilder<T> model(Class<T> modelType) throws UnknownModelException;
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

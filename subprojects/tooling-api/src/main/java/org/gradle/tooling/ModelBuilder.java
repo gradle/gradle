@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.tooling.model.Element;
+import org.gradle.tooling.model.Model;
 
 import java.io.File;
 import java.io.InputStream;
@@ -42,7 +42,7 @@ import java.io.OutputStream;
  *
  * @param <T> The type of model to build
  */
-public interface ModelBuilder<T extends Element> extends LongRunningOperation {
+public interface ModelBuilder<T extends Model> extends LongRunningOperation {
 
     /**
      * {@inheritDoc}

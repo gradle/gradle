@@ -59,12 +59,4 @@ public class DefaultBuildEnvironment implements BuildEnvironment, InternalBuildE
             }
         };
     }
-
-    public String getName() {
-        return "Build environment information";
-    }
-
-    public String getDescription() {
-        return null;
-    }
 }

@@ -33,7 +33,7 @@ import java.util.Map;
 
 class DefaultProjectConnection implements ProjectConnection {
     private final AsyncConnection connection;
-    private final Map<Class<? extends Element>, Class> modelTypeMap = new HashMap<Class<? extends Element>, Class>();
+    private final Map<Class<? extends Model>, Class> modelTypeMap = new HashMap<Class<? extends Model>, Class>();
     private ProtocolToModelAdapter adapter;
     private final ConnectionParameters parameters;
 
@@ -45,8 +45,8 @@ class DefaultProjectConnection implements ProjectConnection {
         modelTypeMap.putAll(getModelsPostM6());
     }
 
-    public static Map<Class<? extends Element>, Class> getModelsUpToM6() {
-        Map<Class<? extends Element>, Class> map = new HashMap<Class<? extends Element>, Class>();
+    public static Map<Class<? extends Model>, Class> getModelsUpToM6() {
+        Map<Class<? extends Model>, Class> map = new HashMap<Class<? extends Model>, Class>();
         map.put(Project.class, ProjectVersion3.class);
         map.put(BuildableProject.class, BuildableProjectVersion1.class);
         map.put(HierarchicalProject.class, HierarchicalProjectVersion1.class);
@@ -58,8 +58,8 @@ class DefaultProjectConnection implements ProjectConnection {
         return map;
     }
 
-    public static Map<Class<? extends Element>, Class> getModelsPostM6() {
-        Map<Class<? extends Element>, Class> map = new HashMap<Class<? extends Element>, Class>();
+    public static Map<Class<? extends Model>, Class> getModelsPostM6() {
+        Map<Class<? extends Model>, Class> map = new HashMap<Class<? extends Model>, Class>();
         map.put(BuildEnvironment.class, InternalBuildEnvironment.class);
         map.put(TestModel.class, InternalTestModel.class);
         return map;
@@ -69,11 +69,11 @@ class DefaultProjectConnection implements ProjectConnection {
         connection.stop();
     }
 
-    public <T extends Element> T getModel(Class<T> viewType) {
+    public <T extends Model> T getModel(Class<T> viewType) {
         return model(viewType).get();
     }
 
-    public <T extends Element> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
+    public <T extends Model> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
         model(viewType).get(handler);
     }
 
@@ -81,11 +81,11 @@ class DefaultProjectConnection implements ProjectConnection {
         return new DefaultBuildLauncher(connection, parameters);
     }
 
-    public <T extends Element> ModelBuilder<T> model(Class<T> modelType) {
+    public <T extends Model> ModelBuilder<T> model(Class<T> modelType) {
         return new DefaultModelBuilder<T, Class>(modelType, mapToProtocol(modelType), connection, adapter, parameters);
     }
 
-    private Class mapToProtocol(Class<? extends Element> viewType) {
+    private Class mapToProtocol(Class<? extends Model> viewType) {
         Class protocolViewType = modelTypeMap.get(viewType);
         if (protocolViewType == null) {
             throw new UnknownModelException(
