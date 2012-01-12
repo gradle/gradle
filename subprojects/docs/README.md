@@ -2,7 +2,6 @@ The docs project produces the [userguide](http://gradle.org/docs/current/usergui
 
 The following is some help for working with the docs, all file paths are relative to this directory unless specified otherwise.
 
-
 ## Userguide
 
 The source for the userguide lives @ `src/docs/userguide`. The userguide is authored using [docbook](http://www.docbook.org/) and uses [docbook stylesheets](http://docbook.sourceforge.net/) with some customisations in `src/stylesheets` to generate HTML. It uses [Flying Saucer](https://xhtmlrenderer.dev.java.net/) + [iText](http://www.lowagie.com/iText/) to generate the PDF from the HTML.
