@@ -19,7 +19,7 @@ package org.gradle.tooling.model;
 /**
  * Represents an element which has Gradle tasks associated with it.
  *
- * @since 1.0-rc-1
+ * @since 1.0-milestone-5
  */
 public interface BuildableElement extends Element {
 

@@ -19,7 +19,7 @@ package org.gradle.tooling.model;
 /**
  * Gradle project.
  *
- * @since 1.0-rc-1
+ * @since 1.0-milestone-5
  */
 public interface GradleProject extends HierarchicalElement, BuildableElement {
 

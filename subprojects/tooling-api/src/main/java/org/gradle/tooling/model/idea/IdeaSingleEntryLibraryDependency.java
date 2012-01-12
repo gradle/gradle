@@ -23,7 +23,7 @@ import java.io.File;
 /**
  * "Single-Entry Module Library" as IDEA calls it. For example a single jar file with sources jar.
  *
- * @since 1.0-rc-1
+ * @since 1.0-milestone-5
  */
 public interface IdeaSingleEntryLibraryDependency extends IdeaDependency, ExternalDependency {
     /**

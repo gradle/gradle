@@ -21,6 +21,6 @@ import org.gradle.tooling.model.SourceDirectory;
 /**
  * Idea source directory
  *
- * @since 1.0-rc-1
+ * @since 1.0-milestone-5
  */
 public interface IdeaSourceDirectory extends SourceDirectory {}
