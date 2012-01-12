@@ -64,32 +64,4 @@ To run all of the tests and code quality checks for that module.
 
 ### Contributing Documentation
 
-The Gradle project goes to much effort to produce top quality [documentation](http://gradle.org/documentation). All of the documentation is contained in the `docs` (path: `subprojects/docs`).
-
-#### Contributing to the Userguide
-
-The source for the userguide lives @ `subprojects/docs/src/docs/userguide` and is in [docbook](http://www.docbook.org/). When adding new content, it's generally best to find an example of the kind of content that you want to add somewhere else in the userguide and copy it.
-
-To generate the userguide and see your changes, run:
-
-    ./gradlew docs:userguide
-
-You can then view the built html in `subprojects/docs/build/docs/userguide` (open the `userguide.html`) to view the front page.
-
-#### Contributing to the reference documentation
-
-The reference documentation (i.e. [dsl](http://gradle.org/docs/current/dsl/), [javadoc](http://gradle.org/docs/current/javadoc/) and [groovydoc](http://gradle.org/docs/current/groovydoc/)) are extracted from the in code doc comments.
-
-To build these, run:
-
-    ./gradlew docs:dslHtml
-    ./gradlew docs:javadoc
-    ./gradlew docs:groovydoc
-
-The output is available in the `dsl`, `javadoc` and `groovydoc` directories respectively within `subprojects/docs/build/docs`.
-
-#### Building all the docs
-
-There is a convenience task to build all of the documentation:
-
-    ./gradlew docs:docs
+Please see the readme in in the [docs subproject](https://github.com/gradle/gradle/tree/master/subprojects/docs).
