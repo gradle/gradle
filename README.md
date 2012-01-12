@@ -1,3 +1,8 @@
+<div>
+    <img src="http://gradle.org/img/honeycomb-motto.gif" style="float: left;" />
+    <img src="http://gradle.org/img/gradle_logo.gif" style="float: right;" />
+</div>
+
 Gradle is build automation *evolved*. Gradle can automate the building, testing, publishing, deployment and more of software packages or other types of projects such as generated static websites, generated documentation or indeed anything else.
 
 For more information about Gradle, please visit http://gradle.org
