@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.build.BuildEnvironment
+import org.junit.Ignore
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
@@ -93,5 +94,34 @@ assert System.getProperty('some-prop') == 'BBB'
 
         then:
         model != null
+    }
+
+    //TODO SF - there's a story in pivotal for it apparently
+    @Ignore
+    def "behaves reasonably when rubbish java home"() {
+        when:
+        withConnection {
+            it.newBuild()
+                .setJavaHome(new File("hey"))
+                .run()
+        }
+
+        then:
+        //behaves sanely, and the exception contains useful info
+    }
+
+    @Ignore
+    def "behaves reasonably when rubbish jvm arguments supplied"() {
+        toolingApi.isEmbedded = false
+
+        when:
+        withConnection {
+            it.newBuild()
+                .setJvmArguments("-Xasdf")
+                .run()
+        }
+
+        then:
+        //behaves sanely, and the exception contains useful info
     }
 }
