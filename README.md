@@ -6,17 +6,19 @@ For more information about Gradle, please visit http://gradle.org
 
 ## Downloading
 
-You can download built versions (including nightly edge builds) from http://gradle.org/downloads
+You can download released versions and nightly build artifacts from http://gradle.org/downloads
 
 ## Building
 
 Naturally, Gradle builds itself with Gradle. Gradle provides an innovative [wrapper](http://gradle.org/docs/current/userguide/gradle_wrapper.html) that allows you to work with a Gradle build without having to manually install Gradle. The wrapper is a batch script on Windows and a shell script on other operating systems. You should always build the Gradle project via wrapper.
 
-So to build the entire Gradle project, you can run the following in the root of the checkout…
+You should use the wrapper to build the gradle project. Generally, you should use wrapper for any wrapper-powered project because it guarantees building with compatible gradle version.
+
+To build the entire Gradle project, you should run the following in the root of the checkout.
 
     ./gradlew build
 
-This will compile all the code, generate all the documentation and run all the tests. It can take up to an hour on a fast machine.
+This will compile all the code, generate all the documentation and run all the tests. It can take up to an hour on a fast machine because we have thousands of tests, including integration tests that exercise virtually any Gradle feature. Among the things we test are: compatibility across versions, validity of samples and javadoc snippets, daemon process capabilities, etc.
 
 ### Installing from source
 
@@ -68,10 +70,6 @@ Please see the readme in in the [docs subproject](https://github.com/gradle/grad
 
 ## Opening in your IDE
 
-### Eclipse
-
-The Gradle project is not currently buildable in Eclipse. This is something that will be rectified in the future.
-
 ### IntelliJ IDEA
 
 To open the gradle project in IDEA, simply run the following task from the root:
@@ -79,3 +77,13 @@ To open the gradle project in IDEA, simply run the following task from the root:
     ./gradlew idea
 
 This will generate appropriate IDEA metadata so that the project can be opened from within IDEA.
+
+### Eclipse
+
+The Gradle project is not currently buildable in Eclipse. This is something that will be rectified in the future.
+
+You can try running:
+
+./gradlew eclipse
+
+That generates Eclipse metadata that allows importing the project into Eclipse. However, you would have to do some manual fixes to the project's setup to make it working. We plan to address this soon.
