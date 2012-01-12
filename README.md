@@ -65,3 +65,17 @@ To run all of the tests and code quality checks for that module.
 ### Contributing Documentation
 
 Please see the readme in in the [docs subproject](https://github.com/gradle/gradle/tree/master/subprojects/docs).
+
+## Opening in your IDE
+
+### Eclipse
+
+The Gradle project is not currently buildable in Eclipse. This is something that will be rectified in the future.
+
+### IntelliJ IDEA
+
+To open the gradle project in IDEA, simply run the following task from the root:
+
+    ./gradlew idea
+
+This will generate appropriate IDEA metadata so that the project can be opened from within IDEA.
