@@ -93,6 +93,7 @@
             If you're embedding gradle and you're looking for exact set of dependencies the tooling api jar requires
             please look at one of the samples at <filename>$gradleHome/samples/toolingApi</filename>.
             The dependencies are declared in the gradle build scripts.
+            You can also find the repository declarations where the jars are obtained from.
         </para>
     </section>
 
