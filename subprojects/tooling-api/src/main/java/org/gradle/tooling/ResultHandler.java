@@ -21,7 +21,20 @@ package org.gradle.tooling;
  * @param <T> The result type.
  */
 public interface ResultHandler<T> {
+
+    /**
+     * Handles successful completion of the operation.
+     *
+     * @param result the result
+     */
     void onComplete(T result);
 
+    /**
+     * Handles failures. A failure happens when the target Gradle version does not support
+     * the features required to build this model. For example, when you have configured the long running operation with a settings
+     *  like: {@link LongRunningOperation#setStandardInput(java.io.InputStream)}, {@link LongRunningOperation#setJavaHome(java.io.File)}, {@link LongRunningOperation#setJvmArguments(String...)}
+     *  but those settings are not supported on the target Gradle.
+     * @param failure the failure
+     */
     void onFailure(GradleConnectionException failure);
 }

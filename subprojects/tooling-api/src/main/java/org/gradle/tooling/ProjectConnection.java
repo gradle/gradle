@@ -57,11 +57,14 @@ public interface ProjectConnection {
      * @param <T> The model type.
      * @return The model.
      * @throws UnsupportedVersionException When the target Gradle version does not support the given model.
+     * @throws UnknownModelException When you are building a model unknown to the Tooling API,
+     *  for example you attempt to build a model of a type does not come from the Tooling API.
      * @throws BuildException On some failure executing the Gradle build, in order to build the model.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When this connection has been closed or is closing.
      */
-    <T extends Element> T getModel(Class<T> viewType) throws GradleConnectionException;
+    <T extends Element> T getModel(Class<T> viewType) throws UnsupportedVersionException,
+            UnknownModelException, BuildException, GradleConnectionException, IllegalStateException;
 
     /**
      * Fetches a snapshot of the model for this project asynchronously. This method return immediately, and the result of the operation is passed to the supplied result handler.
@@ -70,8 +73,10 @@ public interface ProjectConnection {
      * @param handler The handler to pass the result to.
      * @param <T> The model type.
      * @throws IllegalStateException When this connection has been closed or is closing.
+     * @throws UnknownModelException When you are building a model unknown to the Tooling API,
+     *  for example you attempt to build a model of a type does not come from the Tooling API.
      */
-    <T extends Element> void getModel(Class<T> viewType, ResultHandler<? super T> handler) throws IllegalStateException;
+    <T extends Element> void getModel(Class<T> viewType, ResultHandler<? super T> handler) throws IllegalStateException, UnknownModelException;
 
     /**
      * Creates a launcher which can be used to execute a build.
@@ -86,8 +91,10 @@ public interface ProjectConnection {
      * @param modelType The model type
      * @param <T> The model type.
      * @return The builder.
+     * @throws UnknownModelException When you are building a model unknown to the Tooling API,
+     *  for example you attempt to build a model of a type does not come from the Tooling API.
      */
-    <T extends Element> ModelBuilder<T> model(Class<T> modelType);
+    <T extends Element> ModelBuilder<T> model(Class<T> modelType) throws UnknownModelException;
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

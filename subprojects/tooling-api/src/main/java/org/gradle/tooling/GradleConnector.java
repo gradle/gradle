@@ -112,6 +112,6 @@ public abstract class GradleConnector {
      * @throws UnsupportedVersionException When the target Gradle version does not support this version of the tooling API.
      * @throws GradleConnectionException On failure to establish a connection with the target Gradle version.
      */
-    public abstract ProjectConnection connect() throws GradleConnectionException;
+    public abstract ProjectConnection connect() throws GradleConnectionException, UnsupportedVersionException;
 
 }

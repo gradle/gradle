@@ -25,9 +25,8 @@ import org.gradle.tooling.model.UnsupportedMethodException;
  * Marked as deprecated because the API is not yet confirmed.
  * E.g. we will provide this information for sure, we just haven't yet confirmed the API.
  * <p>
- * Since 1.0-milestone-8
+ * @since 1.0-milestone-8
  */
-@Deprecated
 public interface BuildEnvironment extends Element {
 
     /**

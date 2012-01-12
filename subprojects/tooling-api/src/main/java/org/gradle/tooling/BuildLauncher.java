@@ -99,6 +99,9 @@ public interface BuildLauncher extends LongRunningOperation {
      * Execute the build, blocking until it is complete.
      *
      * @throws UnsupportedVersionException When the target Gradle version does not support the features required for this build.
+     *  For example, when you have configured the long running operation with a settings
+     *  like: {@link #setStandardInput(java.io.InputStream)}, {@link #setJavaHome(java.io.File)}, {@link #setJvmArguments(String...)}
+     *  but those settings are not supported on the target Gradle.
      * @throws BuildException On some failure executing the Gradle build.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When the connection has been closed or is closing.

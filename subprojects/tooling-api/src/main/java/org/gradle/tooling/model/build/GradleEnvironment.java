@@ -18,6 +18,8 @@ package org.gradle.tooling.model.build;
 
 /**
  * Informs about the gradle environment, for example the gradle version.
+ *
+ * @since 1.0-milestone-8
  */
 public interface GradleEnvironment {
 

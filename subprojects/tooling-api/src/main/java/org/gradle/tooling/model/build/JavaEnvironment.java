@@ -21,6 +21,8 @@ import java.util.List;
 
 /**
  * Informs about the java environment, for example the java home or the jvm args used.
+ *
+ * @since 1.0-milestone-8
  */
 public interface JavaEnvironment {
 

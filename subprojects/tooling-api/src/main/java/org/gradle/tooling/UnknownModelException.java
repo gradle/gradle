@@ -19,10 +19,9 @@ package org.gradle.tooling;
 /**
  * Thrown when the client is trying to acquire a model that is unknown to the Tooling API.
  * <p>
- * Although it extends {@link UnsupportedVersionException}, this exception does not really mean the version is incorrect.
- * E.g. when the client asks for a model that does not exist in the tooling api version in use
- * his code will not compile in first place (the class does not exist).
- * The reason we extend {@link UnsupportedVersionException} is for backwards compatibility reasons.
+ * The exception extends {@link UnsupportedVersionException} only for backwards compatibility reasons.
+ *
+ * @since 1.0-milestone-8
  */
 public class UnknownModelException extends UnsupportedVersionException {
 
