@@ -52,8 +52,8 @@ class JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
         BuildEnvironment env = withConnection {
             def model = it.model(BuildEnvironment.class)
             model
-                .setJavaHome(new File("hey"))
-                .setJvmArguments("-Xmx333m", "-Xms13m")
+                .setJavaHome(null)
+                .setJvmArguments(null)
                 .get()
         }
 
