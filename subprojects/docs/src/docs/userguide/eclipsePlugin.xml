@@ -24,7 +24,7 @@
     <para>Since 1.0-milestone-4 WTP-generating code was refactored into a separate plugin called <literal>eclipse-wtp</literal>.
         So if you are interested in WTP integration then only apply the <literal>eclipse-wtp</literal> plugin. Otherwise applying <literal>eclipse</literal> plugin is enough.
         This change was requested by eclipse users who take advantage of <literal>war</literal> or <literal>ear</literal> plugin
-        but they don't use eclipse WTP. Internally, <literal>eclipse-wtp</literal> also applies the <literal>eclipse</literal> plugin so you should not apply both of those plugins.
+        but they don't use eclipse WTP. Internally, <literal>eclipse-wtp</literal> also applies the <literal>eclipse</literal> plugin so you don't need to apply both of those plugins.
     </para>
 
     <para>What exactly the Eclipse plugin generates depends on which other plugins are used:</para>
