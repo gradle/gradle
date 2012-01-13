@@ -56,7 +56,7 @@
         </tr>
     </table>
 
-    <para>One focus of the Eclipse plugin is to be open to customization. Therfore it provides a standardized set of hooks
+    <para>The Eclipse plugin is open to customization and provides a standardized set of hooks
         for adding and removing content from the generated files.
     </para>
 
@@ -270,8 +270,7 @@
     </section>
     <section>
         <title>Customizing the generated files</title>
-        <para>The eclipse plugin provides the same hooks and behavior for customizing the generated files.</para>
-        <para>The tasks recognize existing Eclipse files, and merge them with the generated content.</para>
+        <para>The eclipse plugin provides hooks and behavior for customizing the generated files.</para>
         <section>
             <title>Merging</title>
             <para>Sections of existing Eclipse files that are also the target of generated content will be amended or overwritten,
@@ -348,7 +347,7 @@
             <section id="sec:partial-overwrite">
                 <title>Partial overwrite of existing content</title>
                 <para>A <link linkend="sec:complete-overwrite">complete overwrite</link> causes all existing content to be discarded,
-                    thereby losing any changes made directly in the IDE. The <code>beforeMerged</code> hook makes it possible
+                    thereby losing any changes made directly in the IDE. Alternatively, the <code>beforeMerged</code> hook makes it possible
                     to overwrite just certain parts of the existing content. The following example removes all existing dependencies
                     from the <literal>Classpath</literal> domain object:
                     <sample id="partialOverwrites" dir="eclipse"
