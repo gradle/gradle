@@ -137,7 +137,7 @@ public class UserGuideTransformTask extends DefaultTask {
 
             String href
             if (style == 'dsldoc') {
-                "$dsldocUrl/${className}.html"
+                href = "$dsldocUrl/${className}.html"
             } else if (style == "groovydoc" || style == "javadoc") {
                 def base = style == "groovydoc" ? groovydocUrl : javadocUrl
                 def packageName = classMetaData.packageName
