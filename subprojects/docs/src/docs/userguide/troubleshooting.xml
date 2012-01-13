@@ -35,8 +35,11 @@
             If you are encountering problems, one of the first things to try is using the very latest release of Gradle. New versions of Gradle are
             released frequently with bug fixes and new features. The problem you are having may have been fixed in a new release.
         </para>
+        <para>
+            If you are using the Gradle Daemon, try temporarily disabling the daemon (you can pass the command line switch <literal>--no-daemon</literal>).
+            The Gradle Daemon is currently an experimental feature and may introduce build failures.
+        </para>
     </section>
-    
     <section>
         <title>Getting help</title>
         <para>
