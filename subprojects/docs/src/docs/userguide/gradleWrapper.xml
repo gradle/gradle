@@ -97,7 +97,7 @@
     </section>
     <section id='sec:environment_variable'>
         <title>Environment variable</title>
-        <para>Some rather exotic use cases might occur when working with the Gradle Wrapper. For example the continuous
+        <para>Some rather exotic use cases might occur when working with the Gradle Wrapper. For example the continuos
             integration server goes down during unzipping the Gradle distribution. As the distribution directory exists
             <command>gradlew</command>
             delegates to it but the distribution is corrupt. Or the zip-distribution was not properly downloaded. When
