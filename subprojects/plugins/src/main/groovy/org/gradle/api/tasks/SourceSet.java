@@ -86,30 +86,33 @@ public interface SourceSet {
     void setRuntimeClasspath(FileCollection classpath);
 
     /**
+     * Deprecated. Use {@code getOutput().getClassesDir()} instead.
+     * <p>
      * Returns the directory to assemble the compiled classes into.
      *
      * @return The classes dir. Never returns null.
-     * @deprecated Use {@code getOutput().getClassesDir()} instead.
      */
     @Deprecated
     File getClassesDir();
 
     /**
+     * Deprecated. Use {@code getOutput().setClassesDir()} instead.
+     * <p>
      * Sets the directory to assemble the compiled classes into.
      *
      * @param classesDir the classes dir. Should not be null.
-     * @deprecated Use {@code getOutput().setClassesDir()} instead.
      */
     @Deprecated
     void setClassesDir(File classesDir);
 
     /**
+     * Deprecated. Use {@link #getOutput()} instead.
+     * <p>
      * Returns {@link SourceSetOutput} that extends {@link FileCollection} which means that it provides all output directories (compiled classes, processed resources, etc.)
      * <p>
      * Provides a way to configure the default output dirs and specify additional output dirs - see {@link SourceSetOutput}
      *
      * @return The output dirs, as a {@link SourceSetOutput}.
-     * @deprecated Use {@link #getOutput()} instead.
      */
     @Deprecated
     SourceSetOutput getClasses();
@@ -132,7 +135,7 @@ public interface SourceSet {
     SourceSet compiledBy(Object... taskPaths);
 
     /**
-     * Returns the non-Java resources which are to be copied into the class output directory.
+     * Returns the non-Java resources which are to be copied into the resources output directory.
      *
      * @return the resources. Never returns null.
      */
