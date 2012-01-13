@@ -31,7 +31,10 @@
     
     <section>
         <title>Working through problems</title>
-        <para>TBD.</para>
+        <para>
+            If you are encountering problems, one of the first things to try is using the very latest release of Gradle. New versions of Gradle are
+            released frequently with bug fixes and new features. The problem you are having may have been fixed in a new release.
+        </para>
     </section>
     
     <section>
