@@ -16,19 +16,27 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
-
 /**
- * by Szczepan Faber, created at: 12/22/11
+ * by Szczepan Faber, created at: 1/13/12
  */
-public interface ConsumerConnection {
+public class ConsumerConnectionMetadata {
 
-    void stop();
+    private final String displayName;
+    private final String version;
 
-    ConsumerConnectionMetadata getMetaData();
+    public ConsumerConnectionMetadata(String displayName, String version) {
+        this.displayName = displayName;
+        this.version = version;
+    }
 
-    <T> T getModel(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
+    public String getDisplayName() {
+        return displayName;
+    }
 
-    void executeBuild(BuildParametersVersion1 buildParameters, ConsumerOperationParameters operationParameters) throws IllegalStateException;
+    public String getVersion() {
+        if (version == null) {
+            throw new UnsupportedOperationException();
+        }
+        return version;
+    }
 }

@@ -25,7 +25,6 @@ import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
 /**
@@ -44,7 +43,7 @@ public class ProgressLoggingConnection implements ConsumerConnection {
         connection.stop();
     }
 
-    public ConnectionMetaDataVersion1 getMetaData() {
+    public ConsumerConnectionMetadata getMetaData() {
         return connection.getMetaData();
     }
 

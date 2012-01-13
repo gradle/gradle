@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalConnection;
 
@@ -38,8 +37,8 @@ public class AdaptedConnection implements ConsumerConnection {
         delegate.stop();
     }
 
-    public ConnectionMetaDataVersion1 getMetaData() {
-        return delegate.getMetaData();
+    public ConsumerConnectionMetadata getMetaData() {
+        return new ConsumerConnectionMetadata(delegate.getMetaData().getDisplayName(), delegate.getMetaData().getVersion());
     }
 
     @SuppressWarnings({"deprecation"})
