@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -51,6 +52,16 @@ class GenericFileSystem implements FileSystem {
         return doCreateSymbolicLink(link, target) == 0;
     }
 
+    public int getUnixMode(File f) throws IOException {
+        assertFileExists(f);
+        return PosixUtil.current().stat(f.getAbsolutePath()).mode() & 0777;
+    }
+
+    public void chmod(File f, int mode) throws IOException {
+        assertFileExists(f);
+        PosixUtil.current().chmod(f.getAbsolutePath(), mode & 0777);
+    }
+
     private int doCreateSymbolicLink(File link, File target) {
         link.getParentFile().mkdirs();
         try {
@@ -58,6 +69,12 @@ class GenericFileSystem implements FileSystem {
         } catch (UnsatisfiedLinkError e) {
             // Assume symlink() is not available
             return 1;
+        }
+    }
+
+    protected final void assertFileExists(File f) throws FileNotFoundException {
+        if (!f.exists()) {
+            throw new FileNotFoundException(f + " does not exist");
         }
     }
 

@@ -23,10 +23,16 @@ public abstract class FileSystems {
      * @return the default file system
      */
     public static FileSystem getDefault() {
-        return DefaultFileSystem.INSTANCE;
+        return OperatingSystem.current().isWindows()
+            ? DefaultWindowsFileSystem.INSTANCE
+            : DefaultFileSystem.INSTANCE;
     }
     
     private static class DefaultFileSystem {
         static final FileSystem INSTANCE = new GenericFileSystem();    
+    }
+
+    private static final class DefaultWindowsFileSystem {
+        static final FileSystem INSTANCE = new WindowsFileSystem();
     }
 }

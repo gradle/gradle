@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.nativeplatform
+package org.gradle.internal.nativeplatform;
 
-import spock.lang.Specification
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import java.io.File;
+import java.io.FileNotFoundException;
 
-@Requires(TestPrecondition.LINUX)
-class LinuxFileSystemTest extends Specification {
-    def fs = FileSystems.default
-
-    def "is case sensitive"() {
-        expect:
-        fs.caseSensitive
+class WindowsFileSystem extends GenericFileSystem {
+    public int getUnixMode(File f) throws FileNotFoundException {
+        assertFileExists(f);
+        return f.isDirectory() ? DEFAULT_DIR_MODE : DEFAULT_FILE_MODE;
     }
 
-    def "can create symbolic link"() {
-        expect:
-        fs.canCreateSymbolicLink()
+    public void chmod(File f, int mode) {
+        // not supported
     }
 }
