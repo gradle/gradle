@@ -143,7 +143,7 @@
             <varlistentry>
                 <term>Free and open source</term>
                 <listitem>
-                    <para>Gradle is an open source project, and is licensed under the <ulink url="website:license.html">ASL</ulink>.
+                    <para>Gradle is an open source project, and is licensed under the <ulink url="website:license">ASL</ulink>.
                     </para>
                 </listitem>
             </varlistentry>
