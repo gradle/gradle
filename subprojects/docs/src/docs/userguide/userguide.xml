@@ -15,7 +15,7 @@
   -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
     <bookinfo>
-        <title>Gradle</title>
+        <title>Gradle User Guide</title>
         <subtitle>A better way to build</subtitle>
         <copyright>
             <year>2007-2010</year>
