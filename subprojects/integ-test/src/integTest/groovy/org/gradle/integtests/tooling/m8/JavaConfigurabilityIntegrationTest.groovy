@@ -21,7 +21,8 @@ import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.junit.Ignore
+import spock.lang.Ignore
+import spock.lang.Issue
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
@@ -96,8 +97,8 @@ assert System.getProperty('some-prop') == 'BBB'
         model != null
     }
 
-    //TODO SF - there's a story in pivotal for it apparently
     @Ignore
+    @Issue("GRADLE-1799")
     def "behaves reasonably when rubbish java home"() {
         when:
         withConnection {
@@ -110,9 +111,8 @@ assert System.getProperty('some-prop') == 'BBB'
     }
 
     @Ignore
+    @Issue("GRADLE-1799")
     def "behaves reasonably when rubbish jvm arguments supplied"() {
-        toolingApi.isEmbedded = false
-
         when:
         withConnection {
             it.newBuild()

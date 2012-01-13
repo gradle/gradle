@@ -20,9 +20,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.messaging.remote.internal.ConnectException;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 
@@ -91,14 +91,17 @@ public class DefaultDaemonConnector implements DaemonConnector {
         daemonStarter.run();
         long expiry = System.currentTimeMillis() + connectTimeout;
         do {
-            connection = findConnection(daemonRegistry.getIdle(), constraint);
-            if (connection != null) {
-                return connection;
-            }
             try {
                 Thread.sleep(200L);
             } catch (InterruptedException e) {
                 throw UncheckedException.asUncheckedException(e);
+            }
+            connection = findConnection(daemonRegistry.getIdle(), constraint);
+            if (connection != null) {
+                return connection;
+            } else {
+                //TODO SF this might be a good moment to check what happened with the process we attempted to start (daemonStarter)
+                //see issue GRADLE-1799 or JavaConfigurabilityIntegrationTest.behaves reasonably tests
             }
         } while (System.currentTimeMillis() < expiry);
 
