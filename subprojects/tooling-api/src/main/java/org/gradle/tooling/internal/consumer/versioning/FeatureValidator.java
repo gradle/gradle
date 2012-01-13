@@ -38,7 +38,7 @@ public class FeatureValidator {
             }
         }
         if (operationParameters.getStandardInput() != null) {
-            if (!version.supportsConfiguringStandardInput() ) {
+            if (!version.supportsConfiguringStandardInput()) {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()");
             }
         }

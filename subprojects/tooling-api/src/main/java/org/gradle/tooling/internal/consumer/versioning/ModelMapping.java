@@ -35,11 +35,11 @@ import java.util.Map;
  */
 public class ModelMapping {
 
-    private static final Map<Class<? extends Model>, Class> modelTypeMap = new HashMap<Class<? extends Model>, Class>();
+    private static final Map<Class<? extends Model>, Class> MODEL_TYPE_MAP = new HashMap<Class<? extends Model>, Class>();
 
     static {
-        modelTypeMap.putAll(getModelsUpToM6());
-        modelTypeMap.putAll(getModelsPostM6());
+        MODEL_TYPE_MAP.putAll(getModelsUpToM6());
+        MODEL_TYPE_MAP.putAll(getModelsPostM6());
     }
 
     static Map<Class<? extends Model>, Class> getModelsUpToM6() {
@@ -63,6 +63,6 @@ public class ModelMapping {
     }
 
     public Class getInternalType(Class<? extends Model> viewType) {
-        return modelTypeMap.get(viewType);
+        return MODEL_TYPE_MAP.get(viewType);
     }
 }
