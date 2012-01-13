@@ -15,28 +15,23 @@
  */
 package org.gradle.initialization.layout;
 
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.initialization.SettingsLocation;
+
 import java.io.File;
 
-public class BuildLayout {
-    private final File settingsDir;
-    private final File settingsFile;
+public class BuildLayout extends SettingsLocation {
     private final File rootDirectory;
 
-    public BuildLayout(File rootDirectory, File settingsDir, File settingsFile) {
+    public BuildLayout(File rootDirectory, File settingsDir, ScriptSource settingsScript) {
+        super(settingsDir, settingsScript);
         this.rootDirectory = rootDirectory;
-        this.settingsDir = settingsDir;
-        this.settingsFile = settingsFile;
     }
 
+    /**
+     * Returns the root directory of the build, is never null.
+     */
     public File getRootDirectory() {
         return rootDirectory;
-    }
-
-    public File getSettingsDir() {
-        return settingsDir;
-    }
-
-    public File getSettingsFile() {
-        return settingsFile;
     }
 }
