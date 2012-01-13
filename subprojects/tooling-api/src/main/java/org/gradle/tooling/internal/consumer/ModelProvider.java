@@ -28,11 +28,11 @@ import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 public class ModelProvider {
 
     public <T> T provide(ConsumerConnection connection, Class<T> type, ConsumerOperationParameters operationParameters) {
-        VersionDetails version = new VersionDetails(connection.getMetaData().getVersion());
+        VersionDetails version = connection.getMetaData().getVersionDetails();
         if (type == InternalBuildEnvironment.class && !version.supportsCompleteBuildEnvironment()) {
             //early versions of provider do not support BuildEnvironment model
             //since we know the gradle version at least we can give back some result
-            VersionOnlyBuildEnvironment out = new VersionOnlyBuildEnvironment(connection.getMetaData().getVersion());
+            VersionOnlyBuildEnvironment out = new VersionOnlyBuildEnvironment(version.getVersion());
             return type.cast(out);
         }
         if (version.clientHangsOnEarlyDaemonFailure()) {

@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+
 /**
  * by Szczepan Faber, created at: 1/13/12
  */
@@ -33,10 +35,10 @@ public class ConsumerConnectionMetadata {
         return displayName;
     }
 
-    public String getVersion() {
+    public VersionDetails getVersionDetails() {
         if (version == null) {
             throw new UnsupportedOperationException();
         }
-        return version;
+        return new VersionDetails(version);
     }
 }

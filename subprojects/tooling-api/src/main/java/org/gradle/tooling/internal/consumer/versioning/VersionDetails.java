@@ -55,4 +55,8 @@ public class VersionDetails {
     public boolean supportsConfiguringStandardInput() {
         return gradleVersion.compareTo(M7) > 0;
     }
+
+    public String getVersion() {
+        return gradleVersion.getVersion();
+    }
 }
