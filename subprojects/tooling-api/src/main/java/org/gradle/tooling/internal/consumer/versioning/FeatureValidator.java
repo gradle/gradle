@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.connection;
+package org.gradle.tooling.internal.consumer.versioning;
 
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.model.internal.Exceptions;
-import org.gradle.util.GradleVersion;
 
 /**
  * by Szczepan Faber, created at: 1/9/12
@@ -26,28 +26,21 @@ import org.gradle.util.GradleVersion;
 public class FeatureValidator {
 
     public void validate(ConsumerConnection connection, ConsumerOperationParameters operationParameters) {
-        GradleVersion ver = GradleVersion.version(connection.getMetaData().getVersion());
+        VersionDetails version = new VersionDetails(connection.getMetaData().getVersion());
         if (operationParameters.getJavaHome() != null) {
-            if (lessThan(ver, "1.0-milestone-8")) {
+            if(!version.supportsConfiguringJavaHome()) {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJavaHome() and buildLauncher.setJavaHome()");
             }
         }
         if (operationParameters.getJvmArguments() != null) {
-            if (lessThan(ver, "1.0-milestone-8")) {
+            if (!version.supportsConfiguringJvmArguments()) {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJvmArguments() and buildLauncher.setJvmArguments()");
             }
         }
         if (operationParameters.getStandardInput() != null) {
-            if (lessThan(ver, "1.0-milestone-8")) {
+            if (!version.supportsConfiguringStandardInput() ) {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()");
             }
         }
-    }
-
-    private boolean lessThan(GradleVersion ver, String version) {
-        if (ver.isSnapshot() && ver.getVersion().startsWith(version)) {
-            return false;
-        }
-        return ver.compareTo(GradleVersion.version(version)) < 0;
     }
 }

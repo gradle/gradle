@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.consumer.LoggingProvider
 import org.gradle.tooling.internal.consumer.ModelProvider
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
+import org.gradle.tooling.internal.consumer.versioning.FeatureValidator
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1
 import spock.lang.Specification
 
