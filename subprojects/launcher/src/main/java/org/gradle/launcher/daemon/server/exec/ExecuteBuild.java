@@ -45,7 +45,7 @@ public class ExecuteBuild extends BuildCommandOnly {
             execution.setResult(build.run(launcherFactory));
         } catch (GradleException e) {
             /*
-                We have have to wrap in a ReportedException so the other side doesn't re log this exception, because it's already
+                We have to wrap in a ReportedException so the other side doesn't re-log this exception, because it's already
                 been logged by the GradleLauncher infrastructure, and that logging has been shipped over to the other side.
                 
                 This doesn't seem right. Perhaps we should assume on the client side that all “build failures” (opposed to daemon infrastructure failures)
