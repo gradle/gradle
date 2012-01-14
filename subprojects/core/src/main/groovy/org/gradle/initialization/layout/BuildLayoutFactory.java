@@ -27,7 +27,21 @@ public class BuildLayoutFactory {
     public BuildLayout getLayoutFor(File currentDir, boolean searchUpwards) {
         return getLayoutFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
     }
-    
+
+    /**
+     * Determines the layout of the build, given a current directory and some other configuration.
+     */
+    public BuildLayout getLayoutFor(BuildLayoutConfiguration configuration) {
+
+        if (configuration.getSettingsScript() != null) {
+            return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), configuration.getSettingsScript());
+        }
+
+        File currentDir = configuration.getCurrentDir();
+        boolean searchUpwards = configuration.isSearchUpwards();
+        return getLayoutFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
+    }
+
     BuildLayout getLayoutFor(File currentDir, File stopAt) {
         File settingsFile = new File(currentDir, "settings.gradle");
         if (settingsFile.isFile()) {
