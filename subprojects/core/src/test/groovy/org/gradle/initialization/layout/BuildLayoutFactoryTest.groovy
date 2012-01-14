@@ -136,8 +136,9 @@ class BuildLayoutFactoryTest extends Specification {
         isEmpty(layout.settingsScriptSource)
     }
 
-    def "can override build layout by specifying the settings script"() {
+    def "can override build layout by specifying the settings file"() {
         def currentDir = tmpDir.createDir("current")
+        currentDir.createFile("settings.gradle")
         def rootDir = tmpDir.createDir("root")
         def settingsFile = rootDir.createDir("some-settings.gradle")
         def startParameter = new StartParameter()
@@ -150,6 +151,35 @@ class BuildLayoutFactoryTest extends Specification {
         layout.rootDirectory == rootDir
         layout.settingsDir == rootDir
         refersTo(layout.settingsScriptSource, settingsFile)
+    }
+
+    def "can override build layout by specifying an empty settings script"() {
+        def currentDir = tmpDir.createDir("current")
+        currentDir.createFile("settings.gradle")
+        def startParameter = new StartParameter()
+        startParameter.currentDir = currentDir
+        startParameter.useEmptySettingsScript()
+        def config = new BuildLayoutConfiguration(startParameter)
+
+        expect:
+        def layout = locator.getLayoutFor(config)
+        layout.rootDirectory == currentDir
+        layout.settingsDir == currentDir
+        isEmpty(layout.settingsScriptSource)
+    }
+
+    def "can override build layout by specifying an embedded build script"() {
+        def currentDir = tmpDir.createDir("current")
+        def startParameter = new StartParameter()
+        startParameter.currentDir = currentDir
+        startParameter.useEmbeddedBuildFile 'embedded'
+        def config = new BuildLayoutConfiguration(startParameter)
+
+        expect:
+        def layout = locator.getLayoutFor(config)
+        layout.rootDirectory == currentDir
+        layout.settingsDir == currentDir
+        isEmpty(layout.settingsScriptSource)
     }
 
     void refersTo(ScriptSource scriptSource, File file) {

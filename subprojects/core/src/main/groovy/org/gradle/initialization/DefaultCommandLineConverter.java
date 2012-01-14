@@ -20,7 +20,6 @@ import org.gradle.ResolveMode;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cli.*;
@@ -165,7 +164,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         if (options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
-            startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(false));
+            startParameter.setBuildProjectDependencies(false);
         }
 
         if (!options.getExtraArguments().isEmpty()) {

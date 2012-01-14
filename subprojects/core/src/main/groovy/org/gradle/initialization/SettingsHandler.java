@@ -16,11 +16,10 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.StartParameter;
-import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 
 import java.io.File;
 import java.net.URLClassLoader;
@@ -48,7 +47,7 @@ public class SettingsHandler {
             // The settings we found did not include the desired default project. Try again with an empty settings file.
 
             StartParameter noSearchParameter = startParameter.newInstance();
-            noSearchParameter.setSettingsScriptSource(new StringScriptSource("empty settings file", ""));
+            noSearchParameter.useEmptySettingsScript();
             settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter);
             if (settings == null) // not using an assert to make sure it is not disabled
             {

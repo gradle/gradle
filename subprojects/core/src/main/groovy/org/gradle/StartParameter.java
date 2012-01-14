@@ -78,8 +78,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
-     *
-     * @param projectCacheDir
      */
     public void setProjectCacheDir(File projectCacheDir) {
         this.projectCacheDir = projectCacheDir;
@@ -130,7 +128,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.resolveMode = resolveMode;
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
-        startParameter.initScripts = new ArrayList<File>(initScripts); 
+        startParameter.initScripts = new ArrayList<File>(initScripts);
         startParameter.defaultProjectSelector = defaultProjectSelector;
         startParameter.setLogLevel(getLogLevel());
         startParameter.setColorOutput(isColorOutput());
@@ -223,7 +221,9 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * script.</p>
      *
      * @param settingsScriptSource The settings script source.
+     * @deprecated Use {@link #setSettingsFile(java.io.File)} or {@link #useEmptySettingsScript()} instead.
      */
+    @Deprecated
     public void setSettingsScriptSource(ScriptSource settingsScriptSource) {
         this.settingsScriptSource = settingsScriptSource;
     }
@@ -232,24 +232,36 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file.
      * </p>
      *
+     * @return this
+     */
+    public StartParameter useEmptySettingsScript() {
+        searchUpwards = false;
+        settingsScriptSource = new StringScriptSource("empty settings file", "");
+        return this;
+    }
+
+    /**
+     * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file. </p>
+     *
      * @param buildScriptText The script to use as the build file.
      * @return this
      */
     public StartParameter useEmbeddedBuildFile(String buildScriptText) {
         return setBuildScriptSource(new StringScriptSource("embedded build file", buildScriptText));
     }
-    
+
     /**
      * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file.
      * </p>
      *
      * @param buildScript The script to use as the build file.
      * @return this
+     * @deprecated Use {@link #setBuildFile(java.io.File)} or {@link #useEmbeddedBuildFile(String)} instead.
      */
+    @Deprecated
     public StartParameter setBuildScriptSource(ScriptSource buildScript) {
         buildScriptSource = buildScript;
-        settingsScriptSource = new StringScriptSource("empty settings file", "");
-        searchUpwards = false;
+        useEmptySettingsScript();
         return this;
     }
 
@@ -343,12 +355,12 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Returns a newly constructed map that is the JVM system properties merged with the system property args.
      * <p>
      * System property args take precedency overy JVM system properties.
-     * 
+     *
      * @return The merged system properties
      */
     public Map<String, String> getMergedSystemProperties() {
         Map<String, String> merged = new HashMap<String, String>();
-        merged.putAll((Map)System.getProperties());
+        merged.putAll((Map) System.getProperties());
         merged.putAll(getSystemPropertiesArgs());
         return merged;
     }
@@ -375,9 +387,23 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         return projectDependenciesBuildInstruction;
     }
 
+    /**
+     * @deprecated Use {@link #setBuildProjectDependencies(boolean)} instead.
+     */
+    @Deprecated
     public void setProjectDependenciesBuildInstruction(
             ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
         this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
+    }
+
+    /**
+     * Specifies whether project dependencies should be built. Defaults to true.
+     *
+     * @return this
+     */
+    public StartParameter setBuildProjectDependencies(boolean build) {
+        this.projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(build);
+        return this;
     }
 
     public CacheUsage getCacheUsage() {
@@ -430,6 +456,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     /**
      * Adds the given file to the list of init scripts that are run before the build starts.  This list is in
      * addition to the user init script located in ${user.home}/.gradle/init.gradle.
+     *
      * @param initScriptFile The init script to be run during the Gradle invocation.
      */
     public void addInitScript(File initScriptFile) {
@@ -444,6 +471,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Returns all explicitly added init scripts that will be run before the build starts.  This list does not
      * contain the user init script located in ${user.home}/.gradle/init.gradle, even though that init script
      * will also be run.
+     *
      * @return list of all explicitly added init scripts.
      */
     public List<File> getInitScripts() {
@@ -464,7 +492,9 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Sets the selector used to choose the default project of the build.
      *
      * @param defaultProjectSelector The selector. Should not be null.
+     * @deprecated
      */
+    @Deprecated
     public void setDefaultProjectSelector(ProjectSpec defaultProjectSelector) {
         this.defaultProjectSelector = defaultProjectSelector;
     }
@@ -487,6 +517,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Specifies if a profile report should be generated.
+     *
      * @param profile true if a profile report should be generated
      */
     public void setProfile(boolean profile) {
