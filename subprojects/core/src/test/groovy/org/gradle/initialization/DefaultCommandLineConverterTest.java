@@ -18,7 +18,6 @@ package org.gradle.initialization;
 
 import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.groovy.scripts.UriScriptSource;
@@ -53,8 +52,7 @@ public class DefaultCommandLineConverterTest {
     private File expectedProjectDir = currentDir;
     private List<String> expectedTaskNames = toList();
     private Set<String> expectedExcludedTasks = toSet();
-    private ProjectDependenciesBuildInstruction expectedProjectDependenciesBuildInstruction
-            = new ProjectDependenciesBuildInstruction(true);
+    private boolean buildProjectDependencies = true;
     private Map<String, String> expectedSystemProperties = new HashMap<String, String>();
     private Map<String, String> expectedProjectProperties = new HashMap<String, String>();
     private List<File> expectedInitScripts = new ArrayList<File>();
@@ -84,8 +82,7 @@ public class DefaultCommandLineConverterTest {
     private void checkStartParameter(StartParameter startParameter) {
         assertEquals(expectedBuildFile, startParameter.getBuildFile());
         assertEquals(expectedTaskNames, startParameter.getTaskNames());
-        assertEquals(expectedProjectDependenciesBuildInstruction,
-                startParameter.getProjectDependenciesBuildInstruction());
+        assertEquals(buildProjectDependencies, startParameter.isBuildProjectDependencies());
         assertEquals(expectedProjectDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
         assertEquals(expectedCacheUsage, startParameter.getCacheUsage());
         assertEquals(expectedSearchUpwards, startParameter.isSearchUpwards());
@@ -277,7 +274,7 @@ public class DefaultCommandLineConverterTest {
 
     @Test
     public void withNoProjectDependencyRebuild() {
-        expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(false);
+        buildProjectDependencies = false;
         checkConversion("-a");
     }
 

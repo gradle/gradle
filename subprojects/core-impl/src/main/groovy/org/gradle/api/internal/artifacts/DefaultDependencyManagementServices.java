@@ -21,9 +21,6 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
@@ -62,6 +59,9 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.cache.CacheRepository;
+import org.gradle.internal.Factory;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
@@ -129,12 +129,14 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     protected DependencyFactory createDependencyFactory() {
         Instantiator instantiator = get(Instantiator.class);
 
+        ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(get(StartParameter.class).isBuildProjectDependencies());
+        
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(
-                get(StartParameter.class).getProjectDependenciesBuildInstruction(),
+                projectDependenciesBuildInstruction,
                 instantiator);
 
         DependencyProjectNotationParser projParser = new DependencyProjectNotationParser(
-                get(StartParameter.class).getProjectDependenciesBuildInstruction(),
+                projectDependenciesBuildInstruction,
                 instantiator);
 
         NotationParser<? extends Dependency> moduleMapParser = new DependencyMapNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class);

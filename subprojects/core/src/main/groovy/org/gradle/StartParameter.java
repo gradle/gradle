@@ -56,8 +56,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     private List<String> taskNames = new ArrayList<String>();
     private Set<String> excludedTaskNames = new HashSet<String>();
-    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction
-            = new ProjectDependenciesBuildInstruction(true);
+    private boolean buildProjectDependencies = true;
     private File currentDir;
     private boolean searchUpwards = true;
     private Map<String, String> projectProperties = new HashMap<String, String>();
@@ -118,7 +117,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         StartParameter startParameter = new StartParameter();
         startParameter.buildFile = buildFile;
         startParameter.taskNames = taskNames;
-        startParameter.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
+        startParameter.buildProjectDependencies = buildProjectDependencies;
         startParameter.currentDir = currentDir;
         startParameter.searchUpwards = searchUpwards;
         startParameter.projectProperties = projectProperties;
@@ -383,26 +382,41 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         this.gradleUserHomeDir = gradleUserHomeDir == null ? DEFAULT_GRADLE_USER_HOME : GFileUtils.canonicalise(gradleUserHomeDir);
     }
 
+    /**
+     * Returns the project dependencies build instruction.
+     *
+     * @deprecated Use {@link #isBuildProjectDependencies()} instead.
+     */
+    @Deprecated
     public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
-        return projectDependenciesBuildInstruction;
+        return new ProjectDependenciesBuildInstruction(buildProjectDependencies);
     }
 
     /**
+     * Sets the project dependencies build instruction.
+     *
      * @deprecated Use {@link #setBuildProjectDependencies(boolean)} instead.
      */
     @Deprecated
     public void setProjectDependenciesBuildInstruction(
             ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
-        this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
+        this.buildProjectDependencies = projectDependenciesBuildInstruction.isRebuild();
     }
 
+    /**
+     * Returns true if project dependencies are to be built, false if they should not be. The default is true.
+     */
+    public boolean isBuildProjectDependencies() {
+        return buildProjectDependencies;
+    }
+    
     /**
      * Specifies whether project dependencies should be built. Defaults to true.
      *
      * @return this
      */
     public StartParameter setBuildProjectDependencies(boolean build) {
-        this.projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(build);
+        this.buildProjectDependencies = build;
         return this;
     }
 
