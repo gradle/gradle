@@ -323,12 +323,11 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                             get(PublishModuleDescriptorConverter.class)),
                     get(ClientModuleRegistry.class));
             return new ErrorHandlingArtifactDependencyResolver(
-                    new EventBroadcastingArtifactDependencyResolver(
-                            new ShortcircuitEmptyConfigsArtifactDependencyResolver(
-                                    new SelfResolvingDependencyResolver(
-                                            new CacheLockingArtifactDependencyResolver(
-                                                    get(CacheLockingManager.class),
-                                                    resolver)))));
+                        new ShortcircuitEmptyConfigsArtifactDependencyResolver(
+                                new SelfResolvingDependencyResolver(
+                                        new CacheLockingArtifactDependencyResolver(
+                                                get(CacheLockingManager.class),
+                                                resolver))));
         }
 
         ArtifactPublisher createArtifactPublisher(DefaultRepositoryHandler resolverProvider) {
