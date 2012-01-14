@@ -16,10 +16,11 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
 import org.junit.Rule
+import spock.lang.Timeout
 
 /**
  * @author Hans Dockter
@@ -48,6 +49,7 @@ class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
+    @Timeout(120)
     def "can execute servlet"() {
         def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
 
@@ -75,24 +77,24 @@ task runTest << {
 
         when:
         sample sample
-        def runJetty = executer.withTasks("jettyRun").start()
+        def runJetty = executer.withDeprecationChecksDisabled().withTasks("jettyRun").withArguments("-d").start()
 
         sample sample
-        run 'runTest', 'jettyStop'
+        def jettyStop = executer.withDeprecationChecksDisabled().withTasks('runTest', 'jettyStop').withArguments("-d").run()
         runJetty.waitForFinish()
 
         then:
-        output.contains('hello Gradle')
+        jettyStop.output.contains('hello Gradle')
 
         when:
         sample sample
-        def runJettyWar = executer.withTasks("jettyRunWar").start()
+        def runJettyWar = executer.withDeprecationChecksDisabled().withTasks("jettyRunWar").withArguments("-d").start()
 
         sample sample
-        run 'runTest', 'jettyStop'
+        jettyStop = executer.withDeprecationChecksDisabled().withTasks('runTest', 'jettyStop').withArguments("-d").run()
         runJettyWar.waitForFinish()
 
         then:
-        output.contains('hello Gradle')
+        jettyStop.output.contains('hello Gradle')
     }
 }
