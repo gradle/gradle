@@ -110,7 +110,11 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
     private void abortOpenResources() {
         for (HttpResource openResource : openResources) {
             LOGGER.warn("Forcing close on abandoned resource: " + openResource);
-            openResource.close();
+            try {
+                openResource.close();
+            } catch (IOException e) {
+                LOGGER.warn("Failed to close abandoned resource", e);
+            }
         }
         openResources.clear();
     }
@@ -165,7 +169,13 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
                                                          method, source, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
         }
         LOGGER.info("Resource found. [HTTP {}: {}]", method, source);
-        return new HttpResponseResource(method, source, response);
+        return new HttpResponseResource(method, source, response) {
+            @Override
+            public void close() throws IOException {
+                super.close();
+                HttpResourceCollection.this.openResources.remove(this);
+            }
+        };
     }
 
     private CachedHttpResource findCachedResource(String source, List<CachedArtifact> candidates) {

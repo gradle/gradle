@@ -24,5 +24,5 @@ import java.io.IOException;
 public interface HttpResource extends Resource {
     void writeTo(File destination, CopyProgressListener progress) throws IOException;
 
-    void close();
+    void close() throws IOException;
 }

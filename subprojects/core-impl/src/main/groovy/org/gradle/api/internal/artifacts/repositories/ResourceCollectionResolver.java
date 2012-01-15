@@ -270,9 +270,13 @@ public class ResourceCollectionResolver extends BasicResolver {
         }
     }
 
-    private void discardResource(Resource resource) {
+    protected void discardResource(Resource resource) {
         if (resource instanceof HttpResource) {
-            ((HttpResource) resource).close();
+            try {
+                ((HttpResource) resource).close();
+            } catch (IOException e) {
+                LOGGER.warn("Exception closing resource " + resource.getName(), e);
+            }
         }
     }
 

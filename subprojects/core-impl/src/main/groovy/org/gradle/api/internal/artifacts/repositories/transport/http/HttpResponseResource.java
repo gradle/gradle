@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories.transport.http;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
-import org.gradle.api.UncheckedIOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,12 +77,8 @@ class HttpResponseResource extends AbstractHttpResource {
     }
 
     @Override
-    public void close() {
-        try {
-            EntityUtils.consume(response.getEntity());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    public void close() throws IOException {
+        EntityUtils.consume(response.getEntity());
     }
 
 }
