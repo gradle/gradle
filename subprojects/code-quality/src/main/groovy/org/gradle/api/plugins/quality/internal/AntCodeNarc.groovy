@@ -22,11 +22,13 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 
 class AntCodeNarc {
-    def execute(AntBuilder ant, FileCollection source, File configFile, String reportFormat, File reportFile, boolean ignoreFailures) {
+    def execute(AntBuilder ant, FileCollection source, File configFile, String reportFormat, File reportFile, boolean ignoreFailures, boolean displayViolations) {
         ant.project.addTaskDefinition('codenarc', CodeNarcTask)
         try {
             ant.codenarc(ruleSetFiles: "file:$configFile", maxPriority1Violations: 0, maxPriority2Violations: 0, maxPriority3Violations: 0) {
-                report(type: ConsoleReportWriter.name)
+                if (displayViolations) {
+                    report(type: ConsoleReportWriter.name)
+                }
                 report(type: reportFormat) {
                     option(name: 'outputFile', value: reportFile)
                 }

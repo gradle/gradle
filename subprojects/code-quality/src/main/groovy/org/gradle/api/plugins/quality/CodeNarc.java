@@ -17,7 +17,10 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.quality.internal.AntCodeNarc;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
 
@@ -34,7 +37,7 @@ public class CodeNarc extends CodeQualityTask {
     @TaskAction
     public void check() {
         getLogging().captureStandardOutput(LogLevel.INFO);
-        antCodeNarc.execute(getAnt(), getSource(), getConfigFile(), getReportFormat(), getReportFile(), isIgnoreFailures());
+        antCodeNarc.execute(getAnt(), getSource(), getConfigFile(), getReportFormat(), getReportFile(), isIgnoreFailures(), isDisplayViolations());
     }
 
     /**

@@ -16,202 +16,250 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.hamcrest.Matcher
 import org.junit.Test
-import static org.gradle.util.Matchers.*
+import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
-import org.gradle.integtests.fixtures.internal.AbstractIntegrationTest
 import static org.junit.Assert.assertThat
 
 class CodeQualityIntegrationTest extends AbstractIntegrationTest {
-  @Test
-  public void handlesEmptyProjects() {
-    testFile('build.gradle') << '''
+    @Test
+    public void handlesEmptyProjects() {
+        testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 '''
-    inTestDirectory().withTasks('check').run()
-  }
+        inTestDirectory().withTasks('check').run()
+    }
 
-  @Test
-  public void generatesReportForJavaSource() {
-    testFile('build.gradle') << '''
+    @Test
+    public void generatesReportForJavaSource() {
+        testFile('build.gradle') << '''
 apply plugin: 'java'
 apply plugin: 'code-quality'
 '''
-    writeCheckstyleConfig()
+        writeCheckstyleConfig()
 
-    testFile('src/main/java/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
-    testFile('src/test/java/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'
+        testFile('src/main/java/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
+        testFile('src/test/java/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'
 
-    inTestDirectory().withTasks('check').run()
+        inTestDirectory().withTasks('check').run()
 
-    testFile('build/checkstyle/main.xml').assertContents(containsClass('org.gradle.Class1'))
-    testFile('build/checkstyle/test.xml').assertContents(containsClass('org.gradle.TestClass1'))
-  }
+        testFile('build/checkstyle/main.xml').assertContents(containsClass('org.gradle.Class1'))
+        testFile('build/checkstyle/test.xml').assertContents(containsClass('org.gradle.TestClass1'))
+    }
 
-  @Test
-  public void generatesReportForJavaSourceInGroovySourceDirs() {
-    testFile('build.gradle') << '''
+    @Test
+    public void generatesReportForJavaSourceInGroovySourceDirs() {
+        testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 dependencies { groovy localGroovy() }
 '''
-    writeCheckstyleConfig()
+        writeCheckstyleConfig()
 
-    testFile('src/main/groovy/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
-    testFile('src/test/groovy/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'
+        testFile('src/main/groovy/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
+        testFile('src/test/groovy/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'
 
-    inTestDirectory().withTasks('check').run()
+        inTestDirectory().withTasks('check').run()
 
-    testFile('build/checkstyle/main.xml').assertContents(containsClass('org.gradle.Class1'))
-    testFile('build/checkstyle/test.xml').assertContents(containsClass('org.gradle.TestClass1'))
-  }
+        testFile('build/checkstyle/main.xml').assertContents(containsClass('org.gradle.Class1'))
+        testFile('build/checkstyle/test.xml').assertContents(containsClass('org.gradle.TestClass1'))
+    }
 
-  private Matcher<String> containsClass(String classname) {
-    return containsLine(containsString(classname.replace('.', File.separator) + '.java'))
-  }
+    private Matcher<String> containsClass(String classname) {
+        return containsLine(containsString(classname.replace('.', File.separator) + '.java'))
+    }
 
-  @Test
-  public void checkstyleOnlyChecksJavaSource() {
-    testFile('build.gradle') << '''
+    @Test
+    public void checkstyleOnlyChecksJavaSource() {
+        testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 '''
-    writeCheckstyleConfig()
+        writeCheckstyleConfig()
 
-    testFile('src/main/groovy/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
-    testFile('src/main/groovy/org/gradle/Class2.java') << 'package org.gradle; class Class2 { }'
-    testFile('src/main/groovy/org/gradle/class3.groovy') << 'package org.gradle; class class3 { }'
+        testFile('src/main/groovy/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
+        testFile('src/main/groovy/org/gradle/Class2.java') << 'package org.gradle; class Class2 { }'
+        testFile('src/main/groovy/org/gradle/class3.groovy') << 'package org.gradle; class class3 { }'
 
-    inTestDirectory().withTasks('checkstyleMain').run()
+        inTestDirectory().withTasks('checkstyleMain').run()
 
-    testFile('build/checkstyle/main.xml').assertExists()
-    testFile('build/checkstyle/main.xml').assertContents(not(containsClass('org.gradle.class3')))
-  }
+        testFile('build/checkstyle/main.xml').assertExists()
+        testFile('build/checkstyle/main.xml').assertContents(not(containsClass('org.gradle.class3')))
+    }
 
-  @Test
-  public void checkstyleViolationBreaksBuild() {
-    testFile('build.gradle') << '''
+    @Test
+    public void checkstyleViolationBreaksBuild() {
+        testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 '''
-    writeCheckstyleConfig()
+        writeCheckstyleConfig()
 
-    testFile('src/main/java/org/gradle/class1.java') << 'package org.gradle; class class1 { }'
-    testFile('src/main/groovy/org/gradle/class2.java') << 'package org.gradle; class class2 { }'
+        testFile('src/main/java/org/gradle/class1.java') << 'package org.gradle; class class1 { }'
+        testFile('src/main/groovy/org/gradle/class2.java') << 'package org.gradle; class class2 { }'
 
-    ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
-    failure.assertHasDescription('Execution failed for task \':checkstyleMain\'')
-    failure.assertThatCause(startsWith('Checkstyle check violations were found in main Java source. See the report at'))
+        ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
+        failure.assertHasDescription('Execution failed for task \':checkstyleMain\'')
+        failure.assertThatCause(startsWith('Checkstyle check violations were found in main Java source. See the report at'))
 
-    testFile('build/checkstyle/main.xml').assertExists()
-  }
+        testFile('build/checkstyle/main.xml').assertExists()
+    }
 
-  @Test
-  public void generatesReportForGroovySource() {
-    testFile('build.gradle') << '''
-apply plugin: 'groovy'
-apply plugin: 'code-quality'
-dependencies { groovy localGroovy() }
-'''
-    writeCodeNarcConfigFile()
-
-    testFile('src/main/groovy/org/gradle/Class1.groovy') << 'package org.gradle; class Class1 { }'
-    testFile('src/test/groovy/org/gradle/TestClass1.groovy') << 'package org.gradle; class TestClass1 { }'
-
-    inTestDirectory().withTasks('check').run()
-
-    testFile('build/reports/codenarc/main.html').assertExists()
-    testFile('build/reports/codenarc/test.html').assertExists()
-  }
-
-  @Test
-  public void codeNarcOnlyChecksGroovySource() {
-    testFile('build.gradle') << '''
-apply plugin: 'groovy'
-apply plugin: 'code-quality'
-'''
-
-    writeCodeNarcConfigFile()
-
-    testFile('src/main/groovy/org/gradle/class1.java') << 'package org.gradle; class class1 { }'
-    testFile('src/main/groovy/org/gradle/Class2.groovy') << 'package org.gradle; class Class2 { }'
-
-    inTestDirectory().withTasks('codenarcMain').run()
-
-    testFile('build/reports/codenarc/main.html').assertExists()
-  }
-
-  @Test
-  public void codeNarcViolationBreaksBuild() {
-    testFile('build.gradle') << '''
+    @Test
+    public void generatesReportForGroovySource() {
+        testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 dependencies { groovy localGroovy() }
 '''
+        writeCodeNarcConfigFile()
 
-    writeCodeNarcConfigFile()
+        testFile('src/main/groovy/org/gradle/Class1.groovy') << 'package org.gradle; class Class1 { }'
+        testFile('src/test/groovy/org/gradle/TestClass1.groovy') << 'package org.gradle; class TestClass1 { }'
 
-    testFile('src/main/groovy/org/gradle/class1.groovy') << 'package org.gradle; class class1 { }'
+        inTestDirectory().withTasks('check').run()
 
-    ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
-    failure.assertHasDescription('Execution failed for task \':codenarcMain\'')
-    failure.assertThatCause(startsWith('CodeNarc check violations were found in main Groovy source. See the report at '))
+        testFile('build/reports/codenarc/main.html').assertExists()
+        testFile('build/reports/codenarc/test.html').assertExists()
+    }
 
-    testFile('build/reports/codenarc/main.html').assertExists()
-  }
-
-  @Test
-  public void checkstyleViolationWithDisplayViolationsDefaultShouldOutputViolationsToError() {
-    ExecutionFailure failure = runCheckstyleViolationBreaksBuild(null)
-    assertThat(failure.error, containsString("Name 'class1' must match pattern '^[A-Z][a-zA-Z0-9]*\$'."));
-  }
-
-  @Test
-  public void checkstyleViolationWithDisplayViolationsTrueShouldOutputViolationsToError() {
-    ExecutionFailure failure = runCheckstyleViolationBreaksBuild(true)
-    assertThat(failure.error, containsString("Name 'class1' must match pattern '^[A-Z][a-zA-Z0-9]*\$'."));
-  }
-
-  @Test
-  public void checkstyleViolationWithDisplayViolationsFalseShouldNotOutputViolationsToError() {
-    ExecutionFailure failure = runCheckstyleViolationBreaksBuild(false)
-
-    assertThat(failure.error, not(containsString("Name 'class1' must match pattern '^[A-Z][a-zA-Z0-9]*\$'.")));
-  }
-
-  private ExecutionFailure runCheckstyleViolationBreaksBuild(Boolean displayViolations) {
-    def buildFileContents = '''
+    @Test
+    public void codeNarcOnlyChecksGroovySource() {
+        testFile('build.gradle') << '''
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 '''
-    if (displayViolations != null) {
-      buildFileContents += """
+
+        writeCodeNarcConfigFile()
+
+        testFile('src/main/groovy/org/gradle/class1.java') << 'package org.gradle; class class1 { }'
+        testFile('src/main/groovy/org/gradle/Class2.groovy') << 'package org.gradle; class Class2 { }'
+
+        inTestDirectory().withTasks('codenarcMain').run()
+
+        testFile('build/reports/codenarc/main.html').assertExists()
+    }
+
+    @Test
+    public void codeNarcViolationBreaksBuild() {
+        testFile('build.gradle') << '''
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
+dependencies { groovy localGroovy() }
+'''
+
+        writeCodeNarcConfigFile()
+
+        testFile('src/main/groovy/org/gradle/class1.groovy') << 'package org.gradle; class class1 { }'
+
+        ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
+        failure.assertHasDescription('Execution failed for task \':codenarcMain\'')
+        failure.assertThatCause(startsWith('CodeNarc check violations were found in main Groovy source. See the report at '))
+
+        testFile('build/reports/codenarc/main.html').assertExists()
+    }
+
+    @Test
+    public void checkstyleViolationWithDisplayViolationsDefaultShouldOutputViolationsToError() {
+        ExecutionFailure failure = runCheckstyleViolationBreaksBuild(null)
+        assertThat(failure.error, containsString("Name 'class1' must match pattern '^[A-Z][a-zA-Z0-9]*\$'."));
+    }
+
+    @Test
+    public void checkstyleViolationWithDisplayViolationsTrueShouldOutputViolationsToError() {
+        ExecutionFailure failure = runCheckstyleViolationBreaksBuild(true)
+        assertThat(failure.error, containsString("Name 'class1' must match pattern '^[A-Z][a-zA-Z0-9]*\$'."));
+    }
+
+    @Test
+    public void checkstyleViolationWithDisplayViolationsFalseShouldNotOutputViolationsToError() {
+        ExecutionFailure failure = runCheckstyleViolationBreaksBuild(false)
+
+        assertThat(failure.error, not(containsString("Name 'class1' must match pattern '^[A-Z][a-zA-Z0-9]*\$'.")));
+    }
+
+    private ExecutionFailure runCheckstyleViolationBreaksBuild(Boolean displayViolations) {
+        def buildFileContents = '''
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
+'''
+        if (displayViolations != null) {
+            buildFileContents += """
 checkstyleMain {
     displayViolations = $displayViolations
 }
 """
+        }
+
+        testFile('build.gradle') << buildFileContents
+
+        writeCheckstyleConfig()
+
+        testFile('src/main/java/org/gradle/class1.java') << 'package org.gradle; class class1 { }'
+        testFile('src/main/groovy/org/gradle/class2.java') << 'package org.gradle; class class2 { }'
+
+        ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
+        failure.assertHasDescription('Execution failed for task \':checkstyleMain\'')
+        failure.assertThatCause(startsWith('Checkstyle check violations were found in main Java source. See the report at'))
+
+        testFile('build/checkstyle/main.xml').assertExists()
+        return failure
     }
 
-    testFile('build.gradle') << buildFileContents
+    @Test
+    public void codeNarcViolationWithDisplayViolationsDefaultShouldOutputViolationsToError() {
+        ExecutionFailure failure = runCodeNarcViolationBreaksBuild(null)
+        assertThat(failure.error, containsString('ClassName: The name class1 failed to match the pattern ([A-Z]\\w*\\$?)*'));
+    }
 
-    writeCheckstyleConfig()
+    @Test
+    public void codeNarcViolationWithDisplayViolationsTrueShouldOutputViolationsToError() {
+        ExecutionFailure failure = runCodeNarcViolationBreaksBuild(true)
+        assertThat(failure.error, containsString('ClassName: The name class1 failed to match the pattern ([A-Z]\\w*\\$?)*'));
+    }
 
-    testFile('src/main/java/org/gradle/class1.java') << 'package org.gradle; class class1 { }'
-    testFile('src/main/groovy/org/gradle/class2.java') << 'package org.gradle; class class2 { }'
+    @Test
+    public void codeNarcViolationWithDisplayViolationsFalseShouldNotOutputViolationsToError() {
+        ExecutionFailure failure = runCodeNarcViolationBreaksBuild(false)
+        assertThat(failure.error, not(containsString('ClassName: The name class1 failed to match the pattern ([A-Z]\\w*\\$?)*')));
+    }
 
-    ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
-    failure.assertHasDescription('Execution failed for task \':checkstyleMain\'')
-    failure.assertThatCause(startsWith('Checkstyle check violations were found in main Java source. See the report at'))
+    private ExecutionFailure runCodeNarcViolationBreaksBuild(Boolean displayViolations) {
+        def buildFileContents = '''
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
+dependencies { groovy localGroovy() }
+'''
+        if (displayViolations != null) {
+            buildFileContents += """
+codenarcMain {
+    displayViolations = $displayViolations
+}
+"""
+        }
 
-    testFile('build/checkstyle/main.xml').assertExists()
-    return failure
-  }
+        println "Build file contents are: ${buildFileContents}"
 
-  private TestFile writeCheckstyleConfig() {
-    return testFile('config/checkstyle/checkstyle.xml') << '''
+        testFile('build.gradle') << buildFileContents
+
+        writeCodeNarcConfigFile()
+
+        testFile('src/main/groovy/org/gradle/class1.groovy') << 'package org.gradle; class class1 { }'
+
+        ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
+        failure.assertHasDescription('Execution failed for task \':codenarcMain\'')
+        failure.assertThatCause(startsWith('CodeNarc check violations were found in main Groovy source. See the report at '))
+
+        testFile('build/reports/codenarc/main.html').assertExists()
+        return failure
+    }
+
+    private TestFile writeCheckstyleConfig() {
+        return testFile('config/checkstyle/checkstyle.xml') << '''
 <!DOCTYPE module PUBLIC
         "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
         "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
@@ -220,10 +268,10 @@ checkstyleMain {
         <module name="TypeName"/>
     </module>
 </module>'''
-  }
+    }
 
-  private TestFile writeCodeNarcConfigFile() {
-    return testFile('config/codenarc/codenarc.xml') << '''
+    private TestFile writeCodeNarcConfigFile() {
+        return testFile('config/codenarc/codenarc.xml') << '''
 <ruleset xmlns="http://codenarc.org/ruleset/1.0"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
@@ -231,6 +279,6 @@ checkstyleMain {
     <ruleset-ref path='rulesets/naming.xml'/>
 </ruleset>
 '''
-  }
+    }
 
 }
