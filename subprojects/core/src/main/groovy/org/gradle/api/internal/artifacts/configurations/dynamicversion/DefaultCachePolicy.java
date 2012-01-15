@@ -15,52 +15,219 @@
  */
 package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.artifacts.cache.ArtifactResolutionControl;
+import org.gradle.api.artifacts.cache.ResolutionRules;
+import org.gradle.api.artifacts.cache.DependencyResolutionControl;
+import org.gradle.api.artifacts.cache.ModuleResolutionControl;
+import org.gradle.api.artifacts.cache.ResolutionControl;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class DefaultCachePolicy implements CachePolicy {
+public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     private static final int SECONDS_IN_DAY = 24 * 60 * 60;
-    private Duration dynamicVersionExpiry = new Duration(SECONDS_IN_DAY, TimeUnit.SECONDS);
-    private Duration changingModuleExpiry = new Duration(SECONDS_IN_DAY, TimeUnit.SECONDS);
 
+    private final List<Action<? super DependencyResolutionControl>> dependencyCacheRules = new ArrayList<Action<? super DependencyResolutionControl>>();
+    private final List<Action<? super ModuleResolutionControl>> moduleCacheRules = new ArrayList<Action<? super ModuleResolutionControl>>();
+    private final List<Action<? super ArtifactResolutionControl>> artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>();
+    private final Action<? super DependencyResolutionControl> defaultDependencyCacheRule;
+    private final Action<? super ModuleResolutionControl> defaultModuleCacheRule;
+    private final Action<? super ArtifactResolutionControl> defaultArtifactCacheRule;
 
-    public void cacheDynamicVersionsFor(int value, TimeUnit unit) {
-        dynamicVersionExpiry = new Duration(value, unit);
+    public DefaultCachePolicy() {
+        defaultDependencyCacheRule = new Action<DependencyResolutionControl>() {
+            public void execute(DependencyResolutionControl dependencyResolutionControl) {
+                dependencyResolutionControl.cacheFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+            }
+        };
+        defaultModuleCacheRule = new Action<ModuleResolutionControl>() {
+            public void execute(ModuleResolutionControl moduleResolutionControl) {
+                if (moduleResolutionControl.isChanging()) {
+                    moduleResolutionControl.cacheFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+                }
+            }
+        };
+        defaultArtifactCacheRule = new Action<ArtifactResolutionControl>() {
+            public void execute(ArtifactResolutionControl artifactResolutionControl) {
+                if (artifactResolutionControl.getCachedResult() == null) {
+                    artifactResolutionControl.cacheFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+                }
+            }
+        };
     }
 
-    public void cacheChangingModulesFor(int value, TimeUnit units) {
-        changingModuleExpiry = new Duration(value, units);
+    public void eachDependency(Action<? super DependencyResolutionControl> action) {
+        dependencyCacheRules.add(action);
+    }
+
+    public void eachModule(Action<? super ModuleResolutionControl> action) {
+        moduleCacheRules.add(action);
+    }
+
+    public void eachArtifact(Action<? super ArtifactResolutionControl> action) {
+        artifactCacheRules.add(action);
+    }
+
+    public void cacheDynamicVersionsFor(final int value, final TimeUnit unit) {
+        dependencyCacheRules.add(new Action<DependencyResolutionControl>() {
+            public void execute(DependencyResolutionControl dependencyResolutionControl) {
+                dependencyResolutionControl.cacheFor(value, unit);
+            }
+        });
+    }
+
+    public void cacheChangingModulesFor(final int value, final TimeUnit units) {
+        eachModule(new Action<ModuleResolutionControl>() {
+            public void execute(ModuleResolutionControl moduleResolutionControl) {
+                if (moduleResolutionControl.isChanging()) {
+                    moduleResolutionControl.cacheFor(value, units);
+                }
+            }
+        });
+        eachArtifact(new Action<ArtifactResolutionControl>() {
+            public void execute(ArtifactResolutionControl artifactResolutionControl) {
+                if (artifactResolutionControl.getCachedResult() == null) {
+                    artifactResolutionControl.cacheFor(value, units);
+                }
+            }
+        });
     }
 
     public boolean mustRefreshDynamicVersion(final ResolvedModuleVersion version, final long ageMillis) {
-        return ageMillis > dynamicVersionExpiry.getMillis();
+        CachedDependencyResolutionControl dependencyResolutionControl = new CachedDependencyResolutionControl(version, ageMillis);
+
+        List<Action<? super DependencyResolutionControl>> rules = new ArrayList<Action<? super DependencyResolutionControl>>(dependencyCacheRules);
+        rules.add(defaultDependencyCacheRule);
+        for (Action<? super DependencyResolutionControl> rule : rules) {
+            rule.execute(dependencyResolutionControl);
+            if (dependencyResolutionControl.ruleMatch()) {
+                return dependencyResolutionControl.mustCheck();
+            }
+        }
+        
+        return false;
     }
 
-    public boolean mustRefreshModule(ResolvedModuleVersion version, long ageMillis) {
+    public boolean mustRefreshModule(final ResolvedModuleVersion version, final long ageMillis) {
+        return mustRefreshModule(version, ageMillis, false);
+    }
+
+    public boolean mustRefreshChangingModule(ResolvedModuleVersion version, long ageMillis) {
+        return mustRefreshModule(version, ageMillis, true);
+    }
+
+    private boolean mustRefreshModule(final ResolvedModuleVersion version, final long ageMillis, final boolean changingModule) {
+        CachedModuleResolutionControl moduleResolutionControl = new CachedModuleResolutionControl(version, changingModule, ageMillis);
+
+        List<Action<? super ModuleResolutionControl>> rules = new ArrayList<Action<? super ModuleResolutionControl>>(moduleCacheRules);
+        rules.add(defaultModuleCacheRule);
+        for (Action<? super ModuleResolutionControl> rule : rules) {
+            rule.execute(moduleResolutionControl);
+            if (moduleResolutionControl.ruleMatch()) {
+                return moduleResolutionControl.mustCheck();
+            }
+        }
+
         return false;
     }
 
     public boolean mustRefreshMissingArtifact(long ageMillis) {
-        return ageMillis > changingModuleExpiry.getMillis();
+        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(null, ageMillis);
+
+        List<Action<? super ArtifactResolutionControl>> rules = new ArrayList<Action<? super ArtifactResolutionControl>>(artifactCacheRules);
+        rules.add(defaultArtifactCacheRule);
+        for (Action<? super ArtifactResolutionControl> rule : rules) {
+            rule.execute(artifactResolutionControl);
+            if (artifactResolutionControl.ruleMatch()) {
+                return artifactResolutionControl.mustCheck();
+            }
+        }
+
+        return false;
     }
 
-    public boolean mustRefreshChangingModule(final ResolvedModuleVersion version, final long ageMillis) {
-        return ageMillis > changingModuleExpiry.getMillis();
-    }
+    private static class AbstractResolutionControl implements ResolutionControl {
+        private final long ageMillis;
 
-    private static class Duration {
-        private final int value;
-        private final TimeUnit units;
+        private Boolean mustCheck = null;
 
-        private Duration(int value, TimeUnit units) {
-            this.value = value;
-            this.units = units;
+        private AbstractResolutionControl(long ageMillis) {
+            this.ageMillis = ageMillis;
+        }
+
+        public void cacheFor(int value, TimeUnit units) {
+            long timeoutMillis = TimeUnit.MILLISECONDS.convert(value, units);
+            if (ageMillis <= timeoutMillis) {
+                mustCheck = Boolean.FALSE;
+            } else {
+                mustCheck = Boolean.TRUE;
+            }
+        }
+
+        public void useCachedResult() {
+            mustCheck = Boolean.FALSE;
+        }
+
+        public void invalidate() {
+            mustCheck = Boolean.TRUE;
         }
         
-        public long getMillis() {
-            return TimeUnit.MILLISECONDS.convert(value, units);
+        public boolean ruleMatch() {
+            return mustCheck != null;
+        }
+        
+        public boolean mustCheck() {
+            return mustCheck;
+        }
+    }
+    
+    private class CachedDependencyResolutionControl extends AbstractResolutionControl implements DependencyResolutionControl {
+        private final ModuleVersionIdentifier cachedVersion;
+
+        private CachedDependencyResolutionControl(ResolvedModuleVersion cachedVersion, long ageMillis) {
+            super(ageMillis);
+            this.cachedVersion = cachedVersion == null ? null : cachedVersion.getId();
+        }
+
+        public ModuleVersionIdentifier getCachedResult() {
+            return cachedVersion;
+        }
+    }
+    
+    private class CachedModuleResolutionControl extends AbstractResolutionControl implements ModuleResolutionControl {
+        private final ResolvedModuleVersion cachedVersion;
+        private final boolean changing;
+
+        private CachedModuleResolutionControl(ResolvedModuleVersion cachedVersion, boolean changing, long ageMillis) {
+            super(ageMillis);
+            this.cachedVersion = cachedVersion;
+            this.changing = changing;
+        }
+
+        public ResolvedModuleVersion getCachedResult() {
+            return cachedVersion;
+        }
+
+        public boolean isChanging() {
+            return changing;
         }
     }
 
+    private class CachedArtifactResolutionControl extends AbstractResolutionControl implements ArtifactResolutionControl {
+        private final File cachedResult;
+
+        private CachedArtifactResolutionControl(File cachedResult, long ageMillis) {
+            super(ageMillis);
+            this.cachedResult = cachedResult;
+        }
+
+        public File getCachedResult() {
+            return cachedResult;
+        }
+    }
 }
