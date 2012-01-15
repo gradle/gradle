@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.resolve.maven
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.junit.Rule
 
 class MavenSnapshotRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
@@ -81,8 +81,7 @@ task retrieve(type: Sync) {
         def result = run('retrieve')
 
         then: "Everything is up to date"
-        // TODO:DAZ
-//        result.assertTaskSkipped(':retrieve')
+        result.assertTaskSkipped(':retrieve')
         file('libs/projectA-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshotA);
         file('libs/nonunique-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshotNonUnique);
     }
@@ -143,10 +142,63 @@ task retrieve(type: Sync) {
         def result = run('retrieve')
 
         then: "Everything is up to date"
-        // TODO:DAZ
-//        result.assertTaskSkipped(':retrieve')
+        result.assertTaskSkipped(':retrieve')
         file('libs/projectA-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshotA);
         file('libs/projectB-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshotB);
+    }
+
+    def "will detect changed snapshot artifacts when pom has not changed"() {
+        server.start()
+
+        buildFile << """
+repositories {
+    maven { url "http://localhost:${server.port}/repo" }
+}
+
+configurations { compile }
+configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+
+dependencies { 
+    compile "org.gradle:unique:1.0-SNAPSHOT" 
+    compile "org.gradle:nonunique:1.0-SNAPSHOT" 
+}
+
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when: "snapshot modules are published"
+        def uniqueVersionModule = repo().module("org.gradle", "unique", "1.0-SNAPSHOT").publish()
+        def nonUniqueVersionModule = repo().module("org.gradle", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+
+        and: "Server handles requests"
+        expectModuleServed(uniqueVersionModule, '/repo')
+        expectModuleServed(nonUniqueVersionModule, '/repo')
+
+        and: "We resolve dependencies"
+        run 'retrieve'
+
+        then: "Snapshots are downloaded"
+        file('libs').assertHasDescendants('unique-1.0-SNAPSHOT.jar', 'nonunique-1.0-SNAPSHOT.jar')
+        def uniqueJarSnapshot = file('libs/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(uniqueVersionModule.artifactFile).snapshot()
+        def nonUniqueJarSnapshot = file('libs/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(uniqueVersionModule.artifactFile).snapshot()
+
+        when: "Change the snapshot artifacts directly: do not change the pom"
+        uniqueVersionModule.artifactFile << 'more content'
+        nonUniqueVersionModule.artifactFile << 'more content'
+
+        and: "No server requests"
+        expectModuleServed(uniqueVersionModule, '/repo', true)
+        expectModuleServed(nonUniqueVersionModule, '/repo', true)
+
+        and: "Resolve dependencies again"
+        run 'retrieve'
+
+        then:
+        file('libs/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(uniqueVersionModule.artifactFile).assertHasChangedSince(uniqueJarSnapshot)
+        file('libs/nonunique-1.0-SNAPSHOT.jar').assertIsCopyOf(nonUniqueVersionModule.artifactFile).assertHasChangedSince(nonUniqueJarSnapshot)
     }
 
     def "uses cached snapshots from a Maven HTTP repository until the snapshot timeout is reached"() {
@@ -270,8 +322,7 @@ task retrieve(type: Sync) {
         def result = run 'retrieve'
 
         then:
-        // TODO:DAZ
-//        result.assertTaskSkipped(':retrieve')
+        result.assertTaskSkipped(':retrieve')
         file('build/testproject-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshot);
     }
 
