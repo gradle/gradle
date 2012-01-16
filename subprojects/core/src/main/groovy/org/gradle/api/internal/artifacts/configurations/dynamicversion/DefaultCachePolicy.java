@@ -37,25 +37,8 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     private final List<Action<? super ArtifactResolutionControl>> artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>();
 
     public DefaultCachePolicy() {
-        eachDependency(new Action<DependencyResolutionControl>() {
-            public void execute(DependencyResolutionControl dependencyResolutionControl) {
-                dependencyResolutionControl.cacheFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
-            }
-        });
-        eachModule(new Action<ModuleResolutionControl>() {
-            public void execute(ModuleResolutionControl moduleResolutionControl) {
-                if (moduleResolutionControl.isChanging()) {
-                    moduleResolutionControl.cacheFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
-                }
-            }
-        });
-        eachArtifact(new Action<ArtifactResolutionControl>() {
-            public void execute(ArtifactResolutionControl artifactResolutionControl) {
-                if (artifactResolutionControl.getCachedResult() == null) {
-                    artifactResolutionControl.cacheFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
-                }
-            }
-        });
+        cacheDynamicVersionsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+        cacheChangingModulesFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
     }
 
     public void eachDependency(Action<? super DependencyResolutionControl> action) {
@@ -84,10 +67,15 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
                 if (moduleResolutionControl.isChanging()) {
                     moduleResolutionControl.cacheFor(value, units);
                 }
+                // Treat missing modules like changing modules
+                if (moduleResolutionControl.getCachedResult() == null) {
+                    moduleResolutionControl.cacheFor(value, units);
+                }
             }
         });
         eachArtifact(new Action<ArtifactResolutionControl>() {
             public void execute(ArtifactResolutionControl artifactResolutionControl) {
+                // Treat missing artifacts like changing modules
                 if (artifactResolutionControl.getCachedResult() == null) {
                     artifactResolutionControl.cacheFor(value, units);
                 }
@@ -129,8 +117,8 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         return false;
     }
 
-    public boolean mustRefreshMissingArtifact(long ageMillis) {
-        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(null, ageMillis);
+    public boolean mustRefreshArtifact(File cachedArtifactFile, long ageMillis) {
+        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(cachedArtifactFile, ageMillis);
 
         for (Action<? super ArtifactResolutionControl> rule : artifactCacheRules) {
             rule.execute(artifactResolutionControl);

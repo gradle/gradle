@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 
+import java.io.File;
+
 public interface CachePolicy {
     boolean mustRefreshDynamicVersion(ResolvedModuleVersion version, long ageMillis);
 
@@ -24,5 +26,5 @@ public interface CachePolicy {
 
     boolean mustRefreshChangingModule(ResolvedModuleVersion version, long ageMillis);
     
-    boolean mustRefreshMissingArtifact(long ageMillis);
+    boolean mustRefreshArtifact(File cachedArtifactFile, long ageMillis);
 }

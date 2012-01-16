@@ -101,7 +101,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
             return notFound();
         }
         if (cachedModuleDescriptor.isMissing()) {
-            if (cachePolicy.mustRefreshMissingArtifact(cachedModuleDescriptor.getAgeMillis())) {
+            if (cachePolicy.mustRefreshModule(null, cachedModuleDescriptor.getAgeMillis())) {
                 LOGGER.debug("Cached meta-data for missing module is expired: will perform fresh resolve of '{}'", resolvedModuleVersionId);
                 return notFound();
             }
@@ -180,16 +180,17 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         // Look in the cache for this resolver
         ArtifactResolutionCache.CachedArtifactResolution cachedArtifactResolution = artifactResolutionCache.getCachedArtifactResolution(delegate, artifact.getId());
         if (cachedArtifactResolution != null) {
-            if (cachedArtifactResolution.getArtifactFile() == null) {
-                if (!cachePolicy.mustRefreshMissingArtifact(cachedArtifactResolution.getAgeMillis())) {
+            File cachedArtifactFile = cachedArtifactResolution.getArtifactFile();
+            if (cachedArtifactFile == null) {
+                if (!cachePolicy.mustRefreshArtifact(null, cachedArtifactResolution.getAgeMillis())) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
                     return null;
                 }
-                // Need to check file existence since for changing modules the underlying cached artifact file will have been removed
-                // Or users may manually purge the cache of files.
-            } else if (cachedArtifactResolution.getArtifactFile().exists()) {
-                LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactResolution.getArtifactFile());
-                return cachedArtifactResolution.getArtifactFile();
+            } else if (cachedArtifactFile.exists()) {
+                if (!cachePolicy.mustRefreshArtifact(cachedArtifactFile, cachedArtifactResolution.getAgeMillis())) {
+                    LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
+                    return cachedArtifactFile;
+                }
             }
         }
 

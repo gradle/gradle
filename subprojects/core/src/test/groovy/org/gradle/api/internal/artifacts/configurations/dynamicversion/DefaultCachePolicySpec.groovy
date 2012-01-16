@@ -42,6 +42,7 @@ public class DefaultCachePolicySpec extends Specification {
         hasChangingModuleTimeout(DAY)
         hasModuleTimeout(FOREVER)
         hasMissingArtifactTimeout(DAY)
+        hasMissingModuleTimeout(DAY)
     }
 
     def "uses changing module timeout for changing modules and missing artifacts"() {
@@ -52,6 +53,7 @@ public class DefaultCachePolicySpec extends Specification {
         hasDynamicVersionTimeout(DAY);
         hasChangingModuleTimeout(10 * SECOND)
         hasModuleTimeout(FOREVER)
+        hasMissingModuleTimeout(10 * SECOND)
         hasMissingArtifactTimeout(10 * SECOND)
     }
 
@@ -62,6 +64,7 @@ public class DefaultCachePolicySpec extends Specification {
         then:
         hasDynamicVersionTimeout(10 * SECOND)
         hasChangingModuleTimeout(DAY)
+        hasMissingModuleTimeout(DAY)
         hasMissingArtifactTimeout(DAY)
         hasModuleTimeout(FOREVER)
     }
@@ -151,7 +154,7 @@ public class DefaultCachePolicySpec extends Specification {
                 t.invalidate()
             }
         })
-        cachePolicy.mustRefreshMissingArtifact(0)
+        cachePolicy.mustRefreshArtifact(null, 0)
     }
     
     private def hasDynamicVersionTimeout(int timeout) {
@@ -168,18 +171,25 @@ public class DefaultCachePolicySpec extends Specification {
     }
 
     private def hasModuleTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshModule(null, timeout);
-        assert !cachePolicy.mustRefreshModule(null, timeout - 1)
+        def module = moduleVersion('group', 'name', 'version')
+        assert !cachePolicy.mustRefreshModule(module, timeout);
+        assert !cachePolicy.mustRefreshModule(module, timeout - 1)
         if (timeout == FOREVER) {
             return true
         }
+        cachePolicy.mustRefreshModule(module, timeout + 1)
+    }
+
+    private def hasMissingModuleTimeout(int timeout) {
+        assert !cachePolicy.mustRefreshModule(null, timeout);
+        assert !cachePolicy.mustRefreshModule(null, timeout - 1)
         cachePolicy.mustRefreshModule(null, timeout + 1)
     }
 
     private def hasMissingArtifactTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshMissingArtifact(timeout);
-        assert !cachePolicy.mustRefreshMissingArtifact(timeout - 1)
-        cachePolicy.mustRefreshMissingArtifact(timeout + 1)
+        assert !cachePolicy.mustRefreshArtifact(null, timeout);
+        assert !cachePolicy.mustRefreshArtifact(null, timeout - 1)
+        cachePolicy.mustRefreshArtifact(null, timeout + 1)
     }
 
     private def moduleVersion(String group, String name, String version) {
