@@ -15,24 +15,27 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
+import com.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.client.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.server.Daemon;
+import org.gradle.launcher.daemon.client.DaemonParameters;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.DaemonStoppedException;
 import org.gradle.launcher.exec.EntryPoint;
 import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.logging.internal.OutputEventRenderer;
 
 import java.io.*;
 import java.util.UUID;
 
 /**
  * The entry point for a daemon process.
- * 
+ *
  * If the daemon hits the specified idle timeout the process will exit with 0. If the daemon encounters
  * an internal error or is explicitly stopped (which can be via receiving a stop command, or unexpected client disconnection)
  * the process will exit with 1.
@@ -50,7 +53,7 @@ public class DaemonMain extends EntryPoint {
             invalidArgs("3 arguments are required: <gradle-version> <daemon-dir> <timeout-millis>");
         }
         File daemonBaseDir = new File(args[1]);
-        
+
         int idleTimeoutMs = 0;
         try {
             idleTimeoutMs = Integer.parseInt(args[2]);
@@ -78,14 +81,17 @@ public class DaemonMain extends EntryPoint {
     }
 
     protected void doAction(ExecutionListener listener) {
-        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, LoggingServiceRegistry.newChildProcessLogging());
+        LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newChildProcessLogging();
+        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, loggingRegistry);
         DaemonDir daemonDir = daemonServices.get(DaemonDir.class);
         final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
         final Long pid = daemonContext.getPid();
 
         if (redirectIo) {
             try {
-                redirectOutputsAndInput(daemonDir, pid);
+                OutputEventRenderer outputRenderer = loggingRegistry.get(OutputEventRenderer.class);
+                configureDaemonLog(outputRenderer, daemonDir, pid);
+                LOGGER.info("Started logging");
             } catch (IOException e) {
                 listener.onFailure(e);
                 return;
@@ -110,21 +116,13 @@ public class DaemonMain extends EntryPoint {
         }
     }
 
-    private static void redirectOutputsAndInput(DaemonDir daemonDir, Long pid) throws IOException {
-        PrintStream originalOut = System.out;
-        PrintStream originalErr = System.err;
-//        InputStream originalIn = System.in;
-
+    private void configureDaemonLog(OutputEventRenderer outputRenderer, DaemonDir daemonDir, Long pid) throws IOException {
         //very simplistic, just making sure each damon has unique log file
-        File logOutputFile = new File(daemonDir.getVersionedDir(), String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid));
-        logOutputFile.getParentFile().mkdirs();
-        PrintStream printStream = new PrintStream(new FileOutputStream(logOutputFile), true);
-        System.setOut(printStream);
-        System.setErr(printStream);
-        System.setIn(new ByteArrayInputStream(new byte[0]));
-        originalOut.close();
-        originalErr.close();
-        // TODO - make this work on windows
-//        originalIn.close();
+        String logFileName = String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid);
+        File logFile = new File(daemonDir.getVersionedDir(), logFileName);
+        Files.createParentDirs(logFile);
+        PrintStream printStream = new PrintStream(new FileOutputStream(logFile), true);
+        outputRenderer.addStandardOutput(printStream);
+        outputRenderer.addStandardError(printStream);
     }
 }
