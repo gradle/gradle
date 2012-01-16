@@ -22,16 +22,19 @@ import org.gradle.cli.CommandLineParserFactory;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.launcher.daemon.client.DaemonParameters;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
-import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.TestFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.fail;
 

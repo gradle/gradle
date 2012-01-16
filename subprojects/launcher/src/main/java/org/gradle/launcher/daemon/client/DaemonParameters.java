@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.server;
+package org.gradle.launcher.daemon.client;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;

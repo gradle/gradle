@@ -15,19 +15,21 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
-import org.gradle.internal.nativeplatform.OperatingSystem;
-import org.gradle.internal.nativeplatform.jna.WindowsProcessStarter;
-import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.util.GradleVersion;
-import org.gradle.util.Jvm;
+import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.internal.nativeplatform.jna.WindowsProcessStarter;
+import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.util.GUtil;
-import org.gradle.api.GradleException;
+import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.AntBasedJavaExecutableFinder;
+import org.gradle.util.internal.JavaExecutableFinder;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -38,13 +40,11 @@ public class DaemonStarter implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(DaemonStarter.class);
 
     private final DaemonDir daemonDir;
-    private final List<String> daemonOpts;
-    private final int idleTimeout;
+    private final DaemonParameters daemonParameters;
 
-    public DaemonStarter(DaemonDir daemonDir, List<String> daemonOpts, int idleTimeout) {
+    public DaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters) {
         this.daemonDir = daemonDir;
-        this.daemonOpts = daemonOpts;
-        this.idleTimeout = idleTimeout;
+        this.daemonParameters = daemonParameters;
     }
 
     public void run() {
@@ -60,7 +60,14 @@ public class DaemonStarter implements Runnable {
         }
 
         List<String> daemonArgs = new ArrayList<String>();
-        daemonArgs.add(Jvm.current().getJavaExecutable().getAbsolutePath());
+        try {
+            JavaExecutableFinder finder = new AntBasedJavaExecutableFinder(daemonParameters.getJavaHome().getCanonicalPath());
+            daemonArgs.add(finder.getJdkExecutable("java"));
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to find java executable for the daemon process.", e);
+        }
+
+        List<String> daemonOpts = daemonParameters.getJvmArgs();
         LOGGER.debug("Using daemon opts: {}", daemonOpts);
         daemonArgs.addAll(daemonOpts);
         //Useful for debugging purposes - simply uncomment and connect to debug
@@ -71,7 +78,7 @@ public class DaemonStarter implements Runnable {
         daemonArgs.add(GradleDaemon.class.getName());
         daemonArgs.add(GradleVersion.current().getVersion());
         daemonArgs.add(daemonDir.getBaseDir().getAbsolutePath());
-        daemonArgs.add(String.valueOf(idleTimeout));
+        daemonArgs.add(String.valueOf(daemonParameters.getIdleTimeout()));
 
         startProcess(daemonArgs, daemonDir.getVersionedDir());
     }

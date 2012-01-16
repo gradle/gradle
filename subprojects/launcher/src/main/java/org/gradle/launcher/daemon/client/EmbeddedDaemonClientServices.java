@@ -15,15 +15,15 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
 import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonParameters;
 import org.gradle.launcher.daemon.server.DaemonServerConnector;
 import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
@@ -33,7 +33,6 @@ import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.internal.nativeplatform.ProcessEnvironment;
 
 /**
  * Wires together the embedded daemon client.

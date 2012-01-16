@@ -16,8 +16,9 @@
 
 package org.gradle.util;
 
-import org.apache.tools.ant.util.JavaEnvUtils;
 import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.util.internal.AntBasedJavaExecutableFinder;
+import org.gradle.util.internal.JavaExecutableFinder;
 
 import java.io.File;
 import java.util.HashMap;
@@ -25,6 +26,8 @@ import java.util.Map;
 
 public class Jvm {
     private final OperatingSystem os;
+
+    private final JavaExecutableFinder executableFinder = new AntBasedJavaExecutableFinder(System.getProperty("java.home"));
 
     public static Jvm current() {
         String vendor = System.getProperty("java.vm.vendor");
@@ -44,15 +47,15 @@ public class Jvm {
     }
 
     public File getJavaExecutable() {
-        return new File(JavaEnvUtils.getJdkExecutable("java"));
+        return new File(executableFinder.getJdkExecutable("java"));
     }
 
     public File getJavadocExecutable() {
-        return new File(JavaEnvUtils.getJdkExecutable("javadoc"));
+        return new File(executableFinder.getJdkExecutable("javadoc"));
     }
 
     public File getExecutable(String name) {
-        return new File(JavaEnvUtils.getJdkExecutable(name));
+        return new File(executableFinder.getJdkExecutable(name));
     }
 
     public boolean isJava5Compatible() {
