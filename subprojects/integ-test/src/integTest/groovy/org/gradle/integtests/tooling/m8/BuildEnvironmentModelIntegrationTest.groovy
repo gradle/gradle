@@ -38,16 +38,17 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
 
     def "informs about java args as in the build script"() {
         given:
-        dist.file('build.gradle') << "description = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.toString()"
+        dist.file('build.gradle') <<
+            "project.description = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.join('##')"
 
         when:
         BuildEnvironment env = withConnection { it.getModel(BuildEnvironment.class) }
         Project project = withConnection { it.getModel(Project.class) }
 
         then:
-        env.java.jvmArguments.each {
-            project.description.contains(it)
-        }
+        def inputArgsInBuild = project.description.split('##')
+        inputArgsInBuild.length == env.java.jvmArguments.size()
+        inputArgsInBuild.each { env.java.jvmArguments.contains(it) }
     }
 
     def "informs about java home as in the build script"() {

@@ -97,6 +97,25 @@ assert System.getProperty('some-prop') == 'BBB'
         model != null
     }
 
+    def "customized java args are reflected in the inputArguments and the build model"() {
+        given:
+        dist.file('build.gradle') <<
+                "project.description = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.join('##')"
+
+        when:
+        BuildEnvironment env
+        Project project
+        withConnection {
+            env = it.model(BuildEnvironment.class).setJvmArguments('-Xmx200m', '-Xms100m').get()
+            project = it.model(Project.class).setJvmArguments('-Xmx200m', '-Xms100m').get()
+        }
+
+        then:
+        def inputArgsInBuild = project.description.split('##')
+        inputArgsInBuild.length == env.java.jvmArguments.size()
+        inputArgsInBuild.each { env.java.jvmArguments.contains(it) }
+    }
+
     @Ignore
     @Issue("GRADLE-1799")
     def "behaves reasonably when rubbish java home"() {

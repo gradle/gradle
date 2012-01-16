@@ -99,10 +99,11 @@ public class DefaultDaemonConnector implements DaemonConnector {
             connection = findConnection(daemonRegistry.getIdle(), constraint);
             if (connection != null) {
                 return connection;
-            } else {
+            }
+//            else {
                 //TODO SF this might be a good moment to check what happened with the process we attempted to start (daemonStarter)
                 //see issue GRADLE-1799 or JavaConfigurabilityIntegrationTest.behaves reasonably tests
-            }
+//            }
         } while (System.currentTimeMillis() < expiry);
 
         throw new GradleException("Timeout waiting to connect to Gradle daemon.");

@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.tooling.internal.consumer.SynchronizedLogging;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
 
 /**
  * The idea is to initialize the logging infrastructure before we actually build the model or run a build.
@@ -40,7 +39,7 @@ public class LoggingInitializerConnection implements ConsumerConnection {
         connection.stop();
     }
 
-    public ConnectionMetaDataVersion1 getMetaData() {
+    public ConsumerConnectionMetadata getMetaData() {
         return connection.getMetaData();
     }
 

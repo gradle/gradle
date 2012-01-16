@@ -16,9 +16,8 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 
 /**
@@ -31,15 +30,7 @@ public class DefaultSettingsFinder implements ISettingsFinder {
         this.layoutFactory = layoutFactory;
     }
 
-    public SettingsLocation find(StartParameter startParameter) {
-        BuildLayout layout = layoutFactory.getLayoutFor(startParameter.getCurrentDir(), startParameter.isSearchUpwards());
-        if (layout.getSettingsFile() == null) {
-            return new SettingsLocation(layout.getSettingsDir(),
-                    new StringScriptSource("empty settings file", ""));
-        } else {
-            return new SettingsLocation(layout.getSettingsDir(),
-                    new UriScriptSource("settings file", layout.getSettingsFile()));
-
-        }
+    public BuildLayout find(StartParameter startParameter) {
+        return layoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
     }
 }

@@ -127,9 +127,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 gradle,
                 serviceRegistry.get(InitScriptHandler.class),
                 new SettingsHandler(
-                        new EmbeddedScriptSettingsFinder(
-                                new DefaultSettingsFinder(
-                                        new BuildLayoutFactory())),
+                        new DefaultSettingsFinder(
+                                new BuildLayoutFactory()),
                         serviceRegistry.get(SettingsProcessor.class),
                         new BuildSourceBuilder(
                                 this,

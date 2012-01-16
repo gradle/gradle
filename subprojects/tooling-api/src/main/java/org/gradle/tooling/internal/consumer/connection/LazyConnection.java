@@ -21,8 +21,8 @@ import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.ModelProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.FeatureValidator;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -74,16 +74,8 @@ public class LazyConnection implements ConsumerConnection {
         }
     }
 
-    public ConnectionMetaDataVersion1 getMetaData() {
-        return new ConnectionMetaDataVersion1() {
-            public String getVersion() {
-                throw new UnsupportedOperationException();
-            }
-
-            public String getDisplayName() {
-                return distribution.getDisplayName();
-            }
-        };
+    public ConsumerConnectionMetadata getMetaData() {
+        return new ConsumerConnectionMetadata(distribution.getDisplayName(), null);
     }
 
     public void executeBuild(final BuildParametersVersion1 buildParameters, final ConsumerOperationParameters operationParameters) {

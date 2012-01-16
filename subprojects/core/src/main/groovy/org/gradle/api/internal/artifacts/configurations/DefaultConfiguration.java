@@ -231,12 +231,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public ResolvedConfiguration getResolvedConfiguration() {
         synchronized (lock) {
             if (state == State.UNRESOLVED) {
+                DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
+                ResolvableDependencies incoming = getIncoming();
+                broadcast.beforeResolve(incoming);
                 cachedResolvedConfiguration = dependencyResolver.resolve(this);
                 if (cachedResolvedConfiguration.hasError()) {
                     state = State.RESOLVED_WITH_FAILURES;
                 } else {
                     state = State.RESOLVED;
                 }
+                broadcast.afterResolve(incoming);
             }
             return cachedResolvedConfiguration;
         }

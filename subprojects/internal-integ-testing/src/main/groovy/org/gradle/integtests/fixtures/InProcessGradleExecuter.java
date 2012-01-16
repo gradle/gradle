@@ -21,7 +21,7 @@ import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
-import org.gradle.api.LocationAwareException;
+import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;

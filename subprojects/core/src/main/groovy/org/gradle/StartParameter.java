@@ -56,8 +56,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     private List<String> taskNames = new ArrayList<String>();
     private Set<String> excludedTaskNames = new HashSet<String>();
-    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction
-            = new ProjectDependenciesBuildInstruction(true);
+    private boolean buildProjectDependencies = true;
     private File currentDir;
     private boolean searchUpwards = true;
     private Map<String, String> projectProperties = new HashMap<String, String>();
@@ -78,8 +77,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
-     *
-     * @param projectCacheDir
      */
     public void setProjectCacheDir(File projectCacheDir) {
         this.projectCacheDir = projectCacheDir;
@@ -120,7 +117,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         StartParameter startParameter = new StartParameter();
         startParameter.buildFile = buildFile;
         startParameter.taskNames = taskNames;
-        startParameter.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
+        startParameter.buildProjectDependencies = buildProjectDependencies;
         startParameter.currentDir = currentDir;
         startParameter.searchUpwards = searchUpwards;
         startParameter.projectProperties = projectProperties;
@@ -130,7 +127,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.resolveMode = resolveMode;
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
-        startParameter.initScripts = new ArrayList<File>(initScripts); 
+        startParameter.initScripts = new ArrayList<File>(initScripts);
         startParameter.defaultProjectSelector = defaultProjectSelector;
         startParameter.setLogLevel(getLogLevel());
         startParameter.setColorOutput(isColorOutput());
@@ -203,7 +200,9 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * file(s) are to be used. This source is used for <em>all</em> projects included in the build.</p>
      *
      * @return The build file source, or null to use the defaults.
+     * @deprecated Use {@link #getBuildFile()} instead.
      */
+    @Deprecated
     public ScriptSource getBuildScriptSource() {
         return buildScriptSource;
     }
@@ -214,6 +213,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *
      * @return The settings script source, or null to use the default.
      */
+    @Deprecated
     public ScriptSource getSettingsScriptSource() {
         return settingsScriptSource;
     }
@@ -223,7 +223,9 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * script.</p>
      *
      * @param settingsScriptSource The settings script source.
+     * @deprecated Use {@link #setSettingsFile(java.io.File)} or {@link #useEmptySettingsScript()} instead.
      */
+    @Deprecated
     public void setSettingsScriptSource(ScriptSource settingsScriptSource) {
         this.settingsScriptSource = settingsScriptSource;
     }
@@ -232,24 +234,38 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file.
      * </p>
      *
-     * @param buildScriptText The script to use as the build file.
      * @return this
      */
+    public StartParameter useEmptySettingsScript() {
+        searchUpwards = false;
+        settingsScriptSource = new StringScriptSource("empty settings file", "");
+        return this;
+    }
+
+    /**
+     * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file. </p>
+     *
+     * @param buildScriptText The script to use as the build file.
+     * @return this
+     * @deprecated No replacement.
+     */
+    @Deprecated
     public StartParameter useEmbeddedBuildFile(String buildScriptText) {
         return setBuildScriptSource(new StringScriptSource("embedded build file", buildScriptText));
     }
-    
+
     /**
      * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file.
      * </p>
      *
      * @param buildScript The script to use as the build file.
      * @return this
+     * @deprecated Use {@link #setBuildFile(java.io.File)} or {@link #useEmbeddedBuildFile(String)} instead.
      */
+    @Deprecated
     public StartParameter setBuildScriptSource(ScriptSource buildScript) {
         buildScriptSource = buildScript;
-        settingsScriptSource = new StringScriptSource("empty settings file", "");
-        searchUpwards = false;
+        useEmptySettingsScript();
         return this;
     }
 
@@ -343,12 +359,12 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Returns a newly constructed map that is the JVM system properties merged with the system property args.
      * <p>
      * System property args take precedency overy JVM system properties.
-     * 
+     *
      * @return The merged system properties
      */
     public Map<String, String> getMergedSystemProperties() {
         Map<String, String> merged = new HashMap<String, String>();
-        merged.putAll((Map)System.getProperties());
+        merged.putAll((Map) System.getProperties());
         merged.putAll(getSystemPropertiesArgs());
         return merged;
     }
@@ -371,13 +387,42 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         this.gradleUserHomeDir = gradleUserHomeDir == null ? DEFAULT_GRADLE_USER_HOME : GFileUtils.canonicalise(gradleUserHomeDir);
     }
 
+    /**
+     * Returns the project dependencies build instruction.
+     *
+     * @deprecated Use {@link #isBuildProjectDependencies()} instead.
+     */
+    @Deprecated
     public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
-        return projectDependenciesBuildInstruction;
+        return new ProjectDependenciesBuildInstruction(buildProjectDependencies);
     }
 
+    /**
+     * Sets the project dependencies build instruction.
+     *
+     * @deprecated Use {@link #setBuildProjectDependencies(boolean)} instead.
+     */
+    @Deprecated
     public void setProjectDependenciesBuildInstruction(
             ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
-        this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
+        this.buildProjectDependencies = projectDependenciesBuildInstruction.isRebuild();
+    }
+
+    /**
+     * Returns true if project dependencies are to be built, false if they should not be. The default is true.
+     */
+    public boolean isBuildProjectDependencies() {
+        return buildProjectDependencies;
+    }
+    
+    /**
+     * Specifies whether project dependencies should be built. Defaults to true.
+     *
+     * @return this
+     */
+    public StartParameter setBuildProjectDependencies(boolean build) {
+        this.buildProjectDependencies = build;
+        return this;
     }
 
     public CacheUsage getCacheUsage() {
@@ -429,13 +474,19 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Adds the given file to the list of init scripts that are run before the build starts.  This list is in
-     * addition to the user init script located in ${user.home}/.gradle/init.gradle.
-     * @param initScriptFile The init script to be run during the Gradle invocation.
+     * addition to the default init scripts.
+     *
+     * @param initScriptFile The init scripts.
      */
     public void addInitScript(File initScriptFile) {
         initScripts.add(initScriptFile);
     }
 
+    /**
+     * Sets the list of init scripts to be run before the build starts. This list is in addition to the default init scripts.
+     *
+     * @param initScripts The init scripts.
+     */
     public void setInitScripts(List<File> initScripts) {
         this.initScripts = initScripts;
     }
@@ -444,6 +495,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Returns all explicitly added init scripts that will be run before the build starts.  This list does not
      * contain the user init script located in ${user.home}/.gradle/init.gradle, even though that init script
      * will also be run.
+     *
      * @return list of all explicitly added init scripts.
      */
     public List<File> getInitScripts() {
@@ -455,7 +507,9 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * point for resolving task names, and for determining the default tasks.
      *
      * @return The default project. Never returns null.
+     * @deprecated Use {@link #getCurrentDir()} and {@link #getBuildFile()} instead.
      */
+    @Deprecated
     public ProjectSpec getDefaultProjectSelector() {
         return defaultProjectSelector != null ? defaultProjectSelector : new DefaultProjectSpec(currentDir);
     }
@@ -464,7 +518,9 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Sets the selector used to choose the default project of the build.
      *
      * @param defaultProjectSelector The selector. Should not be null.
+     * @deprecated
      */
+    @Deprecated
     public void setDefaultProjectSelector(ProjectSpec defaultProjectSelector) {
         this.defaultProjectSelector = defaultProjectSelector;
     }
@@ -487,6 +543,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Specifies if a profile report should be generated.
+     *
      * @param profile true if a profile report should be generated
      */
     public void setProfile(boolean profile) {

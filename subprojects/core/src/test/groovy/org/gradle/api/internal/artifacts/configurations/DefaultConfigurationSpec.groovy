@@ -53,6 +53,13 @@ class DefaultConfigurationSpec extends Specification {
         )
     }
 
+    // You need to wrap this in an interaction {} block when calling it
+    ResolvedConfiguration resolvedConfiguration(Configuration config, ArtifactDependencyResolver dependencyResolver = dependencyResolver) {
+        ResolvedConfiguration resolvedConfiguration = Mock()
+        1 * dependencyResolver.resolve(config) >> resolvedConfiguration
+        resolvedConfiguration
+    }
+
     def setup() {
         ListenerBroadcast<DependencyResolutionListener> broadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> broadcast
@@ -157,8 +164,8 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     def "incoming dependencies set files are resolved lazily"() {
+        setup:
         def config = conf("conf")
-        ResolvedConfiguration resolvedConfig = Mock()
 
         when:
         def files = config.incoming.files
@@ -170,7 +177,7 @@ class DefaultConfigurationSpec extends Specification {
         files.files
 
         then:
-        1 * dependencyResolver.resolve(config) >> resolvedConfig
+        interaction { resolvedConfiguration(config) }
         0 * dependencyResolver._
     }
 
@@ -203,24 +210,29 @@ class DefaultConfigurationSpec extends Specification {
         config.incoming.beforeResolve(action)
 
         when:
-        config.dependencyResolutionBroadcast.beforeResolve(config.incoming)
+        config.resolvedConfiguration
 
         then:
+        interaction { resolvedConfiguration(config) }
         1 * action.execute(config.incoming)
     }
 
     def "calls beforeResolve closure on incoming dependencies set when dependencies are resolved"() {
-        Closure action = Mock()
         def config = conf("conf")
+        resolvedConfiguration(config)
+        def called = false
 
-        given:
-        config.incoming.beforeResolve(action)
+        expect:
+        config.incoming.afterResolve {
+            assert it == config.incoming
+            called = true
+        }
 
         when:
-        config.dependencyResolutionBroadcast.beforeResolve(config.incoming)
+        config.resolvedConfiguration
 
         then:
-        1 * action.call()
+        called
     }
 
     def "notifies afterResolve action on incoming dependencies set when dependencies are resolved"() {
@@ -231,24 +243,30 @@ class DefaultConfigurationSpec extends Specification {
         config.incoming.afterResolve(action)
 
         when:
-        config.dependencyResolutionBroadcast.afterResolve(config.incoming)
+        config.resolvedConfiguration
 
         then:
+        interaction { resolvedConfiguration(config) }
         1 * action.execute(config.incoming)
+
     }
 
     def "calls afterResolve closure on incoming dependencies set when dependencies are resolved"() {
-        Closure action = Mock()
         def config = conf("conf")
+        resolvedConfiguration(config)
+        def called = false
 
-        given:
-        config.incoming.afterResolve(action)
+        expect:
+        config.incoming.afterResolve {
+            assert it == config.incoming
+            called = true
+        }
 
         when:
-        config.dependencyResolutionBroadcast.afterResolve(config.incoming)
+        config.resolvedConfiguration
 
         then:
-        1 * action.call()
+        called
     }
     
     def "a recursive copy of a configuration includes inherited exclude rules"() {

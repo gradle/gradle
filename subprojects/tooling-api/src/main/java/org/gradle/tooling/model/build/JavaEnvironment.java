@@ -33,6 +33,9 @@ public interface JavaEnvironment {
 
     /**
      * The jvm arguments used for the java process that handles gradle operations (e.g. running tasks or acquiring model information, etc).
+     * <p>
+     * The returned jvm arguments match those returned by {@code java.lang.management.ManagementFactory.runtimeMXBean.inputArguments},
+     * e.g. they do not include system properties passed as -Dfoo=bar
      */
     List<String> getJvmArguments();
 }

@@ -18,7 +18,7 @@ To build the entire Gradle project, you should run the following in the root of 
 
     ./gradlew build
 
-This will compile all the code, generate all the documentation and run all the tests. It can take up to an hour on a fast machine because we have thousands of tests, including integration tests that exercise virtually any Gradle feature. Among the things we test are: compatibility across versions, validity of samples and javadoc snippets, daemon process capabilities, etc.
+This will compile all the code, generate all the documentation and run all the tests. It can take up to an hour on a fast machine because we have thousands of tests, including integration tests that exercise virtually every Gradle feature. Among the things we test are: compatibility across versions, validity of samples and javadoc snippets, daemon process capabilities, etc.
 
 ### Installing from source
 
@@ -34,7 +34,7 @@ You can then build a Gradle built project with this installation:
 
 To create a full installation (includes docs)…
 
-    ./gradlew install -Pgradle_installPath=/usr/local/gradle-source-build
+    ./gradlew installAll -Pgradle_installPath=/usr/local/gradle-source-build
 
 ### Working with sub projects
 
@@ -66,7 +66,7 @@ To run all of the tests and code quality checks for that module.
 
 ### Contributing Documentation
 
-Please see the readme in in the [docs subproject](https://github.com/gradle/gradle/tree/master/subprojects/docs).
+Please see the readme in the [docs subproject](https://github.com/gradle/gradle/tree/master/subprojects/docs).
 
 ## Opening in your IDE
 
@@ -84,6 +84,6 @@ The Gradle project is not currently buildable in Eclipse. This is something that
 
 You can try running:
 
-./gradlew eclipse
+    ./gradlew eclipse
 
 That generates Eclipse metadata that allows importing the project into Eclipse. However, you would have to do some manual fixes to the project's setup to make it working. We plan to address this soon.

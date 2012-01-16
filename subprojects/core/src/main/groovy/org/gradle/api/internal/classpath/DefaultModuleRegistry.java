@@ -123,6 +123,14 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
     }
 
     private Module loadModule(String moduleName) {
+        File jarFile = findModuleJar(moduleName);
+        if (jarFile != null) {
+            Set<File> implementationClasspath = new LinkedHashSet<File>();
+            implementationClasspath.add(jarFile);
+            Properties properties = loadModuleProperties(moduleName, jarFile);
+            return module(moduleName, properties, implementationClasspath);
+        }
+
         String resourceName = String.format("%s-classpath.properties", moduleName);
         URL propertiesUrl = classLoader.getResource(resourceName);
         if (propertiesUrl != null) {
@@ -136,13 +144,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
         if (distDir == null) {
             throw new UnknownModuleException(String.format("Cannot locate classpath manifest for module '%s' in classpath.", moduleName));
         }
-
-        Set<File> implementationClasspath = new LinkedHashSet<File>();
-        File jarFile = findModuleJar(moduleName);
-        implementationClasspath.add(jarFile);
-        Properties properties = loadModuleProperties(moduleName, jarFile);
-
-        return module(moduleName, properties, implementationClasspath);
+        throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", moduleName, distDir));
     }
 
     private Module module(String moduleName, Properties properties, Set<File> implementationClasspath) {
@@ -228,7 +230,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
                 }
             }
         }
-        throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", name, distDir));
+        return null;
     }
 
     private File findExternalJar(String name) {

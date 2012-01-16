@@ -18,7 +18,7 @@ package org.gradle;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.LocationAwareException;
+import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.execution.TaskSelectionException;

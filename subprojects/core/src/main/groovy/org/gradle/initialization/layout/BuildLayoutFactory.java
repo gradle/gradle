@@ -15,34 +15,56 @@
  */
 package org.gradle.initialization.layout;
 
+import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.groovy.scripts.UriScriptSource;
+
 import java.io.File;
 
 public class BuildLayoutFactory {
     /**
-     * Determines the root dir, settings dir and settings file given a current directory.
+     * Determines the layout of the build, given a current directory and some other configuration.
      */
     public BuildLayout getLayoutFor(File currentDir, boolean searchUpwards) {
         return getLayoutFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
     }
-    
+
     /**
-     * Determines the root dir, settings dir and settings file given a current directory.
+     * Determines the layout of the build, given a current directory and some other configuration.
      */
-    public BuildLayout getLayoutFor(File currentDir, File stopAt) {
+    public BuildLayout getLayoutFor(BuildLayoutConfiguration configuration) {
+
+        if (configuration.getSettingsScript() != null) {
+            return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), configuration.getSettingsScript());
+        }
+
+        File currentDir = configuration.getCurrentDir();
+        boolean searchUpwards = configuration.isSearchUpwards();
+        return getLayoutFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
+    }
+
+    BuildLayout getLayoutFor(File currentDir, File stopAt) {
         File settingsFile = new File(currentDir, "settings.gradle");
         if (settingsFile.isFile()) {
-            return new BuildLayout(currentDir, currentDir, settingsFile);
+            return layout(currentDir, currentDir, settingsFile);
         }
         for (File candidate = currentDir.getParentFile(); candidate != null && !candidate.equals(stopAt); candidate = candidate.getParentFile()) {
             settingsFile = new File(candidate, "settings.gradle");
             if (settingsFile.isFile()) {
-                return new BuildLayout(candidate, candidate, settingsFile);
+                return layout(candidate, candidate, settingsFile);
             }
             settingsFile = new File(candidate, "master/settings.gradle");
             if (settingsFile.isFile()) {
-                return new BuildLayout(candidate, settingsFile.getParentFile(), settingsFile);
+                return layout(candidate, settingsFile.getParentFile(), settingsFile);
             }
         }
-        return new BuildLayout(currentDir, currentDir, null);
+        return layout(currentDir, currentDir);
+    }
+
+    private BuildLayout layout(File rootDir, File settingsDir) {
+        return new BuildLayout(rootDir, settingsDir, new StringScriptSource("empty settings file", ""));
+    }
+
+    private BuildLayout layout(File rootDir, File settingsDir, File settingsFile) {
+        return new BuildLayout(rootDir, settingsDir, new UriScriptSource("settings file", settingsFile));
     }
 }

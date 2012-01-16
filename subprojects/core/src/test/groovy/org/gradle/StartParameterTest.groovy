@@ -185,6 +185,15 @@ class StartParameterTest {
         assertThat(parameter, isSerializable())
     }
 
+    @Test public void testUseEmptySettingsScript() {
+        StartParameter parameter = new StartParameter();
+        parameter.useEmptySettingsScript()
+        assertThat(parameter.settingsScriptSource, instanceOf(StringScriptSource.class))
+        assertThat(parameter.settingsScriptSource.resource.text, equalTo(""))
+        assertThat(parameter.searchUpwards, equalTo(false))
+        assertThat(parameter, isSerializable())
+    }
+
     @Test public void testSetNullUserHomeDir() {
         StartParameter parameter = new StartParameter()
         parameter.gradleUserHomeDir = null

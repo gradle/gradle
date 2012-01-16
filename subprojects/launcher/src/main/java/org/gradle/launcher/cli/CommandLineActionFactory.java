@@ -73,13 +73,13 @@ public class CommandLineActionFactory {
         CommandLineConverter<StartParameter> startParameterConverter = createStartParameterConverter();
         startParameterConverter.configure(parser);
 
-        parser.option(HELP, "?", "help").hasDescription("Shows this help message");
+        parser.option(HELP, "?", "help").hasDescription("Shows this help message.");
         parser.option(VERSION, "version").hasDescription("Print version info.");
-        parser.option(GUI).hasDescription("Launches a GUI application");
-        parser.option(FOREGROUND).hasDescription("Starts the Gradle daemon in the foreground [experimental].");
-        parser.option(DAEMON).hasDescription("Uses the Gradle daemon to run the build. Starts the daemon if not running [experimental].");
-        parser.option(NO_DAEMON).hasDescription("Do not use the Gradle daemon to run the build [experimental].");
-        parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running [experimental].");
+        parser.option(GUI).hasDescription("Launches the Gradle GUI.");
+        parser.option(FOREGROUND).hasDescription("Starts the Gradle daemon in the foreground.").experimental();
+        parser.option(DAEMON).hasDescription("Uses the Gradle daemon to run the build. Starts the daemon if not running.").experimental();
+        parser.option(NO_DAEMON).hasDescription("Do not use the Gradle daemon to run the build.").experimental();
+        parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running.").experimental();
 
         LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
         ServiceRegistry loggingServices = createLoggingServices();

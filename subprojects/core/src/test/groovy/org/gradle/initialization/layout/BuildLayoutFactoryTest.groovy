@@ -18,6 +18,10 @@ package org.gradle.initialization.layout
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.groovy.scripts.UriScriptSource
+import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.StartParameter
 
 class BuildLayoutFactoryTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -31,7 +35,7 @@ class BuildLayoutFactoryTest extends Specification {
         def layout = locator.getLayoutFor(currentDir, true)
         layout.rootDirectory == currentDir
         layout.settingsDir == currentDir
-        layout.settingsFile == settingsFile
+        refersTo(layout.settingsScriptSource, settingsFile)
     }
 
     def "looks for sibling directory called 'master' that it contains a settings file"() {
@@ -43,7 +47,7 @@ class BuildLayoutFactoryTest extends Specification {
         def layout = locator.getLayoutFor(currentDir, true)
         layout.rootDirectory == masterDir.parentFile
         layout.settingsDir == masterDir
-        layout.settingsFile == settingsFile
+        refersTo(layout.settingsScriptSource, settingsFile)
     }
 
     def "searches ancestors for a directory called 'master' that contains a settings file"() {
@@ -55,7 +59,7 @@ class BuildLayoutFactoryTest extends Specification {
         def layout = locator.getLayoutFor(currentDir, true)
         layout.rootDirectory == masterDir.parentFile
         layout.settingsDir == masterDir
-        layout.settingsFile == settingsFile
+        refersTo(layout.settingsScriptSource, settingsFile)
     }
 
     def "ignores 'master' directory when it does not contain a settings file"() {
@@ -68,7 +72,7 @@ class BuildLayoutFactoryTest extends Specification {
         def layout = locator.getLayoutFor(currentDir, true)
         layout.rootDirectory == tmpDir.dir
         layout.settingsDir == tmpDir.dir
-        layout.settingsFile == settingsFile
+        refersTo(layout.settingsScriptSource, settingsFile)
     }
 
     def "returns closest ancestor directory that contains a settings file"() {
@@ -81,7 +85,7 @@ class BuildLayoutFactoryTest extends Specification {
         def layout = locator.getLayoutFor(currentDir, true)
         layout.rootDirectory == subDir
         layout.settingsDir == subDir
-        layout.settingsFile == settingsFile
+        refersTo(layout.settingsScriptSource, settingsFile)
     }
 
     def "prefers the current directory as root directory"() {
@@ -94,7 +98,7 @@ class BuildLayoutFactoryTest extends Specification {
         def layout = locator.getLayoutFor(currentDir, true)
         layout.rootDirectory == currentDir
         layout.settingsDir == currentDir
-        layout.settingsFile == settingsFile
+        refersTo(layout.settingsScriptSource, settingsFile)
     }
 
     def "prefers the 'master' directory over ancestor directory"() {
@@ -107,7 +111,7 @@ class BuildLayoutFactoryTest extends Specification {
         def layout = locator.getLayoutFor(currentDir, true)
         layout.rootDirectory == masterDir.parentFile
         layout.settingsDir == masterDir
-        layout.settingsFile == settingsFile
+        refersTo(layout.settingsScriptSource, settingsFile)
     }
 
     def "returns start directory when search upwards is disabled"() {
@@ -119,7 +123,7 @@ class BuildLayoutFactoryTest extends Specification {
         def layout = locator.getLayoutFor(currentDir, false)
         layout.rootDirectory == currentDir
         layout.settingsDir == currentDir
-        layout.settingsFile == null
+        isEmpty(layout.settingsScriptSource)
     }
 
     def "returns current directory when no settings or wrapper properties files found"() {
@@ -129,6 +133,62 @@ class BuildLayoutFactoryTest extends Specification {
         def layout = locator.getLayoutFor(currentDir, tmpDir.dir)
         layout.rootDirectory == currentDir
         layout.settingsDir == currentDir
-        layout.settingsFile == null
+        isEmpty(layout.settingsScriptSource)
+    }
+
+    def "can override build layout by specifying the settings file"() {
+        def currentDir = tmpDir.createDir("current")
+        currentDir.createFile("settings.gradle")
+        def rootDir = tmpDir.createDir("root")
+        def settingsFile = rootDir.createDir("some-settings.gradle")
+        def startParameter = new StartParameter()
+        startParameter.currentDir = currentDir
+        startParameter.settingsFile = settingsFile
+        def config = new BuildLayoutConfiguration(startParameter)
+
+        expect:
+        def layout = locator.getLayoutFor(config)
+        layout.rootDirectory == rootDir
+        layout.settingsDir == rootDir
+        refersTo(layout.settingsScriptSource, settingsFile)
+    }
+
+    def "can override build layout by specifying an empty settings script"() {
+        def currentDir = tmpDir.createDir("current")
+        currentDir.createFile("settings.gradle")
+        def startParameter = new StartParameter()
+        startParameter.currentDir = currentDir
+        startParameter.useEmptySettingsScript()
+        def config = new BuildLayoutConfiguration(startParameter)
+
+        expect:
+        def layout = locator.getLayoutFor(config)
+        layout.rootDirectory == currentDir
+        layout.settingsDir == currentDir
+        isEmpty(layout.settingsScriptSource)
+    }
+
+    def "can override build layout by specifying an embedded build script"() {
+        def currentDir = tmpDir.createDir("current")
+        def startParameter = new StartParameter()
+        startParameter.currentDir = currentDir
+        startParameter.useEmbeddedBuildFile 'embedded'
+        def config = new BuildLayoutConfiguration(startParameter)
+
+        expect:
+        def layout = locator.getLayoutFor(config)
+        layout.rootDirectory == currentDir
+        layout.settingsDir == currentDir
+        isEmpty(layout.settingsScriptSource)
+    }
+
+    void refersTo(ScriptSource scriptSource, File file) {
+        assert scriptSource instanceof UriScriptSource
+        assert scriptSource.resource.sourceFile == file
+    }
+
+    void isEmpty(ScriptSource scriptSource) {
+        assert scriptSource instanceof StringScriptSource
+        assert scriptSource.resource.contents == ''
     }
 }

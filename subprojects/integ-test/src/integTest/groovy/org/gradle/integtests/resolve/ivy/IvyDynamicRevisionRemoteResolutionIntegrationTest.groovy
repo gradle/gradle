@@ -595,8 +595,7 @@ task retrieve(type: Copy) {
 """
 
         and:
-        def module = ivyRepo().module("group", "projectA", "1.1")
-        module.publish()
+        def module = ivyRepo().module("group", "projectA", "1.1").publish()
 
         when:
         server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
@@ -614,9 +613,8 @@ task retrieve(type: Copy) {
 
         server.resetExpectations()
         // Server will be hit to get updated versions
-        server.expectGetMissing('/repo/group/projectA/1.1/ivy-1.1.xml.sha1')
-        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
-        server.expectGetMissing('/repo/group/projectA/1.1/projectA-1.1.jar.sha1')
+        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml.sha1', module.sha1File(module.ivyFile))
+        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar.sha1', module.sha1File(module.jarFile))
         server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
 
         run 'retrieve'
@@ -625,7 +623,6 @@ task retrieve(type: Copy) {
         def changedJarFile = file('build/projectA-1.1.jar')
         changedJarFile.assertHasChangedSince(snapshot)
         changedJarFile.assertIsCopyOf(module.jarFile)
-
     }
 
     def "caches changing module descriptor and artifacts until cache expiry"() {
@@ -690,9 +687,9 @@ task retrieve(type: Copy) {
         when: "Server handles requests"
         server.resetExpectations()
         // Server will be hit to get updated versions
-        server.expectGetMissing('/repo/group/projectA/1.1/ivy-1.1.xml.sha1')
+        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml.sha1', module.sha1File(module.ivyFile))
         server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
-        server.expectGetMissing('/repo/group/projectA/1.1/projectA-1.1.jar.sha1')
+        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar.sha1', module.sha1File(module.jarFile))
         server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
         server.expectGet('/repo/group/projectA/1.1/other-1.1.jar', module.moduleDir.file('other-1.1.jar'))
 

@@ -31,6 +31,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -60,12 +61,19 @@ public class DefaultConfigurationTest {
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
     private DefaultResolutionStrategy resolutionStrategy = new DefaultResolutionStrategy();
     private DefaultConfiguration configuration;
+    private DependencyResolutionListener dependencyResolutionBroadcast = context.mock(DependencyResolutionListener.class);
+    private ListenerBroadcast resolutionListenerBroadcast = context.mock(ListenerBroadcast.class); 
 
     @Before
     public void setUp() {
         configurationContainer = context.mock(ConfigurationsProvider.class);
         context.checking(new Expectations(){{
             allowing(listenerManager).createAnonymousBroadcaster(DependencyResolutionListener.class);
+            will(returnValue(resolutionListenerBroadcast));
+            allowing(resolutionListenerBroadcast).getSource();
+            will(returnValue(dependencyResolutionBroadcast));
+            allowing(dependencyResolutionBroadcast).afterResolve(with(any(ResolvableDependencies.class)));
+            allowing(dependencyResolutionBroadcast).beforeResolve(with(any(ResolvableDependencies.class)));
         }});
         configuration = createNamedConfiguration("path", "name");
     }

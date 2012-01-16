@@ -101,10 +101,6 @@ public class MavenResolver extends ResourceCollectionResolver implements Pattern
         setArtifactPatterns(artifactPatterns);
     }
 
-    private String getMavenMetadataPattern() {
-        return root + "[organisation]/[module]/[revision]/maven-metadata.xml";
-    }
-
     public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
         if (shouldResolveDependencyDescriptors()) {
             ModuleRevisionId moduleRevisionId = convertM2IdForResourceSearch(dd.getDependencyRevisionId());
@@ -168,7 +164,7 @@ public class MavenResolver extends ResourceCollectionResolver implements Pattern
     }
 
     private String findUniqueSnapshotVersion(ModuleRevisionId moduleRevisionId) {
-        String metadataLocation = IvyPatternHelper.substitute(getMavenMetadataPattern(), moduleRevisionId);
+        String metadataLocation = IvyPatternHelper.substitute(root + "[organisation]/[module]/[revision]/maven-metadata.xml", moduleRevisionId);
         MavenMetadata mavenMetadata = parseMavenMetadata(metadataLocation);
 
         if (mavenMetadata.timestamp != null) {
@@ -209,34 +205,10 @@ public class MavenResolver extends ResourceCollectionResolver implements Pattern
     private void parseMavenMetadataInto(String metadataLocation, final MavenMetadata mavenMetadata) {
         try {
             Resource metadata = getResource(metadataLocation);
-            if (metadata.exists()) {
-                LOGGER.debug("parsing maven-metadata: {}", metadata);
-                InputStream metadataStream = metadata.openStream();
-                try {
-                    XMLHelper.parse(metadataStream, null, new ContextualSAXHandler() {
-                        public void endElement(String uri, String localName, String qName)
-                                throws SAXException {
-                            if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
-                                mavenMetadata.timestamp = getText();
-                            }
-                            if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
-                                mavenMetadata.buildNumber = getText();
-                            }
-                            if ("metadata/versioning/versions/version".equals(getContext())) {
-                                mavenMetadata.versions.add(getText().trim());
-                            }
-                            super.endElement(uri, localName, qName);
-                        }
-                    }, null);
-                } finally {
-                    try {
-                        metadataStream.close();
-                    } catch (IOException e) {
-                        // ignored
-                    }
-                }
-            } else {
-                LOGGER.debug("maven-metadata not available: {}", metadata);
+            try {
+                parseMavenMetadataInto(metadata, mavenMetadata);
+            } finally {
+                discardResource(metadata);
             }
         } catch (IOException e) {
             LOGGER.warn("impossible to access maven metadata file, ignored.", e);
@@ -244,6 +216,30 @@ public class MavenResolver extends ResourceCollectionResolver implements Pattern
             LOGGER.warn("impossible to parse maven metadata file, ignored.", e);
         } catch (ParserConfigurationException e) {
             LOGGER.warn("impossible to parse maven metadata file, ignored.", e);
+        }
+    }
+
+    private void parseMavenMetadataInto(Resource metadataResource, final MavenMetadata mavenMetadata) throws IOException, SAXException, ParserConfigurationException {
+        if (metadataResource.exists()) {
+            LOGGER.debug("parsing maven-metadata: {}", metadataResource);
+            InputStream metadataStream = metadataResource.openStream();
+            XMLHelper.parse(metadataStream, null, new ContextualSAXHandler() {
+                public void endElement(String uri, String localName, String qName)
+                        throws SAXException {
+                    if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
+                        mavenMetadata.timestamp = getText();
+                    }
+                    if ("metadata/versioning/snapshot/buildNumber".equals(getContext())) {
+                        mavenMetadata.buildNumber = getText();
+                    }
+                    if ("metadata/versioning/versions/version".equals(getContext())) {
+                        mavenMetadata.versions.add(getText().trim());
+                    }
+                    super.endElement(uri, localName, qName);
+                }
+            }, null);
+        } else {
+            LOGGER.debug("maven-metadata not available: {}", metadataResource);
         }
     }
 

@@ -43,7 +43,7 @@ public abstract class AbstractHttpResource implements HttpResource {
         throw new UnsupportedOperationException();
     }
 
-    public void close() {
+    public void close() throws IOException {
     }
 
 }

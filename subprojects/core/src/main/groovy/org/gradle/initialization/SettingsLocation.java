@@ -28,10 +28,16 @@ public class SettingsLocation {
         this.settingsScriptSource = settingsScriptSource;
     }
 
+    /**
+     * Returns the settings directory. Never null.
+     */
     public File getSettingsDir() {
         return settingsDir;
     }
 
+    /**
+     * Returns the settings script. Never null.
+     */
     public ScriptSource getSettingsScriptSource() {
         return settingsScriptSource;
     }

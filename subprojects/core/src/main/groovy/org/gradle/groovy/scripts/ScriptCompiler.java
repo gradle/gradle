@@ -15,8 +15,6 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.api.ScriptCompilationException;
-
 /**
  * Compiles a script into a {@code Script} object.
  */
