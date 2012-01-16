@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.bootstrap;
 
 import com.google.common.io.Files;
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.context.DaemonContext;
