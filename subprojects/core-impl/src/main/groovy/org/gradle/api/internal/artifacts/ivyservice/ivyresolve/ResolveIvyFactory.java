@@ -20,9 +20,9 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
@@ -60,8 +60,8 @@ public class ResolveIvyFactory {
 
     public IvyAdapter create(ConfigurationInternal configuration) {
         UserResolverChain userResolverChain = new UserResolverChain();
-        CachePolicy cachePolicy = configuration.getResolutionStrategy().getCachePolicy();
-        cachePolicy = resolveModeOverride.overrideCachePolicy(cachePolicy);
+        ResolutionRules resolutionRules = configuration.getResolutionStrategy().getResolutionRules();
+        resolveModeOverride.overrideCachePolicy(resolutionRules);
 
         LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME, userResolverChain, cacheLockingManager);
         List<DependencyResolver> rawResolvers = resolverProvider.getResolvers();
@@ -82,7 +82,8 @@ public class ResolveIvyFactory {
             ModuleVersionRepository moduleVersionRepository = new DependencyResolverAdapter(resolverId, cacheLockingResolver);
             moduleVersionRepository = resolveModeOverride.overrideModuleVersionRepository(moduleVersionRepository);
             ModuleVersionRepository cachingRepository =
-                    new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache, cachePolicy);
+                    new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache,
+                                                       configuration.getResolutionStrategy().getCachePolicy());
             // Need to contextualise outside of caching, since parsing of module descriptors in the cache requires ivy settings, which is provided via the context atm
             ModuleVersionRepository ivyContextualisedRepository = contextualiser.contextualise(ModuleVersionRepository.class, cachingRepository);
             userResolverChain.add(ivyContextualisedRepository);

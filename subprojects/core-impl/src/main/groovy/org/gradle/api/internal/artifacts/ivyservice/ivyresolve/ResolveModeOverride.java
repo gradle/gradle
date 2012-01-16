@@ -18,37 +18,56 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.ResolveMode;
-import org.gradle.api.artifacts.ResolvedModuleVersion;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.cache.ArtifactResolutionControl;
+import org.gradle.api.artifacts.cache.DependencyResolutionControl;
+import org.gradle.api.artifacts.cache.ModuleResolutionControl;
+import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 import java.io.File;
 
 public class ResolveModeOverride {
-    private final CachePolicy overridePolicy;
     private final ResolveMode resolveMode;
 
     public ResolveModeOverride(ResolveMode resolveMode) {
         this.resolveMode = resolveMode;
-        this.overridePolicy = createOverridePolicy(resolveMode);
     }
 
-    private CachePolicy createOverridePolicy(ResolveMode resolveMode) {
-        switch (resolveMode) {
-            case FORCE:
-                return new ForceResolveCachePolicy(true);
-            case OFFLINE:
-                return new ForceResolveCachePolicy(false);
-            default:
-                return null;
+    public void overrideCachePolicy(ResolutionRules resolutionRules) {
+        if (resolveMode == ResolveMode.OFFLINE) {
+            resolutionRules.eachDependency(new Action<DependencyResolutionControl>() {
+                public void execute(DependencyResolutionControl dependencyResolutionControl) {
+                    dependencyResolutionControl.useCachedResult();
+                }
+            });
+            resolutionRules.eachModule(new Action<ModuleResolutionControl>() {
+                public void execute(ModuleResolutionControl moduleResolutionControl) {
+                    moduleResolutionControl.useCachedResult();
+                }
+            });
+            resolutionRules.eachArtifact(new Action<ArtifactResolutionControl>() {
+                public void execute(ArtifactResolutionControl artifactResolutionControl) {
+                    artifactResolutionControl.useCachedResult();
+                }
+            });
+        } else if (resolveMode == ResolveMode.FORCE) {
+            resolutionRules.eachDependency(new Action<DependencyResolutionControl>() {
+                public void execute(DependencyResolutionControl dependencyResolutionControl) {
+                    dependencyResolutionControl.invalidate();
+                }
+            });
+            resolutionRules.eachModule(new Action<ModuleResolutionControl>() {
+                public void execute(ModuleResolutionControl moduleResolutionControl) {
+                    moduleResolutionControl.invalidate();
+                }
+            });
+            resolutionRules.eachArtifact(new Action<ArtifactResolutionControl>() {
+                public void execute(ArtifactResolutionControl ArtifactResolutionControl) {
+                    ArtifactResolutionControl.invalidate();
+                }
+            });
         }
-    }
-
-    public CachePolicy overrideCachePolicy(CachePolicy original) {
-        if (overridePolicy != null) {
-            return overridePolicy;
-        }
-        return original;
     }
 
     public ModuleVersionRepository overrideModuleVersionRepository(ModuleVersionRepository original) {
@@ -56,30 +75,6 @@ public class ResolveModeOverride {
             return new OfflineModuleVersionRepository(original);
         }
         return original;
-    }
-
-    private static class ForceResolveCachePolicy implements CachePolicy {
-        private final boolean mustRefresh;
-
-        public ForceResolveCachePolicy(boolean mustRefresh) {
-            this.mustRefresh = mustRefresh;
-        }
-
-        public boolean mustRefreshDynamicVersion(ResolvedModuleVersion version, long ageMillis) {
-            return mustRefresh;
-        }
-
-        public boolean mustRefreshModule(ResolvedModuleVersion version, long ageMillis) {
-            return mustRefresh;
-        }
-
-        public boolean mustRefreshChangingModule(ResolvedModuleVersion version, long ageMillis) {
-            return mustRefresh;
-        }
-
-        public boolean mustRefreshMissingArtifact(long ageMillis) {
-            return mustRefresh;
-        }
     }
 
     private static class OfflineModuleVersionRepository implements ModuleVersionRepository {

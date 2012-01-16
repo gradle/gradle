@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ConflictResolution;
 import org.gradle.api.artifacts.ResolutionStrategy;
+import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {
@@ -33,4 +34,10 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * @return conflict resolution
      */
     ConflictResolution getConflictResolution();
+
+    /**
+     * The nascent DSL for cache control, and possibly other per-module resolution overrides
+     * @return the resolution rules
+     */
+    ResolutionRules getResolutionRules();
 }
