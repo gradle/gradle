@@ -200,7 +200,9 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * file(s) are to be used. This source is used for <em>all</em> projects included in the build.</p>
      *
      * @return The build file source, or null to use the defaults.
+     * @deprecated Use {@link #getBuildFile()} instead.
      */
+    @Deprecated
     public ScriptSource getBuildScriptSource() {
         return buildScriptSource;
     }
@@ -211,6 +213,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *
      * @return The settings script source, or null to use the default.
      */
+    @Deprecated
     public ScriptSource getSettingsScriptSource() {
         return settingsScriptSource;
     }
@@ -244,7 +247,9 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *
      * @param buildScriptText The script to use as the build file.
      * @return this
+     * @deprecated No replacement.
      */
+    @Deprecated
     public StartParameter useEmbeddedBuildFile(String buildScriptText) {
         return setBuildScriptSource(new StringScriptSource("embedded build file", buildScriptText));
     }
@@ -469,14 +474,19 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Adds the given file to the list of init scripts that are run before the build starts.  This list is in
-     * addition to the user init script located in ${user.home}/.gradle/init.gradle.
+     * addition to the default init scripts.
      *
-     * @param initScriptFile The init script to be run during the Gradle invocation.
+     * @param initScriptFile The init scripts.
      */
     public void addInitScript(File initScriptFile) {
         initScripts.add(initScriptFile);
     }
 
+    /**
+     * Sets the list of init scripts to be run before the build starts. This list is in addition to the default init scripts.
+     *
+     * @param initScripts The init scripts.
+     */
     public void setInitScripts(List<File> initScripts) {
         this.initScripts = initScripts;
     }
@@ -497,7 +507,9 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * point for resolving task names, and for determining the default tasks.
      *
      * @return The default project. Never returns null.
+     * @deprecated Use {@link #getCurrentDir()} and {@link #getBuildFile()} instead.
      */
+    @Deprecated
     public ProjectSpec getDefaultProjectSelector() {
         return defaultProjectSelector != null ? defaultProjectSelector : new DefaultProjectSpec(currentDir);
     }
