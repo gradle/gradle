@@ -64,8 +64,8 @@ public class StartParameterResolutionOverride {
                 }
             });
             resolutionRules.eachArtifact(new Action<ArtifactResolutionControl>() {
-                public void execute(ArtifactResolutionControl ArtifactResolutionControl) {
-                    ArtifactResolutionControl.invalidate();
+                public void execute(ArtifactResolutionControl artifactResolutionControl) {
+                    artifactResolutionControl.invalidate();
                 }
             });
         }

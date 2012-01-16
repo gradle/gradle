@@ -17,6 +17,14 @@ package org.gradle.api.artifacts.cache;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
+/**
+ * Command methods for controlling dependency resolution via the DSL.
+ */
 public interface DependencyResolutionControl extends ResolutionControl {
-    ModuleVersionIdentifier getCachedResult();  // This should really be a set of modules, so we can later do version ranges
+    // TODO:DAZ This should really be a set of modules, so we can later do version ranges
+    /**
+     * Provides the cached result of resolving the module selector.
+     * @return the cached result or null if the dependency is not cached
+     */
+    ModuleVersionIdentifier getCachedResult();
 }

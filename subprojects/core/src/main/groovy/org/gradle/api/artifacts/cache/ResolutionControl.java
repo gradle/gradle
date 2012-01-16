@@ -17,11 +17,25 @@ package org.gradle.api.artifacts.cache;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Command methods for controlling dependency resolution via the DSL.
+ */
 public interface ResolutionControl {
-    // command methods
-    void cacheFor(int value, TimeUnit units); // use cached value if no older than specified duration, resolve once per build if not
+    /**
+     * States that the cached value should be used if it is no older than the specified duration.
+     * @param value The number of units
+     * @param units The time units
+     */
+    void cacheFor(int value, TimeUnit units);
 
-    void useCachedResult(); // use cached value only, fail if no cached result, ie offline mode
+    /**
+     * States that the cached value should be used regardless of age.
+     * If not cachedResult is available, resolution should fail.
+     */
+    void useCachedResult();
 
-    void invalidate(); // discard cached value, forces a resolve regardless of cached value or whether already resolved in this build
+    /**
+     * States that any cached value should be ignored, forcing a fresh resolve.
+     */
+    void invalidate();
 }

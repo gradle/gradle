@@ -41,16 +41,16 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         cacheChangingModulesFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
     }
 
-    public void eachDependency(Action<? super DependencyResolutionControl> action) {
-        dependencyCacheRules.add(0, action);
+    public void eachDependency(Action<? super DependencyResolutionControl> rule) {
+        dependencyCacheRules.add(0, rule);
     }
 
-    public void eachModule(Action<? super ModuleResolutionControl> action) {
-        moduleCacheRules.add(0, action);
+    public void eachModule(Action<? super ModuleResolutionControl> rule) {
+        moduleCacheRules.add(0, rule);
     }
 
-    public void eachArtifact(Action<? super ArtifactResolutionControl> action) {
-        artifactCacheRules.add(0, action);
+    public void eachArtifact(Action<? super ArtifactResolutionControl> rule) {
+        artifactCacheRules.add(0, rule);
     }
 
     public void cacheDynamicVersionsFor(final int value, final TimeUnit unit) {
@@ -132,8 +132,8 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
 
     private static class AbstractResolutionControl implements ResolutionControl {
         private final long ageMillis;
-
-        private Boolean mustCheck = null;
+        private boolean ruleMatch;
+        private boolean mustCheck;
 
         private AbstractResolutionControl(long ageMillis) {
             this.ageMillis = ageMillis;
@@ -142,22 +142,27 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         public void cacheFor(int value, TimeUnit units) {
             long timeoutMillis = TimeUnit.MILLISECONDS.convert(value, units);
             if (ageMillis <= timeoutMillis) {
-                mustCheck = Boolean.FALSE;
+                setMustCheck(false);
             } else {
-                mustCheck = Boolean.TRUE;
+                setMustCheck(true);
             }
         }
 
         public void useCachedResult() {
-            mustCheck = Boolean.FALSE;
+            setMustCheck(false);
         }
 
         public void invalidate() {
-            mustCheck = Boolean.TRUE;
+            setMustCheck(true);
+        }
+        
+        private void setMustCheck(boolean val) {
+            ruleMatch = true;
+            mustCheck = val;
         }
         
         public boolean ruleMatch() {
-            return mustCheck != null;
+            return ruleMatch;
         }
         
         public boolean mustCheck() {

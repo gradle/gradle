@@ -17,8 +17,25 @@ package org.gradle.api.artifacts.cache;
 
 import org.gradle.api.Action;
 
+/**
+ * Temporary extension to ResolutionStrategy.
+ */
 public interface ResolutionRules {
-    void eachDependency(Action<? super DependencyResolutionControl> action);
-    void eachModule(Action<? super ModuleResolutionControl> action);
-    void eachArtifact(Action<? super ArtifactResolutionControl> action);
+    /**
+     * Apply a rule to control resolution of dependencies.
+     * @param rule the rule to apply
+     */
+    void eachDependency(Action<? super DependencyResolutionControl> rule);
+
+    /**
+     * Apply a rule to control resolution of modules.
+     * @param rule the rule to apply
+     */
+    void eachModule(Action<? super ModuleResolutionControl> rule);
+
+    /**
+     * Apply a rule to control resolution of artifacts.
+     * @param rule the rule to apply
+     */
+    void eachArtifact(Action<? super ArtifactResolutionControl> rule);
 }

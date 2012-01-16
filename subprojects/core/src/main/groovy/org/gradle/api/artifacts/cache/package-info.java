@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.cache;
-
-import java.io.File;
 
 /**
- * Command methods for controlling artifact resolution via the DSL.
+ * Classes for controlling dependency resolution.
  */
-public interface ArtifactResolutionControl extends ResolutionControl {
-    /**
-     * Provides the cached artifact file that matches the artifact being resolved.
-     * @return the cached artifact file or null if the artifact is not cached
-     */
-    File getCachedResult();
-}
+package org.gradle.api.artifacts.cache;

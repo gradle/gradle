@@ -17,8 +17,20 @@ package org.gradle.api.artifacts.cache;
 
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 
+/**
+ * Command methods for controlling module resolution via the DSL.
+ */
 public interface ModuleResolutionControl extends ResolutionControl {
-    // TODO: This should be on the cached result
+    // TODO: This should be part of the cached result?
+    /**
+     * Does the module change content over time?
+     * @return if the module is changing
+     */
     boolean isChanging();
-    ResolvedModuleVersion getCachedResult();  // This should really be a set of modules, so we can later do version ranges
+
+    /**
+     * Provides the cached module meta-data.
+     * @return the cached meta-data, or null if the module is not cached.
+     */
+    ResolvedModuleVersion getCachedResult();
 }
