@@ -353,25 +353,41 @@ class CommandLineParserTest extends Specification {
                 '-y, -z, --end-option, --last-option  this is the last option'
         ]
     }
+    
+    def formatsUsageMessageForDeprecatedAndExperimentalOptions() {
+        parser.option('a', 'long-option').hasDescription('this is option a').deprecated("don't use this")
+        parser.option('b').deprecated('will be removed')
+        parser.option('c').hasDescription('option c').experimental()
+        parser.option('d').experimental()
+        def outstr = new ByteArrayOutputStream()
+
+        expect:
+        parser.printUsage(outstr)
+        outstr.toString().readLines() == [
+                '-a, --long-option  this is option a [deprecated - don\'t use this]',
+                '-b                 [deprecated - will be removed]',
+                '-c                 option c [experimental]',
+                '-d                 [experimental]'
+        ]
+    }
 
     def showsDeprecationWarning() {
-        def parser = new CommandLineParser()
-        parser.option("foo").hasDescription("usless option, just for testing").deprecated("deprecated. Please use --bar instead.")
+        def outstr = new StringWriter()
+        def parser = new CommandLineParser(outstr)
+        parser.option("foo").hasDescription("usless option, just for testing").deprecated("Please use --bar instead.")
         parser.option("x").hasDescription("I'm not deprecated")
 
         when:
-        parser.deprecationPrinter = new ByteArrayOutputStream()
         parser.parse(["-x"])
 
         then:
-        parser.deprecationPrinter.toString() == ''
+        outstr.toString() == ''
 
         when:
-        parser.deprecationPrinter = new ByteArrayOutputStream()
         parser.parse(["--foo"])
 
         then:
-        parser.deprecationPrinter.toString().contains("deprecated. Please use --bar instead.")
+        outstr.toString().startsWith("The --foo option is deprecated - Please use --bar instead.")
     }
 
     def parseFailsWhenCommandLineContainsUnknownShortOption() {

@@ -64,25 +64,25 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         systemPropertiesCommandLineConverter.configure(parser);
         parser.allowMixedSubcommandsAndOptions();
         parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
-        parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
-        parser.option(RESOLVE_MODE).hasArgument().hasDescription("Specifies how resolution should be performed. Possible values are: 'offline', 'force' and 'standard' (default).");
+        parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'.");
+        parser.option(RESOLVE_MODE).hasArgument().hasDescription("Specifies how resolution should be performed. Possible values are: 'offline', 'force' and 'standard'. Default value is 'standard'.").experimental();
         parser.option(PROJECT_CACHE_DIR).hasArgument().hasDescription("Specifies the project-specific cache directory. Defaults to .gradle in the root project directory.");
         parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
-        parser.option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks").deprecated(deprecationMessage("tasks"));
-        parser.option(PROPERTIES, "properties").mapsToSubcommand(ImplicitTasksConfigurer.PROPERTIES_TASK).hasDescription("Show list of all available project properties").deprecated(deprecationMessage("properties"));
-        parser.option(DEPENDENCIES, "dependencies").mapsToSubcommand(ImplicitTasksConfigurer.DEPENDENCIES_TASK).hasDescription("Show list of all project dependencies").deprecated(deprecationMessage("dependencies"));
+        parser.option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks.").deprecated(deprecationMessage("tasks"));
+        parser.option(PROPERTIES, "properties").mapsToSubcommand(ImplicitTasksConfigurer.PROPERTIES_TASK).hasDescription("Show list of all available project properties.").deprecated(deprecationMessage("properties"));
+        parser.option(DEPENDENCIES, "dependencies").mapsToSubcommand(ImplicitTasksConfigurer.DEPENDENCIES_TASK).hasDescription("Show list of all project dependencies.").deprecated(deprecationMessage("dependencies"));
         parser.option(PROJECT_DIR, "project-dir").hasArgument().hasDescription("Specifies the start directory for Gradle. Defaults to current directory.");
         parser.option(GRADLE_USER_HOME, "gradle-user-home").hasArgument().hasDescription("Specifies the gradle user home directory.");
         parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specifies an initialization script.");
         parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specifies the settings file.");
         parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specifies the build file.");
         parser.option(PROJECT_PROP, "project-prop").hasArguments().hasDescription("Set project property for the build script (e.g. -Pmyprop=myvalue).");
-        parser.option(EMBEDDED_SCRIPT, "embedded").hasArgument().hasDescription("Specify an embedded build script.");
+        parser.option(EMBEDDED_SCRIPT, "embedded").hasArgument().hasDescription("Specify an embedded build script.").deprecated("no replacement");
         parser.option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
         parser.option(NO_OPT).hasDescription("Ignore any task optimization.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
-        parser.option(CONTINUE).hasDescription("Continues task execution after a task failure. [experimental]");
+        parser.option(CONTINUE).hasDescription("Continues task execution after a task failure.").experimental();
     }
 
     @Override
