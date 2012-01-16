@@ -22,7 +22,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.hamcrest.Matchers
 
-class ResolveModeIntegrationTest extends AbstractIntegrationSpec {
+class ResolutionOverrideIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
     @Rule
@@ -32,7 +32,7 @@ class ResolveModeIntegrationTest extends AbstractIntegrationSpec {
         requireOwnUserHomeDir()
     }
 
-    public void "does not use cache when resolve flag is set to force"() {
+    public void "will rebuild dependency cache when run with --cache=rebuild-dependencies"() {
         given:
         server.start()
         def module = repo().module('org.name', 'projectA', '1.2').publish()
@@ -44,28 +44,33 @@ repositories {
 }
 configurations { compile }
 dependencies { compile 'org.name:projectA:1.2' }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
 }
 """
-        when:
-        server.expectGet('/repo/org/name/projectA/1.2/projectA-1.2.pom', module.pomFile)
-        server.expectGet('/repo/org/name/projectA/1.2/projectA-1.2.jar', module.artifactFile)
-
-        then:
-        succeeds 'listJars'
+        and:
+        server.allowGet('/repo', repo().rootDir)
 
         when:
-        server.resetExpectations()
-        server.expectGet('/repo/org/name/projectA/1.2/projectA-1.2.pom.sha1', module.sha1File(module.pomFile))
-        server.expectGet('/repo/org/name/projectA/1.2/projectA-1.2.jar.sha1', module.sha1File(module.artifactFile))
-
+        succeeds 'retrieve'
+        
         then:
-        executer.withArguments('--resolve=force')
-        succeeds 'listJars'
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+        def snapshot = file('libs/projectA-1.2.jar').snapshot()
+
+        when:
+        module.publishWithChangedContent()
+
+        and:
+        executer.withArguments('--cache=rebuild-dependencies')
+        succeeds 'retrieve'
+        
+        then:
+        file('libs/projectA-1.2.jar').assertIsCopyOf(module.artifactFile).assertHasChangedSince(snapshot)
     }
 
-    public void "will not expire cache entries when resolve flag is set to offline"() {
+    public void "will not expire cache entries when run with offline flag"() {
 
         given:
         server.start()
@@ -104,7 +109,7 @@ task retrieve(type: Sync) {
 
         and: "We resolve again, offline"
         server.resetExpectations()
-        executer.withArguments('--resolve=offline')
+        executer.withArguments('--offline')
         run 'retrieve'
 
         then:
@@ -112,7 +117,7 @@ task retrieve(type: Sync) {
         file('libs/unique-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshot)
     }
 
-    public void "does not attempt to contact server when resolve flag is set to offline"() {
+    public void "does not attempt to contact server when run with offline flag"() {
         given:
         server.start()
 
@@ -129,7 +134,7 @@ task listJars << {
 """
 
         when:
-        executer.withArguments("--resolve=offline")
+        executer.withArguments("--offline")
 
         then:
         fails 'listJars'

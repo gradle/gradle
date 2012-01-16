@@ -23,11 +23,11 @@ import org.gradle.api.InvalidUserDataException;
  * @author Hans Dockter
  */
 public enum CacheUsage {
-    ON, REBUILD;
+    ON, REBUILD, REBUILD_DEPENDENCIES;
 
     public static CacheUsage fromString(String usagestr) {
         try {
-            return valueOf(usagestr.toUpperCase());
+            return valueOf(usagestr.toUpperCase().replace('-', '_'));
         } catch (IllegalArgumentException e) {
             throw new InvalidUserDataException(String.format("Unknown cache usage '%s' specified.", usagestr));
         }

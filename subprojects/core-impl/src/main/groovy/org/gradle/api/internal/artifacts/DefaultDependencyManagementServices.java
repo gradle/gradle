@@ -43,7 +43,7 @@ import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.DefaultArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCacheBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveModeOverride;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
@@ -301,7 +301,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
         ArtifactDependencyResolver createDependencyResolver(DefaultRepositoryHandler resolverProvider) {
             StartParameter startParameter = get(StartParameter.class);
-            ResolveModeOverride resolveModeOverride = new ResolveModeOverride(startParameter.getResolveMode());
+            StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
             ResolveIvyFactory ivyFactory = new ResolveIvyFactory(
                     get(IvyFactory.class),
                     resolverProvider,
@@ -310,7 +310,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(ModuleDescriptorCache.class),
                     get(ArtifactResolutionCache.class),
                     get(CacheLockingManager.class),
-                    resolveModeOverride
+                    startParameterResolutionOverride
             );
 
             ResolvedArtifactFactory resolvedArtifactFactory = new ResolvedArtifactFactory(

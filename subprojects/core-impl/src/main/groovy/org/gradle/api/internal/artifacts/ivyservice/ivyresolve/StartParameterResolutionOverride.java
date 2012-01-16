@@ -17,7 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.ResolveMode;
+import org.gradle.CacheUsage;
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.cache.ArtifactResolutionControl;
 import org.gradle.api.artifacts.cache.DependencyResolutionControl;
@@ -27,15 +28,15 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 
 import java.io.File;
 
-public class ResolveModeOverride {
-    private final ResolveMode resolveMode;
+public class StartParameterResolutionOverride {
+    private final StartParameter startParameter;
 
-    public ResolveModeOverride(ResolveMode resolveMode) {
-        this.resolveMode = resolveMode;
+    public StartParameterResolutionOverride(StartParameter startParameter) {
+        this.startParameter = startParameter;
     }
 
-    public void overrideCachePolicy(ResolutionRules resolutionRules) {
-        if (resolveMode == ResolveMode.OFFLINE) {
+    public void addResolutionRules(ResolutionRules resolutionRules) {
+        if (startParameter.isOffline()) {
             resolutionRules.eachDependency(new Action<DependencyResolutionControl>() {
                 public void execute(DependencyResolutionControl dependencyResolutionControl) {
                     dependencyResolutionControl.useCachedResult();
@@ -51,7 +52,7 @@ public class ResolveModeOverride {
                     artifactResolutionControl.useCachedResult();
                 }
             });
-        } else if (resolveMode == ResolveMode.FORCE) {
+        } else if (startParameter.getCacheUsage() == CacheUsage.REBUILD_DEPENDENCIES) {
             resolutionRules.eachDependency(new Action<DependencyResolutionControl>() {
                 public void execute(DependencyResolutionControl dependencyResolutionControl) {
                     dependencyResolutionControl.invalidate();
@@ -71,7 +72,7 @@ public class ResolveModeOverride {
     }
 
     public ModuleVersionRepository overrideModuleVersionRepository(ModuleVersionRepository original) {
-        if (resolveMode == ResolveMode.OFFLINE) {
+        if (startParameter.isOffline()) {
             return new OfflineModuleVersionRepository(original);
         }
         return original;

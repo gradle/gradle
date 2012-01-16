@@ -16,13 +16,17 @@
 package org.gradle.initialization;
 
 import org.gradle.CacheUsage;
-import org.gradle.ResolveMode;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.cli.*;
+import org.gradle.cli.AbstractCommandLineConverter;
+import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.cli.CommandLineConverter;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
+import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.internal.nativeplatform.FileSystems;
@@ -48,12 +52,12 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     public static final String GRADLE_USER_HOME = "g";
     private static final String EMBEDDED_SCRIPT = "e";
     private static final String CACHE = "C";
-    private static final String RESOLVE_MODE = "resolve";
     private static final String DRY_RUN = "m";
     private static final String NO_OPT = "no-opt";
     private static final String EXCLUDE_TASK = "x";
     private static final String PROFILE = "profile";
     private static final String CONTINUE = "continue";
+    private static final String OFFLINE = "offline";
     private static final String PROJECT_CACHE_DIR = "project-cache-dir";
 
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
@@ -64,8 +68,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         systemPropertiesCommandLineConverter.configure(parser);
         parser.allowMixedSubcommandsAndOptions();
         parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
-        parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'.");
-        parser.option(RESOLVE_MODE).hasArgument().hasDescription("Specifies how resolution should be performed. Possible values are: 'offline', 'force' and 'standard'. Default value is 'standard'.").experimental();
+        parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts and dependencies should be cached. Possible values are: 'rebuild', 'rebuild-dependencies' and 'on'. Default value is 'on'");
         parser.option(PROJECT_CACHE_DIR).hasArgument().hasDescription("Specifies the project-specific cache directory. Defaults to .gradle in the root project directory.");
         parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
         parser.option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks.").deprecated(deprecationMessage("tasks"));
@@ -83,6 +86,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
         parser.option(CONTINUE).hasDescription("Continues task execution after a task failure.").experimental();
+        parser.option(OFFLINE).hasDescription("The build should operate without accessing network resources.").experimental();
     }
 
     @Override
@@ -139,14 +143,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             }
         }
 
-        if (options.hasOption(RESOLVE_MODE)) {
-            try {
-                startParameter.setResolveMode(ResolveMode.fromString(options.option(RESOLVE_MODE).getValue()));
-            } catch (InvalidUserDataException e) {
-                throw new CommandLineArgumentException(e.getMessage());
-            }
-        }
-
         if (options.hasOption(PROJECT_CACHE_DIR)) {
             startParameter.setProjectCacheDir(resolver.resolve(options.option(PROJECT_CACHE_DIR).getValue()));
         }
@@ -189,6 +185,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         if (options.hasOption(CONTINUE)) {
             startParameter.setContinueOnFailure(true);
+        }
+
+        if (options.hasOption(OFFLINE)) {
+            startParameter.setOffline(true);
         }
 
         return startParameter;

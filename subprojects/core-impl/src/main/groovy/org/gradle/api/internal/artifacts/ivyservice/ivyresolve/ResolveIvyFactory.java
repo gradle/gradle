@@ -42,12 +42,12 @@ public class ResolveIvyFactory {
     private final ModuleDescriptorCache moduleDescriptorCache;
     private final ArtifactResolutionCache artifactResolutionCache;
     private final CacheLockingManager cacheLockingManager;
-    private final ResolveModeOverride resolveModeOverride;
+    private final StartParameterResolutionOverride startParameterResolutionOverride;
 
     public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter,
                              ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
                              ArtifactResolutionCache artifactResolutionCache,
-                             CacheLockingManager cacheLockingManager, ResolveModeOverride resolveModeOverride) {
+                             CacheLockingManager cacheLockingManager, StartParameterResolutionOverride startParameterResolutionOverride) {
         this.ivyFactory = ivyFactory;
         this.resolverProvider = resolverProvider;
         this.settingsConverter = settingsConverter;
@@ -55,13 +55,13 @@ public class ResolveIvyFactory {
         this.moduleDescriptorCache = moduleDescriptorCache;
         this.artifactResolutionCache = artifactResolutionCache;
         this.cacheLockingManager = cacheLockingManager;
-        this.resolveModeOverride = resolveModeOverride;
+        this.startParameterResolutionOverride = startParameterResolutionOverride;
     }
 
     public IvyAdapter create(ConfigurationInternal configuration) {
         UserResolverChain userResolverChain = new UserResolverChain();
         ResolutionRules resolutionRules = configuration.getResolutionStrategy().getResolutionRules();
-        resolveModeOverride.overrideCachePolicy(resolutionRules);
+        startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
         LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME, userResolverChain, cacheLockingManager);
         List<DependencyResolver> rawResolvers = resolverProvider.getResolvers();
@@ -80,7 +80,7 @@ public class ResolveIvyFactory {
             cacheLockingResolver.setSettings(ivySettings);
 
             ModuleVersionRepository moduleVersionRepository = new DependencyResolverAdapter(resolverId, cacheLockingResolver);
-            moduleVersionRepository = resolveModeOverride.overrideModuleVersionRepository(moduleVersionRepository);
+            moduleVersionRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
             ModuleVersionRepository cachingRepository =
                     new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache,
                                                        configuration.getResolutionStrategy().getCachePolicy());
