@@ -28,4 +28,5 @@ sourceSets.all { sourceSet ->
         }
     }
     check.dependsOn taskName
+    codeQuality.dependsOn taskName
 }
