@@ -16,7 +16,7 @@
 package org.gradle
 
 import org.gradle.api.GradleException
-import org.gradle.api.LocationAwareException
+import org.gradle.api.internal.LocationAwareException
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.TaskSelectionException
 import org.gradle.groovy.scripts.ScriptSource

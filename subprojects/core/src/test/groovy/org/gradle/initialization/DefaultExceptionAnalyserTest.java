@@ -16,7 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.LocationAwareException;
+import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.internal.Contextual;
 import org.gradle.api.internal.MultiCauseException;
 import org.gradle.api.tasks.TaskExecutionException;
