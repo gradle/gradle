@@ -18,6 +18,8 @@ package org.gradle.tooling.model.build;
 
 /**
  * Informs about the gradle environment, for example the gradle version.
+ * <p>
+ * See example in {@link BuildEnvironment}
  *
  * @since 1.0-milestone-8
  */

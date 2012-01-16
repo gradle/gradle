@@ -22,9 +22,21 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 /**
  * Informs about the build environment, like Gradle version or the java home in use.
  * <p>
- * Marked as deprecated because the API is not yet confirmed.
- * E.g. we will provide this information for sure, we just haven't yet confirmed the API.
- * <p>
+ * Example:
+ * <pre autoTested=''>
+ * ProjectConnection connection = GradleConnector.newConnector()
+ *    .forProjectDirectory(new File("someProjectFolder"))
+ *    .connect();
+ *
+ * try {
+ *    BuildEnvironment env = connection.getModel(BuildEnvironment.class);
+ *    System.out.println("Gradle version: " + env.getGradle().getGradleVersion());
+ *    System.out.println("Java home: " + env.getJava().getJavaHome());
+ * } finally {
+ *    connection.close();
+ * }
+ * </pre>
+ *
  * @since 1.0-milestone-8
  */
 public interface BuildEnvironment extends Model {
