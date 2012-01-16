@@ -165,7 +165,7 @@ task pushReleasesXml {
             fileset(dir: masterCheckout, defaultexcludes: false)
         }
 
-        def releasesXml = new File(repo, "provided/release-data/releases.xml")
+        def releasesXml = new File(repo, "data/releases.xml")
         def checkedInReleasesXmlText = releasesXml.text
         def newReleasesXmlText = generateReleasesXml.outputFile.text
         if (checkedInReleasesXmlText != newReleasesXmlText) {
