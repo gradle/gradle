@@ -60,8 +60,9 @@ public class Sample {
      *
      * @param source
      */
-    void tryCompile(final String source) {
+    void tryCompile(String source) {
         //TODO SF generalize and move the test out of integ tests, add unit tests
+        source = normalize(source)
         def sourceFile = temp.dir.file("Sample.java")
         sourceFile.text = source
 
@@ -93,5 +94,11 @@ public class Sample {
             input).call();
 
         fileManager.close();
+    }
+
+    String normalize(String input) {
+        String out = input.replaceAll("&gt;", ">")
+        out = out.replaceAll("&lt;", "<")
+        out
     }
 }

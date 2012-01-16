@@ -22,23 +22,43 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * <p>A {@code ModelBuilder} allows you to fetch a snapshot of the model for a project.
- *
- * <p>You use a {@code ModelBuilder} as follows:
+ * A {@code ModelBuilder} allows you to fetch a snapshot of the model for a project.
+ * Instances of {@code ModelBuilder} are not thread-safe.
+ * <p>
+ * You use a {@code ModelBuilder} as follows:
  *
  * <ul>
- *
  * <li>Create an instance of {@code ModelBuilder} by calling {@link org.gradle.tooling.ProjectConnection#model(Class)}.
- *
  * <li>Configure the builder as appropriate.
- *
  * <li>Call either {@link #get()} or {@link #get(ResultHandler)} to build the model.
- *
  * <li>Optionally, you can reuse the builder to build the model multiple times.
- *
  * </ul>
  *
- * <p>Instances of {@code ModelBuilder} are not thread-safe.
+ * Example:
+ * <pre autoTested=''>
+ * ProjectConnection connection = GradleConnector.newConnector()
+ *    .forProjectDirectory(new File("someFolder"))
+ *    .connect();
+ *
+ * try {
+ *    ModelBuilder&lt;GradleProject&gt; builder = connection.model(GradleProject.class);
+ *
+ *    //configure the standard input in case your build is interactive:
+ *    builder.setStandardInput(new ByteArrayInputStream("consume this!".getBytes()));
+ *
+ *    //if you want to listen to the progress events:
+ *    ProgressListener listener = null; // use your implementation
+ *    builder.addProgressListener(listener);
+ *
+ *    //get the model:
+ *    GradleProject project = builder.get();
+ *
+ *    //query the model for information:
+ *    System.out.println("Available tasks: " + project.getTasks());
+ * } finally {
+ *    connection.close();
+ * }
+ * </pre>
  *
  * @param <T> The type of model to build
  */

@@ -22,23 +22,49 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * <p>A {@code BuildLauncher} allows you to configure and execute a Gradle build.
- *
- * <p>You use a {@code BuildLauncher} as follows:
+ * A {@code BuildLauncher} allows you to configure and execute a Gradle build.
+ * <p>
+ * Instances of {@code BuildLauncher} are not thread-safe. You use a {@code BuildLauncher} as follows:
  *
  * <ul>
- *
  * <li>Create an instance of {@code BuildLauncher} by calling {@link org.gradle.tooling.ProjectConnection#newBuild()}.
- *
  * <li>Configure the launcher as appropriate.
- *
  * <li>Call either {@link #run()} or {@link #run(ResultHandler)} to execute the build.
- *
  * <li>Optionally, you can reuse the launcher to launcher additional builds.
- *
  * </ul>
  *
- * <p>Instances of {@code BuildLauncher} are not thread-safe.
+ * Example:
+ * <pre autoTested=''>
+ * ProjectConnection connection = GradleConnector.newConnector()
+ *    .forProjectDirectory(new File("someFolder"))
+ *    .connect();
+ *
+ * try {
+ *    BuildLauncher build = connection.newBuild();
+ *
+ *    //select tasks to run:
+ *    build.forTasks("clean", "test");
+ *
+ *    //configure the standard input:
+ *    build.setStandardInput(new ByteArrayInputStream("consume this!".getBytes()));
+ *
+ *    //in case you want the build to use java different than default:
+ *    build.setJavaHome(new File("/path/to/java"));
+ *
+ *    //if your build needs crazy amounts of memory:
+ *    build.setJvmArguments("-Xmx2048m", "-XX:MaxPermSize=512m");
+ *
+ *    //if you want to listen to the progress events:
+ *    ProgressListener listener = null; // use your implementation
+ *    build.addProgressListener(listener);
+ *
+ *    //kick the build off:
+ *    build.run();
+ * } finally {
+ *    connection.close();
+ * }
+ * </pre>
+ *
  */
 public interface BuildLauncher extends LongRunningOperation {
     /**
