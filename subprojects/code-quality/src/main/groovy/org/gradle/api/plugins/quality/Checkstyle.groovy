@@ -44,10 +44,11 @@ class Checkstyle extends SourceTask implements VerificationTask {
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration
-     * file.
+     * file. Defaults to <tt>empty map</tt>.
      */
     @Input
-    Map<String, Object> configProperties
+    @Optional
+    Map<String, Object> configProperties = [:]
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration
