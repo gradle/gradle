@@ -68,7 +68,7 @@ public class SettingsHandler {
 
     /**
      * Finds the settings.gradle for the given startParameter, and loads it if contains the project selected by the
-     * startParameter, or if the startParameter explicity specifies a settings script.  If the settings file is not
+     * startParameter, or if the startParameter explicitly specifies a settings script.  If the settings file is not
      * loaded (executed), then a null is returned.
      */
     private SettingsInternal findSettingsAndLoadIfAppropriate(GradleInternal gradle,

@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 
 /**
@@ -30,6 +31,6 @@ public class DefaultSettingsFinder implements ISettingsFinder {
     }
 
     public BuildLayout find(StartParameter startParameter) {
-        return layoutFactory.getLayoutFor(startParameter.getCurrentDir(), startParameter.isSearchUpwards());
+        return layoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
     }
 }
