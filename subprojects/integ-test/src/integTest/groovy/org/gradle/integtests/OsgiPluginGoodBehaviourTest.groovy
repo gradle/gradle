@@ -19,11 +19,6 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class OsgiPluginGoodBehaviourTest extends WellBehavedPluginTest {
     @Override
-    def getPluginId() {
-        return "osgi"
-    }
-
-    @Override
     String getMainTask() {
         return "build"
     }

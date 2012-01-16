@@ -19,11 +19,6 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class WarPluginGoodBehaviourTest extends WellBehavedPluginTest {
     @Override
-    def getPluginId() {
-        return "war"
-    }
-
-    @Override
     String getMainTask() {
         return "build"
     }

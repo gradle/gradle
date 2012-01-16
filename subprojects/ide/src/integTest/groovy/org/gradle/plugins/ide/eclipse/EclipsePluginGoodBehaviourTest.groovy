@@ -19,11 +19,6 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class EclipsePluginGoodBehaviourTest extends WellBehavedPluginTest {
     @Override
-    def getPluginId() {
-        return "eclipse"
-    }
-
-    @Override
     String getMainTask() {
         return "eclipse"
     }

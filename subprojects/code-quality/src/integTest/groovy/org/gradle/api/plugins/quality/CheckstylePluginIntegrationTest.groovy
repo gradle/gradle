@@ -15,24 +15,21 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.hamcrest.Matcher
-
 import static org.gradle.util.Matchers.containsLine
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.startsWith
 
-class CheckstyleIntegrationTest extends AbstractIntegrationSpec {
+class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getMainTask() {
+        return "check"
+    }
+
     def setup() {
-        // without this, running from IDE gives ANTLR class loader conflict
-        executer.withForkingExecuter()
-
         writeBuildFile()
         writeConfigFile()
-    }
-    
-    def "analyze empty project"() {
-        expect:
-        succeeds('check')
     }
 
     def "analyze good code"() {

@@ -19,11 +19,6 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class ScalaPluginGoodBehaviourTest extends WellBehavedPluginTest {
     @Override
-    def getPluginId() {
-        return "scala"
-    }
-
-    @Override
     String getMainTask() {
         return "build"
     }

@@ -15,20 +15,19 @@
  */
 package org.gradle.api.plugins.quality
 
-import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import static org.hamcrest.Matchers.containsString
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class JDependIntegrationTest extends AbstractIntegrationSpec {
+class JDependPluginIntegrationTest extends WellBehavedPluginTest {
     def setup() {
         writeBuildFile()
     }
-    
-    def "analyze empty project"() {
-        expect:
-        succeeds("check")
+
+    @Override
+    String getMainTask() {
+        return "check"
     }
-    
+
     def "analyze code"() {
         file("src/main/java/org/gradle/Class1.java") <<
                 "package org.gradle; class Class1 { public boolean is() { return true; } }"

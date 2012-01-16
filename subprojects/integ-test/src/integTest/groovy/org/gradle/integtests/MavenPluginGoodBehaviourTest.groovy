@@ -19,11 +19,6 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class MavenPluginGoodBehaviourTest extends WellBehavedPluginTest {
     @Override
-    def getPluginId() {
-        return "maven"
-    }
-
-    @Override
     String getMainTask() {
         return "assemble"
     }

@@ -23,11 +23,8 @@ import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 
-class CodeQualityIntegrationTest extends AbstractIntegrationTest {
+class CodeQualityPluginIntegrationTest extends AbstractIntegrationTest {
     {
-        // without this, running from IDE gives ANTLR class loader conflict
-        executer.withForkingExecuter()
-
         // code-quality plugin is deprecated
         executer.withDeprecationChecksDisabled()
     }

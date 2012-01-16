@@ -15,21 +15,20 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import static org.hamcrest.Matchers.startsWith
 
-import static org.hamcrest.Matchers.*
+class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getMainTask() {
+        return "check"
+    }
 
-class CodeNarcIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         writeBuildFile()
         writeConfigFile()
     }
 
-    def "analyze empty project"() {
-        expect:
-        succeeds("check")
-    }
-  
     def "analyze good code"() {
         file("src/main/groovy/org/gradle/class1.java") << "package org.gradle; class class1 { }"
         file("src/test/groovy/org/gradle/testclass1.java") << "package org.gradle; class testclass1 { }"
@@ -70,7 +69,7 @@ dependencies {
 }
         """
     }
-    
+
     private void writeConfigFile() {
         file("config/codenarc/codenarc.xml") << """
 <ruleset xmlns="http://codenarc.org/ruleset/1.0"

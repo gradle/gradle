@@ -19,9 +19,4 @@ package org.gradle.plugins.ear
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class EarPluginGoodBehaviourTest extends WellBehavedPluginTest {
-
-    @Override
-    def getPluginId() {
-        "ear"
-    }
 }

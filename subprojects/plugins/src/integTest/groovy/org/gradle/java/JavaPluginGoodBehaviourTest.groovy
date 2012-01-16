@@ -19,11 +19,6 @@ import org.gradle.integtests.fixtures.*
 
 class JavaPluginGoodBehaviourTest extends WellBehavedPluginTest {
     @Override
-    def getPluginId() {
-        "java"
-    }
-
-    @Override
     String getMainTask() {
         return "build"
     }

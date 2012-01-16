@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class CppExePluginGoodBehaviourTest extends WellBehavedPluginTest {
     @Override
-    def getPluginId() {
+    def String getPluginId() {
         return "cpp-exe"
     }
 }

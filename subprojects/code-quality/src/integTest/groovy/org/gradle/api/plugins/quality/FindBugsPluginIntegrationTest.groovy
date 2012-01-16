@@ -15,22 +15,22 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.hamcrest.Matcher
-
-import static org.hamcrest.Matchers.*
 import static org.gradle.util.Matchers.containsLine
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.startsWith
 
-class FindBugsIntegrationTest extends AbstractIntegrationSpec {
+class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getMainTask() {
+        return "check"
+    }
+
     def setup() {
         writeBuildFile()
     }
-    
-    def "analyze empty project"() {
-        expect:
-        succeeds('check')
-    }
-    
+
     def "analyze good code"() {
         file("src/main/java/org/gradle/Class1.java") << "package org.gradle; class Class1 { public boolean isFoo(Object arg) { return true; } }"
         file("src/test/java/org/gradle/Class1Test.java") << "package org.gradle; class Class1Test { public boolean isFoo(Object arg) { return true; } }"

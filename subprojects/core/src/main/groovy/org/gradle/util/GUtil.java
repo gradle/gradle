@@ -303,7 +303,7 @@ public class GUtil {
         return toWords(string, ' ');
     }
 
-    private static String toWords(CharSequence string, char separator) {
+    public static String toWords(CharSequence string, char separator) {
         if (string == null) {
             return null;
         }

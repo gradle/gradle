@@ -15,24 +15,24 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.hamcrest.Matcher
-
-import static org.hamcrest.Matchers.*
 import static org.gradle.util.Matchers.containsLine
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
 
-class PmdIntegrationTest extends AbstractIntegrationSpec {
+class PmdPluginIntegrationTest extends WellBehavedPluginTest {
     def setup() {
         // without this, PMD ends up trying to load Codenarc rules
         executer.withForkingExecuter()
         writeBuildFile()
     }
-    
-    def "analyze empty project"() {
-        expect:
-        succeeds("check")
+
+    @Override
+    String getMainTask() {
+        return "check"
     }
-    
+
     def "analyze good code"() {
         file("src/main/java/org/gradle/Class1.java") <<
                 "package org.gradle; class Class1 { public boolean isFoo(Object arg) { return true; } }"
