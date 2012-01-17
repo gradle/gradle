@@ -404,6 +404,16 @@ assert System.getProperty('some-prop') == 'some-value'
         """
     }
 
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    def "honours java home specified in gradle.properties"() {
+        given:
+        File javaHome = AvailableJavaHomes.bestAlternative
+        distribution.file("gradle.properties") << "org.gradle.java.home=$javaHome"
+
+        expect:
+        buildSucceeds "assert System.getProperty('java.home') == $javaHome"
+    }
+
     def cleanup() {
         try {
             sequenceBuilder.build(executer.daemonRegistry).run()

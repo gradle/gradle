@@ -138,21 +138,6 @@ allprojects {
         e.message == "The specified Gradle distribution '${dist.toURI()}' is not supported by this tooling API version (${GradleVersion.current().version}, protocol version 4)"
     }
 
-    def "tooling api honours jvm args specified in gradle.properties"() {
-        projectDir.file('build.gradle') << """
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
-assert System.getProperty('some-prop') == 'some-value'
-"""
-        projectDir.file('gradle.properties') << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx16m"
-
-        when:
-        toolingApi.isEmbedded = false
-        Project model = toolingApi.withConnection { connection -> connection.getModel(Project.class) }
-
-        then:
-        model != null
-    }
-    
     private def maybeDisableDaemon(BasicGradleDistribution otherVersion, GradleConnector connector) {
         if (!otherVersion.daemonSupported()) { connector.embedded(true) }
     }

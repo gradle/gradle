@@ -134,7 +134,25 @@ assert System.getProperty('some-prop') == 'BBB'
         }
 
         then:
-        project.description == env.java.javaHome
+        project.description == env.java.javaHome.toString()
+    }
+
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    def "tooling api provided java home takes precedence over gradle.properties"() {
+        File javaHome = AvailableJavaHomes.bestAlternative
+        dist.file('build.gradle') << "assert System.getProperty('java.home') == $javaHome"
+        dist.file('gradle.properties') << "org.gradle.java.home=/path/to/some/jdk"
+
+        when:
+        def env = withConnection {
+            it.model(BuildEnvironment.class)
+                    .setJavaHome(javaHome)
+                    .get()
+        }
+
+        then:
+        env != null
+        env.java.javaHome == javaHome
     }
 
     @Ignore

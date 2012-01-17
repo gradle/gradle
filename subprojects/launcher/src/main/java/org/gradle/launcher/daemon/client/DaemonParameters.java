@@ -40,6 +40,7 @@ public class DaemonParameters {
     public static final String IDLE_TIMEOUT_SYS_PROPERTY = "org.gradle.daemon.idletimeout";
     public static final String BASE_DIR_SYS_PROPERTY = "org.gradle.daemon.registry.base";
     public static final String JVM_ARGS_SYS_PROPERTY = "org.gradle.jvmargs";
+    public static final String JAVA_HOME_SYS_PROPERTY = "org.gradle.java.home";
     public static final String DAEMON_SYS_PROPERTY = "org.gradle.daemon";
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     private File baseDir = new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon");
@@ -145,13 +146,13 @@ public class DaemonParameters {
         configureFrom(properties);
     }
 
-    private void configureFrom(Map<?, ?> properties) {
+    void configureFrom(Map<?, ?> properties) {
         Object propertyValue = properties.get(IDLE_TIMEOUT_SYS_PROPERTY);
         if (propertyValue != null) {
             try {
                 idleTimeout = Integer.parseInt(propertyValue.toString());
             } catch (NumberFormatException e) {
-                throw new GradleException(String.format("Unable to parse %s sys property. The value should be an int but is: %s", IDLE_TIMEOUT_SYS_PROPERTY, propertyValue));
+                throw new GradleException(String.format("Unable to parse %s property. The value should be an int but is: %s", IDLE_TIMEOUT_SYS_PROPERTY, propertyValue));
             }
         }
         propertyValue = properties.get(JVM_ARGS_SYS_PROPERTY);
@@ -161,6 +162,14 @@ public class DaemonParameters {
         propertyValue = properties.get(DAEMON_SYS_PROPERTY);
         if (propertyValue != null) {
             enabled = propertyValue.toString().equalsIgnoreCase("true");
+        }
+
+        propertyValue = properties.get(JAVA_HOME_SYS_PROPERTY);
+        if (propertyValue != null) {
+            javaHome = new File(propertyValue.toString());
+            if (!javaHome.exists()) {
+                throw new GradleException(String.format("Java home supplied via '%s' is invalid. Dir does not exist: %s", JAVA_HOME_SYS_PROPERTY, propertyValue));
+            }
         }
     }
 }

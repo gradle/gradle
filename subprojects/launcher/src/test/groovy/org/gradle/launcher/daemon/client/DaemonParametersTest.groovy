@@ -160,4 +160,24 @@ class DaemonParametersTest extends Specification {
         then:
         parameters.enabled
     }
+
+    def "can configure java home"() {
+        File jdk = tmpDir.file("jdk").createDir()
+
+        when:
+        parameters.configureFrom([(DaemonParameters.JAVA_HOME_SYS_PROPERTY) : jdk.toString()])
+
+        then:
+        parameters.javaHome == jdk.canonicalFile
+    }
+
+    def "nice message for invalid java home"() {
+        when:
+        parameters.configureFrom([(DaemonParameters.JAVA_HOME_SYS_PROPERTY) : "/invalid/path"])
+
+        then:
+        def ex = thrown(GradleException)
+        ex.message.contains 'org.gradle.java.home'
+        ex.message.contains '/invalid/path'
+    }
 }
