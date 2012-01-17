@@ -235,7 +235,9 @@
                 <td><literal>java-base</literal></td>
                 <td>-</td>
                 <td>
-                    <para>??</para>
+                    <para>Performs quality checks on your project's Java source files using <ulink url="http://checkstyle.sourceforge.net/index.html">Checkstyle</ulink>
+                        and generates reports from these checks.
+                    </para>
                 </td>
             </tr>
             <tr>
@@ -245,19 +247,8 @@
                 <td><literal>groovy-base</literal></td>
                 <td>-</td>
                 <td>
-                    <para>??</para>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <link linkend='code_quality_plugin'><literal>code-quality</literal></link>
-                </td>
-                <td><literal>checkstyle</literal>, <literal>codenarc</literal></td>
-                <td><literal>java</literal>, <literal>groovy</literal></td>
-                <td>
-                    <para><emphasis>[deprecated]</emphasis> Performs code quality checks and generate reports from these checks.
-                        The plugin is deprecated. You should use the <link linkend="checkstyle_plugin"><literal>checkstyle</literal></link> or
-                        <link linkend="codenarc_plugin"><literal>codenarc</literal></link> plugins instead.
+                    <para>Performs quality checks on your project's Groovy source files using <ulink url="http://codenarc.sourceforge.net/index.html">CodeNarc</ulink>
+                        and generates reports from these checks.
                     </para>
                 </td>
             </tr>
@@ -293,7 +284,9 @@
                 <td><literal>java-base</literal></td>
                 <td>-</td>
                 <td>
-                    <para>??</para>
+                    <para>Performs quality checks on your project's Java source files using <ulink url="http://findbugs.sourceforge.net">FindBugs</ulink>
+                        and generates reports from these checks.
+                    </para>
                 </td>
             </tr>
             <tr>
@@ -315,7 +308,9 @@
                 <td><literal>java-base</literal></td>
                 <td>-</td>
                 <td>
-                    <para>??</para>
+                    <para>Performs quality checks on your project's source files using <ulink url="http://clarkware.com/software/JDepend.html">JDepend</ulink>
+                        and generates reports from these checks.
+                    </para>
                 </td>
             </tr>
             <tr>
@@ -325,7 +320,9 @@
                 <td><literal>java-base</literal></td>
                 <td>-</td>
                 <td>
-                    <para>??</para>
+                    <para>Performs quality checks on your project's Java source files using <ulink url="http://pmd.sourceforge.net">PMD</ulink>
+                        and generates reports from these checks.
+                    </para>
                 </td>
             </tr>
             <tr>

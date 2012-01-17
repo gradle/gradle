@@ -1,5 +1,8 @@
 <chapter id="codenarc_plugin">
     <title>The CodeNarc Plugin</title>
+    <para>The CodeNarc plugin performs quality checks on your project's Groovy source files using <ulink url="http://codenarc.sourceforge.net/index.html">CodeNarc</ulink>
+        and generates reports from these checks.
+    </para>
 
     <section>
         <title>Usage</title>
@@ -7,5 +10,59 @@
         <sample id="useCodeNarcPlugin" dir="codeQuality" title="Using the CodeNarc plugin">
             <sourcefile file="build.gradle" snippet="use-codenarc-plugin"/>
         </sample>
+        <para>The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running <userinput>gradle check</userinput>.</para>
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>The CodeNarc plugin adds the following tasks to the project:</para>
+        <table>
+            <title>CodeNarc plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>codenarcMain</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
+                <td>Runs CodeNarc against the production Groovy source files.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>codenarcTest</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
+                <td>Runs CodeNarc against the test Groovy source files.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>codenarc<replaceable>SourceSet</replaceable></literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
+                <td>Runs CodeNarc against the given source set's Groovy source files.</td>
+            </tr>
+        </table>
+
+        <para>The CodeNarc plugin adds the following dependencies to tasks defined by the Groovy plugin.</para>
+        <table>
+            <title>CodeNarc plugin - additional task dependencies</title>
+            <thead>
+                <td>Task name</td>
+                <td>Depends on</td>
+            </thead>
+            <tr>
+                <td><literal>check</literal></td>
+                <td>All CodeNarc tasks, including <literal>codenarcMain</literal> and <literal>codenarcTest</literal>.</td>
+            </tr>
+        </table>
     </section>
 </chapter>

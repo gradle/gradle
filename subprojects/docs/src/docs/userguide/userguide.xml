@@ -62,7 +62,6 @@
     <xi:include href='warPlugin.xml'/>
     <xi:include href='earPlugin.xml'/>
     <xi:include href='jettyPlugin.xml'/>
-    <xi:include href='codeQualityPlugin.xml'/>
     <xi:include href='checkstylePlugin.xml'/>
     <xi:include href='codeNarcPlugin.xml'/>
     <xi:include href='findBugsPlugin.xml'/>

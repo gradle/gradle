@@ -1,6 +1,3 @@
-// START SNIPPET use-plugin
-apply plugin: 'code-quality'
-// END SNIPPET use-plugin
 // START SNIPPET use-checkstyle-plugin
 apply plugin: 'checkstyle'
 // END SNIPPET use-checkstyle-plugin
