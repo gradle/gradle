@@ -1,0 +1,11 @@
+<chapter id="jdepend_plugin">
+    <title>The JDepend Plugin</title>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the JDepend plugin, include in your build script:</para>
+        <sample id="useJDependPlugin" dir="codeQuality" title="Using the JDepend plugin">
+            <sourcefile file="build.gradle" snippet="use-jdepend-plugin"/>
+        </sample>
+    </section>
+</chapter>

@@ -63,6 +63,11 @@
     <xi:include href='earPlugin.xml'/>
     <xi:include href='jettyPlugin.xml'/>
     <xi:include href='codeQualityPlugin.xml'/>
+    <xi:include href='checkstylePlugin.xml'/>
+    <xi:include href='codeNarcPlugin.xml'/>
+    <xi:include href='findBugsPlugin.xml'/>
+    <xi:include href='jdependPlugin.xml'/>
+    <xi:include href='pmdPlugin.xml'/>
     <xi:include href='sonarPlugin.xml'/>
     <xi:include href='osgi.xml'/>
     <xi:include href='eclipsePlugin.xml'/>

@@ -1,0 +1,11 @@
+<chapter id="codenarc_plugin">
+    <title>The CodeNarc Plugin</title>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the CodeNarc plugin, include in your build script:</para>
+        <sample id="useCodeNarcPlugin" dir="codeQuality" title="Using the CodeNarc plugin">
+            <sourcefile file="build.gradle" snippet="use-codenarc-plugin"/>
+        </sample>
+    </section>
+</chapter>

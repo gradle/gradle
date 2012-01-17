@@ -23,8 +23,6 @@ import static org.hamcrest.Matchers.not
 
 class PmdPluginIntegrationTest extends WellBehavedPluginTest {
     def setup() {
-        // without this, PMD ends up trying to load Codenarc rules
-        executer.withForkingExecuter()
         writeBuildFile()
     }
 

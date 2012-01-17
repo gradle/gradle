@@ -1,0 +1,11 @@
+<chapter id="pmd_plugin">
+    <title>The PMD Plugin</title>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the PMD plugin, include in your build script:</para>
+        <sample id="usePmdPlugin" dir="codeQuality" title="Using the PMD plugin">
+            <sourcefile file="build.gradle" snippet="use-pmd-plugin"/>
+        </sample>
+    </section>
+</chapter>
