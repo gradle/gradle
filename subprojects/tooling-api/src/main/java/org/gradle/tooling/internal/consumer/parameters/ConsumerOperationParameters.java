@@ -65,6 +65,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     }
 
     public void setJavaHome(File javaHome) {
+        //TODO SF add basic validation
         this.javaHome = javaHome;
     }
 
