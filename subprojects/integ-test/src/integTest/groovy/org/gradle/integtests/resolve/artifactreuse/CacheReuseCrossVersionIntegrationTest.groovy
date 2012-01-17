@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TargetGradleVersions
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.junit.Rule
 
-@TargetGradleVersions(['1.0-milestone-6'])
+@TargetGradleVersions(['1.0-milestone-6+'])
 class CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
