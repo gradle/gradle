@@ -58,7 +58,7 @@ class FindBugs extends SourceTask implements VerificationTask {
     /**
      * Whether or not to allow the build to continue if there are warnings.
      */
-    Boolean ignoreFailures
+    boolean ignoreFailures
     
     /**
      * The file in which the FindBugs output will be saved.

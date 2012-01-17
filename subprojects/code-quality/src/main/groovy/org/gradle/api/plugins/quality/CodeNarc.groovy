@@ -53,7 +53,7 @@ class CodeNarc extends SourceTask implements VerificationTask {
     /**
      * Whether or not the build should break when the verifications performed by this task fail.
      */
-    Boolean ignoreFailures
+    boolean ignoreFailures
 
     @TaskAction
     void run() {

@@ -55,7 +55,7 @@ class JDepend extends DefaultTask implements VerificationTask {
     /**
      * Whether or not this task will ignore failures and continue running the build.
      */
-    Boolean ignoreFailures
+    boolean ignoreFailures
 
     @TaskAction
     void run() {

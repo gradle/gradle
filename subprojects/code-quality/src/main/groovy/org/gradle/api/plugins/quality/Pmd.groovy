@@ -75,7 +75,7 @@ class Pmd extends SourceTask implements VerificationTask {
      *
      * Example: ignoreFailures = true
      */
-    Boolean ignoreFailures
+    boolean ignoreFailures
 
     @TaskAction
     void run() {

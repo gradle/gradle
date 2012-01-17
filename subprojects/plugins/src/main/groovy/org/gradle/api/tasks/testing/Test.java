@@ -668,14 +668,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Input
-    public Boolean getIgnoreFailures() {
+    public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
 
     /**
      * {@inheritDoc}
      */
-    public void setIgnoreFailures(Boolean ignoreFailures) {
+    public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
 

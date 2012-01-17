@@ -24,12 +24,12 @@ public interface VerificationTask {
      *
      * @param ignoreFailures false to break the build on failure, true to ignore the failures. The default is false.
      */
-    void setIgnoreFailures(Boolean ignoreFailures);
+    void setIgnoreFailures(boolean ignoreFailures);
 
     /**
      * Specifies whether the build should break when the verifications performed by this task fail.
      *
      * @return false, when the build should break on failure, true when the failures should be ignored.
      */
-    Boolean getIgnoreFailures();
+    boolean getIgnoreFailures();
 }
