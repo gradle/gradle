@@ -46,9 +46,6 @@ dependencies {
 
     runtime libraries.log4j_to_slf4j
     runtime libraries.jcl_to_slf4j
-    runtime module("com.jcraft:jsch:0.1.42") {
-        dependency "com.jcraft:jzlib:1.0.7"
-    }
 
     testRuntime "xerces:xercesImpl:2.9.1"
 
