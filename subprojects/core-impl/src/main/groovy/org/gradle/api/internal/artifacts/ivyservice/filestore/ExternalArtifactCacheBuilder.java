@@ -35,7 +35,7 @@ public class ExternalArtifactCacheBuilder {
     }
 
     public void addMilestone7() {
-        addExternalCache(new File(rootCachesDirectory, "artifacts-7"), "*/[organisation]/[module](/[branch])/[revision]/[type]/[artifact]-[revision](-[classifier])(.[ext])");
+        addExternalCache(new File(rootCachesDirectory, "artifacts-7"), "artifacts/*/[organisation]/[module](/[branch])/[revision]/[type]/[artifact]-[revision](-[classifier])(.[ext])");
     }
 
     public void addMilestone6() {
