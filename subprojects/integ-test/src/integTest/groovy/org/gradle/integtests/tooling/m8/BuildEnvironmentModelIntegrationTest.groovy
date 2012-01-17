@@ -38,6 +38,8 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
 
     def "informs about java args as in the build script"() {
         given:
+        toolingApi.isEmbedded = false //cannot be run in embedded mode
+
         dist.file('build.gradle') <<
             "project.description = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.join('##')"
 

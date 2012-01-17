@@ -28,7 +28,6 @@ import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.util.Jvm
 import org.junit.Rule
 import org.slf4j.LoggerFactory
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Timeout
@@ -406,14 +405,13 @@ assert System.getProperty('some-prop') == 'some-value'
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
-    @Ignore //until fixed
     def "honours java home specified in gradle.properties"() {
         given:
         File javaHome = AvailableJavaHomes.bestAlternative
         distribution.file("gradle.properties") << "org.gradle.java.home=$javaHome"
 
         expect:
-        buildSucceeds "assert System.getProperty('java.home') == '$javaHome'"
+        buildSucceeds "assert System.getProperty('java.home').startsWith('$javaHome')"
     }
 
     def cleanup() {

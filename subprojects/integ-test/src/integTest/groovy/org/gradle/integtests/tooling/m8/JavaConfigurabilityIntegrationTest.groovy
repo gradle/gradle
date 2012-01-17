@@ -119,11 +119,9 @@ assert System.getProperty('some-prop') == 'BBB'
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
-    @Ignore
-    def "investigate - customized java home is reflected in the java.home and the build model"() {
+    def "customized java home is reflected in the java.home and the build model"() {
         given:
-        dist.file('build.gradle') <<
-                "project.description = System.getProperty('java.home')"
+        dist.file('build.gradle') << "project.description = System.getProperty('java.home')"
 
         when:
         File javaHome = AvailableJavaHomes.bestAlternative
@@ -135,22 +133,7 @@ assert System.getProperty('some-prop') == 'BBB'
         }
 
         then:
-        project.description == env.java.javaHome.toString()
-    }
-
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
-    def "customized java home is reflected in the java.home and the build model"() {
-        given:
-        File javaHome = AvailableJavaHomes.bestAlternative
-        dist.file('build.gradle') << "assert $javaHome == System.getProperty('java.home')"
-
-        when:
-        BuildEnvironment env = withConnection {
-            it.model(BuildEnvironment.class).setJavaHome(javaHome).get()
-        }
-
-        then:
-        javaHome == env.java.javaHome
+        project.description.startsWith(env.java.javaHome.toString())
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
@@ -158,11 +141,12 @@ assert System.getProperty('some-prop') == 'BBB'
         File javaHome = AvailableJavaHomes.bestAlternative
         File dummyJavaHome = dist.file("dummyJavaHome").createDir()
 
-        dist.file('build.gradle') << "assert System.getProperty('java.home') == $javaHome"
+        dist.file('build.gradle') << "assert System.getProperty('java.home').startsWith('$javaHome')"
         dist.file('gradle.properties') << "org.gradle.java.home=${dummyJavaHome.absolutePath}"
 
         when:
         def env = withConnection {
+            it.newBuild().setJavaHome(javaHome).run() //the assert
             it.model(BuildEnvironment.class)
                     .setJavaHome(javaHome)
                     .get()
