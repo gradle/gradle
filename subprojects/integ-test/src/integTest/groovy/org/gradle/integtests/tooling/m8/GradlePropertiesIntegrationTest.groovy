@@ -59,6 +59,6 @@ assert System.getProperty('some-prop') == 'some-value'
         BuildEnvironment env = toolingApi.withConnection { connection -> connection.getModel(BuildEnvironment.class) }
 
         then:
-        env.java.javaHome == javaHome.toString()
+        env.java.javaHome == javaHome
     }
 }

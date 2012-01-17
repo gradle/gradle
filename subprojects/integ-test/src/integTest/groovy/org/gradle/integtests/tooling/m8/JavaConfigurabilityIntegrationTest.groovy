@@ -119,7 +119,8 @@ assert System.getProperty('some-prop') == 'BBB'
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
-    def "customized java home is reflected in the java.home and the build model"() {
+    @Ignore
+    def "investigate - customized java home is reflected in the java.home and the build model"() {
         given:
         dist.file('build.gradle') <<
                 "project.description = System.getProperty('java.home')"
@@ -135,6 +136,21 @@ assert System.getProperty('some-prop') == 'BBB'
 
         then:
         project.description == env.java.javaHome.toString()
+    }
+
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    def "customized java home is reflected in the java.home and the build model"() {
+        given:
+        File javaHome = AvailableJavaHomes.bestAlternative
+        dist.file('build.gradle') << "assert $javaHome == System.getProperty('java.home')"
+
+        when:
+        BuildEnvironment env = withConnection {
+            it.model(BuildEnvironment.class).setJavaHome(javaHome).get()
+        }
+
+        then:
+        javaHome == env.java.javaHome
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })

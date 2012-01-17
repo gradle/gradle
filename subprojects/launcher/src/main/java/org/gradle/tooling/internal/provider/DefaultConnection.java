@@ -22,7 +22,6 @@ import org.gradle.internal.Factory;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.client.DaemonParameters;
-import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
@@ -77,10 +76,14 @@ public class DefaultConnection implements InternalConnection {
     public <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 parameters) {
         ProviderOperationParameters adaptedParameters = new AdaptedOperationParameters(parameters);
         if (type == InternalBuildEnvironment.class) {
+
             //we don't really need to launch gradle to acquire information needed for BuildEnvironment
             DaemonClientServices services = daemonClientServices(adaptedParameters);
-            DaemonContext context = services.get(DaemonContext.class);
-            DefaultBuildEnvironment out = new DefaultBuildEnvironment(GradleVersion.current().getVersion(), context.getJavaHome(), context.getDaemonOpts());
+            DefaultBuildEnvironment out = new DefaultBuildEnvironment(
+                GradleVersion.current().getVersion(),
+                services.getDaemonParameters().getJavaHome(),
+                services.getDaemonParameters().getJvmArgs());
+
             return type.cast(out);
         }
         DelegatingBuildModelAction<T> action = new DelegatingBuildModelAction<T>(type);
