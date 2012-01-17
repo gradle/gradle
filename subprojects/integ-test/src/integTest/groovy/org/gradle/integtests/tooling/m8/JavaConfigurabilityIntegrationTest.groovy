@@ -16,12 +16,14 @@
 
 package org.gradle.integtests.tooling.m8
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.build.BuildEnvironment
 import spock.lang.Ignore
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @MinToolingApiVersion('1.0-milestone-8')
@@ -114,6 +116,25 @@ assert System.getProperty('some-prop') == 'BBB'
         def inputArgsInBuild = project.description.split('##')
         inputArgsInBuild.length == env.java.jvmArguments.size()
         inputArgsInBuild.each { env.java.jvmArguments.contains(it) }
+    }
+
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    def "customized java home is reflected in the java.home and the build model"() {
+        given:
+        dist.file('build.gradle') <<
+                "project.description = System.getProperty('java.home')"
+
+        when:
+        File javaHome = AvailableJavaHomes.bestAlternative
+        BuildEnvironment env
+        Project project
+        withConnection {
+            env = it.model(BuildEnvironment.class).setJavaHome(javaHome).get()
+            project = it.model(Project.class).setJavaHome(javaHome).get()
+        }
+
+        then:
+        project.description == env.java.javaHome
     }
 
     @Ignore
