@@ -150,8 +150,9 @@
                 When you resolve a <emphasis>changing module</emphasis>, the artifacts are named using the version you requested,
                 but the underlying artifacts may change over time.
             </para>
-            <para>By default, Gradle caches dynamic versions for 24 hours. You can change this cache expiry time for a configuration using the resolution strategy.
-                See <xref linkend='sec:controlling_caching'/> for details.
+            <para>By default, Gradle caches dynamic versions and changing modules for 24 hours.
+                You can override the default cache modes using <link linkend="sec:cache_command_line_options">command line options</link>.
+                You can change the cache expiry times in your build using the <literal>resolution strategy</literal> (see <xref linkend='sec:controlling_caching'/>).
             </para>
         </section>
         <section id='sub:dependency_management_and_java'>
@@ -548,12 +549,15 @@
     </section>
     <section id='sec:repositories'>
         <title>Repositories</title>
-        <para>Gradle repository management, based on Apache Ivy, gives you a lot of freedom
-            regarding repository layout and retrieval policies. Additionally Gradle provides various convenience
-            method to add pre-configured repositories.
+        <para>Gradle repository management, based on Apache Ivy, gives you a lot of freedom regarding repository layout and retrieval policies.
+            Additionally Gradle provides various convenience method to add pre-configured repositories.
         </para>
-        <para>There are several different types of repositories you can declare:</para>
+        <para>You may configure any number of repositories, each of which is treated independently by Gradle. If Gradle finds a module descriptor in a
+        particular repository, it will attempt to download all of the artifacts for that module from <emphasis>the same repository</emphasis>.
+        Although module meta-data and module artifacts must be located in the same repository, it is possible to compose a single repository of multiple
+        URLs, giving multiple locations to search for meta-data files and jar files.</para>
 
+        <para>There are several different types of repositories you can declare:</para>
         <table>
             <title>Repository types</title>
             <thead>
@@ -811,6 +815,25 @@ someroot/[artifact]-[revision].[ext]
                 </para>
             </section>
         </section>
+        <section id='sec:cache_command_line_options'>
+            <title>Command line options to override caching</title>
+            <section id='sub:cache_offline'>
+                <title>Offline</title>
+                <para>The <literal>--offline</literal> command line switch tells Gradle to always use dependency modules from the cache, regardless if they are due to be checked again.
+                    When running with offline, Gradle will never attempt to access the network to perform dependency resolution.
+                    If required modules are not present in the dependency cache, build execution will fail.</para>
+            </section>
+            <section id='sub:cache_refresh'>
+                <title>Refresh</title>
+                <para>At times, the Gradle Dependency Cache can be out of sync with the actual state of the configured repositories. Perhaps a repository was initially misconfigured,
+                    or perhaps a "non-changing" module was published incorrectly. To refresh all dependencies in the dependency cache, use the <literal>--cache rebuild-dependencies</literal>
+                    option on the command line.</para>
+                <para>The <literal>--cache rebuild-dependencies</literal> option tells Gradle to ignore all cached entries for resolved modules and artifacts.
+                    A fresh resolve will be performed against all configured repositories, with dynamic versions recalculated, modules refreshed, and artifacts downloaded.
+                    However, where possible Gradle will attempt to if the previously downloaded artifacts are valid before downloading again.
+                    This is done by comparing published SHA1 values in the repository with the SHA1 values for existing downloaded artifacts.</para>
+            </section>
+        </section>
         <section id='sec:controlling_caching'>
             <title>Fine-tuned control over dependency caching</title>
             <para>You can fine-tune certain aspects of caching using the <literal>ResolutionStrategy</literal> for a configuration.</para>
@@ -829,12 +852,12 @@ someroot/[artifact]-[revision].[ext]
     </section>
     <section id='sec:strategies_of_transitive_dependency_management'>
         <title>Strategies for transitive dependency management</title>
-        <para>Many projects rely on the <ulink url='http://repo1.maven.org/maven2'>Maven2 repository</ulink>. This is not
+        <para>Many projects rely on the <ulink url='http://repo1.maven.org/maven2'>Maven Central repository</ulink>. This is not
             without problems.
         </para>
         <itemizedlist>
             <listitem>
-                <para>The IBibilio repository can be down or has a very long response time.
+                <para>The Maven Central repository can be down or has a very long response time.
                 </para>
             </listitem>
             <listitem>
@@ -849,27 +872,27 @@ someroot/[artifact]-[revision].[ext]
                 </para>
             </listitem>
         </itemizedlist>
-        <para>If your project relies on the IBibilio repository you are likely to need an additional custom repository,
+        <para>If your project relies on the Maven Central repository you are likely to need an additional custom repository,
             because:
         </para>
         <itemizedlist>
             <listitem>
-                <para>You might need dependencies that are not uploaded to IBibilio yet.
+                <para>You might need dependencies that are not uploaded to Maven Central yet.
                 </para>
             </listitem>
             <listitem>
-                <para>You want to deal properly with wrong metadata in a IBibilio <literal>pom.xml</literal>.
+                <para>You want to deal properly with wrong metadata in a Maven Central <literal>pom.xml</literal>.
                 </para>
             </listitem>
             <listitem>
                 <para>You don't want to expose people who want to build your project, to the
-                    downtimes or sometimes very long response times of IBibilio.
+                    downtimes or sometimes very long response times of Maven Central.
                 </para>
             </listitem>
         </itemizedlist>
         <para>It is not a big deal to set-up a custom repository.
             <footnote>
-                <para>If you want to shield your project from the downtimes of IBibilio things get more complicated. You
+                <para>If you want to shield your project from the downtimes of Maven Central things get more complicated. You
                     probably want to set-up a repository proxy for this. In an enterprise environment this is rather
                     common. For an open source project it looks like overkill.
                 </para>
