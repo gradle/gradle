@@ -223,6 +223,18 @@ public abstract class AbstractClassGeneratorTest {
         assertThat(bean.getBooleanProperty(), equalTo(false));
         assertThat(bean.getLongProperty(), equalTo(12L));
         assertThat(bean.setReturnValueProperty("p"), sameInstance(bean));
+
+        IConventionAware conventionAware = (IConventionAware) bean;
+        conventionAware.getConventionMapping().map("booleanProperty", new Callable<Object>() {
+            public Object call() throws Exception {
+                return true;
+            }
+        });
+
+        assertThat(bean.getBooleanProperty(), equalTo(true));
+
+        bean.setBooleanProperty(false);
+        assertThat(bean.getBooleanProperty(), equalTo(false));
     }
 
     @Test
@@ -633,12 +645,14 @@ public abstract class AbstractClassGeneratorTest {
     }
 
     public static class BeanWithVariousPropertyTypes {
+        private boolean b;
+
         public String[] getArrayProperty() {
             return new String[1];
         }
 
         public boolean getBooleanProperty() {
-            return false;
+            return b;
         }
 
         public long getLongProperty() {
@@ -651,6 +665,10 @@ public abstract class AbstractClassGeneratorTest {
 
         public BeanWithVariousPropertyTypes setReturnValueProperty(String val) {
             return this;
+        }
+
+        public void setBooleanProperty(boolean b) {
+            this.b = b;
         }
     }
 

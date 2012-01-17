@@ -41,8 +41,6 @@ public interface ConventionMapping {
 
     ConventionMapping map(Map<String, ? extends ConventionValue> properties);
 
-    <T> T getConventionValue(T actualValue, String propertyName);
-
     <T> T getConventionValue(T actualValue, String propertyName, boolean isExplicitValue);
 
     interface MappedProperty {

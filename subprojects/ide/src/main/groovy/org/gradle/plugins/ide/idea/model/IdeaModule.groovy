@@ -289,7 +289,7 @@ class IdeaModule {
     }
 
     void setOutputFile(File newOutputFile) {
-        name = newOutputFile.name.replaceFirst(/\.iml$/,"");
+        setName(newOutputFile.name.replaceFirst(/\.iml$/,""))
         iml.generateTo = newOutputFile.parentFile
     }
 

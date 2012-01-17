@@ -90,6 +90,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             Collection<String> skipProperties = Arrays.asList("metaClass", "conventionMapping", "convention", "asDynamicObject", "extensions");
 
             Set<MetaBeanProperty> settableProperties = new HashSet<MetaBeanProperty>();
+            Set<MetaBeanProperty> conventionProperties = new HashSet<MetaBeanProperty>();
 
             MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
             for (MetaProperty property : metaClass.getProperties()) {
@@ -106,8 +107,6 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     } else {
                         if (Modifier.isFinal(getter.getModifiers()) || Modifier.isPrivate(getter.getModifiers())) {
                             needsConventionMapping = false;
-                        } else if (getter.getReturnType().isPrimitive()) {
-                            needsConventionMapping = false;
                         } else {
                             Class declaringClass = getter.getDeclaringClass().getTheClass();
                             if (declaringClass.isAssignableFrom(noMappingClass)) {
@@ -117,6 +116,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     }
 
                     if (needsConventionMapping) {
+                        conventionProperties.add(metaBeanProperty);
                         builder.addGetter(metaBeanProperty);
                     }
 
@@ -168,11 +168,12 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
             for (MetaBeanProperty property : settableProperties) {
                 Collection<MetaMethod> methodsForProperty = methods.get(property.getName());
-                for (MetaMethod method : methodsForProperty) {
-                    builder.overrideSetMethod(property, method);
-                }
                 if (methodsForProperty.isEmpty()) {
                     builder.addSetMethod(property);
+                } else if (conventionProperties.contains(property)) {
+                    for (MetaMethod method : methodsForProperty) {
+                        builder.overrideSetMethod(property, method);
+                    }
                 }
             }
 
