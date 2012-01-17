@@ -22,16 +22,19 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestTask;
-import org.gradle.util.WrapUtil;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import static java.util.Collections.*;
 import java.util.List;
 import java.util.concurrent.Callable;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static org.gradle.util.WrapUtil.toList;
+import static org.gradle.util.WrapUtil.toMap;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -97,7 +100,11 @@ public class ConventionAwareHelperTest {
     }
     
     @Test (expected = InvalidUserDataException.class) public void cannotMapUnknownProperty() {
-        conventionAware.map(WrapUtil.<String, ConventionValue>toMap("unknownProp", null));
+        conventionAware.map("unknownProp", new Callable<Object>() {
+            public Object call() throws Exception {
+                throw new UnsupportedOperationException();
+            }
+        });
     }
 
     @Test public void canOverwriteProperties() {

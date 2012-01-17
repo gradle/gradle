@@ -24,7 +24,6 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.ConventionValue;
-import org.gradle.util.GUtil;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -252,28 +251,26 @@ public abstract class AbstractClassGeneratorTest {
     public void doesNotOverrideMethodsFromSuperclassesMarkedWithAnnotation() throws Exception {
         BeanSubClass bean = generator.generate(BeanSubClass.class).newInstance();
         IConventionAware conventionAware = (IConventionAware) bean;
-        conventionAware.getConventionMapping().map(GUtil.map(
-                "property", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        throw new UnsupportedOperationException();
-                    }
-                },
-                "interfaceProperty", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        throw new UnsupportedOperationException();
-                    }
-                },
-                "overriddenProperty", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return "conventionValue";
-                    }
-                },
-                "otherProperty", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        conventionAware.getConventionMapping().map("property", new Callable<Object>() {
+            public Object call() throws Exception {
+                throw new UnsupportedOperationException();
+            }
+        });
+        conventionAware.getConventionMapping().map("interfaceProperty", new Callable<Object>() {
+            public Object call() throws Exception {
+                throw new UnsupportedOperationException();
+            }
+        });
+        conventionAware.getConventionMapping().map("overriddenProperty", new Callable<Object>() {
+            public Object call() throws Exception {
                 return "conventionValue";
             }
-        }
-        ));
+        });
+        conventionAware.getConventionMapping().map("otherProperty", new Callable<Object>() {
+            public Object call() throws Exception {
+                return "conventionValue";
+            }
+        });
         assertEquals(null, bean.getProperty());
         assertEquals(null, bean.getInterfaceProperty());
         assertEquals("conventionValue", bean.getOverriddenProperty());

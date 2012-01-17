@@ -23,7 +23,9 @@ import org.gradle.api.plugins.Convention;
  * of such an object is not set internally, a ConventionValue is used to calculate the value for the property.
  *
  * @author Hans Dockter
+ * @deprecated Use {@link groovy.lang.Closure} or {@link java.util.concurrent.Callable} instead.
  */
+@Deprecated
 public interface ConventionValue {
     /**
      * Returns some object.

@@ -18,16 +18,15 @@ package org.gradle.api.plugins.jetty;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.WarPluginConvention;
-import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.War;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link Plugin} which extends the {@link WarPlugin} to add tasks which run the web application using an embedded
@@ -67,8 +66,8 @@ public class JettyPlugin implements Plugin<Project> {
         project.getTasks().withType(JettyRunWar.class, new Action<JettyRunWar>() {
             public void execute(JettyRunWar jettyRunWar) {
                 jettyRunWar.dependsOn(WarPlugin.WAR_TASK_NAME);
-                jettyRunWar.getConventionMapping().map("webApp", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                jettyRunWar.getConventionMapping().map("webApp", new Callable<Object>() {
+                    public Object call() throws Exception {
                         return ((War) project.getTasks().getByName(WarPlugin.WAR_TASK_NAME)).getArchivePath();
                     }
                 });
@@ -84,13 +83,13 @@ public class JettyPlugin implements Plugin<Project> {
         JettyStop jettyStop = project.getTasks().add(JETTY_STOP, JettyStop.class);
         jettyStop.setDescription("Stops Jetty.");
         jettyStop.setGroup(WarPlugin.WEB_APP_GROUP);
-        jettyStop.getConventionMapping().map("stopPort", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        jettyStop.getConventionMapping().map("stopPort", new Callable<Object>() {
+            public Object call() throws Exception {
                 return jettyConvention.getStopPort();
             }
         });
-        jettyStop.getConventionMapping().map("stopKey", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        jettyStop.getConventionMapping().map("stopKey", new Callable<Object>() {
+            public Object call() throws Exception {
                 return jettyConvention.getStopKey();
             }
         });
@@ -99,18 +98,18 @@ public class JettyPlugin implements Plugin<Project> {
     private void configureJettyRun(final Project project) {
         project.getTasks().withType(JettyRun.class, new Action<JettyRun>() {
             public void execute(JettyRun jettyRun) {
-                jettyRun.getConventionMapping().map("webXml", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                jettyRun.getConventionMapping().map("webXml", new Callable<Object>() {
+                    public Object call() throws Exception {
                         return getWebXml(project);
                     }
                 });
-                jettyRun.getConventionMapping().map("classpath", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                jettyRun.getConventionMapping().map("classpath", new Callable<Object>() {
+                    public Object call() throws Exception {
                         return getJavaConvention(project).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
                     }
                 });
-                jettyRun.getConventionMapping().map("webAppSourceDirectory", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                jettyRun.getConventionMapping().map("webAppSourceDirectory", new Callable<Object>() {
+                    public Object call() throws Exception {
                         return getWarConvention(project).getWebAppDir();
                     }
                 });
@@ -137,23 +136,23 @@ public class JettyPlugin implements Plugin<Project> {
         jettyTask.setDaemon(false);
         jettyTask.setReload(RELOAD_AUTOMATIC);
         jettyTask.setScanIntervalSeconds(0);
-        jettyTask.getConventionMapping().map("contextPath", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        jettyTask.getConventionMapping().map("contextPath", new Callable<Object>() {
+            public Object call() throws Exception {
                 return ((War) project.getTasks().getByName(WarPlugin.WAR_TASK_NAME)).getBaseName();
             }
         });
-        jettyTask.getConventionMapping().map("httpPort", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        jettyTask.getConventionMapping().map("httpPort", new Callable<Object>() {
+            public Object call() throws Exception {
                 return jettyConvention.getHttpPort();
             }
         });
-        jettyTask.getConventionMapping().map("stopPort", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        jettyTask.getConventionMapping().map("stopPort", new Callable<Object>() {
+            public Object call() throws Exception {
                 return jettyConvention.getStopPort();
             }
         });
-        jettyTask.getConventionMapping().map("stopKey", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        jettyTask.getConventionMapping().map("stopKey", new Callable<Object>() {
+            public Object call() throws Exception {
                 return jettyConvention.getStopKey();
             }
         });

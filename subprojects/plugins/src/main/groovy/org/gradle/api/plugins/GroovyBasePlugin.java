@@ -21,17 +21,16 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which extends the {@link org.gradle.api.plugins.JavaBasePlugin} to provide support for compiling and documenting Groovy
@@ -57,8 +56,8 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
     private void configureCompileDefaults(final Project project) {
         project.getTasks().withType(GroovyCompile.class, new Action<GroovyCompile>() {
             public void execute(GroovyCompile compile) {
-                compile.getConventionMapping().map("groovyClasspath", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                compile.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
+                    public Object call() throws Exception {
                         return project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME).copy().setTransitive(true);
                     }
                 });
@@ -86,8 +85,8 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
                 javaBasePlugin.configureForSourceSet(sourceSet, compile);
                 compile.dependsOn(sourceSet.getCompileJavaTaskName());
                 compile.setDescription(String.format("Compiles the %s Groovy source.", sourceSet.getName()));
-                compile.conventionMapping("defaultSource", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                compile.conventionMapping("defaultSource", new Callable<Object>() {
+                    public Object call() throws Exception {
                         return groovySourceSet.getGroovy();
                     }
                 });
@@ -100,24 +99,24 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
     private void configureGroovydoc(final Project project) {
         project.getTasks().withType(Groovydoc.class, new Action<Groovydoc>() {
             public void execute(Groovydoc groovydoc) {
-                groovydoc.getConventionMapping().map("groovyClasspath", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                groovydoc.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
+                    public Object call() throws Exception {
                         return project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME).copy().setTransitive(true);
                     }
                 });
-                groovydoc.getConventionMapping().map("destinationDir", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return new File(java(convention).getDocsDir(), "groovydoc");
+                groovydoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return new File(java(project.getConvention()).getDocsDir(), "groovydoc");
                     }
                 });
-                groovydoc.getConventionMapping().map("docTitle", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(ReportingBasePluginConvention.class).getApiDocTitle();
+                groovydoc.getConventionMapping().map("docTitle", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return project.getConvention().getPlugin(ReportingBasePluginConvention.class).getApiDocTitle();
                     }
                 });
-                groovydoc.getConventionMapping().map("windowTitle", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(ReportingBasePluginConvention.class).getApiDocTitle();
+                groovydoc.getConventionMapping().map("windowTitle", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return project.getConvention().getPlugin(ReportingBasePluginConvention.class).getApiDocTitle();
                     }
                 });
             }
