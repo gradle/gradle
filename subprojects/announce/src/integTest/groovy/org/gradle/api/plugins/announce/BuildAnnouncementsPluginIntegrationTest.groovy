@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class BuildAnnouncementsPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
-    def String getPluginId() {
+    String getPluginId() {
         return "build-announcements"
     }
 
