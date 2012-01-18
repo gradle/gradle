@@ -16,14 +16,15 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.junit.Rule
 import org.gradle.integtests.fixtures.TestResources
+
+import org.junit.Rule
 
 class ForkingJavaCompilerTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources()
 
     def doCompile() {
         expect:
-        succeeds("build")
+        succeeds("compileJava")
     }
 }
