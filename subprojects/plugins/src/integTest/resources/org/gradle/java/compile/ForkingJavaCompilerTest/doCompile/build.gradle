@@ -1,0 +1,3 @@
+apply plugin: "java"
+
+compileJava.options.fork = true
