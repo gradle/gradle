@@ -18,12 +18,13 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * Adapts a java util collection into a file set.
  */
-public class ListBackedFileSet implements MinimalFileSet {
+public class ListBackedFileSet implements MinimalFileSet, Serializable {
     private final Set<File> files;
 
     public ListBackedFileSet(File... files) {
