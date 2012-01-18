@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.nativeplatform
 
+import com.google.common.io.Files;
 import spock.lang.Specification
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -31,5 +32,31 @@ class WindowsFileSystemTest extends Specification {
     def "cannot create symbolic link"() {
         expect:
         !fs.canCreateSymbolicLink()
+    }
+
+    def "default values are used to emulate unix permissions"() {
+        setup:
+        def File dir = Files.createTempDir();
+        def File file = new File(dir, "f")
+        Files.touch(file)
+
+        expect:
+        fs.getUnixMode(file) == FileSystem.DEFAULT_FILE_MODE
+        fs.getUnixMode(dir) == FileSystem.DEFAULT_DIR_MODE
+
+        cleanup:
+        assert file.delete()
+        assert dir.delete()
+    }
+
+    def "unix permissions cannot be changed"() {
+        setup:
+        def File f = Files.createTempDir();
+
+        when:
+        fs.chmod(f, 0123)
+
+        then:
+        fs.getUnixMode(f) == FileSystem.DEFAULT_DIR_MODE
     }
 }

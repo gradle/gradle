@@ -30,14 +30,14 @@ public class PosixUtil {
     public static POSIX current() {
         return POSIX;
     }
-    
+
     private static class POSIXHandlerImpl implements POSIXHandler {
-        public void error(POSIX.ERRORS errors, String message) {
-            throw new UnsupportedOperationException();
+        public void error(POSIX.ERRORS error, String message) {
+            throw new UnsupportedOperationException(error + " - " + message);
         }
 
         public void unimplementedError(String message) {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException(message);
         }
 
         public void warn(WARNING_ID warningId, String message, Object... objects) {
