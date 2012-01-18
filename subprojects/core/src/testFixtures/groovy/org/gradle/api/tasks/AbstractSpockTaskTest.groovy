@@ -135,34 +135,6 @@ public abstract class AbstractSpockTaskTest extends Specification {
         "task '" + getTask().getPath() + "'" ==  getTask().toString()
     }
 
-    def testDoFirst() {
-        when:
-        Action<Task> action1 = createTaskAction();
-        Action<Task> action2 = createTaskAction();
-
-        then:
-        int actionSizeBefore = getTask().getActions().size();
-        getTask().is( getTask().doFirst(action2))
-        actionSizeBefore + 1 ==  getTask().getActions().size()
-        action2 ==  getTask().getActions().get(0)
-        getTask().is( getTask().doFirst(action1))
-        action1 ==  getTask().getActions().get(0)
-    }
-
-    def testDoLast() {
-        when:
-        Action<Task> action1 = createTaskAction();
-        Action<Task> action2 = createTaskAction();
-
-        then:
-        int actionSizeBefore = getTask().getActions().size();
-        getTask().is( getTask().doLast(action1))
-        actionSizeBefore + 1 ==  getTask().getActions().size()
-        action1 ==  getTask().getActions().get(getTask().getActions().size() - 1)
-        getTask().is( getTask().doLast(action2))
-        action2 ==  getTask().getActions().get(getTask().getActions().size() - 1)
-    }
-
     def testDeleteAllActions() {
         when:
         Action<Task> action1 = createTaskAction();
@@ -183,14 +155,6 @@ public abstract class AbstractSpockTaskTest extends Specification {
         thrown(InvalidUserDataException)
     }
 
-    def testAddActionsWithClosures() {
-        when:
-        GroovyTaskTestHelper.checkAddActionsWithClosures(getTask());
-
-        then:
-        true
-    }
-
     def testExecuteDelegatesToTaskExecuter() {
         final AbstractTask task = getTask()
         TaskExecuter executer = Mock()
@@ -202,14 +166,6 @@ public abstract class AbstractSpockTaskTest extends Specification {
         then:
         1 * executer.execute(task, _ as TaskStateInternal)
 
-    }
-
-    def testConfigure() {
-        when:
-        getTask().setActions(new ArrayList());
-
-        then:
-        GroovyTaskTestHelper.checkConfigure(getTask());
     }
 
     public AbstractProject getProject() {

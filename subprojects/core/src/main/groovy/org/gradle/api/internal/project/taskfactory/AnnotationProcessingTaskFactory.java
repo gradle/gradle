@@ -126,7 +126,13 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         methods.add(method.getName());
         actions.add(new Action<Task>() {
             public void execute(Task task) {
-                ReflectionUtil.invoke(task, method.getName(), new Object[0]);
+                ClassLoader original = Thread.currentThread().getContextClassLoader();
+                Thread.currentThread().setContextClassLoader(method.getDeclaringClass().getClassLoader());
+                try {
+                    ReflectionUtil.invoke(task, method.getName(), new Object[0]);
+                } finally {
+                    Thread.currentThread().setContextClassLoader(original);
+                }
             }
         });
     }

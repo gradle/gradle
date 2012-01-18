@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
@@ -26,10 +25,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.*;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.HelperUtil;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
+import org.gradle.util.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -147,7 +143,7 @@ public class AnnotationProcessingTaskFactoryTest {
         TaskWithInputFile task = expectTaskCreated(TaskWithInputFile.class, existingFile);
         TaskWithInputFile task2 = expectTaskCreated(TaskWithInputFile.class, missingFile);
 
-        assertThat(task.getActions().get(0), sameInstance((Action) task2.getActions().get(0)));
+        assertThat(ReflectionUtil.getProperty(task.getActions().get(0), "action"), sameInstance(ReflectionUtil.getProperty(task2.getActions().get(0), "action")));
     }
     
     @Test

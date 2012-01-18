@@ -24,7 +24,7 @@ class ReflectionUtil {
     }
 
     static Object getProperty(Object object, String property) {
-        object.getProperty(property)
+        object."$property"
     }
 
     static void setProperty(Object object, String property, Object value) {

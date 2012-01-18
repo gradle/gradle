@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.ReflectionUtil;
 import org.gradle.util.WrapUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -135,13 +136,15 @@ public class TaskFactoryTest {
         };
 
         Task task = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_ACTION, action)));
-        assertThat((List)task.getActions(), equalTo((List) WrapUtil.toList(action)));
+        assertThat(task.getActions().size(), equalTo(1));
+        assertThat(ReflectionUtil.getProperty(task.getActions().get(0), "action"), sameInstance((Object) action));
     }
 
     @Test
     public void testCreateTaskWithActionClosure() {
         Task task = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_ACTION, HelperUtil.TEST_CLOSURE)));
-        assertFalse(task.getActions().isEmpty());
+        assertThat(task.getActions().size(), equalTo(1));
+        assertThat(ReflectionUtil.getProperty(task.getActions().get(0), "closure"), sameInstance((Object) HelperUtil.TEST_CLOSURE));
     }
 
     @Test

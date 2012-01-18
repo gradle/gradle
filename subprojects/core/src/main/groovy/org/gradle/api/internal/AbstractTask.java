@@ -166,7 +166,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void setActions(List<Action<? super Task>> actions) {
-        this.actions = actions;
+        deleteAllActions();
+        for (Action<? super Task> action : actions) {
+            doLast(action);
+        }
     }
 
     public TaskDependencyInternal getTaskDependencies() {
@@ -264,7 +267,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
-        actions.add(0, action);
+        actions.add(0, wrap(action));
         return this;
     }
 
@@ -272,7 +275,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
-        actions.add(action);
+        actions.add(wrap(action));
         return this;
     }
 
@@ -387,7 +390,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
-        doFirst(convertClosureToAction(action));
+        actions.add(0, convertClosureToAction(action));
         return this;
     }
 
@@ -395,7 +398,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
-        doLast(convertClosureToAction(action));
+        actions.add(convertClosureToAction(action));
         return this;
     }
 
@@ -431,9 +434,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private Action<Task> convertClosureToAction(Closure actionClosure) {
-        actionClosure.setDelegate(this);
-        actionClosure.setResolveStrategy(Closure.DELEGATE_FIRST);
         return new ClosureTaskAction(actionClosure);
+    }
+
+    private Action<Task> wrap(final Action<? super Task> action) {
+        return new TaskActionWrapper(action);
     }
 
     private static class TaskInfo {
@@ -454,6 +459,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         public void execute(Task task) {
+            closure.setDelegate(task);
+            closure.setResolveStrategy(Closure.DELEGATE_FIRST);
+            ClassLoader original = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(closure.getClass().getClassLoader());
             try {
                 if (closure.getMaximumNumberOfParameters() == 0) {
                     closure.call();
@@ -466,8 +475,27 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                     throw (RuntimeException) cause;
                 }
                 throw e;
+            } finally {
+                Thread.currentThread().setContextClassLoader(original);
             }
         }
     }
 
+    private static class TaskActionWrapper implements Action<Task> {
+        private final Action<? super Task> action;
+
+        public TaskActionWrapper(Action<? super Task> action) {
+            this.action = action;
+        }
+
+        public void execute(Task task) {
+            ClassLoader original = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
+            try {
+                action.execute(task);
+            } finally {
+                Thread.currentThread().setContextClassLoader(original);
+            }
+        }
+    }
 }

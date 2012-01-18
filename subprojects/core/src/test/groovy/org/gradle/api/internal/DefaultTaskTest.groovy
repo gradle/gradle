@@ -16,22 +16,25 @@
 
 package org.gradle.api.internal
 
+import java.util.concurrent.Callable
+import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.Task
 import org.gradle.api.tasks.AbstractTaskTest
-import org.gradle.util.WrapUtil
+import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.listener.ListenerManager
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import static org.gradle.util.Matchers.*
+import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import java.util.concurrent.Callable
-import org.gradle.listener.ListenerManager
-import org.gradle.api.tasks.TaskExecutionException
 
 /**
  * @author Hans Dockter
  */
 class DefaultTaskTest extends AbstractTaskTest {
+    ClassLoader cl
     DefaultTask defaultTask
 
     Object testCustomPropValue;
@@ -40,6 +43,11 @@ class DefaultTaskTest extends AbstractTaskTest {
         super.setUp()
         testCustomPropValue = new Object()
         defaultTask = createTask(DefaultTask.class)
+        cl = Thread.currentThread().contextClassLoader
+    }
+
+    @After public void cleanup() {
+        Thread.currentThread().contextClassLoader = cl
     }
 
     AbstractTask getTask() {
@@ -61,23 +69,104 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertThat(task.name, equalTo(TEST_TASK_NAME))
     }
 
-    @Test public void testDoFirstWithClosureDelegatesToTask() {
-        Closure testAction = {}
-        defaultTask.doFirst(testAction)
-        assertSame(defaultTask, testAction.delegate)
-        assertEquals(Closure.DELEGATE_FIRST, testAction.getResolveStrategy())
+    @Test
+    public void testConfigure() {
+        Closure action1 = { Task t -> }
+        assertSame(task, task.configure {
+            doFirst(action1)
+        });
+        assertEquals(1, task.actions.size())
     }
 
-    @Test public void testDoFirstWithClosure() {
-        List<Integer> executed = new ArrayList<Integer>();
-        Closure testAction1 = { executed.add(1) }
-        Closure testAction2 = {-> executed.add(2) }
-        Closure testAction3 = {task -> executed.add(3) }
+    @Test
+    public void testDoFirstAddsActionToTheStartOfActionsList() {
+        Action<Task> action1 = createTaskAction();
+        Action<Task> action2 = createTaskAction();
+
+        assertSame(defaultTask, defaultTask.doFirst(action1));
+        assertEquals(1, defaultTask.actions.size());
+
+        assertSame(defaultTask, defaultTask.doFirst(action2));
+        assertEquals(2, defaultTask.actions.size());
+
+        assertSame(action2, defaultTask.actions[0].action)
+        assertSame(action1, defaultTask.actions[1].action)
+    }
+
+    @Test
+    public void testDoLastAddsActionToTheEndOfActionsList() {
+        Action<Task> action1 = createTaskAction();
+        Action<Task> action2 = createTaskAction();
+
+        assertSame(defaultTask, defaultTask.doLast(action1));
+        assertEquals(1, defaultTask.actions.size());
+
+        assertSame(defaultTask, defaultTask.doLast(action2));
+        assertEquals(2, defaultTask.actions.size());
+
+        assertSame(action1, defaultTask.actions[0].action)
+        assertSame(action2, defaultTask.actions[1].action)
+    }
+
+    @Test public void testSetsContextClassLoaderWhenExecutingAction() {
+        Action<Task> testAction = context.mock(Action)
+        context.checking {
+            one(testAction).execute(defaultTask)
+            will {
+                assert Thread.currentThread().contextClassLoader == getClass().classLoader
+            }
+        }
+
+        defaultTask.doFirst(testAction)
+
+        Thread.currentThread().contextClassLoader = context.mock(ClassLoader)
+        defaultTask.actions[0].execute(defaultTask)
+    }
+
+    @Test public void testClosureActionDelegatesToTask() {
+        Closure testAction = {
+            assert delegate == defaultTask
+            assert resolveStrategy == Closure.DELEGATE_FIRST
+        }
+        defaultTask.doFirst(testAction)
+        defaultTask.actions[0].execute(defaultTask)
+    }
+
+    @Test public void testSetsContextClassLoaderWhenRunningClosureAction() {
+        Closure testAction = {
+            assert Thread.currentThread().contextClassLoader == getClass().classLoader
+        }
+
+        defaultTask.doFirst(testAction)
+
+        Thread.currentThread().contextClassLoader = context.mock(ClassLoader)
+        defaultTask.actions[0].execute(defaultTask)
+    }
+
+    @Test public void testDoFirstWithClosureAddsActionToTheStartOfActionsList() {
+        Closure testAction1 = { }
+        Closure testAction2 = { }
+        Closure testAction3 = { }
+        defaultTask.doLast(testAction1)
+        defaultTask.doLast(testAction2)
+        defaultTask.doLast(testAction3)
+
+        assertSame(defaultTask.actions[0].closure, testAction1)
+        assertSame(defaultTask.actions[1].closure, testAction2)
+        assertSame(defaultTask.actions[2].closure, testAction3)
+    }
+
+    @Test public void testDoLastWithClosureAddsActionToTheEndOfActionsList() {
+        Closure testAction1 = { }
+        Closure testAction2 = { }
+        Closure testAction3 = { }
         defaultTask.doFirst(testAction1)
         defaultTask.doFirst(testAction2)
         defaultTask.doFirst(testAction3)
-        defaultTask.execute()
-        assertEquals(executed, WrapUtil.toList(3, 2, 1))
+
+        assertSame(defaultTask.actions[0].closure, testAction3)
+        assertSame(defaultTask.actions[1].closure, testAction2)
+        assertSame(defaultTask.actions[2].closure, testAction1)
     }
 
     @Test public void testExecuteThrowsExecutionFailure() {
