@@ -60,7 +60,7 @@ class AntJavaCompiler implements JavaCompiler {
         ]
 
         Map options = otherArgs + compileOptions.optionMap()
-        logger.debug("Running ant javac with the following options {}", options)
+        logger.debug("Running Ant javac with the following options {}", options)
         def task = ant.javac(options) {
             source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
             compileOptions.compilerArgs.each {value ->
