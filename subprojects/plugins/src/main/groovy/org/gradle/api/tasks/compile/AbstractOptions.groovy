@@ -22,7 +22,7 @@ import java.lang.reflect.Modifier
 /**
  * @author Hans Dockter
  */
-class AbstractOptions {
+class AbstractOptions implements Serializable {
 
     void define(Map args) {
         args.each {String key, Object value ->
