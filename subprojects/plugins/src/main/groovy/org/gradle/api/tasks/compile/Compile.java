@@ -17,6 +17,9 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.AntBuilder;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.compile.ForkableJavaCompiler;
+import org.gradle.api.internal.tasks.compile.fork.ForkingJavaCompiler;
 import org.gradle.internal.Factory;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
 import org.gradle.api.internal.tasks.compile.IncrementalJavaCompiler;
@@ -41,7 +44,10 @@ public class Compile extends AbstractCompile {
 
     public Compile() {
         Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
-        javaCompiler = new IncrementalJavaCompiler(new AntJavaCompiler(antBuilderFactory), antBuilderFactory, getOutputs());
+        JavaCompiler forkingCompiler = new ForkingJavaCompiler(((ProjectInternal) getProject()).getServices());
+        JavaCompiler antCompiler = new AntJavaCompiler(antBuilderFactory);
+        JavaCompiler forkableCompiler = new ForkableJavaCompiler(forkingCompiler, antCompiler);
+        javaCompiler = new IncrementalJavaCompiler(forkableCompiler, antBuilderFactory, getOutputs());
     }
 
     @TaskAction

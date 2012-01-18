@@ -134,7 +134,7 @@ class CompileOptions extends AbstractOptions {
     }
 
     List excludedFieldsFromOptionMap() {
-        ['debugOptions', 'forkOptions', 'compilerArgs', 'dependOptions', 'useDepend']
+        ['debugOptions', 'forkOptions', 'compilerArgs', 'dependOptions', 'useDepend', 'fork']
     }
 
     Map fieldName2AntMap() {
