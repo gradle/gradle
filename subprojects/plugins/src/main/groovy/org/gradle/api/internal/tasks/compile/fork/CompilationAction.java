@@ -107,16 +107,18 @@ public class CompilationAction implements Action<WorkerProcessContext>, Serializ
         } catch (Throwable t) {
             listener.completed(new CompilationResult(true, t));
         } finally {
+            connection.stop();
             redirector.stop();
         }
     }
 
-    public void makeSerializable() {
+    public CompilationAction makeSerializable() {
         if (!(source instanceof Serializable)) {
             source = new SimpleFileCollection(source.getFiles());
         }
         if (!(classpath instanceof Serializable)) {
             classpath = new SimpleFileCollection(Lists.newArrayList(classpath));
         }
+        return this;
     }
 }

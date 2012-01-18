@@ -44,7 +44,7 @@ public class Compile extends AbstractCompile {
 
     public Compile() {
         Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
-        JavaCompiler forkingCompiler = new ForkingJavaCompiler(((ProjectInternal) getProject()).getServices());
+        JavaCompiler forkingCompiler = new ForkingJavaCompiler(((ProjectInternal) getProject()).getServices(), getProject().getProjectDir());
         JavaCompiler antCompiler = new AntJavaCompiler(antBuilderFactory);
         JavaCompiler forkableCompiler = new ForkableJavaCompiler(forkingCompiler, antCompiler);
         javaCompiler = new IncrementalJavaCompiler(forkableCompiler, antBuilderFactory, getOutputs());

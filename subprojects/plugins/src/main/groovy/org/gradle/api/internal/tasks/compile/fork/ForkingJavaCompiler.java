@@ -28,12 +28,14 @@ import java.io.File;
 
 public class ForkingJavaCompiler implements JavaCompiler {
     private final ServiceRegistry services;
+    private final File workingDir;
     
     private final CompilationAction action = new CompilationAction();
     private CompilationResult result;
 
-    public ForkingJavaCompiler(ServiceRegistry services) {
+    public ForkingJavaCompiler(ServiceRegistry services, File workingDir) {
         this.services = services;
+        this.workingDir = workingDir;
     }
 
     public void setDependencyCacheDir(File dir) {
@@ -70,10 +72,8 @@ public class ForkingJavaCompiler implements JavaCompiler {
 
     public WorkResult execute() {
         WorkerProcessBuilder builder = services.getFactory(WorkerProcessBuilder.class).create();
-        action.makeSerializable();
-        builder.worker(action);
-        // TODO: need to provide JavaForkOptions or we run into an exception (not sure why)
-        WorkerProcess process = builder.build();
+        builder.getJavaCommand().setWorkingDir(workingDir); // otherwise we get a "cannot resolve '.' to absolute path" exception
+        WorkerProcess process = builder.worker(action.makeSerializable()).build();
         CompilationListener listener = new CompilationListener() {
             public void stdOut(CharSequence message) {
                 System.out.println(message);
@@ -87,8 +87,8 @@ public class ForkingJavaCompiler implements JavaCompiler {
                 ForkingJavaCompiler.this.result = result;
             }
         };
-        process.getConnection().addIncoming(CompilationListener.class, listener);
         process.start();
+        process.getConnection().addIncoming(CompilationListener.class, listener);
         process.waitForStop();
         return result;
     }
