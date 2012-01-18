@@ -152,6 +152,10 @@
             <listitem><para>Specifies a task to be excluded from execution. See <xref linkend="sec:excluding_tasks_from_the_command_line"/>.
             </para></listitem>
         </varlistentry>
+        <varlistentry>
+            <term><option>--continue</option></term>
+            <listitem><para>Continues task execution after a task failure.</para></listitem>
+        </varlistentry>
     </variablelist>
     <para>The above information is printed to the console when you execute <userinput>gradle -h</userinput>.</para>
 
@@ -179,21 +183,20 @@
         </variablelist>
     </section>
 
-    <section>
-        <title>Experimental command-line options</title>
-        <para>The following options are experimental:</para>
+    <section id='daemon_cli'>
+        <title>Daemon command-line options:</title>
+        <para>The <xref linkend="gradle_daemon"/> contains more information about the daemon.
+            For example it includes information how to turn on the daemon by default
+            so that you can avoid using <literal>--daemon</literal> all the time.
+        </para>
         <variablelist>
             <varlistentry>
-                <term><option>--continue</option></term>
-                <listitem><para>Continues task execution after a task failure.</para></listitem>
-            </varlistentry>
-            <varlistentry>
                 <term><option>--daemon</option></term>
-                <listitem><para>Uses the Gradle daemon to run the build. Starts the daemon if not running.</para></listitem>
+                <listitem><para>Uses the Gradle daemon to run the build. Starts the daemon if not running or existing daemon busy.</para></listitem>
             </varlistentry>
             <varlistentry>
                 <term><option>--foreground</option></term>
-                <listitem><para>Starts the Gradle daemon in the foreground.</para></listitem>
+                <listitem><para>Starts the Gradle daemon in the foreground. Useful for debugging or troubleshooting.</para></listitem>
             </varlistentry>
             <varlistentry>
                 <term><option>--no-daemon</option></term>
@@ -201,7 +204,9 @@
             </varlistentry>
             <varlistentry>
                 <term><option>--stop</option></term>
-                <listitem><para>Stops the Gradle daemon if it is running.</para></listitem>
+                <listitem><para>Stops the Gradle daemon if it is running.
+                    You can only stop daemons that were started with
+                    the gradle version you use when running <literal>--stop</literal></para></listitem>
             </varlistentry>
         </variablelist>
     </section>
@@ -215,11 +220,7 @@
             <term><literal>gradle.user.home</literal></term>
             <listitem><para>Specifies the Gradle user home directory.</para> </listitem>
         </varlistentry>
-        <varlistentry>
-            <term><literal>org.gradle.daemon</literal></term>
-            <listitem><para>When set to <literal>true</literal>, use the Gradle daemon to run the build.</para>
-            </listitem>
-        </varlistentry>
+        <para>The <xref linkend="sec:daemon_properties"/> contains specific information about daemon related system properties.</para>
     </section>
 
     <section>
@@ -233,7 +234,8 @@
                 <listitem><para>Specifies command-line arguments to use to start the JVM. This can be useful for setting
                     the system properties to use for running Gradle. For example you could set <literal>GRADLE_OPTS="-Dorg.gradle.daemon=true"</literal>
                     to use the Gradle daemon without needing to use the <option>--daemon</option> option every time you
-                    run Gradle.
+                    run Gradle. <xref linkend="sec:daemon_properties"/> contains more information about ways of configuring the daemon
+                    without using environmental variables, that is more maintainable and explicit way.
                 </para></listitem>
             </varlistentry>
             <varlistentry>

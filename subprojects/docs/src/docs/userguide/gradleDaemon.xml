@@ -1,0 +1,172 @@
+<!--
+  ~ Copyright 2011 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id='gradle_daemon'>
+    <title>The Gradle Daemon</title>
+
+    <section id='enter_the_daemon'>
+        <title>Enter the daemon</title>
+        <para><emphasis>Gradle daemon</emphasis> (sometimes referred as <emphasis>build daemon</emphasis>
+            aims to improve the startup and execution time of Gradle.
+        </para>
+
+        <para>
+            We came up with several use cases where the daemon is very useful.
+            For some workflows, the user invokes Gradle many times to execute a small number of relatively quick tasks.
+            For example:
+            <itemizedlist>
+                <listitem>When using test driven development, where the unit tests are executed many times.</listitem>
+                <listitem>When developing a web application, where the application is assembled many times.</listitem>
+                <listitem>When discovering what a build can do, where gradle -t is executed a number of times.</listitem>
+            </itemizedlist>
+            For above sorts of workflows, it is important that the startup cost of invoking Gradle is as small as possible.
+        </para>
+        <para>
+            In addition, user interfaces can provide some interesting features if the Gradle model can be built relatively quickly.
+            For example, the daemon might be useful for following scenarios:
+            <itemizedlist>
+                <listitem>Content assistance in the IDE</listitem>
+                <listitem>Live visualisation of the build in a GUI</listitem>
+                <listitem>Tab completion in a CLI</listitem>
+            </itemizedlist>
+        </para>
+        <para>
+            In general, snappy behavior of the build tool is always handy.
+            If you try using the daemon for your local builds it's going to be hard
+            for you to go back to regular use of Gradle. At the moment, we marked the
+            Gradle build daemon as experimental because there are still many aspects of the daemon we'd like to improve.
+        </para>
+        <para>
+            The Tooling API (see the chapter on <xref linkend="embedding"/> gradle)
+            uses the daemon all the time, e.g. you cannot officially use the Tooling API without the daemon.
+            This means that if you use the STS Gradle plugin for Eclipse or new Intellij IDEA plugin (IDEA>10)
+            the daemon acts behind the hood.
+        </para>
+        <para>In future the daemon will offer more features:
+            <itemizedlist>
+                <listitem>Snappy up-to-date checks: use native file system change notifications (eg via jdk7 nio.2)
+                    to preemptively perform up-to-date analysis.</listitem>
+                <listitem>Even faster builds: preemptively evaluate projects, so that the model is ready
+                    when the user next invokes Gradle</listitem>
+                <listitem>Did we mention faster builds? The daemon can potentially preemptively download dependencies
+                    or check for new versions of snapshot dependencies.</listitem>
+                <listitem>Utilise a pool of reusable processes available for compilation and testing.
+                    For example, both the Groovy and Scala compilers have a large startup cost.
+                    The build daemon could maintain a process with Groovy and/or Scala already loaded.</listitem>
+                <listitem>Fast and accurate bash tab completion</listitem>
+                <listitem>Periodically garbage collect the Gradle caches</listitem>
+            </itemizedlist>
+        </para>
+    </section>
+
+    <section id='daemon_implementation'>
+        <title>Implementation notes</title>
+        <para>The basic idea is that the gradle command forks a daemon process, which performs the actual build.
+            Subsequent invocations of the gradle command will reuse the daemon, avoiding the startup costs.
+        </para>
+        <para>
+            Here're all situations in which we fork a new daemon process:
+            <itemizedlist>
+                <listitem>If the daemon process is currently busy running some job, a brand new daemon process will be started.</listitem>
+                <listitem>We fork a separate daemon process per java home. So even if there is some idle daemon waiting
+                    for build requests but you happen to run build with a different java home then a brand new deamon will be forked.</listitem>
+                <listitem>At the moment daemon is coupled with particular version of gradle.
+                    This means that even if some daemon is idle but you are running the build
+                    with a different version of Gradle, a new deamon will be started.
+                    This also have a consequence for the <literal>--stop</literal> command line instruction:
+                    You can only stop daemons that were started with the gradle version you use when running <literal>--stop</literal>
+                </listitem>
+            </itemizedlist>
+            We plan to improve the ways of managing / pooling the daemons in future.
+        </para>
+    </section>
+
+    <section id='daemon_usage_and_troubleshooting'>
+        <title>Usage and troubleshooting</title>
+        <para>For command line usage take a look dedicated section in <xref linkend="gradle_command_line"/>.
+            If you are tired of using the same command line options again and again, take a look at
+            <xref linkend="sec:daemon_properties"/>.
+            The section contains information on how to configure certain behavior of the daemon
+            (including turning on the daemon by default) in a more 'persistent' way.
+        </para>
+        <para>
+            As mentioned earlier we are actively improving the daemon. At the moment the daemon
+            is marked as 'experimental' in the user interface. We encourage everyone to try the
+            daemon out and get back to us with feedback (or even better: the pull requests).
+            Some ways of troubleshooting the gradle daemon:
+            <itemizedlist>
+                <listitem>If you have a problem with your build, try temporarily disabling the daemon
+                    (you can pass the command line switch <literal>--no-daemon</literal>).</listitem>
+                <listitem>Occasionally, you may want to stop the daemons either via the <literal>--stop</literal>
+                    command line option or in a more forceful way.</listitem>
+                <listitem>There is a daemon log file, which is located by default in
+                    <literal>gradle user home</literal></listitem>
+                <listitem>You may want to start the daemon in <literal>--foreground</literal>
+                    mode to observe how the build is executed.</listitem>
+            </itemizedlist>
+        </para>
+    </section>
+
+    <section id="sec:daemon_properties">
+        <title>Daemon properties</title>
+        <para>The following properties can be used to configure the daemon.
+            The configuration is applied in order (in case an option is configured in multiple locations the last one wins):
+            <itemizedlist>
+                <listitem>from <filename>gradle.properties</filename> located in gradle user home.</listitem>
+                <listitem>from <filename>gradle.properties</filename> located in project build dir.</listitem>
+                <listitem>from system properties, e.g. when -Dsome.property in command line.</listitem>
+            </itemizedlist>
+        </para>
+
+        <varlistentry>
+            <term><literal>org.gradle.daemon</literal></term>
+            <listitem><para>When set to <literal>true</literal>, use the Gradle daemon to run the build.
+                This is our favorite property because we nearly always run gradle jobs with the daemon.</para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>org.gradle.daemon.idletimeout</literal></term>
+            <listitem><para>Controls how long the daemon process sticks around when idle, before exiting. In milliseconds.
+                The default is set to 3 hours at the moment.
+            </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>org.gradle.jvmargs</literal></term>
+            <listitem><para>Specifies the jvmargs used for the daemon process.
+                Particularly useful for tweaking memory settings.
+                At the moment the default settings are pretty generous with regards to memory.</para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>org.gradle.java.home</literal></term>
+            <listitem><para>Specifies the java home for the daemon process.
+                Can be either jdk or jre location, however, depending on what does your build do, jdk is safer.
+                Reasonable default is used if unspecified.</para>
+            </listitem>
+        </varlistentry>
+        <!-- TODO SF - currently only configurable via the sys property. Is it desired?
+        <varlistentry>
+            <term><literal>org.gradle.daemon.registry.base</literal></term>
+            <listitem><para>It's a option for advanced users, usually you don't want to override the default.
+                It specifies the daemon registry directory where the daemon stores information like:
+                the daemon log file, the daemon registry file that contains local addresses of running daemons, etc.
+            </para>
+            </listitem>
+        </varlistentry>
+        -->
+    </section>
+
+</chapter>
