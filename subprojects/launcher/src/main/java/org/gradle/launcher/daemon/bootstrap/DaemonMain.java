@@ -26,7 +26,6 @@ import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.DaemonStoppedException;
 import org.gradle.launcher.exec.EntryPoint;
 import org.gradle.launcher.exec.ExecutionListener;
-import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 
@@ -83,52 +82,46 @@ public class DaemonMain extends EntryPoint {
     protected void doAction(ExecutionListener listener) {
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newChildProcessLogging();
         DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, loggingRegistry);
-        final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
-        Daemon daemon = daemonServices.get(Daemon.class);
         DaemonDir daemonDir = daemonServices.get(DaemonDir.class);
-        LoggingManagerInternal loggingManager = loggingRegistry.get(LoggingManagerInternal.class);
-        OutputEventRenderer outputRenderer = loggingRegistry.get(OutputEventRenderer.class);
+        final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
+        final Long pid = daemonContext.getPid();
 
-        // TODO: LOGGER.info calls should probably be moved into Daemon class
-        // TODO: shouldn't we catch Throwable here?
-        try {
-            startDaemonLogging(loggingManager, outputRenderer, daemonDir, daemonContext.getPid());
-            daemon.start();
-            daemon.awaitIdleTimeout(idleTimeoutMs);
-            LOGGER.info("Daemon hit idle timeout (" + idleTimeoutMs + "ms), stopping");
-            daemon.stop();
-        } catch (IOException e) {
-            listener.onFailure(e);
-        } catch (DaemonStoppedException e) {
-            LOGGER.info("Daemon stopping due to stop request");
-            listener.onFailure(e);
-        } finally {
-            stopDaemonLogging(loggingManager);
+        if (redirectIo) {
+            try {
+                OutputEventRenderer outputRenderer = loggingRegistry.get(OutputEventRenderer.class);
+                configureDaemonLog(outputRenderer, daemonDir, pid);
+                LOGGER.info("Started logging");
+            } catch (IOException e) {
+                listener.onFailure(e);
+                return;
+            }
         }
-    }
 
-    private void startDaemonLogging(LoggingManagerInternal loggingManager, OutputEventRenderer outputRenderer, DaemonDir daemonDir, final Long pid) throws IOException {
-        // TODO: why do we need a shutdown hook for this?
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 LOGGER.info("Daemon[pid = {}] finishing", pid);
             }
         });
 
-        if (redirectIo) {
-            //very simplistic, just making sure each damon has unique log file
-            String logFileName = String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid);
-            File logFile = new File(daemonDir.getVersionedDir(), logFileName);
-            Files.createParentDirs(logFile);
-            PrintStream printStream = new PrintStream(new FileOutputStream(logFile), true);
-            outputRenderer.addStandardOutput(printStream);
-            outputRenderer.addStandardError(printStream);
+        Daemon daemon = daemonServices.get(Daemon.class);
+        daemon.start();
+        try {
+            daemon.awaitIdleTimeout(idleTimeoutMs);
+            LOGGER.info("Daemon hit idle timeout (" + idleTimeoutMs + "ms), stopping");
+            daemon.stop();
+        } catch (DaemonStoppedException e) {
+            LOGGER.info("Daemon stopping due to stop request");
+            listener.onFailure(e);
         }
-
-        loggingManager.start();
     }
 
-    private void stopDaemonLogging(LoggingManagerInternal loggingManager) {
-        loggingManager.stop();
+    private void configureDaemonLog(OutputEventRenderer outputRenderer, DaemonDir daemonDir, Long pid) throws IOException {
+        //very simplistic, just making sure each damon has unique log file
+        String logFileName = String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid);
+        File logFile = new File(daemonDir.getVersionedDir(), logFileName);
+        Files.createParentDirs(logFile);
+        PrintStream printStream = new PrintStream(new FileOutputStream(logFile), true);
+        outputRenderer.addStandardOutput(printStream);
+        outputRenderer.addStandardError(printStream);
     }
 }
