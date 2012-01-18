@@ -92,7 +92,6 @@ class CompileOptionsTest {
                 deprecation: 'deprecation',
                 warnings: 'nowarn',
                 debug: 'debug',
-                fork: 'fork',
                 includeJavaRuntime: 'includeJavaRuntime'
         ]
         booleans.keySet().each {compileOptions."$it" = true}
