@@ -123,6 +123,22 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void executesTaskActionsInCorrectEnvironment() {
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns(
+                // An action attached to built-in task
+                "task a << { assert Thread.currentThread().contextClassLoader == getClass().classLoader }",
+                // An action defined by a custom task
+                "task b(type: CustomTask)",
+                "class CustomTask extends DefaultTask { @TaskAction def go() { assert Thread.currentThread().contextClassLoader == getClass().classLoader } } ",
+                // An action implementation
+                "task c; c.doLast new Action<Task>() { void execute(Task t) { assert Thread.currentThread().contextClassLoader == getClass().classLoader } }"
+        );
+
+        usingBuildFile(buildFile).withTasks("a", "b", "c").run();
+    }
+
+    @Test
     public void excludesTasksWhenExcludePatternSpecified() {
         testFile("settings.gradle").write("include 'sub'");
         TestFile buildFile = testFile("build.gradle");
