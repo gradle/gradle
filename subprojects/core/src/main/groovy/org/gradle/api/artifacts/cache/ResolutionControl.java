@@ -20,7 +20,17 @@ import java.util.concurrent.TimeUnit;
 /**
  * Command methods for controlling dependency resolution via the DSL.
  */
-public interface ResolutionControl {
+public interface ResolutionControl<A, B> {
+    /**
+     * Returns the query object that was requested in this resolution.
+     */
+    A getRequest();
+
+    /**
+     * Returns the cached result file or null if the result has not been cached.
+     */
+    B getCachedResult();
+    
     /**
      * States that the cached value should be used if it is no older than the specified duration.
      * @param value The number of units

@@ -132,13 +132,25 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         return false;
     }
 
-    private static class AbstractResolutionControl implements ResolutionControl {
+    private abstract static class AbstractResolutionControl<A, B> implements ResolutionControl<A, B> {
+        private final A request;
+        private final B cachedResult;
         private final long ageMillis;
         private boolean ruleMatch;
         private boolean mustCheck;
 
-        private AbstractResolutionControl(long ageMillis) {
+        private AbstractResolutionControl(A request, B cachedResult, long ageMillis) {
+            this.request = request;
+            this.cachedResult = cachedResult;
             this.ageMillis = ageMillis;
+        }
+
+        public A getRequest() {
+            return request;
+        }
+
+        public B getCachedResult() {
+            return cachedResult;
         }
 
         public void cacheFor(int value, TimeUnit units) {
@@ -172,43 +184,18 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         }
     }
     
-    private class CachedDependencyResolutionControl extends AbstractResolutionControl implements DependencyResolutionControl {
-        private final ModuleVersionSelector request;
-        private final ModuleVersionIdentifier cachedVersion;
-
+    private class CachedDependencyResolutionControl extends AbstractResolutionControl<ModuleVersionSelector, ModuleVersionIdentifier> implements DependencyResolutionControl {
         private CachedDependencyResolutionControl(ModuleVersionSelector request, ModuleVersionIdentifier cachedVersion, long ageMillis) {
-            super(ageMillis);
-            this.request = request;
-            this.cachedVersion = cachedVersion;
-        }
-
-        public ModuleVersionSelector getRequest() {
-            return request;
-        }
-
-        public ModuleVersionIdentifier getCachedResult() {
-            return cachedVersion;
+            super(request, cachedVersion, ageMillis);
         }
     }
     
-    private class CachedModuleResolutionControl extends AbstractResolutionControl implements ModuleResolutionControl {
-        private final ModuleVersionIdentifier request;
-        private final ResolvedModuleVersion cachedVersion;
+    private class CachedModuleResolutionControl extends AbstractResolutionControl<ModuleVersionIdentifier, ResolvedModuleVersion> implements ModuleResolutionControl {
         private final boolean changing;
 
         private CachedModuleResolutionControl(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion cachedVersion, boolean changing, long ageMillis) {
-            super(ageMillis);
-            this.request = moduleVersionId;
-            this.cachedVersion = cachedVersion;
+            super(moduleVersionId, cachedVersion, ageMillis);
             this.changing = changing;
-        }
-
-        public ModuleVersionIdentifier getRequest() {
-            return request;
-        }
-
-        public ResolvedModuleVersion getCachedResult() {
-            return cachedVersion;
         }
 
         public boolean isChanging() {
@@ -216,22 +203,9 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         }
     }
 
-    private class CachedArtifactResolutionControl extends AbstractResolutionControl implements ArtifactResolutionControl {
-        private final ArtifactIdentifier artifactIdentifier;
-        private final File cachedResult;
-
+    private class CachedArtifactResolutionControl extends AbstractResolutionControl<ArtifactIdentifier, File> implements ArtifactResolutionControl {
         private CachedArtifactResolutionControl(ArtifactIdentifier artifactIdentifier, File cachedResult, long ageMillis) {
-            super(ageMillis);
-            this.artifactIdentifier = artifactIdentifier;
-            this.cachedResult = cachedResult;
-        }
-
-        public ArtifactIdentifier getRequest() {
-            return artifactIdentifier;
-        }
-
-        public File getCachedResult() {
-            return cachedResult;
+            super(artifactIdentifier, cachedResult, ageMillis);
         }
     }
 }

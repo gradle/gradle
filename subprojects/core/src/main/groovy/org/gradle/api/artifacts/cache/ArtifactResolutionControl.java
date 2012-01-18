@@ -22,15 +22,5 @@ import java.io.File;
 /**
  * Command methods for controlling artifact resolution via the DSL.
  */
-public interface ArtifactResolutionControl extends ResolutionControl {
-    /**
-     * Returns the artifact id that was requested.
-     */
-    ArtifactIdentifier getRequest();
-
-    /**
-     * Provides the cached artifact file that matches the artifact being resolved.
-     * @return the cached artifact file or null if the artifact is not cached
-     */
-    File getCachedResult();
+public interface ArtifactResolutionControl extends ResolutionControl<ArtifactIdentifier, File> {
 }

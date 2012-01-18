@@ -21,23 +21,11 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 /**
  * Command methods for controlling module resolution via the DSL.
  */
-public interface ModuleResolutionControl extends ResolutionControl {
-    /**
-     * The requested module id for this module resolution.
-     * @return the module id requested
-     */
-    ModuleVersionIdentifier getRequest();
-
+public interface ModuleResolutionControl extends ResolutionControl<ModuleVersionIdentifier, ResolvedModuleVersion> {
     // TODO: This should be part of the cached result?
     /**
      * Does the module change content over time?
      * @return if the module is changing
      */
     boolean isChanging();
-
-    /**
-     * Provides the cached module meta-data.
-     * @return the cached meta-data, or null if the module is not cached.
-     */
-    ResolvedModuleVersion getCachedResult();
 }
