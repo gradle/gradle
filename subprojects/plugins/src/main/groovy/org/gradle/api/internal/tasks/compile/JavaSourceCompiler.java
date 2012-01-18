@@ -19,6 +19,8 @@ import org.gradle.api.tasks.compile.CompileOptions;
 
 public interface JavaSourceCompiler extends JvmCompiler {
     CompileOptions getCompileOptions();
+    
+    void setCompileOptions(CompileOptions compileOptions);
 
     void setSourceCompatibility(String sourceCompatibility);
 

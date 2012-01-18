@@ -41,6 +41,10 @@ public abstract class IncrementalJavaSourceCompiler<T extends JavaSourceCompiler
         return compiler.getCompileOptions();
     }
 
+    public void setCompileOptions(CompileOptions compileOptions) {
+        compiler.setCompileOptions(compileOptions);
+    }
+
     public void setSourceCompatibility(String sourceCompatibility) {
         compiler.setSourceCompatibility(sourceCompatibility);
     }

@@ -62,6 +62,10 @@ public class DefaultScalaJavaJointCompiler implements ScalaJavaJointCompiler {
     public CompileOptions getCompileOptions() {
         return javaCompiler.getCompileOptions();
     }
+    
+    public void setCompileOptions(CompileOptions compileOptions) {
+        javaCompiler.setCompileOptions(compileOptions);
+    }
 
     public void setSourceCompatibility(String sourceCompatibility) {
         javaCompiler.setSourceCompatibility(sourceCompatibility);
