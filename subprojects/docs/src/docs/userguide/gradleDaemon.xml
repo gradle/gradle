@@ -131,6 +131,9 @@
             </itemizedlist>
         </para>
 
+        <para><xref linkend="sec:gradle_properties_and_system_properties"/> contains more information about
+            <filename>gradle properties</filename>.</para>
+
         <varlistentry>
             <term><literal>org.gradle.daemon</literal></term>
             <listitem><para>When set to <literal>true</literal> the gradle daemon is to run the build.
