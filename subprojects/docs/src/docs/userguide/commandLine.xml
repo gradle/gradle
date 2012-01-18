@@ -192,21 +192,26 @@
         <variablelist>
             <varlistentry>
                 <term><option>--daemon</option></term>
-                <listitem><para>Uses the Gradle daemon to run the build. Starts the daemon if not running or existing daemon busy.</para></listitem>
+                <listitem><para>Uses the Gradle daemon to run the build.
+                    Starts the daemon if not running or existing daemon busy.
+                    <xref linkend="gradle_daemon"/> contains more detailed
+                    information when new daemon processes are started.</para></listitem>
             </varlistentry>
             <varlistentry>
                 <term><option>--foreground</option></term>
-                <listitem><para>Starts the Gradle daemon in the foreground. Useful for debugging or troubleshooting.</para></listitem>
+                <listitem><para>Starts the Gradle daemon in the foreground. Useful for debugging or troubleshooting
+                    because you can easily monitor the build execution.</para></listitem>
             </varlistentry>
             <varlistentry>
                 <term><option>--no-daemon</option></term>
-                <listitem><para>Do not use the Gradle daemon to run the build.</para></listitem>
+                <listitem><para>Do not use the Gradle daemon to run the build.
+                    Useful occasionally if you have configured gradle to always run with the daemon by default.</para></listitem>
             </varlistentry>
             <varlistentry>
                 <term><option>--stop</option></term>
                 <listitem><para>Stops the Gradle daemon if it is running.
                     You can only stop daemons that were started with
-                    the gradle version you use when running <literal>--stop</literal></para></listitem>
+                    the gradle version you use when running <literal>--stop</literal>.</para></listitem>
             </varlistentry>
         </variablelist>
     </section>
@@ -235,7 +240,7 @@
                     the system properties to use for running Gradle. For example you could set <literal>GRADLE_OPTS="-Dorg.gradle.daemon=true"</literal>
                     to use the Gradle daemon without needing to use the <option>--daemon</option> option every time you
                     run Gradle. <xref linkend="sec:daemon_properties"/> contains more information about ways of configuring the daemon
-                    without using environmental variables, that is more maintainable and explicit way.
+                    without using environmental variables, e.g. in more maintainable and explicit way.
                 </para></listitem>
             </varlistentry>
             <varlistentry>

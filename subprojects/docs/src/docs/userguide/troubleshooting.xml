@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='troubleshooting' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='troubleshooting'>
     <title>Troubleshooting</title>
     <note>
         <para>
@@ -38,6 +38,7 @@
         <para>
             If you are using the Gradle Daemon, try temporarily disabling the daemon (you can pass the command line switch <literal>--no-daemon</literal>).
             The Gradle Daemon is currently an experimental feature and may introduce build failures.
+            More information about troubleshooting daemon is located in <xref linkend="gradle_daemon"/>.
         </para>
     </section>
     <section>
