@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.testing.results
 
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.junit.Test
+import spock.lang.Issue
 import spock.lang.Specification
 import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.tasks.testing.*
@@ -246,6 +247,7 @@ class TestListenerAdapterTest extends Specification {
         1 * outputListener.onOutput({it.descriptor == test}, event)
     }
 
+    @Issue("GRADLE-2035")
     def "behaves gracefully even if cannot match output to the test"() {
         given:
         def event = new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, "hey!")
@@ -257,6 +259,7 @@ class TestListenerAdapterTest extends Specification {
         1 * outputListener.onOutput({it instanceof UnknownTestDescriptor}, event)
     }
 
+    @Issue("GRADLE-2035")
     def "output can be received after test completion"() {
         given:
         TestDescriptor suite = new DefaultTestSuiteDescriptor("1", "DogTest");
@@ -274,6 +277,46 @@ class TestListenerAdapterTest extends Specification {
         adapter.completed('1', new TestCompleteEvent(200L))
 
         then:
-        1 * outputListener.onOutput({ it.id == '1.1' }, woof)
+        1 * outputListener.onOutput({ it.id == '1' }, woof)
+    }
+
+    @Issue("GRADLE-2035")
+    def "outputs for completed tests use parent descriptors"() {
+        given:
+        TestDescriptor root = new DefaultTestSuiteDescriptor("1", "CanineSuite");
+        TestDescriptor suite = new DefaultTestSuiteDescriptor("1.1", "DogTest");
+        TestDescriptor test1 = new DefaultTestDescriptor("1.1.1", "DogTest", "shouldBarkAtStrangers");
+        TestDescriptor test2 = new DefaultTestDescriptor("1.1.2", "DogTest", "shouldLoiter");
+
+        def woof = new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, "woof woof!")
+        def grrr = new DefaultTestOutputEvent(TestOutputEvent.Destination.StdErr, "grrr!")
+
+        when:
+        adapter.started(root, new TestStartEvent(1))
+        adapter.started(suite, new TestStartEvent(1, '1'))
+        adapter.started(test1, new TestStartEvent(1, '1.1'))
+        adapter.started(test2, new TestStartEvent(1, '1.1'))
+
+        adapter.completed('1.1.1', new TestCompleteEvent(1))
+
+        //test completed but we receive an output
+        adapter.output('1.1.1', woof)
+
+        adapter.completed('1.1.2', new TestCompleteEvent(1))
+        adapter.completed('1.1', new TestCompleteEvent(1))
+
+        //the suite is completed but for we receive an output
+        adapter.output('1.1.1', woof)
+
+        adapter.completed('1', new TestCompleteEvent(1))
+
+        //all tests are completed but we receive an output for one of the other tests
+        adapter.output('1.1.2', grrr)
+
+        then:
+        1 * outputListener.onOutput({ it instanceof DecoratingTestDescriptor && it.id == '1.1' }, woof)
+        1 * outputListener.onOutput({ it instanceof DecoratingTestDescriptor && it.id == '1' }, woof)
+        1 * outputListener.onOutput({ it instanceof UnknownTestDescriptor }, grrr)
+        0 * outputListener._
     }
 }

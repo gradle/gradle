@@ -25,7 +25,7 @@ import java.util.Map;
 
 public abstract class StateTrackingTestResultProcessor implements TestResultProcessor {
     private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
-    private Map<Object, TestState> garbage = new HashMap<Object, TestState>();
+    private TestDescriptor currentParent;
 
     public final void started(TestDescriptorInternal test, TestStartEvent event) {
         TestDescriptorInternal parent = null;
@@ -50,26 +50,19 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
                     testId, executing.keySet()));
         }
 
-        testState.completed(event);
-        completed(testState);
+        //In case the output event arrives after completion of the test
+        //and we need to have a matching descriptor to inform the user which test this output belongs to
+        //we will use the current parent
 
-        //(SF) Let's garbage collect the test descriptor when the test suite is finished
-        //this way we keep the completed tests for a while longer
-        //in case the output event arrives shortly after completion of the test
-        //and we need to have a matching descriptor to inform the user which test this output belongs to.
-
-        //This approach should generally work because at the moment we reset capturing output per suite
+        //(SF) This approach should generally work because at the moment we reset capturing output per suite
         //(see CaptureTestOutputTestResultProcessor) and that reset happens earlier in the chain.
         //So in theory when suite is completed, the output redirector has been already stopped
         //and there shouldn't be any output events passed
         //See also GRADLE-2035
+        currentParent = testState.test.getParent();
 
-        //It's far from perfect, so let's call it a first iteration before some serious refactoring
-        if (testState.test.isComposite()) {
-            garbage = new HashMap<Object, TestState>();
-        } else {
-            garbage.put(testId, testState);
-        }
+        testState.completed(event);
+        completed(testState);
     }
 
     public final void failure(Object testId, Throwable result) {
@@ -83,19 +76,22 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
     }
 
     public final void output(Object testId, TestOutputEvent event) {
+        output(findDescriptor(testId), event);
+    }
+
+    private TestDescriptor findDescriptor(Object testId) {
         TestState state = executing.get(testId);
-        if (state == null) {
-            //see the earlier comment about garbage collecting the descriptors
-            state = garbage.get(testId);
-        }
-        TestDescriptor descriptor;
         if (state != null) {
-            descriptor = state.test;
-        } else {
-            //in theory this should not happen
-            descriptor = new UnknownTestDescriptor();
+            return state.test;
         }
-        output(descriptor, event);
+
+        TestDescriptor d = currentParent;
+        if (d != null) {
+            return d;
+        }
+
+        //in theory this should not happen
+        return new UnknownTestDescriptor();
     }
 
     protected void output(TestDescriptor descriptor, TestOutputEvent event) {
