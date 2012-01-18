@@ -16,7 +16,6 @@
 package org.gradle.internal.nativeplatform;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
@@ -73,7 +72,7 @@ public interface FileSystem {
      * instead.
      *
      * @param file the file to read permissions from
-     * @throws FileNotFoundException if {@code file} doesn't exist
+     * @throws java.io.FileNotFoundException if {@code file} doesn't exist
      * @throws IOException if the permissions can't be read
      * @return the file's Unix permissions, e.g. 0755
      * @see #DEFAULT_DIR_MODE
@@ -87,7 +86,7 @@ public interface FileSystem {
      *
      * @param file the file to change permissions on
      * @param mode the permissions, e.g. 0755
-     * @throws FileNotFoundException if {@code file} doesn't exist
+     * @throws java.io.FileNotFoundException if {@code file} doesn't exist
      * @throws IOException if the permissions can't be changed
      */
     void chmod(File file, int mode) throws IOException;
