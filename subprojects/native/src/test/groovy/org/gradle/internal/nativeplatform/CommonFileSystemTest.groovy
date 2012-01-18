@@ -19,23 +19,17 @@ import com.google.common.io.Files;
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
+import org.junit.Rule
+import org.gradle.util.TemporaryFolder
 
 class CommonFileSystemTest extends Specification {
-    def tmpDir
+    @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
     def fs = FileSystems.default
     def posix = PosixUtil.current()
 
-    def setup() {
-        tmpDir = Files.createTempDir()
-    }
-
-    def cleanup() {
-        Files.deleteRecursively(tmpDir)
-    }
-
     def "unix permissions cannot be read on non existing file"() {
         when:
-        fs.getUnixMode(new File(tmpDir, "someFile"))
+        fs.getUnixMode(new File(tmpDir.dir, "someFile"))
 
         then:
         thrown(FileNotFoundException)
@@ -44,7 +38,7 @@ class CommonFileSystemTest extends Specification {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "unix permissions on files can be changed and read"() {
         setup:
-        def File f = new File(tmpDir, "someFile")
+        def File f = new File(tmpDir.dir, "someFile")
         Files.touch(f)
 
         when:
@@ -61,7 +55,7 @@ class CommonFileSystemTest extends Specification {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "unix permissions on directories can be changed and read"() {
         setup:
-        def File d = new File(tmpDir, "someDir")
+        def File d = new File(tmpDir.dir, "someDir")
         assert d.mkdir()
 
         when:
