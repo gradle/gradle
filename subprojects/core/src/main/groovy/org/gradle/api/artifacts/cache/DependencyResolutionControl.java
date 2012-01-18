@@ -16,11 +16,17 @@
 package org.gradle.api.artifacts.cache;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 
 /**
  * Command methods for controlling dependency resolution via the DSL.
  */
 public interface DependencyResolutionControl extends ResolutionControl {
+    /**
+     * Returns the requested module version selector, which may be a dynamic version
+     */
+    ModuleVersionSelector getRequest();
+
     // TODO:DAZ This should really be a set of modules, so we can later do version ranges
     /**
      * Provides the cached result of resolving the module selector.

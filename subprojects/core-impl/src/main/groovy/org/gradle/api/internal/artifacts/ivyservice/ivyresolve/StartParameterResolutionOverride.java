@@ -55,17 +55,17 @@ public class StartParameterResolutionOverride {
         } else if (startParameter.getCacheUsage() == CacheUsage.REBUILD_DEPENDENCIES) {
             resolutionRules.eachDependency(new Action<DependencyResolutionControl>() {
                 public void execute(DependencyResolutionControl dependencyResolutionControl) {
-                    dependencyResolutionControl.invalidate();
+                    dependencyResolutionControl.refresh();
                 }
             });
             resolutionRules.eachModule(new Action<ModuleResolutionControl>() {
                 public void execute(ModuleResolutionControl moduleResolutionControl) {
-                    moduleResolutionControl.invalidate();
+                    moduleResolutionControl.refresh();
                 }
             });
             resolutionRules.eachArtifact(new Action<ArtifactResolutionControl>() {
                 public void execute(ArtifactResolutionControl artifactResolutionControl) {
-                    artifactResolutionControl.invalidate();
+                    artifactResolutionControl.refresh();
                 }
             });
         }

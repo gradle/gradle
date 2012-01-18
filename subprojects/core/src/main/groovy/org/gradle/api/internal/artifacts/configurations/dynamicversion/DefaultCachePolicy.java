@@ -16,13 +16,15 @@
 package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.cache.ArtifactResolutionControl;
-import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.artifacts.cache.DependencyResolutionControl;
 import org.gradle.api.artifacts.cache.ModuleResolutionControl;
 import org.gradle.api.artifacts.cache.ResolutionControl;
+import org.gradle.api.artifacts.cache.ResolutionRules;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -83,8 +85,8 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         });
     }
 
-    public boolean mustRefreshDynamicVersion(final ResolvedModuleVersion version, final long ageMillis) {
-        CachedDependencyResolutionControl dependencyResolutionControl = new CachedDependencyResolutionControl(version, ageMillis);
+    public boolean mustRefreshDynamicVersion(ModuleVersionSelector selector, ModuleVersionIdentifier moduleId, long ageMillis) {
+        CachedDependencyResolutionControl dependencyResolutionControl = new CachedDependencyResolutionControl(selector, moduleId, ageMillis);
 
         for (Action<? super DependencyResolutionControl> rule : dependencyCacheRules) {
             rule.execute(dependencyResolutionControl);
@@ -96,16 +98,16 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         return false;
     }
 
-    public boolean mustRefreshModule(final ResolvedModuleVersion version, final long ageMillis) {
-        return mustRefreshModule(version, ageMillis, false);
+    public boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, final long ageMillis) {
+        return mustRefreshModule(moduleVersionId, resolvedModuleVersion, ageMillis, false);
     }
 
-    public boolean mustRefreshChangingModule(ResolvedModuleVersion version, long ageMillis) {
-        return mustRefreshModule(version, ageMillis, true);
+    public boolean mustRefreshChangingModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion resolvedModuleVersion, long ageMillis) {
+        return mustRefreshModule(moduleVersionId, resolvedModuleVersion, ageMillis, true);
     }
 
-    private boolean mustRefreshModule(final ResolvedModuleVersion version, final long ageMillis, final boolean changingModule) {
-        CachedModuleResolutionControl moduleResolutionControl = new CachedModuleResolutionControl(version, changingModule, ageMillis);
+    private boolean mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion version, long ageMillis, boolean changingModule) {
+        CachedModuleResolutionControl moduleResolutionControl = new CachedModuleResolutionControl(moduleVersionId, version, changingModule, ageMillis);
 
         for (Action<? super ModuleResolutionControl> rule : moduleCacheRules) {
             rule.execute(moduleResolutionControl);
@@ -117,8 +119,8 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         return false;
     }
 
-    public boolean mustRefreshArtifact(File cachedArtifactFile, long ageMillis) {
-        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(cachedArtifactFile, ageMillis);
+    public boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis) {
+        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(artifactIdentifier, cachedArtifactFile, ageMillis);
 
         for (Action<? super ArtifactResolutionControl> rule : artifactCacheRules) {
             rule.execute(artifactResolutionControl);
@@ -152,7 +154,7 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
             setMustCheck(false);
         }
 
-        public void invalidate() {
+        public void refresh() {
             setMustCheck(true);
         }
         
@@ -171,11 +173,17 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     }
     
     private class CachedDependencyResolutionControl extends AbstractResolutionControl implements DependencyResolutionControl {
+        private final ModuleVersionSelector request;
         private final ModuleVersionIdentifier cachedVersion;
 
-        private CachedDependencyResolutionControl(ResolvedModuleVersion cachedVersion, long ageMillis) {
+        private CachedDependencyResolutionControl(ModuleVersionSelector request, ModuleVersionIdentifier cachedVersion, long ageMillis) {
             super(ageMillis);
-            this.cachedVersion = cachedVersion == null ? null : cachedVersion.getId();
+            this.request = request;
+            this.cachedVersion = cachedVersion;
+        }
+
+        public ModuleVersionSelector getRequest() {
+            return request;
         }
 
         public ModuleVersionIdentifier getCachedResult() {
@@ -184,13 +192,19 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     }
     
     private class CachedModuleResolutionControl extends AbstractResolutionControl implements ModuleResolutionControl {
+        private final ModuleVersionIdentifier request;
         private final ResolvedModuleVersion cachedVersion;
         private final boolean changing;
 
-        private CachedModuleResolutionControl(ResolvedModuleVersion cachedVersion, boolean changing, long ageMillis) {
+        private CachedModuleResolutionControl(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion cachedVersion, boolean changing, long ageMillis) {
             super(ageMillis);
+            this.request = moduleVersionId;
             this.cachedVersion = cachedVersion;
             this.changing = changing;
+        }
+
+        public ModuleVersionIdentifier getRequest() {
+            return request;
         }
 
         public ResolvedModuleVersion getCachedResult() {
@@ -203,11 +217,17 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     }
 
     private class CachedArtifactResolutionControl extends AbstractResolutionControl implements ArtifactResolutionControl {
+        private final ArtifactIdentifier artifactIdentifier;
         private final File cachedResult;
 
-        private CachedArtifactResolutionControl(File cachedResult, long ageMillis) {
+        private CachedArtifactResolutionControl(ArtifactIdentifier artifactIdentifier, File cachedResult, long ageMillis) {
             super(ageMillis);
+            this.artifactIdentifier = artifactIdentifier;
             this.cachedResult = cachedResult;
+        }
+
+        public ArtifactIdentifier getRequest() {
+            return artifactIdentifier;
         }
 
         public File getCachedResult() {

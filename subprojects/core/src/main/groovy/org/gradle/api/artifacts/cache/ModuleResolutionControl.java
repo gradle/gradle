@@ -15,12 +15,19 @@
  */
 package org.gradle.api.artifacts.cache;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 
 /**
  * Command methods for controlling module resolution via the DSL.
  */
 public interface ModuleResolutionControl extends ResolutionControl {
+    /**
+     * The requested module id for this module resolution.
+     * @return the module id requested
+     */
+    ModuleVersionIdentifier getRequest();
+
     // TODO: This should be part of the cached result?
     /**
      * Does the module change content over time?

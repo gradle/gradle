@@ -19,6 +19,11 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
@@ -83,8 +88,10 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         ModuleRevisionId originalId = original.getDependencyRevisionId();
         ModuleResolutionCache.CachedModuleResolution cachedModuleResolution = moduleResolutionCache.getCachedModuleResolution(repository, originalId);
         if (cachedModuleResolution != null && cachedModuleResolution.isDynamicVersion()) {
-            if (cachePolicy.mustRefreshDynamicVersion(cachedModuleResolution.getResolvedModule(), cachedModuleResolution.getAgeMillis())) {
-                LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}'", originalId);
+            ModuleVersionSelector selector = createModuleVersionSelector(originalId);
+            ModuleVersionIdentifier resolvedVersion = cachedModuleResolution.getResolvedModule() == null ? null : cachedModuleResolution.getResolvedModule().getId();
+            if (cachePolicy.mustRefreshDynamicVersion(selector, resolvedVersion, cachedModuleResolution.getAgeMillis())) {
+                LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}'", selector);
                 return original;
             } else {
                 LOGGER.debug("Found resolved revision in dynamic revision cache: Using '{}' for '{}'", cachedModuleResolution.getResolvedVersion(), originalId);
@@ -96,12 +103,13 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
 
     public CachedModuleLookup lookupModuleInCache(DependencyDescriptor resolvedDependencyDescriptor) {
         ModuleRevisionId resolvedModuleVersionId = resolvedDependencyDescriptor.getDependencyRevisionId();
+        ModuleVersionIdentifier moduleVersionIdentifier = createModuleVersionIdentifier(resolvedModuleVersionId);
         ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(delegate, resolvedModuleVersionId);
         if (cachedModuleDescriptor == null) {
             return notFound();
         }
         if (cachedModuleDescriptor.isMissing()) {
-            if (cachePolicy.mustRefreshModule(null, cachedModuleDescriptor.getAgeMillis())) {
+            if (cachePolicy.mustRefreshModule(moduleVersionIdentifier, null, cachedModuleDescriptor.getAgeMillis())) {
                 LOGGER.debug("Cached meta-data for missing module is expired: will perform fresh resolve of '{}'", resolvedModuleVersionId);
                 return notFound();
             }
@@ -109,14 +117,14 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
             return found(null);
         }
         if (cachedModuleDescriptor.isChangingModule() || resolvedDependencyDescriptor.isChanging()) {
-            if (cachePolicy.mustRefreshChangingModule(cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
+            if (cachePolicy.mustRefreshChangingModule(moduleVersionIdentifier, cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
                 expireArtifactsForChangingModule(delegate, cachedModuleDescriptor.getModuleDescriptor());
                 LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}'", resolvedModuleVersionId);
                 return notFound();
             }
             LOGGER.debug("Found cached version of changing module: '{}'", resolvedModuleVersionId);
         } else {
-            if (cachePolicy.mustRefreshModule(cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
+            if (cachePolicy.mustRefreshModule(moduleVersionIdentifier, cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
                 LOGGER.debug("Cached meta-data for module must be refreshed: will perform fresh resolve of '{}'", resolvedModuleVersionId);
                 return notFound();
             }
@@ -180,14 +188,15 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         // Look in the cache for this resolver
         ArtifactResolutionCache.CachedArtifactResolution cachedArtifactResolution = artifactResolutionCache.getCachedArtifactResolution(delegate, artifact.getId());
         if (cachedArtifactResolution != null) {
+            ArtifactIdentifier artifactIdentifier = createArtifactIdentifier(artifact);
             File cachedArtifactFile = cachedArtifactResolution.getArtifactFile();
             if (cachedArtifactFile == null) {
-                if (!cachePolicy.mustRefreshArtifact(null, cachedArtifactResolution.getAgeMillis())) {
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, cachedArtifactResolution.getAgeMillis())) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
                     return null;
                 }
             } else if (cachedArtifactFile.exists()) {
-                if (!cachePolicy.mustRefreshArtifact(cachedArtifactFile, cachedArtifactResolution.getAgeMillis())) {
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, cachedArtifactResolution.getAgeMillis())) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
                     return cachedArtifactFile;
                 }
@@ -197,5 +206,18 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         File artifactFile = delegate.download(artifact);
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), artifactFile);
         return artifactResolutionCache.storeArtifactFile(delegate, artifact.getId(), artifactFile);
+    }
+
+    private ModuleVersionSelector createModuleVersionSelector(ModuleRevisionId moduleRevisionId) {
+        return new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+    }
+
+    private ModuleVersionIdentifier createModuleVersionIdentifier(ModuleRevisionId moduleRevisionId) {
+        return new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
+    }
+
+    private ArtifactIdentifier createArtifactIdentifier(Artifact artifact) {
+        ModuleVersionIdentifier moduleVersionIdentifier = createModuleVersionIdentifier(artifact.getModuleRevisionId());
+        return new DefaultArtifactIdentifier(moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttribute("classifier"));
     }
 }

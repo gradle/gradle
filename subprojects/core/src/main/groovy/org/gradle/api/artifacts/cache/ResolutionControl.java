@@ -37,5 +37,5 @@ public interface ResolutionControl {
     /**
      * States that any cached value should be ignored, forcing a fresh resolve.
      */
-    void invalidate();
+    void refresh();
 }

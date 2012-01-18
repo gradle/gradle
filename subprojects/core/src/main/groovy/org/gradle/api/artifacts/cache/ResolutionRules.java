@@ -18,7 +18,8 @@ package org.gradle.api.artifacts.cache;
 import org.gradle.api.Action;
 
 /**
- * Temporary extension to ResolutionStrategy.
+ * Represents a set of rules/actions that can be applied during dependency resolution.
+ * Currently these are restricted to controlling caching, but these could possibly be extended in the future to include other manipulations.
  */
 public interface ResolutionRules {
     /**

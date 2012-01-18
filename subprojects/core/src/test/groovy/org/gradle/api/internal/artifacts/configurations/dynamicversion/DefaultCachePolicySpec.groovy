@@ -20,11 +20,12 @@ import java.util.concurrent.TimeUnit
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedModuleVersion
-import org.gradle.api.artifacts.cache.DependencyResolutionControl
-import spock.lang.Specification
-import org.gradle.api.artifacts.cache.ModuleResolutionControl
 import org.gradle.api.artifacts.cache.ArtifactResolutionControl
+import org.gradle.api.artifacts.cache.DependencyResolutionControl
+import org.gradle.api.artifacts.cache.ModuleResolutionControl
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import spock.lang.Specification
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 
 public class DefaultCachePolicySpec extends Specification {
     private static final int SECOND = 1000;
@@ -73,12 +74,12 @@ public class DefaultCachePolicySpec extends Specification {
         when:
         cachePolicy.eachDependency(new Action<DependencyResolutionControl>() {
             void execute(DependencyResolutionControl t) {
-                t.invalidate()
+                t.refresh()
             }
         })
 
         then:
-        cachePolicy.mustRefreshDynamicVersion(null, 2 * SECOND)
+        cachePolicy.mustRefreshDynamicVersion(null, null, 2 * SECOND)
     }
 
     def "applies useCachedResult for dynamic versions"() {
@@ -90,7 +91,7 @@ public class DefaultCachePolicySpec extends Specification {
         })
 
         then:
-        !cachePolicy.mustRefreshDynamicVersion(null, 2 * SECOND)
+        !cachePolicy.mustRefreshDynamicVersion(null, null, 2 * SECOND)
     }
 
     def "applies cacheFor rules for dynamic versions"() {
@@ -109,87 +110,104 @@ public class DefaultCachePolicySpec extends Specification {
         expect:
         cachePolicy.eachDependency(new Action<DependencyResolutionControl>() {
             void execute(DependencyResolutionControl t) {
-                assert t.cachedResult.group == 'group'
-                assert t.cachedResult.name == 'name'
-                assert t.cachedResult.version == 'version'
-                t.invalidate()
+                assertId(t.request, 'g', 'n', 'v')
+                assertId(t.cachedResult, 'group', 'name', 'version')
+                t.refresh()
             }
         })
-        cachePolicy.mustRefreshDynamicVersion(moduleVersion('group', 'name', 'version'), 0)
+        cachePolicy.mustRefreshDynamicVersion(moduleSelector('g', 'n', 'v'), moduleIdentifier('group', 'name', 'version'), 0)
     }
     
     def "provides details of cached module"() {
         expect:
         cachePolicy.eachModule(new Action<ModuleResolutionControl>() {
             void execute(ModuleResolutionControl t) {
-                assert t.cachedResult.id.group == 'group'
-                assert t.cachedResult.id.name == 'name'
-                assert t.cachedResult.id.version == 'version'
+                assertId(t.request, 'g', 'n', 'v')
+                assertId(t.cachedResult.id, 'group', 'name', 'version')
                 assert !t.changing
-                t.invalidate()
+                t.refresh()
             }
         })
-        cachePolicy.mustRefreshModule(moduleVersion('group', 'name', 'version'), 0)
+        cachePolicy.mustRefreshModule(moduleIdentifier('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), 0)
     }
     
     def "provides details of cached changing module"() {
         expect:
         cachePolicy.eachModule(new Action<ModuleResolutionControl>() {
             void execute(ModuleResolutionControl t) {
-                assert t.cachedResult.id.group == 'group'
-                assert t.cachedResult.id.name == 'name'
-                assert t.cachedResult.id.version == 'version'
+                assertId(t.request, 'g', 'n', 'v')
+                assertId(t.cachedResult.id, 'group', 'name', 'version')
                 assert t.changing
-                t.invalidate()
+                t.refresh()
             }
         })
-        cachePolicy.mustRefreshChangingModule(moduleVersion('group', 'name', 'version'), 0)
+        cachePolicy.mustRefreshChangingModule(moduleIdentifier('g', 'n', 'v'), moduleVersion('group', 'name', 'version'), 0)
     }
     
-    def "provides null for missing cached artifact"() {
+    def "provides details of cached artifact"() {
         expect:
         cachePolicy.eachArtifact(new Action<ArtifactResolutionControl>() {
             void execute(ArtifactResolutionControl t) {
+                assertId(t.request.moduleVersionIdentifier, 'group', 'name', 'version')
+                assert t.request.name == 'artifact'
+                assert t.request.type == 'type'
+                assert t.request.extension == 'ext'
+                assert t.request.classifier == 'classifier'
                 assert t.cachedResult == null
-                t.invalidate()
+                t.refresh()
             }
         })
-        cachePolicy.mustRefreshArtifact(null, 0)
+        def artifactIdentifier = new DefaultArtifactIdentifier(moduleIdentifier('group', 'name', 'version'), 'artifact', 'type', 'ext', 'classifier')
+        cachePolicy.mustRefreshArtifact(artifactIdentifier, null, 0)
     }
     
     private def hasDynamicVersionTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshDynamicVersion(null, 100)
-        assert !cachePolicy.mustRefreshDynamicVersion(null, timeout);
-        assert !cachePolicy.mustRefreshDynamicVersion(null, timeout - 1)
-        cachePolicy.mustRefreshDynamicVersion(null, timeout + 1)
+        assert !cachePolicy.mustRefreshDynamicVersion(null, null, 100)
+        assert !cachePolicy.mustRefreshDynamicVersion(null, null, timeout);
+        assert !cachePolicy.mustRefreshDynamicVersion(null, null, timeout - 1)
+        cachePolicy.mustRefreshDynamicVersion(null, null, timeout + 1)
     }
 
     private def hasChangingModuleTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshChangingModule(null, timeout - 1)
-        assert !cachePolicy.mustRefreshChangingModule(null, timeout);
-        cachePolicy.mustRefreshChangingModule(null, timeout + 1)
+        assert !cachePolicy.mustRefreshChangingModule(null, null, timeout - 1)
+        assert !cachePolicy.mustRefreshChangingModule(null, null, timeout);
+        cachePolicy.mustRefreshChangingModule(null, null, timeout + 1)
     }
 
     private def hasModuleTimeout(int timeout) {
         def module = moduleVersion('group', 'name', 'version')
-        assert !cachePolicy.mustRefreshModule(module, timeout);
-        assert !cachePolicy.mustRefreshModule(module, timeout - 1)
+        assert !cachePolicy.mustRefreshModule(null, module, timeout);
+        assert !cachePolicy.mustRefreshModule(null, module, timeout - 1)
         if (timeout == FOREVER) {
             return true
         }
-        cachePolicy.mustRefreshModule(module, timeout + 1)
+        cachePolicy.mustRefreshModule(null, module, timeout + 1)
     }
 
     private def hasMissingModuleTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshModule(null, timeout);
-        assert !cachePolicy.mustRefreshModule(null, timeout - 1)
-        cachePolicy.mustRefreshModule(null, timeout + 1)
+        assert !cachePolicy.mustRefreshModule(null, null, timeout);
+        assert !cachePolicy.mustRefreshModule(null, null, timeout - 1)
+        cachePolicy.mustRefreshModule(null, null, timeout + 1)
     }
 
     private def hasMissingArtifactTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshArtifact(null, timeout);
-        assert !cachePolicy.mustRefreshArtifact(null, timeout - 1)
-        cachePolicy.mustRefreshArtifact(null, timeout + 1)
+        assert !cachePolicy.mustRefreshArtifact(null, null, timeout);
+        assert !cachePolicy.mustRefreshArtifact(null, null, timeout - 1)
+        cachePolicy.mustRefreshArtifact(null, null, timeout + 1)
+    }
+    
+    private def assertId(def moduleId, String group, String name , String version) {
+        assert moduleId.group == group
+        assert moduleId.name == name
+        assert moduleId.version == version
+    }
+    
+    private def moduleSelector(String group, String name, String version) {
+        new DefaultModuleVersionIdentifier(group, name, version)
+    }
+
+    private def moduleIdentifier(String group, String name, String version) {
+        new DefaultModuleVersionIdentifier(group, name, version)
     }
 
     private def moduleVersion(String group, String name, String version) {
