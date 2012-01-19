@@ -38,10 +38,16 @@ class ForkOptions extends AbstractOptions {
      * The maximum heap size for the compiler process.
      */
     String memoryMaximumSize = null
+
+  /**
+   * Directory for temporary files. Only used if compilation is done by an
+   * underlying Ant javac task, happens in a forked process, and the command
+   * line args length exceeds 4k. Defaults to <tt>java.io.tmpdir</tt>.
+   */
     String tempDir = null
 
     /**
-     * The JVM command-line arguments for the compiler process.
+     * Any additional JVM arguments for the compiler process.
      */
     List jvmArgs
 
