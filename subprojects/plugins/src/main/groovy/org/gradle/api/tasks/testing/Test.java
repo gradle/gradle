@@ -224,6 +224,20 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    public String getMinHeapSize() {
+        return options.getMinHeapSize();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setMinHeapSize(String heapSize) {
+        options.setMinHeapSize(heapSize);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public String getMaxHeapSize() {
         return options.getMaxHeapSize();
     }
