@@ -23,8 +23,14 @@ import org.junit.Rule
 class ForkingJavaCompilerTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources()
 
-    def doCompile() {
+    def compileGoodCode() {
         expect:
         succeeds("compileJava")
+        output.contains("[javac] Compiling 1 source file")
+    }
+    
+    def compileBadCode() {
+        expect:
+        fails("compileJava")
     }
 }
