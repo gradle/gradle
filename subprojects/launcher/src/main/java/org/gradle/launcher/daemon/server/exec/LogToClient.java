@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.logging.LogMessages;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.OutputEvent;
@@ -49,7 +49,7 @@ class LogToClient extends BuildCommandOnly {
         LOGGER.info("About to start relaying all logs to the client via the connection.");
         loggingManager.start();
         loggingManager.addOutputEventListener(listener);
-        LOGGER.info(LogMessages.STARTED_RELAYING_LOGS);
+        LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS);
 
         try {
             execution.proceed();

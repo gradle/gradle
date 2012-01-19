@@ -24,12 +24,11 @@ import org.gradle.integtests.fixtures.GradleHandle
 import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
-import org.gradle.launcher.daemon.logging.LogMessages
+import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.util.Jvm
 import org.junit.Rule
 import org.slf4j.LoggerFactory
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Timeout
@@ -416,15 +415,16 @@ assert System.getProperty('some-prop') == 'some-value'
         buildSucceeds "assert System.getProperty('java.home').startsWith('$javaHome')"
     }
     
-    @Timeout(10)
-    @Ignore //TODO SF story not yet implemented
+    @Timeout(5)
+    @IgnoreIf({OperatingSystem.current().isWindows()})
     def "promptly shows decent message when daemon cannot be started"() {
         when:
-        executer.withArguments("--info", "-Dorg.gradle.jvmargs=-Xyz").run()
+        executer.withArguments("-Dorg.gradle.jvmargs=-Xyz").run()
 
         then:
         def ex = thrown(Exception)
-        ex.printStackTrace()
+        ex.message.contains(DaemonMessages.UNABLE_TO_START_DAEMON)
+        ex.message.contains("-Xyz")
     }
 
     def "daemon log contains all necessary logging"() {
@@ -450,9 +450,9 @@ assert System.getProperty('some-prop') == 'some-value'
         def log = daemonLog.text
 
         //output before started relying logs via connection
-        assert log.contains(LogMessages.DAEMON_STARTED)
+        assert log.contains(DaemonMessages.PROCESS_STARTED)
         //output after started relying logs via connection
-        assert log.contains(LogMessages.STARTED_RELAYING_LOGS) //TODO SF add coverage for log levels
+        assert log.contains(DaemonMessages.STARTED_RELAYING_LOGS) //TODO SF add coverage for log levels
         //output from the build
         assert log.contains('Hello build!')
     }

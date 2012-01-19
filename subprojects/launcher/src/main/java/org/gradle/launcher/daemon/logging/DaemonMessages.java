@@ -19,8 +19,9 @@ package org.gradle.launcher.daemon.logging;
 /**
  * by Szczepan Faber, created at: 1/19/12
  */
-public class LogMessages {
+public class DaemonMessages {
     
-    public final static String DAEMON_STARTED = "Daemon process started.";
+    public final static String PROCESS_STARTED = "Daemon process started.";
     public final static String STARTED_RELAYING_LOGS = "Daemon started relaying all logging output to the client.";
+    public final static String UNABLE_TO_START_DAEMON = "Unable to start the daemon process.";
 }

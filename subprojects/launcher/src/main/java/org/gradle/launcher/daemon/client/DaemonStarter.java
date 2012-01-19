@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.nativeplatform.OperatingSystem;
 import org.gradle.internal.nativeplatform.jna.WindowsProcessStarter;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
+import org.gradle.launcher.daemon.logging.DaemonGreeter;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
@@ -94,14 +95,17 @@ public class DaemonStarter implements Runnable {
                     commandLine.append(arg);
                     commandLine.append("\" ");
                 }
-
                 new WindowsProcessStarter().start(workingDir, commandLine.toString());
             } else {
-                Process process = new ProcessBuilder(args).directory(workingDir).start();
+                Process process = new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();
+                new DaemonGreeter().verifyGreetingReceived(process);
+
                 process.getOutputStream().close();
                 process.getErrorStream().close();
                 process.getInputStream().close();
             }
+        } catch (GradleException e) {
+            throw e;
         } catch (Exception e) {
             throw new GradleException("Could not start Gradle daemon.", e);
         }

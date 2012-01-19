@@ -20,7 +20,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.client.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.logging.LogMessages;
+import org.gradle.launcher.daemon.logging.DaemonGreeter;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
@@ -91,9 +92,6 @@ public class DaemonMain extends EntryPoint {
             //create log file
             PrintStream log = createLogOutput(daemonDir, pid);
             
-            //print greeting to standard output, include information where the log lives
-            //TODO SF
-            
             //close all streams and redirect IO
             redirectOutputsAndInput(log);
             
@@ -101,7 +99,7 @@ public class DaemonMain extends EntryPoint {
             OutputEventRenderer outputRenderer = loggingRegistry.get(OutputEventRenderer.class);
             outputRenderer.addStandardOutput(log);
             outputRenderer.addStandardError(log);
-            LOGGER.info(LogMessages.DAEMON_STARTED);
+            LOGGER.info(DaemonMessages.PROCESS_STARTED);
         }
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -144,6 +142,7 @@ public class DaemonMain extends EntryPoint {
         System.setErr(printStream);
         System.setIn(new ByteArrayInputStream(new byte[0]));
 
+        new DaemonGreeter().sendGreetingAndClose(originalOut);
         originalOut.close();
         originalErr.close();
 
