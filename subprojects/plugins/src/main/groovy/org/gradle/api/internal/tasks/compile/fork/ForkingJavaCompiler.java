@@ -77,11 +77,11 @@ public class ForkingJavaCompiler implements JavaCompiler {
         WorkerProcess process = builder.worker(action.makeSerializable()).build();
         CompilationListener listener = new CompilationListener() {
             public void stdOut(CharSequence message) {
-                System.out.println(message);
+                System.out.print(message);
             }
 
             public void stdErr(CharSequence message) {
-                System.err.println(message);
+                System.err.print(message);
             }
 
             public void completed(CompilationResult result) {
