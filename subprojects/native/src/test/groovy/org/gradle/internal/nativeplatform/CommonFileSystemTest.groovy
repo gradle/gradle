@@ -35,7 +35,7 @@ class CommonFileSystemTest extends Specification {
         thrown(FileNotFoundException)
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "unix permissions on files can be changed and read"() {
         setup:
         def File f = new File(tmpDir.dir, "someFile")
@@ -52,7 +52,7 @@ class CommonFileSystemTest extends Specification {
         mode << [0644, 0600]
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "unix permissions on directories can be changed and read"() {
         setup:
         def File d = new File(tmpDir.dir, "someDir")
