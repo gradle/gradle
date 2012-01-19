@@ -219,14 +219,14 @@ task listJars << {
         succeeds('listJars')
     }
 
-    public void "reports and recovers from missing module"() {
+    public void "reports and caches missing module"() {
         server.start()
 
         given:
         def repo = ivyRepo()
         def module = repo.module('group', 'projectA', '1.2')
         module.publish()
-        
+
         buildFile << """
 repositories {
     ivy {
@@ -263,15 +263,6 @@ task showMissing << { println configurations.missing.files }
         failure.assertHasDescription('Execution failed for task \':showMissing\'.')
         failure.assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
         failure.assertThatCause(Matchers.containsString('Could not find group:group, module:projectA, version:1.2.'))
-        
-        when:
-        server.resetExpectations()
-        server.expectGet('/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGet('/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
-        
-        then:
-        executer.withArguments("-PdoNotCacheChangingModules")
-        succeeds('showMissing')
     }
 
     public void "reports and recovers from broken module"() {
@@ -314,7 +305,7 @@ task showBroken << { println configurations.broken.files }
         succeeds("showBroken")
     }
 
-    public void "reports and caches missing artifacts until changing module cache expiry"() {
+    public void "reports and caches missing artifacts"() {
         server.start()
 
         given:
@@ -325,11 +316,6 @@ repositories {
     }
 }
 configurations { compile }
-if (project.hasProperty('doNotCacheChangingModules')) {
-    configurations.all {
-        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-    }
-}
 dependencies {
     compile 'group:projectA:1.2'
 }
@@ -357,15 +343,6 @@ task retrieve(type: Sync) {
         then:
         fails "retrieve"
         failure.assertThatCause(containsString("Artifact 'group:projectA:1.2@jar' not found"))
-
-        when:
-        server.resetExpectations()
-        server.expectGet('/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
-
-        then:
-        executer.withArguments("-PdoNotCacheChangingModules")
-        succeeds 'retrieve'
-        file('libs').assertHasDescendants('projectA-1.2.jar')
     }
 
     public void "reports and recovers from failed artifact download"() {

@@ -15,12 +15,12 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 import org.hamcrest.Matchers
+import org.junit.Rule
 
 class ResolutionOverrideIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -32,7 +32,7 @@ class ResolutionOverrideIntegrationTest extends AbstractIntegrationSpec {
         requireOwnUserHomeDir()
     }
 
-    public void "will rebuild dependency cache when run with --refresh dependencies"() {
+    public void "will non-changing module when run with --refresh dependencies"() {
         given:
         server.start()
         def module = repo().module('org.name', 'projectA', '1.2').publish()
@@ -68,6 +68,83 @@ task retrieve(type: Sync) {
         
         then:
         file('libs/projectA-1.2.jar').assertIsCopyOf(module.artifactFile).assertHasChangedSince(snapshot)
+    }
+
+    public void "will recover from missing module when run with --refresh dependencies"() {
+        server.start()
+
+        given:
+        def module = repo().module('org.name', 'projectA', '1.2').publish()
+
+        buildFile << """
+repositories {
+    maven {
+        url "http://localhost:${server.port}"
+    }
+}
+configurations { missing }
+dependencies {
+    missing 'org.name:projectA:1.2'
+}
+task showMissing << { println configurations.missing.files }
+"""
+
+        when:
+        server.expectGetMissing('/org/name/projectA/1.2/projectA-1.2.pom')
+        server.expectHeadMissing('/org/name/projectA/1.2/projectA-1.2.jar')
+
+        then:
+        fails("showMissing")
+
+        when:
+        server.resetExpectations()
+        server.expectGet('/org/name/projectA/1.2/projectA-1.2.pom', module.pomFile)
+        server.expectGet('/org/name/projectA/1.2/projectA-1.2.jar', module.artifactFile)
+
+        then:
+        executer.withArguments("--refresh", "dependencies")
+        succeeds('showMissing')
+    }
+
+    public void "will recover from missing artifact when run with --refresh dependencies"() {
+        server.start()
+
+        given:
+        buildFile << """
+repositories {
+    maven {
+        url "http://localhost:${server.port}"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'org.name:projectA:1.2'
+}
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        and:
+        def module = repo().module('org.name', 'projectA', '1.2').publish()
+
+        when:
+        server.expectGet('/org/name/projectA/1.2/projectA-1.2.pom', module.pomFile)
+        server.expectGetMissing('/org/name/projectA/1.2/projectA-1.2.jar')
+
+        then:
+        fails "retrieve"
+
+        when:
+        server.resetExpectations()
+        server.expectGet('/org/name/projectA/1.2/projectA-1.2.pom.sha1', module.sha1File(module.pomFile))
+        server.expectGet('/org/name/projectA/1.2/projectA-1.2.jar', module.artifactFile)
+
+        then:
+        executer.withArguments("--refresh", "dependencies")
+        succeeds 'retrieve'
+        file('libs').assertHasDescendants('projectA-1.2.jar')
     }
 
     public void "will not expire cache entries when run with offline flag"() {

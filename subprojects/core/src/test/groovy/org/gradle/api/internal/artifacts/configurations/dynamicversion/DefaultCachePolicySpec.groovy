@@ -46,7 +46,7 @@ public class DefaultCachePolicySpec extends Specification {
         hasMissingModuleTimeout(DAY)
     }
 
-    def "uses changing module timeout for changing modules and missing artifacts"() {
+    def "uses changing module timeout for changing modules"() {
         when:
         cachePolicy.cacheChangingModulesFor(10, TimeUnit.SECONDS);
 
@@ -54,8 +54,8 @@ public class DefaultCachePolicySpec extends Specification {
         hasDynamicVersionTimeout(DAY);
         hasChangingModuleTimeout(10 * SECOND)
         hasModuleTimeout(FOREVER)
-        hasMissingModuleTimeout(10 * SECOND)
-        hasMissingArtifactTimeout(10 * SECOND)
+        hasMissingModuleTimeout(DAY)
+        hasMissingArtifactTimeout(DAY)
     }
 
     def "uses dynamic version timeout for dynamic versions"() {
@@ -161,17 +161,44 @@ public class DefaultCachePolicySpec extends Specification {
         cachePolicy.mustRefreshArtifact(artifactIdentifier, null, 0)
     }
     
+    def "can use cacheFor to control missing module and artifact timeout"() {
+        when:
+        cachePolicy.eachModule(new Action<ModuleResolutionControl>() {
+            void execute(ModuleResolutionControl t) {
+                if (t.cachedResult == null) {
+                    t.cacheFor(10, TimeUnit.SECONDS)
+                }
+            }
+        });
+        cachePolicy.eachArtifact(new Action<ArtifactResolutionControl>() {
+            void execute(ArtifactResolutionControl t) {
+                if (t.cachedResult == null) {
+                    t.cacheFor(20, TimeUnit.SECONDS)
+                }
+            }
+        });
+
+        then:
+        hasDynamicVersionTimeout(DAY)
+        hasChangingModuleTimeout(DAY)
+        hasModuleTimeout(FOREVER)
+        hasMissingModuleTimeout(10 * SECOND)
+        hasMissingArtifactTimeout(20 * SECOND)
+    }
+    
     private def hasDynamicVersionTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshDynamicVersion(null, null, 100)
-        assert !cachePolicy.mustRefreshDynamicVersion(null, null, timeout);
-        assert !cachePolicy.mustRefreshDynamicVersion(null, null, timeout - 1)
-        cachePolicy.mustRefreshDynamicVersion(null, null, timeout + 1)
+        def moduleId = moduleIdentifier('group', 'name', 'version')
+        assert !cachePolicy.mustRefreshDynamicVersion(null, moduleId, 100)
+        assert !cachePolicy.mustRefreshDynamicVersion(null, moduleId, timeout);
+        assert !cachePolicy.mustRefreshDynamicVersion(null, moduleId, timeout - 1)
+        cachePolicy.mustRefreshDynamicVersion(null, moduleId, timeout + 1)
     }
 
     private def hasChangingModuleTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshChangingModule(null, null, timeout - 1)
-        assert !cachePolicy.mustRefreshChangingModule(null, null, timeout);
-        cachePolicy.mustRefreshChangingModule(null, null, timeout + 1)
+        def module = moduleVersion('group', 'name', 'version')
+        assert !cachePolicy.mustRefreshChangingModule(null, module, timeout - 1)
+        assert !cachePolicy.mustRefreshChangingModule(null, module, timeout);
+        cachePolicy.mustRefreshChangingModule(null, module, timeout + 1)
     }
 
     private def hasModuleTimeout(int timeout) {

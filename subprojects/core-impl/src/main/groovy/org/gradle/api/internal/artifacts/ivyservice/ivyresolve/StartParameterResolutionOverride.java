@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 public class StartParameterResolutionOverride {
     private final StartParameter startParameter;
@@ -54,17 +55,17 @@ public class StartParameterResolutionOverride {
         } else if (startParameter.getRefreshOptions().refreshDependencies()) {
             resolutionRules.eachDependency(new Action<DependencyResolutionControl>() {
                 public void execute(DependencyResolutionControl dependencyResolutionControl) {
-                    dependencyResolutionControl.refresh();
+                    dependencyResolutionControl.cacheFor(0, TimeUnit.SECONDS);
                 }
             });
             resolutionRules.eachModule(new Action<ModuleResolutionControl>() {
                 public void execute(ModuleResolutionControl moduleResolutionControl) {
-                    moduleResolutionControl.refresh();
+                    moduleResolutionControl.cacheFor(0, TimeUnit.SECONDS);
                 }
             });
             resolutionRules.eachArtifact(new Action<ArtifactResolutionControl>() {
                 public void execute(ArtifactResolutionControl artifactResolutionControl) {
-                    artifactResolutionControl.refresh();
+                    artifactResolutionControl.cacheFor(0, TimeUnit.SECONDS);
                 }
             });
         }

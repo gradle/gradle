@@ -41,6 +41,7 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     public DefaultCachePolicy() {
         cacheDynamicVersionsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
         cacheChangingModulesFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+        cacheMissingModulesAndArtifactsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
     }
 
     public void eachDependency(Action<? super DependencyResolutionControl> rule) {
@@ -69,7 +70,13 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
                 if (moduleResolutionControl.isChanging()) {
                     moduleResolutionControl.cacheFor(value, units);
                 }
-                // Treat missing modules like changing modules
+            }
+        });
+    }
+    
+    private void cacheMissingModulesAndArtifactsFor(final int value, final TimeUnit units) {
+        eachModule(new Action<ModuleResolutionControl>() {
+            public void execute(ModuleResolutionControl moduleResolutionControl) {
                 if (moduleResolutionControl.getCachedResult() == null) {
                     moduleResolutionControl.cacheFor(value, units);
                 }
@@ -77,7 +84,6 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         });
         eachArtifact(new Action<ArtifactResolutionControl>() {
             public void execute(ArtifactResolutionControl artifactResolutionControl) {
-                // Treat missing artifacts like changing modules
                 if (artifactResolutionControl.getCachedResult() == null) {
                     artifactResolutionControl.cacheFor(value, units);
                 }
