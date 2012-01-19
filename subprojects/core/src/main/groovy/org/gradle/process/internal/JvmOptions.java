@@ -27,11 +27,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JvmOptions {
-    private static final Pattern sysPropPattern = Pattern.compile("-D(.+?)=(.*)");
-    private static final Pattern noArgSysPropPattern = Pattern.compile("-D([^=]+)");
-    private static final Pattern minHeapPattern = Pattern.compile("-Xms(.+)");
-    private static final Pattern maxHeapPattern = Pattern.compile("-Xmx(.+)");
-    private static final Pattern bootstrapPattern = Pattern.compile("-Xbootclasspath:(.+)");
+    private static final Pattern SYS_PROP_PATTERN = Pattern.compile("-D(.+?)=(.*)");
+    private static final Pattern NO_ARG_SYS_PROP_PATTERN = Pattern.compile("-D([^=]+)");
+    private static final Pattern MIN_HEAP_PATTERN = Pattern.compile("-Xms(.+)");
+    private static final Pattern MAX_HEAP_PATTERN = Pattern.compile("-Xmx(.+)");
+    private static final Pattern BOOTSTRAP_PATTERN = Pattern.compile("-Xbootclasspath:(.+)");
 
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
     private final Map<String, Object> systemProperties = new TreeMap<String, Object>();
@@ -105,27 +105,27 @@ public class JvmOptions {
     public void jvmArgs(Iterable<?> arguments) {
         for (Object argument : arguments) {
             String argStr = argument.toString();
-            Matcher matcher = sysPropPattern.matcher(argStr);
+            Matcher matcher = SYS_PROP_PATTERN.matcher(argStr);
             if (matcher.matches()) {
                 systemProperties.put(matcher.group(1), matcher.group(2));
                 continue;
             }
-            matcher = noArgSysPropPattern.matcher(argStr);
+            matcher = NO_ARG_SYS_PROP_PATTERN.matcher(argStr);
             if (matcher.matches()) {
                 systemProperties.put(matcher.group(1), null);
                 continue;
             }
-            matcher = minHeapPattern.matcher(argStr);
+            matcher = MIN_HEAP_PATTERN.matcher(argStr);
             if (matcher.matches()) {
                 minHeapSize = matcher.group(1);
                 continue;
             }
-            matcher = maxHeapPattern.matcher(argStr);
+            matcher = MAX_HEAP_PATTERN.matcher(argStr);
             if (matcher.matches()) {
                 maxHeapSize = matcher.group(1);
                 continue;
             }
-            matcher = bootstrapPattern.matcher(argStr);
+            matcher = BOOTSTRAP_PATTERN.matcher(argStr);
             if (matcher.matches()) {
                 setBootstrapClasspath(matcher.group(1).split(Pattern.quote(File.pathSeparator)));
                 continue;
