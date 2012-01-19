@@ -32,5 +32,13 @@ class ForkingJavaCompilerTest extends AbstractIntegrationSpec {
     def compileBadCode() {
         expect:
         fails("compileJava")
+        output.contains("[javac] Compiling 1 source file")
+        output.contains("';' expected")
+    }
+    
+    def compileCodeWithLongClasspath() {
+        expect:
+        succeeds("compileJava")
+        output.contains("[javac] Compiling 1 source file")
     }
 }

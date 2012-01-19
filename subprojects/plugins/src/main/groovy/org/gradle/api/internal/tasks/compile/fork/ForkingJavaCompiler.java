@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
@@ -87,9 +88,14 @@ public class ForkingJavaCompiler implements JavaCompiler {
                 ForkingJavaCompiler.this.result = result;
             }
         };
+
         process.start();
         process.getConnection().addIncoming(CompilationListener.class, listener);
         process.waitForStop();
-        return result;
+
+        if (result.isSuccess()) {
+            return result;
+        }
+        throw UncheckedException.asUncheckedException(result.getException());
     }
 }
