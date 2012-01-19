@@ -53,6 +53,7 @@ public class DefaultJavaForkOptionsTest {
         assertThat(options.executable, notNullValue())
         assertThat(options.jvmArgs, isEmpty())
         assertThat(options.systemProperties, isEmptyMap())
+        assertThat(options.minHeapSize, nullValue())
         assertThat(options.maxHeapSize, nullValue())
         assertThat(options.bootstrapClasspath.files, isEmpty())
         assertFalse(options.enableAssertions)
@@ -110,11 +111,35 @@ public class DefaultJavaForkOptionsTest {
     }
 
     @Test
+    public void allJvmArgsIncludeMinHeapSize() {
+        options.minHeapSize = '64m'
+        options.jvmArgs('arg1')
+
+        assertThat(options.allJvmArgs, equalTo(['arg1', '-Xms64m']))
+    }
+
+    @Test
     public void allJvmArgsIncludeMaxHeapSize() {
         options.maxHeapSize = '1g'
         options.jvmArgs('arg1')
 
         assertThat(options.allJvmArgs, equalTo(['arg1', '-Xmx1g']))
+    }
+
+    @Test
+    public void minHeapSizeIsUpdatedWhenSetUsingJvmArgs() {
+        options.minHeapSize = '64m'
+        options.jvmArgs('-Xms128m')
+
+        assertThat(options.minHeapSize, equalTo('128m'))
+
+        options.allJvmArgs = []
+
+        assertThat(options.minHeapSize, nullValue())
+
+        options.allJvmArgs = ['-Xms92m']
+
+        assertThat(options.minHeapSize, equalTo('92m'))
     }
 
     @Test
@@ -196,7 +221,7 @@ public class DefaultJavaForkOptionsTest {
         assertTrue(options.debug)
         assertThat(options.jvmArgs, equalTo([]))
     }
-    
+
     @Test
     public void canSetBootstrapClasspath() {
         def bootstrapClasspath = [:] as FileCollection
@@ -245,6 +270,7 @@ public class DefaultJavaForkOptionsTest {
         options.executable('executable')
         options.jvmArgs('arg')
         options.systemProperties(key: 12)
+        options.minHeapSize = '64m'
         options.maxHeapSize = '1g'
 
         JavaForkOptions target = context.mock(JavaForkOptions.class)
@@ -252,6 +278,7 @@ public class DefaultJavaForkOptionsTest {
             one(target).setExecutable('executable')
             one(target).setJvmArgs(['arg'])
             one(target).setSystemProperties(key: 12)
+            one(target).setMinHeapSize('64m')
             one(target).setMaxHeapSize('1g')
             one(target).setBootstrapClasspath(options.bootstrapClasspath)
             one(target).setEnableAssertions(false)
