@@ -58,8 +58,8 @@ public class StrictJavaLocaliser implements JavaExecutableFinder {
 
         throw new JavaExecutableNotFoundException(
                 "Unable to find java executable: " + command + " under supplied java home: " + javaHome
-                + "\n Tried standard jdk: " + maybeJdk
-                + "\n Tried Standard jre: " + maybeJre);
+                + "\n Tried: " + maybeJdk
+                + "\n Tried: " + maybeJre);
     }
 
     /**
@@ -98,7 +98,7 @@ public class StrictJavaLocaliser implements JavaExecutableFinder {
     /**
      * Adds a system specific extension to the name of an executable.
      */
-    String addExtension(String command) {
+    static String addExtension(String command) {
         return command + (OperatingSystem.current().isWindows() ? ".exe" : "");
     }
 
