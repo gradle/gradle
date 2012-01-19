@@ -49,7 +49,7 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
         builder.setDaemonRegistryDir(registryServices.get(DaemonDir.class).getBaseDir());
         builder.setDaemonOpts(daemonParameters.getJvmArgs());
-        builder.setJavaHome(daemonParameters.getJavaHome());
+        builder.setJavaHome(daemonParameters.getEffectiveJavaHome());
     }
 
     public DaemonParameters getDaemonParameters() {

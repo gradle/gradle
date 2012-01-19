@@ -168,7 +168,7 @@ class DaemonParametersTest extends Specification {
         parameters.configureFrom([(DaemonParameters.JAVA_HOME_SYS_PROPERTY) : jdk.toString()])
 
         then:
-        parameters.javaHome == jdk.canonicalFile
+        parameters.effectiveJavaHome == jdk.canonicalFile
     }
 
     def "nice message for invalid java home"() {

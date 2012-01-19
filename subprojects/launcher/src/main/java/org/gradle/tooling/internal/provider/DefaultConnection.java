@@ -81,7 +81,7 @@ public class DefaultConnection implements InternalConnection {
             DaemonClientServices services = daemonClientServices(adaptedParameters);
             DefaultBuildEnvironment out = new DefaultBuildEnvironment(
                 GradleVersion.current().getVersion(),
-                services.getDaemonParameters().getJavaHome(),
+                services.getDaemonParameters().getEffectiveJavaHome(),
                 services.getDaemonParameters().getJvmArgs());
 
             return type.cast(out);
@@ -129,7 +129,7 @@ public class DefaultConnection implements InternalConnection {
         //override the params with the explicit settings provided by the tooling api
         List<String> defaultJvmArgs = daemonParams.getAllJvmArgs();
         daemonParams.setJvmArgs(operationParameters.getJvmArguments(defaultJvmArgs));
-        File defaultJavaHome = daemonParams.getJavaHome();
+        File defaultJavaHome = daemonParams.getEffectiveJavaHome();
         daemonParams.setJavaHome(operationParameters.getJavaHome(defaultJavaHome));
 
         if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {

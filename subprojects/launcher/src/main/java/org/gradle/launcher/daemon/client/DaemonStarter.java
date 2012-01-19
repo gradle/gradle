@@ -26,11 +26,8 @@ import org.gradle.launcher.daemon.logging.DaemonGreeter;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.internal.AntBasedJavaExecutableFinder;
-import org.gradle.util.internal.JavaExecutableFinder;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -61,12 +58,7 @@ public class DaemonStarter implements Runnable {
         }
 
         List<String> daemonArgs = new ArrayList<String>();
-        try {
-            JavaExecutableFinder finder = new AntBasedJavaExecutableFinder(daemonParameters.getJavaHome().getCanonicalPath());
-            daemonArgs.add(finder.getJdkExecutable("java"));
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to find java executable for the daemon process.", e);
-        }
+        daemonArgs.add(daemonParameters.getEffectiveJavaExecutable());
 
         List<String> daemonOpts = daemonParameters.getJvmArgs();
         LOGGER.debug("Using daemon opts: {}", daemonOpts);

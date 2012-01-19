@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.m8
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.MaxTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
@@ -24,25 +25,26 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.internal.Exceptions
+import spock.lang.IgnoreIf
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-3')
 @MaxTargetGradleVersion('1.0-milestone-7')
 class StrictLongRunningOperationIntegrationTest extends ToolingApiSpecification {
 
-    def dummyJdk = dist.file("dummyJdk").createDir()
-    
     def setup() {
         //this test does not make any sense in embedded mode
         //as we don't own the process and we will attempt to configure system wide options.
         toolingApi.isEmbedded = false
     }
 
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
     def "fails eagerly when java home unsupported for model"() {
+        def java = AvailableJavaHomes.bestAlternative
         when:
         Exception e = maybeFailWithConnection {
             def model = it.model(BuildEnvironment.class)
-            model.setJavaHome(dummyJdk)
+            model.setJavaHome(java)
             model.get()
         }
 
@@ -50,11 +52,13 @@ class StrictLongRunningOperationIntegrationTest extends ToolingApiSpecification 
         assertExceptionInformative(e, "setJavaHome()")
     }
 
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
     def "fails eagerly when java home unsupported for build"() {
+        def java = AvailableJavaHomes.bestAlternative
         when:
         Exception e = maybeFailWithConnection {
             def build = it.newBuild()
-            build.setJavaHome(dummyJdk)
+            build.setJavaHome(java)
             build.forTasks('tasks').run()
         }
 

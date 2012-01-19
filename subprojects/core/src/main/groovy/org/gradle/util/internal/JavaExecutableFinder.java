@@ -22,14 +22,14 @@ package org.gradle.util.internal;
 public interface JavaExecutableFinder {
 
     /**
-     * Finds an executable that is part of a JDK installation based on
+     * Finds an executable that is part of a JDK/JRE installation based on
      * the given java home file.
      *
      * <p>You typically find them in <code>JAVA_HOME/bin</code> if
-     * <code>JAVA_HOME</code> points to your JDK installation.</p>
+     * <code>JAVA_HOME</code> points to your JRE installation.</p>
      *
      * @param command the java executable to find.
      * @return the path to the command.
      */
-    String getJdkExecutable(String command);
+    String getJavaExecutable(String command);
 }

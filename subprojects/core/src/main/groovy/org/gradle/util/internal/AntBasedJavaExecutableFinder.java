@@ -102,7 +102,7 @@ public class AntBasedJavaExecutableFinder implements JavaExecutableFinder {
     /**
      * {@inheritDoc}
      */
-    public String getJdkExecutable(String command) {
+    public String getJavaExecutable(String command) {
         if (isNetware) {
             // Extrapolating from:
             // "NetWare may have a "java" in that directory, but 99% of

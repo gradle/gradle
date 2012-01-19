@@ -28,6 +28,7 @@ import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
+import org.gradle.util.internal.StrictJavaLocaliser;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,7 +51,6 @@ public class DaemonParameters {
     private File javaHome;
 
     public DaemonParameters() {
-        javaHome = canonicalise(Jvm.current().getJavaHome());
         jvmOptions.setAllJvmArgs(Arrays.asList("-Xmx1024m", "-XX:MaxPermSize=256m"));
     }
 
@@ -81,9 +81,19 @@ public class DaemonParameters {
     public List<String> getAllJvmArgs() {
         return jvmOptions.getAllJvmArgs();
     }
-
-    public File getJavaHome() {
+    
+    public File getEffectiveJavaHome() {
+        if (javaHome == null) {
+            return canonicalise(Jvm.current().getJavaHome());
+        }
         return javaHome;
+    }
+    
+    public String getEffectiveJavaExecutable() {
+        if (javaHome == null) {
+            return Jvm.current().getJavaExecutable().getAbsolutePath();
+        }
+        return new StrictJavaLocaliser(javaHome).getJavaExecutable("java");
     }
 
     public void setJavaHome(File javaHome) {

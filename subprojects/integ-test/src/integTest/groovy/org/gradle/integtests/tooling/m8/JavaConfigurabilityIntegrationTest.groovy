@@ -25,7 +25,6 @@ import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.build.BuildEnvironment
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -42,17 +41,14 @@ class JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
 
     def "configures the java settings"() {
         when:
-        def dummyJdk = dist.file("dummyJdk").createDir()
         BuildEnvironment env = withConnection {
             def model = it.model(BuildEnvironment.class)
             model
-                .setJavaHome(dummyJdk)
                 .setJvmArguments("-Xmx333m", "-Xms13m")
                 .get()
         }
 
         then:
-        env.java.javaHome == dummyJdk
         env.java.jvmArguments.contains("-Xmx333m")
         env.java.jvmArguments.contains("-Xms13m")
     }
@@ -163,28 +159,31 @@ assert System.getProperty('some-prop') == 'BBB'
     }
 
     @Issue("GRADLE-1799")
-    def "behaves reasonably when java does not exist"() {
+    @Timeout(5)
+    def "promptly discovers when java does not exist"() {
         when:
         withConnection {
-            def build = it.newBuild()
-            build.setJavaHome(new File("hey"))
+            it.newBuild().setJavaHome(new File("i dont exist"))
         }
 
         then:
-        thrown(IllegalArgumentException)
+        def ex = thrown(IllegalArgumentException)
+        ex.message.contains("i dont exist")
     }
 
-    @Ignore
     @Issue("GRADLE-1799")
-    def "behaves reasonably when java home"() {
+    @Timeout(5)
+    def "promptly discovers when java is not a valid installation"() {
+        def dummyJdk = dist.file("dummyJdk").createDir()
+        
         when:
         withConnection {
-            it.newBuild()
-                .setJavaHome(new File("hey"))
-                .run()
+            it.newBuild().setJavaHome(dummyJdk)
         }
 
-        then: "behaves sanely, and the exception contains useful info"
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message.contains("dummyJdk")
     }
 
     @Issue("GRADLE-1799")

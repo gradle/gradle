@@ -47,15 +47,15 @@ public class Jvm {
     }
 
     public File getJavaExecutable() {
-        return new File(executableFinder.getJdkExecutable("java"));
+        return new File(executableFinder.getJavaExecutable("java"));
     }
 
     public File getJavadocExecutable() {
-        return new File(executableFinder.getJdkExecutable("javadoc"));
+        return new File(executableFinder.getJavaExecutable("javadoc"));
     }
 
     public File getExecutable(String name) {
-        return new File(executableFinder.getJdkExecutable(name));
+        return new File(executableFinder.getJavaExecutable(name));
     }
 
     public boolean isJava5Compatible() {
