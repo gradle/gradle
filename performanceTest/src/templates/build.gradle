@@ -32,7 +32,7 @@ dependencies {
     compile "commons-httpclient:commons-httpclient:3.0"
     compile "commons-codec:commons-codec:1.2"
     compile "org.slf4j:jcl-over-slf4j:1.6.4"
-    compile "org.codehaus.groovy:groovy:1.8.5"
+    compile "org.codehaus.groovy:groovy:1.8.4"
     compile "commons-codec:commons-codec:1.2"
     testCompile 'junit:junit:4.8.2'
     compile 'org.jfrog.wharf:wharf-core:1.0-20110727083102@jar'
@@ -47,7 +47,7 @@ test {
 <% if (groovyProject) { %>
 apply plugin: 'groovy'
 dependencies {
-    groovy 'org.codehaus.groovy:groovy-all:1.8.5'
+    groovy 'org.codehaus.groovy:groovy-all:1.8.4'
 }
 <% } %>
 
