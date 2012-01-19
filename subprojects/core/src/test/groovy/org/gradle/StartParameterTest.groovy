@@ -58,6 +58,7 @@ class StartParameterTest {
         testObj.logLevel = LogLevel.WARN
         testObj.colorOutput = false
         testObj.continueOnFailure = true
+        testObj.refreshOptions = RefreshOptions.fromCommandLineOptions(['dependencies'])
 
         StartParameter startParameter = testObj.newInstance()
         assertEquals(testObj, startParameter)
@@ -80,6 +81,7 @@ class StartParameterTest {
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
         assertFalse(parameter.dryRun)
         assertFalse(parameter.continueOnFailure)
+        assertThat(parameter.refreshOptions, equalTo(RefreshOptions.NONE))
         assertThat(parameter, isSerializable())
     }
 

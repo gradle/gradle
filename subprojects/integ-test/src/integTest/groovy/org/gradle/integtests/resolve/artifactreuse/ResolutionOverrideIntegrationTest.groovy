@@ -32,7 +32,7 @@ class ResolutionOverrideIntegrationTest extends AbstractIntegrationSpec {
         requireOwnUserHomeDir()
     }
 
-    public void "will rebuild dependency cache when run with --cache=rebuild-dependencies"() {
+    public void "will rebuild dependency cache when run with --refresh dependencies"() {
         given:
         server.start()
         def module = repo().module('org.name', 'projectA', '1.2').publish()
@@ -63,7 +63,7 @@ task retrieve(type: Sync) {
         module.publishWithChangedContent()
 
         and:
-        executer.withArguments('--cache=rebuild-dependencies')
+        executer.withArguments('--refresh', 'dependencies')
         succeeds 'retrieve'
         
         then:

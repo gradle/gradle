@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.CacheUsage;
+import org.gradle.RefreshOptions;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.Settings;
@@ -58,6 +59,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String PROFILE = "profile";
     private static final String CONTINUE = "continue";
     private static final String OFFLINE = "offline";
+    private static final String REFRESH = "refresh";
     private static final String PROJECT_CACHE_DIR = "project-cache-dir";
 
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
@@ -68,7 +70,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         systemPropertiesCommandLineConverter.configure(parser);
         parser.allowMixedSubcommandsAndOptions();
         parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
-        parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts and dependencies should be cached. Possible values are: 'rebuild', 'rebuild-dependencies' and 'on'. Default value is 'on'");
+        parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
         parser.option(PROJECT_CACHE_DIR).hasArgument().hasDescription("Specifies the project-specific cache directory. Defaults to .gradle in the root project directory.");
         parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
         parser.option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks.").deprecated(deprecationMessage("tasks"));
@@ -87,6 +89,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
         parser.option(CONTINUE).hasDescription("Continues task execution after a task failure.").experimental();
         parser.option(OFFLINE).hasDescription("The build should operate without accessing network resources.").experimental();
+        parser.option(REFRESH).hasArguments().hasDescription("Refresh the state of resources of the type(s) specified. Currently only 'dependencies' is supported.").experimental();
     }
 
     @Override
@@ -189,6 +192,11 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         if (options.hasOption(OFFLINE)) {
             startParameter.setOffline(true);
+        }
+        
+        if (options.hasOption(REFRESH)) {
+            RefreshOptions refreshOptions = RefreshOptions.fromCommandLineOptions(options.option(REFRESH).getValues());
+            startParameter.setRefreshOptions(refreshOptions);
         }
 
         return startParameter;

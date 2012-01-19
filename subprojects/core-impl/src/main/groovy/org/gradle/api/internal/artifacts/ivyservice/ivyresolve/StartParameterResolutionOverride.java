@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.cache.ArtifactResolutionControl;
@@ -52,7 +51,7 @@ public class StartParameterResolutionOverride {
                     artifactResolutionControl.useCachedResult();
                 }
             });
-        } else if (startParameter.getCacheUsage() == CacheUsage.REBUILD_DEPENDENCIES) {
+        } else if (startParameter.getRefreshOptions().refreshDependencies()) {
             resolutionRules.eachDependency(new Action<DependencyResolutionControl>() {
                 public void execute(DependencyResolutionControl dependencyResolutionControl) {
                     dependencyResolutionControl.refresh();

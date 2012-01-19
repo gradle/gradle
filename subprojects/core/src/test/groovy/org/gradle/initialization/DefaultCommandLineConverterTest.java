@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.CacheUsage;
+import org.gradle.RefreshOptions;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
@@ -30,7 +31,11 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static org.gradle.util.WrapUtil.*;
@@ -69,7 +74,9 @@ public class DefaultCommandLineConverterTest {
 
     private final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter();
     private boolean expectedContinue;
-
+    private boolean expectedOffline;
+    private RefreshOptions expectedRefreshOptions = RefreshOptions.NONE;
+    
     @Test
     public void withoutAnyOptions() {
         checkConversion();
@@ -97,6 +104,8 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedInitScripts, startParameter.getInitScripts());
         assertEquals(expectedProfile, startParameter.isProfile());
         assertEquals(expectedContinue, startParameter.isContinueOnFailure());
+        assertEquals(expectedOffline, startParameter.isOffline());
+        assertEquals(expectedRefreshOptions, startParameter.getRefreshOptions());
         assertEquals(expectedProjectCacheDir, startParameter.getProjectCacheDir());
     }
 
@@ -358,6 +367,23 @@ public class DefaultCommandLineConverterTest {
     public void withContinue() {
         expectedContinue = true;
         checkConversion("--continue");
+    }
+
+    @Test
+    public void withOffline() {
+        expectedOffline = true;
+        checkConversion("--offline");
+    }
+
+    @Test
+    public void withRefreshDependenciesSet() {
+        expectedRefreshOptions = new RefreshOptions(asList(RefreshOptions.Option.DEPENDENCIES));
+        checkConversion("--refresh", "dependencies");
+    }
+
+    @Test(expected = CommandLineArgumentException.class)
+    public void withUnknownRefreshOption() {
+        checkConversion("--refresh", "unknown");
     }
 
     @Test(expected = CommandLineArgumentException.class)

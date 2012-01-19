@@ -73,6 +73,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean profile;
     private boolean continueOnFailure;
     private boolean offline;
+    private RefreshOptions refreshOptions = RefreshOptions.NONE;
     private File projectCacheDir;
 
     /**
@@ -137,6 +138,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.projectCacheDir = projectCacheDir;
         startParameter.continueOnFailure = continueOnFailure;
         startParameter.offline = offline;
+        startParameter.refreshOptions = refreshOptions;
         return startParameter;
     }
 
@@ -157,6 +159,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.profile = profile;
         startParameter.continueOnFailure = continueOnFailure;
         startParameter.offline = offline;
+        startParameter.refreshOptions = refreshOptions;
         return startParameter;
     }
 
@@ -575,6 +578,20 @@ public class StartParameter extends LoggingConfiguration implements Serializable
       */
     public void setOffline(boolean offline) {
         this.offline = offline;
+    }
+
+    /**
+     * Supplies the refresh options to use for the build.
+     */
+    public void setRefreshOptions(RefreshOptions refreshOptions) {
+        this.refreshOptions = refreshOptions;
+    }
+
+    /**
+     * Returns the refresh options used for the build.
+     */
+    public RefreshOptions getRefreshOptions() {
+        return refreshOptions;
     }
 
     @Override
