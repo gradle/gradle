@@ -20,8 +20,10 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
@@ -72,10 +74,32 @@ public class ForkingJavaCompiler implements JavaCompiler {
     }
 
     public WorkResult execute() {
+        WorkerProcess process = createWorkerProcess();
+        process.start();
+        // TODO: only works when done after start() - does this risk to lose some messages?
+        registerCompilationListener(process);
+        process.waitForStop();
+
+        if (result.isSuccess()) {
+            return result;
+        }
+
+        throw UncheckedException.asUncheckedException(result.getException());
+    }
+
+    private WorkerProcess createWorkerProcess() {
         WorkerProcessBuilder builder = services.getFactory(WorkerProcessBuilder.class).create();
-        builder.getJavaCommand().setWorkingDir(workingDir); // otherwise we get a "cannot resolve '.' to absolute path" exception
-        WorkerProcess process = builder.worker(action.makeSerializable()).build();
-        CompilationListener listener = new CompilationListener() {
+        ForkOptions forkOptions = getCompileOptions().getForkOptions();
+        JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
+        javaCommand.setMinHeapSize(forkOptions.getMemoryInitialSize());
+        javaCommand.setMaxHeapSize(forkOptions.getMemoryMaximumSize());
+        javaCommand.setJvmArgs(forkOptions.getJvmArgs());
+        javaCommand.setWorkingDir(workingDir); // TODO: w/o setting this, we get a "cannot resolve '.' to absolute path" exception
+        return builder.worker(action.makeSerializable()).build();
+    }
+
+    private void registerCompilationListener(WorkerProcess process) {
+        process.getConnection().addIncoming(CompilationListener.class, new CompilationListener() {
             public void stdOut(CharSequence message) {
                 System.out.print(message);
             }
@@ -84,18 +108,9 @@ public class ForkingJavaCompiler implements JavaCompiler {
                 System.err.print(message);
             }
 
-            public void completed(CompilationResult result) {
-                ForkingJavaCompiler.this.result = result;
+            public void completed(CompilationResult result11) {
+                ForkingJavaCompiler.this.result = result11;
             }
-        };
-
-        process.start();
-        process.getConnection().addIncoming(CompilationListener.class, listener);
-        process.waitForStop();
-
-        if (result.isSuccess()) {
-            return result;
-        }
-        throw UncheckedException.asUncheckedException(result.getException());
+        });
     }
 }
