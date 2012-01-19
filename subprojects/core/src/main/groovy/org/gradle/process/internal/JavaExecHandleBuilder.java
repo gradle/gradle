@@ -106,6 +106,14 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         return this;
     }
 
+    public String getMinHeapSize() {
+        return javaOptions.getMinHeapSize();
+    }
+
+    public void setMinHeapSize(String heapSize) {
+        javaOptions.setMinHeapSize(heapSize);
+    }
+
     public String getMaxHeapSize() {
         return javaOptions.getMaxHeapSize();
     }

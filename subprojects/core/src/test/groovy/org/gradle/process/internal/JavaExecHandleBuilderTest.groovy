@@ -43,19 +43,21 @@ public class JavaExecHandleBuilderTest extends Specification {
         builder.jvmArgs("jvm1", "jvm2")
         builder.classpath(jar1, jar2)
         builder.systemProperty("prop", "value")
+        builder.minHeapSize = "64m"
+        builder.maxHeapSize = "1g"
 
         when:
         List jvmArgs = builder.getAllJvmArgs()
 
         then:
-        jvmArgs == ['jvm1', 'jvm2', '-Dprop=value', '-cp', "$jar1$File.pathSeparator$jar2"]
+        jvmArgs == ['jvm1', 'jvm2', '-Xms64m', '-Xmx1g', '-Dprop=value', '-cp', "$jar1$File.pathSeparator$jar2"]
 
         when:
         List commandLine = builder.getCommandLine()
 
         then:
         String executable = Jvm.current().getJavaExecutable().getAbsolutePath()
-        commandLine == [executable, 'jvm1', 'jvm2', '-Dprop=value', '-cp', "$jar1$File.pathSeparator$jar2",
-                'mainClass', 'arg1', 'arg2']
+        commandLine == [executable,  'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', '-Dprop=value',
+                '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
     }
 }

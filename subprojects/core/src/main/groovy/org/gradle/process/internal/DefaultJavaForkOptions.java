@@ -95,6 +95,14 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         return this;
     }
 
+    public String getMinHeapSize() {
+        return options.getMinHeapSize();
+    }
+
+    public void setMinHeapSize(String heapSize) {
+        options.setMinHeapSize(heapSize);
+    }
+
     public String getMaxHeapSize() {
         return options.getMaxHeapSize();
     }

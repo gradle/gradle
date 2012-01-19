@@ -27,13 +27,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JvmOptions {
-    private final Pattern sysPropPattern = Pattern.compile("-D(.+?)=(.*)");
-    private final Pattern noArgSysPropPattern = Pattern.compile("-D([^=]+)");
-    private final Pattern maxHeapPattern = Pattern.compile("-Xmx(.+)");
-    private final Pattern bootstrapPattern = Pattern.compile("-Xbootclasspath:(.+)");
+    private static final Pattern sysPropPattern = Pattern.compile("-D(.+?)=(.*)");
+    private static final Pattern noArgSysPropPattern = Pattern.compile("-D([^=]+)");
+    private static final Pattern minHeapPattern = Pattern.compile("-Xms(.+)");
+    private static final Pattern maxHeapPattern = Pattern.compile("-Xmx(.+)");
+    private static final Pattern bootstrapPattern = Pattern.compile("-Xbootclasspath:(.+)");
+
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
     private final Map<String, Object> systemProperties = new TreeMap<String, Object>();
     private DefaultConfigurableFileCollection bootstrapClasspath;
+    private String minHeapSize;
     private String maxHeapSize;
     private boolean assertionsEnabled;
     private boolean debug;
@@ -57,6 +60,9 @@ public class JvmOptions {
     public List<String> getAllJvmArgsWithoutSystemProperties() {
         List<String> args = new ArrayList<String>();
         args.addAll(getJvmArgs());
+        if (minHeapSize != null) {
+            args.add(String.format("-Xms%s", minHeapSize));
+        }
         if (maxHeapSize != null) {
             args.add(String.format("-Xmx%s", maxHeapSize));
         }
@@ -76,6 +82,7 @@ public class JvmOptions {
 
     public void setAllJvmArgs(Iterable<?> arguments) {
         systemProperties.clear();
+        minHeapSize = null;
         maxHeapSize = null;
         extraJvmArgs.clear();
         assertionsEnabled = false;
@@ -106,6 +113,11 @@ public class JvmOptions {
             matcher = noArgSysPropPattern.matcher(argStr);
             if (matcher.matches()) {
                 systemProperties.put(matcher.group(1), null);
+                continue;
+            }
+            matcher = minHeapPattern.matcher(argStr);
+            if (matcher.matches()) {
+                minHeapSize = matcher.group(1);
                 continue;
             }
             matcher = maxHeapPattern.matcher(argStr);
@@ -187,6 +199,14 @@ public class JvmOptions {
         this.bootstrapClasspath.from(classpath);
     }
 
+    public String getMinHeapSize() {
+        return minHeapSize;
+    }
+
+    public void setMinHeapSize(String heapSize) {
+        this.minHeapSize = heapSize;
+    }
+
     public String getMaxHeapSize() {
         return maxHeapSize;
     }
@@ -214,6 +234,7 @@ public class JvmOptions {
     public void copyTo(JavaForkOptions target) {
         target.setJvmArgs(extraJvmArgs);
         target.setSystemProperties(systemProperties);
+        target.setMinHeapSize(minHeapSize);
         target.setMaxHeapSize(maxHeapSize);
         target.setBootstrapClasspath(bootstrapClasspath);
         target.setEnableAssertions(assertionsEnabled);

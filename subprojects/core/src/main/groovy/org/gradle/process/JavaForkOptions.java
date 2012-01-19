@@ -57,6 +57,20 @@ public interface JavaForkOptions extends ProcessForkOptions {
     JavaForkOptions systemProperty(String name, Object value);
 
     /**
+     * Returns the minimum heap size for the process, if any.
+     *
+     * @return The minimum heap size. Returns null if the default minimum heap size should be used.
+     */
+    String getMinHeapSize();
+
+    /**
+     * Sets the minimum heap size for the process.
+     *
+     * @param heapSize The minimum heap size. Use null for the default minimum heap size.
+     */
+    void setMinHeapSize(String heapSize);
+
+    /**
      * Returns the maximum heap size for the process, if any.
      *
      * @return The maximum heap size. Returns null if the default maximum heap size should be used.
@@ -72,15 +86,15 @@ public interface JavaForkOptions extends ProcessForkOptions {
 
     /**
      * Returns the extra arguments to use to launch the JVM for the process. Does not include system properties and the
-     * maximum heap size.
+     * minimum/maximum heap size.
      *
      * @return The arguments. Returns an empty list if there are no arguments.
      */
     List<String> getJvmArgs();
 
     /**
-     * Sets the extra arguments to use to launch the JVM for the process. System properties and maximum heap size are
-     * updated.
+     * Sets the extra arguments to use to launch the JVM for the process. System properties
+     * and minimum/maximum heap size are updated.
      *
      * @param arguments The arguments. Must not be null.
      */
@@ -158,7 +172,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
 
     /**
      * Returns the full set of arguments to use to launch the JVM for the process. This includes arguments to define
-     * system properties, the maximum heap size, and the bootstrap classpath.
+     * system properties, the minimum/maximum heap size, and the bootstrap classpath.
      *
      * @return The arguments. Returns an empty list if there are no arguments.
      */
@@ -166,7 +180,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
 
     /**
      * Sets the full set of arguments to use to launch the JVM for the process. Overwrites any previously set system
-     * properties, maximum heap size, assertions, and bootstrap classpath.
+     * properties, minimum/maximum heap size, assertions, and bootstrap classpath.
      *
      * @param arguments The arguments. Must not be null.
      */

@@ -152,6 +152,20 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
+    public String getMinHeapSize() {
+        return javaExecHandleBuilder.getMinHeapSize();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setMinHeapSize(String heapSize) {
+        javaExecHandleBuilder.setMinHeapSize(heapSize);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public String getMaxHeapSize() {
         return javaExecHandleBuilder.getMaxHeapSize();
     }
