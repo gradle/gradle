@@ -94,7 +94,7 @@ libraries += [
         ant_antlr: 'org.apache.ant:ant-antlr:1.8.2@jar',
         antlr: 'antlr:antlr:2.7.7@jar',
         dom4j: 'dom4j:dom4j:1.6.1@jar',
-        guava: 'com.google.guava:guava:10.0.1@jar',
+        guava: 'com.google.guava:guava:11.0.1@jar',
         groovy: 'org.codehaus.groovy:groovy-all:1.8.4@jar',
         jaxen: 'jaxen:jaxen:1.1@jar',
         jcip: "net.jcip:jcip-annotations:1.0",
