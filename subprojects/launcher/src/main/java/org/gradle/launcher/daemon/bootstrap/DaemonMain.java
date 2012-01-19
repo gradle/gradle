@@ -18,10 +18,11 @@ package org.gradle.launcher.daemon.bootstrap;
 import com.google.common.io.Files;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.client.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.logging.LogMessages;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.client.DaemonParameters;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.DaemonStoppedException;
 import org.gradle.launcher.exec.EntryPoint;
@@ -87,14 +88,20 @@ public class DaemonMain extends EntryPoint {
         final Long pid = daemonContext.getPid();
 
         if (redirectIo) {
-            try {
-                OutputEventRenderer outputRenderer = loggingRegistry.get(OutputEventRenderer.class);
-                configureDaemonLog(outputRenderer, daemonDir, pid);
-                LOGGER.info("Started logging");
-            } catch (IOException e) {
-                listener.onFailure(e);
-                return;
-            }
+            //create log file
+            PrintStream log = createLogOutput(daemonDir, pid);
+            
+            //print greeting to standard output, include information where the log lives
+            //TODO SF
+            
+            //close all streams and redirect IO
+            redirectOutputsAndInput(log);
+            
+            //so that logging gets its way to the daemon log:
+            OutputEventRenderer outputRenderer = loggingRegistry.get(OutputEventRenderer.class);
+            outputRenderer.addStandardOutput(log);
+            outputRenderer.addStandardError(log);
+            LOGGER.info(LogMessages.DAEMON_STARTED);
         }
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -115,13 +122,32 @@ public class DaemonMain extends EntryPoint {
         }
     }
 
-    private void configureDaemonLog(OutputEventRenderer outputRenderer, DaemonDir daemonDir, Long pid) throws IOException {
-        //very simplistic, just making sure each damon has unique log file
+    private static PrintStream createLogOutput(DaemonDir daemonDir, Long pid) {
         String logFileName = String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid);
         File logFile = new File(daemonDir.getVersionedDir(), logFileName);
-        Files.createParentDirs(logFile);
-        PrintStream printStream = new PrintStream(new FileOutputStream(logFile), true);
-        outputRenderer.addStandardOutput(printStream);
-        outputRenderer.addStandardError(printStream);
+        try {
+            Files.createParentDirs(logFile);
+            return new PrintStream(new FileOutputStream(logFile), true);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to create daemon log file", e);
+        }
+    }
+
+    private static void redirectOutputsAndInput(OutputStream log) {
+        PrintStream originalOut = System.out;
+        PrintStream originalErr = System.err;
+        //InputStream originalIn = System.in;
+
+        PrintStream printStream = new PrintStream(log, true);
+
+        System.setOut(printStream);
+        System.setErr(printStream);
+        System.setIn(new ByteArrayInputStream(new byte[0]));
+
+        originalOut.close();
+        originalErr.close();
+
+        //TODO - make this work on windows
+        //originalIn.close();
     }
 }

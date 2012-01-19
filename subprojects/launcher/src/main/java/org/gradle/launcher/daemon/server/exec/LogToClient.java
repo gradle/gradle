@@ -15,13 +15,18 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.logging.LogMessages;
+import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.launcher.daemon.protocol.Build;
 
 class LogToClient extends BuildCommandOnly {
-    
+
+    private static final Logger LOGGER = Logging.getLogger(LogToClient.class);
+
     private final LoggingManagerInternal loggingManager;
     
     public LogToClient(LoggingManagerInternal loggingManager) {
@@ -39,10 +44,13 @@ class LogToClient extends BuildCommandOnly {
                 }
             }
         };
-        
+
         loggingManager.setLevel(build.getStartParameter().getLogLevel());
+        LOGGER.info("About to start relaying all logs to the client via the connection.");
         loggingManager.start();
         loggingManager.addOutputEventListener(listener);
+        LOGGER.info(LogMessages.STARTED_RELAYING_LOGS);
+
         try {
             execution.proceed();
         } finally {

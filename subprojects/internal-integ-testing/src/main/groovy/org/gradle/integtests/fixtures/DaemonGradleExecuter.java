@@ -15,16 +15,19 @@
  */
 package org.gradle.integtests.fixtures;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
     private static final String DAEMON_REGISTRY_SYS_PROP = "org.gradle.integtest.daemon.registry";
     private final GradleDistribution distribution;
+    private final File daemonBaseDir;
 
-    public DaemonGradleExecuter(GradleDistribution distribution) {
+    public DaemonGradleExecuter(GradleDistribution distribution, File daemonBaseDir) {
         super(distribution.getGradleHomeDir());
         this.distribution = distribution;
+        this.daemonBaseDir = daemonBaseDir;
     }
 
     @Override
@@ -34,9 +37,13 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         List<String> args = new ArrayList<String>();
         args.add("--daemon");
         args.add("-Dorg.gradle.daemon.idletimeout=" + (5 * 60 * 1000));
-        String customDaemonRegistryDir = System.getProperty(DAEMON_REGISTRY_SYS_PROP);
-        if (customDaemonRegistryDir != null && !distribution.isUsingIsolatedDaemons()) {
-            args.add("-Dorg.gradle.daemon.registry.base=" + customDaemonRegistryDir);
+        if (daemonBaseDir != null) {
+            args.add("-Dorg.gradle.daemon.registry.base=" + daemonBaseDir.getAbsolutePath());
+        } else {
+            String customDaemonRegistryDir = System.getProperty(DAEMON_REGISTRY_SYS_PROP);
+            if (customDaemonRegistryDir != null && !distribution.isUsingIsolatedDaemons()) {
+                args.add("-Dorg.gradle.daemon.registry.base=" + customDaemonRegistryDir);
+            }
         }
         
         args.addAll(originalArgs);
