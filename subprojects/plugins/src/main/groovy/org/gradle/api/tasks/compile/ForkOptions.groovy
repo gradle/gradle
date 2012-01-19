@@ -49,9 +49,13 @@ class ForkOptions extends AbstractOptions {
     /**
      * Any additional JVM arguments for the compiler process.
      */
-    List jvmArgs
+    List jvmArgs = []
 
     Map fieldName2AntMap() {
         [tempDir: 'tempdir']
+    }
+
+    List excludedFieldsFromOptionMap() {
+        ["jvmArgs"]
     }
 }

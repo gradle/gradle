@@ -33,10 +33,13 @@ class ForkOptionsTest {
     }
 
     @Test public void testCompileOptions() {
-        assertNull(forkOptions.executable)
-        assertNull(forkOptions.memoryInitialSize)
-        assertNull(forkOptions.memoryMaximumSize)
-        assertNull(forkOptions.tempDir)
+        forkOptions.with {
+            assert executable == null
+            assert memoryInitialSize == null
+            assert memoryMaximumSize == null
+            assert tempDir == null
+            assert jvmArgs == []
+        }
     }
 
     @Test public void testOptionMap() {
