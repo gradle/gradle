@@ -42,16 +42,17 @@ class JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
 
     def "configures the java settings"() {
         when:
+        def dummyJdk = dist.file("dummyJdk").createDir()
         BuildEnvironment env = withConnection {
             def model = it.model(BuildEnvironment.class)
             model
-                .setJavaHome(new File("hey"))
+                .setJavaHome(dummyJdk)
                 .setJvmArguments("-Xmx333m", "-Xms13m")
                 .get()
         }
 
         then:
-        env.java.javaHome == new File("hey")
+        env.java.javaHome == dummyJdk
         env.java.jvmArguments.contains("-Xmx333m")
         env.java.jvmArguments.contains("-Xms13m")
     }
@@ -161,9 +162,21 @@ assert System.getProperty('some-prop') == 'BBB'
         env.java.javaHome == javaHome
     }
 
+    @Issue("GRADLE-1799")
+    def "behaves reasonably when java does not exist"() {
+        when:
+        withConnection {
+            def build = it.newBuild()
+            build.setJavaHome(new File("hey"))
+        }
+
+        then:
+        thrown(IllegalArgumentException)
+    }
+
     @Ignore
     @Issue("GRADLE-1799")
-    def "behaves reasonably when rubbish java home"() {
+    def "behaves reasonably when java home"() {
         when:
         withConnection {
             it.newBuild()

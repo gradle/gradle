@@ -65,7 +65,9 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     }
 
     public void setJavaHome(File javaHome) {
-        //TODO SF add basic validation
+        if (javaHome != null && !javaHome.isDirectory()) {
+            throw new IllegalArgumentException("Supplied javaHome is not a valid folder. You've supplied: " + javaHome);
+        }
         this.javaHome = javaHome;
     }
 

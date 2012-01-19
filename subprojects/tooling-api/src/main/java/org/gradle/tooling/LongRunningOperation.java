@@ -80,8 +80,9 @@ public interface LongRunningOperation {
      * @param javaHome to use for the gradle process
      * @return this
      * @since 1.0-milestone-8
+     * @throws IllegalArgumentException when supplied javaHome is not a valid folder
      */
-    LongRunningOperation setJavaHome(File javaHome);
+    LongRunningOperation setJavaHome(File javaHome) throws IllegalArgumentException;
 
     /**
      * If the target gradle version supports it you can use this setting

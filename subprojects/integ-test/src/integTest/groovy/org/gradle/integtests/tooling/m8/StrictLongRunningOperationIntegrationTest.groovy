@@ -30,6 +30,8 @@ import org.gradle.tooling.model.internal.Exceptions
 @MaxTargetGradleVersion('1.0-milestone-7')
 class StrictLongRunningOperationIntegrationTest extends ToolingApiSpecification {
 
+    def dummyJdk = dist.file("dummyJdk").createDir()
+    
     def setup() {
         //this test does not make any sense in embedded mode
         //as we don't own the process and we will attempt to configure system wide options.
@@ -40,7 +42,7 @@ class StrictLongRunningOperationIntegrationTest extends ToolingApiSpecification 
         when:
         Exception e = maybeFailWithConnection {
             def model = it.model(BuildEnvironment.class)
-            model.setJavaHome(new File("hey"))
+            model.setJavaHome(dummyJdk)
             model.get()
         }
 
@@ -52,7 +54,7 @@ class StrictLongRunningOperationIntegrationTest extends ToolingApiSpecification 
         when:
         Exception e = maybeFailWithConnection {
             def build = it.newBuild()
-            build.setJavaHome(new File("hey"))
+            build.setJavaHome(dummyJdk)
             build.forTasks('tasks').run()
         }
 
