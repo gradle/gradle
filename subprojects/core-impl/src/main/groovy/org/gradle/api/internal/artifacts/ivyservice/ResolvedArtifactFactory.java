@@ -31,12 +31,12 @@ public class ResolvedArtifactFactory {
         this.lockingManager = lockingManager;
     }
 
-    public ResolvedArtifact create(ResolvedDependency owner, final Artifact artifact, final ArtifactToFileResolver resolver) {
+    public ResolvedArtifact create(ResolvedDependency owner, final Artifact artifact, final ModuleVersionResolver resolver) {
         return new DefaultResolvedArtifact(owner, artifact, new FileSource() {
             public File get() {
                 return lockingManager.useCache(String.format("download %s", artifact), new Factory<File>() {
                     public File create() {
-                        return resolver.resolve(artifact);
+                        return resolver.getArtifact(artifact);
                     }
                 });
             }

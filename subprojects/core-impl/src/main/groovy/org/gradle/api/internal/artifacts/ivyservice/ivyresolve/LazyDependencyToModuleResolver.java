@@ -15,27 +15,29 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.version.VersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.*;
+
+import java.io.File;
 
 /**
  * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver} implementation which returns lazy resolvers that don't
  * actually retrieve module descriptors until required.
  */
-class LazyDependencyToModuleResolver implements DependencyToModuleResolver {
-    private final DependencyToModuleResolver delegate;
+public class LazyDependencyToModuleResolver implements DependencyToModuleResolver {
+    private final DependencyToModuleResolver dependencyResolver;
+    private final ArtifactToFileResolver artifactResolver;
     private final VersionMatcher versionMatcher;
 
-    public LazyDependencyToModuleResolver(DependencyToModuleResolver delegate, VersionMatcher versionMatcher) {
-        this.delegate = delegate;
+    public LazyDependencyToModuleResolver(DependencyToModuleResolver dependencyResolver, ArtifactToFileResolver artifactResolver, VersionMatcher versionMatcher) {
+        this.dependencyResolver = dependencyResolver;
+        this.artifactResolver = artifactResolver;
         this.versionMatcher = versionMatcher;
     }
 
@@ -68,7 +70,7 @@ class LazyDependencyToModuleResolver implements DependencyToModuleResolver {
                 try {
                     ModuleVersionResolver moduleVersionResolver;
                     try {
-                        moduleVersionResolver = delegate.create(dependencyDescriptor);
+                        moduleVersionResolver = dependencyResolver.create(dependencyDescriptor);
                     } catch (Throwable t) {
                         ModuleRevisionId id = dependencyDescriptor.getDependencyRevisionId();
                         throw new ModuleVersionResolveException(String.format("Could not resolve group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()), t);
@@ -85,6 +87,10 @@ class LazyDependencyToModuleResolver implements DependencyToModuleResolver {
                 }
             }
             return moduleDescriptor;
+        }
+
+        public File getArtifact(Artifact artifact) throws ArtifactResolveException {
+            return artifactResolver.resolve(artifact);
         }
 
         private void checkDescriptor(ModuleDescriptor descriptor) {

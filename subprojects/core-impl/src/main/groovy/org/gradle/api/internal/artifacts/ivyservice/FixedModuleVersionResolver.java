@@ -15,9 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
+
+import java.io.File;
 
 public class FixedModuleVersionResolver implements ModuleVersionResolver {
     private final DependencyDescriptor dependencyDescriptor;
@@ -34,5 +38,9 @@ public class FixedModuleVersionResolver implements ModuleVersionResolver {
 
     public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
         return moduleDescriptor;
+    }
+
+    public File getArtifact(Artifact artifact) throws ArtifactResolveException {
+        throw new UnsupportedOperationException();
     }
 }

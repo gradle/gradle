@@ -37,13 +37,11 @@ public class DependencyGraphBuilder {
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final ResolvedArtifactFactory resolvedArtifactFactory;
     private final DependencyToModuleResolver dependencyResolver;
-    private final ArtifactToFileResolver artifactResolver;
     private final ForcedModuleConflictResolver conflictResolver;
 
-    public DependencyGraphBuilder(ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver artifactResolver, DependencyToModuleResolver dependencyResolver, ModuleConflictResolver conflictResolver) {
+    public DependencyGraphBuilder(ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory, DependencyToModuleResolver dependencyResolver, ModuleConflictResolver conflictResolver) {
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.resolvedArtifactFactory = resolvedArtifactFactory;
-        this.artifactResolver = artifactResolver;
         this.dependencyResolver = dependencyResolver;
         this.conflictResolver = new ForcedModuleConflictResolver(conflictResolver);
     }
@@ -139,7 +137,7 @@ public class DependencyGraphBuilder {
     private void assembleResult(ResolveState resolveState, ResolvedConfigurationBuilder result) {
         FailureState failureState = new FailureState(resolveState.root);
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
-            resolvedConfiguration.attachToParents(resolvedArtifactFactory, artifactResolver, result);
+            resolvedConfiguration.attachToParents(resolvedArtifactFactory, result);
             resolvedConfiguration.collectFailures(failureState);
         }
         failureState.attachFailures(result);
@@ -330,7 +328,7 @@ public class DependencyGraphBuilder {
             }
         }
 
-        private Set<ResolvedArtifact> getArtifacts(ConfigurationNode childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver) {
+        private Set<ResolvedArtifact> getArtifacts(ConfigurationNode childConfiguration, ResolvedArtifactFactory resolvedArtifactFactory) {
             String[] targetConfigurations = from.heirarchy.toArray(new String[from.heirarchy.size()]);
             DependencyArtifactDescriptor[] dependencyArtifacts = dependencyDescriptor.getDependencyArtifacts(targetConfigurations);
             if (dependencyArtifacts.length == 0) {
@@ -339,23 +337,23 @@ public class DependencyGraphBuilder {
             Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
             for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
                 MDArtifact artifact = new MDArtifact(childConfiguration.descriptor, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
-                artifacts.add(resolvedArtifactFactory.create(childConfiguration.getResult(), artifact, resolver));
+                artifacts.add(resolvedArtifactFactory.create(childConfiguration.getResult(), artifact, selector.resolver));
             }
             return artifacts;
         }
 
-        public void attachToParents(ConfigurationNode childConfiguration, ResolvedArtifactFactory artifactFactory, ArtifactToFileResolver artifactResolver, ResolvedConfigurationBuilder result) {
+        public void attachToParents(ConfigurationNode childConfiguration, ResolvedArtifactFactory artifactFactory, ResolvedConfigurationBuilder result) {
             DefaultResolvedDependency parent = from.getResult();
             DefaultResolvedDependency child = childConfiguration.getResult();
             parent.addChild(child);
 
-            Set<ResolvedArtifact> artifacts = getArtifacts(childConfiguration, artifactFactory, artifactResolver);
+            Set<ResolvedArtifact> artifacts = getArtifacts(childConfiguration, artifactFactory);
             if (!artifacts.isEmpty()) {
                 child.addParentSpecificArtifacts(parent, artifacts);
             }
 
             if (artifacts.isEmpty()) {
-                child.addParentSpecificArtifacts(parent, childConfiguration.getArtifacts(artifactFactory, artifactResolver));
+                child.addParentSpecificArtifacts(parent, childConfiguration.getArtifacts(artifactFactory));
             }
             for (ResolvedArtifact artifact : child.getParentArtifacts(parent)) {
                 result.addArtifact(artifact);
@@ -646,12 +644,12 @@ public class DependencyGraphBuilder {
             return String.format("%s(%s)", moduleRevision, configurationName);
         }
 
-        public Set<ResolvedArtifact> getArtifacts(ResolvedArtifactFactory resolvedArtifactFactory, ArtifactToFileResolver resolver) {
+        public Set<ResolvedArtifact> getArtifacts(ResolvedArtifactFactory resolvedArtifactFactory) {
             if (artifacts == null) {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
                 for (String config : heirarchy) {
                     for (Artifact artifact : descriptor.getArtifacts(config)) {
-                        artifacts.add(resolvedArtifactFactory.create(getResult(), artifact, resolver));
+                        artifacts.add(resolvedArtifactFactory.create(getResult(), artifact, moduleRevision.resolver.resolver));
                     }
                 }
             }
@@ -757,14 +755,14 @@ public class DependencyGraphBuilder {
             resolveState.onFewerSelected(this);
         }
 
-        public void attachToParents(ResolvedArtifactFactory artifactFactory, ArtifactToFileResolver artifactResolver, ResolvedConfigurationBuilder result) {
+        public void attachToParents(ResolvedArtifactFactory artifactFactory, ResolvedConfigurationBuilder result) {
             if (moduleRevision.state != ModuleState.Selected) {
                 LOGGER.debug("Ignoring {} as it is not selected.", this);
                 return;
             }
             LOGGER.debug("Attaching {} to its parents.", this);
             for (DependencyEdge dependency : incomingEdges) {
-                dependency.attachToParents(this, artifactFactory, artifactResolver, result);
+                dependency.attachToParents(this, artifactFactory, result);
             }
         }
 

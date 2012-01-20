@@ -28,7 +28,7 @@ class ResolvedArtifactFactoryTest extends Specification {
 
     def "creates an artifact backed by resolver"() {
         Artifact artifact = Mock()
-        ArtifactToFileResolver resolver = Mock()
+        ModuleVersionResolver resolver = Mock()
         ResolvedDependency resolvedDependency = Mock()
         File file = new File("something.jar")
 
@@ -45,7 +45,7 @@ class ResolvedArtifactFactoryTest extends Specification {
         1 * lockingManager.useCache(!null, !null) >> {String displayName, Factory<?> action ->
             return action.create()
         }
-        1 * resolver.resolve(artifact) >> file
+        1 * resolver.getArtifact(artifact) >> file
         0 * _._
     }
 }

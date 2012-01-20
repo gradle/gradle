@@ -15,8 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
+
+import java.io.File;
 
 public interface ModuleVersionResolver {
     /**
@@ -28,4 +32,6 @@ public interface ModuleVersionResolver {
      * Returns the descriptor for this module version, resolving it if required.
      */
     ModuleDescriptor getDescriptor() throws ModuleVersionResolveException;
+
+    File getArtifact(Artifact artifact) throws ArtifactResolveException;
 }

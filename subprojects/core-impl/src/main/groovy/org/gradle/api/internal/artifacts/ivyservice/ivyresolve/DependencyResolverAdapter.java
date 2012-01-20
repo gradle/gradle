@@ -77,7 +77,7 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
             if (revision == null) {
                 return null;
             }
-            return new DefaultModuleVersionDescriptor(revision.getDescriptor(), getOriginalMetadataArtifact(revision), getOriginalMetadataFile(revision), isChanging(revision));
+            return new DefaultModuleVersionDescriptor(revision.getDescriptor(), isChanging(revision));
         } catch (ParseException e) {
             throw UncheckedException.asUncheckedException(e);
         }
