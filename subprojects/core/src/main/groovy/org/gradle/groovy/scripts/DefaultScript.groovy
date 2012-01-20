@@ -121,6 +121,10 @@ abstract class DefaultScript extends BasicScript {
         fileOperations.fileTree(closure)
     }
 
+    ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure) {
+        fileOperations.fileTree(baseDir, configureClosure);
+    }
+
     FileTree zipTree(Object zipPath) {
         fileOperations.zipTree(zipPath)
     }
