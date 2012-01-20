@@ -899,7 +899,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
-     * as for {@link #file(Object)}.</p>. The closure will be used to configure the new file tree. 
+     * as for {@link #file(Object)}. The closure will be used to configure the new file tree. 
      * The file tree is passed to the closure as its delegate.  Example:</p>
      *
      * <pre>
