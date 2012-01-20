@@ -683,6 +683,10 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return fileOperations.fileTree(baseDir);
     }
 
+    public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
+        return fileOperations.fileTree(baseDir, closure);
+    }
+
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
         return fileOperations.fileTree(args);
     }

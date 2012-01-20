@@ -49,6 +49,8 @@ public interface FileOperations {
 
     ConfigurableFileTree fileTree(Closure closure);
 
+    ConfigurableFileTree fileTree(Object baseDir, Closure closure);
+
     FileTree zipTree(Object zipPath);
 
     FileTree tarTree(Object tarPath);

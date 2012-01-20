@@ -898,6 +898,27 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     ConfigurableFileTree fileTree(Object baseDir);
 
     /**
+     * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
+     * as for {@link #file(Object)}.</p>. The closure will be used to configure the new file tree. 
+     * The file tree is passed to the closure as its delegate.  Example:</p>
+     *
+     * <pre>
+     * fileTree('src') {
+     *    exclude '**&#47;.svn/**'
+     * }.copy { into 'dest'}
+     * </pre>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
+     * @param baseDir The base directory of the file tree. Evaluated as for {@link #file(Object)}.
+     * @param closure Closure to configure the {@code ConfigurableFileTree} object.
+     * @return the configured file tree. Never returns null.
+     */
+    ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
+    
+    /**
      * <p>Creates a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
      * properties on the new file tree.  Example:</p>
      *
