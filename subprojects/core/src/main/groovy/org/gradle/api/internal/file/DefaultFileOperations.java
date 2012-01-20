@@ -92,6 +92,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public ConfigurableFileTree fileTree(Closure closure) {
+        // This method is deprecated, but the deprecation warning is added on public classes that delegate to this. 
         return configure(closure, new DefaultConfigurableFileTree(Collections.emptyMap(), fileResolver, taskResolver));
     }
 

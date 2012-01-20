@@ -888,10 +888,18 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
      * as for {@link #file(Object)}.</p>
      *
+     * <p><b>Note:</b> to use a closure as the baseDir, you must explicitly cast the closure to {@code Object} to force
+     * the use of this method instead of {@link fileTree(Closure)}. Example:</p>
+     *
+     * <pre>
+     * fileTree((Object){ someDir })
+     * </pre>
+     *
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
+     * @deprecated Use {@link #fileTree(Object,Closure)} instead.
      * @param baseDir The base directory of the file tree. Evaluated as for {@link #file(Object)}.
      * @return the file tree. Never returns null.
      */
