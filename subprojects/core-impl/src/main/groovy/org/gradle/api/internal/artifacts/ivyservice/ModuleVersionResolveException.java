@@ -55,7 +55,7 @@ public class ModuleVersionResolveException extends AbstractMultiCauseException {
     public ModuleVersionResolveException withIncomingPaths(Collection<? extends List<ModuleRevisionId>> paths) {
         ModuleVersionResolveException copy = createCopy(super.getMessage());
         copy.paths.addAll(paths);
-        copy.initCause(getCause());
+        copy.initCauses(getCauses());
         copy.setStackTrace(getStackTrace());
         return copy;
     }

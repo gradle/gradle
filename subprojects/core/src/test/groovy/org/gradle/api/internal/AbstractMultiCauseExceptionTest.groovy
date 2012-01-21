@@ -35,7 +35,28 @@ class AbstractMultiCauseExceptionTest extends Specification {
         failure.cause == null
         failure.causes == []
     }
-    
+
+    def canUseInitCauseToProvideCause() {
+        def cause1 = new RuntimeException()
+        def failure = new TestMultiCauseException('message', [])
+        failure.initCause(cause1)
+
+        expect:
+        failure.cause == cause1
+        failure.causes == [cause1]
+    }
+
+    def canUseInitCausesToProvideMultipleCause() {
+        def cause1 = new RuntimeException()
+        def cause2 = new RuntimeException()
+        def failure = new TestMultiCauseException('message', [])
+        failure.initCauses([cause1, cause2])
+
+        expect:
+        failure.cause == cause1
+        failure.causes == [cause1, cause2]
+    }
+
     def printStackTraceWithMultipleCauses() {
         RuntimeException cause1 = new RuntimeException('cause1')
         RuntimeException cause2 = new RuntimeException('cause2')

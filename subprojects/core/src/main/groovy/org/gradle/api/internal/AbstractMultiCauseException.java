@@ -16,16 +16,15 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.util.GUtil;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class AbstractMultiCauseException extends GradleException implements MultiCauseException {
-    private List<Throwable> causes;
+    private final List<Throwable> causes = new CopyOnWriteArrayList<Throwable>();
     private final ThreadLocal<Boolean> hideCause = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
@@ -35,21 +34,34 @@ public class AbstractMultiCauseException extends GradleException implements Mult
 
     public AbstractMultiCauseException(String message) {
         super(message);
-        this.causes = Collections.emptyList();
     }
 
     public AbstractMultiCauseException(String message, Throwable... causes) {
         super(message);
-        this.causes = Arrays.asList(causes);
+        this.causes.addAll(Arrays.asList(causes));
     }
 
     public AbstractMultiCauseException(String message, Iterable<? extends Throwable> causes) {
         super(message);
-        this.causes = GUtil.addLists(causes);
+        initCauses(causes);
     }
 
     public List<? extends Throwable> getCauses() {
         return causes;
+    }
+
+    @Override
+    public Throwable initCause(Throwable throwable) {
+        causes.clear();
+        causes.add(throwable);
+        return null;
+    }
+
+    public void initCauses(Iterable<? extends Throwable> causes) {
+        this.causes.clear();
+        for (Throwable cause : causes) {
+            this.causes.add(cause);
+        }
     }
 
     @Override
