@@ -141,13 +141,6 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><literal>org.gradle.daemon.idletimeout</literal></term>
-            <listitem><para>Controls how long the daemon process sticks around when idle, before exiting. In milliseconds.
-                The default is set to 3 hours at the moment.
-            </para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
             <term><literal>org.gradle.jvmargs</literal></term>
             <listitem><para>Specifies the jvmargs used for the daemon process.
                 Particularly useful for tweaking memory settings.
@@ -162,16 +155,6 @@
                 Reasonable default is used if the setting is unspecified.</para>
             </listitem>
         </varlistentry>
-        <!-- TODO SF - currently only configurable via the sys property. Is it desired?
-        <varlistentry>
-            <term><literal>org.gradle.daemon.registry.base</literal></term>
-            <listitem><para>It's a option for advanced users, usually you don't want to override the default.
-                It specifies the daemon registry directory where the daemon stores information like:
-                the daemon log file, the daemon registry file that contains local addresses of running daemons, etc.
-            </para>
-            </listitem>
-        </varlistentry>
-        -->
     </section>
 
 </chapter>
