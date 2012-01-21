@@ -42,7 +42,6 @@ class DependencyGraphBuilderTest extends Specification {
     final ResolveData resolveData = new ResolveData(resolveEngine, new ResolveOptions())
     final ModuleConflictResolver conflictResolver = Mock()
     final DependencyToModuleResolver dependencyResolver = Mock()
-    final ArtifactToFileResolver artifactResolver = Mock()
     final VersionMatcher versionMatcher = Mock()
     final DefaultModuleDescriptor root = revision('root')
     final DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, dependencyResolver, conflictResolver)

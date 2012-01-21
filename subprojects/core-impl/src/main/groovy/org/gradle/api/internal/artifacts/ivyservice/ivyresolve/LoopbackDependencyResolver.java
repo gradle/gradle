@@ -18,14 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.text.ParseException;
@@ -78,7 +79,12 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
         return cacheLockingManager.useCache(String.format("Locate %s", artifact), new Factory<ArtifactOrigin>() {
             public ArtifactOrigin create() {
                 try {
-                    File artifactFile = userResolverChain.resolve(artifact);
+                    DependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(artifact.getModuleRevisionId(), false);
+                    ModuleVersionResolver moduleVersionResolver = userResolverChain.create(dependencyDescriptor);
+                    if (moduleVersionResolver == null) {
+                        return null;
+                    }
+                    File artifactFile = moduleVersionResolver.getArtifact(artifact);
                     return new ArtifactOrigin(artifact, false, artifactFile.getAbsolutePath());
                 } catch (ArtifactNotFoundException e) {
                     return null;

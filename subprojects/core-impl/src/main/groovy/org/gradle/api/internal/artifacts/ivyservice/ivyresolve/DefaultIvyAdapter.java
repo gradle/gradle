@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.resolve.ResolveData;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
 
 class DefaultIvyAdapter implements IvyAdapter {
@@ -35,9 +34,4 @@ class DefaultIvyAdapter implements IvyAdapter {
     public DependencyToModuleResolver getDependencyToModuleResolver() {
         return userResolver;
     }
-
-    public ArtifactToFileResolver getArtifactToFileResolver() {
-        return userResolver;
-    }
-
 }

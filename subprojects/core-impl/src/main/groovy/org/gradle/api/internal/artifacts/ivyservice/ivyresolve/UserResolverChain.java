@@ -24,7 +24,6 @@ import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.util.StringUtils;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
@@ -34,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.*;
 
-public class UserResolverChain implements DependencyToModuleResolver, ArtifactToFileResolver {
+public class UserResolverChain implements DependencyToModuleResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
 
     private final Map<ModuleRevisionId, ModuleVersionRepository> artifactRepositories = new HashMap<ModuleRevisionId, ModuleVersionRepository>();
