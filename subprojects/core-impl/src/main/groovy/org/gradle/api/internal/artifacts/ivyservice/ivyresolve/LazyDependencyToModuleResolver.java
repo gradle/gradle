@@ -24,8 +24,6 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 
-import java.io.File;
-
 /**
  * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionIdResolver} implementation which returns lazy resolvers that don't actually retrieve module descriptors until
  * required.
@@ -69,19 +67,18 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             return moduleDescriptor;
         }
 
-        public File getArtifact(Artifact artifact) throws ArtifactResolveException {
-            File file;
+        public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
+            ArtifactResolveResult result;
             try {
-                file = resolver.getArtifact(artifact);
+                result = resolver.resolve(artifact);
             } catch (Throwable t) {
-                ModuleRevisionId id = artifact.getModuleRevisionId();
-                throw new ArtifactResolveException(String.format("Could not resolve artifact group:%s, module:%s, version:%s, name:%s.", id.getOrganisation(), id.getName(), id.getRevision(), artifact.getName()), t);
+                return new BrokenArtifactResolveResult(new ArtifactResolveException(artifact, t));
             }
-            if (file == null) {
+            if (result == null) {
                 ModuleRevisionId id = artifact.getModuleRevisionId();
-                throw new ArtifactNotFoundException(String.format("Artifact group:%s, module:%s, version:%s, name:%s not found.", id.getOrganisation(), id.getName(), id.getRevision(), artifact.getName()));
+                return new BrokenArtifactResolveResult(new ArtifactNotFoundException(String.format("Artifact group:%s, module:%s, version:%s, name:%s not found.", id.getOrganisation(), id.getName(), id.getRevision(), artifact.getName())));
             }
-            return file;
+            return result;
         }
     }
 

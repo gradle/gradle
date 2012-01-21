@@ -199,7 +199,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         e.is(idResolveResult.failure)
     }
 
-    def "wraps failure to resolve artifact"() {
+    def "wraps unexpected failure to resolve artifact"() {
         def dependency = dependency()
         def artifact = artifact()
         def failure = new RuntimeException("broken")
@@ -212,15 +212,22 @@ class LazyDependencyToModuleResolverTest extends Specification {
         _ * resolvedModule.descriptor >> module()
 
         when:
-        resolveResult.getArtifact(artifact)
+        def artifactResult = resolveResult.resolve(artifact)
+
+        then:
+        artifactResult.failure instanceof ArtifactResolveException
+        artifactResult.failure.message == "Could not resolve artifact group:group, module:module, version:1.0, name:artifact."
+        artifactResult.failure.cause == failure
+
+        and:
+        _ * resolvedModule.resolve(artifact) >> { throw failure }
+
+        when:
+        artifactResult.file
 
         then:
         ArtifactResolveException e = thrown()
-        e.message == "Could not resolve artifact group:group, module:module, version:1.0, name:artifact."
-        e.cause == failure
-
-        and:
-        _ * resolvedModule.getArtifact(artifact) >> { throw failure }
+        e.is(artifactResult.failure)
     }
 
     def "wraps artifact not found failure"() {
@@ -235,14 +242,14 @@ class LazyDependencyToModuleResolverTest extends Specification {
         _ * resolvedModule.descriptor >> module()
 
         when:
-        resolveResult.getArtifact(artifact)
+        def artifactResult = resolveResult.resolve(artifact)
 
         then:
-        ArtifactNotFoundException e = thrown()
-        e.message == "Artifact group:group, module:module, version:1.0, name:artifact not found."
+        artifactResult.failure instanceof ArtifactNotFoundException
+        artifactResult.failure.message == "Artifact group:group, module:module, version:1.0, name:artifact not found."
 
         and:
-        _ * resolvedModule.getArtifact(artifact) >> null
+        _ * resolvedModule.resolve(artifact) >> null
     }
 
     def module() {

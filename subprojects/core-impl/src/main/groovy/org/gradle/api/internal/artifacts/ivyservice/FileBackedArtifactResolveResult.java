@@ -15,18 +15,22 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.Nullable;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 
-public interface ModuleVersionResolveResult extends ModuleVersionResolver {
-    /**
-     * Returns the resolve failure, if any.
-     */
-    @Nullable
-    ModuleVersionResolveException getFailure();
+import java.io.File;
 
-    /**
-     * Resolves the given artifact of this module. Any failures are packaged up in the result.
-     */
-    ArtifactResolveResult resolve(Artifact artifact);
+public class FileBackedArtifactResolveResult implements ArtifactResolveResult {
+    private final File file;
+
+    public FileBackedArtifactResolveResult(File file) {
+        this.file = file;
+    }
+
+    public ArtifactResolveException getFailure() {
+        return null;
+    }
+
+    public File getFile() throws ArtifactResolveException {
+        return file;
+    }
 }

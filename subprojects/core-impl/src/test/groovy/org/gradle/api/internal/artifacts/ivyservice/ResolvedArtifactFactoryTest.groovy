@@ -26,14 +26,15 @@ class ResolvedArtifactFactoryTest extends Specification {
     final CacheLockingManager lockingManager = Mock()
     final ResolvedArtifactFactory factory = new ResolvedArtifactFactory(lockingManager)
 
-    def "creates an artifact backed by resolver"() {
+    def "creates an artifact backed by module resolve result"() {
         Artifact artifact = Mock()
-        ModuleVersionResolveResult resolver = Mock()
+        ModuleVersionResolveResult moduleResolveResult = Mock()
+        ArtifactResolveResult artifactResolveResult = Mock()
         ResolvedDependency resolvedDependency = Mock()
         File file = new File("something.jar")
 
         when:
-        ResolvedArtifact resolvedArtifact = factory.create(resolvedDependency, artifact, resolver)
+        ResolvedArtifact resolvedArtifact = factory.create(resolvedDependency, artifact, moduleResolveResult)
 
         then:
         resolvedArtifact instanceof DefaultResolvedArtifact
@@ -45,7 +46,8 @@ class ResolvedArtifactFactoryTest extends Specification {
         1 * lockingManager.useCache(!null, !null) >> {String displayName, Factory<?> action ->
             return action.create()
         }
-        1 * resolver.getArtifact(artifact) >> file
+        1 * moduleResolveResult.resolve(artifact) >> artifactResolveResult
+        _ * artifactResolveResult.file >> file
         0 * _._
     }
 }

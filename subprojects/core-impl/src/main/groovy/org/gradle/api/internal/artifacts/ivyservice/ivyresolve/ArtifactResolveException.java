@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.Contextual;
 
@@ -26,5 +28,14 @@ public class ArtifactResolveException extends GradleException {
 
     public ArtifactResolveException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public ArtifactResolveException(Artifact artifact, Throwable cause) {
+        super(format(artifact), cause);
+    }
+
+    private static String format(Artifact artifact) {
+        ModuleRevisionId id = artifact.getModuleRevisionId();
+        return String.format("Could not resolve artifact group:%s, module:%s, version:%s, name:%s.", id.getOrganisation(), id.getName(), id.getRevision(), artifact.getName());
     }
 }

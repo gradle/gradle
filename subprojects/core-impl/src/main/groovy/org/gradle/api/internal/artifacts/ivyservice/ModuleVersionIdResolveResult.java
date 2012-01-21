@@ -32,7 +32,7 @@ public interface ModuleVersionIdResolveResult {
     ModuleRevisionId getId() throws ModuleVersionResolveException;
 
     /**
-     * Resolves the meta-data for this module version, if required.
+     * Resolves the meta-data for this module version, if required. Failures are packaged up in the result.
      */
     ModuleVersionResolveResult resolve();
 }

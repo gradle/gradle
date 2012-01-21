@@ -20,13 +20,11 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor;
-
-import java.io.File;
 
 /**
  * @author Hans Dockter
@@ -61,8 +59,8 @@ public class ClientModuleResolver implements DependencyToModuleResolver {
                 return moduleDescriptor;
             }
 
-            public File getArtifact(Artifact artifact) throws ArtifactResolveException {
-                return resolveResult.getArtifact(artifact);
+            public ArtifactResolveResult resolve(Artifact artifact) {
+                return resolveResult.resolve(artifact);
             }
         };
     }

@@ -18,9 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
-
-import java.io.File;
 
 public class BrokenModuleVersionResolveResult implements ModuleVersionResolveResult {
     private final ModuleVersionResolveException failure;
@@ -41,7 +38,7 @@ public class BrokenModuleVersionResolveResult implements ModuleVersionResolveRes
         throw failure;
     }
 
-    public File getArtifact(Artifact artifact) throws ArtifactResolveException {
+    public ArtifactResolveResult resolve(Artifact artifact) {
         throw failure;
     }
 }

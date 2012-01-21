@@ -53,9 +53,9 @@ public class ProjectDependencyResolver implements DependencyToModuleResolver {
                 return moduleDescriptor;
             }
 
-            public File getArtifact(Artifact artifact) throws ArtifactResolveException {
+            public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
                 String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
-                return new File(path);
+                return new FileBackedArtifactResolveResult(new File(path));
             }
         };
     }

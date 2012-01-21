@@ -52,7 +52,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
         final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor, errors);
         if (latestResolved != null) {
             final ModuleVersionDescriptor downloadedModule = latestResolved.module;
-            LOGGER.debug("Found module '{}' using resolver '{}'", downloadedModule.getId(), latestResolved.repository);
+            LOGGER.debug("Found module '{}' using repository '{}'", downloadedModule.getId(), latestResolved.repository);
             return latestResolved;
         }
         if (!errors.isEmpty()) {
@@ -127,11 +127,20 @@ public class UserResolverChain implements DependencyToModuleResolver {
             return module.getDescriptor();
         }
 
-        public File getArtifact(Artifact artifact) throws ArtifactResolveException {
-            LOGGER.debug("Attempting to download {} using resolver {}", artifact, repository);
-            return repository.download(artifact);
+        public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
+            LOGGER.debug("Attempting to download {} using repository {}", artifact, repository);
+            File file = null;
+            try {
+                file = repository.download(artifact);
+            } catch (Throwable e) {
+                return new BrokenArtifactResolveResult(new ArtifactResolveException(artifact, e));
+            }
+            if (file == null) {
+                return null;
+            }
+            return new FileBackedArtifactResolveResult(file);
         }
-
+        
         public boolean isGeneratedModuleDescriptor() {
             if (module == null) {
                 throw new IllegalStateException();
