@@ -98,12 +98,28 @@ class LazyDependencyToModuleResolverTest extends Specification {
         0 * target._
     }
     
-    def "wraps failure to resolve module"() {
+    def "collects and wraps failure to resolve module"() {
         def dependency = dependency()
         def failure = new RuntimeException("broken")
 
         when:
-        resolver.resolve(dependency).resolve().descriptor
+        def idFailureResult = resolver.resolve(dependency)
+
+        then:
+        idFailureResult.failure == null;
+
+        and:
+        0 * target._
+
+        when:
+        def resolveResult = idFailureResult.resolve()
+
+        then:
+        1 * target.resolve(dependency) >> { throw failure }
+        0 * target._
+
+        when:
+        resolveResult.descriptor
 
         then:
         ModuleVersionResolveException e = thrown()
@@ -111,40 +127,63 @@ class LazyDependencyToModuleResolverTest extends Specification {
         e.cause == failure
 
         and:
-        1 * target.resolve(dependency) >> { throw failure }
         0 * target._
     }
 
-    def "wraps module not found"() {
+    def "collects and wraps module not found"() {
         def dependency = dependency()
 
         when:
-        resolver.resolve(dependency).resolve().descriptor
+        def resolveResult = resolver.resolve(dependency).resolve()
+
+        then:
+        1 * target.resolve(dependency) >> null
+        0 * target._
+
+        when:
+        resolveResult.descriptor
 
         then:
         ModuleVersionNotFoundException e = thrown()
         e.message == "Could not find group:group, module:module, version:1.0."
 
         and:
-        1 * target.resolve(dependency) >> null
         0 * target._
     }
 
-    def "wraps module not found for missing dynamic version"() {
+    def "collects and wraps module not found for missing dynamic version"() {
         def dependency = dependency()
 
         given:
         matcher.isDynamic(_) >> true
 
         when:
-        resolver.resolve(dependency).id
+        def idResolveResult = resolver.resolve(dependency)
 
         then:
-        ModuleVersionResolveException e = thrown()
-        e.message == "Could not find any version that matches group:group, module:module, version:1.0."
+        idResolveResult.failure instanceof ModuleVersionNotFoundException
+        idResolveResult.failure.message == "Could not find any version that matches group:group, module:module, version:1.0."
 
         and:
         1 * target.resolve(dependency) >> null
+
+        when:
+        idResolveResult.id
+
+        then:
+        ModuleVersionNotFoundException e = thrown()
+        e.is(idResolveResult.failure)
+
+        and:
+        0 * target._
+        
+        when:
+        def resolveResult = idResolveResult.resolve()
+        resolveResult.descriptor
+        
+        then:
+        e = thrown()
+        e.is(idResolveResult.failure)
     }
 
     def "wraps failure to resolve artifact"() {

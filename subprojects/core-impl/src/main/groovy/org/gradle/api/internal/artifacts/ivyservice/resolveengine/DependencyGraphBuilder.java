@@ -847,13 +847,13 @@ public class DependencyGraphBuilder {
                 return null;
             }
 
-            try {
-                idResolveResult = resolver.resolve(descriptor);
-                targetModuleRevision = resolveState.getRevision(idResolveResult.getId());
-            } catch (ModuleVersionResolveException e) {
-                failure = e;
+            idResolveResult = resolver.resolve(descriptor);
+            if (idResolveResult.getFailure() != null) {
+                failure = idResolveResult.getFailure();
                 return null;
             }
+
+            targetModuleRevision = resolveState.getRevision(idResolveResult.getId());
             targetModuleRevision.addResolver(this);
             return targetModuleRevision;
         }

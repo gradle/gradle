@@ -102,7 +102,11 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             return dependencyDescriptor.getDependencyRevisionId();
         }
 
-        public ModuleVersionResolveResult resolve() {
+        public ModuleVersionResolveException getFailure() {
+            return null;
+        }
+
+        public DefaultModuleVersionResolveResult resolve() {
             if (resolveResult == null) {
                 ModuleVersionResolveException failure = null;
                 ModuleVersionResolveResult resolveResult = null;
@@ -162,6 +166,11 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
         public DynamicModuleVersionResolver(DependencyDescriptor dependencyDescriptor) {
             super(dependencyDescriptor);
             resolve();
+        }
+
+        @Override
+        public ModuleVersionResolveException getFailure() {
+            return resolve().failure;
         }
 
         @Override

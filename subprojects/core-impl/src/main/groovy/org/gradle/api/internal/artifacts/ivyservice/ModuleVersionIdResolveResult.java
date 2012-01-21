@@ -16,10 +16,18 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.Nullable;
 
 public interface ModuleVersionIdResolveResult {
     /**
+     * Returns the resolve failure, if any.
+     */
+    @Nullable
+    ModuleVersionResolveException getFailure();
+
+    /**
      * Returns the id of this module version.
+     * @throws ModuleVersionResolveException If resolution was unsuccessful
      */
     ModuleRevisionId getId() throws ModuleVersionResolveException;
 

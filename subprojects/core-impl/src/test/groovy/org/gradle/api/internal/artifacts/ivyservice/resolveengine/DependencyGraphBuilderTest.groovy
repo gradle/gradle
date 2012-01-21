@@ -841,7 +841,7 @@ class DependencyGraphBuilderTest extends Specification {
         def descriptor = dependsOn(args, from, ModuleRevisionId.newInstance("group", to, "1.0"))
         ModuleVersionIdResolveResult result = Mock()
         (0..1) * dependencyResolver.resolve(descriptor) >> result
-        (0..1) * result.id >> { throw new ModuleVersionResolveException("broken") }
+        _ * result.failure >> new ModuleVersionResolveException("broken")
         0 * result._
     }
 
