@@ -152,7 +152,7 @@ public interface Script {
      * as for {@link #file(Object)}.</p>
      * 
      * <p><b>Note:</b> to use a closure as the baseDir, you must explicitly cast the closure to {@code Object} to force
-     * the use of this method instead of {@link fileTree(Closure)}. Example:</p>
+     * the use of this method instead of {@link #fileTree(Closure)}. Example:</p>
      *
      * <pre>
      * fileTree((Object){ someDir })
@@ -217,7 +217,7 @@ public interface Script {
      * queried.</p>
      *
      * @param baseDir The base directory of the file tree. Evaluated as for {@link #file(Object)}.
-     * @param closure Closure to configure the {@code ConfigurableFileTree} object.
+     * @param configureClosure Closure to configure the {@code ConfigurableFileTree} object.
      * @return the configured file tree. Never returns null.
      */
     ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
