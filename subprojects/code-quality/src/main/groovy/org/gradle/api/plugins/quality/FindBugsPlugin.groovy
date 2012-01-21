@@ -99,8 +99,7 @@ class FindBugsPlugin implements Plugin<ProjectInternal> {
                 classes = {
                     // the simple "classes = sourceSet.output" may lead to non-existing resources directory
                     // being passed to FindBugs Ant task, resulting in an error
-                    project.fileTree {
-                        from sourceSet.output.classesDir
+                    project.fileTree(sourceSet.output.classesDir) {
                         builtBy sourceSet.output
                     }
                 } 
