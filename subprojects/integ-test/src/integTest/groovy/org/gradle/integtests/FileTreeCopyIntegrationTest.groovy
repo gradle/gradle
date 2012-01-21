@@ -28,8 +28,7 @@ public class FileTreeCopyIntegrationTest extends AbstractIntegrationTest {
     @Test public void testCopyWithClosure() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {
-                   fileTree {
-                      from 'src'
+                   fileTree('src') {
                       exclude '**/ignore/**'
                    }.copy { into 'dest'}
                 }"""
