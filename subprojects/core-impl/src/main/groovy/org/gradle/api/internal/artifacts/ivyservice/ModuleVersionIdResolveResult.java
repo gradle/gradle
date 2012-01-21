@@ -15,11 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 
-import java.io.File;
+public interface ModuleVersionIdResolveResult {
+    /**
+     * Returns the id of this module version.
+     */
+    ModuleRevisionId getId() throws ModuleVersionResolveException;
 
-public interface ModuleVersionIdResolveResult extends ModuleVersionResolver {
-    File getArtifact(Artifact artifact) throws ArtifactResolveException;
+    /**
+     * Resolves the meta-data for this module version, if required.
+     */
+    ModuleVersionResolveResult resolve();
 }

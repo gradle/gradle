@@ -18,9 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionIdResolveResult
-import spock.lang.Specification
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult
+import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
     final ProjectModuleRegistry registry = Mock()

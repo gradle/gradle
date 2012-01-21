@@ -22,10 +22,9 @@ import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.resolve.ResolveData
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionIdResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult
 
 /**
  * @author Hans Dockter

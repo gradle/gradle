@@ -821,8 +821,8 @@ public class DependencyGraphBuilder {
         final ModuleResolveState module;
         ModuleVersionResolveException failure;
         DefaultModuleRevisionResolveState targetModuleRevision;
-        boolean resolved;
-        ModuleVersionIdResolveResult resolveResult;
+        ModuleVersionIdResolveResult idResolveResult;
+        ModuleVersionResolveResult resolveResult;
 
         private ModuleVersionSelectorResolveState(DependencyDescriptor descriptor, ModuleResolveState module, DependencyToModuleVersionIdResolver resolver, ResolveState resolveState) {
             this.descriptor = descriptor;
@@ -848,8 +848,8 @@ public class DependencyGraphBuilder {
             }
 
             try {
-                resolveResult = resolver.resolve(descriptor);
-                targetModuleRevision = resolveState.getRevision(resolveResult.getId());
+                idResolveResult = resolver.resolve(descriptor);
+                targetModuleRevision = resolveState.getRevision(idResolveResult.getId());
             } catch (ModuleVersionResolveException e) {
                 failure = e;
                 return null;
@@ -859,7 +859,7 @@ public class DependencyGraphBuilder {
         }
 
         public void resolve() {
-            if (resolved) {
+            if (resolveResult != null) {
                 return;
             }
             if (failure != null) {
@@ -867,8 +867,8 @@ public class DependencyGraphBuilder {
             }
 
             try {
+                resolveResult = idResolveResult.resolve();
                 resolveState.getRevision(resolveResult.getDescriptor());
-                resolved = true;
             } catch (ModuleVersionResolveException e) {
                 failure = e;
             }

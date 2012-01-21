@@ -33,12 +33,77 @@ class LazyDependencyToModuleResolverTest extends Specification {
     final ModuleVersionResolveResult resolvedModule = Mock()
     final LazyDependencyToModuleResolver resolver = new LazyDependencyToModuleResolver(target, matcher)
 
+    def "does not resolve module for static version dependency until requested"() {
+        def dependency = dependency()
+
+        when:
+        def idResolveResult = resolver.resolve(dependency)
+
+        then:
+        idResolveResult.id == dependency.dependencyRevisionId
+
+        and:
+        0 * target._
+
+        when:
+        def moduleResolveResult = idResolveResult.resolve()
+
+        then:
+        1 * target.resolve(dependency) >> resolvedModule
+        1 * resolvedModule.descriptor >> module()
+        0 * target._
+    }
+
+    def "resolves module for dynamic version dependency immediately"() {
+        def dependency = dependency()
+        def module = module()
+
+        given:
+        matcher.isDynamic(_) >> true
+
+        when:
+        def idResolveResult = resolver.resolve(dependency)
+
+        then:
+        idResolveResult.id == module.moduleRevisionId
+
+        and:
+        1 * target.resolve(dependency) >> resolvedModule
+        1 * resolvedModule.descriptor >> module
+        0 * target._
+
+        when:
+        def moduleResolveResult = idResolveResult.resolve()
+
+        then:
+        0 * target._
+    }
+
+    def "does not resolve module more than once"() {
+        def dependency = dependency()
+
+        when:
+        def idResolveResult = resolver.resolve(dependency)
+        idResolveResult.resolve()
+
+        then:
+        1 * target.resolve(dependency) >> resolvedModule
+        1 * resolvedModule.descriptor >> module()
+        0 * target._
+
+        when:
+        def moduleResolveResult = idResolveResult.resolve()
+
+        then:
+        0 * target._
+    }
+    
     def "wraps failure to resolve module"() {
         def dependency = dependency()
         def failure = new RuntimeException("broken")
 
         when:
-        resolver.resolve(dependency).descriptor
+        resolver.resolve(dependency).resolve().descriptor
 
         then:
         ModuleVersionResolveException e = thrown()
@@ -47,13 +112,14 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         and:
         1 * target.resolve(dependency) >> { throw failure }
+        0 * target._
     }
 
     def "wraps module not found"() {
         def dependency = dependency()
 
         when:
-        resolver.resolve(dependency).descriptor
+        resolver.resolve(dependency).resolve().descriptor
 
         then:
         ModuleVersionNotFoundException e = thrown()
@@ -61,6 +127,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         and:
         1 * target.resolve(dependency) >> null
+        0 * target._
     }
 
     def "wraps module not found for missing dynamic version"() {
@@ -86,7 +153,14 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def failure = new RuntimeException("broken")
 
         when:
-        resolver.resolve(dependency).getArtifact(artifact)
+        def resolveResult = resolver.resolve(dependency).resolve()
+
+        then:
+        1 * target.resolve(dependency) >> resolvedModule
+        _ * resolvedModule.descriptor >> module()
+
+        when:
+        resolveResult.getArtifact(artifact)
 
         then:
         ArtifactResolveException e = thrown()
@@ -94,8 +168,6 @@ class LazyDependencyToModuleResolverTest extends Specification {
         e.cause == failure
 
         and:
-        1 * target.resolve(dependency) >> resolvedModule
-        _ * resolvedModule.descriptor >> module()
         _ * resolvedModule.getArtifact(artifact) >> { throw failure }
     }
 
@@ -104,15 +176,20 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def artifact = artifact()
 
         when:
-        resolver.resolve(dependency).getArtifact(artifact)
+        def resolveResult = resolver.resolve(dependency).resolve()
+
+        then:
+        1 * target.resolve(dependency) >> resolvedModule
+        _ * resolvedModule.descriptor >> module()
+
+        when:
+        resolveResult.getArtifact(artifact)
 
         then:
         ArtifactNotFoundException e = thrown()
         e.message == "Artifact group:group, module:module, version:1.0, name:artifact not found."
 
         and:
-        1 * target.resolve(dependency) >> resolvedModule
-        _ * resolvedModule.descriptor >> module()
         _ * resolvedModule.getArtifact(artifact) >> null
     }
 

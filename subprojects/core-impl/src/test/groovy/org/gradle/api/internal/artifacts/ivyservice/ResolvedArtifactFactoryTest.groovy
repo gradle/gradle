@@ -28,7 +28,7 @@ class ResolvedArtifactFactoryTest extends Specification {
 
     def "creates an artifact backed by resolver"() {
         Artifact artifact = Mock()
-        ModuleVersionIdResolveResult resolver = Mock()
+        ModuleVersionResolveResult resolver = Mock()
         ResolvedDependency resolvedDependency = Mock()
         File file = new File("something.jar")
 
