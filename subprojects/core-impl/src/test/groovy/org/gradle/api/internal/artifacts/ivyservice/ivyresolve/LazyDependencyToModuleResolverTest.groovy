@@ -16,18 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.ivy.core.module.descriptor.Artifact
-import org.apache.ivy.core.module.descriptor.Configuration
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.version.VersionMatcher
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import org.gradle.api.internal.artifacts.ivyservice.*
 
 class LazyDependencyToModuleResolverTest extends Specification {
     final DependencyToModuleResolver target = Mock()
