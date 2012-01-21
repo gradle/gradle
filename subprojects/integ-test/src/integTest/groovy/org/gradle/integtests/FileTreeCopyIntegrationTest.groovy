@@ -49,9 +49,7 @@ public class FileTreeCopyIntegrationTest extends AbstractIntegrationTest {
     @Test public void testCopyWithClosureBaseDir() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {
-                   fileTree({ 'src' }) {
-                      exclude '**/ignore/**'
-                   }.copy { into 'dest'}
+                   fileTree((Object){ 'src' }).exclude('**/ignore/**').copy { into 'dest'}
                 }"""
         )
         usingBuildFile(buildFile).withTasks("cpy").run()
