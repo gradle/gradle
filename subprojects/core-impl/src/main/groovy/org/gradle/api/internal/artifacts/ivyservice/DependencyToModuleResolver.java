@@ -22,7 +22,9 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
  */
 public interface DependencyToModuleResolver {
     /**
-     * Resolves the given dependency to a module version id.
+     * Resolves the given dependency to a module version id. Failures are packaged up in the returned result.
+     *
+     * @return null if not found.
      */
     ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor);
 }

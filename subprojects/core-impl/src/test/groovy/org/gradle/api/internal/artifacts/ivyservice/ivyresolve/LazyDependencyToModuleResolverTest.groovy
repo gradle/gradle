@@ -98,9 +98,9 @@ class LazyDependencyToModuleResolverTest extends Specification {
         0 * target._
     }
     
-    def "collects and wraps failure to resolve module"() {
+    def "collects failure to resolve module"() {
         def dependency = dependency()
-        def failure = new RuntimeException("broken")
+        def failure = new ModuleVersionResolveException("broken")
 
         when:
         def idFailureResult = resolver.resolve(dependency)
@@ -115,7 +115,11 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def resolveResult = idFailureResult.resolve()
 
         then:
-        1 * target.resolve(dependency) >> { throw failure }
+        resolveResult.failure.is(failure)
+
+        and:
+        1 * target.resolve(dependency) >> resolvedModule
+        _ * resolvedModule.failure >> failure
         0 * target._
 
         when:
@@ -123,8 +127,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         then:
         ModuleVersionResolveException e = thrown()
-        e.message == "Could not resolve group:group, module:module, version:1.0."
-        e.cause == failure
+        e.is(resolveResult.failure)
 
         and:
         0 * target._
@@ -137,18 +140,26 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def resolveResult = resolver.resolve(dependency).resolve()
 
         then:
-        1 * target.resolve(dependency) >> null
-        0 * target._
-
-        when:
-        resolveResult.descriptor
-
-        then:
-        ModuleVersionNotFoundException e = thrown()
-        e.message == "Could not find group:group, module:module, version:1.0."
+        resolveResult.failure instanceof ModuleVersionNotFoundException
+        resolveResult.failure.message == "Could not find group:group, module:module, version:1.0."
 
         and:
-        0 * target._
+        1 * target.resolve(dependency) >> null
+    }
+
+    def "collects and wraps unexpected module resolve failure"() {
+        def dependency = dependency()
+        def failure = new RuntimeException("broken")
+
+        when:
+        def resolveResult = resolver.resolve(dependency).resolve()
+
+        then:
+        resolveResult.failure instanceof ModuleVersionResolveException
+        resolveResult.failure.message == "Could not resolve group:group, module:module, version:1.0."
+
+        and:
+        1 * target.resolve(dependency) >> { throw failure }
     }
 
     def "collects and wraps module not found for missing dynamic version"() {

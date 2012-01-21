@@ -39,16 +39,20 @@ public class ClientModuleResolver implements DependencyToModuleResolver {
     }
 
     public ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
-        final ModuleVersionResolveResult moduleVersionResolver = resolver.resolve(dependencyDescriptor);
+        final ModuleVersionResolveResult resolveResult = resolver.resolve(dependencyDescriptor);
 
-        if (!(dependencyDescriptor instanceof ClientModuleDependencyDescriptor)) {
-            return moduleVersionResolver;
+        if (resolveResult.getFailure() != null || !(dependencyDescriptor instanceof ClientModuleDependencyDescriptor)) {
+            return resolveResult;
         }
 
         ClientModuleDependencyDescriptor clientModuleDependencyDescriptor = (ClientModuleDependencyDescriptor) dependencyDescriptor;
         final ModuleDescriptor moduleDescriptor = clientModuleDependencyDescriptor.getTargetModule();
 
         return new ModuleVersionResolveResult() {
+            public ModuleVersionResolveException getFailure() {
+                return resolveResult.getFailure();
+            }
+
             public ModuleRevisionId getId() throws ModuleVersionResolveException {
                 return moduleDescriptor.getModuleRevisionId();
             }
@@ -58,7 +62,7 @@ public class ClientModuleResolver implements DependencyToModuleResolver {
             }
 
             public File getArtifact(Artifact artifact) throws ArtifactResolveException {
-                return moduleVersionResolver.getArtifact(artifact);
+                return resolveResult.getArtifact(artifact);
             }
         };
     }

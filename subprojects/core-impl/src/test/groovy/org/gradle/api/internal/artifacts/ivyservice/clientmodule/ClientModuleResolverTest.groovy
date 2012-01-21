@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor
 import spock.lang.Specification
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 
 /**
  * @author Hans Dockter
@@ -41,26 +42,44 @@ class ClientModuleResolverTest extends Specification {
         ClientModuleDependencyDescriptor dependencyDescriptor = Mock()
 
         when:
-        def moduleResolver = resolver.resolve(dependencyDescriptor)
+        def resolveResult = resolver.resolve(dependencyDescriptor)
 
         then:
         1 * target.resolve(dependencyDescriptor) >> resolvedModule
         _ * dependencyDescriptor.targetModule >> module
 
         and:
-        moduleResolver.descriptor == module
+        resolveResult.descriptor == module
+        resolveResult.failure == null
+        resolveResult.id == module.moduleRevisionId
     }
 
     def "does not replace meta-data for unknown module version"() {
         DependencyDescriptor dependencyDescriptor = Mock()
         
         when:
-        def moduleResolver = resolver.resolve(dependencyDescriptor)
+        def resolveResult = resolver.resolve(dependencyDescriptor)
 
         then:
         1 * target.resolve(dependencyDescriptor) >> resolvedModule
 
         and:
-        moduleResolver == resolvedModule
+        resolveResult == resolvedModule
+    }
+
+    def "does not replace meta-data for broken module version"() {
+        ClientModuleDependencyDescriptor dependencyDescriptor = Mock()
+
+        given:
+        resolvedModule.failure >> new ModuleVersionResolveException("broken")
+
+        when:
+        def resolveResult = resolver.resolve(dependencyDescriptor)
+
+        then:
+        1 * target.resolve(dependencyDescriptor) >> resolvedModule
+
+        and:
+        resolveResult == resolvedModule
     }
 }

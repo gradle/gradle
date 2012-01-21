@@ -16,17 +16,32 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.Nullable;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 
 import java.io.File;
 
-public interface ModuleVersionResolveResult extends ModuleVersionResolver {
-    /**
-     * Returns the resolve failure, if any.
-     */
-    @Nullable
-    ModuleVersionResolveException getFailure();
+public class BrokenModuleVersionResolveResult implements ModuleVersionResolveResult {
+    private final ModuleVersionResolveException failure;
 
-    File getArtifact(Artifact artifact) throws ArtifactResolveException;
+    public BrokenModuleVersionResolveResult(ModuleVersionResolveException failure) {
+        this.failure = failure;
+    }
+
+    public ModuleVersionResolveException getFailure() {
+        return failure;
+    }
+
+    public ModuleRevisionId getId() throws ModuleVersionResolveException {
+        throw failure;
+    }
+
+    public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
+        throw failure;
+    }
+
+    public File getArtifact(Artifact artifact) throws ArtifactResolveException {
+        throw failure;
+    }
 }

@@ -41,6 +41,10 @@ public class ProjectDependencyResolver implements DependencyToModuleResolver {
         }
 
         return new ModuleVersionResolveResult() {
+            public ModuleVersionResolveException getFailure() {
+                return null;
+            }
+
             public ModuleRevisionId getId() throws ModuleVersionResolveException {
                 return moduleDescriptor.getModuleRevisionId();
             }

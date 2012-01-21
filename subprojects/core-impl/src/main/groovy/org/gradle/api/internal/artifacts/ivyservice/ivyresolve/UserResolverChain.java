@@ -23,7 +23,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
-import org.apache.ivy.util.StringUtils;
+import org.gradle.api.internal.artifacts.ivyservice.BrokenModuleVersionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult;
@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -50,30 +51,21 @@ public class UserResolverChain implements DependencyToModuleResolver {
     }
 
     public ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
-        final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor);
+        List<Throwable> errors = new ArrayList<Throwable>();
+        final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor, errors);
         if (latestResolved != null) {
             final ModuleVersionDescriptor downloadedModule = latestResolved.module;
             LOGGER.debug("Found module '{}' using resolver '{}'", downloadedModule.getId(), latestResolved.repository);
-            return new ModuleVersionResolveResult() {
-                public ModuleRevisionId getId() throws ModuleVersionResolveException {
-                    return downloadedModule.getId();
-                }
-
-                public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
-                    return downloadedModule.getDescriptor();
-                }
-
-                public File getArtifact(Artifact artifact) throws ArtifactResolveException {
-                    LOGGER.debug("Attempting to download {} using resolver {}", artifact, latestResolved.repository);
-                    return latestResolved.repository.download(artifact);
-                }
-            };
+            return latestResolved;
         }
+        if (!errors.isEmpty()) {
+            return new BrokenModuleVersionResolveResult(new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), errors));
+        }
+        
         return null;
     }
 
-    private ModuleResolution findLatestModule(DependencyDescriptor dependencyDescriptor) {
-        List<RuntimeException> errors = new ArrayList<RuntimeException>();
+    private ModuleResolution findLatestModule(DependencyDescriptor dependencyDescriptor, Collection<Throwable> failures) {
         boolean isStaticVersion = !settings.getVersionMatcher().isDynamic(dependencyDescriptor.getDependencyRevisionId());
         
         ModuleResolution best = null;
@@ -87,14 +79,11 @@ public class UserResolverChain implements DependencyToModuleResolver {
                     }
                     best = chooseBest(best, moduleResolution);
                 }
-            } catch (RuntimeException e) {
-                errors.add(e);
+            } catch (Throwable e) {
+                failures.add(e);
             }
         }
 
-        if (best == null && !errors.isEmpty()) {
-            throwResolutionFailure(errors);
-        }
         return best;
     }
 
@@ -120,26 +109,30 @@ public class UserResolverChain implements DependencyToModuleResolver {
         return comparison < 0 ? two : one;
     }
 
-    private void throwResolutionFailure(List<RuntimeException> errors) {
-        if (errors.size() == 1) {
-            throw errors.get(0);
-        } else {
-            StringBuilder err = new StringBuilder();
-            for (Exception ex : errors) {
-                err.append("\t").append(StringUtils.getErrorMessage(ex)).append("\n");
-            }
-            err.setLength(err.length() - 1);
-            throw new RuntimeException("several problems occurred while resolving :\n" + err);
-        }
-    }
-
-    private class ModuleResolution implements ArtifactInfo {
+    private class ModuleResolution implements ArtifactInfo, ModuleVersionResolveResult {
         public final ModuleVersionRepository repository;
         public final ModuleVersionDescriptor module;
 
         public ModuleResolution(ModuleVersionRepository repository, ModuleVersionDescriptor module) {
             this.repository = repository;
             this.module = module;
+        }
+
+        public ModuleVersionResolveException getFailure() {
+            return null;
+        }
+
+        public ModuleRevisionId getId() throws ModuleVersionResolveException {
+            return module.getId();
+        }
+
+        public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
+            return module.getDescriptor();
+        }
+
+        public File getArtifact(Artifact artifact) throws ArtifactResolveException {
+            LOGGER.debug("Attempting to download {} using resolver {}", artifact, repository);
+            return repository.download(artifact);
         }
 
         public boolean isGeneratedModuleDescriptor() {
