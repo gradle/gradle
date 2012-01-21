@@ -23,10 +23,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
-import org.gradle.api.internal.artifacts.ivyservice.BrokenModuleVersionResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +59,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
             return new BrokenModuleVersionResolveResult(new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), errors));
         }
         
-        return null;
+        return new BrokenModuleVersionResolveResult(new ModuleVersionNotFoundException(dependencyDescriptor.getDependencyRevisionId()));
     }
 
     private ModuleResolution findLatestModule(DependencyDescriptor dependencyDescriptor, Collection<Throwable> failures) {

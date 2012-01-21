@@ -25,6 +25,7 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
 import org.gradle.internal.Factory;
@@ -82,11 +83,10 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
                 try {
                     DependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(artifact.getModuleRevisionId(), false);
                     ModuleVersionResolveResult moduleVersionResolver = userResolverChain.resolve(dependencyDescriptor);
-                    if (moduleVersionResolver == null) {
-                        return null;
-                    }
                     File artifactFile = moduleVersionResolver.getArtifact(artifact);
                     return new ArtifactOrigin(artifact, false, artifactFile.getAbsolutePath());
+                } catch (ModuleVersionNotFoundException e) {
+                    return null;
                 } catch (ArtifactNotFoundException e) {
                     return null;
                 }

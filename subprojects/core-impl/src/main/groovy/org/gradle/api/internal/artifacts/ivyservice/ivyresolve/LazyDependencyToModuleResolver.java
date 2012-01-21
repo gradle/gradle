@@ -112,9 +112,8 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
                     } catch (Throwable t) {
                         throw new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), t);
                     }
-                    if (resolveResult == null) {
-                        ModuleRevisionId id = dependencyDescriptor.getDependencyRevisionId();
-                        throw notFound(id);
+                    if (resolveResult.getFailure() instanceof ModuleVersionNotFoundException) {
+                        throw notFound(dependencyDescriptor.getDependencyRevisionId());
                     }
                     if (resolveResult.getFailure() != null) {
                         throw resolveResult.getFailure();
@@ -156,7 +155,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
         }
 
         protected ModuleVersionNotFoundException notFound(ModuleRevisionId id) {
-            return new ModuleVersionNotFoundException(String.format("Could not find group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()));
+            return new ModuleVersionNotFoundException(id);
         }
 
         protected void onUnexpectedModuleRevisionId(ModuleDescriptor descriptor) {

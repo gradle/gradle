@@ -144,7 +144,8 @@ class LazyDependencyToModuleResolverTest extends Specification {
         resolveResult.failure.message == "Could not find group:group, module:module, version:1.0."
 
         and:
-        1 * target.resolve(dependency) >> null
+        1 * target.resolve(dependency) >> resolvedModule
+        _ * resolvedModule.failure >> new ModuleVersionNotFoundException("broken")
     }
 
     def "collects and wraps unexpected module resolve failure"() {
@@ -176,7 +177,8 @@ class LazyDependencyToModuleResolverTest extends Specification {
         idResolveResult.failure.message == "Could not find any version that matches group:group, module:module, version:1.0."
 
         and:
-        1 * target.resolve(dependency) >> null
+        1 * target.resolve(dependency) >> resolvedModule
+        _ * resolvedModule.failure >> new ModuleVersionNotFoundException("missing")
 
         when:
         idResolveResult.id
