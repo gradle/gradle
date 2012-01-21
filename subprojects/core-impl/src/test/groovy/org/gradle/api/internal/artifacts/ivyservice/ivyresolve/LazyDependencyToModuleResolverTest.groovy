@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult
 import spock.lang.Specification
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 
 class LazyDependencyToModuleResolverTest extends Specification {
     final DependencyToModuleResolver target = Mock()
@@ -64,13 +65,15 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         when:
         def idResolveResult = resolver.resolve(dependency)
+        def id = idResolveResult.id
 
         then:
-        idResolveResult.id == module.moduleRevisionId
+        id == module.moduleRevisionId
 
         and:
         1 * target.resolve(dependency) >> resolvedModule
-        1 * resolvedModule.descriptor >> module
+        _ * resolvedModule.id >> module.moduleRevisionId
+        _ * resolvedModule.descriptor >> module
         0 * target._
 
         when:
@@ -239,7 +242,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         then:
         artifactResult.failure instanceof ArtifactResolveException
-        artifactResult.failure.message == "Could not resolve artifact group:group, module:module, version:1.0, name:artifact."
+        artifactResult.failure.message == "Could not download artifact 'group:module:1.0@zip'"
         artifactResult.failure.cause == failure
 
         and:
@@ -254,11 +257,8 @@ class LazyDependencyToModuleResolverTest extends Specification {
     }
 
     def module() {
-        ModuleDescriptor descriptor = Mock()
         ModuleRevisionId id = ModuleRevisionId.newInstance("group", "module", "1.0")
-        _ * descriptor.moduleRevisionId >> id
-        _ * descriptor.configurations >> ([] as Configuration[])
-        return descriptor
+        return new DefaultModuleDescriptor(id, "release", new Date())
     }
 
     def dependency() {
@@ -273,6 +273,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         ModuleRevisionId id = ModuleRevisionId.newInstance("group", "module", "1.0")
         _ * artifact.moduleRevisionId >> id
         _ * artifact.name >> 'artifact'
+        _ * artifact.ext >> 'zip'
         return artifact
     }
 }

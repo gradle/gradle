@@ -375,7 +375,7 @@ task retrieve(type: Sync) {
 
         then:
         fails "retrieve"
-        failure.assertThatCause(containsString("Download failed for artifact 'group:projectA:1.2@jar': Could not GET"))
+        failure.assertThatCause(containsString("Could not download artifact 'group:projectA:1.2@jar': Could not GET"))
 
         when:
         server.resetExpectations()

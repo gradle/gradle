@@ -48,7 +48,7 @@ public class ArtifactResolveException extends GradleException {
     }
 
     protected static void formatTo(Artifact artifact, StringBuilder builder) {
-        ModuleRevisionId moduleRevisionId = artifact.getId().getModuleRevisionId();
+        ModuleRevisionId moduleRevisionId = artifact.getModuleRevisionId();
         builder.append(moduleRevisionId.getOrganisation())
                 .append(":").append(moduleRevisionId.getName())
                 .append(":").append(moduleRevisionId.getRevision());
