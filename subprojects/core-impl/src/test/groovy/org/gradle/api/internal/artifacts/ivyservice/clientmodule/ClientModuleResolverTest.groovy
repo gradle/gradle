@@ -22,7 +22,7 @@ import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.resolve.ResolveData
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionIdResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor
 import spock.lang.Specification
 
@@ -34,17 +34,17 @@ class ClientModuleResolverTest extends Specification {
     final ResolveData resolveData = Mock()
     final ModuleRevisionId moduleId = new ModuleRevisionId(new ModuleId("org", "name"), "1.0")
     final DependencyToModuleResolver target = Mock()
-    final ModuleVersionResolver resolvedModule = Mock()
+    final ModuleVersionIdResolveResult resolvedModule = Mock()
     final ClientModuleResolver resolver = new ClientModuleResolver(target)
 
     def "replaces meta-data for a client module dependency"() {
         ClientModuleDependencyDescriptor dependencyDescriptor = Mock()
 
         when:
-        def moduleResolver = resolver.create(dependencyDescriptor)
+        def moduleResolver = resolver.resolve(dependencyDescriptor)
 
         then:
-        1 * target.create(dependencyDescriptor) >> resolvedModule
+        1 * target.resolve(dependencyDescriptor) >> resolvedModule
         _ * dependencyDescriptor.targetModule >> module
 
         and:
@@ -55,10 +55,10 @@ class ClientModuleResolverTest extends Specification {
         DependencyDescriptor dependencyDescriptor = Mock()
         
         when:
-        def moduleResolver = resolver.create(dependencyDescriptor)
+        def moduleResolver = resolver.resolve(dependencyDescriptor)
 
         then:
-        1 * target.create(dependencyDescriptor) >> resolvedModule
+        1 * target.resolve(dependencyDescriptor) >> resolvedModule
 
         and:
         moduleResolver == resolvedModule

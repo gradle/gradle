@@ -1,21 +1,36 @@
+/*
+ * Copyright 2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import spock.lang.Specification
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
-import org.apache.ivy.plugins.version.VersionMatcher
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.Artifact
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.descriptor.Configuration
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.apache.ivy.plugins.version.VersionMatcher
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionIdResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
+import spock.lang.Specification
 
 class LazyDependencyToModuleResolverTest extends Specification {
     final DependencyToModuleResolver target = Mock()
     final VersionMatcher matcher = Mock()
-    final ModuleVersionResolver resolvedModule = Mock()
+    final ModuleVersionIdResolveResult resolvedModule = Mock()
     final LazyDependencyToModuleResolver resolver = new LazyDependencyToModuleResolver(target, matcher)
 
     def "wraps failure to resolve module"() {
@@ -23,7 +38,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def failure = new RuntimeException("broken")
 
         when:
-        resolver.create(dependency).descriptor
+        resolver.resolve(dependency).descriptor
 
         then:
         ModuleVersionResolveException e = thrown()
@@ -31,21 +46,21 @@ class LazyDependencyToModuleResolverTest extends Specification {
         e.cause == failure
 
         and:
-        1 * target.create(dependency) >> { throw failure }
+        1 * target.resolve(dependency) >> { throw failure }
     }
 
     def "wraps module not found"() {
         def dependency = dependency()
 
         when:
-        resolver.create(dependency).descriptor
+        resolver.resolve(dependency).descriptor
 
         then:
         ModuleVersionNotFoundException e = thrown()
         e.message == "Could not find group:group, module:module, version:1.0."
 
         and:
-        1 * target.create(dependency) >> null
+        1 * target.resolve(dependency) >> null
     }
 
     def "wraps module not found for missing dynamic version"() {
@@ -55,14 +70,14 @@ class LazyDependencyToModuleResolverTest extends Specification {
         matcher.isDynamic(_) >> true
 
         when:
-        resolver.create(dependency).id
+        resolver.resolve(dependency).id
 
         then:
         ModuleVersionResolveException e = thrown()
         e.message == "Could not find any version that matches group:group, module:module, version:1.0."
 
         and:
-        1 * target.create(dependency) >> null
+        1 * target.resolve(dependency) >> null
     }
 
     def "wraps failure to resolve artifact"() {
@@ -71,7 +86,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def failure = new RuntimeException("broken")
 
         when:
-        resolver.create(dependency).getArtifact(artifact)
+        resolver.resolve(dependency).getArtifact(artifact)
 
         then:
         ArtifactResolveException e = thrown()
@@ -79,7 +94,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         e.cause == failure
 
         and:
-        1 * target.create(dependency) >> resolvedModule
+        1 * target.resolve(dependency) >> resolvedModule
         _ * resolvedModule.descriptor >> module()
         _ * resolvedModule.getArtifact(artifact) >> { throw failure }
     }
@@ -89,14 +104,14 @@ class LazyDependencyToModuleResolverTest extends Specification {
         def artifact = artifact()
 
         when:
-        resolver.create(dependency).getArtifact(artifact)
+        resolver.resolve(dependency).getArtifact(artifact)
 
         then:
         ArtifactNotFoundException e = thrown()
         e.message == "Artifact group:group, module:module, version:1.0, name:artifact not found."
 
         and:
-        1 * target.create(dependency) >> resolvedModule
+        1 * target.resolve(dependency) >> resolvedModule
         _ * resolvedModule.descriptor >> module()
         _ * resolvedModule.getArtifact(artifact) >> null
     }

@@ -15,12 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-
-import java.io.File;
 
 public class DefaultModuleVersionDescriptor implements ModuleVersionDescriptor {
     private final ModuleDescriptor moduleDescriptor;
@@ -37,10 +34,6 @@ public class DefaultModuleVersionDescriptor implements ModuleVersionDescriptor {
 
     public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
         return moduleDescriptor;
-    }
-
-    public File getArtifact(Artifact artifact) throws ArtifactResolveException {
-        throw new UnsupportedOperationException();
     }
 
     public boolean isChanging() {

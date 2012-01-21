@@ -814,9 +814,9 @@ class DependencyGraphBuilderTest extends Specification {
 
     def doesNotResolve(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
         def descriptor = dependsOn(args, from, to.moduleRevisionId)
-        ModuleVersionResolver resolver = Mock()
-        (0..1) * dependencyResolver.create(descriptor) >> resolver
-        (0..1) * resolver.id >> to.moduleRevisionId
+        ModuleVersionIdResolveResult result = Mock()
+        (0..1) * dependencyResolver.resolve(descriptor) >> result
+        (0..1) * result.id >> to.moduleRevisionId
     }
 
     def traversesMissing(Map<String, ?> args = [:], DefaultModuleDescriptor from, DefaultModuleDescriptor to) {
@@ -833,10 +833,10 @@ class DependencyGraphBuilderTest extends Specification {
 
     def brokenSelector(Map<String, ?> args = [:], DefaultModuleDescriptor from, String to) {
         def descriptor = dependsOn(args, from, ModuleRevisionId.newInstance("group", to, "1.0"))
-        ModuleVersionResolver resolver = Mock()
-        (0..1) * dependencyResolver.create(descriptor) >> resolver
-        (0..1) * resolver.id >> { throw new ModuleVersionResolveException("broken") }
-        0 * resolver.descriptor
+        ModuleVersionIdResolveResult result = Mock()
+        (0..1) * dependencyResolver.resolve(descriptor) >> result
+        (0..1) * result.id >> { throw new ModuleVersionResolveException("broken") }
+        0 * result.descriptor
     }
 
     def dependsOn(Map<String, ?> args = [:], DefaultModuleDescriptor from, ModuleRevisionId to) {
@@ -858,10 +858,10 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def selectorResolvesTo(DependencyDescriptor descriptor, ModuleRevisionId to) {
-        ModuleVersionResolver resolver = Mock()
-        1 * dependencyResolver.create(descriptor) >> resolver
-        1 * resolver.id >> to
-        return resolver
+        ModuleVersionIdResolveResult result = Mock()
+        1 * dependencyResolver.resolve(descriptor) >> result
+        1 * result.id >> to
+        return result
     }
 
     def ids(ModuleDescriptor... descriptors) {

@@ -21,8 +21,8 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionIdResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor;
 
@@ -38,8 +38,8 @@ public class ClientModuleResolver implements DependencyToModuleResolver {
         this.resolver = resolver;
     }
 
-    public ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor) {
-        final ModuleVersionResolver moduleVersionResolver = resolver.create(dependencyDescriptor);
+    public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
+        final ModuleVersionIdResolveResult moduleVersionResolver = resolver.resolve(dependencyDescriptor);
 
         if (!(dependencyDescriptor instanceof ClientModuleDependencyDescriptor)) {
             return moduleVersionResolver;
@@ -48,7 +48,7 @@ public class ClientModuleResolver implements DependencyToModuleResolver {
         ClientModuleDependencyDescriptor clientModuleDependencyDescriptor = (ClientModuleDependencyDescriptor) dependencyDescriptor;
         final ModuleDescriptor moduleDescriptor = clientModuleDependencyDescriptor.getTargetModule();
 
-        return new ModuleVersionResolver() {
+        return new ModuleVersionIdResolveResult() {
             public ModuleRevisionId getId() throws ModuleVersionResolveException {
                 return moduleDescriptor.getModuleRevisionId();
             }

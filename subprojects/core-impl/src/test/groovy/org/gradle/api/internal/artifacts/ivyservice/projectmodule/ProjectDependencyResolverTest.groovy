@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
-import spock.lang.Specification
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionIdResolveResult
+import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
     final ProjectModuleRegistry registry = Mock()
@@ -31,7 +31,7 @@ class ProjectDependencyResolverTest extends Specification {
         ModuleDescriptor moduleDescriptor = Mock()
 
         when:
-        def moduleResolver = resolver.create(dependencyDescriptor)
+        def moduleResolver = resolver.resolve(dependencyDescriptor)
 
         then:
         moduleResolver.descriptor == moduleDescriptor
@@ -41,16 +41,16 @@ class ProjectDependencyResolverTest extends Specification {
     }
 
     def "delegates to backing resolver for non-project dependency"() {
-        ModuleVersionResolver resolvedModule = Mock()
+        ModuleVersionIdResolveResult resolvedModule = Mock()
 
         when:
-        def moduleResolver = resolver.create(dependencyDescriptor)
+        def moduleResolver = resolver.resolve(dependencyDescriptor)
 
         then:
         moduleResolver == resolvedModule
 
         and:
         1 * registry.findProject(dependencyDescriptor) >> null
-        1 * target.create(dependencyDescriptor) >> resolvedModule
+        1 * target.resolve(dependencyDescriptor) >> resolvedModule
     }
 }

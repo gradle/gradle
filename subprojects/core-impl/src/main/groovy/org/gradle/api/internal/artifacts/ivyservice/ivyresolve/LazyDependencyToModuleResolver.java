@@ -23,9 +23,9 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.version.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionIdResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
 
 import java.io.File;
 
@@ -42,18 +42,18 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleResolve
         this.versionMatcher = versionMatcher;
     }
 
-    public ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor) {
+    public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
         if (versionMatcher.isDynamic(dependencyDescriptor.getDependencyRevisionId())) {
             return new DynamicModuleVersionResolver(dependencyDescriptor);
         }
         return new DefaultModuleVersionResolver(dependencyDescriptor);
     }
 
-    private class DefaultModuleVersionResolver implements ModuleVersionResolver {
+    private class DefaultModuleVersionResolver implements ModuleVersionIdResolveResult {
         private final DependencyDescriptor dependencyDescriptor;
         private ModuleDescriptor moduleDescriptor;
         ModuleVersionResolveException failure;
-        ModuleVersionResolver resolver;
+        ModuleVersionIdResolveResult resolver;
 
         public DefaultModuleVersionResolver(DependencyDescriptor dependencyDescriptor) {
             this.dependencyDescriptor = dependencyDescriptor;
@@ -92,7 +92,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleResolve
             if (moduleDescriptor == null) {
                 try {
                     try {
-                        resolver = dependencyResolver.create(dependencyDescriptor);
+                        resolver = dependencyResolver.resolve(dependencyDescriptor);
                     } catch (Throwable t) {
                         ModuleRevisionId id = dependencyDescriptor.getDependencyRevisionId();
                         throw new ModuleVersionResolveException(String.format("Could not resolve group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()), t);

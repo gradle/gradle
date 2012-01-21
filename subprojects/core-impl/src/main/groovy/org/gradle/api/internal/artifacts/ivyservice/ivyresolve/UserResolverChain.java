@@ -25,8 +25,8 @@ import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionIdResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,12 +49,12 @@ public class UserResolverChain implements DependencyToModuleResolver {
         moduleVersionRepositories.add(repository);
     }
 
-    public ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor) {
+    public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
         final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor);
         if (latestResolved != null) {
             final ModuleVersionDescriptor downloadedModule = latestResolved.module;
             LOGGER.debug("Found module '{}' using resolver '{}'", downloadedModule.getId(), latestResolved.repository);
-            return new ModuleVersionResolver() {
+            return new ModuleVersionIdResolveResult() {
                 public ModuleRevisionId getId() throws ModuleVersionResolveException {
                     return downloadedModule.getId();
                 }
