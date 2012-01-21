@@ -29,8 +29,14 @@ import java.io.File;
 public interface ModuleVersionRepository {
     String getId();
 
+    /**
+     * @return null if not found.
+     */
     ModuleVersionDescriptor getDependency(DependencyDescriptor dd);
 
+    /**
+     * @return null if not found.
+     */
     File download(Artifact artifact);
 
     // TODO - should be internal to the implementation of this (is only used to communicate DependencyResolverAdapter -> CachingModuleVersionRepository)

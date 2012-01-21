@@ -16,9 +16,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.Contextual;
 
+@Contextual
 public class ArtifactResolveException extends GradleException {
     public ArtifactResolveException(String message) {
         super(message);
+    }
+
+    public ArtifactResolveException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

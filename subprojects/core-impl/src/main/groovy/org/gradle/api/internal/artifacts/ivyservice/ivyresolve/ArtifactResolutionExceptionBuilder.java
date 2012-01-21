@@ -19,41 +19,10 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.util.GUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ArtifactResolutionExceptionBuilder {
-    private final Artifact artifact;
-    private final List<ArtifactResolveException> downloadFailures = new ArrayList<ArtifactResolveException>();
-
-    public ArtifactResolutionExceptionBuilder(Artifact artifact) {
-        this.artifact = artifact;
-    }
-
     public static ArtifactResolveException downloadFailure(Artifact artifact, String failureMessage) {
         String message = String.format("Download failed for artifact '%s': %s", render(artifact), failureMessage);
         return new ArtifactResolveException(message);
-    }
-
-    public void addDownloadFailure(ArtifactResolveException downloadFailure) {
-        downloadFailures.add(downloadFailure);
-    }
-
-    public ArtifactResolveException buildException() {
-        switch (downloadFailures.size()) {
-            case 0:
-                return notFound(artifact);
-            case 1:
-                return downloadFailures.get(0);
-            default:
-                // TODO:DAZ Handle multiple failures
-                return downloadFailures.get(0);
-        }
-    }
-
-    private ArtifactNotFoundException notFound(Artifact artifact) {
-        String message = String.format("Artifact '%s' not found", render(artifact));
-        return new ArtifactNotFoundException(message);
     }
 
     private static String render(Artifact artifact) {

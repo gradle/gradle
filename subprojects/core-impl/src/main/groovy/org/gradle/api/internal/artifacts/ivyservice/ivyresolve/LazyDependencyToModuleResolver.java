@@ -70,7 +70,18 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleResolve
 
         public File getArtifact(Artifact artifact) throws ArtifactResolveException {
             maybeResolve();
-            return resolver.getArtifact(artifact);
+            File file;
+            try {
+                file = resolver.getArtifact(artifact);
+            } catch (Throwable t) {
+                ModuleRevisionId id = artifact.getModuleRevisionId();
+                throw new ArtifactResolveException(String.format("Could not resolve artifact group:%s, module:%s, version:%s, name:%s.", id.getOrganisation(), id.getName(), id.getRevision(), artifact.getName()), t);
+            }
+            if (file == null) {
+                ModuleRevisionId id = artifact.getModuleRevisionId();
+                throw new ArtifactNotFoundException(String.format("Artifact group:%s, module:%s, version:%s, name:%s not found.", id.getOrganisation(), id.getName(), id.getRevision(), artifact.getName()));
+            }
+            return file;
         }
 
         private void maybeResolve() {

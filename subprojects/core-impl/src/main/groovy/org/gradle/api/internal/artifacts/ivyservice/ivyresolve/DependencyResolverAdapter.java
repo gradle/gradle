@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
@@ -81,15 +80,6 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
         } catch (ParseException e) {
             throw UncheckedException.asUncheckedException(e);
         }
-    }
-
-    private Artifact getOriginalMetadataArtifact(ResolvedModuleRevision revision) {
-        ArtifactOrigin artifactOrigin = revision.getReport().getArtifactOrigin();
-        return artifactOrigin == null ? null : artifactOrigin.getArtifact();
-    }
-
-    private File getOriginalMetadataFile(ResolvedModuleRevision revision) {
-        return revision.getReport().getOriginalLocalFile();
     }
 
     private boolean isChanging(ResolvedModuleRevision resolvedModuleRevision) {

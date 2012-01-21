@@ -31,12 +31,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class UserResolverChain implements DependencyToModuleResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
 
-    private final Map<ModuleRevisionId, ModuleVersionRepository> artifactRepositories = new HashMap<ModuleRevisionId, ModuleVersionRepository>();
     private final List<ModuleVersionRepository> moduleVersionRepositories = new ArrayList<ModuleVersionRepository>();
     private ResolverSettings settings;
 
@@ -49,11 +50,10 @@ public class UserResolverChain implements DependencyToModuleResolver {
     }
 
     public ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor) {
-        ModuleResolution latestResolved = findLatestModule(dependencyDescriptor);
+        final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor);
         if (latestResolved != null) {
             final ModuleVersionDescriptor downloadedModule = latestResolved.module;
             LOGGER.debug("Found module '{}' using resolver '{}'", downloadedModule.getId(), latestResolved.repository);
-            rememberResolverToUseForArtifactDownload(latestResolved.repository, downloadedModule);
             return new ModuleVersionResolver() {
                 public ModuleRevisionId getId() throws ModuleVersionResolveException {
                     return downloadedModule.getId();
@@ -64,7 +64,8 @@ public class UserResolverChain implements DependencyToModuleResolver {
                 }
 
                 public File getArtifact(Artifact artifact) throws ArtifactResolveException {
-                    return resolve(artifact);
+                    LOGGER.debug("Attempting to download {} using resolver {}", artifact, latestResolved.repository);
+                    return latestResolved.repository.download(artifact);
                 }
             };
         }
@@ -119,10 +120,6 @@ public class UserResolverChain implements DependencyToModuleResolver {
         return comparison < 0 ? two : one;
     }
 
-    private void rememberResolverToUseForArtifactDownload(ModuleVersionRepository repository, ModuleVersionDescriptor cachedModule) {
-        artifactRepositories.put(cachedModule.getId(), repository);
-    }
-
     private void throwResolutionFailure(List<RuntimeException> errors) {
         if (errors.size() == 1) {
             throw errors.get(0);
@@ -134,34 +131,6 @@ public class UserResolverChain implements DependencyToModuleResolver {
             err.setLength(err.length() - 1);
             throw new RuntimeException("several problems occurred while resolving :\n" + err);
         }
-    }
-
-    private List<ModuleVersionRepository> getArtifactResolversForModule(ModuleRevisionId moduleRevisionId) {
-        ModuleVersionRepository moduleDescriptorRepository = artifactRepositories.get(moduleRevisionId);
-        if (moduleDescriptorRepository != null && moduleDescriptorRepository != this) {
-            return Collections.singletonList(moduleDescriptorRepository);
-        }
-        return moduleVersionRepositories;
-    }
-
-    public File resolve(Artifact artifact) {
-        ArtifactResolutionExceptionBuilder exceptionBuilder = new ArtifactResolutionExceptionBuilder(artifact);
-
-        List<ModuleVersionRepository> artifactRepositories = getArtifactResolversForModule(artifact.getModuleRevisionId());
-        LOGGER.debug("Attempting to download {} using resolvers {}", artifact, artifactRepositories);
-        for (ModuleVersionRepository resolver : artifactRepositories) {
-            try {
-                File artifactDownload = resolver.download(artifact);
-                if (artifactDownload != null) {
-                    return artifactDownload;
-                }
-            } catch (ArtifactResolveException e) {
-                LOGGER.warn(e.getMessage());
-                exceptionBuilder.addDownloadFailure(e);
-            }
-        }
-
-        throw exceptionBuilder.buildException();
     }
 
     private class ModuleResolution implements ArtifactInfo {

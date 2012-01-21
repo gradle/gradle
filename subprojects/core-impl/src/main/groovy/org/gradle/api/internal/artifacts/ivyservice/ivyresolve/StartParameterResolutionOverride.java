@@ -72,37 +72,32 @@ public class StartParameterResolutionOverride {
     }
 
     public ModuleVersionRepository overrideModuleVersionRepository(ModuleVersionRepository original) {
-        if (startParameter.isOffline()) {
-            return new OfflineModuleVersionRepository(original);
+        if (startParameter.isOffline() && !original.isLocal()) {
+            return new OfflineModuleVersionRepository(original.getId());
         }
         return original;
     }
 
     private static class OfflineModuleVersionRepository implements ModuleVersionRepository {
-        private final ModuleVersionRepository delegate;
-        public OfflineModuleVersionRepository(ModuleVersionRepository delegate) {
-            this.delegate = delegate;
+        private final String id;
+
+        public OfflineModuleVersionRepository(String id) {
+            this.id = id;
         }
 
         public String getId() {
-            return delegate.getId();
+            return id;
         }
 
         public boolean isLocal() {
-            return delegate.isLocal();
+            return false;
         }
 
         public ModuleVersionDescriptor getDependency(DependencyDescriptor dd) {
-            if (isLocal()) {
-                return delegate.getDependency(dd);
-            }
             throw new ModuleVersionResolveException("No cached version available for offline mode");
         }
 
         public File download(Artifact artifact) {
-            if (isLocal()) {
-                return delegate.download(artifact);
-            }
             throw ArtifactResolutionExceptionBuilder.downloadFailure(artifact, "No cached version available for offline mode");
         }
     }
