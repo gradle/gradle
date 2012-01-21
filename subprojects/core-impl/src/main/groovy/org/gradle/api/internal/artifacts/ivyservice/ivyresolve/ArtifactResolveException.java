@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.Contextual;
+import org.gradle.util.GUtil;
 
 @Contextual
 public class ArtifactResolveException extends GradleException {
@@ -26,16 +27,35 @@ public class ArtifactResolveException extends GradleException {
         super(message);
     }
 
-    public ArtifactResolveException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
     public ArtifactResolveException(Artifact artifact, Throwable cause) {
-        super(format(artifact), cause);
+        super(format(artifact, ""), cause);
     }
 
-    private static String format(Artifact artifact) {
-        ModuleRevisionId id = artifact.getModuleRevisionId();
-        return String.format("Could not resolve artifact group:%s, module:%s, version:%s, name:%s.", id.getOrganisation(), id.getName(), id.getRevision(), artifact.getName());
+    public ArtifactResolveException(Artifact artifact, String message) {
+        super(format(artifact, message));
+    }
+
+    private static String format(Artifact artifact, String message) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Could not download artifact '");
+        formatTo(artifact, builder);
+        builder.append("'");
+        if (GUtil.isTrue(message)) {
+            builder.append(": ");
+            builder.append(message);
+        }
+        return builder.toString();
+    }
+
+    protected static void formatTo(Artifact artifact, StringBuilder builder) {
+        ModuleRevisionId moduleRevisionId = artifact.getId().getModuleRevisionId();
+        builder.append(moduleRevisionId.getOrganisation())
+                .append(":").append(moduleRevisionId.getName())
+                .append(":").append(moduleRevisionId.getRevision());
+        String classifier = artifact.getExtraAttribute("classifier");
+        if (GUtil.isTrue(classifier)) {
+            builder.append(":").append(classifier);
+        }
+        builder.append("@").append(artifact.getExt());
     }
 }

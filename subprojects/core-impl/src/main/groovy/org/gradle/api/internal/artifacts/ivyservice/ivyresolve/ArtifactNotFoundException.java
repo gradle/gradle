@@ -15,8 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
+
 public class ArtifactNotFoundException extends ArtifactResolveException {
-    public ArtifactNotFoundException(String message) {
-        super(message);
+    public ArtifactNotFoundException(Artifact artifact) {
+        super(format(artifact));
+    }
+
+    private static String format(Artifact artifact) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Artifact '");
+        formatTo(artifact, builder);
+        builder.append("' not found.");
+        return builder.toString();
     }
 }

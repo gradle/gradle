@@ -98,7 +98,7 @@ public class StartParameterResolutionOverride {
         }
 
         public File download(Artifact artifact) {
-            throw ArtifactResolutionExceptionBuilder.downloadFailure(artifact, "No cached version available for offline mode");
+            throw new ArtifactResolveException(artifact, "No cached version available for offline mode");
         }
     }
 }

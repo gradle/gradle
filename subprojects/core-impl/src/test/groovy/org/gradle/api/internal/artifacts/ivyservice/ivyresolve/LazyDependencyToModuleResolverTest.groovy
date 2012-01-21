@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundExcepti
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult
 import spock.lang.Specification
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult
 
 class LazyDependencyToModuleResolverTest extends Specification {
     final DependencyToModuleResolver target = Mock()
@@ -97,7 +98,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         then:
         0 * target._
     }
-    
+
     def "collects failure to resolve module"() {
         def dependency = dependency()
         def failure = new ModuleVersionResolveException("broken")
@@ -189,16 +190,38 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         and:
         0 * target._
-        
+
         when:
         def resolveResult = idResolveResult.resolve()
         resolveResult.descriptor
-        
+
         then:
         e = thrown()
         e.is(idResolveResult.failure)
     }
 
+    def "can resolve artifact for a module version"() {
+        def dependency = dependency()
+        def artifact = artifact()
+        ArtifactResolveResult resolvedArtifact = Mock()
+
+        when:
+        def resolveResult = resolver.resolve(dependency).resolve()
+
+        then:
+        1 * target.resolve(dependency) >> resolvedModule
+        _ * resolvedModule.descriptor >> module()
+
+        when:
+        def artifactResult = resolveResult.resolve(artifact)
+
+        then:
+        artifactResult == resolvedArtifact
+
+        and:
+        _ * resolvedModule.resolve(artifact) >> resolvedArtifact
+    }
+    
     def "wraps unexpected failure to resolve artifact"() {
         def dependency = dependency()
         def artifact = artifact()
@@ -228,28 +251,6 @@ class LazyDependencyToModuleResolverTest extends Specification {
         then:
         ArtifactResolveException e = thrown()
         e.is(artifactResult.failure)
-    }
-
-    def "wraps artifact not found failure"() {
-        def dependency = dependency()
-        def artifact = artifact()
-
-        when:
-        def resolveResult = resolver.resolve(dependency).resolve()
-
-        then:
-        1 * target.resolve(dependency) >> resolvedModule
-        _ * resolvedModule.descriptor >> module()
-
-        when:
-        def artifactResult = resolveResult.resolve(artifact)
-
-        then:
-        artifactResult.failure instanceof ArtifactNotFoundException
-        artifactResult.failure.message == "Artifact group:group, module:module, version:1.0, name:artifact not found."
-
-        and:
-        _ * resolvedModule.resolve(artifact) >> null
     }
 
     def module() {

@@ -337,7 +337,7 @@ public class DependencyGraphBuilder {
             Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
             for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
                 MDArtifact artifact = new MDArtifact(childConfiguration.descriptor, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
-                artifacts.add(resolvedArtifactFactory.create(childConfiguration.getResult(), artifact, selector.resolveResult));
+                artifacts.add(resolvedArtifactFactory.create(childConfiguration.getResult(), artifact, selector.resolve()));
             }
             return artifacts;
         }
@@ -649,7 +649,7 @@ public class DependencyGraphBuilder {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
                 for (String config : heirarchy) {
                     for (Artifact artifact : descriptor.getArtifacts(config)) {
-                        artifacts.add(resolvedArtifactFactory.create(getResult(), artifact, moduleRevision.resolver.resolveResult));
+                        artifacts.add(resolvedArtifactFactory.create(getResult(), artifact, moduleRevision.resolver.resolve()));
                     }
                 }
             }
@@ -858,12 +858,12 @@ public class DependencyGraphBuilder {
             return targetModuleRevision;
         }
 
-        public void resolve() {
+        public ModuleVersionResolveResult resolve() {
             if (resolveResult != null) {
-                return;
+                return resolveResult;
             }
             if (failure != null) {
-                return;
+                return null;
             }
 
             try {
@@ -872,6 +872,7 @@ public class DependencyGraphBuilder {
             } catch (ModuleVersionResolveException e) {
                 failure = e;
             }
+            return resolveResult;
         }
 
         public ModuleVersionSelectorResolveState restart(DefaultModuleRevisionResolveState moduleRevision) {
