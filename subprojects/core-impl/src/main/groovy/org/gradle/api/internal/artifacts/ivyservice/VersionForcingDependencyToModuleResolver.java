@@ -23,11 +23,11 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import java.util.HashMap;
 import java.util.Map;
 
-public class VersionForcingDependencyToModuleResolver implements DependencyToModuleResolver {
-    private final DependencyToModuleResolver resolver;
+public class VersionForcingDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
+    private final DependencyToModuleVersionIdResolver resolver;
     private final Map<ModuleId, ModuleRevisionId> forcedModules = new HashMap<ModuleId, ModuleRevisionId>();
 
-    public VersionForcingDependencyToModuleResolver(DependencyToModuleResolver resolver, Iterable<? extends ModuleVersionSelector> forcedModules) {
+    public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Iterable<? extends ModuleVersionSelector> forcedModules) {
         this.resolver = resolver;
         for (ModuleVersionSelector forcedModule : forcedModules) {
             ModuleId moduleId = new ModuleId(forcedModule.getGroup(), forcedModule.getName());

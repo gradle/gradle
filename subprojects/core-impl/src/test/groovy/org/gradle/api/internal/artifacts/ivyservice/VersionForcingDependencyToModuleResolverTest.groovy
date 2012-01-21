@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import spock.lang.Specification
 
 class VersionForcingDependencyToModuleResolverTest extends Specification {
-    final DependencyToModuleResolver target = Mock()
+    final DependencyToModuleVersionIdResolver target = Mock()
     final ModuleRevisionId forced = new ModuleRevisionId(new ModuleId('group', 'module'), 'forced')
     final VersionForcingDependencyToModuleResolver resolver = new VersionForcingDependencyToModuleResolver(target, [new DefaultModuleVersionSelector('group', 'module', 'forced')])
 

@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionIdResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor
 import spock.lang.Specification
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult
 
 /**
  * @author Hans Dockter
@@ -34,7 +35,7 @@ class ClientModuleResolverTest extends Specification {
     final ResolveData resolveData = Mock()
     final ModuleRevisionId moduleId = new ModuleRevisionId(new ModuleId("org", "name"), "1.0")
     final DependencyToModuleResolver target = Mock()
-    final ModuleVersionIdResolveResult resolvedModule = Mock()
+    final ModuleVersionResolveResult resolvedModule = Mock()
     final ClientModuleResolver resolver = new ClientModuleResolver(target)
 
     def "replaces meta-data for a client module dependency"() {

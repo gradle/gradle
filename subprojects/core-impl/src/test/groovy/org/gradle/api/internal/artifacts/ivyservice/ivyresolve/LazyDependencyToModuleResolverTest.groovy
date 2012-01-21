@@ -22,15 +22,15 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.version.VersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionIdResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult
 import spock.lang.Specification
 
 class LazyDependencyToModuleResolverTest extends Specification {
     final DependencyToModuleResolver target = Mock()
     final VersionMatcher matcher = Mock()
-    final ModuleVersionIdResolveResult resolvedModule = Mock()
+    final ModuleVersionResolveResult resolvedModule = Mock()
     final LazyDependencyToModuleResolver resolver = new LazyDependencyToModuleResolver(target, matcher)
 
     def "wraps failure to resolve module"() {

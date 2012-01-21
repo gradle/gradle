@@ -36,10 +36,10 @@ public class DependencyGraphBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final ResolvedArtifactFactory resolvedArtifactFactory;
-    private final DependencyToModuleResolver dependencyResolver;
+    private final DependencyToModuleVersionIdResolver dependencyResolver;
     private final ForcedModuleConflictResolver conflictResolver;
 
-    public DependencyGraphBuilder(ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory, DependencyToModuleResolver dependencyResolver, ModuleConflictResolver conflictResolver) {
+    public DependencyGraphBuilder(ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory, DependencyToModuleVersionIdResolver dependencyResolver, ModuleConflictResolver conflictResolver) {
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.resolvedArtifactFactory = resolvedArtifactFactory;
         this.dependencyResolver = dependencyResolver;
@@ -383,12 +383,12 @@ public class DependencyGraphBuilder {
         private final Map<ResolvedConfigurationIdentifier, ConfigurationNode> nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, ConfigurationNode>();
         private final Map<ModuleRevisionId, ModuleVersionSelectorResolveState> selectors = new LinkedHashMap<ModuleRevisionId, ModuleVersionSelectorResolveState>();
         private final ConfigurationNode root;
-        private final DependencyToModuleResolver resolver;
+        private final DependencyToModuleVersionIdResolver resolver;
         private final ResolveData resolveData;
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
 
-        public ResolveState(ModuleDescriptor rootModule, String rootConfigurationName, DependencyToModuleResolver resolver, ResolveData resolveData) {
+        public ResolveState(ModuleDescriptor rootModule, String rootConfigurationName, DependencyToModuleVersionIdResolver resolver, ResolveData resolveData) {
             this.resolver = resolver;
             this.resolveData = resolveData;
             root = getConfigurationNode(rootModule, rootConfigurationName);
@@ -816,7 +816,7 @@ public class DependencyGraphBuilder {
 
     private static class ModuleVersionSelectorResolveState {
         final DependencyDescriptor descriptor;
-        final DependencyToModuleResolver resolver;
+        final DependencyToModuleVersionIdResolver resolver;
         final ResolveState resolveState;
         final ModuleResolveState module;
         ModuleVersionResolveException failure;
@@ -824,7 +824,7 @@ public class DependencyGraphBuilder {
         boolean resolved;
         ModuleVersionIdResolveResult resolveResult;
 
-        private ModuleVersionSelectorResolveState(DependencyDescriptor descriptor, ModuleResolveState module, DependencyToModuleResolver resolver, ResolveState resolveState) {
+        private ModuleVersionSelectorResolveState(DependencyDescriptor descriptor, ModuleResolveState module, DependencyToModuleVersionIdResolver resolver, ResolveState resolveState) {
             this.descriptor = descriptor;
             this.module = module;
             this.resolver = resolver;

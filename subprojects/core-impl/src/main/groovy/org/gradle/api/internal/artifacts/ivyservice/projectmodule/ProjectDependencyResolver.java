@@ -33,14 +33,14 @@ public class ProjectDependencyResolver implements DependencyToModuleResolver {
         this.resolver = resolver;
     }
 
-    public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
+    public ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
         final ModuleDescriptor moduleDescriptor = projectModuleRegistry.findProject(dependencyDescriptor);
 
         if (moduleDescriptor == null) {
             return resolver.resolve(dependencyDescriptor);
         }
 
-        return new ModuleVersionIdResolveResult() {
+        return new ModuleVersionResolveResult() {
             public ModuleRevisionId getId() throws ModuleVersionResolveException {
                 return moduleDescriptor.getModuleRevisionId();
             }

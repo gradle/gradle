@@ -22,18 +22,15 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.version.VersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionIdResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 
 import java.io.File;
 
 /**
- * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver} implementation which returns lazy resolvers that don't
+ * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionIdResolver} implementation which returns lazy resolvers that don't
  * actually retrieve module descriptors until required.
  */
-public class LazyDependencyToModuleResolver implements DependencyToModuleResolver {
+public class LazyDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
     private final DependencyToModuleResolver dependencyResolver;
     private final VersionMatcher versionMatcher;
 
@@ -53,7 +50,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleResolve
         private final DependencyDescriptor dependencyDescriptor;
         private ModuleDescriptor moduleDescriptor;
         ModuleVersionResolveException failure;
-        ModuleVersionIdResolveResult resolver;
+        ModuleVersionResolveResult resolver;
 
         public DefaultModuleVersionResolver(DependencyDescriptor dependencyDescriptor) {
             this.dependencyDescriptor = dependencyDescriptor;
