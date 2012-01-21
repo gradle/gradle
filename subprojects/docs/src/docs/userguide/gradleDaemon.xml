@@ -98,7 +98,7 @@
         <title>Usage and troubleshooting</title>
         <para>For command line usage take a look dedicated section in <xref linkend="gradle_command_line"/>.
             If you are tired of using the same command line options again and again, take a look at
-            <xref linkend="sec:daemon_properties"/>.
+            <xref linkend="sec:gradle_configuration_properties"/>.
             The section contains information on how to configure certain behavior of the daemon
             (including turning on the daemon by default) in a more 'persistent' way.
         </para>
@@ -122,39 +122,10 @@
 
     <section id="sec:daemon_properties">
         <title>Daemon properties</title>
-        <para>The following properties can be used to configure the daemon.
-            The configuration is applied in following order (in case an option is configured in multiple locations the last one wins):
-            <itemizedlist>
-                <listitem>from <filename>gradle.properties</filename> located in <literal>gradle user home</literal>.</listitem>
-                <listitem>from <filename>gradle.properties</filename> located in project build dir.</listitem>
-                <listitem>from system properties, e.g. when <literal>-Dsome.property</literal> is used in the command line.</listitem>
-            </itemizedlist>
+        <para>Some daemon settings can be configured in <filename>gradle.properties</filename>.
+            For example, jvm args - memory settings or the java home.
+            Please find more information in <xref linkend="sec:gradle_properties_and_system_properties"/>
         </para>
-
-        <para><xref linkend="sec:gradle_properties_and_system_properties"/> contains more information about
-            <filename>gradle properties</filename>.</para>
-
-        <varlistentry>
-            <term><literal>org.gradle.daemon</literal></term>
-            <listitem><para>When set to <literal>true</literal> the gradle daemon is to run the build.
-                This is our favorite property because we nearly always run gradle jobs with the daemon.</para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
-            <term><literal>org.gradle.jvmargs</literal></term>
-            <listitem><para>Specifies the jvmargs used for the daemon process.
-                Particularly useful for tweaking memory settings.
-                At the moment the default settings are pretty generous with regards to memory.</para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
-            <term><literal>org.gradle.java.home</literal></term>
-            <listitem><para>Specifies the java home for the daemon process.
-                Can be either <literal>jdk</literal> or <literal>jre</literal> location,
-                however, depending on what does your build do, <literal>jdk</literal> is safer.
-                Reasonable default is used if the setting is unspecified.</para>
-            </listitem>
-        </varlistentry>
     </section>
 
 </chapter>

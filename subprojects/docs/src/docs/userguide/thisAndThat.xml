@@ -80,9 +80,6 @@
             system properties. The only difference is the pattern, which is
             <literal>org.gradle.project.<replaceable>propertyName</replaceable></literal>.
         </para>
-        <para>There are some Gradle configuration options that can be specified in <filename>gradle.properties</filename>
-            file. See the <xref linkend="sec:daemon_properties"/> for more details.
-        </para>
         <para>With the <filename>gradle.properties</filename> files you can also set system properties. If a property
             in such a file has the prefix <literal>systemProp.</literal> the property and its value are added to the 
             system properties, without the prefix.
@@ -105,6 +102,51 @@
             </para>
         </section>
     </section>
+
+    <section id="sec:gradle_configuration_properties">
+        <title>Configuring gradle via gradle.properties</title>
+        <para>The idea is that certain settings like jvm memory settings, java home, deamon on/off
+            are best useful if they can versioned with the project in your VCS so that
+            the entire team can work with consistent environment.
+            You can place those settings in the <filename>gradle.properties</filename>.
+            The configuration is applied in following order
+            (in case an option is configured in multiple locations the last one wins):
+            <itemizedlist>
+                <listitem>from <filename>gradle.properties</filename> located in <literal>gradle user home</literal>.</listitem>
+                <listitem>from <filename>gradle.properties</filename> located in project build dir.</listitem>
+                <listitem>from system properties, e.g. when <literal>-Dsome.property</literal> is used in the command line.</listitem>
+            </itemizedlist>
+        </para>
+        <para>
+            The following properties can be used to configure gradle:
+            <varlistentry>
+                <term><literal>org.gradle.daemon</literal></term>
+                <listitem><para>When set to <literal>true</literal> the gradle daemon is to run the build.
+                    This is our favorite property because we nearly always run gradle jobs with the daemon.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>org.gradle.jvmargs</literal></term>
+                <listitem><para>Specifies the jvmargs used for the daemon process.
+                    In future this setting will be honored by regular gradle builds.
+                    Currently, only daemon uses it.
+                    The setting is particularly useful for tweaking memory settings.
+                    At the moment the default settings are pretty generous with regards to memory.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>org.gradle.java.home</literal></term>
+                <listitem><para>Specifies the java home for the daemon process.
+                    In future this setting will be honored by regular gradle builds.
+                    Currently, only daemon uses it.
+                    The value can be set to either <literal>jdk</literal> or <literal>jre</literal> location,
+                    however, depending on what does your build do, <literal>jdk</literal> is safer.
+                    Reasonable default is used if the setting is unspecified.</para>
+                </listitem>
+            </varlistentry>
+        </para>
+    </section>
+
     <section id='sec:accessing_the_web_via_a_proxy'>
         <title>Accessing the web via a proxy</title>
         <para>Setting a proxy for web access (for example for downloading dependencies) is easy. Gradle does not need to
