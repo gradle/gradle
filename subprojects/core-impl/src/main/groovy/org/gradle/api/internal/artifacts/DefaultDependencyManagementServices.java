@@ -35,8 +35,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.DefaultArtifactResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.clientmodule.DefaultClientModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
@@ -117,8 +115,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         DependencyDescriptorFactoryDelegate dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
                 new ClientModuleDependencyDescriptorFactory(
                         get(ExcludeRuleConverter.class),
-                        clientModuleDescriptorFactory,
-                        get(ClientModuleRegistry.class)),
+                        clientModuleDescriptorFactory
+                ),
                 new ProjectDependencyDescriptorFactory(
                         get(ExcludeRuleConverter.class)),
                 get(ExternalModuleDependencyDescriptorFactory.class));
@@ -206,10 +204,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     protected IvyFactory createIvyFactory() {
         return new DefaultIvyFactory();
-    }
-
-    protected ClientModuleRegistry createClientModuleRegistry() {
-        return new DefaultClientModuleRegistry();
     }
 
     protected LocalMavenCacheLocator createLocalMavenCacheLocator() {
@@ -322,8 +316,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(PublishModuleDescriptorConverter.class),
                     resolvedArtifactFactory,
                     new DefaultProjectModuleRegistry(
-                            get(PublishModuleDescriptorConverter.class)),
-                    get(ClientModuleRegistry.class));
+                            get(PublishModuleDescriptorConverter.class))
+            );
             return new ErrorHandlingArtifactDependencyResolver(
                         new ShortcircuitEmptyConfigsArtifactDependencyResolver(
                                 new SelfResolvingDependencyResolver(

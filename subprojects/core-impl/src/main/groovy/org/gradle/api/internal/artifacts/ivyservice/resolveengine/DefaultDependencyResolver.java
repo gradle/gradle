@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LazyDependencyToModuleResolver;
@@ -36,15 +35,13 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final ModuleDescriptorConverter moduleDescriptorConverter;
     private final ResolvedArtifactFactory resolvedArtifactFactory;
     private final ResolveIvyFactory ivyFactory;
-    private final ClientModuleRegistry clientModuleRegistry;
     private final ProjectModuleRegistry projectModuleRegistry;
 
     public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory,
-                                     ProjectModuleRegistry projectModuleRegistry, ClientModuleRegistry clientModuleRegistry) {
+                                     ProjectModuleRegistry projectModuleRegistry) {
         this.ivyFactory = ivyFactory;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.resolvedArtifactFactory = resolvedArtifactFactory;
-        this.clientModuleRegistry = clientModuleRegistry;
         this.projectModuleRegistry = projectModuleRegistry;
     }
 
@@ -53,9 +50,10 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
         IvyAdapter ivyAdapter = ivyFactory.create(configuration);
 
-        DependencyToModuleResolver dependencyResolver = constructDependencyResolver(ivyAdapter.getDependencyToModuleResolver());
-        ArtifactToFileResolver artifactResolver = constructArtifactResolver(ivyAdapter.getArtifactToFileResolver());
-        dependencyResolver = new LazyDependencyToModuleResolver(dependencyResolver, artifactResolver, ivyAdapter.getResolveData().getSettings().getVersionMatcher());
+        DependencyToModuleResolver dependencyResolver = ivyAdapter.getDependencyToModuleResolver();
+        dependencyResolver = new ClientModuleResolver(dependencyResolver);
+        dependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver);
+        dependencyResolver = new LazyDependencyToModuleResolver(dependencyResolver, ivyAdapter.getResolveData().getSettings().getVersionMatcher());
         dependencyResolver = new VersionForcingDependencyToModuleResolver(dependencyResolver, configuration.getResolutionStrategy().getForcedModules());
 
         ModuleConflictResolver conflictResolver;
@@ -68,16 +66,5 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, dependencyResolver, conflictResolver);
         DefaultLenientConfiguration result = builder.resolve(configuration, ivyAdapter.getResolveData());
         return new DefaultResolvedConfiguration(result);
-    }
-
-    private DependencyToModuleResolver constructDependencyResolver(DependencyToModuleResolver ivyBackedResolver) {
-        DependencyToModuleResolver clientModuleResolver = new ClientModuleResolver(clientModuleRegistry);
-        DependencyToModuleResolver projectModuleResolver = new ProjectDependencyResolver(projectModuleRegistry);
-        return new DependencyToModuleResolverChain(clientModuleResolver, projectModuleResolver, ivyBackedResolver);
-    }
-
-    private ArtifactToFileResolver constructArtifactResolver(ArtifactToFileResolver ivyBackedArtifactResolver) {
-        ArtifactToFileResolver projectArtifactResolver = new ProjectDependencyResolver(projectModuleRegistry);
-        return new ArtifactToFileResolverChain(projectArtifactResolver, ivyBackedArtifactResolver);
     }
 }

@@ -18,31 +18,44 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException;
 
 import java.io.File;
 
-public class ProjectDependencyResolver implements DependencyToModuleResolver, ArtifactToFileResolver {
-
+public class ProjectDependencyResolver implements DependencyToModuleResolver {
     private final ProjectModuleRegistry projectModuleRegistry;
+    private final DependencyToModuleResolver resolver;
 
-    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry) {
+    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleResolver resolver) {
         this.projectModuleRegistry = projectModuleRegistry;
+        this.resolver = resolver;
     }
 
     public ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor) {
-        ModuleDescriptor moduleDescriptor = projectModuleRegistry.findProject(dependencyDescriptor);
-        if (moduleDescriptor == null) {
-            return null;
-        }
-        return new FixedModuleVersionResolver(dependencyDescriptor, moduleDescriptor);
-    }
+        final ModuleDescriptor moduleDescriptor = projectModuleRegistry.findProject(dependencyDescriptor);
 
-    public File resolve(Artifact artifact) {
-        String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
-        if (path == null) {
-            return null;
-        } 
-        return new File(path);
+        if (moduleDescriptor == null) {
+            return resolver.create(dependencyDescriptor);
+        }
+
+        return new ModuleVersionResolver() {
+            public ModuleRevisionId getId() throws ModuleVersionResolveException {
+                return moduleDescriptor.getModuleRevisionId();
+            }
+
+            public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
+                return moduleDescriptor;
+            }
+
+            public File getArtifact(Artifact artifact) throws ArtifactResolveException {
+                String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
+                return new File(path);
+            }
+        };
     }
 }

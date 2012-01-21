@@ -21,7 +21,9 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.resolve.ResolveData
-import org.gradle.api.artifacts.ClientModule
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor
 import spock.lang.Specification
 
 /**
@@ -30,33 +32,35 @@ import spock.lang.Specification
 class ClientModuleResolverTest extends Specification {
     final ModuleDescriptor module = Mock()
     final ResolveData resolveData = Mock()
-    final ClientModuleRegistry clientModuleRegistry = Mock()
     final ModuleRevisionId moduleId = new ModuleRevisionId(new ModuleId("org", "name"), "1.0")
-    final ClientModuleResolver resolver = new ClientModuleResolver(clientModuleRegistry)
+    final DependencyToModuleResolver target = Mock()
+    final ModuleVersionResolver resolvedModule = Mock()
+    final ClientModuleResolver resolver = new ClientModuleResolver(target)
 
-    def "resolves dependency descriptor that matches module in supplied registry"() {
-        DependencyDescriptor dependencyDescriptor = dependency("module")
+    def "replaces meta-data for a client module dependency"() {
+        ClientModuleDependencyDescriptor dependencyDescriptor = Mock()
+
         when:
-
-        clientModuleRegistry.getClientModule("module") >> module
         def moduleResolver = resolver.create(dependencyDescriptor)
 
         then:
-        moduleResolver.id == moduleId
+        1 * target.create(dependencyDescriptor) >> resolvedModule
+        _ * dependencyDescriptor.targetModule >> module
+
+        and:
         moduleResolver.descriptor == module
     }
 
-    def "returns null for unknown module"() {
-        DependencyDescriptor dependencyDescriptor = dependency(null)
+    def "does not replace meta-data for unknown module version"() {
+        DependencyDescriptor dependencyDescriptor = Mock()
         
-        expect:
-        resolver.create(dependencyDescriptor) == null
-    }
-    
-    def dependency(String module) {
-        DependencyDescriptor descriptor = Mock()
-        _ * descriptor.getDependencyRevisionId() >> moduleId
-        _ * descriptor.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY) >> module
-        return descriptor
+        when:
+        def moduleResolver = resolver.create(dependencyDescriptor)
+
+        then:
+        1 * target.create(dependencyDescriptor) >> resolvedModule
+
+        and:
+        moduleResolver == resolvedModule
     }
 }

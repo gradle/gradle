@@ -71,7 +71,9 @@ task listJars << {
 }
 """
         server.expectGet('/repo/group/projectB/1.3/ivy-1.3.xml', projectB.ivyFile)
-        server.expectGetMissing('/repo/group/projectA/1.2/projectA-1.2.jar')
+        server.expectGetMissing('/repo/group/projectA/1.2/ivy-1.2.xml')
+        server.expectHeadMissing('/repo/group/projectA/1.2/projectA-1.2.jar')
+        server.expectGet('/repo2/group/projectA/1.2/ivy-1.2.xml', projectA.ivyFile)
         server.expectGet('/repo2/group/projectA/1.2/projectA-1.2.jar', projectA.jarFile)
         server.expectGet('/repo/group/projectB/1.3/projectB-1.3.jar', projectB.jarFile)
 
@@ -80,8 +82,6 @@ task listJars << {
 
 //        given:
         server.resetExpectations()
-        // TODO - should not require this - artifact has been cached
-        server.expectGetMissing('/repo/group/projectA/1.2/projectA-1.2.jar')
 
 //        expect:
         succeeds('listJars')

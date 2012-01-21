@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.latest.ArtifactInfo;
 import org.apache.ivy.plugins.latest.ComparatorLatestStrategy;
@@ -25,6 +26,7 @@ import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.util.StringUtils;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,10 +52,22 @@ public class UserResolverChain implements DependencyToModuleResolver, ArtifactTo
     public ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor) {
         ModuleResolution latestResolved = findLatestModule(dependencyDescriptor);
         if (latestResolved != null) {
-            ModuleVersionDescriptor downloadedModule = latestResolved.module;
+            final ModuleVersionDescriptor downloadedModule = latestResolved.module;
             LOGGER.debug("Found module '{}' using resolver '{}'", downloadedModule.getId(), latestResolved.repository);
             rememberResolverToUseForArtifactDownload(latestResolved.repository, downloadedModule);
-            return downloadedModule;
+            return new ModuleVersionResolver() {
+                public ModuleRevisionId getId() throws ModuleVersionResolveException {
+                    return downloadedModule.getId();
+                }
+
+                public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
+                    return downloadedModule.getDescriptor();
+                }
+
+                public File getArtifact(Artifact artifact) throws ArtifactResolveException {
+                    return resolve(artifact);
+                }
+            };
         }
         return null;
     }

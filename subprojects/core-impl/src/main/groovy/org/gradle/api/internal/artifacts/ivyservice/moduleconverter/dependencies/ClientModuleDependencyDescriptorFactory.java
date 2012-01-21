@@ -20,43 +20,38 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
-import org.gradle.util.WrapUtil;
 
 /**
  * @author Hans Dockter
 */
 public class ClientModuleDependencyDescriptorFactory extends AbstractDependencyDescriptorFactoryInternal {
     private ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule;
-    private ClientModuleRegistry clientModuleRegistry;
 
-    public ClientModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule, ClientModuleRegistry clientModuleRegistry) {
+    public ClientModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule) {
         super(excludeRuleConverter);
         this.moduleDescriptorFactoryForClientModule = moduleDescriptorFactoryForClientModule;
-        this.clientModuleRegistry = clientModuleRegistry;
     }
 
     public ModuleRevisionId createModuleRevisionId(ModuleDependency dependency) {
-        return IvyUtil.createModuleRevisionId(dependency,
-                WrapUtil.toMap(getClientModule(dependency).CLIENT_MODULE_KEY, getClientModule(dependency).getId()));
+        return IvyUtil.createModuleRevisionId(dependency);
     }
 
     public EnhancedDependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
                                                            ModuleRevisionId moduleRevisionId) {
-        EnhancedDependencyDescriptor dependencyDescriptor = new EnhancedDependencyDescriptor(
-                dependency,
-                parent,
-                moduleRevisionId,
-                getClientModule(dependency).isForce(),
-                false,
-                getClientModule(dependency).isTransitive());
-        addExcludesArtifactsAndDependencies(configuration, getClientModule(dependency), dependencyDescriptor);
-
+        ClientModule clientModule = getClientModule(dependency);
         ModuleDescriptor moduleDescriptor = moduleDescriptorFactoryForClientModule.createModuleDescriptor(
-                dependencyDescriptor.getDependencyRevisionId(), getClientModule(dependency).getDependencies());
-        clientModuleRegistry.registerClientModule(getClientModule(dependency), moduleDescriptor);
+                moduleRevisionId, clientModule.getDependencies());
 
+        EnhancedDependencyDescriptor dependencyDescriptor = new ClientModuleDependencyDescriptor(
+                clientModule,
+                parent,
+                moduleDescriptor,
+                moduleRevisionId,
+                clientModule.isForce(),
+                false,
+                clientModule.isTransitive());
+        addExcludesArtifactsAndDependencies(configuration, clientModule, dependencyDescriptor);
         return dependencyDescriptor;
     }
 

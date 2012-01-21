@@ -22,7 +22,10 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.version.VersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
 
 import java.io.File;
 
@@ -32,12 +35,10 @@ import java.io.File;
  */
 public class LazyDependencyToModuleResolver implements DependencyToModuleResolver {
     private final DependencyToModuleResolver dependencyResolver;
-    private final ArtifactToFileResolver artifactResolver;
     private final VersionMatcher versionMatcher;
 
-    public LazyDependencyToModuleResolver(DependencyToModuleResolver dependencyResolver, ArtifactToFileResolver artifactResolver, VersionMatcher versionMatcher) {
+    public LazyDependencyToModuleResolver(DependencyToModuleResolver dependencyResolver, VersionMatcher versionMatcher) {
         this.dependencyResolver = dependencyResolver;
-        this.artifactResolver = artifactResolver;
         this.versionMatcher = versionMatcher;
     }
 
@@ -52,6 +53,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleResolve
         private final DependencyDescriptor dependencyDescriptor;
         private ModuleDescriptor moduleDescriptor;
         ModuleVersionResolveException failure;
+        ModuleVersionResolver resolver;
 
         public DefaultModuleVersionResolver(DependencyDescriptor dependencyDescriptor) {
             this.dependencyDescriptor = dependencyDescriptor;
@@ -62,35 +64,39 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleResolve
         }
 
         public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
+            maybeResolve();
+            return moduleDescriptor;
+        }
+
+        public File getArtifact(Artifact artifact) throws ArtifactResolveException {
+            maybeResolve();
+            return resolver.getArtifact(artifact);
+        }
+
+        private void maybeResolve() {
             if (failure != null) {
                 throw failure;
             }
 
             if (moduleDescriptor == null) {
                 try {
-                    ModuleVersionResolver moduleVersionResolver;
                     try {
-                        moduleVersionResolver = dependencyResolver.create(dependencyDescriptor);
+                        resolver = dependencyResolver.create(dependencyDescriptor);
                     } catch (Throwable t) {
                         ModuleRevisionId id = dependencyDescriptor.getDependencyRevisionId();
                         throw new ModuleVersionResolveException(String.format("Could not resolve group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()), t);
                     }
-                    if (moduleVersionResolver == null) {
+                    if (resolver == null) {
                         ModuleRevisionId id = dependencyDescriptor.getDependencyRevisionId();
                         throw notFound(id);
                     }
-                    checkDescriptor(moduleVersionResolver.getDescriptor());
-                    moduleDescriptor = moduleVersionResolver.getDescriptor();
+                    checkDescriptor(resolver.getDescriptor());
+                    moduleDescriptor = resolver.getDescriptor();
                 } catch (ModuleVersionResolveException e) {
                     failure = e;
                     throw failure;
                 }
             }
-            return moduleDescriptor;
-        }
-
-        public File getArtifact(Artifact artifact) throws ArtifactResolveException {
-            return artifactResolver.resolve(artifact);
         }
 
         private void checkDescriptor(ModuleDescriptor descriptor) {
