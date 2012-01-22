@@ -100,4 +100,16 @@ class FileVisitorUtil {
 
         assertThat(visited, equalTo(files))
     }
+
+    static def assertVisitsPermissions(MinimalFileTree tree, Map<String, Integer> filesWithPermissions) {
+        assertVisitsPermissions(new FileTreeAdapter(tree), filesWithPermissions)
+    }
+
+    static def assertVisitsPermissions(FileTree tree, Map<String, Integer> filesWithPermissions) {
+        def visited = [:]
+        tree.visit {
+            visited[it.name] = it.mode
+        }
+        assertThat(visited, equalTo(filesWithPermissions))
+    }
 }

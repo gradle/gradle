@@ -90,5 +90,9 @@ public class AbstractFileTreeElementTest {
         public InputStream open() {
             return GFileUtils.openInputStream(file);
         }
+
+        public int getMode() {
+            throw new UnsupportedOperationException();
+        }
     }
 }

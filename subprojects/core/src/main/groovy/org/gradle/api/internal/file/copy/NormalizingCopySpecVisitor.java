@@ -117,5 +117,9 @@ public class NormalizingCopySpecVisitor extends DelegatingCopySpecVisitor {
         public RelativePath getRelativePath() {
             return path;
         }
+
+        public int getMode() {
+            throw new UnsupportedOperationException();
+        }
     }
 }
