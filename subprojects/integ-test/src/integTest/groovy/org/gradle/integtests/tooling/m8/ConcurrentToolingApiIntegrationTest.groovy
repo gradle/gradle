@@ -283,6 +283,7 @@ project.description = text
             dist.file("build$idx/build.gradle") << """
 System.out.println 'this is stdout: $idx'
 System.err.println 'this is stderr: $idx'
+logger.lifecycle 'this is lifecycle: $idx'
 """
         }
 
@@ -294,11 +295,15 @@ System.err.println 'this is stderr: $idx'
                     def operation = new ConfigurableOperation(model)
                     assert model.get()
 
-                    assert operation.getStandardOutput().contains("this is stdout: $idx")
-                    assert operation.getStandardOutput().count("this is stdout") == 1
+                    assert operation.standardOutput.contains("this is stdout: $idx")
+                    assert operation.standardOutput.count("this is stdout") == 1
 
-                    assert operation.getStandardError().contains("this is stderr: $idx")
-                    assert operation.getStandardError().count("this is stderr") == 1
+                    assert operation.standardError.contains("this is stderr: $idx")
+                    assert operation.standardError.count("this is stderr") == 1
+
+                    assert operation.standardOutput.contains("this is lifecycle: $idx")
+                    assert operation.standardOutput.count("this is lifecycle") == 1
+                    assert operation.standardError.count("this is lifecycle") == 0
                 }
             }
         }
@@ -313,6 +318,7 @@ System.err.println 'this is stderr: $idx'
             dist.file("build$idx/build.gradle") << """
 System.out.println 'this is stdout: $idx'
 System.err.println 'this is stderr: $idx'
+logger.lifecycle 'this is lifecycle: $idx'
 """
         }
 
@@ -329,6 +335,10 @@ System.err.println 'this is stderr: $idx'
 
                     assert operation.standardError.contains("this is stderr: $idx")
                     assert operation.standardError.count("this is stderr") == 1
+
+                    assert operation.standardOutput.contains("this is lifecycle: $idx")
+                    assert operation.standardOutput.count("this is lifecycle") == 1
+                    assert operation.standardError.count("this is lifecycle") == 0
                 }
             }
         }

@@ -31,6 +31,7 @@ class ToolingApi {
     private GradleDistribution dist
     private final List<Closure> connectorConfigurers = []
     boolean isEmbedded = GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded
+    boolean verboseLogging = true
 
     ToolingApi(GradleDistribution dist) {
         this.dist = dist
@@ -83,7 +84,7 @@ class ToolingApi {
         connector.searchUpwards(false)
         connector.daemonMaxIdleTime(300, TimeUnit.SECONDS)
         if (connector.metaClass.hasProperty(connector, 'verboseLogging')) {
-            connector.verboseLogging = true
+            connector.verboseLogging = verboseLogging
         }
         if (isEmbedded) {
             LOGGER.info("Using embedded tooling API provider");
