@@ -41,7 +41,10 @@ assert System.getProperty('some-prop') == 'some-value'
         dist.file('gradle.properties') << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx16m"
 
         when:
-        BuildEnvironment env = toolingApi.withConnection { connection -> connection.getModel(BuildEnvironment.class) }
+        BuildEnvironment env = toolingApi.withConnection { connection ->
+            connection.newBuild().run() //the assert
+            connection.getModel(BuildEnvironment.class)
+        }
 
         then:
         env.java.jvmArguments.contains('-Xmx16m')
