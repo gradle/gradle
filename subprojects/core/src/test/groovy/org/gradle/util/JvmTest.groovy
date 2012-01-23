@@ -16,14 +16,15 @@
 
 package org.gradle.util
 
-import spock.lang.Specification
-import org.junit.Rule
 import org.gradle.internal.nativeplatform.OperatingSystem
+import org.junit.Rule
+import spock.lang.Specification
 
 class JvmTest extends Specification {
     @Rule TemporaryFolder tmpDir = new TemporaryFolder()
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
     OperatingSystem os = Mock()
+    OperatingSystem theOs = OperatingSystem.current()
     Jvm jvm = new Jvm(os)
 
     def "uses system property to determine if compatible with Java 5"() {
@@ -108,5 +109,76 @@ class JvmTest extends Specification {
 
         then:
         jvm.getClass() == Jvm
+    }
+
+    def "finds executable if for java home supplied"() {
+        System.properties['java.vm.vendor'] = 'Sun'
+
+        when:
+        def home = tmpDir.createDir("home")
+        home.create {
+            jre {
+                bin {
+                    file theOs.getExecutableName('java')
+                    file theOs.getExecutableName('javadoc')
+                }
+            }
+        }
+
+        then:
+        home.file(theOs.getExecutableName("jre/bin/javadoc")).absolutePath ==
+            Jvm.forHome(home.file("jre")).getExecutable("javadoc").absolutePath
+    }
+
+    def "finds tools.jar if java home supplied"() {
+        System.properties['java.vm.vendor'] = 'Sun'
+
+        when:
+        def home = tmpDir.createDir("home")
+        home.create {
+            jdk {
+                bin { file theOs.getExecutableName('java') }
+                lib { file 'tools.jar' }
+            }
+        }
+
+        then:
+        home.file("jdk/lib/tools.jar").absolutePath ==
+            Jvm.forHome(home.file("jdk")).toolsJar.absolutePath
+    }
+
+    def "provides decent feedback if executable not found"() {
+        given:
+        def home = tmpDir.createDir("home")
+        home.create {
+            bin { file theOs.getExecutableName('java') }
+        }
+
+        when:
+        Jvm.forHome(home).getExecutable("foobar")
+
+        then:
+        def ex = thrown(JavaHomeException)
+        ex.message.contains('foobar')
+    }
+
+    def "provides decent feedback for invalid java home"() {
+        given:
+        def someHome = tmpDir.createDir("someHome")
+
+        when:
+        Jvm.forHome(someHome)
+
+        then:
+        def ex = thrown(JavaHomeException)
+        ex.message.contains('someHome')
+    }
+
+    def "provides basic validation for java home"() {
+        when:
+        Jvm.forHome(new File('i dont exist'))
+
+        then:
+        thrown(IllegalArgumentException)
     }
 }

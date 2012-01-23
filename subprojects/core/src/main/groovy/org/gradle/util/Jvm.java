@@ -17,8 +17,8 @@
 package org.gradle.util;
 
 import org.apache.tools.ant.util.JavaEnvUtils;
+import org.gradle.api.GradleException;
 import org.gradle.internal.nativeplatform.OperatingSystem;
-import org.gradle.util.internal.StrictJavaLocaliser;
 
 import java.io.File;
 import java.util.HashMap;
@@ -50,12 +50,21 @@ public class Jvm {
     }
 
     /**
-     * @param javaHome cannot be null
+     * Creates jvm instance for given java home. Attempts to validate if provided javaHome is a valid jdk or jre location.
+     *
+     * @param javaHome - location of your jdk or jre (jdk is safer), cannot be null
      * @return jvm for given java home
+     *
+     * @throws org.gradle.api.GradleException when supplied javaHome does not seem to be a valid jdk or jre location
+     * @throws IllegalArgumentException when supplied javaHome is not a valid folder
      */
-    public static Jvm forHome(File javaHome) {
-        assert javaHome != null;
-        return create(javaHome);
+    public static Jvm forHome(File javaHome) throws GradleException, IllegalArgumentException {
+        if (javaHome == null || !javaHome.isDirectory()) {
+            throw new IllegalArgumentException("Supplied javaHome must be a valid directory. You supplied: " + javaHome);
+        }
+        Jvm jvm = create(javaHome);
+        jvm.getJavaExecutable();
+        return jvm;
     }
 
     @Override
@@ -65,10 +74,18 @@ public class Jvm {
 
     private File getJdkExecutable(String command) {
         if (suppliedJavaHome == null) {
-            //grab the executable in a backwards compatible way, via ant utility
+            //grab the executable in a backwards compatible way, via ant utility.
+            //might be worth changing it so that it uses consistent strategy (getToolsJar
+            //but this is a breaking change and probably requires
             return new File(JavaEnvUtils.getJdkExecutable(command));    
         } else {
-            return new File(new StrictJavaLocaliser(suppliedJavaHome).getJavaExecutable("java"));
+            File exec = new File(suppliedJavaHome, "bin/" + command);
+            File maybeExtension = new File(os.getExecutableName(exec.getAbsolutePath()));
+            if (!maybeExtension.isFile()) {
+                throw new JavaHomeException(String.format("The supplied javaHome seems to be invalid."
+                        + " I cannot find the %s executable. Tried location: %s", command, maybeExtension.getAbsolutePath()));
+            }
+            return maybeExtension;
         }
     }
 
@@ -94,21 +111,24 @@ public class Jvm {
 
     public File getJavaHome() {
         File toolsJar = getToolsJar();
-        return toolsJar == null ? getDefaultJavaHome() : toolsJar.getParentFile().getParentFile();
+        return toolsJar == null ? getEffectiveJavaHome() : toolsJar.getParentFile().getParentFile();
     }
-
-    private File getDefaultJavaHome() {
+    
+    private File getEffectiveJavaHome() {
+        if (suppliedJavaHome != null) {
+            return suppliedJavaHome;
+        }
         return GFileUtils.canonicalise(new File(System.getProperty("java.home")));
     }
 
     public File getRuntimeJar() {
-        File javaHome = getDefaultJavaHome();
+        File javaHome = getEffectiveJavaHome();
         File runtimeJar = new File(javaHome, "lib/rt.jar");
         return runtimeJar.exists() ? runtimeJar : null;
     }
 
     public File getToolsJar() {
-        File javaHome = getDefaultJavaHome();
+        File javaHome = getEffectiveJavaHome();
         File toolsJar = new File(javaHome, "lib/tools.jar");
         if (toolsJar.exists()) {
             return toolsJar;
@@ -154,12 +174,12 @@ public class Jvm {
 
         @Override
         public File getJavaHome() {
-            return super.getDefaultJavaHome();
+            return super.getEffectiveJavaHome();
         }
 
         @Override
         public File getRuntimeJar() {
-            File javaHome = super.getDefaultJavaHome();
+            File javaHome = super.getEffectiveJavaHome();
             File runtimeJar = new File(javaHome.getParentFile(), "Classes/classes.jar");
             return runtimeJar.exists() ? runtimeJar : null;
         }
