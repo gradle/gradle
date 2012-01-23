@@ -114,7 +114,8 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         UsernamePasswordCredentials basicCredentials = new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
         client.getCredentialsProvider().setCredentials(new AuthScope(host, port), basicCredentials);
 
-        NTCredentials ntCredentials = new NTCredentials(credentials.getUsername(), credentials.getPassword(), null, null);
+        NTLMCredentials ntlmCredentials = new NTLMCredentials(credentials);
+        NTCredentials ntCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
         client.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthPolicy.NTLM), ntCredentials);
     }
 

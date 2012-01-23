@@ -53,7 +53,6 @@ task listJars << {
         server.expectGetGZipped('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
 
         then:
-        executer.withArguments('-i')
         succeeds('listJars')
     }
 }
