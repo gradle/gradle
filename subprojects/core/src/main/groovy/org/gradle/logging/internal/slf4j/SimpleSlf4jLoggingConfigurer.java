@@ -16,13 +16,10 @@
 
 package org.gradle.logging.internal.slf4j;
 
-import org.gradle.api.internal.Operation;
-import org.gradle.api.internal.concurrent.Synchronizer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.specs.Specs;
 import org.gradle.logging.internal.LoggingConfigurer;
 import org.gradle.logging.internal.OutputEventRenderer;
-import org.gradle.logging.internal.Slf4jLoggingConfigurer;
 
 import java.io.FileDescriptor;
 
@@ -34,32 +31,10 @@ import java.io.FileDescriptor;
  */
 public class SimpleSlf4jLoggingConfigurer implements LoggingConfigurer {
 
-    private final Synchronizer sync = new Synchronizer();
-    private boolean configured;
-
-    //TODO SF refactor
-    LoggingConfigurer delegate = new LoggingConfigurer() {
-        public void configure(LogLevel logLevel) {
-            OutputEventRenderer renderer = new OutputEventRenderer(Specs.<FileDescriptor>satisfyNone());
-            renderer.addStandardOutputAndError();
-            renderer.configure(logLevel);
-            new Slf4jLoggingConfigurer(renderer).configure(logLevel);
-        }
-    };
-
-    public void configure(final LogLevel logLevel) {
-        if (configured) {
-            return;
-        }
-        sync.synchronize(new Operation() {
-            public void execute() {
-                if (configured) {
-                    return;
-                }
-                configured = true;
-                //assume the configuration does not fail. If it fails we don't want to re-run it anyway.
-                delegate.configure(logLevel);
-            }
-        });
+    public void configure(LogLevel logLevel) {
+        OutputEventRenderer renderer = new OutputEventRenderer(Specs.<FileDescriptor>satisfyNone());
+        renderer.addStandardOutputAndError();
+        renderer.configure(logLevel);
+        new Slf4jLoggingConfigurer(renderer).configure(logLevel);
     }
 }

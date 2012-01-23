@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.logging.internal;
+package org.gradle.logging.internal.slf4j;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
@@ -29,6 +29,10 @@ import ch.qos.logback.core.spi.FilterReply;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
+import org.gradle.logging.internal.LogEvent;
+import org.gradle.logging.internal.LoggingConfigurer;
+import org.gradle.logging.internal.MarkerFilter;
+import org.gradle.logging.internal.OutputEventListener;
 import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;

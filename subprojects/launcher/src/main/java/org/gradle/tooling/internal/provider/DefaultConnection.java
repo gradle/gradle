@@ -24,8 +24,8 @@ import org.gradle.launcher.daemon.client.DaemonParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.logging.internal.LoggingConfigurer;
 import org.gradle.logging.internal.OutputEventRenderer;
+import org.gradle.logging.internal.SingleOpLoggingConfigurer;
 import org.gradle.logging.internal.slf4j.SimpleSlf4jLoggingConfigurer;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.protocol.*;
@@ -43,7 +43,7 @@ import java.util.List;
 public class DefaultConnection implements InternalConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final EmbeddedExecuterSupport embeddedExecuterSupport;
-    private final LoggingConfigurer slf4jLoggingConfigurer = new SimpleSlf4jLoggingConfigurer();
+    private final SingleOpLoggingConfigurer slf4jLoggingConfigurer = new SingleOpLoggingConfigurer(new SimpleSlf4jLoggingConfigurer());
 
     public DefaultConnection() {
         LOGGER.debug(ToolingProviderMessages.PROVIDER_HELLO);

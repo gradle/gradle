@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.logging.internal.slf4j
+package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.logging.internal.LoggingConfigurer
 import org.gradle.util.ConcurrentSpecification
 
 /**
  * by Szczepan Faber, created at: 1/23/12
  */
-class SimpleSlf4jLoggingConfigurerTest extends ConcurrentSpecification {
+class SingleOpLoggingConfigurerTest extends ConcurrentSpecification {
     
-    def configurer = new SimpleSlf4jLoggingConfigurer()
-
-    def setup() {
-        configurer.delegate = Mock(LoggingConfigurer)
-    }
+    def configurer = new SingleOpLoggingConfigurer(Mock(LoggingConfigurer))
 
     def "configures only once"() {
         when:

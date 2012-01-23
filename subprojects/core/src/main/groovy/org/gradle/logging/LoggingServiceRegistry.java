@@ -24,6 +24,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
+import org.gradle.logging.internal.slf4j.Slf4jLoggingConfigurer;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.TrueTimeProvider;
 
