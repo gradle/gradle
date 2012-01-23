@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal
+package org.gradle.logging.internal.slf4j
 
-import spock.lang.Specification
 import ch.qos.logback.classic.LoggerContext
-import org.slf4j.LoggerFactory
-
 import org.gradle.api.logging.LogLevel
-import org.slf4j.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.logging.internal.OutputEventListener
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import spock.lang.Specification
 
 class Slf4jLoggingConfigurerTest extends Specification {
     private final Logger logger = LoggerFactory.getLogger("cat1");
