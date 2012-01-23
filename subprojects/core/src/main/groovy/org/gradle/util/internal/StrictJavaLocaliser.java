@@ -28,7 +28,7 @@ import java.io.IOException;
  * <p>
  * by Szczepan Faber, created at: 1/19/12
  */
-public class StrictJavaLocaliser implements JavaExecutableFinder {
+public class StrictJavaLocaliser {
 
     private File javaHome;
 

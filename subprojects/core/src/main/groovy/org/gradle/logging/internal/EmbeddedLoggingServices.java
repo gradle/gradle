@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.util.internal;
+package org.gradle.logging.internal;
+
+import org.gradle.internal.Factory;
+import org.gradle.logging.LoggingManagerInternal;
 
 /**
- * by Szczepan Faber, created at: 1/16/12
+ * by Szczepan Faber, created at: 1/23/12
  */
-public interface JavaExecutableFinder {
+public interface EmbeddedLoggingServices {
 
-    /**
-     * Finds an executable that is part of a JDK/JRE installation based on
-     * the given java home file.
-     *
-     * <p>You typically find them in <code>JAVA_HOME/bin</code> if
-     * <code>JAVA_HOME</code> points to your JRE installation.</p>
-     *
-     * @param command the java executable to find.
-     * @return the path to the command.
-     */
-    String getJavaExecutable(String command);
+    Factory<LoggingManagerInternal> getLoggingManagerFactory();
+
+    OutputEventRenderer getOutputEventRenderer();
 }

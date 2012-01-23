@@ -16,9 +16,9 @@
 
 package org.gradle.util;
 
+import org.apache.tools.ant.util.JavaEnvUtils;
 import org.gradle.internal.nativeplatform.OperatingSystem;
-import org.gradle.util.internal.AntBasedJavaExecutableFinder;
-import org.gradle.util.internal.JavaExecutableFinder;
+import org.gradle.util.internal.StrictJavaLocaliser;
 
 import java.io.File;
 import java.util.HashMap;
@@ -26,19 +26,36 @@ import java.util.Map;
 
 public class Jvm {
     private final OperatingSystem os;
-
-    private final JavaExecutableFinder executableFinder = new AntBasedJavaExecutableFinder(System.getProperty("java.home"));
+    private final File suppliedJavaHome;
 
     public static Jvm current() {
+        return create(null);
+    }
+
+    static Jvm create(File javaHome) {
         String vendor = System.getProperty("java.vm.vendor");
         if (vendor.toLowerCase().startsWith("apple inc.")) {
-            return new AppleJvm(OperatingSystem.current());
+            return new AppleJvm(OperatingSystem.current(), javaHome);
         }
-        return new Jvm(OperatingSystem.current());
+        return new Jvm(OperatingSystem.current(), javaHome);
     }
 
     public Jvm(OperatingSystem os) {
+        this(os, null);
+    }
+
+    Jvm(OperatingSystem os, File suppliedJavaHome) {
         this.os = os;
+        this.suppliedJavaHome = suppliedJavaHome;
+    }
+
+    /**
+     * @param javaHome cannot be null
+     * @return jvm for given java home
+     */
+    public static Jvm forHome(File javaHome) {
+        assert javaHome != null;
+        return create(javaHome);
     }
 
     @Override
@@ -46,16 +63,25 @@ public class Jvm {
         return String.format("%s (%s %s)", System.getProperty("java.version"), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
     }
 
+    private File getJdkExecutable(String command) {
+        if (suppliedJavaHome == null) {
+            //grab the executable in a backwards compatible way, via ant utility
+            return new File(JavaEnvUtils.getJdkExecutable(command));    
+        } else {
+            return new File(new StrictJavaLocaliser(suppliedJavaHome).getJavaExecutable("java"));
+        }
+    }
+
     public File getJavaExecutable() {
-        return new File(executableFinder.getJavaExecutable("java"));
+        return getJdkExecutable("java");
     }
 
     public File getJavadocExecutable() {
-        return new File(executableFinder.getJavaExecutable("javadoc"));
+        return getJdkExecutable("javadoc");
     }
 
     public File getExecutable(String name) {
-        return new File(executableFinder.getJavaExecutable(name));
+        return getJdkExecutable(name);
     }
 
     public boolean isJava5Compatible() {
@@ -120,6 +146,10 @@ public class Jvm {
     public static class AppleJvm extends Jvm {
         public AppleJvm(OperatingSystem os) {
             super(os);
+        }
+
+        AppleJvm(OperatingSystem current, File javaHome) {
+            super(current, javaHome);
         }
 
         @Override

@@ -28,7 +28,6 @@ import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
-import org.gradle.util.internal.StrictJavaLocaliser;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -93,7 +92,7 @@ public class DaemonParameters {
         if (javaHome == null) {
             return Jvm.current().getJavaExecutable().getAbsolutePath();
         }
-        return new StrictJavaLocaliser(javaHome).getJavaExecutable("java");
+        return Jvm.forHome(javaHome).getJavaExecutable().getAbsolutePath();
     }
 
     public void setJavaHome(File javaHome) {

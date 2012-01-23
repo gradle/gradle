@@ -20,6 +20,7 @@ import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
+import org.gradle.util.Jvm;
 import org.gradle.util.internal.StrictJavaLocaliser;
 
 import java.io.File;
@@ -78,7 +79,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             throw new IllegalArgumentException("Supplied javaHome is not a valid folder. You supplied: " + javaHome);
         }
         try {
-            new StrictJavaLocaliser(javaHome).validate();
+            Jvm.forHome(javaHome).getJavaExecutable();
         } catch (StrictJavaLocaliser.JavaExecutableNotFoundException e) {
             throw new IllegalArgumentException(
                 "Supplied javaHome does not seem to be a valid java location. You supplied: " + javaHome + "."
