@@ -154,7 +154,7 @@ class CompileOptions extends AbstractOptions {
     }
 
     Map optionMap() {
-        super.optionMap() + forkOptions.optionMap() + debugOptions.optionMap()
+        super.optionMap() + debugOptions.optionMap()
     }
 }
 
