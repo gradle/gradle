@@ -39,14 +39,26 @@ public class NTLMCredentialsTest extends Specification {
         ntlmCredentials.password == 'password'
     }
 
-    def "null domain when not encoded in username"() {
+    def "uses domain when encoded in username with forward slash"() {
+        when:
+        credentials.username >> "domain/username"
+        credentials.password >> "password"
+        def ntlmCredentials = new NTLMCredentials(credentials)
+
+        then:
+        ntlmCredentials.domain == 'DOMAIN'
+        ntlmCredentials.username == 'username'
+        ntlmCredentials.password == 'password'
+    }
+
+    def "uses default domain when not encoded in username"() {
         when:
         credentials.username >> "username"
         credentials.password >> "password"
         def ntlmCredentials = new NTLMCredentials(credentials)
 
         then:
-        ntlmCredentials.domain == null
+        ntlmCredentials.domain == ''
         ntlmCredentials.username == 'username'
         ntlmCredentials.password == 'password'
     }
@@ -62,5 +74,18 @@ public class NTLMCredentialsTest extends Specification {
         ntlmCredentials.domain == 'DOMAIN'
         ntlmCredentials.username == 'username'
         ntlmCredentials.password == 'password'
+    }
+
+    def "uses default workstation"() {
+        when:
+        credentials.username >> "username"
+        credentials.password >> "password"
+        def ntlmCredentials = new NTLMCredentials(credentials)
+
+        then:
+        ntlmCredentials.domain == ''
+        ntlmCredentials.username == 'username'
+        ntlmCredentials.password == 'password'
+        ntlmCredentials.workstation == ''
     }
 }

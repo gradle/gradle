@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.repositories.transport.http;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 
 class NTLMCredentials {
+    private static final String DEFAULT_DOMAIN = "";
+    private static final String DEFAULT_WORKSTATION = "";
     private final String domain;
     private final String username;
     private final String password;
@@ -26,11 +28,12 @@ class NTLMCredentials {
         String domain;
         String username = credentials.getUsername();
         int slashPos = username.indexOf('\\');
+        slashPos = slashPos >= 0 ? slashPos : username.indexOf('/');
         if (slashPos >= 0) {
             domain = username.substring(0, slashPos);
             username = username.substring(slashPos + 1);
         } else {
-            domain = System.getProperty("http.auth.ntlm.domain");
+            domain = System.getProperty("http.auth.ntlm.domain", DEFAULT_DOMAIN);
         }
         this.domain = domain == null ? null : domain.toUpperCase();
         this.username = username;
@@ -50,6 +53,6 @@ class NTLMCredentials {
     }
 
     public String getWorkstation() {
-        return null;
+        return DEFAULT_WORKSTATION;
     }
 }
