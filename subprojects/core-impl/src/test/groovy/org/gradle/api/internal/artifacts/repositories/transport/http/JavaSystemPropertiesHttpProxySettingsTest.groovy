@@ -72,8 +72,8 @@ class JavaSystemPropertiesHttpProxySettingsTest extends Specification {
     def "uses specified proxy user and password"() {
         expect:
         def proxy = new JavaSystemPropertiesHttpProxySettings("proxyHost", null, user, password, null).getProxy("host")
-        proxy.username == proxyUser
-        proxy.password == proxyPassword
+        proxy.credentials?.username == proxyUser
+        proxy.credentials?.password == proxyPassword
 
         where:
         user     | password  | proxyUser | proxyPassword

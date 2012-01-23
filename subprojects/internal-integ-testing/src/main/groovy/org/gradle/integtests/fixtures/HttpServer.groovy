@@ -256,7 +256,7 @@ class HttpServer implements MethodRule {
         return new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 if (request.remoteUser != username) {
-                    response.sendError(500, "unexpected username2 '${request.remoteUser}'")
+                    response.sendError(500, "unexpected username '${request.remoteUser}'")
                     return
                 }
                 handler.handle(target, request, response, dispatch)

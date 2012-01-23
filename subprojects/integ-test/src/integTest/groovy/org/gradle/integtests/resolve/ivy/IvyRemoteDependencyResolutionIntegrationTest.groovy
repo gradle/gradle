@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.SetSystemProperties
 import org.hamcrest.Matchers
 import org.junit.Rule
 import static org.hamcrest.Matchers.containsString
@@ -26,8 +25,6 @@ import static org.hamcrest.Matchers.containsString
 class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
-    @Rule
-    public SetSystemProperties systemProperties = new SetSystemProperties()
 
     def "setup"() {
         requireOwnUserHomeDir()
@@ -184,36 +181,6 @@ task listJars << {
         when:
         server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
         server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.jarFile)
-
-        then:
-        succeeds('listJars')
-    }
-
-    public void "uses configured proxy to access remote HTTP repository"() {
-        server.start()
-        given:
-        def repo = ivyRepo()
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
-
-        and:
-        buildFile << """
-repositories {
-    ivy { url "http://external:8888/repo" }
-}
-configurations { compile }
-dependencies { compile 'group:projectA:1.2' }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-}
-"""
-
-        when:
-        executer.withArguments("-Dhttp.proxyHost=localhost", "-Dhttp.proxyPort=${server.port}")
-
-        and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
 
         then:
         succeeds('listJars')

@@ -55,8 +55,8 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("http://localhost:9090/repo")
         _ * resolver.resolveUri('repo-dir') >> uri
-        2 * credentials.getUsername() >> 'username'
-        1 * credentials.getPassword() >> 'password'
+        _ * credentials.getUsername() >> 'username'
+        _ * credentials.getPassword() >> 'password'
         transportFactory.createHttpTransport('repo', credentials) >> new HttpTransport('repo', credentials, Mock(ExternalArtifactCache), cacheManager)
         cacheManager.name >> 'cache'
         0 * _._

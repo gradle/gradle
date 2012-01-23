@@ -17,7 +17,10 @@ package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
@@ -25,10 +28,12 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
@@ -64,30 +69,52 @@ import java.util.List;
 public class HttpResourceCollection extends AbstractRepository implements ResourceCollection {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceCollection.class);
     private final DefaultHttpClient client = new DefaultHttpClient();
+    private final BasicHttpContext httpContext = new BasicHttpContext();
     private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
     private final List<HttpResource> openResources = new ArrayList<HttpResource>();
 
     private final ExternalArtifactCache externalArtifactCache;
-    private final UsernamePasswordCredentials httpClientCredentials;
+    private final Credentials repositoryCredentials;
 
     public HttpResourceCollection(HttpSettings httpSettings, ExternalArtifactCache externalArtifactCache) {
-        PasswordCredentials credentials = httpSettings.getCredentials();
-        if (GUtil.isTrue(credentials.getUsername())) {
-            httpClientCredentials = new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
-        } else {
-            httpClientCredentials = null;
-        }
         this.externalArtifactCache = externalArtifactCache;
 
-        // Use standard JVM proxy settings
-        ProxySelectorRoutePlanner routePlanner = new ProxySelectorRoutePlanner(client.getConnectionManager().getSchemeRegistry(), ProxySelector.getDefault());
-        client.setRoutePlanner(routePlanner);
+        repositoryCredentials = configureCredentials(httpSettings.getCredentials());
+        configureProxy(httpSettings.getProxySettings());
 
         client.setHttpRequestRetryHandler(new HttpRequestRetryHandler() {
             public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
                 return false;
             }
         });
+    }
+
+    private UsernamePasswordCredentials configureCredentials(PasswordCredentials credentials) {
+        if (GUtil.isTrue(credentials.getUsername())) {
+            useCredentials(credentials, AuthScope.ANY_HOST, AuthScope.ANY_PORT);
+            return new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
+        } else {
+            return null;
+        }
+    }
+
+    private void configureProxy(HttpProxySettings proxySettings) {
+        // Use standard JVM proxy settings
+        ProxySelectorRoutePlanner routePlanner = new ProxySelectorRoutePlanner(client.getConnectionManager().getSchemeRegistry(), ProxySelector.getDefault());
+        client.setRoutePlanner(routePlanner);
+
+        HttpProxySettings.HttpProxy proxy = proxySettings.getProxy();
+        if (proxy != null && proxy.credentials != null) {
+            useCredentials(proxy.credentials, proxy.host, proxy.port);
+        }
+    }
+
+    private void useCredentials(PasswordCredentials credentials, String host, int port) {
+        UsernamePasswordCredentials basicCredentials = new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
+        client.getCredentialsProvider().setCredentials(new AuthScope(host, port), basicCredentials);
+
+        NTCredentials ntCredentials = new NTCredentials(credentials.getUsername(), credentials.getPassword(), null, null);
+        client.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthPolicy.NTLM), ntCredentials);
     }
 
     public HttpResource getResource(String source) throws IOException {
@@ -268,7 +295,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         configureMethod(method);
         method.setEntity(new FileEntity(source, "application/octet-stream"));
         LOGGER.debug("Performing HTTP PUT: {}", method.getURI());
-        HttpResponse response = client.execute(method);
+        HttpResponse response = client.execute(method, httpContext);
         EntityUtils.consume(response.getEntity());
         if (!wasSuccessful(response)) {
             throw new IOException(String.format("Could not PUT '%s'. Received status code %s from server: %s",
@@ -280,10 +307,10 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         method.addHeader("User-Agent", "Gradle/" + GradleVersion.current().getVersion());
         method.addHeader("Accept-Encoding", "identity");
 
-        // Do preemptive authentication
-        if (httpClientCredentials != null) {
+        // Do preemptive authentication for basic auth
+        if (repositoryCredentials != null) {
             try {
-                method.addHeader(new BasicScheme().authenticate(httpClientCredentials, method));
+                method.addHeader(new BasicScheme().authenticate(repositoryCredentials, method));
             } catch (AuthenticationException e) {
                 throw UncheckedException.asUncheckedException(e);
             }
@@ -292,7 +319,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
 
     private HttpResponse executeMethod(HttpUriRequest method) throws IOException {
         LOGGER.debug("Performing HTTP GET: {}", method.getURI());
-        HttpResponse httpResponse = client.execute(method);
+        HttpResponse httpResponse = client.execute(method, httpContext);
         // Consume content for non-successful, responses. This avoids the connection being left open.
         if (!wasSuccessful(httpResponse)) {
             EntityUtils.consume(httpResponse.getEntity());
