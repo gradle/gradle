@@ -17,7 +17,6 @@
 package org.gradle.util;
 
 import org.apache.tools.ant.util.JavaEnvUtils;
-import org.gradle.api.GradleException;
 import org.gradle.internal.nativeplatform.OperatingSystem;
 
 import java.io.File;
@@ -55,10 +54,10 @@ public class Jvm {
      * @param javaHome - location of your jdk or jre (jdk is safer), cannot be null
      * @return jvm for given java home
      *
-     * @throws org.gradle.api.GradleException when supplied javaHome does not seem to be a valid jdk or jre location
+     * @throws org.gradle.util.JavaHomeException when supplied javaHome does not seem to be a valid jdk or jre location
      * @throws IllegalArgumentException when supplied javaHome is not a valid folder
      */
-    public static Jvm forHome(File javaHome) throws GradleException, IllegalArgumentException {
+    public static Jvm forHome(File javaHome) throws JavaHomeException, IllegalArgumentException {
         if (javaHome == null || !javaHome.isDirectory()) {
             throw new IllegalArgumentException("Supplied javaHome must be a valid directory. You supplied: " + javaHome);
         }
@@ -89,15 +88,27 @@ public class Jvm {
         }
     }
 
-    public File getJavaExecutable() {
+    /**
+     * @return the executable
+     * @throws JavaHomeException when executable cannot be found
+     */
+    public File getJavaExecutable() throws JavaHomeException {
         return getJdkExecutable("java");
     }
 
-    public File getJavadocExecutable() {
+    /**
+     * @return the executable
+     * @throws JavaHomeException when executable cannot be found
+     */
+    public File getJavadocExecutable() throws JavaHomeException {
         return getJdkExecutable("javadoc");
     }
 
-    public File getExecutable(String name) {
+    /**
+     * @return the executable
+     * @throws JavaHomeException when executable cannot be found
+     */
+    public File getExecutable(String name) throws JavaHomeException {
         return getJdkExecutable(name);
     }
 

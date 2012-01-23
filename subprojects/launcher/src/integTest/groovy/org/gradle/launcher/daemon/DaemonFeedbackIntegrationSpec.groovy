@@ -58,6 +58,20 @@ class DaemonFeedbackIntegrationSpec extends Specification {
         ex.message.contains("-Xyz")
     }
 
+    @Timeout(5)
+    def "promptly shows decent message when awkward java home used"() {
+        def dummyJdk = distribution.file("dummyJdk").createDir()
+        assert dummyJdk.isDirectory()
+        
+        when:
+        executer.withArguments("-Dorg.gradle.java.home=${dummyJdk.absolutePath}").run()
+
+        then:
+        def ex = thrown(Exception)
+        ex.message.contains('org.gradle.java.home')
+        ex.message.contains(dummyJdk.absolutePath)
+    }
+
     def "daemon log contains all necessary logging"() {
         given:
         def baseDir = distribution.file("daemonBaseDir").createDir()

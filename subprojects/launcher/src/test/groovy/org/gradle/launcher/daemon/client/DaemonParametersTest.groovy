@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.client
 
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
+import org.gradle.util.Jvm
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
@@ -162,7 +163,7 @@ class DaemonParametersTest extends Specification {
     }
 
     def "can configure java home"() {
-        File jdk = tmpDir.file("jdk").createDir()
+        File jdk = Jvm.current().getJavaHome()
 
         when:
         parameters.configureFrom([(DaemonParameters.JAVA_HOME_SYS_PROPERTY) : jdk.toString()])
@@ -171,7 +172,7 @@ class DaemonParametersTest extends Specification {
         parameters.effectiveJavaHome == jdk.canonicalFile
     }
 
-    def "nice message for invalid java home"() {
+    def "nice message for dummy java home"() {
         when:
         parameters.configureFrom([(DaemonParameters.JAVA_HOME_SYS_PROPERTY) : "/invalid/path"])
 
@@ -179,5 +180,16 @@ class DaemonParametersTest extends Specification {
         def ex = thrown(GradleException)
         ex.message.contains 'org.gradle.java.home'
         ex.message.contains '/invalid/path'
+    }
+
+    def "nice message for invalid java home"() {
+        def dummyDir = tmpDir.createDir("foobar")
+        when:
+        parameters.configureFrom([(DaemonParameters.JAVA_HOME_SYS_PROPERTY) : dummyDir.absolutePath])
+
+        then:
+        def ex = thrown(GradleException)
+        ex.message.contains 'org.gradle.java.home'
+        ex.message.contains 'foobar'
     }
 }

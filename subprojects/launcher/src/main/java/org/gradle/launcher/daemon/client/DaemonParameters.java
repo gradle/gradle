@@ -27,6 +27,7 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
+import org.gradle.util.JavaHomeException;
 import org.gradle.util.Jvm;
 
 import java.io.File;
@@ -176,8 +177,13 @@ public class DaemonParameters {
         propertyValue = properties.get(JAVA_HOME_SYS_PROPERTY);
         if (propertyValue != null) {
             javaHome = new File(propertyValue.toString());
-            if (!javaHome.exists()) {
+            if (!javaHome.isDirectory()) {
                 throw new GradleException(String.format("Java home supplied via '%s' is invalid. Dir does not exist: %s", JAVA_HOME_SYS_PROPERTY, propertyValue));
+            }
+            try {
+                Jvm.forHome(javaHome);
+            } catch (JavaHomeException e) {
+                throw new GradleException(String.format("Java home supplied via '%s' seems to be invalid: %s", JAVA_HOME_SYS_PROPERTY, propertyValue));
             }
         }
     }
