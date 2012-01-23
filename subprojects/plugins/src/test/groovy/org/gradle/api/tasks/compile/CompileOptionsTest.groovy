@@ -59,10 +59,16 @@ class CompileOptionsTest {
         assertNotNull(compileOptions.debugOptions)
     }
 
-    @Test public void testOptionMapForDebugAndForkOptions() {
+    @Test public void testOptionMapForDebugOptions() {
         Map optionMap = compileOptions.optionMap()
         assertEquals(optionMap.subMap(TEST_DEBUG_OPTION_MAP.keySet()), TEST_DEBUG_OPTION_MAP)
-        assertEquals(optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()), TEST_FORK_OPTION_MAP)
+    }
+
+    @Test public void testForkOptionsAreNotPassedOnToAnt() {
+        Map optionMap = compileOptions.optionMap()
+        TEST_FORK_OPTION_MAP.keySet().each {
+            assert !optionMap.containsKey(it)
+        }
     }
 
     @Test public void testOptionMapWithNullables() {
