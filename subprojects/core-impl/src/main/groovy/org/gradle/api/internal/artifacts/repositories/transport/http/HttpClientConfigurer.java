@@ -37,7 +37,7 @@ import java.net.ProxySelector;
 
 public class HttpClientConfigurer {
     private final HttpSettings httpSettings;
-    private UsernamePasswordCredentials repositoryCredentials;
+    private final UsernamePasswordCredentials repositoryCredentials;
 
     public HttpClientConfigurer(HttpSettings httpSettings) {
         this.httpSettings = httpSettings;
