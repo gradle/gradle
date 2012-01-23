@@ -17,20 +17,20 @@
 package org.gradle.tooling.internal.provider.input;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
+import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Defines what information is needed on the provider side regarding the build operation.
  * <p>
  * by Szczepan Faber, created at: 12/20/11
  */
-public interface ProviderOperationParameters extends BuildOperationParametersVersion1 {
-
-    //TODO SF don't extend
+public interface ProviderOperationParameters {
 
     LogLevel getProviderLogLevel();
 
@@ -41,4 +41,24 @@ public interface ProviderOperationParameters extends BuildOperationParametersVer
     File getJavaHome(File defaultJavaHome);
 
     List<String> getJvmArguments(List<String> defaultJvmArgs);
+
+    long getStartTime();
+
+    File getGradleUserHomeDir();
+
+    File getProjectDir();
+
+    Boolean isSearchUpwards();
+
+    Boolean isEmbedded();
+
+    OutputStream getStandardOutput();
+
+    OutputStream getStandardError();
+
+    Integer getDaemonMaxIdleTimeValue();
+
+    ProgressListenerVersion1 getProgressListener();
+
+    TimeUnit getDaemonMaxIdleTimeUnits();
 }
