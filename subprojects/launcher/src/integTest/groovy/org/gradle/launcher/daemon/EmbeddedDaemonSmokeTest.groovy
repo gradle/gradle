@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon
 
+import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.launcher.daemon.client.DaemonClient
@@ -40,7 +41,7 @@ class EmbeddedDaemonSmokeTest extends Specification {
     
     def "run build"() {
         given:
-        def action = new ConfiguringBuildAction(distribution.gradleHomeDir, distribution.testDir, false, false, new ExecuteBuildAction(["echo"]))
+        def action = new ConfiguringBuildAction(distribution.gradleHomeDir, distribution.testDir, false, LogLevel.LIFECYCLE, new ExecuteBuildAction(["echo"]))
         def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties, System.getenv(), new File("."))
         
         and:

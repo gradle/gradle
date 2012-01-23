@@ -19,14 +19,21 @@ package org.gradle.integtests.tooling.m8
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.tooling.internal.consumer.ConnectorServices
+import org.gradle.tooling.internal.provider.logging.ToolingProviderMessages
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
-class LoggingIntegrationTest extends ToolingApiSpecification {
+class ToolingApiLoggingIntegrationTest extends ToolingApiSpecification {
 
     def setup() {
         //for embedded tests we don't mess with global logging. Run with forks only.
         toolingApi.isEmbedded = false
+        new ConnectorServices().reset()
+    }
+
+    def cleanup() {
+        new ConnectorServices().reset()
     }
 
     def "logs necessary information when verbose"() {
@@ -44,29 +51,34 @@ project.logger.quiet("quiet logging yyy");
 project.logger.info ("info logging yyy");
 project.logger.debug("debug logging yyy");
 """
-        def out = new ByteArrayOutputStream()
-        def err = new ByteArrayOutputStream()
+        def output = new ByteArrayOutputStream()
+        def error = new ByteArrayOutputStream()
         when:
         withConnection {
             it.newBuild()
-                .setStandardOutput(out)
-                .setStandardError(err)
+                .setStandardOutput(output)
+                .setStandardError(error)
                 .run()
         }
 
         then:
-        def output = out.toString()
-        output.count("debug logging yyy") == 1
-        output.count("info logging yyy") == 1
-        output.count("quiet logging yyy") == 1
-        output.count("lifecycle logging yyy") == 1
-        output.count("warn logging yyy") == 1
-        output.count("println logging yyy") == 1
-        output.count("error logging xxx") == 0
+        def out = output.toString()
+        out.count("debug logging yyy") == 1
+        out.count("info logging yyy") == 1
+        out.count("quiet logging yyy") == 1
+        out.count("lifecycle logging yyy") == 1
+        out.count("warn logging yyy") == 1
+        out.count("println logging yyy") == 1
+        out.count("error logging xxx") == 0
 
-        err.toString().count("error logging") == 1
+        shouldNotContainProviderLogging(out)
+
+        def err = error.toString()
+        err.count("error logging") == 1
         err.toString().count("sys err") == 1
         err.toString().count("logging yyy") == 0
+
+        shouldNotContainProviderLogging(err)
     }
 
     def "logs necessary information"() {
@@ -84,28 +96,38 @@ project.logger.quiet("quiet logging yyy");
 project.logger.info ("info logging yyy");
 project.logger.debug("debug logging yyy");
 """
-        def out = new ByteArrayOutputStream()
-        def err = new ByteArrayOutputStream()
+        def output = new ByteArrayOutputStream()
+        def error = new ByteArrayOutputStream()
         when:
         withConnection {
             it.newBuild()
-                    .setStandardOutput(out)
-                    .setStandardError(err)
+                    .setStandardOutput(output)
+                    .setStandardError(error)
                     .run()
         }
 
         then:
-        def output = out.toString()
-        output.count("debug logging yyy") == 0
-        output.count("info logging yyy") == 0
-        output.count("quiet logging yyy") == 1
-        output.count("lifecycle logging yyy") == 1
-        output.count("warn logging yyy") == 1
-        output.count("println logging yyy") == 1
-        output.count("error logging xxx") == 0
+        def out = output.toString()
+        out.count("debug logging yyy") == 0
+        out.count("info logging yyy") == 0
+        out.count("quiet logging yyy") == 1
+        out.count("lifecycle logging yyy") == 1
+        out.count("warn logging yyy") == 1
+        out.count("println logging yyy") == 1
+        out.count("error logging xxx") == 0
 
-        err.toString().count("error logging") == 1
-        err.toString().count("sys err") == 1
-        err.toString().count("logging yyy") == 0
+        shouldNotContainProviderLogging(out)
+
+        def err = error.toString()
+        err.count("error logging") == 1
+        err.count("sys err") == 1
+        err.count("logging yyy") == 0
+
+        shouldNotContainProviderLogging(err)
+    }
+
+    void shouldNotContainProviderLogging(String output) {
+        assert !output.contains(ToolingProviderMessages.PROVIDER_HELLO)
+        assert !output.contains(ToolingProviderMessages.TOOLING_API_HELLO)
     }
 }

@@ -65,17 +65,10 @@ class LoggingBridgingGradleLauncherActionExecuterTest extends Specification {
         loggingManagerFactory.create() >> loggingManager
 
         when:
-        parameters.getVerboseLogging() >> true
+        parameters.getBuildLogLevel() >> LogLevel.QUIET
         executer.execute(action, parameters)
         
         then:
-        1 * loggingManager.setLevel(LogLevel.DEBUG)
-
-        when:
-        parameters.getVerboseLogging() >> false
-        executer.execute(action, parameters)
-
-        then:
-        1 * loggingManager.setLevel(LogLevel.INFO)
+        1 * loggingManager.setLevel(LogLevel.QUIET)
     }
 }

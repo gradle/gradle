@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.input;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 
 import java.io.File;
@@ -29,7 +30,11 @@ import java.util.List;
  */
 public interface ProviderOperationParameters extends BuildOperationParametersVersion1 {
 
-    boolean getVerboseLogging();
+    //TODO SF don't extend
+
+    LogLevel getProviderLogLevel();
+
+    LogLevel getBuildLogLevel();
 
     InputStream getStandardInput();
 

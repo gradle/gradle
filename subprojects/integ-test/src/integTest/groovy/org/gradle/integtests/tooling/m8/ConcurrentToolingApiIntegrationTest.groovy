@@ -48,6 +48,10 @@ class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
         new ConnectorServices().reset()
     }
 
+    def cleanup() {
+        new ConnectorServices().reset()
+    }
+
     def "handles the same target gradle version concurrently"() {
         dist.file('build.gradle')  << "apply plugin: 'java'"
 

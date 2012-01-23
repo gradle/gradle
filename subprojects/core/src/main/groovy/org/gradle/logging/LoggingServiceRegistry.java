@@ -17,12 +17,12 @@
 package org.gradle.logging;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer;
-import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.Factory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.cli.CommandLineConverter;
+import org.gradle.internal.Factory;
+import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.TrueTimeProvider;
@@ -101,13 +101,16 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
         OutputEventRenderer renderer = get(OutputEventRenderer.class);
-        Slf4jLoggingConfigurer slf4jConfigurer = new Slf4jLoggingConfigurer(renderer);
-        DefaultLoggingConfigurer compositeConfigurer = new DefaultLoggingConfigurer(renderer, slf4jConfigurer);
         if (!isEmbedded) {
             //we want to reset and manipulate java logging only if we own the process, e.g. we're *not* embedded
+            DefaultLoggingConfigurer compositeConfigurer = new DefaultLoggingConfigurer(renderer);
+            compositeConfigurer.add(new Slf4jLoggingConfigurer(renderer));
             compositeConfigurer.add(new JavaUtilLoggingConfigurer());
+            return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, getStdOutLoggingSystem(), getStdErrLoggingSystem());
+        } else {
+            //TODO SF further refactoring
+            return new DefaultLoggingManagerFactory(renderer, renderer, new NoOpLoggingSystem(), new NoOpLoggingSystem());
         }
-        return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, getStdOutLoggingSystem(), getStdErrLoggingSystem());
     }
 
     private LoggingSystem getStdErrLoggingSystem() {
