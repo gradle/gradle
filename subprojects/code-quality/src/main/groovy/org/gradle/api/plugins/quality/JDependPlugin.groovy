@@ -65,6 +65,7 @@ class JDependPlugin implements Plugin<ProjectInternal> {
         project.extensions.jdepend = extension
         extension.with {
             toolVersion = "2.9.1"
+            sourceSets = project.sourceSets
         }
         extension.conventionMapping.with {
             reportsDir = { new File(project.reportsDir, "jdepend") }

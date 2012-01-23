@@ -57,6 +57,7 @@ class PmdPlugin implements Plugin<ProjectInternal> {
         project.extensions.pmd = extension
         extension.with {
             toolVersion = "4.3"
+            sourceSets = project.sourceSets
             ruleSets = ["basic"]
             ruleSetFiles = project.files()
         }

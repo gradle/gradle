@@ -17,31 +17,31 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.Project
 import org.gradle.util.HelperUtil
-import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.tasks.SourceSet
 
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.dependsOn
-import static org.hamcrest.Matchers.hasItem
 import static org.hamcrest.Matchers.hasItems
-import static org.hamcrest.Matchers.not
 
 import static spock.util.matcher.HamcrestSupport.that
+import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.api.plugins.GroovyPlugin
 
 class CodeNarcPluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
 
     def setup() {
         project.plugins.apply(CodeNarcPlugin)
+        project.plugins.apply(GroovyPlugin)
     }
 
-    def "applies groovy-base plugin"() {
+    def "applies reporting-base plugin"() {
         expect:
-        project.plugins.hasPlugin(GroovyBasePlugin)
+        project.plugins.hasPlugin(ReportingBasePlugin)
     }
     
-    def "configures codenarc configuration"() {
+    def "adds codenarc configuration"() {
         def config = project.configurations.findByName("codenarc")    
         
         expect:
@@ -51,7 +51,7 @@ class CodeNarcPluginTest extends Specification {
         config.description == 'The CodeNarc libraries to be used for this project.'
     }
     
-    def "configures codenarc extension"() {
+    def "adds codenarc extension"() {
         expect:
         CodeNarcExtension codenarc = project.extensions.codenarc
         codenarc.configFile == project.file("config/codenarc/codenarc.xml")
@@ -60,7 +60,7 @@ class CodeNarcPluginTest extends Specification {
         codenarc.ignoreFailures == false
     }
 
-    def "configures codenarc task for each source set"() {
+    def "adds codenarc task for each source set"() {
         project.sourceSets {
             main
             test
@@ -86,39 +86,26 @@ class CodeNarcPluginTest extends Specification {
             assert ignoreFailures == false
         }
     }
-    
-    def "adds codenarc tasks to check lifecycle task"() {
+
+    def "can customize per-source-set tasks via extension"() {
         project.sourceSets {
             main
             test
             other
         }
-        
-        expect:
-        that(project.check, dependsOn(hasItems("codenarcMain", "codenarcTest", "codenarcOther")))
-    }
-    
-    def "can customize settings via extension"() {
-        project.sourceSets {
-            main
-            test
-            other
-        }
-        
+
         project.codenarc {
-            sourceSets = [project.sourceSets.main]
+            checkTasks = ["codenarcMain"]
             configFile = project.file("codenarc-config")
             reportFormat = "xml"
             reportsDir = project.file("codenarc-reports")
             ignoreFailures = true
         }
-        
+
         expect:
         hasCustomizedSettings("codenarcMain", project.sourceSets.main)
         hasCustomizedSettings("codenarcTest", project.sourceSets.test)
         hasCustomizedSettings("codenarcOther", project.sourceSets.other)
-        that(project.check, dependsOn(hasItem("codenarcMain")))
-        that(project.check, dependsOn(not(hasItems("codenarcTest", "codenarcOther"))))
     }
 
     private void hasCustomizedSettings(String taskName, SourceSet sourceSet) {
@@ -133,5 +120,68 @@ class CodeNarcPluginTest extends Specification {
             assert reportFile == project.file("codenarc-reports/${sourceSet.name}.xml")
             assert ignoreFailures == true
         }
+    }
+
+    def "configures any additional codenarc tasks"() {
+        def task = project.tasks.add("codenarcCustom", CodeNarc)
+
+        expect:
+        task.description == "Run CodeNarc analysis for custom classes"
+        task.defaultSource == null
+        task.codenarcClasspath == project.configurations.codenarc
+        task.configFile == project.file("config/codenarc/codenarc.xml")
+        task.reportFormat == "html"
+        task.reportFile == project.file("build/reports/codenarc/custom.html")
+        task.ignoreFailures == false
+    }
+
+    def "can customize additional tasks via extension"() {
+        def task = project.tasks.add("codenarcCustom", CodeNarc)
+
+        project.codenarc {
+            configFile = project.file("codenarc-config")
+            reportFormat = "xml"
+            reportsDir = project.file("codenarc-reports")
+            ignoreFailures = true
+        }
+
+        expect:
+        task.description == "Run CodeNarc analysis for custom classes"
+        task.defaultSource == null
+        task.codenarcClasspath == project.configurations.codenarc
+        task.configFile == project.file("codenarc-config")
+        task.reportFormat == "xml"
+        task.reportFile == project.file("codenarc-reports/custom.xml")
+        task.ignoreFailures == true
+    }
+    
+    def "adds all codenarc tasks to check lifecycle task"() {
+        project.sourceSets {
+            main
+            test
+            other
+        }
+
+        project.tasks.add("codenarcCustom", CodeNarc)
+        
+        expect:
+        that(project.check, dependsOn(hasItems("codenarcMain", "codenarcTest", "codenarcOther", "codenarcCustom")))
+    }
+
+    def "can customize which tasks are added to check lifecycle task"() {
+        project.sourceSets {
+            main
+            test
+            other
+        }
+
+        project.tasks.add("codenarcCustom", CodeNarc)
+
+        project.codenarc {
+            checkTasks = ["codenarcMain", "codenarcCustom"]
+        }
+
+        expect:
+        that(project.check, dependsOn(hasItems("codenarcMain", "codenarcCustom")))
     }
 }

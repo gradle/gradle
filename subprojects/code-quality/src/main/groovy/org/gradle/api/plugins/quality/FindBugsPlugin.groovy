@@ -71,6 +71,7 @@ class FindBugsPlugin implements Plugin<ProjectInternal> {
         project.extensions.findbugs = extension
         extension.with {
             toolVersion = "2.0.0"
+            sourceSets = project.sourceSets
         }
         extension.conventionMapping.with {
             reportsDir = { new File(project.reportsDir, "findbugs") }
