@@ -31,6 +31,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.ContentEncodingHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
 import org.apache.http.protocol.BasicHttpContext;
@@ -68,7 +69,7 @@ import java.util.List;
  */
 public class HttpResourceCollection extends AbstractRepository implements ResourceCollection {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceCollection.class);
-    private final DefaultHttpClient client = new DefaultHttpClient();
+    private final DefaultHttpClient client = new ContentEncodingHttpClient();
     private final BasicHttpContext httpContext = new BasicHttpContext();
     private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
     private final List<HttpResource> openResources = new ArrayList<HttpResource>();
@@ -305,7 +306,6 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
 
     private void configureMethod(HttpRequest method) {
         method.addHeader("User-Agent", "Gradle/" + GradleVersion.current().getVersion());
-        method.addHeader("Accept-Encoding", "identity");
 
         // Do preemptive authentication for basic auth
         if (repositoryCredentials != null) {
