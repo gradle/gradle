@@ -87,11 +87,11 @@ public class DefaultConnection implements InternalConnection {
         if (type == InternalBuildEnvironment.class) {
 
             //we don't really need to launch gradle to acquire information needed for BuildEnvironment
-            DaemonClientServices services = daemonClientServices(adaptedParameters);
+            DaemonParameters daemonParameters = init(adaptedParameters);
             DefaultBuildEnvironment out = new DefaultBuildEnvironment(
                 GradleVersion.current().getVersion(),
-                services.getDaemonParameters().getEffectiveJavaHome(),
-                services.getDaemonParameters().getJvmArgs());
+                daemonParameters.getEffectiveJavaHome(),
+                daemonParameters.getJvmArgs());
 
             return type.cast(out);
         }
@@ -110,7 +110,12 @@ public class DefaultConnection implements InternalConnection {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             return embeddedExecuterSupport.getExecuter();
         } else {
-            DaemonClientServices clientServices = daemonClientServices(operationParameters);
+            LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+
+            loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
+
+            DaemonParameters daemonParams = init(operationParameters);
+            DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParams, operationParameters.getStandardInput());
             DaemonClient client = clientServices.get(DaemonClient.class);
 
             GradleLauncherActionExecuter<ProviderOperationParameters> executer = new DaemonGradleLauncherActionExecuter(client, clientServices.getDaemonParameters());
@@ -120,10 +125,7 @@ public class DefaultConnection implements InternalConnection {
         }
     }
 
-    private DaemonClientServices daemonClientServices(ProviderOperationParameters operationParameters) {
-        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-
-        loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
+    private DaemonParameters init(ProviderOperationParameters operationParameters) {
         slf4jLoggingConfigurer.configure(operationParameters.getProviderLogLevel());
 
         File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
@@ -144,6 +146,6 @@ public class DefaultConnection implements InternalConnection {
             int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());
             daemonParams.setIdleTimeout(idleTimeout);
         }
-        return new DaemonClientServices(loggingServices, daemonParams, operationParameters.getStandardInput());
+        return daemonParams;
     }
 }
