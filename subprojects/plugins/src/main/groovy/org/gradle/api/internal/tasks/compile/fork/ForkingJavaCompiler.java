@@ -100,14 +100,6 @@ public class ForkingJavaCompiler implements JavaCompiler {
 
     private void registerCompilationListener(WorkerProcess process) {
         process.getConnection().addIncoming(CompilationListener.class, new CompilationListener() {
-            public void stdOut(CharSequence message) {
-                System.out.print(message);
-            }
-
-            public void stdErr(CharSequence message) {
-                System.err.print(message);
-            }
-
             public void completed(CompilationResult result11) {
                 ForkingJavaCompiler.this.result = result11;
             }
