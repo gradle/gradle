@@ -176,6 +176,18 @@ systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
                 Networking Properties page
             </ulink> from the JDK docs. If anyone knows a better overview please let us know via the mailing list.
         </para>
+        <section id='sub:ntlm_authentication'>
+            <title>NTLM Authentication</title>
+            <para>If your proxy requires NTLM authentication, you may need to provide the authentication domain as well as the username and password.
+                There are 2 ways that you can provide the domain for authenticating to a NTLM proxy:
+                <itemizedlist>
+                    <listitem>Set the <literal>http.proxyUser</literal> system property to a value like <literal>[domain]/[username]</literal>.
+                    </listitem>
+                    <listitem>Provide the authentication domain via the <literal>http.auth.ntlm.domain</literal> system property.
+                    </listitem>
+                </itemizedlist>
+            </para>
+        </section>
     </section>
     <section id="sec:configuring_using_external_script">
         <title>Configuring the project using an external build script</title>
