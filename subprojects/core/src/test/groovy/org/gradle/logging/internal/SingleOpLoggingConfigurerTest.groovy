@@ -33,9 +33,9 @@ class SingleOpLoggingConfigurerTest extends ConcurrentSpecification {
                 configurer.configure(LogLevel.DEBUG)
             }
         }
+        finished()
 
         then:
-        finished()
         1 * configurer.delegate.configure(LogLevel.DEBUG)
     }
 }
