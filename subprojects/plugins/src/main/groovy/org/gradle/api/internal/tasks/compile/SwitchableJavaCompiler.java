@@ -21,9 +21,8 @@ import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
 
-public class ForkableJavaCompiler implements JavaCompiler {
-    private final JavaCompiler forkingCompiler;
-    private final JavaCompiler nonForkingCompiler;
+public class SwitchableJavaCompiler implements JavaCompiler {
+    private final CompilerChooser compilerChooser;
     
     private FileCollection source;
     private File destinationDir;
@@ -32,9 +31,8 @@ public class ForkableJavaCompiler implements JavaCompiler {
     private String targetCompatibility;
     private CompileOptions compileOptions = new CompileOptions();
 
-    public ForkableJavaCompiler(JavaCompiler forkingCompiler, JavaCompiler nonForkingCompiler) {
-        this.forkingCompiler = forkingCompiler;
-        this.nonForkingCompiler = nonForkingCompiler;
+    public SwitchableJavaCompiler(CompilerChooser compilerChooser) {
+        this.compilerChooser = compilerChooser;
     }
 
     public void setSource(FileCollection source) {
@@ -70,16 +68,8 @@ public class ForkableJavaCompiler implements JavaCompiler {
     }
 
     public WorkResult execute() {
-        JavaCompiler actualCompiler;
-        
-        if (compileOptions.getFork()) {
-            actualCompiler = forkingCompiler;
-        } else {
-            actualCompiler = nonForkingCompiler;
-        }
-        
+        JavaCompiler actualCompiler = compilerChooser.choose(compileOptions);
         configure(actualCompiler);
-        
         return actualCompiler.execute();
     }
     
