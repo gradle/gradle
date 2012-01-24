@@ -18,13 +18,13 @@ package org.gradle.util;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.io.File;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
 
 /**
  * @author Hans Dockter
@@ -68,19 +68,31 @@ public class HashUtil {
         return messageDigest.digest();
     }
 
-    public static String createShortMD5(String scriptText) {
-        return createHashString(scriptText, "MD5", 32);
-    }
-
-    public static String createHashString(String scriptText, String algorithm, int radix) {
-        return byteToString(createHash(scriptText, algorithm), radix);
+    public static String createHashString(String scriptText, String algorithm) {
+        return byteToHexString(createHash(scriptText, algorithm));
     }
 
     public static String createHashString(File file, String algorithm) {
-        return byteToString(createHash(file, algorithm), 16);
+        return byteToHexString(createHash(file, algorithm));
     }
 
-    private static String byteToString(byte[] digest, int radix) {
-        return new BigInteger(1, digest).toString(radix);
+    public static String byteToHexString(byte[] digest) {
+      StringBuilder result = new StringBuilder(digest.length * 2);
+        for (byte b : digest) {
+            result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
+        }
+      return result.toString();
+    }
+
+    public static String createCompactMD5(String scriptText) {
+        return byteToCompactString(createHash(scriptText, "MD5"));
+    }
+
+    public static String byteToHexStringz(byte[] digest) {
+        return new BigInteger(1, digest).toString(16);
+    }
+
+    private static String byteToCompactString(byte[] digest) {
+        return new BigInteger(1, digest).toString(32);
     }
 }
