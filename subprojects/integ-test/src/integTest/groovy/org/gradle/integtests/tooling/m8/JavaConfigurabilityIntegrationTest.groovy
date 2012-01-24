@@ -25,6 +25,7 @@ import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.util.Jvm
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -140,10 +141,10 @@ assert System.getProperty('some-prop') == 'BBB'
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
     def "tooling api provided java home takes precedence over gradle.properties"() {
         File javaHome = AvailableJavaHomes.bestAlternative
-        File dummyJavaHome = dist.file("dummyJavaHome").createDir()
+        File otherJava = Jvm.current().getJavaHome()
 
         dist.file('build.gradle') << "assert System.getProperty('java.home').startsWith('$javaHome')"
-        dist.file('gradle.properties') << "org.gradle.java.home=${dummyJavaHome.absolutePath}"
+        dist.file('gradle.properties') << "org.gradle.java.home=${otherJava.absolutePath}"
 
         when:
         def env = withConnection {
@@ -156,6 +157,7 @@ assert System.getProperty('some-prop') == 'BBB'
         then:
         env != null
         env.java.javaHome == javaHome
+        env.java.javaHome != otherJava
     }
 
     @Issue("GRADLE-1799")
