@@ -44,4 +44,9 @@ public class DefaultPasswordCredentials implements PasswordCredentials {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    @Override
+    public String toString() {
+        return String.format("Credentials [username: %s]", username);
+    }
 }

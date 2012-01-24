@@ -62,7 +62,7 @@ public class HttpClientConfigurerTest extends Specification {
         ntlmCredentials.domain == 'DOMAIN'
         ntlmCredentials.userName == 'proxyUser'
         ntlmCredentials.password == 'proxyPass'
-        ntlmCredentials.workstation == ''
+        ntlmCredentials.workstation != ''
     }
 
     def "configures http client with credentials"() {
@@ -87,6 +87,6 @@ public class HttpClientConfigurerTest extends Specification {
         ntlmCredentials.domain == 'DOMAIN'
         ntlmCredentials.userName == 'user'
         ntlmCredentials.password == 'pass'
-        ntlmCredentials.workstation == ''
+        ntlmCredentials.workstation != ''
     }
 }

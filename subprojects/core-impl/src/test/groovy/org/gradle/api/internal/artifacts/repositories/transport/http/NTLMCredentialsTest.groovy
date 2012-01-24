@@ -76,16 +76,17 @@ public class NTLMCredentialsTest extends Specification {
         ntlmCredentials.password == 'password'
     }
 
-    def "uses default workstation"() {
+    def "uses truncated hostname for workstation"() {
         when:
         credentials.username >> "username"
         credentials.password >> "password"
-        def ntlmCredentials = new NTLMCredentials(credentials)
+        def ntlmCredentials = new NTLMCredentials(credentials) {
+            protected String getHostName() {
+                return "hostname.domain.org"
+            }
+        }
 
         then:
-        ntlmCredentials.domain == ''
-        ntlmCredentials.username == 'username'
-        ntlmCredentials.password == 'password'
-        ntlmCredentials.workstation == ''
+        ntlmCredentials.workstation == 'HOSTNAME'
     }
 }

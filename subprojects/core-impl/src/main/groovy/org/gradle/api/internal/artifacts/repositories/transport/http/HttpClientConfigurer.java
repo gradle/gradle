@@ -31,11 +31,15 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.ProxySelector;
 
 public class HttpClientConfigurer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
+
     private final HttpSettings httpSettings;
     private final UsernamePasswordCredentials repositoryCredentials;
 
@@ -81,6 +85,8 @@ public class HttpClientConfigurer {
         NTLMCredentials ntlmCredentials = new NTLMCredentials(credentials);
         Credentials ntCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
         httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthPolicy.NTLM), ntCredentials);
+        
+        LOGGER.debug("Using {} and {} for authenticating against '{}:{}'", new Object[]{credentials, ntlmCredentials, host, port});
     }
 
     private void configureRetryHandler(DefaultHttpClient httpClient) {

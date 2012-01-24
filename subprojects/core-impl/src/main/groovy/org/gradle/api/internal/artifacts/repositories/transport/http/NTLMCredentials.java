@@ -17,12 +17,16 @@ package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 class NTLMCredentials {
     private static final String DEFAULT_DOMAIN = "";
     private static final String DEFAULT_WORKSTATION = "";
     private final String domain;
     private final String username;
     private final String password;
+    private final String workstation;
 
     public NTLMCredentials(PasswordCredentials credentials) {
         String domain;
@@ -38,7 +42,32 @@ class NTLMCredentials {
         this.domain = domain == null ? null : domain.toUpperCase();
         this.username = username;
         this.password = credentials.getPassword();
+        this.workstation = determineWorkstationName();
     }
+
+    private String determineWorkstationName() {
+        // TODO:DAZ This is a temporary (hidden) property that may be useful to track down issues. Remove when NTLM Auth is solid.
+        String sysPropWorkstation = System.getProperty("http.auth.ntlm.workstation");
+        if (sysPropWorkstation != null) {
+            return sysPropWorkstation;
+        }
+
+        try {
+            return removeDotSuffix(getHostName()).toUpperCase();
+        } catch (UnknownHostException e) {
+            return DEFAULT_WORKSTATION;
+        }
+    }
+
+    protected String getHostName() throws UnknownHostException {
+        return InetAddress.getLocalHost().getHostName();
+    }
+
+    private String removeDotSuffix(String val) {
+        int dotPos = val.indexOf('.');
+        return dotPos == -1 ? val : val.substring(0, dotPos);
+    }
+
 
     public String getDomain() {
         return domain;
@@ -53,6 +82,11 @@ class NTLMCredentials {
     }
 
     public String getWorkstation() {
-        return DEFAULT_WORKSTATION;
+        return workstation;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("NTLM Credentials [user: %s, domain: %s, workstation: %s]", username, domain, workstation);
     }
 }
