@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile
 import spock.lang.Specification
 
 import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.api.tasks.compile.AntOrForkingCompilerChooser
 
 class AntOrForkingCompilerChooserTest extends Specification {
     def antCompiler = Mock(JavaCompiler)

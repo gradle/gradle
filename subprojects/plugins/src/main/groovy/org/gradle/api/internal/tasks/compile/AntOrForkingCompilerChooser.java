@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.compile;
+package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.internal.tasks.compile.CompilerChooser;
-import org.gradle.api.internal.tasks.compile.JavaCompiler;
+import org.gradle.api.tasks.compile.CompileOptions;
 
 public class AntOrForkingCompilerChooser implements CompilerChooser {
     private final JavaCompiler antCompiler;
