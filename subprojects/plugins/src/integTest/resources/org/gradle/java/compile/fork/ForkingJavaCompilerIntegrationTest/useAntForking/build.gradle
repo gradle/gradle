@@ -1,8 +1,8 @@
 apply plugin: "java"
 
 compileJava.options.fork = true
+compileJava.options.forkOptions.useAntForking = true
 
 dependencies {
     compile localGroovy()
-    compile files((1..999).collect { "${dependencyCacheDir}/library${it}.jar" })
 }

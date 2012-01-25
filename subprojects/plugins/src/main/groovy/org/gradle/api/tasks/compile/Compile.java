@@ -43,7 +43,7 @@ public class Compile extends AbstractCompile {
         final Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
         JavaCompiler maybeForkingCompiler = new SwitchableJavaCompiler(new CompilerChooser() {
             public JavaCompiler choose(CompileOptions options) {
-                if (options.isFork()) {
+                if (options.isFork() && !options.getForkOptions().isUseAntForking()) {
                     return new ForkingJavaCompiler(((ProjectInternal) getProject()).getServices(), getProject().getProjectDir());
                 }
                 return new AntJavaCompiler(antBuilderFactory);

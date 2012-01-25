@@ -20,13 +20,14 @@ import org.gradle.integtests.fixtures.TestResources
 
 import org.junit.Rule
 
-class ForkingJavaCompilerTest extends AbstractIntegrationSpec {
+class ForkingJavaCompilerIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources()
 
     def compileGoodCode() {
         expect:
         succeeds("compileJava")
         output.contains("[javac] Compiling 1 source file")
+        file("build/classes/main/compile/fork/Person.class").exists()
     }
     
     def compileBadCode() {
@@ -34,11 +35,27 @@ class ForkingJavaCompilerTest extends AbstractIntegrationSpec {
         fails("compileJava")
         output.contains("[javac] Compiling 1 source file")
         output.contains("';' expected")
+        !file("build/classes/main/compile/fork/Person.class").exists()
     }
     
-    def compileCodeWithLongClasspath() {
+    def compileWithLongClasspath() {
         expect:
         succeeds("compileJava")
         output.contains("[javac] Compiling 1 source file")
+        file("build/classes/main/compile/fork/Person.class").exists()
+    }
+
+    def compileWithCustomHeapSettings() {
+        expect:
+        succeeds("compileJava")
+        file("build/classes/main/compile/fork/Person.class").exists()
+        // couldn't find a good way to verify that heap settings take effect
+    }
+
+    def useAntForking() {
+        expect:
+        succeeds("compileJava")
+        !output.contains("[javac]") // not sure why, but at least it allows us to tell apart Ant forking from Gradle forking
+        file("build/classes/main/compile/fork/Person.class").exists()
     }
 }
