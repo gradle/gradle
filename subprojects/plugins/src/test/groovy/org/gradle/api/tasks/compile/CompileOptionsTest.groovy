@@ -19,7 +19,6 @@ package org.gradle.api.tasks.compile
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*
 import static org.gradle.util.Matchers.*
 
 /**
@@ -62,9 +61,11 @@ class CompileOptionsTest {
     @Test public void testOptionMapForDebugOptions() {
         Map optionMap = compileOptions.optionMap()
         assertEquals(optionMap.subMap(TEST_DEBUG_OPTION_MAP.keySet()), TEST_DEBUG_OPTION_MAP)
+        assertEquals(optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()), TEST_FORK_OPTION_MAP)
     }
 
-    @Test public void testForkOptionsAreNotPassedOnToAnt() {
+    @Test public void testForkOptionsAreNotPassedOnToAntIfGradleForkingIsUsed() {
+        compileOptions.forkOptions.useAntForking = false
         Map optionMap = compileOptions.optionMap()
         TEST_FORK_OPTION_MAP.keySet().each {
             assert !optionMap.containsKey(it)
