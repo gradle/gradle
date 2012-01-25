@@ -57,7 +57,7 @@ class CodeNarcPluginTest extends Specification {
         codenarc.configFile == project.file("config/codenarc/codenarc.xml")
         codenarc.reportFormat == "html"
         codenarc.reportsDir == project.file("build/reports/codenarc")
-        codenarc.ignoreFailures == false
+        !codenarc.ignoreFailures
     }
 
     def "adds codenarc task for each source set"() {

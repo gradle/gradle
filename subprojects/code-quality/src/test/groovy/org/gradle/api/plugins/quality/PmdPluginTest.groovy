@@ -56,7 +56,7 @@ class PmdPluginTest extends Specification {
         extension.ruleSetFiles.empty
         extension.xmlReportsDir == project.file("build/reports/pmd")
         extension.htmlReportsDir == project.file("build/reports/pmd")
-        extension.ignoreFailures == false
+        !extension.ignoreFailures
     }
 
     def "configures pmd task for each source set"() {

@@ -55,5 +55,5 @@ abstract class CodeQualityExtension {
      *
      * Example: ignoreFailures = true
      */
-    Boolean ignoreFailures = false
+    boolean ignoreFailures = false
 }

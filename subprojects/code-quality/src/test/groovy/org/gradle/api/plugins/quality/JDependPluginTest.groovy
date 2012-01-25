@@ -53,7 +53,7 @@ class JDependPluginTest extends Specification {
         expect:
         JDependExtension extension = project.extensions.jdepend
         extension.reportsDir == project.file("build/reports/jdepend")
-        extension.ignoreFailures == false
+        !extension.ignoreFailures
     }
 
     def "configures jdepend task for each source set"() {
