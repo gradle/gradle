@@ -30,7 +30,7 @@ import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.HashUtil;
+import org.gradle.util.hash.HashUtil;
 
 import java.io.File;
 import java.io.IOException;

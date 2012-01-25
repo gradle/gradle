@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
+import org.gradle.util.hash.HashValue;
+
 import java.io.File;
 
 public interface CachedArtifact {
-    String getSha1();
+    HashValue getSha1();
 
     File getOrigin();
 

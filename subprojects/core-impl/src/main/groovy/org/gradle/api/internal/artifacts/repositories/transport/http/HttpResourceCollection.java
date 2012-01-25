@@ -38,8 +38,8 @@ import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.hash.HashValue;
 import org.jfrog.wharf.ivy.checksum.ChecksumType;
-import org.jfrog.wharf.ivy.util.WharfUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,7 +160,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         ChecksumType checksumType = ChecksumType.sha1;
         String checksumUrl = source + checksumType.ext();
 
-        String sha1 = downloadChecksum(checksumUrl);
+        HashValue sha1 = downloadSha1(checksumUrl);
         if (sha1 == null) {
             LOGGER.info("Checksum {} unavailable. [HTTP GET: {}]", checksumType, checksumUrl);
         } else {
@@ -175,20 +175,20 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         return null;
     }
 
-    private String downloadChecksum(String checksumUrl) {
+    private HashValue downloadSha1(String checksumUrl) {
         HttpGet get = new HttpGet(checksumUrl);
         configurer.configureMethod(get);
         try {
             HttpResponse httpResponse = executeMethod(get);
             if (wasSuccessful(httpResponse)) {
                 String checksumValue = EntityUtils.toString(httpResponse.getEntity());
-                return WharfUtils.getCleanChecksum(checksumValue);
+                return HashValue.parse(checksumValue);
             }
             if (!wasMissing(httpResponse)) {
                 LOGGER.info("Request for checksum at {} failed: {}", checksumUrl, httpResponse.getStatusLine());
             }
             return null;
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOGGER.warn("Checksum missing at {} due to: {}", checksumUrl, e.getMessage());
             return null;
         } finally {

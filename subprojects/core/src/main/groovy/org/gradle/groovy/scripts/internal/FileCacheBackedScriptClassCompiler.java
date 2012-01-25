@@ -21,7 +21,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
-import org.gradle.util.HashUtil;
+import org.gradle.util.hash.HashUtil;
 
 import java.io.File;
 import java.util.HashMap;

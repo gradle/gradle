@@ -17,8 +17,9 @@ package org.gradle.integtests.fixtures
 
 import java.text.SimpleDateFormat
 import junit.framework.AssertionFailedError
-import org.gradle.util.HashUtil
+
 import org.gradle.util.TestFile
+import org.gradle.util.hash.HashUtil
 
 /**
  * A fixture for dealing with Maven repositories.
@@ -247,7 +248,7 @@ class MavenModule {
 
     private TestFile hashFile(File file, String algorithm) {
         def hashFile = moduleDir.file("${file.name}.${algorithm}")
-        hashFile.text = HashUtil.createHashString(file, algorithm.toUpperCase())
+        hashFile.text = HashUtil.createHash(file, algorithm.toUpperCase()).asHexString()
         return hashFile
     }
 }

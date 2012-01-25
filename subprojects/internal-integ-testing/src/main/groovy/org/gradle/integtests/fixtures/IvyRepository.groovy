@@ -17,8 +17,9 @@ package org.gradle.integtests.fixtures
 
 import java.util.regex.Pattern
 import junit.framework.AssertionFailedError
-import org.gradle.util.HashUtil
+
 import org.gradle.util.TestFile
+import org.gradle.util.hash.HashUtil
 
 class IvyRepository {
     final TestFile rootDir
@@ -159,7 +160,7 @@ class IvyModule {
     }
 
     private String getHash(File file, String algorithm) {
-        return HashUtil.createHashString(file, algorithm)
+        return HashUtil.createHash(file, algorithm).asHexString()
     }
 
     TestFile sha1File(File file) {

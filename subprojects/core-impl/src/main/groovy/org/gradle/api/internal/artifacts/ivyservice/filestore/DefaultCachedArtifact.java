@@ -15,13 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
-import org.gradle.util.HashUtil;
+import org.gradle.util.hash.HashUtil;
+import org.gradle.util.hash.HashValue;
 
 import java.io.File;
 
 public class DefaultCachedArtifact implements CachedArtifact {
     private final File origin;
-    private final String sha1;
+    private final HashValue sha1;
     private final long contentLength;
     private final long lastModified;
 
@@ -32,7 +33,7 @@ public class DefaultCachedArtifact implements CachedArtifact {
         lastModified = origin.lastModified();
     }
 
-    public String getSha1() {
+    public HashValue getSha1() {
         return sha1;
     }
 
@@ -48,7 +49,7 @@ public class DefaultCachedArtifact implements CachedArtifact {
         return lastModified;
     }
 
-    private String getChecksum(File contentFile) {
-        return HashUtil.createHashString(contentFile, "SHA1");
+    private HashValue getChecksum(File contentFile) {
+        return HashUtil.createHash(contentFile, "SHA1");
     }
 }
