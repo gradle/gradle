@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.copy
 
 import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
-import org.apache.tools.zip.UnixStat
 import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
@@ -319,9 +318,9 @@ public class CopySpecImplTest {
         assertThat(childSpec.allCopyActions, equalTo([parentAction, childAction]))
     }
 
-    @Test public void testDefaultPermissions() {
-        org.junit.Assert.assertEquals(UnixStat.DEFAULT_FILE_PERM, spec.fileMode)
-        org.junit.Assert.assertEquals(UnixStat.DEFAULT_DIR_PERM, spec.dirMode)
+    @Test public void testHasNoPermissionsByDefault() {
+        assert spec.fileMode == null
+        assert spec.dirMode == null
     }
 
     @Test public void testInheritsPermissionsFromParent() {

@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.EmptyCopySpecVisitor;
-import org.gradle.api.internal.file.copy.ReadableCopySpec;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +29,6 @@ import java.io.IOException;
 public class ZipCopySpecVisitor extends EmptyCopySpecVisitor {
     private ZipOutputStream zipOutStr;
     private File zipFile;
-    private ReadableCopySpec spec;
 
     public void startVisit(CopyAction action) {
         ArchiveCopyAction archiveAction = (ArchiveCopyAction) action;
@@ -48,43 +46,52 @@ public class ZipCopySpecVisitor extends EmptyCopySpecVisitor {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
-            spec = null;
             zipOutStr = null;
         }
     }
 
-    public void visitSpec(ReadableCopySpec spec) {
-        this.spec = spec;
+    public void visitFile(FileVisitDetails fileDetails) {
+        visitFileOrDir(fileDetails);
     }
 
-    public void visitFile(FileVisitDetails fileDetails) {
+    public void visitDir(FileVisitDetails dirDetails) {
+        visitFileOrDir(dirDetails);
+    }
+
+    public boolean getDidWork() {
+        return true;
+    }
+
+    private void visitFileOrDir(FileVisitDetails fileDetails) {
         try {
-            ZipEntry archiveEntry = new ZipEntry(fileDetails.getRelativePath().getPathString());
-            archiveEntry.setMethod(ZipEntry.DEFLATED);
-            archiveEntry.setTime(fileDetails.getLastModified());
-            archiveEntry.setUnixMode(UnixStat.FILE_FLAG | spec.getFileMode());
-            zipOutStr.putNextEntry(archiveEntry);
-            fileDetails.copyTo(zipOutStr);
+            final ZipEntry entry = new ZipEntry(getEntryPath(fileDetails));
+            entry.setTime(fileDetails.getLastModified());
+            entry.setUnixMode(getEntryMode(fileDetails));
+            writeEntry(fileDetails, entry);
             zipOutStr.closeEntry();
         } catch (Exception e) {
             throw new GradleException(String.format("Could not add %s to ZIP '%s'.", fileDetails, zipFile), e);
         }
     }
 
-    public void visitDir(FileVisitDetails dirDetails) {
-        try {
-            // Trailing slash in name indicates that entry is a directory
-            ZipEntry archiveEntry = new ZipEntry(dirDetails.getRelativePath().getPathString() + '/');
-            archiveEntry.setTime(dirDetails.getLastModified());
-            archiveEntry.setUnixMode(UnixStat.DIR_FLAG | spec.getDirMode());
-            zipOutStr.putNextEntry(archiveEntry);
-            zipOutStr.closeEntry();
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not add %s to ZIP '%s'.", dirDetails, zipFile), e);
-        }
+    private String getEntryPath(FileVisitDetails fileDetails) {
+        // Trailing slash in name indicates that entry is a directory
+        return fileDetails.getRelativePath().getPathString()
+            + (fileDetails.isDirectory() ? '/' : "");
     }
 
-    public boolean getDidWork() {
-        return true;
+    private int getEntryMode(FileVisitDetails fileDetails) {
+        return (fileDetails.isDirectory() ? UnixStat.DIR_FLAG : UnixStat.FILE_FLAG)
+            | fileDetails.getMode();
+    }
+
+    private void writeEntry(FileVisitDetails fileDetails, ZipEntry entry) throws IOException {
+        if (!fileDetails.isDirectory()) {
+            entry.setMethod(ZipEntry.DEFLATED);
+        }
+        zipOutStr.putNextEntry(entry);
+        if (!fileDetails.isDirectory()) {
+            fileDetails.copyTo(zipOutStr);
+        }
     }
 }

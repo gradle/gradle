@@ -298,14 +298,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    public int getDirMode() {
+    public Integer getDirMode() {
         return getMainSpec().getDirMode();
     }
 
     /**
      * {@inheritDoc}
      */
-    public int getFileMode() {
+    public Integer getFileMode() {
         return getMainSpec().getFileMode();
     }
 
