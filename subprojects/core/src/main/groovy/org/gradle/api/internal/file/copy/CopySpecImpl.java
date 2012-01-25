@@ -360,12 +360,12 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         return null;
     }
 
-    public CopyProcessingSpec setDirMode(int mode) {
+    public CopyProcessingSpec setDirMode(Integer mode) {
         dirMode = mode;
         return this;
     }
 
-    public CopyProcessingSpec setFileMode(int mode) {
+    public CopyProcessingSpec setFileMode(Integer mode) {
         fileMode = mode;
         return this;
     }

@@ -312,7 +312,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    public AbstractCopyTask setDirMode(int mode) {
+    public AbstractCopyTask setDirMode(Integer mode) {
         getMainSpec().setDirMode(mode);
         return this;
     }
@@ -320,7 +320,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    public AbstractCopyTask setFileMode(int mode) {
+    public AbstractCopyTask setFileMode(Integer mode) {
         getMainSpec().setFileMode(mode);
         return this;
     }

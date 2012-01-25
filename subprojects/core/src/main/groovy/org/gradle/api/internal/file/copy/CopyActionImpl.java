@@ -213,7 +213,7 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
         return mainContent.getDirMode();
     }
 
-    public CopyProcessingSpec setDirMode(int mode) {
+    public CopyProcessingSpec setDirMode(Integer mode) {
         mainContent.setDirMode(mode);
         return this;
     }
@@ -227,7 +227,7 @@ public class CopyActionImpl implements CopyAction, CopySpecSource {
         return mainContent.getFileMode();
     }
 
-    public CopyProcessingSpec setFileMode(int mode) {
+    public CopyProcessingSpec setFileMode(Integer mode) {
         mainContent.setFileMode(mode);
         return this;
     }
