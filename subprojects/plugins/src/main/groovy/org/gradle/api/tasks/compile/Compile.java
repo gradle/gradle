@@ -40,16 +40,11 @@ public class Compile extends AbstractCompile {
     private File dependencyCacheDir;
 
     public Compile() {
-        final Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
-        JavaCompiler maybeForkingCompiler = new SwitchableJavaCompiler(new CompilerChooser() {
-            public JavaCompiler choose(CompileOptions options) {
-                if (options.isFork() && !options.getForkOptions().isUseAntForking()) {
-                    return new ForkingJavaCompiler(((ProjectInternal) getProject()).getServices(), getProject().getProjectDir());
-                }
-                return new AntJavaCompiler(antBuilderFactory);
-            }
-        });
-        javaCompiler = new IncrementalJavaCompiler(maybeForkingCompiler, antBuilderFactory, getOutputs());
+        Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
+        JavaCompiler antCompiler = new AntJavaCompiler(antBuilderFactory);
+        JavaCompiler forkingCompiler = new ForkingJavaCompiler(((ProjectInternal) getProject()).getServices(), getProject().getProjectDir());
+        JavaCompiler antOrForkingCompiler = new SwitchableJavaCompiler(new AntOrForkingCompilerChooser(antCompiler, forkingCompiler));
+        javaCompiler = new IncrementalJavaCompiler(antOrForkingCompiler, antBuilderFactory, getOutputs());
     }
 
     @TaskAction
