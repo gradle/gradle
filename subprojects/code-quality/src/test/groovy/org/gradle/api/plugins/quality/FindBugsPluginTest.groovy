@@ -53,7 +53,7 @@ class FindBugsPluginTest extends Specification {
         expect:
         FindBugsExtension extension = project.extensions.findbugs
         extension.reportsDir == project.file("build/reports/findbugs")
-        extension.ignoreFailures == false
+        !extension.ignoreFailures
     }
 
     def "configures findbugs task for each source set"() {

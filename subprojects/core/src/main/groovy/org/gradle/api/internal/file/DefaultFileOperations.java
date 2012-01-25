@@ -83,11 +83,16 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver);
     }
 
+    public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
+        return ConfigureUtil.configure(closure, fileTree(baseDir));
+    }
+
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
         return new DefaultConfigurableFileTree(args, fileResolver, taskResolver);
     }
 
     public ConfigurableFileTree fileTree(Closure closure) {
+        // This method is deprecated, but the deprecation warning is added on public classes that delegate to this. 
         return configure(closure, new DefaultConfigurableFileTree(Collections.emptyMap(), fileResolver, taskResolver));
     }
 

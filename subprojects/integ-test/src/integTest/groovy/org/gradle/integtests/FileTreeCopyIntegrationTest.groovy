@@ -28,10 +28,28 @@ public class FileTreeCopyIntegrationTest extends AbstractIntegrationTest {
     @Test public void testCopyWithClosure() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {
-                   fileTree {
-                      from 'src'
+                   fileTree('src') {
                       exclude '**/ignore/**'
                    }.copy { into 'dest'}
+                }"""
+        )
+        usingBuildFile(buildFile).withTasks("cpy").run()
+        testFile('dest').assertHasDescendants(
+                'root.a',
+                'root.b',
+                'one/one.a',
+                'one/one.b',
+                'one/sub/onesub.a',
+                'one/sub/onesub.b',
+                'two/two.a',
+                'two/two.b',
+        )
+    }
+
+    @Test public void testCopyWithClosureBaseDir() {
+        TestFile buildFile = testFile("build.gradle").writelns(
+                """task cpy << {
+                   fileTree((Object){ 'src' }).exclude('**/ignore/**').copy { into 'dest'}
                 }"""
         )
         usingBuildFile(buildFile).withTasks("cpy").run()

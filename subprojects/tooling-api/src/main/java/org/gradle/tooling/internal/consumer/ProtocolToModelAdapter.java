@@ -139,7 +139,6 @@ public class ProtocolToModelAdapter {
             try {
                 match = delegate.getClass().getMethod(method.getName(), method.getParameterTypes());
             } catch (NoSuchMethodException e) {
-                //TODO SF - find a place for it in the documentation.
                 String methodName = method.getDeclaringClass().getSimpleName() + "." + method.getName() + "()";
                 throw Exceptions.unsupportedModelMethod(methodName, e);
             }

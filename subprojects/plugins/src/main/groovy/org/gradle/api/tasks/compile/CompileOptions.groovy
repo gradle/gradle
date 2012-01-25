@@ -134,7 +134,7 @@ class CompileOptions extends AbstractOptions {
     }
 
     List excludedFieldsFromOptionMap() {
-        ['debugOptions', 'forkOptions', 'compilerArgs', 'dependOptions', 'useDepend', 'fork']
+        ['debugOptions', 'forkOptions', 'compilerArgs', 'dependOptions', 'useDepend']
     }
 
     Map fieldName2AntMap() {
@@ -154,7 +154,11 @@ class CompileOptions extends AbstractOptions {
     }
 
     Map optionMap() {
-        super.optionMap() + forkOptions.optionMap() + debugOptions.optionMap()
+        def map = super.optionMap() + debugOptions.optionMap()
+        if (forkOptions.useAntForking) {
+            map.putAll(forkOptions.optionMap())
+        }
+        map
     }
 }
 

@@ -15,43 +15,72 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.version.VersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 
 /**
- * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver} implementation which returns lazy resolvers that don't
- * actually retrieve module descriptors until required.
+ * A {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionIdResolver} implementation which returns lazy resolvers that don't actually retrieve module descriptors until
+ * required.
  */
-class LazyDependencyToModuleResolver implements DependencyToModuleResolver {
-    private final DependencyToModuleResolver delegate;
+public class LazyDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
+    private final DependencyToModuleResolver dependencyResolver;
     private final VersionMatcher versionMatcher;
 
-    public LazyDependencyToModuleResolver(DependencyToModuleResolver delegate, VersionMatcher versionMatcher) {
-        this.delegate = delegate;
+    public LazyDependencyToModuleResolver(DependencyToModuleResolver dependencyResolver, VersionMatcher versionMatcher) {
+        this.dependencyResolver = dependencyResolver;
         this.versionMatcher = versionMatcher;
     }
 
-    public ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor) {
+    public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
         if (versionMatcher.isDynamic(dependencyDescriptor.getDependencyRevisionId())) {
-            return new DynamicModuleVersionResolver(dependencyDescriptor);
+            DynamicVersionResolveResult result = new DynamicVersionResolveResult(dependencyDescriptor);
+            result.resolve();
+            return result;
         }
-        return new DefaultModuleVersionResolver(dependencyDescriptor);
+        return new StaticVersionResolveResult(dependencyDescriptor);
     }
 
-    private class DefaultModuleVersionResolver implements ModuleVersionResolver {
-        private final DependencyDescriptor dependencyDescriptor;
-        private ModuleDescriptor moduleDescriptor;
-        ModuleVersionResolveException failure;
+    private static class DefaultModuleVersionResolveResult implements ModuleVersionResolveResult {
+        private final ModuleVersionResolveResult resolver;
 
-        public DefaultModuleVersionResolver(DependencyDescriptor dependencyDescriptor) {
+        private DefaultModuleVersionResolveResult(ModuleVersionResolveResult result) {
+            this.resolver = result;
+        }
+
+        public ModuleVersionResolveException getFailure() {
+            return null;
+        }
+
+        public ModuleRevisionId getId() throws ModuleVersionResolveException {
+            return resolver.getId();
+        }
+
+        public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
+            return resolver.getDescriptor();
+        }
+
+        public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
+            ArtifactResolveResult result;
+            try {
+                result = resolver.resolve(artifact);
+            } catch (Throwable t) {
+                return new BrokenArtifactResolveResult(new ArtifactResolveException(artifact, t));
+            }
+            return result;
+        }
+    }
+
+    private class StaticVersionResolveResult implements ModuleVersionIdResolveResult {
+        private final DependencyDescriptor dependencyDescriptor;
+        private ModuleVersionResolveResult resolveResult;
+
+        public StaticVersionResolveResult(DependencyDescriptor dependencyDescriptor) {
             this.dependencyDescriptor = dependencyDescriptor;
         }
 
@@ -59,32 +88,39 @@ class LazyDependencyToModuleResolver implements DependencyToModuleResolver {
             return dependencyDescriptor.getDependencyRevisionId();
         }
 
-        public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
-            if (failure != null) {
-                throw failure;
-            }
+        public ModuleVersionResolveException getFailure() {
+            return null;
+        }
 
-            if (moduleDescriptor == null) {
+        public ModuleVersionResolveResult resolve() {
+            if (resolveResult == null) {
+                ModuleVersionResolveException failure = null;
+                ModuleVersionResolveResult resolveResult = null;
                 try {
-                    ModuleVersionResolver moduleVersionResolver;
                     try {
-                        moduleVersionResolver = delegate.create(dependencyDescriptor);
+                        resolveResult = dependencyResolver.resolve(dependencyDescriptor);
                     } catch (Throwable t) {
-                        ModuleRevisionId id = dependencyDescriptor.getDependencyRevisionId();
-                        throw new ModuleVersionResolveException(String.format("Could not resolve group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()), t);
+                        throw new ModuleVersionResolveException(dependencyDescriptor.getDependencyRevisionId(), t);
                     }
-                    if (moduleVersionResolver == null) {
-                        ModuleRevisionId id = dependencyDescriptor.getDependencyRevisionId();
-                        throw notFound(id);
+                    if (resolveResult.getFailure() instanceof ModuleVersionNotFoundException) {
+                        throw notFound(dependencyDescriptor.getDependencyRevisionId());
                     }
-                    checkDescriptor(moduleVersionResolver.getDescriptor());
-                    moduleDescriptor = moduleVersionResolver.getDescriptor();
+                    if (resolveResult.getFailure() != null) {
+                        throw resolveResult.getFailure();
+                    }
+                    checkDescriptor(resolveResult.getDescriptor());
                 } catch (ModuleVersionResolveException e) {
                     failure = e;
-                    throw failure;
+                }
+
+                if (failure != null) {
+                    this.resolveResult = new BrokenModuleVersionResolveResult(failure);
+                } else {
+                    this.resolveResult = new DefaultModuleVersionResolveResult(resolveResult);
                 }
             }
-            return moduleDescriptor;
+
+            return resolveResult;
         }
 
         private void checkDescriptor(ModuleDescriptor descriptor) {
@@ -108,7 +144,7 @@ class LazyDependencyToModuleResolver implements DependencyToModuleResolver {
         }
 
         protected ModuleVersionNotFoundException notFound(ModuleRevisionId id) {
-            return new ModuleVersionNotFoundException(String.format("Could not find group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()));
+            return new ModuleVersionNotFoundException(id);
         }
 
         protected void onUnexpectedModuleRevisionId(ModuleDescriptor descriptor) {
@@ -116,14 +152,19 @@ class LazyDependencyToModuleResolver implements DependencyToModuleResolver {
         }
     }
 
-    private class DynamicModuleVersionResolver extends DefaultModuleVersionResolver {
-        public DynamicModuleVersionResolver(DependencyDescriptor dependencyDescriptor) {
+    private class DynamicVersionResolveResult extends StaticVersionResolveResult {
+        public DynamicVersionResolveResult(DependencyDescriptor dependencyDescriptor) {
             super(dependencyDescriptor);
         }
 
         @Override
+        public ModuleVersionResolveException getFailure() {
+            return resolve().getFailure();
+        }
+
+        @Override
         public ModuleRevisionId getId() throws ModuleVersionResolveException {
-            return getDescriptor().getModuleRevisionId();
+            return resolve().getId();
         }
 
         @Override

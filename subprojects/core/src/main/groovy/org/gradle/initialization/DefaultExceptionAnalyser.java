@@ -94,7 +94,7 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
                 locationAware = current;
             } else if (current instanceof GradleScriptException || current instanceof TaskExecutionException) {
                 result = current;
-            } else if (current.getClass().getAnnotation(Contextual.class) != null) {
+            } else if (contextMatch == null && current.getClass().getAnnotation(Contextual.class) != null) {
                 contextMatch = current;
             }
         }

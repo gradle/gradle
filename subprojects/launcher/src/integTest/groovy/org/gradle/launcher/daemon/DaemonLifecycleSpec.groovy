@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.GradleHandle
 import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
-import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.util.Jvm
 import org.junit.Rule
@@ -413,48 +412,6 @@ assert System.getProperty('some-prop') == 'some-value'
 
         expect:
         buildSucceeds "assert System.getProperty('java.home').startsWith('$javaHome')"
-    }
-    
-    @Timeout(5)
-    @IgnoreIf({OperatingSystem.current().isWindows()})
-    def "promptly shows decent message when daemon cannot be started"() {
-        when:
-        executer.withArguments("-Dorg.gradle.jvmargs=-Xyz").run()
-
-        then:
-        def ex = thrown(Exception)
-        ex.message.contains(DaemonMessages.UNABLE_TO_START_DAEMON)
-        ex.message.contains("-Xyz")
-    }
-
-    def "daemon log contains all necessary logging"() {
-        given:
-        def baseDir = distribution.file("daemonBaseDir").createDir()
-        assert baseDir.exists()
-        executer.withDaemonBaseDir(baseDir)
-
-        distribution.file("build.gradle") << "println 'Hello build!'"
-        
-        when:
-        executer.withArguments("-i").run()
-
-        then:
-        //the gradle version dir
-        baseDir.listFiles().length == 1
-        def daemonFiles = baseDir.listFiles()[0].listFiles()
-
-        //single build means single log
-        daemonFiles.count { it.name.endsWith('.log') } == 1
-        def daemonLog = daemonFiles.find { it.name.endsWith('.log') }
-
-        def log = daemonLog.text
-
-        //output before started relying logs via connection
-        assert log.contains(DaemonMessages.PROCESS_STARTED)
-        //output after started relying logs via connection
-        assert log.contains(DaemonMessages.STARTED_RELAYING_LOGS) //TODO SF add coverage for log levels
-        //output from the build
-        assert log.contains('Hello build!')
     }
 
     def cleanup() {

@@ -57,7 +57,7 @@ class CheckstylePluginTest extends Specification {
         extension.configFile == project.file("config/checkstyle/checkstyle.xml")
         extension.configProperties == [:]
         extension.reportsDir == project.file("build/reports/checkstyle")
-        extension.ignoreFailures == false
+        !extension.ignoreFailures
     }
 
     def "configures checkstyle task for each source set"() {

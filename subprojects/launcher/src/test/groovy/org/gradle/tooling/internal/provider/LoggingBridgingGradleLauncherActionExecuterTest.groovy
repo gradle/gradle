@@ -15,8 +15,9 @@
  */
 package org.gradle.tooling.internal.provider
 
-import org.gradle.internal.Factory
+import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.GradleLauncherAction
+import org.gradle.internal.Factory
 import org.gradle.launcher.exec.GradleLauncherActionExecuter
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.tooling.internal.provider.input.ProviderOperationParameters
@@ -57,5 +58,17 @@ class LoggingBridgingGradleLauncherActionExecuterTest extends Specification {
         1 * loggingManager.start()
         1 * target.execute(action, parameters) >> {throw failure}
         1 * loggingManager.stop()
+    }
+
+    def "sets log level accordingly"() {
+        given:
+        loggingManagerFactory.create() >> loggingManager
+
+        when:
+        parameters.getBuildLogLevel() >> LogLevel.QUIET
+        executer.execute(action, parameters)
+        
+        then:
+        1 * loggingManager.setLevel(LogLevel.QUIET)
     }
 }

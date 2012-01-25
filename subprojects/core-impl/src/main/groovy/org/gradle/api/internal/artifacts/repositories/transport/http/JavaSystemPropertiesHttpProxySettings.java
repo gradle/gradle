@@ -81,6 +81,10 @@ public class JavaSystemPropertiesHttpProxySettings implements HttpProxySettings 
         return Pattern.compile(Pattern.quote(nonProxyHost));
     }
 
+    public HttpProxy getProxy() {
+        return proxy;
+    }
+
     public HttpProxy getProxy(String host) {
         if (proxy == null || isNonProxyHost(host)) {
             return null;

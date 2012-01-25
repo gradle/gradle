@@ -26,8 +26,6 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface ClientModule extends ExternalDependency {
-    String CLIENT_MODULE_KEY = "org.gradle.clientModule";
-
     /**
      * Add a dependency to the client module. Such a dependency is transitive dependency for the
      * project that has a dependency on the client module.

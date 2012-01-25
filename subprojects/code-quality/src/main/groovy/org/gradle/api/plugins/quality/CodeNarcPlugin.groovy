@@ -20,6 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.plugins.GroovyBasePlugin
+import org.gradle.api.plugins.ReportingBasePlugin
 
 class CodeNarcPlugin implements Plugin<Project> {
     private Project project
@@ -30,7 +31,7 @@ class CodeNarcPlugin implements Plugin<Project> {
         this.project = project
         instantiator = project.services.get(Instantiator)
 
-        project.plugins.apply(GroovyBasePlugin)
+        project.plugins.apply(ReportingBasePlugin)
 
         configureCodeNarcConfiguration()
         configureCodeNarcExtension()
@@ -53,18 +54,21 @@ class CodeNarcPlugin implements Plugin<Project> {
             toolVersion = "0.16.1"
         }
         extension.conventionMapping.with {
-            configFile = { project.file("config/codenarc/codenarc.xml") }
-            reportFormat = { "html" }
+            checkTasks = { project.tasks.withType(CodeNarc) }
             ignoreFailures = { false }
+            configFile = { project.rootProject.file("config/codenarc/codenarc.xml") }
+            reportFormat = { "html" }
             reportsDir = { new File(project.reportsDir, "codenarc") }
         }
     }
 
     private void configureCodeNarcTasks() {
-        project.sourceSets.all { SourceSet sourceSet ->
-            def task = project.tasks.add(sourceSet.getTaskName('codenarc', null), CodeNarc)
+        project.tasks.withType(CodeNarc) { task ->
+            def prunedName = (task.name - "codenarc" ?: task.name)
+            prunedName = prunedName[0].toLowerCase() + prunedName.substring(1)
+
             task.with {
-                description = "Run CodeNarc analysis for ${sourceSet.name} classes"
+                description = "Run CodeNarc analysis for $prunedName classes"
             }
             task.conventionMapping.with {
                 codenarcClasspath = {
@@ -76,19 +80,29 @@ class CodeNarcPlugin implements Plugin<Project> {
                     }
                     config
                 }
-                defaultSource = { sourceSet.allGroovy }
                 configFile = { extension.configFile }
                 reportFormat = { extension.reportFormat }
                 reportFile = {
                     def fileSuffix = task.reportFormat == 'text' ? 'txt' : task.reportFormat
-                    new File(extension.reportsDir, "${sourceSet.name}.$fileSuffix")
+                    new File(extension.reportsDir, "$prunedName.$fileSuffix")
                 }
                 ignoreFailures = { extension.ignoreFailures }
+            }
+        }
+        
+        project.plugins.withType(GroovyBasePlugin) {
+            project.sourceSets.all { SourceSet sourceSet ->
+                def task = project.tasks.add(sourceSet.getTaskName('codenarc', null), CodeNarc)
+                task.conventionMapping.with {
+                    defaultSource = { sourceSet.allGroovy }
+                }
             }
         }
     }
 
     private void configureCheckTask() {
-        project.tasks['check'].dependsOn { extension.sourceSets.collect { it.getTaskName('codenarc', null) }}
+        project.plugins.withType(GroovyBasePlugin) {
+            project.tasks['check'].dependsOn { extension.checkTasks }
+        }
     }
 }

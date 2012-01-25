@@ -15,7 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+
 public class ModuleVersionNotFoundException extends ModuleVersionResolveException {
+    public ModuleVersionNotFoundException(ModuleRevisionId id) {
+        super(String.format("Could not find group:%s, module:%s, version:%s.", id.getOrganisation(), id.getName(), id.getRevision()));
+    }
+
     public ModuleVersionNotFoundException(String message) {
         super(message);
     }

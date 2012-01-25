@@ -10,8 +10,7 @@ tree.exclude '**/Abstract*'
 tree = fileTree('src').include('**/*.java')
 
 // Create a tree using closure
-tree = fileTree {
-    from 'src'
+tree = fileTree('src') {
     include '**/*.java'
 }
 

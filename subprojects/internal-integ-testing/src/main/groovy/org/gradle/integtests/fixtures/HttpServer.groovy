@@ -16,22 +16,27 @@
 package org.gradle.integtests.fixtures
 
 import java.security.Principal
+import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import org.junit.rules.MethodRule
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
 import org.mortbay.jetty.Handler
+import org.mortbay.jetty.HttpHeaders
 import org.mortbay.jetty.HttpStatus
+import org.mortbay.jetty.MimeTypes
 import org.mortbay.jetty.Request
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
+import org.mortbay.jetty.security.BasicAuthenticator
+import org.mortbay.jetty.security.Constraint
+import org.mortbay.jetty.security.ConstraintMapping
+import org.mortbay.jetty.security.SecurityHandler
+import org.mortbay.jetty.security.UserRealm
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.mortbay.jetty.security.*
-import org.mortbay.jetty.HttpHeaders
-import org.mortbay.jetty.MimeTypes
 
 class HttpServer implements MethodRule {
     private Logger logger = LoggerFactory.getLogger(HttpServer.class)
@@ -176,6 +181,26 @@ class HttpServer implements MethodRule {
     }
 
     /**
+     * Allows one GET request for the given URL, with the response being GZip encoded.
+     */
+    void expectGetGZipped(String path, File srcFile) {
+        expect(path, false, ['GET'], new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                def file = srcFile
+                if (file.isFile()) {
+                    response.setHeader("Content-Encoding", "gzip")
+                    response.setDateHeader(HttpHeaders.LAST_MODIFIED, srcFile.lastModified())
+                    def stream = new GZIPOutputStream(response.outputStream)
+                    stream.write(file.bytes)
+                    stream.close()
+                } else {
+                    response.sendError(404, "'$target' does not exist")
+                }
+            }
+        });
+    }
+
+    /**
      * Allows one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
      */
     void expectGetDirectoryListing(String path, File directory) {
@@ -256,7 +281,7 @@ class HttpServer implements MethodRule {
         return new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 if (request.remoteUser != username) {
-                    response.sendError(500, "unexpected username2 '${request.remoteUser}'")
+                    response.sendError(500, "unexpected username '${request.remoteUser}'")
                     return
                 }
                 handler.handle(target, request, response, dispatch)

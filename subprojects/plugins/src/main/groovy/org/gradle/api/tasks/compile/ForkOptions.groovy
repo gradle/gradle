@@ -49,9 +49,19 @@ class ForkOptions extends AbstractOptions {
     /**
      * Any additional JVM arguments for the compiler process.
      */
-    List jvmArgs
+    List jvmArgs = []
+
+    /**
+     * Whether to leave forking to the Ant javac task or use
+     * Gradle's own forking mechanism. Defaults to <tt>true</tt>.
+     */
+    boolean useAntForking = true
 
     Map fieldName2AntMap() {
         [tempDir: 'tempdir']
+    }
+
+    List excludedFieldsFromOptionMap() {
+        ["jvmArgs", "useAntForking"]
     }
 }

@@ -16,9 +16,8 @@
 
 package org.gradle.util;
 
+import org.apache.tools.ant.util.JavaEnvUtils;
 import org.gradle.internal.nativeplatform.OperatingSystem;
-import org.gradle.util.internal.AntBasedJavaExecutableFinder;
-import org.gradle.util.internal.JavaExecutableFinder;
 
 import java.io.File;
 import java.util.HashMap;
@@ -26,19 +25,45 @@ import java.util.Map;
 
 public class Jvm {
     private final OperatingSystem os;
-
-    private final JavaExecutableFinder executableFinder = new AntBasedJavaExecutableFinder(System.getProperty("java.home"));
+    private final File suppliedJavaHome;
 
     public static Jvm current() {
+        return create(null);
+    }
+
+    static Jvm create(File javaHome) {
         String vendor = System.getProperty("java.vm.vendor");
         if (vendor.toLowerCase().startsWith("apple inc.")) {
-            return new AppleJvm(OperatingSystem.current());
+            return new AppleJvm(OperatingSystem.current(), javaHome);
         }
-        return new Jvm(OperatingSystem.current());
+        return new Jvm(OperatingSystem.current(), javaHome);
     }
 
     public Jvm(OperatingSystem os) {
+        this(os, null);
+    }
+
+    Jvm(OperatingSystem os, File suppliedJavaHome) {
         this.os = os;
+        this.suppliedJavaHome = suppliedJavaHome;
+    }
+
+    /**
+     * Creates jvm instance for given java home. Attempts to validate if provided javaHome is a valid jdk or jre location.
+     *
+     * @param javaHome - location of your jdk or jre (jdk is safer), cannot be null
+     * @return jvm for given java home
+     *
+     * @throws org.gradle.util.JavaHomeException when supplied javaHome does not seem to be a valid jdk or jre location
+     * @throws IllegalArgumentException when supplied javaHome is not a valid folder
+     */
+    public static Jvm forHome(File javaHome) throws JavaHomeException, IllegalArgumentException {
+        if (javaHome == null || !javaHome.isDirectory()) {
+            throw new IllegalArgumentException("Supplied javaHome must be a valid directory. You supplied: " + javaHome);
+        }
+        Jvm jvm = create(javaHome);
+        jvm.getJavaExecutable();
+        return jvm;
     }
 
     @Override
@@ -46,16 +71,45 @@ public class Jvm {
         return String.format("%s (%s %s)", System.getProperty("java.version"), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
     }
 
-    public File getJavaExecutable() {
-        return new File(executableFinder.getJdkExecutable("java"));
+    private File getJdkExecutable(String command) {
+        if (suppliedJavaHome == null) {
+            //grab the executable in a backwards compatible way, via ant utility.
+            //might be worth changing it so that it uses consistent strategy (getToolsJar
+            //but this is a breaking change and probably requires
+            return new File(JavaEnvUtils.getJdkExecutable(command));    
+        } else {
+            File exec = new File(suppliedJavaHome, "bin/" + command);
+            File maybeExtension = new File(os.getExecutableName(exec.getAbsolutePath()));
+            if (!maybeExtension.isFile()) {
+                throw new JavaHomeException(String.format("The supplied javaHome seems to be invalid."
+                        + " I cannot find the %s executable. Tried location: %s", command, maybeExtension.getAbsolutePath()));
+            }
+            return maybeExtension;
+        }
     }
 
-    public File getJavadocExecutable() {
-        return new File(executableFinder.getJdkExecutable("javadoc"));
+    /**
+     * @return the executable
+     * @throws JavaHomeException when executable cannot be found
+     */
+    public File getJavaExecutable() throws JavaHomeException {
+        return getJdkExecutable("java");
     }
 
-    public File getExecutable(String name) {
-        return new File(executableFinder.getJdkExecutable(name));
+    /**
+     * @return the executable
+     * @throws JavaHomeException when executable cannot be found
+     */
+    public File getJavadocExecutable() throws JavaHomeException {
+        return getJdkExecutable("javadoc");
+    }
+
+    /**
+     * @return the executable
+     * @throws JavaHomeException when executable cannot be found
+     */
+    public File getExecutable(String name) throws JavaHomeException {
+        return getJdkExecutable(name);
     }
 
     public boolean isJava5Compatible() {
@@ -68,21 +122,24 @@ public class Jvm {
 
     public File getJavaHome() {
         File toolsJar = getToolsJar();
-        return toolsJar == null ? getDefaultJavaHome() : toolsJar.getParentFile().getParentFile();
+        return toolsJar == null ? getEffectiveJavaHome() : toolsJar.getParentFile().getParentFile();
     }
-
-    private File getDefaultJavaHome() {
+    
+    private File getEffectiveJavaHome() {
+        if (suppliedJavaHome != null) {
+            return suppliedJavaHome;
+        }
         return GFileUtils.canonicalise(new File(System.getProperty("java.home")));
     }
 
     public File getRuntimeJar() {
-        File javaHome = getDefaultJavaHome();
+        File javaHome = getEffectiveJavaHome();
         File runtimeJar = new File(javaHome, "lib/rt.jar");
         return runtimeJar.exists() ? runtimeJar : null;
     }
 
     public File getToolsJar() {
-        File javaHome = getDefaultJavaHome();
+        File javaHome = getEffectiveJavaHome();
         File toolsJar = new File(javaHome, "lib/tools.jar");
         if (toolsJar.exists()) {
             return toolsJar;
@@ -122,14 +179,18 @@ public class Jvm {
             super(os);
         }
 
+        AppleJvm(OperatingSystem current, File javaHome) {
+            super(current, javaHome);
+        }
+
         @Override
         public File getJavaHome() {
-            return super.getDefaultJavaHome();
+            return super.getEffectiveJavaHome();
         }
 
         @Override
         public File getRuntimeJar() {
-            File javaHome = super.getDefaultJavaHome();
+            File javaHome = super.getEffectiveJavaHome();
             File runtimeJar = new File(javaHome.getParentFile(), "Classes/classes.jar");
             return runtimeJar.exists() ? runtimeJar : null;
         }

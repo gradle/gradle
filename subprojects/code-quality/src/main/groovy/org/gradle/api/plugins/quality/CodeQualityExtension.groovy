@@ -15,8 +15,8 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.Project
+import org.gradle.api.tasks.SourceSet
 
 abstract class CodeQualityExtension {
     private final Project project
@@ -33,17 +33,27 @@ abstract class CodeQualityExtension {
     String toolVersion
 
     /**
+     * The tasks that are to be run as part of the <tt>check</tt> and <tt>build</tt> tasks.
+     * Defaults to all tasks of the particular type (e.g. <tt>Checkstyle</tt>).
+     *
+     * Example: checkTasks = ["checkstyleMain"]
+     */
+    // TODO: Only one of "checkTasks" and "sourceSets" can stay (rivaling concepts)
+    Collection<Object> checkTasks
+
+    /**
      * The source sets to be analyzed as part of the <tt>check</tt> and <tt>build</tt> tasks.
      * Defaults to <tt>project.sourceSets</tt> (i.e. all source sets in the project).
      *
      * Example: sourceSets = [project.sourceSets.main]
      */
-    Collection<SourceSet> sourceSets = project.sourceSets
+    // TODO: Only one of "checkTasks" and "sourceSets" can stay (rivaling concepts)
+    Collection<SourceSet> sourceSets
 
     /**
      * Whether or not to allow the build to continue if there are warnings. Defaults to <tt>false</tt>.
      *
      * Example: ignoreFailures = true
      */
-    Boolean ignoreFailures = false
+    boolean ignoreFailures = false
 }

@@ -47,7 +47,10 @@ public interface FileOperations {
 
     ConfigurableFileTree fileTree(Map<String, ?> args);
 
+    @Deprecated
     ConfigurableFileTree fileTree(Closure closure);
+
+    ConfigurableFileTree fileTree(Object baseDir, Closure closure);
 
     FileTree zipTree(Object zipPath);
 

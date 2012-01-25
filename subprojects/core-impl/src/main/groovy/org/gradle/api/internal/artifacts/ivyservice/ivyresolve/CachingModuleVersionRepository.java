@@ -132,7 +132,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
 
         LOGGER.debug("Using cached module metadata for '{}'", resolvedModuleVersionId);
         // TODO:DAZ Could provide artifact metadata and file here from artifactFileStore (it's not needed currently)
-        ModuleVersionDescriptor cachedModule = new DefaultModuleVersionDescriptor(cachedModuleDescriptor.getModuleDescriptor(), null, null, cachedModuleDescriptor.isChangingModule());
+        ModuleVersionDescriptor cachedModule = new DefaultModuleVersionDescriptor(cachedModuleDescriptor.getModuleDescriptor(), cachedModuleDescriptor.isChangingModule());
         return found(cachedModule);
     }
 

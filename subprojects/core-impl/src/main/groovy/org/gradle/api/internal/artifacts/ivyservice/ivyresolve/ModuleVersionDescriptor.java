@@ -15,15 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
 
-import java.io.File;
-
 public interface ModuleVersionDescriptor extends ModuleVersionResolver {
-    Artifact getMetadataArtifact();
-
-    File getMetadataFile();
-
     boolean isChanging();
 }

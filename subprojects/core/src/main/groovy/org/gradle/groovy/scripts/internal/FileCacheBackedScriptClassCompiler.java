@@ -21,7 +21,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
-import org.gradle.util.HashUtil;
+import org.gradle.util.hash.HashUtil;
 
 import java.io.File;
 import java.util.HashMap;
@@ -42,7 +42,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
     public <T extends Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass) {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("source.filename", source.getFileName());
-        properties.put("source.hash", HashUtil.createShortMD5(source.getResource().getText()));
+        properties.put("source.hash", HashUtil.createCompactMD5(source.getResource().getText()));
 
         String cacheName = String.format("scripts/%s/%s/%s", source.getClassName(), scriptBaseClass.getSimpleName(), transformer.getId());
         PersistentCache cache = cacheRepository.cache(cacheName)

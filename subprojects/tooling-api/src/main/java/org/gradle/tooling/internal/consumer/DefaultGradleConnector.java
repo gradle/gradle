@@ -97,7 +97,7 @@ public class DefaultGradleConnector extends GradleConnector {
      * @return
      */
     public DefaultGradleConnector setVerboseLogging(boolean verboseLogging) {
-        connectionParameters.setVerboseLogging(true);
+        connectionParameters.setVerboseLogging(verboseLogging);
         return this;
     }
 

@@ -27,6 +27,7 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
+import org.gradle.util.JavaHomeException;
 import org.gradle.util.Jvm;
 
 import java.io.File;
@@ -50,7 +51,6 @@ public class DaemonParameters {
     private File javaHome;
 
     public DaemonParameters() {
-        javaHome = canonicalise(Jvm.current().getJavaHome());
         jvmOptions.setAllJvmArgs(Arrays.asList("-Xmx1024m", "-XX:MaxPermSize=256m"));
     }
 
@@ -81,9 +81,19 @@ public class DaemonParameters {
     public List<String> getAllJvmArgs() {
         return jvmOptions.getAllJvmArgs();
     }
-
-    public File getJavaHome() {
+    
+    public File getEffectiveJavaHome() {
+        if (javaHome == null) {
+            return canonicalise(Jvm.current().getJavaHome());
+        }
         return javaHome;
+    }
+    
+    public String getEffectiveJavaExecutable() {
+        if (javaHome == null) {
+            return Jvm.current().getJavaExecutable().getAbsolutePath();
+        }
+        return Jvm.forHome(javaHome).getJavaExecutable().getAbsolutePath();
     }
 
     public void setJavaHome(File javaHome) {
@@ -167,8 +177,13 @@ public class DaemonParameters {
         propertyValue = properties.get(JAVA_HOME_SYS_PROPERTY);
         if (propertyValue != null) {
             javaHome = new File(propertyValue.toString());
-            if (!javaHome.exists()) {
+            if (!javaHome.isDirectory()) {
                 throw new GradleException(String.format("Java home supplied via '%s' is invalid. Dir does not exist: %s", JAVA_HOME_SYS_PROPERTY, propertyValue));
+            }
+            try {
+                Jvm.forHome(javaHome);
+            } catch (JavaHomeException e) {
+                throw new GradleException(String.format("Java home supplied via '%s' seems to be invalid: %s", JAVA_HOME_SYS_PROPERTY, propertyValue));
             }
         }
     }

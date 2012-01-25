@@ -30,7 +30,7 @@ import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.HashUtil;
+import org.gradle.util.hash.HashUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
     public TarFileTree(ReadableResource resource, File tmpDir) {
         this.resource = resource;
-        String expandDirName = String.format("%s_%s", resource.getBaseName(), HashUtil.createShortMD5(resource.getURI().toString()));
+        String expandDirName = String.format("%s_%s", resource.getBaseName(), HashUtil.createCompactMD5(resource.getURI().toString()));
         this.tmpDir = new File(tmpDir, expandDirName);
     }
 

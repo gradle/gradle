@@ -15,23 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
-import java.io.File;
-
 public class DefaultModuleVersionDescriptor implements ModuleVersionDescriptor {
     private final ModuleDescriptor moduleDescriptor;
-    private final Artifact metadataArtifact;
-    private final File metadataFile;
     private final boolean changing;
 
-    public DefaultModuleVersionDescriptor(ModuleDescriptor moduleDescriptor, Artifact metadataArtifact, File metadataFile, boolean changing) {
+    public DefaultModuleVersionDescriptor(ModuleDescriptor moduleDescriptor, boolean changing) {
         this.moduleDescriptor = moduleDescriptor;
-        this.metadataArtifact = metadataArtifact;
-        this.metadataFile = metadataFile;
         this.changing = changing;
     }
 
@@ -41,14 +34,6 @@ public class DefaultModuleVersionDescriptor implements ModuleVersionDescriptor {
 
     public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
         return moduleDescriptor;
-    }
-    
-    public Artifact getMetadataArtifact() {
-        return metadataArtifact;
-    }
-
-    public File getMetadataFile() {
-        return metadataFile;
     }
 
     public boolean isChanging() {

@@ -683,11 +683,16 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return fileOperations.fileTree(baseDir);
     }
 
+    public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
+        return fileOperations.fileTree(baseDir, closure);
+    }
+
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
         return fileOperations.fileTree(args);
     }
 
     public ConfigurableFileTree fileTree(Closure closure) {
+        DeprecationLogger.nagUserWith("fileTree(Closure) is a deprecated method. Use fileTree((Object){ baseDir }) to have the closure used as the file tree base directory");
         return fileOperations.fileTree(closure);
     }
 

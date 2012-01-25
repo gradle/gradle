@@ -21,7 +21,7 @@ import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
-import org.gradle.util.HashUtil;
+import org.gradle.util.hash.HashUtil;
 
 import java.io.File;
 import java.util.Random;
@@ -58,7 +58,7 @@ public class DefaultArtifactFileStore implements ArtifactFileStore {
     }
 
     private String getChecksum(File contentFile) {
-        return HashUtil.createHashString(contentFile, "SHA1");
+        return HashUtil.createHash(contentFile, "SHA1").asHexString();
     }
 
     private File getArtifactFile(ArtifactRevisionId artifactId, String sha1) {

@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
-import org.gradle.util.HashUtil;
+import org.gradle.util.hash.HashUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +44,7 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
     public ZipFileTree(File zipFile, File tmpDir) {
         this.zipFile = zipFile;
-        String expandDirName = String.format("%s_%s", zipFile.getName(), HashUtil.createShortMD5(zipFile.getAbsolutePath()));
+        String expandDirName = String.format("%s_%s", zipFile.getName(), HashUtil.createCompactMD5(zipFile.getAbsolutePath()));
         this.tmpDir = new File(tmpDir, expandDirName);
     }
 

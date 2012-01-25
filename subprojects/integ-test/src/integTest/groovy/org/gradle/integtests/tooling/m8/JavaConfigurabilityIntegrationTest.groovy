@@ -20,11 +20,15 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.build.BuildEnvironment
-import spock.lang.Ignore
+import org.gradle.util.Jvm
 import spock.lang.IgnoreIf
 import spock.lang.Issue
+import spock.lang.Timeout
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
@@ -41,13 +45,11 @@ class JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
         BuildEnvironment env = withConnection {
             def model = it.model(BuildEnvironment.class)
             model
-                .setJavaHome(new File("hey"))
                 .setJvmArguments("-Xmx333m", "-Xms13m")
                 .get()
         }
 
         then:
-        env.java.javaHome == new File("hey")
         env.java.jvmArguments.contains("-Xmx333m")
         env.java.jvmArguments.contains("-Xms13m")
     }
@@ -139,10 +141,10 @@ assert System.getProperty('some-prop') == 'BBB'
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
     def "tooling api provided java home takes precedence over gradle.properties"() {
         File javaHome = AvailableJavaHomes.bestAlternative
-        File dummyJavaHome = dist.file("dummyJavaHome").createDir()
+        File otherJava = Jvm.current().getJavaHome()
 
         dist.file('build.gradle') << "assert System.getProperty('java.home').startsWith('$javaHome')"
-        dist.file('gradle.properties') << "org.gradle.java.home=${dummyJavaHome.absolutePath}"
+        dist.file('gradle.properties') << "org.gradle.java.home=${otherJava.absolutePath}"
 
         when:
         def env = withConnection {
@@ -155,31 +157,51 @@ assert System.getProperty('some-prop') == 'BBB'
         then:
         env != null
         env.java.javaHome == javaHome
+        env.java.javaHome != otherJava
     }
 
-    @Ignore
     @Issue("GRADLE-1799")
-    def "behaves reasonably when rubbish java home"() {
+    @Timeout(5)
+    def "promptly discovers when java does not exist"() {
         when:
         withConnection {
-            it.newBuild()
-                .setJavaHome(new File("hey"))
-                .run()
+            it.newBuild().setJavaHome(new File("i dont exist"))
         }
 
-        then: "behaves sanely, and the exception contains useful info"
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message.contains("i dont exist")
     }
 
-    @Ignore
     @Issue("GRADLE-1799")
-    def "behaves reasonably when rubbish jvm arguments supplied"() {
+    @Timeout(5)
+    def "promptly discovers when java is not a valid installation"() {
+        def dummyJdk = dist.file("dummyJdk").createDir()
+        
         when:
         withConnection {
-            it.newBuild()
-                .setJvmArguments("-Xasdf")
-                .run()
+            it.newBuild().setJavaHome(dummyJdk)
         }
 
-        then: "behaves sanely, and the exception contains useful info"
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message.contains("dummyJdk")
+    }
+
+    @Issue("GRADLE-1799")
+    @IgnoreIf({OperatingSystem.current().isWindows()})
+    @Timeout(5)
+    def "promptly discovers rubbish jvm arguments"() {
+        when:
+        def ex = maybeFailWithConnection {
+            it.newBuild()
+                    .setJvmArguments("-Xasdf")
+                    .run()
+        }
+
+        then:
+        ex instanceof GradleConnectionException
+        ex.cause.message.contains "-Xasdf"
+        ex.cause.message.contains DaemonMessages.UNABLE_TO_START_DAEMON
     }
 }

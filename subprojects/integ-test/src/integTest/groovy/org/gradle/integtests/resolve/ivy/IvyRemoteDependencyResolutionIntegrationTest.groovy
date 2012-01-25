@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.SetSystemProperties
 import org.hamcrest.Matchers
 import org.junit.Rule
 import static org.hamcrest.Matchers.containsString
@@ -26,8 +25,6 @@ import static org.hamcrest.Matchers.containsString
 class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
-    @Rule
-    public SetSystemProperties systemProperties = new SetSystemProperties()
 
     def "setup"() {
         requireOwnUserHomeDir()
@@ -189,36 +186,6 @@ task listJars << {
         succeeds('listJars')
     }
 
-    public void "uses configured proxy to access remote HTTP repository"() {
-        server.start()
-        given:
-        def repo = ivyRepo()
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
-
-        and:
-        buildFile << """
-repositories {
-    ivy { url "http://external:8888/repo" }
-}
-configurations { compile }
-dependencies { compile 'group:projectA:1.2' }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-}
-"""
-
-        when:
-        executer.withArguments("-Dhttp.proxyHost=localhost", "-Dhttp.proxyPort=${server.port}")
-
-        and:
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
-
-        then:
-        succeeds('listJars')
-    }
-
     public void "reports and caches missing module"() {
         server.start()
 
@@ -375,7 +342,7 @@ task retrieve(type: Sync) {
 
         then:
         fails "retrieve"
-        failure.assertThatCause(containsString("Download failed for artifact 'group:projectA:1.2@jar': Could not GET"))
+        failure.assertThatCause(containsString("Could not download artifact 'group:projectA:1.2@jar': Could not GET"))
 
         when:
         server.resetExpectations()

@@ -52,6 +52,7 @@ class CheckstylePlugin implements Plugin<Project> {
 
         extension.with {
             toolVersion = "5.5"
+            sourceSets = project.sourceSets
         }
 
         extension.conventionMapping.with {

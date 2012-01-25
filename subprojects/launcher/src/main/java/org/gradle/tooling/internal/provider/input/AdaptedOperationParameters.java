@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.input;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.internal.reflect.CompatibleIntrospector;
@@ -45,6 +46,26 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
         //Hence we use a dummy input stream by default
         ByteArrayInputStream safeDummy = new ByteArrayInputStream(new byte[0]);
         return maybeGet(safeDummy, "getStandardInput");
+    }
+
+    public LogLevel getProviderLogLevel() {
+        boolean verbose = getVerboseLogging();
+        if (verbose) {
+            return LogLevel.DEBUG;
+        } else {
+            //by default, tooling api provider infrastructure logs with:
+            return LogLevel.INFO;
+        }
+    }
+    
+    public LogLevel getBuildLogLevel() {
+        boolean verbose = getVerboseLogging();
+        if (verbose) {
+            return LogLevel.DEBUG;
+        } else {
+            //by default, the build logs with:
+            return LogLevel.LIFECYCLE;
+        }
     }
 
     public boolean getVerboseLogging() {

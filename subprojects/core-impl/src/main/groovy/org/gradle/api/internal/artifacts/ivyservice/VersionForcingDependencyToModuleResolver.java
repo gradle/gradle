@@ -23,11 +23,11 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import java.util.HashMap;
 import java.util.Map;
 
-public class VersionForcingDependencyToModuleResolver implements DependencyToModuleResolver {
-    private final DependencyToModuleResolver resolver;
+public class VersionForcingDependencyToModuleResolver implements DependencyToModuleVersionIdResolver {
+    private final DependencyToModuleVersionIdResolver resolver;
     private final Map<ModuleId, ModuleRevisionId> forcedModules = new HashMap<ModuleId, ModuleRevisionId>();
 
-    public VersionForcingDependencyToModuleResolver(DependencyToModuleResolver resolver, Iterable<? extends ModuleVersionSelector> forcedModules) {
+    public VersionForcingDependencyToModuleResolver(DependencyToModuleVersionIdResolver resolver, Iterable<? extends ModuleVersionSelector> forcedModules) {
         this.resolver = resolver;
         for (ModuleVersionSelector forcedModule : forcedModules) {
             ModuleId moduleId = new ModuleId(forcedModule.getGroup(), forcedModule.getName());
@@ -35,11 +35,11 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
         }
     }
 
-    public ModuleVersionResolver create(DependencyDescriptor dependencyDescriptor) {
+    public ModuleVersionIdResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
         ModuleRevisionId newRevisionId = forcedModules.get(dependencyDescriptor.getDependencyId());
         if (newRevisionId != null) {
-            return resolver.create(dependencyDescriptor.clone(newRevisionId));
+            return resolver.resolve(dependencyDescriptor.clone(newRevisionId));
         }
-        return resolver.create(dependencyDescriptor);
+        return resolver.resolve(dependencyDescriptor);
     }
 }

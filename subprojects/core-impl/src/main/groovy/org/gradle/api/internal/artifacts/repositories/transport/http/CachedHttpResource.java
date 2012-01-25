@@ -17,7 +17,8 @@ package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 import org.apache.ivy.util.CopyProgressListener;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifact;
-import org.gradle.util.HashUtil;
+import org.gradle.util.hash.HashUtil;
+import org.gradle.util.hash.HashValue;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -73,13 +74,11 @@ class CachedHttpResource extends AbstractHttpResource {
             return;
         }
 
-        // Check that sha1 matches after copy
-        String destinationSha1 = getChecksum(destination);
-        if (destinationSha1.equals(cachedArtifact.getSha1())) {
-            return;
+        // If the checksum of the downloaded file does not match the cached artifact, download it directly.
+        // This may be the case if the cached artifact was changed before copying
+        if (!getSha1(destination).equals(cachedArtifact.getSha1())) {
+            downloadResourceDirect(destination, progress);
         }
-
-        downloadResourceDirect(destination, progress);
     }
 
     private void downloadResourceDirect(File destination, CopyProgressListener progress) throws IOException {
@@ -87,7 +86,7 @@ class CachedHttpResource extends AbstractHttpResource {
         resourceCollection.getResource(source).writeTo(destination, progress);
     }
 
-    private String getChecksum(File contentFile) {
-        return HashUtil.createHashString(contentFile, "SHA1");
+    private HashValue getSha1(File contentFile) {
+        return HashUtil.createHash(contentFile, "SHA1");
     }
 }

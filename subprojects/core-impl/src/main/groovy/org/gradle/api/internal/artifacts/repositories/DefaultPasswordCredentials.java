@@ -21,6 +21,14 @@ public class DefaultPasswordCredentials implements PasswordCredentials {
     private String username;
     private String password;
 
+    public DefaultPasswordCredentials() {
+    }
+
+    public DefaultPasswordCredentials(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
     public String getUsername() {
         return username;
     }
@@ -35,5 +43,10 @@ public class DefaultPasswordCredentials implements PasswordCredentials {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Credentials [username: %s]", username);
     }
 }

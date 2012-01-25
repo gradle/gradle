@@ -16,19 +16,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.resolve.ResolveData;
-import org.apache.ivy.plugins.version.VersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactToFileResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
 
 class DefaultIvyAdapter implements IvyAdapter {
     private final ResolveData resolveData;
-    private final VersionMatcher versionMatcher;
     private final UserResolverChain userResolver;
 
     public DefaultIvyAdapter(ResolveData resolveData, UserResolverChain userResolverChain) {
         this.resolveData = resolveData;
         userResolver = userResolverChain;
-        versionMatcher = resolveData.getSettings().getVersionMatcher();
     }
 
     public ResolveData getResolveData() {
@@ -36,11 +32,6 @@ class DefaultIvyAdapter implements IvyAdapter {
     }
 
     public DependencyToModuleResolver getDependencyToModuleResolver() {
-        return new LazyDependencyToModuleResolver(userResolver, versionMatcher);
-    }
-
-    public ArtifactToFileResolver getArtifactToFileResolver() {
         return userResolver;
     }
-
 }

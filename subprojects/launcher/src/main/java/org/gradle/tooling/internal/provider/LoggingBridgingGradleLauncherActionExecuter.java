@@ -15,8 +15,8 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.internal.Factory;
 import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.internal.Factory;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.*;
@@ -50,7 +50,7 @@ public class LoggingBridgingGradleLauncherActionExecuter implements GradleLaunch
         ProgressListenerVersion1 progressListener = actionParameters.getProgressListener();
         OutputEventListenerAdapter listener = new OutputEventListenerAdapter(progressListener);
         loggingManager.addOutputEventListener(listener);
-
+        loggingManager.setLevel(actionParameters.getBuildLogLevel());
         loggingManager.start();
         try {
             return executer.execute(action, actionParameters);

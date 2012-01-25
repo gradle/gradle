@@ -71,6 +71,7 @@ class FindBugsPlugin implements Plugin<ProjectInternal> {
         project.extensions.findbugs = extension
         extension.with {
             toolVersion = "2.0.0"
+            sourceSets = project.sourceSets
         }
         extension.conventionMapping.with {
             reportsDir = { new File(project.reportsDir, "findbugs") }
@@ -99,8 +100,7 @@ class FindBugsPlugin implements Plugin<ProjectInternal> {
                 classes = {
                     // the simple "classes = sourceSet.output" may lead to non-existing resources directory
                     // being passed to FindBugs Ant task, resulting in an error
-                    project.fileTree {
-                        from sourceSet.output.classesDir
+                    project.fileTree(sourceSet.output.classesDir) {
                         builtBy sourceSet.output
                     }
                 } 

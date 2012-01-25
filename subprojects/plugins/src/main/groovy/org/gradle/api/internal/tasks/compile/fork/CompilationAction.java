@@ -23,12 +23,9 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
-import org.gradle.logging.StandardOutputRedirector;
-import org.gradle.logging.internal.DefaultStandardOutputRedirector;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.WorkerProcessContext;
 
@@ -75,25 +72,12 @@ public class CompilationAction implements Action<WorkerProcessContext>, Serializ
         ObjectConnection connection = workerProcessContext.getServerConnection();
         final CompilationListener listener = connection.addOutgoing(CompilationListener.class);
         
-        StandardOutputRedirector redirector = new DefaultStandardOutputRedirector();
-        redirector.redirectStandardOutputTo(new StandardOutputListener() {
-            public void onOutput(CharSequence output) {
-                listener.stdOut(output);
-            }
-        });
-        redirector.redirectStandardErrorTo(new StandardOutputListener() {
-            public void onOutput(CharSequence output) {
-                listener.stdErr(output);
-            }
-        });
-        
         Factory<AntBuilder> antBuilderFactory = new Factory<AntBuilder>() {
             public AntBuilder create() {
                 return new BasicAntBuilder();
             }
         };
         
-        redirector.start();
         try {
             JavaCompiler javaCompiler = new AntJavaCompiler(antBuilderFactory);
             javaCompiler.setSource(source);
@@ -108,7 +92,6 @@ public class CompilationAction implements Action<WorkerProcessContext>, Serializ
             listener.completed(new CompilationResult(true, t));
         } finally {
             connection.stop();
-            redirector.stop();
         }
     }
 
