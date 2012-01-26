@@ -15,21 +15,19 @@
  */
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
+import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
 
-public class DefaultScalaJavaJointCompiler implements ScalaJavaJointCompiler {
+public class DefaultScalaJavaJointCompiler extends JavaCompilerSupport implements ScalaJavaJointCompiler {
     private final ScalaCompiler scalaCompiler;
     private final JavaCompiler javaCompiler;
-    private FileCollection source;
 
     public DefaultScalaJavaJointCompiler(ScalaCompiler scalaCompiler, JavaCompiler javaCompiler) {
         this.scalaCompiler = scalaCompiler;
@@ -44,44 +42,15 @@ public class DefaultScalaJavaJointCompiler implements ScalaJavaJointCompiler {
         scalaCompiler.setScalaClasspath(classpath);
     }
 
-    public void setSource(FileCollection source) {
-        this.source = source;
-        scalaCompiler.setSource(source);
-    }
-
-    public void setDestinationDir(File destinationDir) {
-        scalaCompiler.setDestinationDir(destinationDir);
-        javaCompiler.setDestinationDir(destinationDir);
-    }
-
-    public void setClasspath(Iterable<File> classpath) {
-        scalaCompiler.setClasspath(classpath);
-        javaCompiler.setClasspath(classpath);
-    }
-
-    public CompileOptions getCompileOptions() {
-        return javaCompiler.getCompileOptions();
-    }
-    
-    public void setCompileOptions(CompileOptions compileOptions) {
-        javaCompiler.setCompileOptions(compileOptions);
-    }
-
-    public void setSourceCompatibility(String sourceCompatibility) {
-        javaCompiler.setSourceCompatibility(sourceCompatibility);
-    }
-
-    public void setTargetCompatibility(String targetCompatibility) {
-        javaCompiler.setTargetCompatibility(targetCompatibility);
-    }
-
     public WorkResult execute() {
+        configureScalaCompiler();
         scalaCompiler.execute();
 
         PatternFilterable patternSet = new PatternSet();
         patternSet.include("**/*.java");
         FileTree javaSource = source.getAsFileTree().matching(patternSet);
         if (!javaSource.isEmpty()) {
+            configure(javaCompiler);
             javaCompiler.setSource(javaSource);
             javaCompiler.execute();
         }
@@ -91,5 +60,11 @@ public class DefaultScalaJavaJointCompiler implements ScalaJavaJointCompiler {
                 return true;
             }
         };
+    }
+    
+    private void configureScalaCompiler() {
+        scalaCompiler.setSource(source);
+        scalaCompiler.setDestinationDir(destinationDir);
+        scalaCompiler.setClasspath(classpath);    
     }
 }

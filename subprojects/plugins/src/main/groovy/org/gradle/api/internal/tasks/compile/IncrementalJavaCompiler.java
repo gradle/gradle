@@ -19,23 +19,15 @@ import org.gradle.api.AntBuilder;
 import org.gradle.internal.Factory;
 import org.gradle.api.internal.TaskOutputsInternal;
 
-import java.io.File;
-
-public class IncrementalJavaCompiler extends IncrementalJavaSourceCompiler<JavaCompiler> implements JavaCompiler {
+public class IncrementalJavaCompiler extends IncrementalJavaCompilerSupport<JavaCompiler> implements JavaCompiler {
     private final Factory<AntBuilder> antBuilderFactory;
     private final TaskOutputsInternal taskOutputs;
-    private File dependencyCacheDir;
 
     public IncrementalJavaCompiler(JavaCompiler compiler, Factory<AntBuilder> antBuilderFactory,
-                                    TaskOutputsInternal taskOutputs) {
+                                   TaskOutputsInternal taskOutputs) {
         super(compiler);
         this.antBuilderFactory = antBuilderFactory;
         this.taskOutputs = taskOutputs;
-    }
-
-    public void setDependencyCacheDir(File dir) {
-        dependencyCacheDir = dir;
-        getCompiler().setDependencyCacheDir(dir);
     }
 
     protected StaleClassCleaner createCleaner() {

@@ -33,18 +33,12 @@ import org.gradle.api.tasks.compile.CompileOptions
  *
  * @author Hans Dockter
  */
-class AntGroovyCompiler implements GroovyJavaJointCompiler {
+class AntGroovyCompiler extends JavaCompilerSupport implements GroovyJavaJointCompiler {
     private static Logger logger = LoggerFactory.getLogger(AntGroovyCompiler)
 
     private final IsolatedAntBuilder ant
     private final ClassPathRegistry classPathRegistry
-    FileCollection source
-    File destinationDir
-    Iterable<File> classpath
-    String sourceCompatibility
-    String targetCompatibility
     GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions()
-    CompileOptions compileOptions = new CompileOptions()
     Iterable<File> groovyClasspath
 
     List nonGroovycJavacOptions = ['verbose', 'deprecation', 'includeJavaRuntime', 'includeAntRuntime', 'optimize', 'fork', 'failonerror', 'listfiles', 'nowarn', 'depend']

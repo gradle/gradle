@@ -15,56 +15,20 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.compile.CompileOptions;
-
-import java.io.File;
 
 /**
  * A dumb incremental compiler. Deletes stale classes before invoking the actual compiler
  */
-public abstract class IncrementalJavaSourceCompiler<T extends JavaSourceCompiler> implements JavaSourceCompiler {
+public abstract class IncrementalJavaCompilerSupport<T extends JavaCompiler> extends JavaCompilerSupport {
     private final T compiler;
-    private FileCollection source;
-    private File destinationDir;
 
-    public IncrementalJavaSourceCompiler(T compiler) {
+    public IncrementalJavaCompilerSupport(T compiler) {
         this.compiler = compiler;
     }
 
     public T getCompiler() {
         return compiler;
-    }
-
-    public CompileOptions getCompileOptions() {
-        return compiler.getCompileOptions();
-    }
-
-    public void setCompileOptions(CompileOptions compileOptions) {
-        compiler.setCompileOptions(compileOptions);
-    }
-
-    public void setSourceCompatibility(String sourceCompatibility) {
-        compiler.setSourceCompatibility(sourceCompatibility);
-    }
-
-    public void setTargetCompatibility(String targetCompatibility) {
-        compiler.setTargetCompatibility(targetCompatibility);
-    }
-
-    public void setSource(FileCollection source) {
-        this.source = source;
-        compiler.setSource(source);
-    }
-
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
-        compiler.setDestinationDir(destinationDir);
-    }
-
-    public void setClasspath(Iterable<File> classpath) {
-        compiler.setClasspath(classpath);
     }
 
     public WorkResult execute() {
@@ -74,6 +38,7 @@ public abstract class IncrementalJavaSourceCompiler<T extends JavaSourceCompiler
         cleaner.setCompileOptions(compiler.getCompileOptions());
         cleaner.execute();
 
+        configure(compiler);
         return compiler.execute();
     }
 

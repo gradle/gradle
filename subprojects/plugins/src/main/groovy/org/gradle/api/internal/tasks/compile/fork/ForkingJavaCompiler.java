@@ -15,11 +15,8 @@
  */
 package org.gradle.api.internal.tasks.compile.fork;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.internal.tasks.compile.JavaCompiler;
+import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.service.ServiceRegistry;
@@ -29,7 +26,7 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 
 import java.io.File;
 
-public class ForkingJavaCompiler implements JavaCompiler {
+public class ForkingJavaCompiler extends JavaCompilerSupport {
     private final ServiceRegistry services;
     private final File workingDir;
     
@@ -41,39 +38,8 @@ public class ForkingJavaCompiler implements JavaCompiler {
         this.workingDir = workingDir;
     }
 
-    public void setDependencyCacheDir(File dir) {
-        /* do nothing */
-    }
-
-    public CompileOptions getCompileOptions() {
-        return action.getCompileOptions();
-    }
-
-    public void setCompileOptions(CompileOptions compileOptions) {
-        action.setCompileOptions(compileOptions);
-    }
-
-    public void setSourceCompatibility(String sourceCompatibility) {
-        action.setSourceCompatibility(sourceCompatibility);
-    }
-
-    public void setTargetCompatibility(String targetCompatibility) {
-        action.setTargetCompatibility(targetCompatibility);
-    }
-
-    public void setClasspath(Iterable<File> classpath) {
-        action.setClasspath(classpath);
-    }
-
-    public void setSource(FileCollection source) {
-        action.setSource(new SimpleFileCollection(source.getFiles()));
-    }
-
-    public void setDestinationDir(File destinationDir) {
-        action.setDestinationDir(destinationDir);
-    }
-
     public WorkResult execute() {
+        configure(action);
         WorkerProcess process = createWorkerProcess();
         process.start();
         // TODO: only works when done after start() - does this risk to lose some messages?
