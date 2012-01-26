@@ -108,7 +108,7 @@ class CompileOptions extends AbstractOptions {
      * The arguments to pass to the compiler.
      */
     @Input
-    List compilerArgs = []
+    List<String> compilerArgs = []
 
     CompileOptions fork(Map forkArgs) {
         fork = true
