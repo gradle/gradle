@@ -34,4 +34,13 @@ class ReflectionUtil {
     static boolean hasProperty(Object object, String property) {
         object.metaClass.hasProperty(object, property) != null
     }
+
+    static boolean isClassAvailable(String className) {
+        try {
+            ReflectionUtil.classLoader.loadClass(className)
+            return true
+        } catch (ClassNotFoundException e) {
+            return false
+        }
+    }
 }
