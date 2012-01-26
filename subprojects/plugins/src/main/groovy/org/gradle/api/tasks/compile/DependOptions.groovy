@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.tasks.compile
 
-
 /**
- * <p>Options to send to Ant's depend task.  Depends will delete out of date class files before compiling.
- * This is not fool-proof, but will cut down on the frequency of having to do a clean build.  This may or may
+ * <p>Options to send to Ant's depend task. Depends will delete out of date class files before compiling.
+ * This is not fool-proof, but will cut down on the frequency of having to do a clean build. This may or may
  * not be faster than a clean build.</p>
  * See the <a href="http://ant.apache.org/manual/OptionalTasks/depend.html" target="_blank">Ant Reference</a>
  * for more information.</p>
+ *
  * <h2>Ant Options</h2>
  * <ul>
  *      <li>srcDir  - <b>IGNORED</b> - set automatically</li>
@@ -33,9 +32,11 @@ package org.gradle.api.tasks.compile
  *      <li>classpath - extra classes to check</li>
  *      <li>warnOnRmiStubs - disables warnings for rmi stubs with no source</li>
  * </ul>
+ *
  * <p>
- * There is an additional "useCache" boolean option to enable/disable caching of dependency information.  It is true
+ * There is an additional <tt>useCache</tt> boolean option to enable/disable caching of dependency information. It is true
  * by default.</p>
+ *
  * @author Steve Appling
  */
 public class DependOptions extends AbstractOptions {
