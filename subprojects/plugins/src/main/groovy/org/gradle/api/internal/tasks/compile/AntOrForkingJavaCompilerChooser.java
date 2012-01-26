@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,19 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.CompileOptions;
 
-/**
- * Strategy used by SwitchableJavaCompiler to choose the actual compiler.
- */
-public interface CompilerChooser {
-    JavaCompiler choose(CompileOptions options);
+public class AntOrForkingJavaCompilerChooser implements JavaCompilerChooser {
+    private final JavaCompiler antCompiler;
+    private final JavaCompiler forkingCompiler;
+
+    public AntOrForkingJavaCompilerChooser(JavaCompiler antCompiler, JavaCompiler forkingCompiler) {
+        this.antCompiler = antCompiler;
+        this.forkingCompiler = forkingCompiler;
+    }
+
+    public JavaCompiler choose(CompileOptions options) {
+        if (options.isFork() && !options.getForkOptions().isUseAntForking()) {
+            return forkingCompiler;
+        }
+        return antCompiler;
+    }
 }

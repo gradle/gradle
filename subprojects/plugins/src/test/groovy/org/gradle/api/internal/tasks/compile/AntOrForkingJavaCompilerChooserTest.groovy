@@ -19,10 +19,10 @@ import spock.lang.Specification
 
 import org.gradle.api.tasks.compile.CompileOptions
 
-class AntOrForkingCompilerChooserTest extends Specification {
+class AntOrForkingJavaCompilerChooserTest extends Specification {
     def antCompiler = Mock(JavaCompiler)
     def forkingCompiler = Mock(JavaCompiler)
-    def chooser = new AntOrForkingCompilerChooser(antCompiler, forkingCompiler)
+    def chooser = new AntOrForkingJavaCompilerChooser(antCompiler, forkingCompiler)
     def options = new CompileOptions()
 
     def "chooses Ant compiler when fork=false"() {
