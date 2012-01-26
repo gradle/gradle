@@ -19,7 +19,9 @@ configurations {
 }
 
 if (!Jvm.current().java6Compatible) {
-    sourceSets.all.exclude '**/jdk6/**'
+    sourceSets.all {
+        exclude '**/jdk6/**'
+    }
 }
 
 dependencies {
