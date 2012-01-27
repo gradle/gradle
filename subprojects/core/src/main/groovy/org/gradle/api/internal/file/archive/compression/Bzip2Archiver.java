@@ -53,7 +53,7 @@ public class Bzip2Archiver implements ReadableResource {
                     outStr.write('Z');
                     return new CBZip2OutputStream(outStr);
                 } catch (Exception e) {
-                    String message = String.format("Unable to create bzip2 output stream for file: %s due to: %s ", destination, e.getMessage());
+                    String message = String.format("Unable to create bzip2 output stream for file %s", destination);
                     throw new RuntimeException(message, e);
                 }
             }
@@ -68,7 +68,7 @@ public class Bzip2Archiver implements ReadableResource {
             is.read(skip);
             return new CBZip2InputStream(is);
         } catch (Exception e) {
-            String message = String.format("Unable to create bzip2 input stream for resource: %s due to: %s.", resource.getBaseName(), e.getMessage());
+            String message = String.format("Unable to create bzip2 input stream for resource %s.", resource.getDisplayName());
             throw new ResourceException(message, e);
         }
     }

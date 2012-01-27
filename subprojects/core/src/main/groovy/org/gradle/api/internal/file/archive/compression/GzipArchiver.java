@@ -51,7 +51,7 @@ public class GzipArchiver implements ReadableResource {
                     OutputStream outStr = new FileOutputStream(destination);
                     return new GZIPOutputStream(outStr);
                 } catch (Exception e) {
-                    String message = String.format("Unable to create gzip output stream for file: %s due to: %s ", destination, e.getMessage());
+                    String message = String.format("Unable to create gzip output stream for file %s.", destination);
                     throw new RuntimeException(message, e);
                 }
             }
@@ -63,7 +63,7 @@ public class GzipArchiver implements ReadableResource {
         try {
             return new GZIPInputStream(is);
         } catch (Exception e) {
-            String message = String.format("Unable to create gzip input stream for resource: %s due to: %s.", resource.getBaseName(), e.getMessage());
+            String message = String.format("Unable to create gzip input stream for resource %s.", resource.getDisplayName());
             throw new ResourceException(message, e);
         }
     }

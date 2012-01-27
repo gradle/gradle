@@ -214,7 +214,7 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         } catch (ManifestException e) {
             throw new org.gradle.api.java.archives.ManifestException(e.getMessage(), e);
         } catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e);
+            throw new UncheckedIOException(e);
         }
     }
 
