@@ -18,9 +18,9 @@ package org.gradle.api.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.util.TreeVisitor;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -116,27 +116,46 @@ public class LocationAwareException extends GradleException {
      * @return The causes. Never returns null, returns an empty list if this exception has no reportable causes.
      */
     public List<Throwable> getReportableCauses() {
-        List<Throwable> causes = new ArrayList<Throwable>();
-        addCauses(target, causes);
+        final List<Throwable> causes = new ArrayList<Throwable>();
+        visitCauses(target, new TreeVisitor<Throwable>(){
+            @Override
+            public void node(Throwable node) {
+                causes.add(node);
+            }
+        });
         return causes;
     }
 
-    private void addCauses(Throwable t, Collection<Throwable> dest) {
+    /**
+     * Visits the reportable causes for this failure.
+     */
+    public void visitReportableCauses(TreeVisitor<? super Throwable> visitor) {
+        visitor.node(this);
+        visitCauses(target, visitor);
+    }
+
+    private void visitCauses(Throwable t, TreeVisitor<? super Throwable> visitor) {
         if (t instanceof MultiCauseException) {
             MultiCauseException multiCauseException = (MultiCauseException) t;
             List<? extends Throwable> causes = multiCauseException.getCauses();
-            for (Throwable cause : causes) {
-                dest.add(cause);
-                if (cause.getClass().getAnnotation(Contextual.class) !=null) {
-                    addCauses(cause, dest);
+            if (!causes.isEmpty()) {
+                visitor.startChildren();
+                for (Throwable cause : causes) {
+                    visitor.node(cause);
+                    if (cause.getClass().getAnnotation(Contextual.class) != null) {
+                        visitCauses(cause, visitor);
+                    }
                 }
+                visitor.endChildren();
             }
         } else if (t.getCause() != null) {
+            visitor.startChildren();
             Throwable cause = t.getCause();
-            dest.add(cause);
+            visitor.node(cause);
             if (cause.getClass().getAnnotation(Contextual.class) != null) {
-                addCauses(cause, dest);
+                visitCauses(cause, visitor);
             }
+            visitor.endChildren();
         }
     }
 }
