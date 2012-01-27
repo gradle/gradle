@@ -128,6 +128,6 @@ public class WrapUtil {
     }
     
     public static <T> Set<T> asSet(Collection<T> c) {
-        return new LinkedHashSet<T>(c);
+        return c instanceof Set ? (Set<T>)c : new LinkedHashSet<T>(c);
     }
 }

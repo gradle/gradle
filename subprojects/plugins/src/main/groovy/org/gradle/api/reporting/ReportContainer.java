@@ -17,8 +17,15 @@
 package org.gradle.api.reporting;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DirectInstantiator;
+import org.gradle.util.GUtil;
+import org.gradle.util.WrapUtil;
+
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> {
 
@@ -28,11 +35,17 @@ public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> 
         }
     }
 
+    Set<Report> enabled;
+            
     public ReportContainer(Report... reports) {
         super(Report.class, new DirectInstantiator(), Report.NAMER);
         for (Report report : reports) {
+            if (getNamer().determineName(report).equals("enabled")) {
+                throw new InvalidUserDataException("Reports cannot with a name of 'enabled' cannot be added to ReportContainers as it's reserved");
+            }
             add(report);
         }
+        enabled(reports);
         beforeChange(new Runnable() {
             public void run() {
                 throw new ImmutableViolationException();
@@ -40,8 +53,28 @@ public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> 
         });
     }
 
+    
+    
     @Override
     protected Report doCreate(String name) {
         throw new ImmutableViolationException();
+    }
+
+    public Set<Report> getEnabled() {
+        return enabled;
+    }
+
+    public void enabled(Report... enabledReports) {
+        setEnabled(WrapUtil.toSet(enabledReports));   
+    }
+    
+    public void setEnabled(Collection<Report> enabledReports) {
+        Set<Report> asSet = new LinkedHashSet<Report>(enabledReports);
+        for(Report report : asSet) {
+            if (!contains(report)) {
+                throw new InvalidUserDataException("Cannot enable report " + report + " as part of report container as it is not a member of this container (members: " + GUtil.join(this, ", ") + ")");
+            }
+        }
+        this.enabled = asSet;
     }
 }

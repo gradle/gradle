@@ -17,6 +17,7 @@
 package org.gradle.api.reporting
 
 import spock.lang.Specification
+import org.gradle.api.InvalidUserDataException
 
 class ReportContainerTest extends Specification {
     
@@ -54,5 +55,44 @@ class ReportContainerTest extends Specification {
 
         then:
         thrown(ReportContainer.ImmutableViolationException)
+    }
+    
+    def "all are enabled by default"() {
+        expect:
+        container.enabled == container
+    }
+    
+    def "can change enabled"() {
+        when:
+        container.enabled = []
+        
+        then:
+        container.enabled.empty
+        
+        when:
+        container.configure {
+            enabled a, b    
+        }
+        
+        then:
+        container.enabled.size() == 2
+    }
+    
+    def "cannot enable a report that's not part of the container"() {
+        when:
+        container.configure {
+            enabled createReport("foo")
+        }
+
+        then:
+        thrown(InvalidUserDataException)
+    }
+    
+    def "cannot add report named 'enabled'"() {
+        when:
+        createContainer(createReport("enabled"))
+        
+        then:
+        thrown InvalidUserDataException
     }
 }
