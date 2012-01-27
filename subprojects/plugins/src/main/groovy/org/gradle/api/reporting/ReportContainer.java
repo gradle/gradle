@@ -16,15 +16,17 @@
 
 package org.gradle.api.reporting;
 
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DirectInstantiator;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> {
@@ -35,7 +37,7 @@ public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> 
         }
     }
 
-    Set<Report> enabled;
+    DomainObjectSet<Report> enabled = new DefaultDomainObjectSet<Report>(Report.class);
             
     public ReportContainer(Report... reports) {
         super(Report.class, new DirectInstantiator(), Report.NAMER);
@@ -45,7 +47,17 @@ public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> 
             }
             add(report);
         }
-        enabled(reports);
+
+        enabled.whenObjectAdded(new Action<Report>() {
+            public void execute(Report report) {
+                if (!contains(report)) {
+                    throw new InvalidUserDataException("Cannot enable report " + report + " as part of report container as it is not a member of this container (members: " + GUtil.join(ReportContainer.this, ", ") + ")");
+                }
+            }
+        });
+
+        configureDefaultEnabled();
+
         beforeChange(new Runnable() {
             public void run() {
                 throw new ImmutableViolationException();
@@ -53,13 +65,15 @@ public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> 
         });
     }
 
-    
-    
     @Override
     protected Report doCreate(String name) {
         throw new ImmutableViolationException();
     }
 
+    protected void configureDefaultEnabled() {
+        enabled.addAll(this);
+    }
+    
     public Set<Report> getEnabled() {
         return enabled;
     }
@@ -69,12 +83,12 @@ public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> 
     }
     
     public void setEnabled(Collection<Report> enabledReports) {
-        Set<Report> asSet = new LinkedHashSet<Report>(enabledReports);
-        for(Report report : asSet) {
-            if (!contains(report)) {
-                throw new InvalidUserDataException("Cannot enable report " + report + " as part of report container as it is not a member of this container (members: " + GUtil.join(this, ", ") + ")");
+        enabled.retainAll(enabledReports);
+        for (Report report : enabledReports) {
+            if (!enabled.contains(report)) {
+                enabled.add(report);
             }
         }
-        this.enabled = asSet;
+        
     }
 }

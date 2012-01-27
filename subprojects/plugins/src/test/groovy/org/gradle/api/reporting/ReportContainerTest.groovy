@@ -16,8 +16,9 @@
 
 package org.gradle.api.reporting
 
-import spock.lang.Specification
 import org.gradle.api.InvalidUserDataException
+import org.gradle.listener.ListenerNotificationException
+import spock.lang.Specification
 
 class ReportContainerTest extends Specification {
     
@@ -85,7 +86,8 @@ class ReportContainerTest extends Specification {
         }
 
         then:
-        thrown(InvalidUserDataException)
+        ListenerNotificationException e = thrown()
+        e.cause instanceof InvalidUserDataException
     }
     
     def "cannot add report named 'enabled'"() {
@@ -93,6 +95,6 @@ class ReportContainerTest extends Specification {
         createContainer(createReport("enabled"))
         
         then:
-        thrown InvalidUserDataException
+        thrown(InvalidUserDataException)
     }
 }
