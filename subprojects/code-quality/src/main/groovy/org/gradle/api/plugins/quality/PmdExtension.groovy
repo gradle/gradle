@@ -69,12 +69,12 @@ class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * The directory in which XML reports will be saved. Defaults to <tt>$reportsDir/pmd</tt>.
+     * The directory in which XML reports will be saved. Defaults to <tt>$reporting.baseDir/pmd</tt>.
      */
     File xmlReportsDir
 
     /**
-     * The directory in which HTML reports will be saved. Defaults to <tt>$reportsDir/pmd</tt>.
+     * The directory in which HTML reports will be saved. Defaults to <tt>$reporting.baseDir/pmd</tt>.
      */
     File htmlReportsDir
 }
