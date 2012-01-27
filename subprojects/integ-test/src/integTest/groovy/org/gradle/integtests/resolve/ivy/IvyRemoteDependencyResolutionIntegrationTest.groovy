@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.hamcrest.Matchers
 import org.junit.Rule
 import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.startsWith
 
 class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -342,7 +343,8 @@ task retrieve(type: Sync) {
 
         then:
         fails "retrieve"
-        failure.assertThatCause(containsString("Could not download artifact 'group:projectA:1.2@jar': Could not GET"))
+        failure.assertHasCause("Could not download artifact 'group:projectA:1.2@jar'")
+        failure.assertThatCause(startsWith("Could not GET"))
 
         when:
         server.resetExpectations()
