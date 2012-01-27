@@ -26,6 +26,7 @@ import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.reporting.ReportingExtension
 
 /**
  * Is mixed in into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
@@ -132,7 +133,7 @@ class JavaPluginConvention {
     }
 
     private File getReportsDir() {
-        project.convention.plugins.reportingBase.reportsDir
+        project.extensions.getByType(ReportingExtension).baseDir
     }
 
     /**

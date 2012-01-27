@@ -16,7 +16,9 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.reporting.ReportingExtension;
 
 /**
  * <p>A {@link Plugin} which provides the basic skeleton for reporting.</p>
@@ -32,6 +34,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 public class ReportingBasePlugin implements Plugin<ProjectInternal> {
     public void apply(ProjectInternal project) {
         Convention convention = project.getConvention();
-        convention.getPlugins().put("reportingBase", new ReportingBasePluginConvention(project));
+        ReportingExtension extension = project.getServices().get(Instantiator.class).newInstance(ReportingExtension.class, project);
+        project.getExtensions().add(ReportingExtension.NAME, extension);
+
+        // This convention is deprecated
+        convention.getPlugins().put("reportingBase", new ReportingBasePluginConvention(project, extension));
     }
 }

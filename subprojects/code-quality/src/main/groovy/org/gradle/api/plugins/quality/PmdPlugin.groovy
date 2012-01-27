@@ -21,6 +21,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.reporting.ReportingExtension
 
 /**
  *  A plugin for the <a href="http://pmd.sourceforge.net/">PMD source code analyzer.
@@ -62,8 +63,8 @@ class PmdPlugin implements Plugin<ProjectInternal> {
             ruleSetFiles = project.files()
         }
         extension.conventionMapping.with {
-            xmlReportsDir = { new File(project.reportsDir, "pmd") }
-            htmlReportsDir = { new File(project.reportsDir, "pmd") }
+            xmlReportsDir = { project.extensions.getByType(ReportingExtension).file("pmd") }
+            htmlReportsDir = { project.extensions.getByType(ReportingExtension).file("pmd") }
         }
     }
 
