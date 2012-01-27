@@ -136,8 +136,8 @@ allprojects {
         all {
             resolutionStrategy {
                 //we cannot use 'hours' for now due to java 1.5 problem
-                cacheDynamicVersionsFor 0, 'seconds'
-                cacheChangingModulesFor 0, 'seconds'
+                cacheDynamicVersionsFor 24*60*60, 'seconds'
+                cacheChangingModulesFor 24*60*60, 'seconds'
             }
         }
     }
