@@ -61,7 +61,7 @@ public class StyledTextOutputBackedRenderer implements OutputEventListener {
         }
     }
 
-    private class OutputEventTextOutputImpl extends AbstractStyledTextOutput {
+    private class OutputEventTextOutputImpl extends AbstractLineChoppingStyledTextOutput {
         private final StyledTextOutput textOutput;
         private boolean atEndOfLine = true;
 
@@ -75,9 +75,9 @@ public class StyledTextOutputBackedRenderer implements OutputEventListener {
         }
 
         @Override
-        protected void doAppend(String text) {
-            atEndOfLine = text.length() >= EOL.length() && text.endsWith(EOL);
+        protected void doLineText(CharSequence text, boolean terminatesLine) {
             textOutput.text(text);
+            atEndOfLine = terminatesLine;
         }
     }
 }
