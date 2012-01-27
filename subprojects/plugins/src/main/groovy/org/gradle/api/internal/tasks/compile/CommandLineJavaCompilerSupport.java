@@ -49,23 +49,23 @@ public abstract class CommandLineJavaCompilerSupport extends JavaCompilerSupport
             options.add("-nowarn");
         }
         if (!compileOptions.isDebug()) {
-            options.add("g:none");
+            options.add("-g:none");
         }
         if (compileOptions.getEncoding() != null) {
             options.add("-encoding");
             options.add(compileOptions.getEncoding());
         }
-        if (compileOptions.getCompilerArgs() != null) {
-            for (String arg : compileOptions.getCompilerArgs()) {
-                options.add(arg);
-            }
-        }
         if (classpath != null && classpath.iterator().hasNext()) {
-            options.add("-cp");
+            options.add("-classpath");
             options.add(toFileCollection(classpath).getAsPath());
         }
-        for (File file : source) {
-            options.add(file.getPath());
+        if (compileOptions.getCompilerArgs() != null) {
+            options.addAll(compileOptions.getCompilerArgs());
+        }
+        if (source != null) {
+            for (File file : source) {
+                options.add(file.getPath());
+            }
         }
 
         return options;
