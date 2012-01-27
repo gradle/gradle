@@ -27,11 +27,12 @@ class HashValueTest extends Specification {
         hexString                                  | inputString
         "1234"                                     | "1234"
         "abc123"                                   | "ABC123"
-        "da39a3ee5e6b4b0d3255bfef95601890afd80709" | "da39a3ee 5e6b4b0d 3255bfef 95601890 afd80709"
-        "123456"                                   | "md5 123456"
-        "123456"                                   | "sha1 123456"
-        "687cab044c8f937b8957166272f1da3c"         | "fontbox-0.8.0-incubating.jar: 68 7C AB 04 4C 8F 93 7B  89 57 16 62 72 F1 DA 3C" // http://repo2.maven.org/maven2/org/apache/pdfbox/fontbox/0.8.0-incubator/fontbox-0.8.0-incubator.jar.md5
         "1"                                        | "000000000000001"
+        "123456"                                   | "md5 = 123456"
+        "123456"                                   | "sha1 = 123456"
+        "76be4c7459d7fb64bf638bac7accd9b6df728f2b" | "SHA1 (dummy.gz) = 76be4c7459d7fb64bf638bac7accd9b6df728f2b"
+        "687cab044c8f937b8957166272f1da3c"         | "fontbox-0.8.0-incubating.jar: 68 7C AB 04 4C 8F 93 7B  89 57 16 62 72 F1 DA 3C" // http://repo2.maven.org/maven2/org/apache/pdfbox/fontbox/0.8.0-incubator/fontbox-0.8.0-incubator.jar.md5
+        "f951934aa5ae5a88d7e6dfaa6d32307d834a88be" | "f951934aa5ae5a88d7e6dfaa6d32307d834a88be  /home/maven/repository-staging/to-ibiblio/maven2/commons-collections/commons-collections/3.2/commons-collections-3.2.jar"
     }
 
     def "creates compact string representation"() {
