@@ -15,13 +15,10 @@
  */
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.hamcrest.Matchers
 import org.junit.Rule
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.startsWith
 
 class IvyRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
