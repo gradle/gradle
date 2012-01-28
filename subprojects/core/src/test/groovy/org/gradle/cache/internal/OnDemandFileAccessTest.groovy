@@ -15,7 +15,7 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.api.internal.Factory
+import org.gradle.internal.Factory
 import org.gradle.cache.internal.FileLockManager.LockMode
 import spock.lang.Specification
 

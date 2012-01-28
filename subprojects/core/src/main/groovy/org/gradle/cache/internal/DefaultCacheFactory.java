@@ -17,7 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.util.GFileUtils;

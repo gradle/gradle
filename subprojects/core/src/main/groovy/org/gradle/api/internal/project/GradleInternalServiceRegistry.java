@@ -23,6 +23,7 @@ import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.execution.*;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
 
 import static java.util.Arrays.asList;

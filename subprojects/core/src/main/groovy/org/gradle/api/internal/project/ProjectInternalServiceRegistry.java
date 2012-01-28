@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.internal.nativeplatform.FileSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
@@ -47,6 +47,7 @@ import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.internal.service.ServiceRegistry;
+
 /**
  * A heirarchical service registry.
  */

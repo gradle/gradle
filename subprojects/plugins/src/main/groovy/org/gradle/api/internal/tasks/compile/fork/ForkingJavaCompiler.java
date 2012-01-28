@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile.fork;
 
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.ForkOptions;

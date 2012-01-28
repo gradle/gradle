@@ -20,7 +20,7 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.fork.ForkingJavaCompiler;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;

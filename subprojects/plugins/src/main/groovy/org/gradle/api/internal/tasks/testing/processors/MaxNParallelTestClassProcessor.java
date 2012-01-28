@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;

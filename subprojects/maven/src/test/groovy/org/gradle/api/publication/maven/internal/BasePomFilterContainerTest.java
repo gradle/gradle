@@ -18,7 +18,7 @@ package org.gradle.api.publication.maven.internal;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PublishFilter;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;

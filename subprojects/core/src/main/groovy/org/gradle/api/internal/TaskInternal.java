@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factory;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.Configurable;
 

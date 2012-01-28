@@ -15,7 +15,7 @@
  */
 package org.gradle.listener;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;

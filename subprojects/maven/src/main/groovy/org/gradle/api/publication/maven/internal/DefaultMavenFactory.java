@@ -16,7 +16,7 @@
 package org.gradle.api.publication.maven.internal;
 
 import org.gradle.api.artifacts.maven.*;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Configuration;

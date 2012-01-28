@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+package org.gradle.internal;
 
 /**
- * @deprecated This is here because Groovy tasks compiled against older versions have this type baked into their byte-code, and cannot be loaded if it's not found.
+ * A generic factory which creates instances of type T.
+ *
+ * @param <T> The type of object created.
  */
-@Deprecated
-public interface ServiceRegistry extends org.gradle.internal.service.ServiceRegistry {
+public interface Factory<T> {
+    /**
+     * Creates a new instance of type T.
+     * @return The instance. Never returns null.
+     */
+    T create();
 }

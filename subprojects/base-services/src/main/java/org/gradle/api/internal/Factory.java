@@ -16,14 +16,8 @@
 package org.gradle.api.internal;
 
 /**
- * A generic factory which creates instances of type T.
- *
- * @param <T> The type of object created.
+ * @deprecated This is here because Groovy tasks compiled against older versions have this type baked into their byte-code, and cannot be loaded if it's not found.
  */
-public interface Factory<T> {
-    /**
-     * Creates a new instance of type T.
-     * @return The instance. Never returns null.
-     */
-    T create();
+@Deprecated
+public interface Factory<T> extends org.gradle.internal.Factory<T> {
 }

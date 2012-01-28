@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.*;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.RandomLongIdGenerator;
 

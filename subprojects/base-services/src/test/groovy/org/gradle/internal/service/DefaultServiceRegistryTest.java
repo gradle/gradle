@@ -15,8 +15,7 @@
  */
 package org.gradle.internal.service;
 
-import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.internal.Factory;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;

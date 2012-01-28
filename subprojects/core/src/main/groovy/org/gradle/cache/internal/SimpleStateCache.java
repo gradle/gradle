@@ -17,7 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.Serializer;
 

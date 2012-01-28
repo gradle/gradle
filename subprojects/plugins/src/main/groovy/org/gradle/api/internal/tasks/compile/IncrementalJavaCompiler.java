@@ -16,7 +16,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.AntBuilder;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.TaskOutputsInternal;
 
 public class IncrementalJavaCompiler extends IncrementalJavaCompilerSupport<JavaCompiler> implements JavaCompiler {

@@ -15,7 +15,7 @@
  */
 package org.gradle.cache;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 
 /**
  * Provides synchronised access to a cache.
@@ -38,7 +38,7 @@ public interface CacheAccess {
     void useCache(String operationDisplayName, Runnable action);
 
     /**
-     * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.api.internal.Factory)}. Releases all
+     * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.internal.Factory)}. Releases all
      * locks while the operation is running, and reacquires the locks at the end of the long running operation.
      *
      * <p>This method is re-entrant, so that an action can call back into this method.</p>
@@ -46,7 +46,7 @@ public interface CacheAccess {
     <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action);
 
     /**
-     * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.api.internal.Factory)}. Releases all
+     * Performs some long running operation within an action invoked by {@link #useCache(String, org.gradle.internal.Factory)}. Releases all
      * locks while the operation is running, and reacquires the locks at the end of the long running operation.
      *
      * <p>This method is re-entrant, so that an action can call back into this method.</p>

@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.GradleLauncherAction
-import org.gradle.api.internal.Factory
+import org.gradle.internal.Factory
 import org.gradle.launcher.exec.GradleLauncherActionExecuter
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.tooling.internal.provider.input.ProviderOperationParameters

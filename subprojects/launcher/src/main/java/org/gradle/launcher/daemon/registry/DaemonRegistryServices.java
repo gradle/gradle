@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.cache.Cache;
 import org.gradle.api.internal.cache.CacheAccessSerializer;
 import org.gradle.api.internal.cache.MapBackedCache;

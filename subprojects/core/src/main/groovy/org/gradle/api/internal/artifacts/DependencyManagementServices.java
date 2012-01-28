@@ -19,7 +19,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 
 /**
  * Factory for various types related to dependency management.

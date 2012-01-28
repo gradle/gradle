@@ -15,7 +15,7 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;

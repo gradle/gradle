@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile.fork;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;

@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;

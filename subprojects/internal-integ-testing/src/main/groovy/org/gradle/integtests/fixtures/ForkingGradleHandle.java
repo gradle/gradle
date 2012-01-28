@@ -17,7 +17,7 @@ package org.gradle.integtests.fixtures;
 
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;

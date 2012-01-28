@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer.loader;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;

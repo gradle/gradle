@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.plugins.osgi;
 
-import org.gradle.api.internal.Factory;
+import org.gradle.internal.Factory;
 
 /**
  * @author Hans Dockter

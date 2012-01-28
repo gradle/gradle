@@ -24,7 +24,7 @@ import org.gradle.cli.CommandLineConverter
 import org.gradle.logging.internal.LoggingCommandLineConverter
 import org.junit.Rule
 import org.gradle.util.RedirectStdOutAndErr
-import org.gradle.api.internal.project.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 
 class LoggingServiceRegistryTest extends Specification {
     @Rule RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()

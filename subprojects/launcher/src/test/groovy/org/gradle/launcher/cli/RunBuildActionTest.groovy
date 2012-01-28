@@ -17,7 +17,7 @@ package org.gradle.launcher.cli
 
 import spock.lang.Specification
 import org.gradle.StartParameter
-import org.gradle.api.internal.project.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.GradleLauncher
 import org.gradle.BuildResult

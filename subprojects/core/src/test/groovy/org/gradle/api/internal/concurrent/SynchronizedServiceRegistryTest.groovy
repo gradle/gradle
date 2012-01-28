@@ -17,7 +17,7 @@
 package org.gradle.api.internal.concurrent;
 
 
-import org.gradle.api.internal.project.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
 /**

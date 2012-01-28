@@ -29,8 +29,8 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.FileLockManager
-import org.gradle.api.internal.Factory
-import org.gradle.api.internal.project.ServiceRegistry
+import org.gradle.internal.Factory
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory

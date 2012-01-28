@@ -26,6 +26,7 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.DefaultBuildExecuter;
 import org.gradle.execution.DefaultTaskGraphExecuter;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.JUnit4GroovyMockery;
