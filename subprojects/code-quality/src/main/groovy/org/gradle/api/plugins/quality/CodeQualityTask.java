@@ -21,7 +21,7 @@ import org.gradle.api.tasks.VerificationTask;
 /**
  * A {@code CodeQualityTask} performs some code quality checking on source files.
 */
-public abstract class CodeQualityTask extends SourceTask implements VerificationTask {
+public class CodeQualityTask extends SourceTask implements VerificationTask {
 
     private boolean ignoreFailures = false;
     private boolean displayViolations = true;
@@ -42,7 +42,10 @@ public abstract class CodeQualityTask extends SourceTask implements Verification
     }
 
     /**
-     * {@inheritDoc}
+     * Specifies whether the build should display violations on the console or not.
+     *
+     * @param displayViolations false to suppress console output, true to display violations on the console. The default is true.
+     * @return this
      */
     public VerificationTask setDisplayViolations(boolean displayViolations) {
         this.displayViolations = displayViolations;
@@ -50,10 +53,13 @@ public abstract class CodeQualityTask extends SourceTask implements Verification
     }
 
     /**
-     * {@inheritDoc}
+     * Specifies whether the build should display violations on the console or not.
+     *
+     * @return false, to suppress console output, true, to display violations on the console. The default is true.
      */
     public boolean isDisplayViolations() {
         return displayViolations;
     }
+
 
 }
