@@ -16,7 +16,9 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetGradleVersions
 
+@TargetGradleVersions('0.9-rc-3+')
 class PluginCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     def "can use plugin compiled using previous Gradle version"() {
         given:

@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.junit.Rule
 
 // TODO:DAZ Support for milestone-3 does not include POM reuse. We should probably ditch milestone-3 support after 1.0.
-@TargetGradleVersions(['1.0-milestone-3'])
+@TargetGradleVersions('1.0-milestone-3')
 class M3CacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 
