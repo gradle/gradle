@@ -72,7 +72,7 @@ public class CommandLineParser {
      * @throws org.gradle.cli.CommandLineArgumentException
      *          On parse failure.
      */
-    public ParsedCommandLine parse(String[] commandLine) throws CommandLineArgumentException {
+    public ParsedCommandLine parse(String... commandLine) throws CommandLineArgumentException {
         return parse(Arrays.asList(commandLine));
     }
 
