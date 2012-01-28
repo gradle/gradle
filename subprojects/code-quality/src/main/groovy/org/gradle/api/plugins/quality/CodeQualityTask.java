@@ -23,7 +23,7 @@ import org.gradle.api.tasks.VerificationTask;
 */
 public class CodeQualityTask extends SourceTask implements VerificationTask {
 
-    private boolean ignoreFailures = false;
+    private boolean ignoreFailures;
     private boolean displayViolations = true;
 
     /**
