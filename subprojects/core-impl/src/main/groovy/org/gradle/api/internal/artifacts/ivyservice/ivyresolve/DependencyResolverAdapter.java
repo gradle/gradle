@@ -88,9 +88,6 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
     }
 
     private boolean isChanging(ResolvedModuleRevision resolvedModuleRevision) {
-        if (resolver instanceof IvyDependencyResolver) {
-            return ((IvyDependencyResolver) resolver).isChangingModule(resolvedModuleRevision.getDescriptor());
-        }
-        return false;
+        return new ChangingModuleDetector(resolver).isChangingModule(resolvedModuleRevision.getDescriptor());
     }
 }

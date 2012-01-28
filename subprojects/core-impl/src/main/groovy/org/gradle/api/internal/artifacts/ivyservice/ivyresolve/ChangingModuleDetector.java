@@ -21,18 +21,15 @@ import org.apache.ivy.plugins.matcher.NoMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.gradle.api.GradleException;
 
 import java.lang.reflect.Method;
 
 class ChangingModuleDetector {
     private final DependencyResolver resolver;
-    private final ResolverSettings settings;
 
-    public ChangingModuleDetector(DependencyResolver resolver, ResolverSettings settings) {
+    public ChangingModuleDetector(DependencyResolver resolver) {
         this.resolver = resolver;
-        this.settings = settings;
     }
 
     public boolean isChangingModule(ModuleDescriptor moduleDescriptor) {
@@ -40,12 +37,17 @@ class ChangingModuleDetector {
     }
 
     private Matcher getChangingMatcher() {
+        if (!(resolver instanceof AbstractResolver)) {
+            return NoMatcher.INSTANCE;
+        }
+
+        AbstractResolver abstractResolver = (AbstractResolver) resolver;
         String changingMatcherName = readAbstractResolverProperty(resolver, "getChangingMatcherName");
         String changingPattern = readAbstractResolverProperty(resolver, "getChangingPattern");
         if (changingMatcherName == null || changingPattern == null) {
             return NoMatcher.INSTANCE;
         }
-        PatternMatcher matcher = settings.getMatcher(changingMatcherName);
+        PatternMatcher matcher = abstractResolver.getSettings().getMatcher(changingMatcherName);
         if (matcher == null) {
             throw new IllegalStateException("unknown matcher '" + changingMatcherName
                     + "'. It is set as changing matcher in " + this);
@@ -54,16 +56,12 @@ class ChangingModuleDetector {
     }
 
     private String readAbstractResolverProperty(DependencyResolver resolver, String getter) {
-        if (resolver instanceof AbstractResolver) {
-            try {
-                Method method = AbstractResolver.class.getDeclaredMethod(getter);
-                method.setAccessible(true);
-                return (String) method.invoke(resolver);
-            } catch (Exception e) {
-                throw new GradleException("Could not get cache options from AbstractResolver", e);
-            }
+        try {
+            Method method = AbstractResolver.class.getDeclaredMethod(getter);
+            method.setAccessible(true);
+            return (String) method.invoke(resolver);
+        } catch (Exception e) {
+            throw new GradleException("Could not get cache options from AbstractResolver", e);
         }
-        return null;
     }
-
 }
