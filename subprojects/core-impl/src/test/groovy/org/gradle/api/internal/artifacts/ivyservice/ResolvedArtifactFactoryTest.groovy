@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.internal.Factory
+import org.gradle.api.internal.Factory
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import spock.lang.Specification
 

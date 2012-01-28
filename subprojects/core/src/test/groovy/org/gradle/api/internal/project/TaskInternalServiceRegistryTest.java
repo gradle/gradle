@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileResolver;

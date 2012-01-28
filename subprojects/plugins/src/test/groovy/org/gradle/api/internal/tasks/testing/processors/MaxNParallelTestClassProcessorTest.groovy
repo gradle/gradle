@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.messaging.actor.Actor
 import org.gradle.messaging.actor.ActorFactory
 import spock.lang.Specification
-import org.gradle.internal.Factory
+import org.gradle.api.internal.Factory
 
 class MaxNParallelTestClassProcessorTest extends Specification {
     private final Factory<TestClassProcessor> factory = Mock()

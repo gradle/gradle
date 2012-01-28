@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.internal.generator.generator;
 
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.Factory;
 
 import java.io.File;
 

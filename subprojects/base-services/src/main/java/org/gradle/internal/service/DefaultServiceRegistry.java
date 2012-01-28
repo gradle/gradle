@@ -15,8 +15,9 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.internal.CompositeStoppable;
-import org.gradle.internal.Factory;
 import org.gradle.internal.Stoppable;
 import org.gradle.internal.UncheckedException;
 

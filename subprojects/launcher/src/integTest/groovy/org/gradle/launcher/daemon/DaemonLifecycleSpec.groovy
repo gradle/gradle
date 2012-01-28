@@ -49,7 +49,7 @@ class DaemonLifecycleSpec extends Specification {
     def daemonIdleTimeout = 5
 
     final List<GradleHandle> builds = []
-    def foregroundDaemons = []
+    final List<GradleHandle> foregroundDaemons = []
 
     // set this to change the java home used to launch any gradle, set back to null to use current JVM
     def javaHome = null

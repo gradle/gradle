@@ -18,13 +18,13 @@ package org.gradle.api.internal.tasks.compile.fork;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.Factory;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.WorkerProcessContext;
 

@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.concurrent.SynchronizedServiceRegistry;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementationLoader;

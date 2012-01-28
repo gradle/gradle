@@ -16,10 +16,10 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;

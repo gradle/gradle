@@ -17,10 +17,10 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.Factory;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.CommandLineParserFactory;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
-import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.OperatingSystem;
 import org.gradle.launcher.daemon.client.DaemonParameters;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;

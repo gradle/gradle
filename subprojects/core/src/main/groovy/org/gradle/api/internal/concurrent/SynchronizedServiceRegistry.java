@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.concurrent;
 
-import org.gradle.internal.Factory;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.internal.service.UnknownServiceException;
 
 /**

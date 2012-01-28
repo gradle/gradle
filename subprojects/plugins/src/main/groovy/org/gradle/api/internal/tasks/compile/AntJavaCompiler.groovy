@@ -20,7 +20,7 @@ import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.WorkResult
 
-import org.gradle.internal.Factory
+import org.gradle.api.internal.Factory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

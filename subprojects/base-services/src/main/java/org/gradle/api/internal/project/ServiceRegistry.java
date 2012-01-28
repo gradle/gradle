@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.service;
+package org.gradle.api.internal.project;
 
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.Factory;
+import org.gradle.internal.service.UnknownServiceException;
 
 /**
  * A registry of services.
@@ -27,7 +28,7 @@ public interface ServiceRegistry {
      * @param serviceType The service type.
      * @param <T>         The service type.
      * @return The service instance. Never returns null.
-     * @throws UnknownServiceException When there is no service of the given type available.
+     * @throws org.gradle.internal.service.UnknownServiceException When there is no service of the given type available.
      */
     <T> T get(Class<T> serviceType) throws UnknownServiceException;
 

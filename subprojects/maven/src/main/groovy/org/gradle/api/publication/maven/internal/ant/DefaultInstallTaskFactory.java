@@ -15,7 +15,7 @@
  */
 package org.gradle.api.publication.maven.internal.ant;
 
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.Factory;
 
 /**
  * @author Hans Dockter

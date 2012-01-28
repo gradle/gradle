@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.tasks.compile.fork;
 
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;

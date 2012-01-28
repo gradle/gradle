@@ -27,7 +27,7 @@ import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.Factory;
 
 import java.io.File;
 import java.text.ParseException;

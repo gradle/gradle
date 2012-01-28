@@ -20,7 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.cli.CommandLineConverter;
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.Factory;
 import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
@@ -31,7 +31,7 @@ import org.gradle.util.TrueTimeProvider;
 import java.io.FileDescriptor;
 
 /**
- * A {@link org.gradle.internal.service.ServiceRegistry} implementation which provides the logging services.
+ * A {@link org.gradle.api.internal.project.ServiceRegistry} implementation which provides the logging services.
  */
 public class LoggingServiceRegistry extends DefaultServiceRegistry {
     private TextStreamOutputEventListener stdoutListener;
