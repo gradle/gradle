@@ -36,11 +36,20 @@ public class PathAssembler {
         this.gradleUserHome = gradleUserHome;
     }
 
-    public File gradleHome(String distBase, String distPath, URI distUrl) {
+    /**
+     * Determines the local locations for the distribution to use given the supplied configuration. 
+     */
+    public LocalDistribution getDistribution(WrapperConfiguration configuration) {
+        File gradleHome = gradleHome(configuration.getDistributionBase(), configuration.getDistributionPath(), configuration.getDistribution());
+        File distZip = distZip(configuration.getZipBase(), configuration.getZipPath(), configuration.getDistribution());
+        return new LocalDistribution(gradleHome, distZip);
+    }
+    
+    private File gradleHome(String distBase, String distPath, URI distUrl) {
         return new File(getBaseDir(distBase), distPath + "/" + getDistHome(distUrl));
     }
 
-    public File distZip(String zipBase, String zipPath, URI distUrl) {
+    private File distZip(String zipBase, String zipPath, URI distUrl) {
         return new File(getBaseDir(zipBase), zipPath + "/" + getDistName(distUrl));
     }
 
@@ -70,6 +79,24 @@ public class PathAssembler {
             return new File(System.getProperty("user.dir"));
         } else {
             throw new RuntimeException("Base: " + base + " is unknown");
+        }
+    }
+    
+    public class LocalDistribution {
+        private final File gradleHome;
+        private final File distZip;
+
+        public LocalDistribution(File gradleHome, File distZip) {
+            this.gradleHome = gradleHome;
+            this.distZip = distZip;
+        }
+
+        public File getGradleHome() {
+            return gradleHome;
+        }
+        
+        public File getDistZip() {
+            return distZip;
         }
     }
 }

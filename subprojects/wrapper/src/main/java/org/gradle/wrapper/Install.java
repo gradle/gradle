@@ -38,19 +38,16 @@ public class Install {
     }
 
     public File createDist(WrapperConfiguration configuration) throws Exception {
-        String distBase = configuration.getDistributionBase();
-        String distPath = configuration.getDistributionPath();
         URI distributionUrl = configuration.getDistribution();
-        String zipBase = configuration.getZipBase();
-        String zipPath = configuration.getZipPath();
         boolean alwaysDownload = configuration.isAlwaysDownload();
         boolean alwaysUnpack = configuration.isAlwaysUnpack();
 
-        File gradleHome = pathAssembler.gradleHome(distBase, distPath, distributionUrl);
+        PathAssembler.LocalDistribution localDistribution = pathAssembler.getDistribution(configuration);
+        File gradleHome = localDistribution.getGradleHome();
         if (!alwaysDownload && !alwaysUnpack && gradleHome.isDirectory()) {
             return gradleHome;
         }
-        File localZipFile = pathAssembler.distZip(zipBase, zipPath, distributionUrl);
+        File localZipFile = localDistribution.getDistZip();
         if (alwaysDownload || !localZipFile.exists()) {
             File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".part");
             tmpZipFile.delete();

@@ -148,8 +148,11 @@ class WrapperExecutorTest extends Specification {
 
         propertiesFile.withOutputStream { properties.store(it, 'header') }
 
+        and:
+        def out = new StringWriter()
+
         when:
-        def wrapper = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out)
+        def wrapper = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, out)
 
         then:
         wrapper.distribution == new URI("http://gradle.artifactoryonline.com/gradle/distributions/gradle-1.0-milestone-3-bin.zip")
@@ -158,6 +161,9 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.distributionPath == 'oldDistPath'
         wrapper.configuration.zipBase == 'oldZipBase'
         wrapper.configuration.zipPath == 'oldZipPath'
+
+        and:
+        out.toString().trim() == "Wrapper properties file '$propertiesFile' contains deprecated entries 'urlRoot', 'distributionName', 'distributionVersion' and 'distributionClassifier'. These will be removed soon. Please use 'distributionUrl' instead."
     }
 
     def "reports error when none of the valid formats are met"() {
@@ -176,7 +182,7 @@ class WrapperExecutorTest extends Specification {
 
         then:
         Exception e = thrown()
-        e.cause.message.contains "key 'distributionUrl'"
+        e.cause.message == "No value with key 'distributionUrl' specified in wrapper properties file '$propertiesFile'."
     }
 
     def "supports relative distribution url"() {

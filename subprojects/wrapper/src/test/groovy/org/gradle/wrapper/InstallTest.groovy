@@ -21,27 +21,31 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import static org.junit.Assert.assertEquals
+import spock.lang.Specification
+import org.gradle.util.TestFile
 
 /**
  * @author Hans Dockter
  */
-class InstallTest {
+class InstallTest extends Specification {
     File testDir
     Install install
     IDownload downloadMock
     PathAssembler pathAssemblerMock;
     boolean downloadCalled
     File zip
-    File distributionDir
+    TestFile distributionDir
     File zipStore
-    File gradleScript
-    File gradleHomeDir
-    File zipDestination
+    TestFile gradleHomeDir
+    TestFile zipDestination
     WrapperConfiguration configuration = new WrapperConfiguration()
+    IDownload download = Mock()
+    PathAssembler pathAssembler = Mock()
+    PathAssembler.LocalDistribution localDistribution = Mock()
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
-    @Before public void setUp() {
+    @Before public void setup() {
         downloadCalled = false
         testDir = tmpDir.dir
         configuration.zipBase = PathAssembler.PROJECT_STRING
@@ -51,11 +55,11 @@ class InstallTest {
         configuration.distribution = new URI('http://server/gradle-0.9.zip')
         configuration.alwaysDownload = false
         configuration.alwaysUnpack = false
-        distributionDir = new File(testDir, 'someDistPath')
-        gradleHomeDir = new File(distributionDir, 'gradle-0.9')
+        distributionDir = new TestFile(testDir, 'someDistPath')
+        gradleHomeDir = new TestFile(distributionDir, 'gradle-0.9')
         zipStore = new File(testDir, 'zips');
-        zipDestination = new File(zipStore, 'gradle-0.9.zip')
-        install = new Install(createDownloadMock(), createPathAssemblerMock())
+        zipDestination = new TestFile(zipStore, 'gradle-0.9.zip')
+        install = new Install(download, pathAssembler)
     }
 
     IDownload createDownloadMock() {
@@ -81,66 +85,97 @@ class InstallTest {
         }] as PathAssembler
     }
 
-    File createTestZip() {
-        File explodedZipDir = new File(testDir, 'explodedZip')
-        File binDir = new File(explodedZipDir, 'bin')
-        binDir.mkdirs()
-        gradleScript = new File(binDir, 'gradle')
+    void createTestZip(File zipDestination) {
+        TestFile explodedZipDir = tmpDir.createDir('explodedZip')
+        TestFile gradleScript = explodedZipDir.file('gradle-0.9/bin/gradle')
+        gradleScript.parentFile.createDir()
         gradleScript.write('something')
-        zipStore.mkdirs()
-        AntBuilder antBuilder = new AntBuilder()
-        antBuilder.zip(destfile: zipDestination.absolutePath + '.part') {
-            zipfileset(dir: explodedZipDir, prefix: 'gradle-0.9')
-        }
-        (zipDestination.absolutePath + '.part') as File
+        explodedZipDir.zipTo(new TestFile(zipDestination))
     }
 
-    @Test public void testCreateDist() {
-        assertEquals(gradleHomeDir, install.createDist(configuration))
-        assert downloadCalled
-        assert distributionDir.isDirectory()
-        assert zipDestination.exists()
-        assert gradleScript.exists()
-//        assert new File(gradleHomeDir, "bin/gradle").canExecute()
+    public void testCreateDist() {
+        when:
+        def homeDir = install.createDist(configuration)
+
+        then:
+        homeDir == gradleHomeDir
+        gradleHomeDir.assertIsDir()
+        gradleHomeDir.file("bin/gradle").assertIsFile()
+        zipDestination.assertIsFile()
+
+        and:
+        1 * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.gradleHome >> gradleHomeDir
+        _ * localDistribution.distZip >> zipDestination
+        1 * download.download(configuration.distribution, _) >> { createTestZip(it[1]) }
+        0 * download._
     }
 
-    @Test public void testCreateDistWithExistingRoot() {
-        distributionDir.mkdirs()
-        install.createDist(configuration)
-        assert downloadCalled
-        assert gradleHomeDir.isDirectory()
-        assert gradleScript.exists()
-    }
+    @Test public void testCreateDistWithExistingDistribution() {
+        given:
+        zipDestination.createFile()
+        gradleHomeDir.file('some-file').createFile()
+        gradleHomeDir.createDir()
 
-    @Test public void testCreateDistWithExistingDist() {
-        gradleHomeDir.mkdirs()
-        long lastModified = gradleHomeDir.lastModified()
-        install.createDist(configuration)
-        assert !downloadCalled
-        assert lastModified == gradleHomeDir.lastModified()
+        when:
+        def homeDir = install.createDist(configuration)
+
+        then:
+        homeDir == gradleHomeDir
+        gradleHomeDir.assertIsDir()
+        gradleHomeDir.file('some-file').assertIsFile()
+        zipDestination.assertIsFile()
+
+        and:
+        1 * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.gradleHome >> gradleHomeDir
+        _ * localDistribution.distZip >> zipDestination
+        0 * download._
     }
 
     @Test public void testCreateDistWithExistingDistAndZipAndAlwaysUnpackTrue() {
-        createTestZip().renameTo(zipDestination)
-        gradleHomeDir.mkdirs()
-        File testFile = new File(gradleHomeDir, 'testfile')
+        given:
+        createTestZip(zipDestination)
+        gradleHomeDir.file('garbage').createFile()
         configuration.alwaysUnpack = true
-        install.createDist(configuration)
-        assert distributionDir.isDirectory()
-        assert gradleScript.exists()
-        assert !testFile.exists()
-        assert !downloadCalled
+
+        when:
+        def homeDir = install.createDist(configuration)
+
+        then:
+        homeDir == gradleHomeDir
+        gradleHomeDir.assertIsDir()
+        gradleHomeDir.file('garbage').assertDoesNotExist()
+        zipDestination.assertIsFile()
+
+        and:
+        1 * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.gradleHome >> gradleHomeDir
+        _ * localDistribution.distZip >> zipDestination
+        0 * download._
     }
 
     @Test public void testCreateDistWithExistingZipAndDistAndAlwaysDownloadTrue() {
-        createTestZip().renameTo(zipDestination)
-        distributionDir.mkdirs()
-        File testFile = new File(gradleHomeDir, 'testfile')
+        given:
+        createTestZip(zipDestination)
+        gradleHomeDir.file('garbage').createFile()
         configuration.alwaysDownload = true
-        install.createDist(configuration)
-        assert gradleHomeDir.isDirectory()
-        assert gradleScript.exists()
-        assert !testFile.exists()
-        assert downloadCalled
+
+        when:
+        def homeDir = install.createDist(configuration)
+
+        then:
+        homeDir == gradleHomeDir
+        gradleHomeDir.assertIsDir()
+        gradleHomeDir.file("bin/gradle").assertIsFile()
+        gradleHomeDir.file('garbage').assertDoesNotExist()
+        zipDestination.assertIsFile()
+
+        and:
+        1 * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.gradleHome >> gradleHomeDir
+        _ * localDistribution.distZip >> zipDestination
+        1 * download.download(configuration.distribution, _) >> { createTestZip(it[1]) }
+        0 * download._
     }
 }

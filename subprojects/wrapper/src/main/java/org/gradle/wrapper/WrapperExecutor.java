@@ -93,7 +93,7 @@ public class WrapperExecutor {
                     + getProperty("distributionVersion") + "-"
                     + getProperty("distributionClassifier") + ".zip";
             Formatter formatter = new Formatter();
-            formatter.format("%s contains deprecated entries: 'urlRoot', 'distributionName', 'distributionVersion' and 'distributionClassifier' are deprecated and will be removed soon. Please use '%s' instead.%n", properties, DISTRIBUTION_URL_PROPERTY);
+            formatter.format("Wrapper properties file '%s' contains deprecated entries 'urlRoot', 'distributionName', 'distributionVersion' and 'distributionClassifier'. These will be removed soon. Please use '%s' instead.%n", propertiesFile, DISTRIBUTION_URL_PROPERTY);
             warningOutput.append(formatter.toString());
         } catch (Exception e) {
             //even the deprecated properties are not provided, report error:
