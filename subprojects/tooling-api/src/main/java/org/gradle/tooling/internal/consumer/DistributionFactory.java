@@ -47,7 +47,7 @@ public class DistributionFactory {
         BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory(), System.out);
         if (wrapper.getDistribution() != null) {
-            return getDistribution(wrapper.getDistribution());
+            return new ZippedDistribution(wrapper.getConfiguration());
         }
         return getDownloadedDistribution(GradleVersion.current().getVersion());
     }
@@ -71,7 +71,9 @@ public class DistributionFactory {
      * Returns the distribution at the given URI.
      */
     public Distribution getDistribution(URI gradleDistribution) {
-        return new ZippedDistribution(gradleDistribution);
+        WrapperConfiguration configuration = new WrapperConfiguration();
+        configuration.setDistribution(gradleDistribution);
+        return new ZippedDistribution(configuration);
     }
 
     /**
@@ -92,27 +94,27 @@ public class DistributionFactory {
     }
 
     private class ZippedDistribution implements Distribution {
-        private final URI gradleDistribution;
         private InstalledDistribution installedDistribution;
+        private final WrapperConfiguration wrapperConfiguration;
 
-        private ZippedDistribution(URI gradleDistribution) {
-            this.gradleDistribution = gradleDistribution;
+        private ZippedDistribution(WrapperConfiguration wrapperConfiguration) {
+            this.wrapperConfiguration = wrapperConfiguration;
         }
 
         public String getDisplayName() {
-            return String.format("Gradle distribution '%s'", gradleDistribution);
+            return String.format("Gradle distribution '%s'", wrapperConfiguration.getDistribution());
         }
 
         public Set<File> getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory) {
             if (installedDistribution == null) {
                 File installDir;
                 try {
-                    Install install = new Install(false, false, new ProgressReportingDownload(progressLoggerFactory), new PathAssembler(userHomeDir));
-                    installDir = install.createDist(gradleDistribution);
+                    Install install = new Install(new ProgressReportingDownload(progressLoggerFactory), new PathAssembler(userHomeDir));
+                    installDir = install.createDist(wrapperConfiguration);
                 } catch (FileNotFoundException e) {
                     throw new IllegalArgumentException(String.format("The specified %s does not exist.", getDisplayName()), e);
                 } catch (Exception e) {
-                    throw new GradleConnectionException(String.format("Could not install Gradle distribution from '%s'.", gradleDistribution), e);
+                    throw new GradleConnectionException(String.format("Could not install Gradle distribution from '%s'.", wrapperConfiguration.getDistribution()), e);
                 }
                 installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName());
             }

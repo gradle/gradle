@@ -103,7 +103,7 @@ class WrapperExecutorTest extends Specification {
         wrapper.execute(['arg'] as String[], install, start)
 
         then:
-        1 * install.createDist(new URI('http://server/test/gradle.zip'), 'testDistBase', 'testDistPath', 'testZipBase', 'testZipPath') >> installDir
+        1 * install.createDist(wrapper.configuration) >> installDir
         1 * start.start(['arg'] as String[], installDir)
         0 * _._
     }
@@ -121,15 +121,14 @@ class WrapperExecutorTest extends Specification {
         e.cause.message == "No value with key 'distributionUrl' specified in wrapper properties file '$propertiesFile'."
     }
 
-    def "execute fails when properties file does not exist"() {
-        propertiesFile.delete()
-        def wrapper = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out)
+    def "forWrapperPropertiesFile() fails when properties file does not exist"() {
+        def propertiesFile = tmpDir.file("unknown.properties")
 
         when:
-        wrapper.execute(['arg'] as String[], install, start)
+        WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out)
 
         then:
-        FileNotFoundException e = thrown()
+        RuntimeException e = thrown()
         e.message == "Wrapper properties file '$propertiesFile' does not exist."
     }
 

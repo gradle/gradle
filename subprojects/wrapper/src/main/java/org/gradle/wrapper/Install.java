@@ -30,22 +30,22 @@ import java.util.zip.ZipFile;
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
     private final IDownload download;
-    private final boolean alwaysDownload;
-    private final boolean alwaysUnpack;
     private final PathAssembler pathAssembler;
 
-    public Install(boolean alwaysDownload, boolean alwaysUnpack, IDownload download, PathAssembler pathAssembler) {
-        this.alwaysDownload = alwaysDownload;
-        this.alwaysUnpack = alwaysUnpack;
+    public Install(IDownload download, PathAssembler pathAssembler) {
         this.download = download;
         this.pathAssembler = pathAssembler;
     }
 
-    public File createDist(URI distributionUrl) throws Exception {
-        return createDist(distributionUrl, PathAssembler.GRADLE_USER_HOME_STRING, DEFAULT_DISTRIBUTION_PATH, PathAssembler.GRADLE_USER_HOME_STRING, DEFAULT_DISTRIBUTION_PATH);
-    }
+    public File createDist(WrapperConfiguration configuration) throws Exception {
+        String distBase = configuration.getDistributionBase();
+        String distPath = configuration.getDistributionPath();
+        URI distributionUrl = configuration.getDistribution();
+        String zipBase = configuration.getZipBase();
+        String zipPath = configuration.getZipPath();
+        boolean alwaysDownload = configuration.isAlwaysDownload();
+        boolean alwaysUnpack = configuration.isAlwaysUnpack();
 
-    public File createDist(URI distributionUrl, String distBase, String distPath, String zipBase, String zipPath) throws Exception {
         File gradleHome = pathAssembler.gradleHome(distBase, distPath, distributionUrl);
         if (!alwaysDownload && !alwaysUnpack && gradleHome.isDirectory()) {
             return gradleHome;

@@ -15,13 +15,14 @@
  */
 package org.gradle.wrapper;
 
-import java.io.File;
 import java.net.URI;
 
 public class WrapperConfiguration {
-    private File gradleUserHomeDir;
-    private boolean alwaysUnpack;
-    private boolean alwaysDownload;
+    public static final String ALWAYS_UNPACK_ENV = "GRADLE_WRAPPER_ALWAYS_UNPACK";
+    public static final String ALWAYS_DOWNLOAD_ENV = "GRADLE_WRAPPER_ALWAYS_DOWNLOAD";
+
+    private boolean alwaysUnpack = Boolean.parseBoolean(System.getenv(ALWAYS_UNPACK_ENV));
+    private boolean alwaysDownload = Boolean.parseBoolean(System.getenv(ALWAYS_DOWNLOAD_ENV));
     private URI distribution;
     private String distributionBase = PathAssembler.GRADLE_USER_HOME_STRING;
     private String distributionPath = Install.DEFAULT_DISTRIBUTION_PATH;
@@ -66,14 +67,6 @@ public class WrapperConfiguration {
 
     public void setDistributionPath(String distributionPath) {
         this.distributionPath = distributionPath;
-    }
-
-    public File getGradleUserHomeDir() {
-        return gradleUserHomeDir;
-    }
-
-    public void setGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
     public String getZipBase() {

@@ -15,7 +15,10 @@
  */
 package org.gradle.wrapper;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Formatter;
@@ -40,6 +43,9 @@ public class WrapperExecutor {
     }
 
     public static WrapperExecutor forWrapperPropertiesFile(File propertiesFile, Appendable warningOutput) {
+        if (!propertiesFile.exists()) {
+            throw new RuntimeException(String.format("Wrapper properties file '%s' does not exist.", propertiesFile));
+        }
         return new WrapperExecutor(propertiesFile, new Properties(), warningOutput);
     }
 
@@ -120,16 +126,7 @@ public class WrapperExecutor {
     }
 
     public void execute(String[] args, Install install, BootstrapMainStarter bootstrapMainStarter) throws Exception {
-        if (config.getDistribution() == null) {
-            throw new FileNotFoundException(String.format("Wrapper properties file '%s' does not exist.", propertiesFile));
-        }
-        File gradleHome = install.createDist(
-                getDistribution(),
-                config.getDistributionBase(),
-                config.getDistributionPath(),
-                config.getZipBase(),
-                config.getZipPath()
-        );
+        File gradleHome = install.createDist(config);
         bootstrapMainStarter.start(args, gradleHome);
     }
 
