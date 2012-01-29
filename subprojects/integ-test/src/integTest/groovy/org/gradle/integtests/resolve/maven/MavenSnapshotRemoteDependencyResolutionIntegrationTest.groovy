@@ -368,6 +368,63 @@ allprojects {
         file('b/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
     }
 
+    def "can update non-unique snapshot artifact during build even if it is locked earlier in build"() {
+        server.start()
+        given:
+        def module = repo().module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def module2 = new MavenRepository(file('repo2')).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publishWithChangedContent()
+
+        and:
+        settingsFile << "include 'lock', 'resolve'"
+        buildFile << """
+subprojects {
+    repositories {
+        maven { url "http://localhost:${server.port}/repo" }
+    }
+
+    configurations { compile }
+
+    configurations.all {
+        resolutionStrategy.resolutionRules.eachModule({ module ->
+            module.refresh()
+        } as Action)
+    }
+
+    dependencies {
+        compile "org.gradle:testproject:1.0-SNAPSHOT"
+    }
+
+
+    task retrieve(type: Sync) {
+        into 'build'
+        from configurations.compile
+    }
+}
+project(':lock') {
+    task lock << {
+        configurations.compile.each { file ->
+            new RandomAccessFile(file, 'rw').channel.lock()
+        }
+    }
+    retrieve.dependsOn 'lock'
+}
+
+project('resolve') {
+    retrieve.dependsOn ':lock:retrieve'
+}
+"""
+        when: "Module is requested once"
+        expectModuleServed(module, '/repo')
+        expectModuleServed(module2, '/repo', true)
+
+        then:
+        run 'retrieve'
+
+        and:
+        file('lock/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifactFile)
+        file('resolve/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module2.artifactFile)
+    }
+
     private expectModuleServed(MavenModule module, def prefix, boolean sha1requests = false) {
         def moduleName = module.artifactId;
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
