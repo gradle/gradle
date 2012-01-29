@@ -104,7 +104,7 @@ public interface CopyProcessingSpec extends ContentFilterable {
     CopyProcessingSpec setDirMode(int mode);
 
     /**
-     * Adds an action to be applied to each file as it about to be copied into its destination. The action can change
+     * Adds an action to be applied to each file as it is about to be copied into its destination. The action can change
      * the destination path of the file, filter the contents of the file, or exclude the file from the result entirely.
      * Actions are executed in the order added, and are inherited from the parent spec.
      *
