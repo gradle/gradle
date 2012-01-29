@@ -27,6 +27,21 @@ class JvmTest extends Specification {
     OperatingSystem theOs = OperatingSystem.current()
     Jvm jvm = new Jvm(os)
 
+    def "uses system property to determine if Java 5/6/7"() {
+        System.properties['java.version'] = "1.$version" as String
+
+        expect:
+        jvm."java$version"
+        !jvm."java$other1"
+        !jvm."java$other2"
+
+        where:
+        version | other1 | other2
+        5       | 6      | 7
+        6       | 7      | 5
+        7       | 5      | 6
+    }
+
     def "uses system property to determine if compatible with Java 5"() {
         System.properties['java.version'] = '1.5'
 

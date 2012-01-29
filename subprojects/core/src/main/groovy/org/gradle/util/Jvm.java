@@ -72,7 +72,7 @@ public class Jvm {
 
     @Override
     public String toString() {
-        return String.format("%s (%s %s)", System.getProperty("java.version"), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
+        return String.format("%s (%s %s)", SystemProperties.getJavaVersion(), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
     }
 
     private File findExecutable(String command) {
@@ -118,12 +118,24 @@ public class Jvm {
         return findExecutable(name);
     }
 
+    public boolean isJava5() {
+        return SystemProperties.getJavaVersion().startsWith("1.5");    
+    }
+
+    public boolean isJava6() {
+        return SystemProperties.getJavaVersion().startsWith("1.6");
+    }
+
+    public boolean isJava7() {
+        return SystemProperties.getJavaVersion().startsWith("1.7");
+    }
+
     public boolean isJava5Compatible() {
-        return System.getProperty("java.version").startsWith("1.5") || isJava6Compatible();
+         return isJava5() || isJava6Compatible();
     }
 
     public boolean isJava6Compatible() {
-        return System.getProperty("java.version").startsWith("1.6");
+        return isJava6() || isJava7();
     }
 
     public File getJavaHome() {
@@ -158,7 +170,7 @@ public class Jvm {
             }
         }
         if (javaHome.getName().matches("jre\\d+") && os.isWindows()) {
-            javaHome = new File(javaHome.getParentFile(), String.format("jdk%s", System.getProperty("java.version")));
+            javaHome = new File(javaHome.getParentFile(), String.format("jdk%s", SystemProperties.getJavaVersion()));
             toolsJar = new File(javaHome, "lib/tools.jar");
             if (toolsJar.exists()) {
                 return toolsJar;
