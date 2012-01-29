@@ -47,8 +47,6 @@ import java.util.Properties;
  * @author Hans Dockter
  */
 public class Wrapper extends DefaultTask {
-    static final String DISTRIBUTION_BASE_PROPERTY = WrapperExecutor.DISTRIBUTION_BASE_PROPERTY;
-
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
     public static final String DEFAULT_ARCHIVE_NAME = "gradle";
     public static final String DEFAULT_ARCHIVE_CLASSIFIER = "bin";

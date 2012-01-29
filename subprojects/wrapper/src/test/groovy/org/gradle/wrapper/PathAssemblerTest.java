@@ -63,7 +63,7 @@ public class PathAssemblerTest {
     }
 
     @Test
-    public void gradleHomeForUrlWithNoVersion() throws Exception {
+    public void failsToDetermineGradleHomeWhenUrlDoesNotContainAnyVersionInformation() throws Exception {
         try {
             pathAssembler.gradleHome(PathAssembler.GRADLE_USER_HOME_STRING, "somePath", new URI("http://server/gradle-bin.zip"));
             fail();

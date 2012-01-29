@@ -84,7 +84,7 @@ public class CommandLineParser {
      * @throws org.gradle.cli.CommandLineArgumentException
      *          On parse failure.
      */
-    public ParsedCommandLine parse(Iterable<String> commandLine) {
+    public ParsedCommandLine parse(Iterable<String> commandLine) throws CommandLineArgumentException {
         ParsedCommandLine parsedCommandLine = new ParsedCommandLine(new HashSet<CommandLineOption>(optionsByString.values()));
         ParserState parseState = new BeforeFirstSubCommand(parsedCommandLine);
         for (String arg : commandLine) {

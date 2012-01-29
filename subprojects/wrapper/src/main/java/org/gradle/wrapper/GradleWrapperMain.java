@@ -16,16 +16,14 @@
 
 package org.gradle.wrapper;
 
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.SystemPropertiesCommandLineConverter;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
-
-import org.gradle.cli.CommandLineParserFactory;
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.SystemPropertiesCommandLineConverter;
 
 /**
  * @author Hans Dockter
@@ -58,13 +56,10 @@ public class GradleWrapperMain {
 
     private static Map<String, String> parseSystemPropertiesFromArgs(String[] args) {
         SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
-        converter.setCommandLineParserFactory(new CommandLineParserFactory() {
-            public CommandLineParser create() {
-                return new CommandLineParser().allowUnknownOptions();
-            }
-        }); 
-        
-        return converter.convert(Arrays.asList(args));
+        CommandLineParser commandLineParser = new CommandLineParser();
+        converter.configure(commandLineParser);
+        commandLineParser.allowUnknownOptions();
+        return converter.convert(commandLineParser.parse(args));
     }
     
     private static void addSystemProperties(File rootDir) {

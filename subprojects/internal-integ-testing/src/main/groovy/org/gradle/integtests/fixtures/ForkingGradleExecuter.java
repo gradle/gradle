@@ -17,10 +17,9 @@
 package org.gradle.integtests.fixtures;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.Factory;
 import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.CommandLineParserFactory;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.OperatingSystem;
 import org.gradle.launcher.daemon.client.DaemonParameters;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
@@ -66,15 +65,12 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     protected Map<String, String> getSystemPropertiesFromArgs() {
         SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
-        converter.setCommandLineParserFactory(new CommandLineParserFactory() {
-            public CommandLineParser create() {
-                return new CommandLineParser().allowUnknownOptions();
-            }
-        }); 
-        
-        return converter.convert(getAllArgs());
-        
+        CommandLineParser commandLineParser = new CommandLineParser();
+        converter.configure(commandLineParser);
+        commandLineParser.allowUnknownOptions();
+        return converter.convert(commandLineParser.parse(getAllArgs()));
     }
+
     /**
      * Adds some options to the GRADLE_OPTS environment variable to use.
      */
