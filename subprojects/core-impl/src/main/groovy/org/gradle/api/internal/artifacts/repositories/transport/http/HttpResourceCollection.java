@@ -208,7 +208,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         HttpResource resource = (HttpResource) res;
         fireTransferInitiated(resource, TransferEvent.REQUEST_GET);
         try {
-            progress.setTotalLength(resource.getContentLength());
+            progress.setTotalLength(resource.getContentLength() > 0 ? resource.getContentLength() : null);
             resource.writeTo(destination, progress);
         } catch (IOException e) {
             fireTransferError(e);
