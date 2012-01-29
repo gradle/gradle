@@ -15,36 +15,56 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.AntBuilder;
+import org.gradle.api.GradleException;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.internal.Factory;
+import org.gradle.util.Jvm;
 import org.gradle.util.ReflectionUtil;
 
 public class InProcessJavaCompilerChooser implements JavaCompilerChooser {
-    private static final boolean JDK_6_COMPILER_AVAILABLE =
-            ReflectionUtil.isClassAvailable("javax.tools.ToolProvider")
-                    && ReflectionUtil.isClassAvailable("org.gradle.api.internal.tasks.compile.jdk6.Jdk6JavaCompiler");
     private static final boolean SUN_COMPILER_AVAILABLE = ReflectionUtil.isClassAvailable("com.sun.tools.javac.Main");
-    
+
+    private final CompilerFactory compilerFactory;
+
+    public InProcessJavaCompilerChooser(Factory<AntBuilder> antBuilderFactory) {
+        compilerFactory = new CompilerFactory(antBuilderFactory);
+    }
+
     public JavaCompiler choose(CompileOptions options) {
-        if (JDK_6_COMPILER_AVAILABLE) {
-            return CompilerFactory.createJdk6Compiler();
+        if (Jvm.current().isJava6Compatible()) {
+            return compilerFactory.createJdk6Compiler();
         }
         if (SUN_COMPILER_AVAILABLE) {
-            return CompilerFactory.createSunCompiler();
+            return compilerFactory.createSunCompiler();
         }
-        return CompilerFactory.createAntCompiler();
+        return compilerFactory.createAntCompiler();
     }
-    
+
+    // static to enforce lazy class loading
     private static class CompilerFactory {
-        static JavaCompiler createJdk6Compiler() {
-            return null;
+        final Factory<AntBuilder> antBuilderFactory;
+
+        CompilerFactory(Factory<AntBuilder> antBuilderFactory) {
+            this.antBuilderFactory = antBuilderFactory;
+        }
+
+        JavaCompiler createJdk6Compiler() {
+            try {
+                // excluded when Gradle is compiled against JDK5, hence we can't reference it statically
+                Class<?> clazz = getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.compile.jdk6.Jdk6JavaCompiler");
+                return (JavaCompiler) clazz.newInstance();
+            } catch (Exception e) {
+                throw new GradleException("Internal error: couldn't load or instantiate class Jdk6JavaCompiler", e);
+            }
         }
         
-        static JavaCompiler createSunCompiler() {
+        JavaCompiler createSunCompiler() {
             return new SunJavaCompiler();
         }
         
-        static JavaCompiler createAntCompiler() {
-            return null;
+        JavaCompiler createAntCompiler() {
+            return new AntJavaCompiler(antBuilderFactory);
         }
     }
 }
