@@ -63,6 +63,12 @@ enum TestPrecondition {
     }),
     UNKNOWN_OS({
         OperatingSystem.current().name == "unknown operating system"
+    }),
+    JDK5({
+        Jvm.current().java5
+    }),
+    JDK6({
+        Jvm.current().java6
     });
 
     /**
