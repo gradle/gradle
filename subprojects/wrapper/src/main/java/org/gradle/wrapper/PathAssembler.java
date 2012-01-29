@@ -16,9 +16,9 @@
 package org.gradle.wrapper;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.net.URI;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.security.MessageDigest;
 
 /**
  * @author Hans Dockter
@@ -40,27 +40,36 @@ public class PathAssembler {
      * Determines the local locations for the distribution to use given the supplied configuration. 
      */
     public LocalDistribution getDistribution(WrapperConfiguration configuration) {
-        File gradleHome = gradleHome(configuration.getDistributionBase(), configuration.getDistributionPath(), configuration.getDistribution());
-        File distZip = distZip(configuration.getZipBase(), configuration.getZipPath(), configuration.getDistribution());
-        return new LocalDistribution(gradleHome, distZip);
-    }
-    
-    private File gradleHome(String distBase, String distPath, URI distUrl) {
-        return new File(getBaseDir(distBase), distPath + "/" + getDistHome(distUrl));
-    }
-
-    private File distZip(String zipBase, String zipPath, URI distUrl) {
-        return new File(getBaseDir(zipBase), zipPath + "/" + getDistName(distUrl));
+        String baseName = getDistName(configuration.getDistribution());
+        String distName = removeExtension(baseName);
+        String rootDirName = rootDirName(distName, configuration);
+        File distDir = new File(getBaseDir(configuration.getDistributionBase()), configuration.getDistributionPath() + "/" + rootDirName);
+        File distZip = new File(getBaseDir(configuration.getZipBase()), configuration.getZipPath() + "/" + rootDirName + "/" + baseName);
+        return new LocalDistribution(distDir, distZip);
     }
 
-    private String getDistHome(URI distUrl) {
-        String name = getDistName(distUrl);
-        Matcher matcher = Pattern.compile("(\\p{Alpha}+(-\\p{Alpha}+)*-\\d+\\.\\d+.*?)(-\\p{Alpha}+)?\\.zip").matcher(name);
-        if (!matcher.matches()) {
-            throw new RuntimeException(String.format("Cannot determine Gradle version from distribution URL '%s'.",
-                    distUrl));
+    private String rootDirName(String distName, WrapperConfiguration configuration) {
+        String urlHash = getMd5Hash(configuration.getDistribution().toString());
+        return String.format("%s/%s", distName, urlHash);
+    }
+
+    private String getMd5Hash(String string) {
+        try {
+            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+            byte[] bytes = string.getBytes();
+            messageDigest.update(bytes);
+            return new BigInteger(1, messageDigest.digest()).toString(32);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not hash input string.", e);
         }
-        return matcher.group(1);
+    }
+
+    private String removeExtension(String name) {
+        int p = name.lastIndexOf(".");
+        if (p < 0) {
+            return name;
+        }
+        return name.substring(0, p);
     }
 
     private String getDistName(URI distUrl) {
@@ -83,19 +92,25 @@ public class PathAssembler {
     }
     
     public class LocalDistribution {
-        private final File gradleHome;
         private final File distZip;
+        private final File distDir;
 
-        public LocalDistribution(File gradleHome, File distZip) {
-            this.gradleHome = gradleHome;
+        public LocalDistribution(File distDir, File distZip) {
+            this.distDir = distDir;
             this.distZip = distZip;
         }
 
-        public File getGradleHome() {
-            return gradleHome;
+        /**
+         * Returns the location to install the distribution into.
+         */
+        public File getDistributionDir() {
+            return distDir;
         }
-        
-        public File getDistZip() {
+
+        /**
+         * Returns the location to install the distribution ZIP file to.
+         */
+        public File getZipFile() {
             return distZip;
         }
     }

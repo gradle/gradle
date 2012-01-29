@@ -105,8 +105,8 @@ class InstallTest extends Specification {
 
         and:
         1 * pathAssembler.getDistribution(configuration) >> localDistribution
-        _ * localDistribution.gradleHome >> gradleHomeDir
-        _ * localDistribution.distZip >> zipDestination
+        _ * localDistribution.distributionDir >> distributionDir
+        _ * localDistribution.zipFile >> zipDestination
         1 * download.download(configuration.distribution, _) >> { createTestZip(it[1]) }
         0 * download._
     }
@@ -128,8 +128,8 @@ class InstallTest extends Specification {
 
         and:
         1 * pathAssembler.getDistribution(configuration) >> localDistribution
-        _ * localDistribution.gradleHome >> gradleHomeDir
-        _ * localDistribution.distZip >> zipDestination
+        _ * localDistribution.distributionDir >> distributionDir
+        _ * localDistribution.zipFile >> zipDestination
         0 * download._
     }
 
@@ -150,8 +150,8 @@ class InstallTest extends Specification {
 
         and:
         1 * pathAssembler.getDistribution(configuration) >> localDistribution
-        _ * localDistribution.gradleHome >> gradleHomeDir
-        _ * localDistribution.distZip >> zipDestination
+        _ * localDistribution.distributionDir >> distributionDir
+        _ * localDistribution.zipFile >> zipDestination
         0 * download._
     }
 
@@ -173,8 +173,8 @@ class InstallTest extends Specification {
 
         and:
         1 * pathAssembler.getDistribution(configuration) >> localDistribution
-        _ * localDistribution.gradleHome >> gradleHomeDir
-        _ * localDistribution.distZip >> zipDestination
+        _ * localDistribution.distributionDir >> distributionDir
+        _ * localDistribution.zipFile >> zipDestination
         1 * download.download(configuration.distribution, _) >> { createTestZip(it[1]) }
         0 * download._
     }

@@ -18,9 +18,7 @@ package org.gradle.wrapper;
 
 import java.io.*;
 import java.net.URI;
-import java.util.Enumeration;
-import java.util.Formatter;
-import java.util.Locale;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -43,32 +41,50 @@ public class Install {
         boolean alwaysUnpack = configuration.isAlwaysUnpack();
 
         PathAssembler.LocalDistribution localDistribution = pathAssembler.getDistribution(configuration);
-        File gradleHome = localDistribution.getGradleHome();
-        if (!alwaysDownload && !alwaysUnpack && gradleHome.isDirectory()) {
-            return gradleHome;
-        }
-        File localZipFile = localDistribution.getDistZip();
+
+        File localZipFile = localDistribution.getZipFile();
+        boolean downloaded = false;
         if (alwaysDownload || !localZipFile.exists()) {
             File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".part");
             tmpZipFile.delete();
             System.out.println("Downloading " + distributionUrl);
             download.download(distributionUrl, tmpZipFile);
             tmpZipFile.renameTo(localZipFile);
+            downloaded = true;
         }
-        if (gradleHome.isDirectory()) {
-            System.out.println("Deleting directory " + gradleHome.getAbsolutePath());
-            deleteDir(gradleHome);
+
+        File distDir = localDistribution.getDistributionDir();
+        List<File> dirs = listDirs(distDir);
+
+        if (downloaded || alwaysUnpack || dirs.isEmpty()) {
+            for (File dir : dirs) {
+                System.out.println("Deleting directory " + dir.getAbsolutePath());
+                deleteDir(dir);
+            }
+            System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
+            unzip(localZipFile, distDir);
+            dirs = listDirs(distDir);
+            if (dirs.isEmpty()) {
+                throw new RuntimeException(String.format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.", distributionUrl));
+            }
+            setExecutablePermissions(dirs.get(0));
         }
-        File distDest = gradleHome.getParentFile();
-        System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDest.getAbsolutePath());
-        unzip(localZipFile, distDest);
-        if (!gradleHome.isDirectory()) {
-            throw new RuntimeException(String.format(
-                    "Gradle distribution '%s' does not contain expected root directory '%s'.", distributionUrl,
-                    gradleHome.getName()));
+        if (dirs.size() != 1) {
+            throw new RuntimeException(String.format("Gradle distribution '%s' contains too many directories. Expected to find exactly 1 directory.", distributionUrl));
         }
-        setExecutablePermissions(gradleHome);
-        return gradleHome;
+        return dirs.get(0);
+    }
+
+    private List<File> listDirs(File distDir) {
+        List<File> dirs = new ArrayList<File>();
+        if (distDir.exists()) {
+            for (File file : distDir.listFiles()) {
+                if (file.isDirectory()) {
+                    dirs.add(file);
+                }
+            }
+        }
+        return dirs;
     }
 
     private void setExecutablePermissions(File gradleHome) {
