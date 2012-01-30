@@ -29,4 +29,9 @@ public class DaemonCompatibilitySpec implements Spec<DaemonContext> {
         return potentialContext.getJavaHome().equals(desiredContext.getJavaHome())
                 && potentialContext.getDaemonOpts().equals(desiredContext.getDaemonOpts());
     }
+
+    @Override
+    public String toString() {
+        return "Desired daemon context: " + desiredContext;
+    }
 }
