@@ -398,8 +398,7 @@ subprojects {
     task lock << {
         configurations.compile.each { file ->
             println "locking " + file
-            def lockFile = new RandomAccessFile(file.canonicalPath, 'rw')
-            lockFile.channel.lock()
+            def lockFile = new RandomAccessFile(file.canonicalPath, 'r')
             fileLocks[file] = lockFile
         }
     }
