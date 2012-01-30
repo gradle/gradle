@@ -32,6 +32,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
+import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +51,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
 
     public ArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver,
                                            ResourceDownloader resourceDownloader, CacheDownloadOptions options) {
-        final ArtifactDownloadReport adr = new ArtifactDownloadReport(artifact);
+        EnhancedArtifactDownloadReport adr = new EnhancedArtifactDownloadReport(artifact);
 
         DownloadListener listener = options.getListener();
         if (listener != null) {
@@ -68,20 +69,19 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
 
                 File artifactFile = downloadArtifactFile(artifact, resourceDownloader, artifactRef);
 
-                adr.setSize(artifactFile.length());
                 adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
+                adr.setSize(artifactFile.length());
                 adr.setDownloadStatus(DownloadStatus.SUCCESSFUL);
                 adr.setArtifactOrigin(origin);
                 adr.setLocalFile(artifactFile);
             } else {
+                adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
                 adr.setDownloadStatus(DownloadStatus.FAILED);
                 adr.setDownloadDetails(ArtifactDownloadReport.MISSING_ARTIFACT);
-                adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
             }
-        } catch (Exception ex) {
-            adr.setDownloadStatus(DownloadStatus.FAILED);
-            adr.setDownloadDetails(ex.getMessage());
+        } catch (Throwable throwable) {
             adr.setDownloadTimeMillis(System.currentTimeMillis() - start);
+            adr.failed(throwable);
         }
         if (listener != null) {
             listener.endArtifactDownload(this, artifact, adr, adr.getLocalFile());

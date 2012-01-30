@@ -49,8 +49,7 @@ class AnsiConsoleTest {
         console.mainArea.append('message')
 
         context.checking {
-            one(ansi).a('message2')
-            one(ansi).a(EOL)
+            one(ansi).a('message2' + EOL)
             one(ansi).a('message3')
         }
 
@@ -82,8 +81,7 @@ class AnsiConsoleTest {
     @Test
     public void displaysStatusBarWhenTextInMainArea() {
         context.checking {
-            one(ansi).a('message')
-            one(ansi).a(EOL)
+            one(ansi).a('message' + EOL)
         }
 
         console.mainArea.append("message${EOL}")
@@ -277,8 +275,7 @@ class AnsiConsoleTest {
         context.checking {
             one(ansi).cursorLeft(6)
             one(ansi).eraseLine(Ansi.Erase.FORWARD)
-            one(ansi).a('message')
-            one(ansi).a(EOL)
+            one(ansi).a('message' + EOL)
             one(ansi).a('status')
         }
 
@@ -336,8 +333,7 @@ class AnsiConsoleTest {
             one(ansi).eraseLine(Ansi.Erase.FORWARD)
             one(ansi).cursorUp(1)
             one(ansi).cursorRight(7)
-            one(ansi).a('message2')
-            one(ansi).a(EOL)
+            one(ansi).a('message2' + EOL)
             one(ansi).a('status')
         }
 

@@ -102,6 +102,29 @@ class DaemonFeedbackIntegrationSpec extends Specification {
         aLog.count('Hello build!') == 2
     }
 
+    def "daemon infrastructure logs with DEBUG"() {
+        given:
+        def baseDir = distribution.file("daemonBaseDir").createDir()
+        executer.withDaemonBaseDir(baseDir)
+
+        when: "runing build with --info"
+        executer.withArguments("-i").run()
+
+        then:
+        def log = readSingleDaemonLog(baseDir)
+        //TODO SF make sure that those are DEBUG statements
+        log.findAll(DaemonMessages.STARTED_EXECUTING_COMMAND).size() == 1
+        //if the log level was configured back to DEBUG after build:
+        log.findAll(DaemonMessages.FINISHED_EXECUTING_COMMAND).size() == 1
+
+        when: "another build requested with the same daemon with --info"
+        executer.withArguments("-i").run()
+
+        then:
+        def aLog = readSingleDaemonLog(baseDir)
+        aLog.findAll(DaemonMessages.STARTED_EXECUTING_COMMAND).size() == 2
+    }
+
     def "daemon log honors log levels for logging"() {
         given:
         def baseDir = distribution.file("daemonBaseDir").createDir()

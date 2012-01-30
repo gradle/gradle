@@ -348,26 +348,12 @@ task installAll(type: Install) {
     installDirProperyName = 'gradle_installPath'
 }
 
-task testedDists(dependsOn: [assemble, check])
-
-uploadDists {
-    dependsOn testedDists
-    uploadDescriptor = false
-    doFirst {
-        repositories {
-            ivy {
-                artifactPattern "${version.distributionUrl}/[artifact]-[revision](-[classifier]).[ext]"
-                credentials {
-                    username = artifactoryUserName
-                    password = artifactoryUserPassword
-                }
-            }
-        }
-    }
+task testedDists(dependsOn: [check]) {
+    outputs.files configurations.dists.allArtifacts.files
 }
 
 gradle.taskGraph.whenReady {graph ->
-    if (graph.hasTask(uploadDists) || graph.hasTask(uploadArchives)) {
+    if (graph.hasTask(uploadArchives)) {
         // check properties defined and fail early
         artifactoryUserName
         artifactoryUserPassword
@@ -445,7 +431,7 @@ task incrementNextVersion << {
 
 task uploadAll {
     description = 'Uploads binaries, sources and documentation. Does not upload the website! Useful when release procedure breaks at upload and only upload tasks should executed again'
-    dependsOn uploadArchives, uploadDists, "website:uploadDistributions", "website:uploadDocs", "website:pushReleasesXml"
+    dependsOn uploadArchives, "website:uploadDistributions", "website:uploadDocs", "website:pushReleasesXml"
 }
 
 def wrapperUpdateTask = { name, label ->

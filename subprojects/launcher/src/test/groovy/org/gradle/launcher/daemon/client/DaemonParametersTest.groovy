@@ -30,10 +30,12 @@ class DaemonParametersTest extends Specification {
         expect:
         !parameters.enabled
         parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
-        parameters.baseDir == new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon")
+        def baseDir = new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon")
+        parameters.baseDir == baseDir
         parameters.systemProperties.isEmpty()
         // Not that reasonable
-        parameters.jvmArgs == ['-XX:MaxPermSize=256m', '-Xmx1024m']
+        parameters.effectiveJvmArgs.containsAll(parameters.defaultJvmArgs)
+        parameters.effectiveJvmArgs.size() == parameters.defaultJvmArgs.size()
     }
 
     def "determines base dir from user home dir"() {
@@ -80,12 +82,22 @@ class DaemonParametersTest extends Specification {
         parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
     }
 
+    def "configuring jvmargs replaces the defaults"() {
+        when:
+        parameters.configureFrom([(DaemonParameters.JVM_ARGS_SYS_PROPERTY) : "-Xmx17m"])
+
+        then:
+        parameters.effectiveJvmArgs.each { assert !parameters.defaultJvmArgs.contains(it) }
+    }
+
     def "can configure jvm args using system property"() {
         when:
         parameters.configureFromSystemProperties((DaemonParameters.JVM_ARGS_SYS_PROPERTY):  '-Xmx1024m -Dprop=value')
 
         then:
-        parameters.jvmArgs == ['-Xmx1024m',]
+        parameters.effectiveJvmArgs.contains('-Xmx1024m')
+        !parameters.effectiveJvmArgs.contains('-Dprop=value')
+
         parameters.systemProperties == [prop: 'value']
     }
 
@@ -100,7 +112,9 @@ class DaemonParametersTest extends Specification {
         parameters.configureFromBuildDir(tmpDir.dir, true)
 
         then:
-        parameters.jvmArgs == ['-Xmx1024m']
+        parameters.effectiveJvmArgs.contains('-Xmx1024m')
+        !parameters.effectiveJvmArgs.contains('-Dprop=value')
+
         parameters.systemProperties == [prop: 'value']
     }
 
@@ -128,7 +142,9 @@ class DaemonParametersTest extends Specification {
         parameters.configureFromGradleUserHome(tmpDir.dir)
 
         then:
-        parameters.jvmArgs == ['-Xmx1024m']
+        parameters.effectiveJvmArgs.contains('-Xmx1024m')
+        !parameters.effectiveJvmArgs.contains('-Dprop=value')
+
         parameters.systemProperties == [prop: 'value']
     }
 

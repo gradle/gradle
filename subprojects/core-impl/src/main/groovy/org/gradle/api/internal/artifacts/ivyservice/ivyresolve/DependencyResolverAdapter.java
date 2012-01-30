@@ -23,6 +23,7 @@ import org.apache.ivy.core.resolve.DownloadOptions;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
 import org.gradle.internal.UncheckedException;
 
@@ -58,6 +59,10 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
     public File download(Artifact artifact) {
         ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{artifact}, downloadOptions).getArtifactReport(artifact);
         if (downloadFailed(artifactDownloadReport)) {
+            if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
+                EnhancedArtifactDownloadReport enhancedReport = (EnhancedArtifactDownloadReport) artifactDownloadReport;
+                throw new ArtifactResolveException(artifactDownloadReport.getArtifact(), enhancedReport.getFailure());
+            }
             throw new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getDownloadDetails());
         }
         return artifactDownloadReport.getLocalFile();
@@ -83,9 +88,6 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
     }
 
     private boolean isChanging(ResolvedModuleRevision resolvedModuleRevision) {
-        if (resolver instanceof IvyDependencyResolver) {
-            return ((IvyDependencyResolver) resolver).isChangingModule(resolvedModuleRevision.getDescriptor());
-        }
-        return false;
+        return new ChangingModuleDetector(resolver).isChangingModule(resolvedModuleRevision.getDescriptor());
     }
 }

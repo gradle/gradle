@@ -28,7 +28,7 @@ class JDependExtension extends CodeQualityExtension {
     }
 
     /**
-     * The directory where JDepend reports will be saved. Defaults to <tt>$reportsDir/jdepend</tt>.
+     * The directory where JDepend reports will be saved. Defaults to <tt>$reporting.baseDir/jdepend</tt>.
      */
     File reportsDir
 }

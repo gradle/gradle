@@ -15,8 +15,8 @@
  */
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.internal.Factory;
+import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.*;

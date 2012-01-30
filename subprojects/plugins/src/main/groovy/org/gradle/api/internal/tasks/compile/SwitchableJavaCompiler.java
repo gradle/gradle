@@ -15,70 +15,18 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.compile.CompileOptions;
 
-import java.io.File;
-
-public class SwitchableJavaCompiler implements JavaCompiler {
-    private final CompilerChooser compilerChooser;
+public class SwitchableJavaCompiler extends JavaCompilerSupport {
+    private final JavaCompilerChooser compilerChooser;
     
-    private FileCollection source;
-    private File destinationDir;
-    private Iterable<File> classpath;
-    private String sourceCompatibility;
-    private String targetCompatibility;
-    private CompileOptions compileOptions = new CompileOptions();
-
-    public SwitchableJavaCompiler(CompilerChooser compilerChooser) {
+    public SwitchableJavaCompiler(JavaCompilerChooser compilerChooser) {
         this.compilerChooser = compilerChooser;
-    }
-
-    public void setSource(FileCollection source) {
-        this.source = source;
-    }
-
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
-    }
-
-    public void setClasspath(Iterable<File> classpath) {
-        this.classpath = classpath;
-    }
-
-    public void setSourceCompatibility(String sourceCompatibility) {
-        this.sourceCompatibility = sourceCompatibility;
-    }
-
-    public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
-    }
-
-    public CompileOptions getCompileOptions() {
-        return compileOptions;
-    }
-
-    public void setCompileOptions(CompileOptions compileOptions) {
-        this.compileOptions = compileOptions;
-    }
-
-    public void setDependencyCacheDir(File dir) {
-        // do nothing
     }
 
     public WorkResult execute() {
         JavaCompiler actualCompiler = compilerChooser.choose(compileOptions);
         configure(actualCompiler);
         return actualCompiler.execute();
-    }
-    
-    private void configure(JavaCompiler compiler) {
-        compiler.setSource(source);
-        compiler.setDestinationDir(destinationDir);
-        compiler.setClasspath(classpath);
-        compiler.setSourceCompatibility(sourceCompatibility);
-        compiler.setTargetCompatibility(targetCompatibility);
-        compiler.setCompileOptions(compileOptions);
     }
 }

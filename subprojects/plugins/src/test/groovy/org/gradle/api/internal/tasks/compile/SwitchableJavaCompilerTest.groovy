@@ -21,7 +21,7 @@ class SwitchableJavaCompilerTest extends Specification {
     def "configures and executes the chosen compiler"() {
         JavaCompiler chosen = Mock()
 
-        def switchable = new SwitchableJavaCompiler({ chosen } as CompilerChooser)
+        def switchable = new SwitchableJavaCompiler({ chosen } as JavaCompilerChooser)
         
         when:
         switchable.execute()

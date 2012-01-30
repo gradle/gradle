@@ -24,6 +24,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
@@ -35,6 +36,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
+import static java.util.Arrays.asList;
 import static org.gradle.util.GFileUtils.canonicalise;
 
 public class DaemonParameters {
@@ -51,7 +53,14 @@ public class DaemonParameters {
     private File javaHome;
 
     public DaemonParameters() {
-        jvmOptions.setAllJvmArgs(Arrays.asList("-Xmx1024m", "-XX:MaxPermSize=256m"));
+        jvmOptions.setAllJvmArgs(getDefaultJvmArgs());
+    }
+    
+    List<String> getDefaultJvmArgs() {
+        List<String> out = new LinkedList<String>(asList("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"));
+        String heapDumpPath = new DaemonDir(baseDir).getVersionedDir().getAbsolutePath();
+        out.add("-XX:HeapDumpPath=\"" + heapDumpPath + "\"");
+        return out;
     }
 
     public boolean isEnabled() {
@@ -74,14 +83,14 @@ public class DaemonParameters {
         this.idleTimeout = idleTimeout;
     }
 
-    public List<String> getJvmArgs() {
+    public List<String> getEffectiveJvmArgs() {
         return jvmOptions.getAllJvmArgsWithoutSystemProperties();
     }
 
     public List<String> getAllJvmArgs() {
         return jvmOptions.getAllJvmArgs();
     }
-    
+
     public File getEffectiveJavaHome() {
         if (javaHome == null) {
             return canonicalise(Jvm.current().getJavaHome());

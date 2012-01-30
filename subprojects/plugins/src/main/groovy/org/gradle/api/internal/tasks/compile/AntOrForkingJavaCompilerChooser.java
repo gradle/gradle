@@ -17,11 +17,11 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.CompileOptions;
 
-public class AntOrForkingCompilerChooser implements CompilerChooser {
+public class AntOrForkingJavaCompilerChooser implements JavaCompilerChooser {
     private final JavaCompiler antCompiler;
     private final JavaCompiler forkingCompiler;
 
-    public AntOrForkingCompilerChooser(JavaCompiler antCompiler, JavaCompiler forkingCompiler) {
+    public AntOrForkingJavaCompilerChooser(JavaCompiler antCompiler, JavaCompiler forkingCompiler) {
         this.antCompiler = antCompiler;
         this.forkingCompiler = forkingCompiler;
     }

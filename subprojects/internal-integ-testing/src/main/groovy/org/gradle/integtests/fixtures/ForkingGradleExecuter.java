@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.StartParameter;
 import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.CommandLineParserFactory;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.OperatingSystem;
@@ -46,6 +45,9 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     public ForkingGradleExecuter(TestFile gradleHomeDir) {
         this.gradleHomeDir = gradleHomeDir;
         gradleOpts.add("-ea");
+        //uncomment for debugging
+//        gradleOpts.add("-Xdebug");
+//        gradleOpts.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
     }
 
     public TestFile getGradleHomeDir() {
@@ -66,15 +68,12 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     protected Map<String, String> getSystemPropertiesFromArgs() {
         SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
-        converter.setCommandLineParserFactory(new CommandLineParserFactory() {
-            public CommandLineParser create() {
-                return new CommandLineParser().allowUnknownOptions();
-            }
-        }); 
-        
-        return converter.convert(getAllArgs());
-        
+        CommandLineParser commandLineParser = new CommandLineParser();
+        converter.configure(commandLineParser);
+        commandLineParser.allowUnknownOptions();
+        return converter.convert(commandLineParser.parse(getAllArgs()));
     }
+
     /**
      * Adds some options to the GRADLE_OPTS environment variable to use.
      */

@@ -22,7 +22,7 @@
             </tr>
             <tr>
                 <td>codeNarcReportsDir</td>
-                <td><literal><replaceable>${project.reportsDir}</replaceable>/<replaceable>${project.codeNarcReportsDirName}</replaceable></literal></td>
+                <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/<replaceable>${project.codeNarcReportsDirName}</replaceable></literal></td>
             </tr>
         </table>
     </section>

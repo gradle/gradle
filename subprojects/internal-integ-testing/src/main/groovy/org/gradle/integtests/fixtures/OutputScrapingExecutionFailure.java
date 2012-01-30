@@ -28,7 +28,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResult implements ExecutionFailure {
-    private final Pattern causePattern = Pattern.compile("(?m)^Cause: ");
+    private final Pattern causePattern = Pattern.compile("(?m)\\s*> ");
 
     public OutputScrapingExecutionFailure(String output, String error) {
         super(output, error);

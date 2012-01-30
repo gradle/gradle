@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.reporting.ReportingExtension
 
 class CheckstylePlugin implements Plugin<Project> {
     private Project project
@@ -58,7 +59,7 @@ class CheckstylePlugin implements Plugin<Project> {
         extension.conventionMapping.with {
             configFile = { project.file("config/checkstyle/checkstyle.xml") }
             configProperties = { [:] }
-            reportsDir = { new File(project.reportsDir, "checkstyle") }
+            reportsDir = { project.extensions.getByType(ReportingExtension).file("checkstyle") }
         }
     }
 

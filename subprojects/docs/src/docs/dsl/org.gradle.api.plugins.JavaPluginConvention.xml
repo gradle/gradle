@@ -30,7 +30,7 @@
             </tr>
             <tr>
                 <td>testReportDir</td>
-                <td><literal><replaceable>${project.reportsDir}</replaceable>/<replaceable>${project.testReportDirName}</replaceable></literal></td>
+                <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/<replaceable>${project.testReportDirName}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>sourceSets</td>

@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.WorkResult
-import org.gradle.api.tasks.compile.CompileOptions
+
 import org.gradle.internal.Factory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -27,23 +27,14 @@ import org.slf4j.LoggerFactory
 /**
  * @author Hans Dockter
  */
-class AntJavaCompiler implements JavaCompiler {
-    private static Logger logger = LoggerFactory.getLogger(AntJavaCompiler)
-    static final String CLASSPATH_ID = 'compile.classpath'
-    FileCollection source;
-    File destinationDir;
-    Iterable<File> classpath;
-    String sourceCompatibility;
-    String targetCompatibility;
-    CompileOptions compileOptions = new CompileOptions()
-    final Factory<AntBuilder> antBuilderFactory
+class AntJavaCompiler extends JavaCompilerSupport {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AntJavaCompiler)
+    private static final String CLASSPATH_ID = 'compile.classpath'
+
+    private final Factory<AntBuilder> antBuilderFactory
 
     AntJavaCompiler(Factory<AntBuilder> antBuilderFactory) {
         this.antBuilderFactory = antBuilderFactory
-    }
-
-    void setDependencyCacheDir(File dir) {
-        // don't care
     }
 
     WorkResult execute() {
@@ -60,7 +51,7 @@ class AntJavaCompiler implements JavaCompiler {
         ]
 
         Map options = otherArgs + compileOptions.optionMap()
-        logger.debug("Running Ant javac with the following options {}", options)
+        LOGGER.debug("Running Ant javac with the following options {}", options)
         def task = ant.javac(options) {
             source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
             compileOptions.compilerArgs.each {value ->
@@ -75,7 +66,7 @@ class AntJavaCompiler implements JavaCompiler {
     private void createAntClassPath(AntBuilder ant, Iterable classpath) {
         ant.path(id: CLASSPATH_ID) {
             classpath.each {
-                logger.debug("Add {} to Ant classpath!", it)
+                LOGGER.debug("Add {} to Ant classpath!", it)
                 pathelement(location: it)
             }
         }

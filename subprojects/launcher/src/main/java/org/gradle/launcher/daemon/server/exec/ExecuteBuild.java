@@ -16,12 +16,11 @@
 package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.GradleException;
-import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.launcher.exec.ReportedException;
-
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.launcher.daemon.protocol.Build;
+import org.gradle.launcher.exec.ReportedException;
 
 /**
  * Actually executes the build.
@@ -39,7 +38,7 @@ public class ExecuteBuild extends BuildCommandOnly {
     }
 
     protected void doBuild(DaemonCommandExecution execution, Build build) {
-        LOGGER.info("executing build with daemon context: {}", execution.getDaemonContext());
+        LOGGER.info("Executing build with daemon context: {}", execution.getDaemonContext());
         
         try {
             execution.setResult(build.run(launcherFactory));

@@ -16,14 +16,14 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.tasks.compile.IncrementalJavaSourceCompiler;
+import org.gradle.api.internal.tasks.compile.IncrementalJavaCompilerSupport;
 import org.gradle.api.internal.tasks.compile.SimpleStaleClassCleaner;
 import org.gradle.api.internal.tasks.compile.StaleClassCleaner;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 
 import java.io.File;
 
-public class IncrementalScalaCompiler extends IncrementalJavaSourceCompiler<ScalaJavaJointCompiler>
+public class IncrementalScalaCompiler extends IncrementalJavaCompilerSupport<ScalaJavaJointCompiler>
         implements ScalaJavaJointCompiler {
     private final TaskOutputsInternal taskOutputs;
 

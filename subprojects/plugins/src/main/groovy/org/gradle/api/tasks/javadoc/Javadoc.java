@@ -61,7 +61,7 @@ import java.util.List;
  *
  * task generateRestApiDocs(type: Javadoc) {
  *   source = sourceSets.main.allJava
- *   destinationDir = file("${reportsDir.absolutePath}/rest-api-docs")
+ *   destinationDir = reporting.file("rest-api-docs")
  *   options.docletpath = configurations.jaxDoclet.files.asType(List)
  *   options.doclet = "com.lunatech.doclets.jax.jaxrs.JAXRSDoclet"
  *   options.addStringOption("jaxrscontext", "http://localhost:8080/myapp")

@@ -368,6 +368,71 @@ allprojects {
         file('b/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
     }
 
+    def "can update snapshot artifact during build even if it is locked earlier in build"() {
+        server.start()
+        given:
+        def module = repo().module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def module2 = new MavenRepository(file('repo2')).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publishWithChangedContent()
+
+        and:
+        settingsFile << "include 'lock', 'resolve'"
+        buildFile << """
+def fileLocks = [:]
+subprojects {
+    repositories {
+        maven { url "http://localhost:${server.port}/repo" }
+    }
+
+    configurations { compile }
+
+    configurations.all {
+        resolutionStrategy.resolutionRules.eachModule({ module ->
+            module.refresh()
+        } as Action)
+    }
+
+    dependencies {
+        compile "org.gradle:testproject:1.0-SNAPSHOT"
+    }
+
+    task lock << {
+        configurations.compile.each { file ->
+            println "locking " + file
+            def lockFile = new RandomAccessFile(file.canonicalPath, 'r')
+            fileLocks[file] = lockFile
+        }
+    }
+
+    task retrieve(type: Sync) {
+        into 'build'
+        from configurations.compile
+    }
+    retrieve.dependsOn 'lock'
+}
+project('resolve') {
+    retrieve.dependsOn ':lock:retrieve'
+
+    task cleanup << {
+        fileLocks.each { key, value ->
+            println "unlocking " + key
+            value.close()
+        }
+    }
+    cleanup.dependsOn 'retrieve'
+}
+"""
+        when: "Module is requested once"
+        expectModuleServed(module, '/repo')
+        expectModuleServed(module2, '/repo', true)
+
+        then:
+        run 'cleanup'
+
+        and:
+        file('lock/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifactFile)
+        file('resolve/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module2.artifactFile)
+    }
+
     private expectModuleServed(MavenModule module, def prefix, boolean sha1requests = false) {
         def moduleName = module.artifactId;
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))

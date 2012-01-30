@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.bootstrap;
 
 import com.google.common.io.Files;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.client.DaemonParameters;
@@ -28,6 +29,7 @@ import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.DaemonStoppedException;
 import org.gradle.launcher.exec.EntryPoint;
 import org.gradle.launcher.exec.ExecutionListener;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 
@@ -95,10 +97,20 @@ public class DaemonMain extends EntryPoint {
             //close all streams and redirect IO
             redirectOutputsAndInput(log);
             
+            //after redirecting we need to add the new std out/err to the renderer singleton
             //so that logging gets its way to the daemon log:
-            OutputEventRenderer outputRenderer = loggingRegistry.get(OutputEventRenderer.class);
-            outputRenderer.addStandardOutput(log);
-            outputRenderer.addStandardError(log);
+            loggingRegistry.get(OutputEventRenderer.class).addStandardOutputAndError();
+
+            //logging manager takes care of static slf4j configuration stuff, etc.
+            LoggingManagerInternal loggingManager = loggingRegistry.getFactory(LoggingManagerInternal.class).create();
+            //Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
+            //Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)
+            loggingManager.setLevel(LogLevel.DEBUG);
+            //TODO SF we could make it slightly nicer. E.g. rely on the logging manager to replace std out on start
+            //and explicitly only demonize the process (e.g. close err/out).
+            //Then add some unit-test coverage to make sure process is demonized and out/err replaced
+            loggingManager.start();
+            
             LOGGER.info(DaemonMessages.PROCESS_STARTED);
         }
 

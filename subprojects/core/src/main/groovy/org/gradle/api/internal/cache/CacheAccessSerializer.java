@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.cache;
 
-import org.gradle.api.internal.concurrent.Synchronizer;
 import org.gradle.internal.Factory;
+import org.gradle.api.internal.concurrent.Synchronizer;
 
 public class CacheAccessSerializer<K, V> implements Cache<K, V> {
     

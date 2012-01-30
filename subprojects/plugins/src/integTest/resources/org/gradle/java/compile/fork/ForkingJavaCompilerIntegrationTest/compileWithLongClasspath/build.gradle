@@ -5,5 +5,5 @@ compileJava.options.forkOptions.useAntForking = false
 
 dependencies {
     compile localGroovy()
-    compile files((1..999).collect { "${dependencyCacheDir}/library${it}.jar" })
+    compile files((1..999).collect { "$projectDir/lib/library${it}.jar" })
 }

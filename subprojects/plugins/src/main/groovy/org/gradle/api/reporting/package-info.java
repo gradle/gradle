@@ -13,13 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.compile;
-
-import org.gradle.api.tasks.compile.CompileOptions;
 
 /**
- * Strategy used by SwitchableJavaCompiler to choose the actual compiler.
+ * Classes for reporting.
  */
-public interface CompilerChooser {
-    JavaCompiler choose(CompileOptions options);
-}
+package org.gradle.api.reporting;

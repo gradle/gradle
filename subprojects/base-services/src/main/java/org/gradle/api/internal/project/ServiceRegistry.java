@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.api.internal.project;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.ResolverSettings;
-
-public interface IvyDependencyResolver extends DependencyResolver {
-    ResolverSettings getSettings();
-
-    boolean isChangingModule(ModuleDescriptor moduleDescriptor);
+/**
+ * @deprecated This is here because Groovy tasks compiled against older versions have this type baked into their byte-code, and cannot be loaded if it's not found.
+ */
+@Deprecated
+public interface ServiceRegistry extends org.gradle.internal.service.ServiceRegistry {
 }

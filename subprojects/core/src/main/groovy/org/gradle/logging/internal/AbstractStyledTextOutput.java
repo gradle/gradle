@@ -22,6 +22,9 @@ import org.gradle.util.SystemProperties;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+/**
+ * Subclasses need to implement {@link #doAppend(String)}, and optionally {@link #doStyleChange(org.gradle.logging.StyledTextOutput.Style)}.
+ */
 public abstract class AbstractStyledTextOutput implements StyledTextOutput, StandardOutputListener {
     private Style style = Style.Normal;
 

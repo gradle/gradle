@@ -15,7 +15,10 @@
  */
 package org.gradle.wrapper;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Formatter;
@@ -31,15 +34,18 @@ public class WrapperExecutor {
     public static final String DISTRIBUTION_PATH_PROPERTY = "distributionPath";
     public static final String ZIP_STORE_PATH_PROPERTY = "zipStorePath";
     private final Properties properties;
-    private final URI distribution;
     private final File propertiesFile;
     private final Appendable warningOutput;
+    private final WrapperConfiguration config = new WrapperConfiguration();
 
     public static WrapperExecutor forProjectDirectory(File projectDir, Appendable warningOutput) {
         return new WrapperExecutor(new File(projectDir, "gradle/wrapper/gradle-wrapper.properties"), new Properties(), warningOutput);
     }
 
     public static WrapperExecutor forWrapperPropertiesFile(File propertiesFile, Appendable warningOutput) {
+        if (!propertiesFile.exists()) {
+            throw new RuntimeException(String.format("Wrapper properties file '%s' does not exist.", propertiesFile));
+        }
         return new WrapperExecutor(propertiesFile, new Properties(), warningOutput);
     }
 
@@ -50,12 +56,14 @@ public class WrapperExecutor {
         if (propertiesFile.exists()) {
             try {
                 loadProperties(propertiesFile, properties);
-                distribution = prepareDistributionUri();
+                config.setDistribution(prepareDistributionUri());
+                config.setDistributionBase(getProperty(DISTRIBUTION_BASE_PROPERTY, config.getDistributionBase()));
+                config.setDistributionPath(getProperty(DISTRIBUTION_PATH_PROPERTY, config.getDistributionPath()));
+                config.setZipBase(getProperty(ZIP_STORE_BASE_PROPERTY, config.getZipBase()));
+                config.setZipPath(getProperty(ZIP_STORE_PATH_PROPERTY, config.getZipPath()));
             } catch (Exception e) {
                 throw new RuntimeException(String.format("Could not load wrapper properties from '%s'.", propertiesFile), e);
             }
-        } else {
-            distribution = null;
         }
     }
 
@@ -85,7 +93,7 @@ public class WrapperExecutor {
                     + getProperty("distributionVersion") + "-"
                     + getProperty("distributionClassifier") + ".zip";
             Formatter formatter = new Formatter();
-            formatter.format("%s contains deprecated entries: 'urlRoot', 'distributionName', 'distributionVersion' and 'distributionClassifier' are deprecated and will be removed soon. Please use '%s' instead.%n", properties, DISTRIBUTION_URL_PROPERTY);
+            formatter.format("Wrapper properties file '%s' contains deprecated entries 'urlRoot', 'distributionName', 'distributionVersion' and 'distributionClassifier'. These will be removed soon. Please use '%s' instead.%n", propertiesFile, DISTRIBUTION_URL_PROPERTY);
             warningOutput.append(formatter.toString());
         } catch (Exception e) {
             //even the deprecated properties are not provided, report error:
@@ -107,29 +115,34 @@ public class WrapperExecutor {
      * Returns the distribution which this wrapper will use. Returns null if no wrapper meta-data was found in the specified project directory.
      */
     public URI getDistribution() {
-        return distribution;
+        return config.getDistribution();
+    }
+
+    /**
+     * Returns the configuration for this wrapper.
+     */
+    public WrapperConfiguration getConfiguration() {
+        return config;
     }
 
     public void execute(String[] args, Install install, BootstrapMainStarter bootstrapMainStarter) throws Exception {
-        if (distribution == null) {
-            throw new FileNotFoundException(String.format("Wrapper properties file '%s' does not exist.", propertiesFile));
-        }
-        File gradleHome = install.createDist(
-                getDistribution(),
-                getProperty(DISTRIBUTION_BASE_PROPERTY),
-                getProperty(DISTRIBUTION_PATH_PROPERTY),
-                getProperty(ZIP_STORE_BASE_PROPERTY),
-                getProperty(ZIP_STORE_PATH_PROPERTY)
-        );
+        File gradleHome = install.createDist(config);
         bootstrapMainStarter.start(args, gradleHome);
     }
 
     private String getProperty(String propertyName) {
+        return getProperty(propertyName, null);
+    }
+
+    private String getProperty(String propertyName, String defaultValue) {
         String value = properties.getProperty(propertyName);
-        if (value == null) {
-            return reportMissingProperty(propertyName);
+        if (value != null) {
+            return value;
         }
-        return value;
+        if (defaultValue != null) {
+            return defaultValue;
+        }
+        return reportMissingProperty(propertyName);
     }
 
     private String reportMissingProperty(String propertyName) {

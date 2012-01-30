@@ -45,7 +45,7 @@ class JavaPluginConventionTest {
     public final TemporaryFolder tmpDir = new TemporaryFolder()
 
     @Before public void setUp() {
-        project.convention.plugins.reportingBase = new ReportingBasePluginConvention(project)
+        project.plugins.apply(ReportingBasePlugin)
         convention = new JavaPluginConvention(project)
     }
 

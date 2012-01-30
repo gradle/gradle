@@ -15,8 +15,8 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.api.internal.project.GlobalServicesRegistry;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;

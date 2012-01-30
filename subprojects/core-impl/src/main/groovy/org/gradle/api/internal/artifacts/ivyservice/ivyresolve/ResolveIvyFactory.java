@@ -74,12 +74,11 @@ public class ResolveIvyFactory {
 
         IvyContextualiser contextualiser = new IvyContextualiser(ivy, resolveData);
         for (DependencyResolver rawResolver : rawResolvers) {
+            rawResolver.setSettings(ivySettings);
             String resolverId = new WharfResolverMetadata(rawResolver).getId();
 
-            CacheLockingDependencyResolver cacheLockingResolver = new CacheLockingDependencyResolver(rawResolver, cacheLockingManager);
-            cacheLockingResolver.setSettings(ivySettings);
-
-            ModuleVersionRepository moduleVersionRepository = new DependencyResolverAdapter(resolverId, cacheLockingResolver);
+            ModuleVersionRepository moduleVersionRepository = new DependencyResolverAdapter(resolverId, rawResolver);
+            moduleVersionRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
             moduleVersionRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
             ModuleVersionRepository cachingRepository =
                     new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache,

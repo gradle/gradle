@@ -15,9 +15,9 @@
  */
 package org.gradle.launcher.daemon.context
 
-import spock.lang.*
-import org.gradle.util.ConfigureUtil
 import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.util.ConfigureUtil
+import spock.lang.Specification
 
 class DaemonCompatibilitySpecSpec extends Specification {
 
@@ -71,6 +71,22 @@ class DaemonCompatibilitySpecSpec extends Specification {
         compatible
     }
 
+    def "contexts with same daemon opts but different order are compatible"() {
+        client { daemonOpts = ["-Xmx256m", "-Dfoo=foo"] }
+        server { daemonOpts = ["-Dfoo=foo", "-Xmx256m"] }
+
+        expect:
+        compatible
+    }
+
+    def "contexts with different quantity of opts are not compatible"() {
+        client { daemonOpts = ["-Xmx256m", "-Dfoo=foo"] }
+        server { daemonOpts = ["-Xmx256m"] }
+
+        expect:
+        !compatible
+    }
+
     def "contexts with different daemon opts are incompatible"() {
         client { daemonOpts = ["-Xmx256m", "-Dfoo=foo"] }
         server { daemonOpts = ["-Xmx256m", "-Dfoo=bar"] }
@@ -78,5 +94,4 @@ class DaemonCompatibilitySpecSpec extends Specification {
         expect:
         !compatible
     }
-
 }

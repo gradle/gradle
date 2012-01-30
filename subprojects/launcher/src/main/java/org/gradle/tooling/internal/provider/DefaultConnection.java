@@ -91,7 +91,7 @@ public class DefaultConnection implements InternalConnection {
             DefaultBuildEnvironment out = new DefaultBuildEnvironment(
                 GradleVersion.current().getVersion(),
                 daemonParameters.getEffectiveJavaHome(),
-                daemonParameters.getJvmArgs());
+                daemonParameters.getEffectiveJvmArgs());
 
             return type.cast(out);
         }

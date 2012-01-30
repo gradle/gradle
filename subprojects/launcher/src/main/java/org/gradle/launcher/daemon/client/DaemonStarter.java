@@ -60,7 +60,7 @@ public class DaemonStarter implements Runnable {
         List<String> daemonArgs = new ArrayList<String>();
         daemonArgs.add(daemonParameters.getEffectiveJavaExecutable());
 
-        List<String> daemonOpts = daemonParameters.getJvmArgs();
+        List<String> daemonOpts = daemonParameters.getEffectiveJvmArgs();
         LOGGER.debug("Using daemon opts: {}", daemonOpts);
         daemonArgs.addAll(daemonOpts);
         //Useful for debugging purposes - simply uncomment and connect to debug

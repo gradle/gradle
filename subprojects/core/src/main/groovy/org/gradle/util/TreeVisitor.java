@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cli;
+package org.gradle.util;
 
-public interface CommandLineParserFactory {
-    CommandLineParser create();
+/**
+ * Visits a tree with nodes of type T.
+ */
+public class TreeVisitor<T> {
+    /**
+     * Visits a node of the tree.
+     */
+    public void node(T node) {
+    }
+
+    /**
+     * Starts visiting the children of the most recently visited node.
+     */
+    public void startChildren() {
+    }
+
+    /**
+     * Finishes visiting the children of the most recently started node.
+     */
+    public void endChildren() {
+    }
 }

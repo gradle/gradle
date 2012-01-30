@@ -19,7 +19,6 @@ import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadReport;
@@ -39,7 +38,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.Map;
 
-abstract class DelegatingDependencyResolver implements IvyDependencyResolver {
+abstract class DelegatingDependencyResolver implements DependencyResolver {
     private final DependencyResolver resolver;
     private ResolverSettings settings;
 
@@ -62,10 +61,6 @@ abstract class DelegatingDependencyResolver implements IvyDependencyResolver {
     public void setSettings(ResolverSettings settings) {
         this.settings = settings;
         resolver.setSettings(settings);
-    }
-
-    public boolean isChangingModule(ModuleDescriptor moduleDescriptor) {
-        return new ChangingModuleDetector(resolver, settings).isChangingModule(moduleDescriptor);
     }
 
     public Namespace getNamespace() {

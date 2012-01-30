@@ -21,6 +21,7 @@ import org.gradle.api.internal.Instantiator
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.api.reporting.ReportingExtension
 
 class CodeNarcPlugin implements Plugin<Project> {
     private Project project
@@ -58,7 +59,7 @@ class CodeNarcPlugin implements Plugin<Project> {
             ignoreFailures = { false }
             configFile = { project.rootProject.file("config/codenarc/codenarc.xml") }
             reportFormat = { "html" }
-            reportsDir = { new File(project.reportsDir, "codenarc") }
+            reportsDir = { project.extensions.getByType(ReportingExtension).file("codenarc") }
         }
     }
 

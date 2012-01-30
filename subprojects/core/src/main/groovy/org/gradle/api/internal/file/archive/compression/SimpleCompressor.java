@@ -29,7 +29,7 @@ public class SimpleCompressor implements Compressor {
         try {
             return new FileOutputStream(destination);
         } catch (Exception e) {
-            String message = String.format("Unable to create output stream for file: %s due to: %s ", destination, e.getMessage());
+            String message = String.format("Unable to create output stream for file %s.", destination);
             throw new RuntimeException(message, e);
         }
     }

@@ -39,14 +39,17 @@ public class HashValue {
         if (inputString == null) {
             return null;
         }
-        String cleaned = inputString.trim();
+        String cleaned = inputString.trim().toLowerCase();
         int spaceIndex = cleaned.indexOf(' ');
         if (spaceIndex != -1) {
             String firstPart = cleaned.substring(0, spaceIndex);
-            if (firstPart.startsWith("md") || firstPart.startsWith("sha") || firstPart.endsWith(":")) {
-                cleaned = cleaned.substring(spaceIndex + 1);
+            if (firstPart.startsWith("md") || firstPart.startsWith("sha")) {
+                cleaned = cleaned.substring(cleaned.lastIndexOf(' ') + 1);
+            } else if (firstPart.endsWith(":")) {
+                cleaned = cleaned.substring(spaceIndex + 1).replace(" ", "");
+            } else {
+                cleaned = cleaned.substring(0, spaceIndex);
             }
-            cleaned = cleaned.replace(" ", "");
         }
         return cleaned;
     }

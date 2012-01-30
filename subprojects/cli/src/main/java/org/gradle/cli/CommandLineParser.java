@@ -72,7 +72,7 @@ public class CommandLineParser {
      * @throws org.gradle.cli.CommandLineArgumentException
      *          On parse failure.
      */
-    public ParsedCommandLine parse(String[] commandLine) throws CommandLineArgumentException {
+    public ParsedCommandLine parse(String... commandLine) throws CommandLineArgumentException {
         return parse(Arrays.asList(commandLine));
     }
 
@@ -84,7 +84,7 @@ public class CommandLineParser {
      * @throws org.gradle.cli.CommandLineArgumentException
      *          On parse failure.
      */
-    public ParsedCommandLine parse(Iterable<String> commandLine) {
+    public ParsedCommandLine parse(Iterable<String> commandLine) throws CommandLineArgumentException {
         ParsedCommandLine parsedCommandLine = new ParsedCommandLine(new HashSet<CommandLineOption>(optionsByString.values()));
         ParserState parseState = new BeforeFirstSubCommand(parsedCommandLine);
         for (String arg : commandLine) {

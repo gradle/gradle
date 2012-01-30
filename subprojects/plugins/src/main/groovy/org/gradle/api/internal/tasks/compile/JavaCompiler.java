@@ -15,8 +15,25 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.tasks.compile.CompileOptions;
+
 import java.io.File;
 
-public interface JavaCompiler extends JavaSourceCompiler {
-    void setDependencyCacheDir(File dir);
+public interface JavaCompiler extends JvmCompiler {
+    CompileOptions getCompileOptions();
+
+    void setCompileOptions(CompileOptions compileOptions);
+
+    void setSourceCompatibility(String sourceCompatibility);
+
+    void setTargetCompatibility(String targetCompatibility);
+
+    void setDependencyCacheDir(File dependencyCacheDir);
+
+    /**
+     * Configures another compiler with all settings of this compiler.
+     * Useful when compilation needs to be delegated to another compiler.
+     * This method could be pushed up in the hierarchy if needed.
+     */
+    void configure(JavaCompiler other);
 }

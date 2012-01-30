@@ -39,8 +39,8 @@ class DefaultScalaJavaJointCompilerTest extends Specification {
         1 * scalaCompiler.execute()
         1 * source.getAsFileTree() >> sourceTree
         1 * sourceTree.matching(!null) >> javaSource
-        _ * javaSource.isEmpty() >> false
-        1 * javaCompiler.setSource(!null)
+        javaSource.isEmpty() >> false
+        (1.._) * javaCompiler.setSource(!null)
         1 * javaCompiler.execute()
     }
 

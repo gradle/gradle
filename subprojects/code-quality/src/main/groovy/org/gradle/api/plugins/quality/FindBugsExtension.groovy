@@ -28,7 +28,7 @@ class FindBugsExtension extends CodeQualityExtension {
     }
 
     /**
-     * The directory into which FindBugs reports will be saved. Defaults to <tt>$reportsDir/findbugs</tt>.
+     * The directory into which FindBugs reports will be saved. Defaults to <tt>$reporting.baseDir/findbugs</tt>.
      */
     File reportsDir
 }

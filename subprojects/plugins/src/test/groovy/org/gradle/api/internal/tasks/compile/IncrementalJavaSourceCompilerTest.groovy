@@ -20,9 +20,9 @@ import org.gradle.api.tasks.WorkResult
 import org.gradle.api.file.FileCollection
 
 class IncrementalJavaSourceCompilerTest extends Specification {
-    private final JavaSourceCompiler target = Mock()
+    private final JavaCompiler target = Mock()
     private final StaleClassCleaner cleaner = Mock()
-    private final IncrementalJavaSourceCompiler compiler = new IncrementalJavaSourceCompiler(target) {
+    private final IncrementalJavaCompilerSupport compiler = new IncrementalJavaCompilerSupport(target) {
         protected StaleClassCleaner createCleaner() {
             return cleaner
         }

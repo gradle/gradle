@@ -16,23 +16,19 @@
 
 package org.gradle.wrapper;
 
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.SystemPropertiesCommandLineConverter;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
-
-import org.gradle.cli.CommandLineParserFactory;
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.SystemPropertiesCommandLineConverter;
 
 /**
  * @author Hans Dockter
  */
 public class GradleWrapperMain {
-    public static final String ALWAYS_UNPACK_ENV = "GRADLE_WRAPPER_ALWAYS_UNPACK";
-    public static final String ALWAYS_DOWNLOAD_ENV = "GRADLE_WRAPPER_ALWAYS_DOWNLOAD";
     public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     public static final String GRADLE_USER_HOME_ENV_KEY = "GRADLE_USER_HOME";
@@ -47,24 +43,19 @@ public class GradleWrapperMain {
         
         addSystemProperties(rootDir);
 
-        boolean alwaysDownload = Boolean.parseBoolean(System.getenv(ALWAYS_DOWNLOAD_ENV));
-        boolean alwaysUnpack = Boolean.parseBoolean(System.getenv(ALWAYS_UNPACK_ENV));
-
-        WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out).execute(
+        WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out);
+        wrapperExecutor.execute(
                 args,
-                new Install(alwaysDownload, alwaysUnpack, new Download(), new PathAssembler(gradleUserHome())),
+                new Install(new Download(), new PathAssembler(gradleUserHome())),
                 new BootstrapMainStarter());
     }
 
     private static Map<String, String> parseSystemPropertiesFromArgs(String[] args) {
         SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
-        converter.setCommandLineParserFactory(new CommandLineParserFactory() {
-            public CommandLineParser create() {
-                return new CommandLineParser().allowUnknownOptions();
-            }
-        }); 
-        
-        return converter.convert(Arrays.asList(args));
+        CommandLineParser commandLineParser = new CommandLineParser();
+        converter.configure(commandLineParser);
+        commandLineParser.allowUnknownOptions();
+        return converter.convert(commandLineParser.parse(args));
     }
     
     private static void addSystemProperties(File rootDir) {

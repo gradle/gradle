@@ -63,6 +63,8 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private DaemonConnection findConnection(List<DaemonInfo> daemonInfos, Spec<? super DaemonContext> constraint) {
         for (DaemonInfo daemonInfo : daemonInfos) {
             if (!constraint.isSatisfiedBy(daemonInfo.getContext())) {
+                LOGGER.debug("Found daemon {} however it's context does not match the desired criteria: {}."
+                        + " Looking for a different daemon...", daemonInfo, constraint);
                 continue;
             }
 

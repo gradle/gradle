@@ -37,23 +37,39 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         List<String> args = new ArrayList<String>();
         args.add("--daemon");
         args.add("-Dorg.gradle.daemon.idletimeout=" + (5 * 60 * 1000));
-        if (daemonBaseDir != null) {
-            args.add("-Dorg.gradle.daemon.registry.base=" + daemonBaseDir.getAbsolutePath());
-        } else {
-            String customDaemonRegistryDir = System.getProperty(DAEMON_REGISTRY_SYS_PROP);
-            if (customDaemonRegistryDir != null && !distribution.isUsingIsolatedDaemons()) {
-                args.add("-Dorg.gradle.daemon.registry.base=" + customDaemonRegistryDir);
-            }
-        }
-        
+
         args.addAll(originalArgs);
 
-        // TODO - clean this up. It's a workaround to provide some way for the client of this executer to
-        // specify that no jvm args should be provided
-        if(!args.remove("-Dorg.gradle.jvmargs=")){
-            args.add(0, "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m");
+        String daemonRegistryBase = getDaemonRegistryBase();
+        if (daemonRegistryBase != null) {
+            args.add("-Dorg.gradle.daemon.registry.base=" + daemonRegistryBase);
+            configureJvmArgs(args, daemonRegistryBase);
+        } else {
+            configureJvmArgs(args, distribution.getUserHomeDir().getAbsolutePath());
         }
 
         return args;
+    }
+
+    private void configureJvmArgs(List<String> args, String registryBase) {
+        // TODO - clean this up. It's a workaround to provide some way for the client of this executer to
+        // specify that no jvm args should be provided
+        if(!args.remove("-Dorg.gradle.jvmargs=")){
+            args.add(0, "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m"
+                    + " -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=\"" + registryBase + "\"");
+        }
+    }
+
+    String getDaemonRegistryBase() {
+        if (daemonBaseDir != null) {
+            return daemonBaseDir.getAbsolutePath();
+        }
+
+        String customDaemonRegistryDir = System.getProperty(DAEMON_REGISTRY_SYS_PROP);
+        if (customDaemonRegistryDir != null && !distribution.isUsingIsolatedDaemons()) {
+            return customDaemonRegistryDir;
+        }
+
+        return null;
     }
 }

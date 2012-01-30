@@ -20,6 +20,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.reporting.ReportingExtension
 
 /**
  * A plugin for the <a href="http://findbugs.sourceforge.net">FindBugs</a> byte code analyzer.
@@ -74,7 +75,7 @@ class FindBugsPlugin implements Plugin<ProjectInternal> {
             sourceSets = project.sourceSets
         }
         extension.conventionMapping.with {
-            reportsDir = { new File(project.reportsDir, "findbugs") }
+            reportsDir = { project.extensions.getByType(ReportingExtension).file("findbugs") }
         }
     }
 

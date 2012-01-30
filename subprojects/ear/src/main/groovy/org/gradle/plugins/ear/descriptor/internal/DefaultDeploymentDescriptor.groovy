@@ -118,7 +118,7 @@ class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             readFrom reader
             return true
         } catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e)
+            throw new UncheckedIOException(e)
         }
     }
 
