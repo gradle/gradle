@@ -21,12 +21,14 @@ import org.gradle.listener.ListenerNotificationException
 import spock.lang.Specification
 
 class ReportContainerTest extends Specification {
-    
+
     Report createReport(String name) {
-        new Report() {
-            String getName() {
-                name
+        new AbstractReport(name) {
+            @Override
+            protected File resolveToFile(Object file) {
+                new File(file.toString())
             }
+
         }
     }
 
@@ -34,7 +36,11 @@ class ReportContainerTest extends Specification {
         new ReportContainer(reports)
     }
 
-    def container = createContainer(createReport("a"), createReport("b"), createReport("c"))
+    def container
+
+    def setup() {
+        container = createContainer(createReport("a"), createReport("b"), createReport("c"))
+    }
     
     def "reports given at construction are available"() {
         when:

@@ -18,5 +18,9 @@
     <!-- Don't require api docs for projects only used internally -->
     <suppress checks="Javadoc.*"
               files=".*[/\\]subprojects[/\\]internal-.+[/\\]src[/\\]main[/\\].+"/>
+
+    <!-- Don't require api docs for new report classes for the time being -->
+    <suppress checks="Javadoc.*"
+              files=".*[/\\]subprojects[/\\].+[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]reporting[/\\][^/\\]+"/>
     
 </suppressions>

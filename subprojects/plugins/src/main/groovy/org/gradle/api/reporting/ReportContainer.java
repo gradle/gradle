@@ -37,8 +37,8 @@ public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> 
         }
     }
 
-    DomainObjectSet<Report> enabled = new DefaultDomainObjectSet<Report>(Report.class);
-            
+        DomainObjectSet<Report> enabled = new DefaultDomainObjectSet<Report>(Report.class);
+
     public ReportContainer(Report... reports) {
         super(Report.class, new DirectInstantiator(), Report.NAMER);
         for (Report report : reports) {
@@ -73,22 +73,22 @@ public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> 
     protected void configureDefaultEnabled() {
         enabled.addAll(this);
     }
-    
+
     public Set<Report> getEnabled() {
         return enabled;
     }
 
     public void enabled(Report... enabledReports) {
-        setEnabled(WrapUtil.toSet(enabledReports));   
+        setEnabled(WrapUtil.toSet(enabledReports));
     }
-    
+
     public void setEnabled(Collection<Report> enabledReports) {
         enabled.retainAll(enabledReports);
         for (Report report : enabledReports) {
             if (!enabled.contains(report)) {
-                enabled.add(report);
+                assert enabled.add(report);
             }
         }
-        
+
     }
 }

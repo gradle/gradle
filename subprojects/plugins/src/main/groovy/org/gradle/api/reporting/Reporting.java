@@ -16,18 +16,11 @@
 
 package org.gradle.api.reporting;
 
-import org.gradle.api.Namer;
+import groovy.lang.Closure;
 
-public class SimpleReport implements Report {
+public interface Reporting {
 
-    private final String name;
-
-    public SimpleReport(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
+    ReportContainer getReports();
+    ReportContainer reports(Closure closure);
 
 }

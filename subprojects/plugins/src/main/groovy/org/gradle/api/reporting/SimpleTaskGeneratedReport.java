@@ -16,22 +16,21 @@
 
 package org.gradle.api.reporting;
 
-import org.gradle.api.Namer;
-import org.gradle.util.Configurable;
+import org.gradle.api.Task;
 
 import java.io.File;
-import java.io.Serializable;
 
-public interface Report extends Serializable, Configurable<Report> {
-    Namer<Report> NAMER = new Namer<Report>() {
-        public String determineName(Report report) {
-            return report.getName();
-        }
-    };
+public class SimpleTaskGeneratedReport extends AbstractReport {
 
-    String getName();
-    
-    File getDestination();
-    void setDestination(Object destination);
-    
+    private final Task task;
+
+    public SimpleTaskGeneratedReport(String name, Task task) {
+        super(name);
+        this.task = task;
+    }
+
+    @Override
+    protected File resolveToFile(Object file) {
+        return task.getProject().file(file);
+    }
 }
