@@ -17,7 +17,6 @@ package org.gradle.launcher.daemon.client
 
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
-import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.util.Jvm
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
@@ -35,9 +34,8 @@ class DaemonParametersTest extends Specification {
         parameters.baseDir == baseDir
         parameters.systemProperties.isEmpty()
         // Not that reasonable
-        parameters.effectiveJvmArgs == ['-XX:MaxPermSize=256m', '-Xmx1024m', 
-                '-XX:+HeapDumpOnOutOfMemoryError', 
-                "-XX:HeapDumpPath=\"${new DaemonDir(baseDir).versionedDir.absolutePath}\"".toString()]
+        parameters.effectiveJvmArgs.containsAll(parameters.defaultJvmArgs)
+        parameters.effectiveJvmArgs.size() == parameters.defaultJvmArgs.size()
     }
 
     def "determines base dir from user home dir"() {
@@ -89,7 +87,7 @@ class DaemonParametersTest extends Specification {
         parameters.configureFrom([(DaemonParameters.JVM_ARGS_SYS_PROPERTY) : "-Xmx17m"])
 
         then:
-        parameters.effectiveJvmArgs.each { assert !DaemonParameters.DEFAULT_JVM_ARGS.contains(it) }
+        parameters.effectiveJvmArgs.each { assert !parameters.defaultJvmArgs.contains(it) }
     }
 
     def "can configure jvm args using system property"() {
@@ -209,24 +207,5 @@ class DaemonParametersTest extends Specification {
         def ex = thrown(GradleException)
         ex.message.contains 'org.gradle.java.home'
         ex.message.contains 'foobar'
-    }
-
-    def "knows jvm args with heap dump diagnostics"() {
-        given:
-        parameters.setBaseDir(tmpDir.dir)
-
-        when:
-        def args = parameters.getEffectiveJvmArgs()
-        then:
-        args.count("-XX:+HeapDumpOnOutOfMemoryError") == 1
-            args.count("-XX:HeapDumpPath=\"${new DaemonDir(tmpDir.dir).versionedDir.absolutePath}\"".toString()) == 1
-
-        when: "args already contain the heap dump settings"
-        parameters.setJvmArgs(["-Xdebug", "-XX:+HeapDumpOnOutOfMemoryError"])
-        def moreArgs = parameters.getEffectiveJvmArgs()
-
-        then:
-        moreArgs.count("-XX:+HeapDumpOnOutOfMemoryError") == 1
-        moreArgs.count("-XX:HeapDumpPath=\"${new DaemonDir(tmpDir.dir).versionedDir.absolutePath}\"".toString()) == 0
     }
 }

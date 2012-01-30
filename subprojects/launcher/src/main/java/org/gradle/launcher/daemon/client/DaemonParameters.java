@@ -36,6 +36,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
+import static java.util.Arrays.asList;
 import static org.gradle.util.GFileUtils.canonicalise;
 
 public class DaemonParameters {
@@ -51,10 +52,15 @@ public class DaemonParameters {
     private boolean enabled;
     private File javaHome;
 
-    public final static List<String> DEFAULT_JVM_ARGS = Arrays.asList("-Xmx1024m", "-XX:MaxPermSize=256m");
-
     public DaemonParameters() {
-        jvmOptions.setAllJvmArgs(new LinkedList<String>(DEFAULT_JVM_ARGS));
+        jvmOptions.setAllJvmArgs(getDefaultJvmArgs());
+    }
+    
+    List<String> getDefaultJvmArgs() {
+        List<String> out = new LinkedList<String>(asList("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"));
+        String heapDumpPath = new DaemonDir(baseDir).getVersionedDir().getAbsolutePath();
+        out.add("-XX:HeapDumpPath=\"" + heapDumpPath + "\"");
+        return out;
     }
 
     public boolean isEnabled() {
@@ -78,13 +84,7 @@ public class DaemonParameters {
     }
 
     public List<String> getEffectiveJvmArgs() {
-        List<String> jvmArgs = jvmOptions.getAllJvmArgsWithoutSystemProperties();
-        if (!jvmArgs.contains("-XX:+HeapDumpOnOutOfMemoryError")) {
-            jvmArgs.add("-XX:+HeapDumpOnOutOfMemoryError");
-            String heapDumpPath = new DaemonDir(baseDir).getVersionedDir().getAbsolutePath();
-            jvmArgs.add("-XX:HeapDumpPath=\"" + heapDumpPath + "\"");
-        }
-        return jvmArgs;
+        return jvmOptions.getAllJvmArgsWithoutSystemProperties();
     }
 
     public List<String> getAllJvmArgs() {
