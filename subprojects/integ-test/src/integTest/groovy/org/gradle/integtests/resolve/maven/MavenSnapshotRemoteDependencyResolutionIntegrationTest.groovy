@@ -368,7 +368,7 @@ allprojects {
         file('b/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
     }
 
-    def "can update non-unique snapshot artifact during build even if it is locked earlier in build"() {
+    def "can update snapshot artifact during build even if it is locked earlier in build"() {
         server.start()
         given:
         def module = repo().module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
@@ -377,6 +377,7 @@ allprojects {
         and:
         settingsFile << "include 'lock', 'resolve'"
         buildFile << """
+def fileLocks = [:]
 subprojects {
     repositories {
         maven { url "http://localhost:${server.port}/repo" }
@@ -394,23 +395,31 @@ subprojects {
         compile "org.gradle:testproject:1.0-SNAPSHOT"
     }
 
+    task lock << {
+        configurations.compile.each { file ->
+            println "locking " + file
+            def lockFile = new RandomAccessFile(file.canonicalPath, 'rw')
+            lockFile.channel.lock()
+            fileLocks[file] = lockFile
+        }
+    }
 
     task retrieve(type: Sync) {
         into 'build'
         from configurations.compile
     }
-}
-project(':lock') {
-    task lock << {
-        configurations.compile.each { file ->
-            new RandomAccessFile(file, 'rw').channel.lock()
-        }
-    }
     retrieve.dependsOn 'lock'
 }
-
 project('resolve') {
     retrieve.dependsOn ':lock:retrieve'
+
+    task cleanup << {
+        fileLocks.each { key, value ->
+            println "unlocking " + key
+            value.close()
+        }
+    }
+    cleanup.dependsOn 'retrieve'
 }
 """
         when: "Module is requested once"
@@ -418,7 +427,7 @@ project('resolve') {
         expectModuleServed(module2, '/repo', true)
 
         then:
-        run 'retrieve'
+        run 'cleanup'
 
         and:
         file('lock/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifactFile)
