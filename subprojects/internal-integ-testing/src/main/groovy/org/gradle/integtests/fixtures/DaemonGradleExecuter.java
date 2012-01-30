@@ -38,6 +38,8 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         args.add("--daemon");
         args.add("-Dorg.gradle.daemon.idletimeout=" + (5 * 60 * 1000));
 
+        args.addAll(originalArgs);
+
         String daemonRegistryBase = getDaemonRegistryBase();
         if (daemonRegistryBase != null) {
             args.add("-Dorg.gradle.daemon.registry.base=" + daemonRegistryBase);
@@ -45,8 +47,6 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         } else {
             configureJvmArgs(args, distribution.getUserHomeDir().getAbsolutePath());
         }
-        
-        args.addAll(originalArgs);
 
         return args;
     }

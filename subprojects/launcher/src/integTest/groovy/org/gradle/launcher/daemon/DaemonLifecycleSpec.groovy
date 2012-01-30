@@ -399,8 +399,8 @@ class DaemonLifecycleSpec extends Specification {
 
         expect:
         buildSucceeds """
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
 assert System.getProperty('some-prop') == 'some-value'
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
         """
     }
 

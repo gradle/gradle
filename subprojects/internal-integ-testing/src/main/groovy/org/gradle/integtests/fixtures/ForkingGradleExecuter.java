@@ -45,6 +45,9 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     public ForkingGradleExecuter(TestFile gradleHomeDir) {
         this.gradleHomeDir = gradleHomeDir;
         gradleOpts.add("-ea");
+        //uncomment for debugging
+//        gradleOpts.add("-Xdebug");
+//        gradleOpts.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
     }
 
     public TestFile getGradleHomeDir() {
