@@ -25,17 +25,12 @@ evaluationDependsOn ":docs"
 
 apply from: "${rootDir}/gradle/ssh.gradle"
 
-tasks.withType(SshTask) {
-    host = 'gradle01.managed.contegix.com'
-    userName = project.hasProperty('websiteScpUserName') ? project.websiteScpUserName : null
-    password = project.hasProperty('websiteScpUserPassword') ? project.websiteScpUserPassword : null
-}
-
 // fail early if we don't have credentials to connect to the host
 gradle.taskGraph.whenReady { graph ->
-    if (tasks.withType(SshTask).any { graph.hasTask(it) }) {
-        project.websiteScpUserName
-        project.websiteScpUserPassword
+    tasks.withType(SshTask).matching { graph.hasTask(it) }.all {
+        host 'gradle01.managed.contegix.com'
+        userName project.websiteScpUserName
+        password project.websiteScpUserPassword
     }
     tasks.withType(S3PutTask).matching { graph.hasTask(it) }.all {
         accessKey project.gradleS3AccessKey
