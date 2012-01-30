@@ -15,6 +15,11 @@
  */
 import java.util.regex.Pattern
 
+buildscript {
+    dependencies.classpath 'net.java.dev.jets3t:jets3t:0.8.1'
+    repositories.mavenCentral()
+}
+
 apply plugin: "base"
 evaluationDependsOn ":docs"
 
@@ -32,6 +37,10 @@ gradle.taskGraph.whenReady { graph ->
         project.websiteScpUserName
         project.websiteScpUserPassword
     }
+    tasks.withType(S3PutTask).matching { graph.hasTask(it) }.all {
+        accessKey project.gradleS3AccessKey
+        secretKey project.gradleS3SecretKey
+    }
 }
 
 uploadPath = { "/var/local/gradle-build-uploads/$it" }
@@ -41,14 +50,19 @@ uploadPath = { "/var/local/gradle-build-uploads/$it" }
 // from any user in the wheel group. That is, you must be a member of wheel to upload to the host.
 asSudo = { Object[] args -> (["sudo", uploadPath("asSudo")] + args.toList()) as Object[] }
 
-def dists = rootProject.configurations.dists
-task uploadDistributions(type: SshTask, dependsOn: [rootProject.testedDists, dists.allArtifacts.buildDependencies]) {
-    verbose true
-    doFirst {
-        dists.allArtifacts.each { artifact ->
-            scpFile artifact.file, uploadPath("distributions/${artifact.file.name}")
+task uploadDistributions(type: S3PutTask) {
+    // credentials are added in gradle.taskGraph.whenReady above
+    bucketName "downloads.gradle.org"
+    source rootProject.testedDists
+
+    def directory = "distributions${-> project.version.release ? "" : "-snapshots"}"
+    eachObject {
+        if (it.key.endsWith(".zip")) {
+            it.contentType = "application/zip"
+        } else {
+            throw new InvalidUserDataException("Don't know content type for file: $it.key")
         }
-        ssh asSudo("move-distributions", project.version, project.version.release ? "release" : "snapshot")
+        it.key = "$directory/$name"
     }
 }
 
@@ -276,5 +290,44 @@ class PatternTransform extends Sync {
 
     protected Pattern compilePattern(pattern) {
         pattern instanceof Pattern ? pattern : Pattern.compile(pattern)
+    }
+}
+
+import org.jets3t.service.security.AWSCredentials
+import org.jets3t.service.security.ProviderCredentials
+import org.jets3t.service.model.S3Object
+import org.jets3t.service.S3Service
+import org.jets3t.service.impl.rest.httpclient.RestS3Service
+import org.gradle.api.Action
+import org.gradle.listener.ActionBroadcast
+
+class S3PutTask extends SourceTask {
+    @Input accessKey
+    @Input secretKey
+    @Input bucketName
+    @Input @Optional friendlyName
+
+    protected ActionBroadcast<S3Object> eachObjects = new ActionBroadcast<S3Object>()
+
+    void eachObject(Action<S3Object> action) {
+        eachObjects.add(action)
+    }
+
+    @TaskAction
+    void put() {
+        def service = createService()
+        source.each { File file ->
+            def s3Object = new S3Object(file)
+            eachObjects.execute(s3Object)
+            service.putObject(bucketName, s3Object)
+        }
+    }
+
+    protected ProviderCredentials createCredentials() {
+        new AWSCredentials(accessKey, secretKey, friendlyName)
+    }
+
+    protected S3Service createService() {
+        new RestS3Service(createCredentials())
     }
 }

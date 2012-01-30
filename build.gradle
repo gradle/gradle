@@ -348,7 +348,9 @@ task installAll(type: Install) {
     installDirProperyName = 'gradle_installPath'
 }
 
-task testedDists(dependsOn: [assemble, check])
+task testedDists(dependsOn: [check]) {
+    outputs.files configurations.dists.allArtifacts.files
+}
 
 uploadDists {
     dependsOn testedDists
