@@ -18,14 +18,18 @@ package org.gradle.util;
 
 import org.apache.tools.ant.util.JavaEnvUtils;
 import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Jvm {
+    
     private final OperatingSystem os;
     private final File suppliedJavaHome;
+    private final static Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
 
     public static Jvm current() {
         return create(null);
@@ -71,21 +75,23 @@ public class Jvm {
         return String.format("%s (%s %s)", System.getProperty("java.version"), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
     }
 
-    private File getJdkExecutable(String command) {
-        if (suppliedJavaHome == null) {
-            //grab the executable in a backwards compatible way, via ant utility.
-            //might be worth changing it so that it uses consistent strategy (getToolsJar
-            //but this is a breaking change and probably requires
-            return new File(JavaEnvUtils.getJdkExecutable(command));    
-        } else {
-            File exec = new File(suppliedJavaHome, "bin/" + command);
-            File maybeExtension = new File(os.getExecutableName(exec.getAbsolutePath()));
-            if (!maybeExtension.isFile()) {
-                throw new JavaHomeException(String.format("The supplied javaHome seems to be invalid."
-                        + " I cannot find the %s executable. Tried location: %s", command, maybeExtension.getAbsolutePath()));
-            }
-            return maybeExtension;
+    private File findExecutable(String command) {
+        File javaHome = getJavaHome();
+        File execFile = new File(javaHome, "bin/" + command);
+        File executable = new File(os.getExecutableName(execFile.getAbsolutePath()));
+        if (executable.isFile()) {
+            return executable;
         }
+
+        if (suppliedJavaHome != null) {
+            throw new JavaHomeException(String.format("The supplied javaHome seems to be invalid."
+                    + " I cannot find the %s executable. Tried location: %s", command, executable.getAbsolutePath()));
+        }
+
+        LOGGER.warn("Gradle was not able to find the java executable using home: "
+                + javaHome + ". We will assume the exectuable is on path.");
+        //grab the executable in a backwards compatible way, via ant utility.
+        return new File(JavaEnvUtils.getJdkExecutable(command));
     }
 
     /**
@@ -93,7 +99,7 @@ public class Jvm {
      * @throws JavaHomeException when executable cannot be found
      */
     public File getJavaExecutable() throws JavaHomeException {
-        return getJdkExecutable("java");
+        return findExecutable("java");
     }
 
     /**
@@ -101,7 +107,7 @@ public class Jvm {
      * @throws JavaHomeException when executable cannot be found
      */
     public File getJavadocExecutable() throws JavaHomeException {
-        return getJdkExecutable("javadoc");
+        return findExecutable("javadoc");
     }
 
     /**
@@ -109,7 +115,7 @@ public class Jvm {
      * @throws JavaHomeException when executable cannot be found
      */
     public File getExecutable(String name) throws JavaHomeException {
-        return getJdkExecutable(name);
+        return findExecutable(name);
     }
 
     public boolean isJava5Compatible() {
