@@ -24,6 +24,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
@@ -50,8 +51,10 @@ public class DaemonParameters {
     private boolean enabled;
     private File javaHome;
 
+    public final static List<String> DEFAULT_JVM_ARGS = Arrays.asList("-Xmx1024m", "-XX:MaxPermSize=256m");
+
     public DaemonParameters() {
-        jvmOptions.setAllJvmArgs(Arrays.asList("-Xmx1024m", "-XX:MaxPermSize=256m"));
+        jvmOptions.setAllJvmArgs(new LinkedList<String>(DEFAULT_JVM_ARGS));
     }
 
     public boolean isEnabled() {
@@ -74,14 +77,20 @@ public class DaemonParameters {
         this.idleTimeout = idleTimeout;
     }
 
-    public List<String> getJvmArgs() {
-        return jvmOptions.getAllJvmArgsWithoutSystemProperties();
+    public List<String> getEffectiveJvmArgs() {
+        List<String> jvmArgs = jvmOptions.getAllJvmArgsWithoutSystemProperties();
+        if (!jvmArgs.contains("-XX:+HeapDumpOnOutOfMemoryError")) {
+            jvmArgs.add("-XX:+HeapDumpOnOutOfMemoryError");
+            String heapDumpPath = new DaemonDir(baseDir).getVersionedDir().getAbsolutePath();
+            jvmArgs.add("-XX:HeapDumpPath=\"" + heapDumpPath + "\"");
+        }
+        return jvmArgs;
     }
 
     public List<String> getAllJvmArgs() {
         return jvmOptions.getAllJvmArgs();
     }
-    
+
     public File getEffectiveJavaHome() {
         if (javaHome == null) {
             return canonicalise(Jvm.current().getJavaHome());
