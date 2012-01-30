@@ -19,6 +19,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Stoppable;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.protocol.DaemonFailure;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
@@ -110,13 +111,14 @@ public class Daemon implements Runnable, Stoppable {
                             }
 
                             try {
+                                LOGGER.debug(DaemonMessages.STARTED_EXECUTING_COMMAND + command + " with connection: " + connection + ".");
                                 commandExecuter.executeCommand(connection, command, daemonContext, stateCoordinator);
                             } catch (RuntimeException e) {
                                 String message = String.format("Uncaught exception when executing command: '%s' from connection: '%s'.", command, connection);
                                 LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
                                 connection.dispatch(new DaemonFailure(new RuntimeException(message, e)));
                             } finally {
-                                LOGGER.debug("finishing processing of command {}", command);
+                                LOGGER.debug(DaemonMessages.FINISHED_EXECUTING_COMMAND + command);
                             }
                         }
                     });
