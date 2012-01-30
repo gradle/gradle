@@ -100,7 +100,7 @@ public class Daemon implements Runnable, Stoppable {
                         public void run() {
                             try {
                                 command = (Command) connection.receive();
-                                LOGGER.debug("received command {} in new thread", command);
+                                LOGGER.info("Daemon received command: {}", command);
                             } catch (RuntimeException e) {
                                 String message = String.format("Unable to receive command from connection: '%s'", connection);
                                 LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);

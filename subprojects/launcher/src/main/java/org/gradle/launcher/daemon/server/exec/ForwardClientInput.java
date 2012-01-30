@@ -66,15 +66,15 @@ public class ForwardClientInput implements DaemonCommandAction {
                 if (command instanceof ForwardInput) {
                     try {
                         ForwardInput forwardedInput = (ForwardInput)command;
-                        LOGGER.info("putting forwarded input '{}' on daemon's stdin", new String(forwardedInput.getBytes()).replace("\n", "\\n"));
+                        LOGGER.info("Putting forwarded input '{}' on daemon's stdin", new String(forwardedInput.getBytes()).replace("\n", "\\n"));
                         inputSource.write(forwardedInput.getBytes());
 
                     } catch (IOException e) {
-                        LOGGER.warn("received IO exception trying to forward client input", e);
+                        LOGGER.warn("Received IO exception trying to forward client input", e);
                     }
                 } else if (command instanceof CloseInput) {
                     try {
-                        LOGGER.info("received {}, closing daemons stdin", command);
+                        LOGGER.info("Closing daemons standard input as requested by received command: {}", command);
                         inputSource.close();
                     } catch (IOException e) {
                         LOGGER.warn("IO exception closing output stream connected to replacement stdin", e);
@@ -82,7 +82,7 @@ public class ForwardClientInput implements DaemonCommandAction {
                         countDownInputOrConnectionClosedLatch.run();
                     }
                 } else {
-                    LOGGER.warn("while listening for IOCommands, received unexpected command: {}", command);
+                    LOGGER.warn("While listening for IOCommands, received unexpected command: {}", command);
                 }
             }
         };
