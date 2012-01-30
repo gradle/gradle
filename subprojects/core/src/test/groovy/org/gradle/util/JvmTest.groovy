@@ -25,8 +25,11 @@ class JvmTest extends Specification {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
     OperatingSystem os = Mock()
     OperatingSystem theOs = OperatingSystem.current()
-    Jvm jvm = new Jvm(os)
 
+    Jvm getJvm() {
+        new Jvm(os)
+    }
+    
     def "uses system property to determine if compatible with Java 5"() {
         System.properties['java.version'] = '1.5'
 
