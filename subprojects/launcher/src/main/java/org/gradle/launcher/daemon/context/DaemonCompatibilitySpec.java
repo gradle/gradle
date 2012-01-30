@@ -27,7 +27,8 @@ public class DaemonCompatibilitySpec implements Spec<DaemonContext> {
 
     public boolean isSatisfiedBy(DaemonContext potentialContext) {
         return potentialContext.getJavaHome().equals(desiredContext.getJavaHome())
-                && potentialContext.getDaemonOpts().equals(desiredContext.getDaemonOpts());
+                && potentialContext.getDaemonOpts().containsAll(desiredContext.getDaemonOpts())
+                && potentialContext.getDaemonOpts().size() == desiredContext.getDaemonOpts().size();
     }
 
     @Override
