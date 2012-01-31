@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting;
+package org.gradle.api.reporting.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.reporting.Report;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -66,4 +67,5 @@ public class SimpleReport implements Report {
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
     }
+
 }

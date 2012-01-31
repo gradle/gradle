@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting;
+package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;

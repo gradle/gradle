@@ -24,6 +24,7 @@ import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.DirectInstantiator
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.api.reporting.internal.SimpleReport
 import spock.lang.Specification
 
 class ReportContainerTest extends Specification {

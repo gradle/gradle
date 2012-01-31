@@ -35,10 +35,9 @@ public interface Report extends Serializable, Configurable<Report> {
     Boolean isEnabled();
     
     void setEnabled(Boolean enabled);
-    
+
     File getDestination();
-    
+
     void setDestination(Object destination);
 
-    
 }
