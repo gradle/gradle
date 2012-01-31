@@ -24,13 +24,13 @@ import org.gradle.api.tasks.Copy
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
-class SimpleTaskGeneratedReportTest extends Specification {
+class TaskGeneratedReportTest extends Specification {
 
     def "can resolve destination"() {
         given:
         Project project = ProjectBuilder.builder().build()
         Task task = project.task("task", type: Copy)
-        SimpleTaskGeneratedReport report = new SimpleTaskGeneratedReport("report", false, task)
+        TaskGeneratedReport report = new TaskGeneratedReport("report", false, task)
         
         when:
         report.destination = "foo"

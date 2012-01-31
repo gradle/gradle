@@ -49,12 +49,12 @@ public abstract class ReportContainerBuilder implements Configurable<ReportConta
             this.task = task;
         }
 
-        public SimpleTaskGeneratedReport singleFile(String name) {
-            return super.singleFile(SimpleTaskGeneratedReport.class, name);    
+        public TaskGeneratedReport singleFile(String name) {
+            return super.singleFile(TaskGeneratedReport.class, name);
         }
         
-        public SimpleTaskGeneratedReport multiFile(String name) {
-            return super.multiFile(SimpleTaskGeneratedReport.class, name);
+        public TaskGeneratedReport multiFile(String name) {
+            return super.multiFile(TaskGeneratedReport.class, name);
         }
         
         @Override

@@ -20,12 +20,12 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 
-public class SimpleTaskGeneratedReport extends SimpleReport {
+public class TaskGeneratedReport extends SimpleReport {
 
     private final Task task;
 
     // Note: Boolean because our instantiator can't deal with a primitive boolean
-    public SimpleTaskGeneratedReport(String name, Boolean multiFile, Task task) {
+    public TaskGeneratedReport(String name, Boolean multiFile, Task task) {
         super(name, multiFile, ((ProjectInternal)((TaskInternal)task).getProject()).getFileResolver());
         this.task = task;
     }
