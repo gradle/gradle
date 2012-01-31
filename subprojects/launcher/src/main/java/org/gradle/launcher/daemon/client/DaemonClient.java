@@ -105,6 +105,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
 
             Object firstResult;
             try {
+                LOGGER.lifecycle("Connected to the daemon. Dispatching {} request.", build);
                 connection.dispatch(build);
                 firstResult = connection.receive();
             } catch (Exception e) {
