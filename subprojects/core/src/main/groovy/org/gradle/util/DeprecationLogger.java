@@ -30,7 +30,7 @@ public class DeprecationLogger {
     private static final Set<String> PROPERTIES = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> NAMED_PARAMETERS = Collections.synchronizedSet(new HashSet<String>());
     
-    private static final ThreadLocal<Boolean> enabled = new ThreadLocal<Boolean>() {
+    private static final ThreadLocal<Boolean> ENABLED = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
             return true;
