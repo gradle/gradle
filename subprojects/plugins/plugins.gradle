@@ -42,6 +42,8 @@ dependencies {
     testCompile 'net.sourceforge.nekohtml:nekohtml:1.9.14'
 }
 
+useTestFixtures(project: ':native')
+
 evaluationDependsOn(":wrapper")
 task wrapperJar(type: Copy) {
     from project(":wrapper").executableJar.outputs.files
