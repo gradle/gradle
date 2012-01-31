@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting;
+package org.gradle.api.reporting.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.reporting.Report;
+import org.gradle.api.reporting.ReportContainer;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
 
