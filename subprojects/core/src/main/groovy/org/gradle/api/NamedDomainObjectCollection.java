@@ -18,9 +18,9 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import org.gradle.api.specs.Spec;
 
-import java.util.SortedMap;
 import java.util.Collection;
 import java.util.List;
+import java.util.SortedMap;
 
 /**
  * <p>A {@code NamedDomainObjectCollection} represents a collection of domain objects that have an inherent, constant, name.</p>

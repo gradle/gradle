@@ -20,13 +20,15 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.*;
 
-public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T> {
+public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, DynamicObjectAware {
 
     private final Instantiator instantiator;
     private final Namer<? super T> namer;
@@ -195,6 +197,14 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
      */
     public DynamicObject getAsDynamicObject() {
         return dynamicObject;
+    }
+
+    public Convention getConvention() {
+        return null; // here to satisfy DynamicObjectAware
+    }
+
+    public ExtensionContainer getExtensions() {
+        return null; // here to satisfy DynamicObjectAware
     }
 
     protected DynamicObject getElementsAsDynamicObject() {
