@@ -17,6 +17,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -53,6 +54,7 @@ public class ReportingBasePluginConvention {
      */
     @Deprecated
     public String getReportsDirName() {
+        DeprecationLogger.nagUserOfReplacedProperty("reportsDirName", "reporting.baseDir");
         return extension.getBaseDir().getName();
     }
 
@@ -64,6 +66,7 @@ public class ReportingBasePluginConvention {
      */
     @Deprecated
     public void setReportsDirName(final String reportsDirName) {
+        DeprecationLogger.nagUserOfReplacedProperty("reportsDirName", "reporting.baseDir");
         extension.setBaseDir(new Callable<File>() {
             public File call() throws Exception {
                 return project.getFileResolver().withBaseDir(project.getBuildDir()).resolve(reportsDirName);
@@ -79,6 +82,7 @@ public class ReportingBasePluginConvention {
      */
     @Deprecated
     public File getReportsDir() {
+        DeprecationLogger.nagUserOfReplacedProperty("reportsDir", "reporting.baseDir");
         return extension.getBaseDir();
     }
 
@@ -90,6 +94,7 @@ public class ReportingBasePluginConvention {
      */
     @Deprecated
     public String getApiDocTitle() {
+        DeprecationLogger.nagUserOfReplacedProperty("apiDocTitle", "reporting.apiDocTitle");
         return extension.getApiDocTitle();
     }
 }
