@@ -20,6 +20,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.specs.Spec;
@@ -34,7 +35,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private final Namer<? super T> namer;
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
-    private final ContainerDynamicObject dynamicObject = new ContainerDynamicObject(elementsDynamicObject);
+    private final Convention convention = new DefaultConvention();
+    private final DynamicObject dynamicObject = new DynamicObjectHelper(new ContainerDynamicObject(elementsDynamicObject), convention);
 
     private final List<Rule> rules = new ArrayList<Rule>();
     private Set<String> applyingRulesFor = new HashSet<String>();
@@ -200,11 +202,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     public Convention getConvention() {
-        return null; // here to satisfy DynamicObjectAware
+        return convention;
     }
 
     public ExtensionContainer getExtensions() {
-        return null; // here to satisfy DynamicObjectAware
+        return convention;
     }
 
     protected DynamicObject getElementsAsDynamicObject() {
@@ -264,7 +266,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     private class ContainerDynamicObject extends CompositeDynamicObject {
         private ContainerDynamicObject(ContainerElementsDynamicObject elementsDynamicObject) {
-            setObjects(new BeanDynamicObject(DefaultNamedDomainObjectCollection.this), elementsDynamicObject);
+            setObjects(new BeanDynamicObject(DefaultNamedDomainObjectCollection.this), elementsDynamicObject, convention.getExtensionsAsDynamicObject());
         }
 
         @Override
