@@ -33,7 +33,7 @@ class ReportContainerTest extends Specification {
 
 
     Report createReport(String name) {
-        instantiator.newInstance(SimpleReport, name, new IdentityFileResolver())
+        instantiator.newInstance(SimpleReport, name, false as boolean, new IdentityFileResolver())
     }
 
     ReportContainer createContainer(Report... reports) {

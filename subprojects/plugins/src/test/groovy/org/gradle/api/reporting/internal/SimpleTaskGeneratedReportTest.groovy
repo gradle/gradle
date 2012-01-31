@@ -30,7 +30,7 @@ class SimpleTaskGeneratedReportTest extends Specification {
         given:
         Project project = ProjectBuilder.builder().build()
         Task task = project.task("task", type: Copy)
-        SimpleTaskGeneratedReport report = new SimpleTaskGeneratedReport("report", task)
+        SimpleTaskGeneratedReport report = new SimpleTaskGeneratedReport("report", false, task)
         
         when:
         report.destination = "foo"

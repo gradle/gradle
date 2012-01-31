@@ -37,10 +37,12 @@ class ReportContainerBuilderTest extends Specification {
     def "can create a container"() {
         when: 
         buildForTask {
-            enabled(SimpleTaskGeneratedReport, "foo").configure {
+            singleFile("foo").configure {
+//                enabled true
                 destination "fooDir"
+                enabled true
             }
-            disabled(SimpleTaskGeneratedReport, "bar").configure {
+            singleFile("bar").configure {
                 destination "barDir"
             }
         }

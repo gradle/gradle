@@ -40,4 +40,5 @@ public interface Report extends Serializable, Configurable<Report> {
 
     void setDestination(Object destination);
 
+    boolean isMultiFile();
 }

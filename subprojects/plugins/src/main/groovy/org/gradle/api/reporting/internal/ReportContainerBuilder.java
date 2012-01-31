@@ -30,8 +30,7 @@ import java.util.Set;
 
 public abstract class ReportContainerBuilder implements Configurable<ReportContainerBuilder> {
 
-    private final Set<Report> enabled = new HashSet<Report>();
-    private final Set<Report> disabled = new HashSet<Report>();
+    private final Set<Report> reports = new HashSet<Report>();
     private final Instantiator instantiator;
 
     protected ReportContainerBuilder(Instantiator instantiator) {
@@ -50,8 +49,17 @@ public abstract class ReportContainerBuilder implements Configurable<ReportConta
             this.task = task;
         }
 
+        public SimpleTaskGeneratedReport singleFile(String name) {
+            return super.singleFile(SimpleTaskGeneratedReport.class, name);    
+        }
+        
+        public SimpleTaskGeneratedReport multiFile(String name) {
+            return super.multiFile(SimpleTaskGeneratedReport.class, name);
+        }
+        
         @Override
-        protected <T extends Report> T add(Set<Report> target, Class<T> clazz, Object[] constructionArgs) {
+        protected Object[] arrangeConstructionArgs(Class<?> clazz, String name, boolean multiFile, Object[] constructionArgs) {
+            constructionArgs = super.arrangeConstructionArgs(clazz, name, multiFile, constructionArgs);
             Object[] constructionArgsPlusTask = new Object[constructionArgs.length + 1];
             
             int i = 0;
@@ -59,21 +67,35 @@ public abstract class ReportContainerBuilder implements Configurable<ReportConta
                 constructionArgsPlusTask[i++] = arg;
             }
             constructionArgsPlusTask[i] = task;
-            return super.add(target, clazz, constructionArgsPlusTask);
+            for (Object arg : constructionArgsPlusTask) {
+                System.out.println("arg: " + arg);
+            }
+            return constructionArgsPlusTask;
         }
     }
 
-    public <T extends Report> T enabled(Class<T> clazz, Object... constructionArgs) {
-        return add(enabled, clazz, constructionArgs);
+    public <T extends Report> T singleFile(Class<T> clazz, String name, Object... constructionArgs) {
+        return add(clazz, arrangeConstructionArgs(clazz, name, false, constructionArgs));
     }
 
-    public <T extends Report> T disabled(Class<T> clazz, Object... constructionArgs) {
-        return add(disabled, clazz, constructionArgs);
+    public <T extends Report> T multiFile(Class<T> clazz, String name, Object... constructionArgs) {
+        return add(clazz, arrangeConstructionArgs(clazz, name, true, constructionArgs));
     }
     
-    protected <T extends Report> T add(Set<Report> target, Class<T> clazz, Object[] constructionArgs) {
+    protected Object[] arrangeConstructionArgs(Class<?> clazz, String name, boolean multiFile, Object... constructionArgs) {
+        Object[] args = new Object[constructionArgs.length + 2];
+        args[0] = name;
+        args[1] = multiFile;
+        int i = 2;
+        for (Object arg : constructionArgs) {
+            args[i++] = arg;    
+        }
+        return args;
+    }
+    
+    protected <T extends Report> T add(Class<T> clazz, Object[] constructionArgs) {
         T report = instantiator.newInstance(clazz, constructionArgs);
-        target.add(report);
+        reports.add(report);
         return report;
     }
 
@@ -87,18 +109,6 @@ public abstract class ReportContainerBuilder implements Configurable<ReportConta
     }
 
     public ReportContainer build() {
-        Report[] combined = new Report[enabled.size() + disabled.size()];
-        
-        int i = 0;
-        for (Report report : enabled) {
-            combined[i++] = report;
-            report.setEnabled(true);
-        }
-        for (Report report : disabled) {
-            combined[i++] = report;
-            report.setEnabled(false);
-        }
-
-        return new ReportContainer(combined);
+        return new ReportContainer(reports);
     }
 }

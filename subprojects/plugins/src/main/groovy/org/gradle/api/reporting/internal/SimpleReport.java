@@ -30,10 +30,13 @@ public class SimpleReport implements Report {
 
     private Object destination;
     private boolean enabled;
+    private boolean multiFile;
 
-    public SimpleReport(String name, FileResolver fileResolver) {
+    // Note: Boolean because our instantiator can't deal with a primitive boolean
+    public SimpleReport(String name, Boolean multiFile, FileResolver fileResolver) {
         this.name = name;
         this.fileResolver = fileResolver;
+        this.multiFile = multiFile;
     }
 
     public String getName() {
@@ -50,6 +53,10 @@ public class SimpleReport implements Report {
 
     public void setDestination(Object destination) {
         this.destination = destination;
+    }
+
+    public boolean isMultiFile() {
+        return multiFile;
     }
 
     private File resolveToFile(Object file) {

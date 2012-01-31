@@ -24,9 +24,10 @@ public class SimpleTaskGeneratedReport extends SimpleReport {
 
     private final Task task;
 
-    public SimpleTaskGeneratedReport(String name, Task task) {
-        super(name, ((ProjectInternal)((TaskInternal)task).getProject()).getFileResolver());
+    // Note: Boolean because our instantiator can't deal with a primitive boolean
+    public SimpleTaskGeneratedReport(String name, Boolean multiFile, Task task) {
+        super(name, multiFile, ((ProjectInternal)((TaskInternal)task).getProject()).getFileResolver());
         this.task = task;
-
     }
+
 }
