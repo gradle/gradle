@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.reporting
 
 import org.gradle.api.InvalidUserDataException
@@ -25,7 +27,7 @@ import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.reporting.internal.SimpleReport
 import spock.lang.Specification
 
-class ReportContainerTest extends Specification {
+class DefaultReportContainerTest extends Specification {
 
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator());
 
@@ -34,8 +36,8 @@ class ReportContainerTest extends Specification {
         instantiator.newInstance(SimpleReport, name, false as boolean, new IdentityFileResolver())
     }
 
-    ReportContainer createContainer(Report... reports) {
-        instantiator.newInstance(ReportContainer, reports.toList())
+    DefaultReportContainer createContainer(Report... reports) {
+        instantiator.newInstance(DefaultReportContainer, Report, reports.toList())
     }
 
     def container
@@ -57,13 +59,13 @@ class ReportContainerTest extends Specification {
         container.add(createReport("d"))
         
         then:
-        thrown(ReportContainer.ImmutableViolationException)
+        thrown(DefaultReportContainer.ImmutableViolationException)
         
         when:
         container.clear()
 
         then:
-        thrown(ReportContainer.ImmutableViolationException)
+        thrown(DefaultReportContainer.ImmutableViolationException)
     }
     
     def "enable empty by default"() {

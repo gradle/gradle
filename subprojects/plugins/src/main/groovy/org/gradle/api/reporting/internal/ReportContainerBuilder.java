@@ -20,8 +20,8 @@ import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.reporting.DefaultReportContainer;
 import org.gradle.api.reporting.Report;
-import org.gradle.api.reporting.ReportContainer;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
 
@@ -37,11 +37,11 @@ public abstract class ReportContainerBuilder implements Configurable<ReportConta
         this.instantiator = instantiator;
     }
 
-    public static ReportContainerBuilder forTask(Task task) {
+    public static TaskReportContainerBuilder forTask(Task task) {
         return new TaskReportContainerBuilder(task);
     }
     
-    private static class TaskReportContainerBuilder extends ReportContainerBuilder {
+    public static class TaskReportContainerBuilder extends ReportContainerBuilder {
         private Task task;
                
         private TaskReportContainerBuilder(Task task) {
@@ -67,9 +67,6 @@ public abstract class ReportContainerBuilder implements Configurable<ReportConta
                 constructionArgsPlusTask[i++] = arg;
             }
             constructionArgsPlusTask[i] = task;
-            for (Object arg : constructionArgsPlusTask) {
-                System.out.println("arg: " + arg);
-            }
             return constructionArgsPlusTask;
         }
     }
@@ -103,12 +100,12 @@ public abstract class ReportContainerBuilder implements Configurable<ReportConta
         return ConfigureUtil.configure(cl, this, false);
     }
 
-    public ReportContainer build(Closure config) {
+    public DefaultReportContainer build(Closure config) {
         configure(config);
         return build();
     }
 
-    public ReportContainer build() {
-        return new ReportContainer(reports);
+    public DefaultReportContainer<Report> build() {
+        return new DefaultReportContainer<Report>(Report.class, reports);
     }
 }

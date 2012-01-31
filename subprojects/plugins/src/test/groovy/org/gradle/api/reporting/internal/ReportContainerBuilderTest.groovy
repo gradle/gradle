@@ -20,7 +20,7 @@ package org.gradle.api.reporting.internal
 
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.reporting.ReportContainer
+import org.gradle.api.reporting.DefaultReportContainer
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -28,9 +28,9 @@ class ReportContainerBuilderTest extends Specification {
 
     Project project = ProjectBuilder.builder().build()
     Task task = project.task("foo")
-    ReportContainer container
+    DefaultReportContainer container
     
-    ReportContainer buildForTask(Task task = task, Closure config) {
+    DefaultReportContainer buildForTask(Task task = task, Closure config) {
         container = ReportContainerBuilder.forTask(task).build(config);
     }
     

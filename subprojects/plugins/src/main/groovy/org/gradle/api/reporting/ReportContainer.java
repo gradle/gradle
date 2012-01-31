@@ -16,59 +16,10 @@
 
 package org.gradle.api.reporting;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.DirectInstantiator;
-import org.gradle.api.specs.Spec;
 
-import java.util.Arrays;
+public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<T> {
 
-public class ReportContainer extends DefaultNamedDomainObjectSet<Report> {
-
-    private static final Spec<Report> IS_ENABLED_SPEC = new Spec<Report>() {
-        public boolean isSatisfiedBy(Report element) {
-            return element.isEnabled();
-        }
-    };
-
-    public class ImmutableViolationException extends GradleException {
-        public ImmutableViolationException() {
-            super("ReportContainer objects are immutable");
-        }
-    }
-
-    private NamedDomainObjectSet<Report> enabled;
-
-    public ReportContainer(Report... reports) {
-        this(Arrays.asList(reports));
-    }
-
-    public ReportContainer(Iterable<Report> reports) {
-        super(Report.class, new DirectInstantiator(), Report.NAMER);
-        for (Report report : reports) {
-            if (getNamer().determineName(report).equals("enabled")) {
-                throw new InvalidUserDataException("Reports cannot with a name of 'enabled' cannot be added to ReportContainers as it's reserved");
-            }
-            add(report);
-        }
-
-        enabled = matching(IS_ENABLED_SPEC);
-
-        beforeChange(new Runnable() {
-            public void run() {
-                throw new ImmutableViolationException();
-            }
-        });
-    }
-
-    protected void configureDefaultEnabled() {
-        enabled.addAll(this);
-    }
-
-    public NamedDomainObjectSet<Report> getEnabled() {
-        return enabled;
-    }
+    NamedDomainObjectSet<T> getEnabled();
 
 }
