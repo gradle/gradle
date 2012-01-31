@@ -18,13 +18,16 @@ package org.gradle.api.internal;
 import groovy.lang.*;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.internal.plugins.DefaultConvention;
+import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.plugins.Convention;
+import org.gradle.testfixtures.ProjectBuilder;
 import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.util.Map;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public class DynamicObjectHelperTest {
     @Test
@@ -717,6 +720,38 @@ public class DynamicObjectHelperTest {
 
         DynamicObject inherited = bean.getInheritable();
         assertFalse(inherited.hasMethod("javaMethod", "a", "b"));
+    }
+    
+    @Test
+    public void canGetObjectAsDynamicObject() {
+        Bean bean = new Bean();
+        assertThat(DynamicObjectHelper.asDynamicObject(bean), sameInstance((DynamicObject) bean));
+
+        AbstractProject project = (AbstractProject)ProjectBuilder.builder().build();
+        assertThat(DynamicObjectHelper.asDynamicObject(project), sameInstance(project.getAsDynamicObject()));
+
+        assertThat(DynamicObjectHelper.asDynamicObject(new Object()), instanceOf(DynamicObject.class));
+    }
+
+    @Test
+    public void canGetAndSetGroovyDynamicProperties() {
+        DynamicObject object = new BeanDynamicObject(new DynamicGroovyBean());
+        object.setProperty("foo", "bar");
+        assertThat((String)object.getProperty("foo"), equalTo("bar"));
+
+        try {
+            object.getProperty("additional");
+            fail();
+        } catch (MissingPropertyException e) {
+            assertThat(e.getMessage(), equalTo("No such property: additional for class: org.gradle.api.internal.DynamicGroovyBean"));
+        }
+
+        try {
+            object.setProperty("additional", "foo");
+            fail();
+        } catch (MissingPropertyException e) {
+            assertThat(e.getMessage(), equalTo("No such property: additional for class: org.gradle.api.internal.DynamicGroovyBean"));
+        }
     }
     
     public static class Bean implements DynamicObject {

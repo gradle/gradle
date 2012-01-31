@@ -75,7 +75,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         MetaProperty property = getMetaClass().hasProperty(bean, name);
         if (property == null) {
-            throw propertyMissingException(name);
+            return getMetaClass().invokeMissingProperty(bean, name, null, true);
         }
         if (property instanceof MetaBeanProperty && ((MetaBeanProperty) property).getGetter() == null) {
             throw new GroovyRuntimeException(String.format(
@@ -101,7 +101,9 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         MetaClass metaClass = getMetaClass();
         MetaProperty property = metaClass.hasProperty(bean, name);
         if (property == null) {
-            throw propertyMissingException(name);
+            if (property == null) {
+                getMetaClass().invokeMissingProperty(bean, name, null, false);
+            }
         }
 
         if (property instanceof MetaBeanProperty && ((MetaBeanProperty) property).getSetter() == null) {
