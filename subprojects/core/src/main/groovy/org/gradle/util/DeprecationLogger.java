@@ -90,15 +90,15 @@ public class DeprecationLogger {
     }
     
     public static <T> T whileDisabled(Factory<T> factory) {
-        enabled.set(false);
+        ENABLED.set(false);
         try {
             return factory.create();
         } finally {
-            enabled.set(true);
+            ENABLED.set(true);
         }
     }
     
     private static boolean isEnabled() {
-        return enabled.get();
+        return ENABLED.get();
     }
 }
