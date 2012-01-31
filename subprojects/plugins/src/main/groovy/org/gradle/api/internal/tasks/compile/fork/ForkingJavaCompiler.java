@@ -42,7 +42,6 @@ public class ForkingJavaCompiler extends JavaCompilerSupport {
         configure(action);
         WorkerProcess process = createWorkerProcess();
         process.start();
-        // TODO: only works when done after start() - does this risk to lose some messages?
         registerCompilationListener(process);
         process.waitForStop();
 
