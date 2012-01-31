@@ -141,7 +141,7 @@ class DaemonFeedbackIntegrationSpec extends Specification {
         """
 
         when:
-        executer.run()
+        executer.withArguments("-q").run()
 
         then:
         def log = readSingleDaemonLog(baseDir)
@@ -155,8 +155,8 @@ class DaemonFeedbackIntegrationSpec extends Specification {
         log.count('info me!') == 0
         log.count('println me!') == 1
         log.count('quiet me!') == 1
-        log.count('lifecycle me!') == 1
-        log.count('warn me!') == 1
+        log.count('lifecycle me!') == 0
+        log.count('warn me!') == 0
         log.count('error me!') == 1
     }
 

@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
 
 import java.io.BufferedReader;
@@ -32,8 +33,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     private final String error;
     
     private final Pattern skippedTaskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE))");
-    private final Pattern notSkippedTaskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)");
-    private final Pattern taskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)(\\s+.+)?");
+    private final Pattern taskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)");
 
     public OutputScrapingExecutionResult(String output, String error) {
         this.output = output;
@@ -75,14 +75,20 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public ExecutionResult assertTasksNotSkipped(String... taskPaths) {
-        Set<String> tasks = new HashSet<String>(grepTasks(notSkippedTaskPattern));
+        Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
         Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
         assertThat(String.format("Expected executed tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
         return this;
     }
 
+    private Collection<String> getNotSkippedTasks() {
+        List all = getExecutedTasks();
+        Set skipped = getSkippedTasks();
+        return CollectionUtils.subtract(all, skipped);
+    }
+
     public ExecutionResult assertTaskNotSkipped(String taskPath) {
-        Set<String> tasks = new HashSet<String>(grepTasks(notSkippedTaskPattern));
+        Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
         assertThat(String.format("Expected executed task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
         return this;
     }

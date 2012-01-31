@@ -220,22 +220,22 @@ class LoggingIntegrationTest {
 
         String initScript = new File(loggingDir, 'init.gradle').absolutePath
         String[] allArgs = level.args + ['-I', initScript]
-        return executer.inDirectory(loggingDir).withArguments(allArgs).withTasks('log').run()
+        return executer.setAllowExtraLogging(false).inDirectory(loggingDir).withArguments(allArgs).withTasks('log').run()
     }
 
     def runBroken(LogLevel level) {
         TestFile loggingDir = dist.testDir
 
-        return executer.inDirectory(loggingDir).withTasks('broken').runWithFailure()
+        return executer.setAllowExtraLogging(false).inDirectory(loggingDir).withTasks('broken').runWithFailure()
     }
 
     def runMultiThreaded(LogLevel level) {
         resources.maybeCopy('LoggingIntegrationTest/multiThreaded')
-        return executer.withArguments(level.args).withTasks('log').run()
+        return executer.setAllowExtraLogging(false).withArguments(level.args).withTasks('log').run()
     }
 
     def runSample(LogLevel level) {
-        return executer.inDirectory(sampleResources.dir).withArguments(level.args).withTasks('log').run()
+        return executer.setAllowExtraLogging(false).inDirectory(sampleResources.dir).withArguments(level.args).withTasks('log').run()
     }
 
     void checkOutput(Closure run, LogLevel level) {
@@ -253,11 +253,11 @@ class LoggingIntegrationTest {
         )
 
         resources.maybeCopy('LoggingIntegrationTest/deprecated')
-        ExecutionResult result = executer.withArguments(deprecated.args).withTasks('log').run()
+        ExecutionResult result = executer.withDeprecationChecksDisabled().withArguments(deprecated.args).withTasks('log').run()
         deprecated.checkOuts(result)
 
         // Ensure warnings are logged the second time
-        ExecutionResult secondResult = executer.withArguments(deprecated.args).withTasks('log').run()
+        ExecutionResult secondResult = executer.withDeprecationChecksDisabled().withArguments(deprecated.args).withTasks('log').run()
         deprecated.checkOuts(secondResult)
     }
 
