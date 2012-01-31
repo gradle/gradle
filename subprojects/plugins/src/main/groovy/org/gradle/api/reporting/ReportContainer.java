@@ -27,7 +27,7 @@ import java.util.Arrays;
 
 public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> {
 
-    private static final Spec<Report> isEnabledSpec = new Spec<Report>() {
+    private static final Spec<Report> IS_ENABLED_SPEC = new Spec<Report>() {
         public boolean isSatisfiedBy(Report element) {
             return element.isEnabled();
         }
@@ -54,7 +54,7 @@ public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> 
             add(report);
         }
 
-        enabled = matching(isEnabledSpec);
+        enabled = matching(IS_ENABLED_SPEC);
 
         beforeChange(new Runnable() {
             public void run() {
