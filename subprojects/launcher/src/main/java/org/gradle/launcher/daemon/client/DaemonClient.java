@@ -105,7 +105,6 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
 
             Object firstResult;
             try {
-                LOGGER.info("Connected to the daemon. Dispatching {} request.", build);
                 connection.dispatch(build);
                 firstResult = connection.receive();
             } catch (Exception e) {
@@ -124,9 +123,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
             } else if (firstResult == null) {
                 LOGGER.warn("The first result from the daemon was empty. Most likely the daemon has died. Trying a different daemon...");
             } else {
-                throw new IllegalStateException(String.format(
-                    "The first result from the Daemon: %s is a Result of a type we don't have a strategy to handle."
-                    + "Earlier, %s request was sent to the daemon.", firstResult, build));
+                throw new IllegalStateException(String.format("Daemon returned %s for which there is no strategy to handle (i.e. is an unknown Result type)", firstResult));
             }
         }
     }
