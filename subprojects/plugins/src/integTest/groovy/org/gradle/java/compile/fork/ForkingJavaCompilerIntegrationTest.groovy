@@ -26,28 +26,28 @@ class ForkingJavaCompilerIntegrationTest extends AbstractIntegrationSpec {
     def compileGoodCode() {
         expect:
         succeeds("compileJava")
-        output.contains("[javac] Compiling 1 source file")
+        !errorOutput
         file("build/classes/main/compile/fork/Person.class").exists()
     }
     
     def compileBadCode() {
         expect:
         fails("compileJava")
-        output.contains("[javac] Compiling 1 source file")
-        output.contains("';' expected")
+        errorOutput.contains("';' expected")
         !file("build/classes/main/compile/fork/Person.class").exists()
     }
     
     def compileWithLongClasspath() {
         expect:
         succeeds("compileJava")
-        output.contains("[javac] Compiling 1 source file")
+        !errorOutput
         file("build/classes/main/compile/fork/Person.class").exists()
     }
 
     def compileWithCustomHeapSettings() {
         expect:
         succeeds("compileJava")
+        !errorOutput
         file("build/classes/main/compile/fork/Person.class").exists()
         // couldn't find a good way to verify that heap settings take effect
     }
@@ -55,7 +55,7 @@ class ForkingJavaCompilerIntegrationTest extends AbstractIntegrationSpec {
     def useAntForking() {
         expect:
         succeeds("compileJava")
-        !output.contains("[javac]") // not sure why, but at least it allows us to tell apart Ant forking from Gradle forking
+        !errorOutput
         file("build/classes/main/compile/fork/Person.class").exists()
     }
 }
