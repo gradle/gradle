@@ -15,9 +15,12 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -28,6 +31,8 @@ import java.util.List;
  * that need to generate command-line options.
  */
 public abstract class CommandLineJavaCompilerSupport extends JavaCompilerSupport {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompilerSupport.class);
+    
     protected List<String> generateCommandLineOptions() {
         List<String> options = new ArrayList<String>();
         if (sourceCompatibility != null) {
@@ -62,10 +67,9 @@ public abstract class CommandLineJavaCompilerSupport extends JavaCompilerSupport
         if (compileOptions.getCompilerArgs() != null) {
             options.addAll(compileOptions.getCompilerArgs());
         }
-        if (source != null) {
-            for (File file : source) {
-                options.add(file.getPath());
-            }
+
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Invoking Java compiler with options '{}'", Joiner.on(' ').join(options));
         }
 
         return options;

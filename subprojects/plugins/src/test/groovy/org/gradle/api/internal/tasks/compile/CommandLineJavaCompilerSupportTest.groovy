@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.compile
 
 import spock.lang.Specification
 import org.gradle.api.tasks.WorkResult
-import org.gradle.api.internal.file.collections.SimpleFileCollection
 
 class CommandLineJavaCompilerSupportTest extends Specification {
     def compiler = new CommandLineJavaCompilerSupport() {
@@ -122,16 +121,4 @@ class CommandLineJavaCompilerSupportTest extends Specification {
         expect:
         compiler.generateCommandLineOptions() == ["-a", "value-a", "-b", "value-b"]
     }
-    
-    def "adds source files"() {
-        def file1 = new File("/src/Class1.java")
-        def file2 = new File("/src/Class2.java")
-        compiler.source = new SimpleFileCollection(file1, file2)
-
-        expect:
-        compiler.generateCommandLineOptions() == [file1.path, file2.path]
-    }
-
-
-
 }
