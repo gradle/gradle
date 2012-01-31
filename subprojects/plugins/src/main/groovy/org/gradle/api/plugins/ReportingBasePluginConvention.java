@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.ReportingExtension;
 
@@ -91,11 +90,6 @@ public class ReportingBasePluginConvention {
      */
     @Deprecated
     public String getApiDocTitle() {
-        Object version = project.getVersion();
-        if (Project.DEFAULT_VERSION.equals(version)) {
-            return String.format("%s API", project.getName());
-        } else {
-            return String.format("%s %s API", project.getName(), version);
-        }
+        return extension.getApiDocTitle();
     }
 }
