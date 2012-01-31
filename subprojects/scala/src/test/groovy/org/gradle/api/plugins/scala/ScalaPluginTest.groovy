@@ -17,16 +17,17 @@ package org.gradle.api.plugins.scala
 
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.util.HelperUtil
+import org.gradle.util.Matchers
 import org.junit.Test
 import static org.gradle.util.Matchers.dependsOn
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue
-import org.gradle.util.Matchers
 
 public class ScalaPluginTest {
 
@@ -87,7 +88,7 @@ public class ScalaPluginTest {
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
         assertThat(task.defaultSource, equalTo(project.sourceSets.main.scala))
         assertThat(task.classpath, Matchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
-        assertThat(task.title, equalTo(project.apiDocTitle))
+        assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }
 
     @Test public void configuresScalaDocTasksDefinedByTheBuildScript() {

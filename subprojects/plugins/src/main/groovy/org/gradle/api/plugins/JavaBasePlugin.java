@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.ProcessResources;
+import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -198,7 +199,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 });
                 javadoc.getConventionMapping().map("title", new Callable<Object>() {
                     public Object call() throws Exception {
-                        return project.getConvention().getPlugin(ReportingBasePluginConvention.class).getApiDocTitle();
+                        return project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle();
                     }
                 });
             }

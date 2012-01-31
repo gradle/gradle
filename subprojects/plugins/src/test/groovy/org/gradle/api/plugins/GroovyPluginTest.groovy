@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.configurations.Configurations
+import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.util.HelperUtil
@@ -101,7 +102,7 @@ class GroovyPluginTest {
         assertThat(task, instanceOf(Groovydoc.class))
         assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))
         assertThat(task.source.files, equalTo(project.sourceSets.main.groovy.files))
-        assertThat(task.docTitle, equalTo(project.apiDocTitle))
-        assertThat(task.windowTitle, equalTo(project.apiDocTitle))
+        assertThat(task.docTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
+        assertThat(task.windowTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }
 }

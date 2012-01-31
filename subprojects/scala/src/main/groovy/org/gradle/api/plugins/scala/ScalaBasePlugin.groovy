@@ -22,6 +22,7 @@ import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
@@ -69,7 +70,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
     private void configureScaladoc(final Project project) {
         project.getTasks().withType(ScalaDoc.class) {ScalaDoc scalaDoc ->
             scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
-            scalaDoc.conventionMapping.title = { project.apiDocTitle }
+            scalaDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }
             scalaDoc.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
         }
     }

@@ -24,6 +24,7 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
+import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.GroovyCompile;
@@ -111,12 +112,12 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
                 });
                 groovydoc.getConventionMapping().map("docTitle", new Callable<Object>() {
                     public Object call() throws Exception {
-                        return project.getConvention().getPlugin(ReportingBasePluginConvention.class).getApiDocTitle();
+                        return project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle();
                     }
                 });
                 groovydoc.getConventionMapping().map("windowTitle", new Callable<Object>() {
                     public Object call() throws Exception {
-                        return project.getConvention().getPlugin(ReportingBasePluginConvention.class).getApiDocTitle();
+                        return project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle();
                     }
                 });
             }
