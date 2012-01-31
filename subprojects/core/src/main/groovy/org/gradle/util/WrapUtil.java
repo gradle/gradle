@@ -17,6 +17,7 @@ package org.gradle.util;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+
 import java.util.*;
 
 /**
@@ -128,6 +129,6 @@ public class WrapUtil {
     }
     
     public static <T> Set<T> asSet(Collection<T> c) {
-        return c instanceof Set ? (Set<T>)c : new LinkedHashSet<T>(c);
+        return new LinkedHashSet<T>(c);
     }
 }
