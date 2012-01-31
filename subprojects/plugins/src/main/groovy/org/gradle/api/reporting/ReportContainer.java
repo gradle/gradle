@@ -19,13 +19,13 @@ package org.gradle.api.reporting;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.DirectInstantiator;
 import org.gradle.api.specs.Spec;
 
 import java.util.Arrays;
 
-public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> {
+public class ReportContainer extends DefaultNamedDomainObjectSet<Report> {
 
     private static final Spec<Report> IS_ENABLED_SPEC = new Spec<Report>() {
         public boolean isSatisfiedBy(Report element) {
@@ -61,11 +61,6 @@ public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> 
                 throw new ImmutableViolationException();
             }
         });
-    }
-
-    @Override
-    protected Report doCreate(String name) {
-        throw new ImmutableViolationException();
     }
 
     protected void configureDefaultEnabled() {

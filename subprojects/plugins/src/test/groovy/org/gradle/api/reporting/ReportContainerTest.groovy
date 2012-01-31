@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.reporting
 
 import org.gradle.api.InvalidUserDataException
@@ -96,5 +94,17 @@ class ReportContainerTest extends Specification {
         
         then:
         thrown(InvalidUserDataException)
+    }
+    
+    def "cant access or configure non existent report"() {
+        when:
+        container.configure {
+            dontexist {
+                
+            }
+        }
+        
+        then:
+        thrown(MissingMethodException)
     }
 }
