@@ -65,10 +65,10 @@ enum TestPrecondition {
         OperatingSystem.current().name == "unknown operating system"
     }),
     JDK5({
-        Jvm.current().java5
+        System.getProperty("java.version").startsWith("1.5")
     }),
     JDK6({
-        Jvm.current().java6
+        System.getProperty("java.version").startsWith("1.6")
     });
 
     /**
