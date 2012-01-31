@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.Serializable;
 
 public interface Report extends Serializable, Configurable<Report> {
+    
     Namer<Report> NAMER = new Namer<Report>() {
         public String determineName(Report report) {
             return report.getName();
@@ -31,7 +32,13 @@ public interface Report extends Serializable, Configurable<Report> {
 
     String getName();
     
+    Boolean isEnabled();
+    
+    void setEnabled(Boolean enabled);
+    
     File getDestination();
+    
     void setDestination(Object destination);
+
     
 }

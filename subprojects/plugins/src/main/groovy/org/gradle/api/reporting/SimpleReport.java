@@ -17,18 +17,22 @@
 package org.gradle.api.reporting;
 
 import groovy.lang.Closure;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 
-abstract public class AbstractReport implements Report {
+public class SimpleReport implements Report {
                           
     private String name;
+    private FileResolver fileResolver;
 
     private Object destination;
+    private boolean enabled;
 
-    public AbstractReport(String name) {
+    public SimpleReport(String name, FileResolver fileResolver) {
         this.name = name;
+        this.fileResolver = fileResolver;
     }
 
     public String getName() {
@@ -47,10 +51,19 @@ abstract public class AbstractReport implements Report {
         this.destination = destination;
     }
 
-    protected abstract File resolveToFile(Object file);
+    private File resolveToFile(Object file) {
+        return fileResolver.resolve(file);
+    }
     
     public Report configure(Closure configure) {
         return ConfigureUtil.configure(configure, this, false);
     }
 
+    public Boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
 }

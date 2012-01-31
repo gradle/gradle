@@ -16,20 +16,22 @@
 
 package org.gradle.api.reporting;
 
-import org.gradle.api.Action;
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DirectInstantiator;
-import org.gradle.util.GUtil;
-import org.gradle.util.WrapUtil;
+import org.gradle.api.specs.Spec;
 
-import java.util.Collection;
-import java.util.Set;
+import java.util.Arrays;
 
 public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> {
+
+    private static final Spec<Report> isEnabledSpec = new Spec<Report>() {
+        public boolean isSatisfiedBy(Report element) {
+            return element.isEnabled();
+        }
+    };
 
     public class ImmutableViolationException extends GradleException {
         public ImmutableViolationException() {
@@ -37,9 +39,13 @@ public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> 
         }
     }
 
-        DomainObjectSet<Report> enabled = new DefaultDomainObjectSet<Report>(Report.class);
+    private NamedDomainObjectSet<Report> enabled;
 
     public ReportContainer(Report... reports) {
+        this(Arrays.asList(reports));
+    }
+
+    public ReportContainer(Iterable<Report> reports) {
         super(Report.class, new DirectInstantiator(), Report.NAMER);
         for (Report report : reports) {
             if (getNamer().determineName(report).equals("enabled")) {
@@ -48,15 +54,7 @@ public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> 
             add(report);
         }
 
-        enabled.whenObjectAdded(new Action<Report>() {
-            public void execute(Report report) {
-                if (!contains(report)) {
-                    throw new InvalidUserDataException("Cannot enable report " + report + " as part of report container as it is not a member of this container (members: " + GUtil.join(ReportContainer.this, ", ") + ")");
-                }
-            }
-        });
-
-        configureDefaultEnabled();
+        enabled = matching(isEnabledSpec);
 
         beforeChange(new Runnable() {
             public void run() {
@@ -74,21 +72,8 @@ public class ReportContainer extends AbstractNamedDomainObjectContainer<Report> 
         enabled.addAll(this);
     }
 
-    public Set<Report> getEnabled() {
+    public NamedDomainObjectSet<Report> getEnabled() {
         return enabled;
     }
 
-    public void enabled(Report... enabledReports) {
-        setEnabled(WrapUtil.toSet(enabledReports));
-    }
-
-    public void setEnabled(Collection<Report> enabledReports) {
-        enabled.retainAll(enabledReports);
-        for (Report report : enabledReports) {
-            if (!enabled.contains(report)) {
-                assert enabled.add(report);
-            }
-        }
-
-    }
 }

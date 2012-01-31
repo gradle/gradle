@@ -17,20 +17,16 @@
 package org.gradle.api.reporting;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 
-import java.io.File;
-
-public class SimpleTaskGeneratedReport extends AbstractReport {
+public class SimpleTaskGeneratedReport extends SimpleReport {
 
     private final Task task;
 
     public SimpleTaskGeneratedReport(String name, Task task) {
-        super(name);
+        super(name, ((ProjectInternal)((TaskInternal)task).getProject()).getFileResolver());
         this.task = task;
-    }
 
-    @Override
-    protected File resolveToFile(Object file) {
-        return task.getProject().file(file);
     }
 }

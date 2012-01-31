@@ -90,16 +90,13 @@ public abstract class ReportContainerBuilder implements Configurable<ReportConta
         int i = 0;
         for (Report report : enabled) {
             combined[i++] = report;
+            report.setEnabled(true);
         }
         for (Report report : disabled) {
             combined[i++] = report;
+            report.setEnabled(false);
         }
 
-        return new ReportContainer(combined) {
-            @Override
-            protected void configureDefaultEnabled() {
-                this.setEnabled(ReportContainerBuilder.this.enabled);
-            }
-        };
+        return new ReportContainer(combined);
     }
 }

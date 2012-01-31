@@ -14,26 +14,29 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.reporting
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.listener.ListenerNotificationException
+import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.ClassGeneratorBackedInstantiator
+import org.gradle.api.internal.DirectInstantiator
+import org.gradle.api.internal.Instantiator
+import org.gradle.api.internal.file.IdentityFileResolver
 import spock.lang.Specification
 
 class ReportContainerTest extends Specification {
 
-    Report createReport(String name) {
-        new AbstractReport(name) {
-            @Override
-            protected File resolveToFile(Object file) {
-                new File(file.toString())
-            }
+    Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator());
 
-        }
+
+    Report createReport(String name) {
+        instantiator.newInstance(SimpleReport, name, new IdentityFileResolver())
     }
 
     ReportContainer createContainer(Report... reports) {
-        new ReportContainer(reports)
+        instantiator.newInstance(ReportContainer, reports.toList())
     }
 
     def container
@@ -64,38 +67,28 @@ class ReportContainerTest extends Specification {
         thrown(ReportContainer.ImmutableViolationException)
     }
     
-    def "all are enabled by default"() {
+    def "enable empty by default"() {
         expect:
-        container.enabled == container
+        container.every { !it.enabled } && container.enabled.empty
     }
     
     def "can change enabled"() {
         when:
-        container.enabled = []
+        container.each { it.enabled = false }
         
         then:
         container.enabled.empty
         
         when:
         container.configure {
-            enabled a, b    
+            a.enabled true
+            b.enabled true
         }
         
         then:
         container.enabled.size() == 2
     }
-    
-    def "cannot enable a report that's not part of the container"() {
-        when:
-        container.configure {
-            enabled createReport("foo")
-        }
 
-        then:
-        ListenerNotificationException e = thrown()
-        e.cause instanceof InvalidUserDataException
-    }
-    
     def "cannot add report named 'enabled'"() {
         when:
         createContainer(createReport("enabled"))
