@@ -82,7 +82,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specifies the settings file.");
         parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specifies the build file.");
         parser.option(PROJECT_PROP, "project-prop").hasArguments().hasDescription("Set project property for the build script (e.g. -Pmyprop=myvalue).");
-        parser.option(EMBEDDED_SCRIPT, "embedded").hasArgument().hasDescription("Specify an embedded build script.").deprecated("no replacement");
+        parser.option(EMBEDDED_SCRIPT, "embedded").hasArgument().hasDescription("Specify an embedded build script.").deprecated("use an init script instead");
         parser.option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
         parser.option(NO_OPT).hasDescription("Ignore any task optimization.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");

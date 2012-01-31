@@ -326,7 +326,7 @@ task retrieve(type: Sync) {
         file('build/testproject-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshot);
     }
 
-    def "does not download snaphost artifacts more than once per build"() {
+    def "does not download snapshot artifacts more than once per build"() {
         server.start()
         given:
         def module = repo().module("org.gradle", "testproject", "1.0-SNAPSHOT")
