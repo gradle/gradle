@@ -15,19 +15,16 @@
  */
 package org.gradle.plugins.cpp.gpp
 
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.plugins.binaries.model.Binary
+import org.gradle.plugins.binaries.model.CompileSpec
 import org.gradle.plugins.binaries.model.Library
 import org.gradle.plugins.binaries.tasks.Compile
-import org.gradle.plugins.binaries.model.CompileSpec
-
-import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.file.FileCollection
-
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.process.internal.DefaultExecAction
-
 import org.gradle.plugins.cpp.CppSourceSet
 import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler
+import org.gradle.process.internal.DefaultExecAction
 
 class GppCompileSpec implements CompileSpec, StandardCppCompiler {
 
@@ -55,6 +52,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler {
             }
         }
 
+        task.onlyIf { !task.inputs.files.empty }
         task.outputs.file { getOutputFile() }
 
         // problem: will break if a source set is removed
