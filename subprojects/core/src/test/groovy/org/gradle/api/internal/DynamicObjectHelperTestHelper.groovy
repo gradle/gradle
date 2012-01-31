@@ -97,6 +97,8 @@ class DynamicGroovyBean {
     
     private holder = null;
     
+    Map called = [:]
+    
     def propertyMissing(String name) {
         if (name == "foo") {
             return holder;
@@ -112,5 +114,13 @@ class DynamicGroovyBean {
             throw new MissingPropertyException(name, getClass())
         }
 
+    }
+    
+    def methodMissing(String name, args) {
+        if (name == "bar") {
+            args[0] * 2   
+        } else {
+            throw new groovy.lang.MissingMethodException(name, getClass(), args)
+        }
     }
 }

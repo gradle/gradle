@@ -753,7 +753,20 @@ public class DynamicObjectHelperTest {
             assertThat(e.getMessage(), equalTo("No such property: additional for class: org.gradle.api.internal.DynamicGroovyBean"));
         }
     }
-    
+
+    @Test
+    public void canCallGroovyDynamicMethods() {
+        DynamicObject object = new BeanDynamicObject(new DynamicGroovyBean());
+        Integer doubled = (Integer)object.invokeMethod("bar", 1);
+        assertThat(doubled, equalTo(2));
+
+        try {
+            object.invokeMethod("xxx", 1, 2, 3);
+            fail();
+        } catch (MissingMethodException e) {
+            assertThat(e.getMessage(), startsWith("No signature of method: org.gradle.api.internal.DynamicGroovyBean.xxx() is applicable for argument types: (java.lang.Integer, java.lang.Integer, java.lang.Integer) values: [1, 2, 3]\nPossible solutions:"));
+        }
+    }
     public static class Bean implements DynamicObject {
         private String readWriteProperty;
         private String readOnlyProperty;
