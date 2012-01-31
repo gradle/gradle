@@ -813,7 +813,11 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public Map<String, ?> getProperties() {
-        return dynamicObjectHelper.getProperties();
+        return DeprecationLogger.whileDisabled(new Factory<Map<String, ?>>() {
+            public Map<String, ?> create() {
+                return dynamicObjectHelper.getProperties();
+            }
+        });
     }
 
     public WorkResult copy(Closure closure) {

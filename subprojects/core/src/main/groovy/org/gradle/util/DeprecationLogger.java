@@ -15,6 +15,7 @@
  */
 package org.gradle.util;
 
+import org.gradle.internal.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,13 @@ public class DeprecationLogger {
     private static final Set<String> METHODS = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> PROPERTIES = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> NAMED_PARAMETERS = Collections.synchronizedSet(new HashSet<String>());
+    
+    private static final ThreadLocal<Boolean> enabled = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            return true;
+        }
+    };
 
     public static void reset() {
         PLUGINS.clear();
@@ -37,7 +45,7 @@ public class DeprecationLogger {
     }
 
     public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
-        if (PLUGINS.add(pluginName)) {
+        if (isEnabled() && PLUGINS.add(pluginName)) {
             LOGGER.warn(String.format(
                     "The %s plugin has been deprecated and will be removed in the next version of Gradle. Please use the %s plugin instead.",
                     pluginName, replacement));
@@ -45,7 +53,7 @@ public class DeprecationLogger {
     }
     
     public static void nagUserOfReplacedMethod(String methodName, String replacement) {
-        if (METHODS.add(methodName)) {
+        if (isEnabled() && METHODS.add(methodName)) {
             LOGGER.warn(String.format(
                     "The %s method has been deprecated and will be removed in the next version of Gradle. Please use the %s method instead.",
                     methodName, replacement));
@@ -53,7 +61,7 @@ public class DeprecationLogger {
     }
 
     public static void nagUserOfReplacedProperty(String propertyName, String replacement) {
-        if (METHODS.add(propertyName)) {
+        if (isEnabled() && METHODS.add(propertyName)) {
             LOGGER.warn(String.format(
                     "The %s property has been deprecated and will be removed in the next version of Gradle. Please use the %s property instead.",
                     propertyName, replacement));
@@ -61,14 +69,14 @@ public class DeprecationLogger {
     }
 
     public static void nagUserOfDiscontinuedMethod(String methodName) {
-        if (METHODS.add(methodName)) {
+        if (isEnabled() && METHODS.add(methodName)) {
             LOGGER.warn(String.format("The %s method has been deprecated and will be removed in the next version of Gradle.",
                     methodName));
         }
     }
 
     public static void nagUserOfReplacedNamedParameter(String parameterName, String replacement) {
-        if (NAMED_PARAMETERS.add(parameterName)) {
+        if (isEnabled() && NAMED_PARAMETERS.add(parameterName)) {
             LOGGER.warn(String.format(
                     "The %s named parameter has been deprecated and will be removed in the next version of Gradle. Please use the %s named parameter instead.",
                     parameterName, replacement));
@@ -76,8 +84,21 @@ public class DeprecationLogger {
     }
 
     public static void nagUserWith(String message) {
-        if (METHODS.add(message)) {
+        if (isEnabled() && METHODS.add(message)) {
             LOGGER.warn(message);
         }
+    }
+    
+    public static <T> T whileDisabled(Factory<T> factory) {
+        enabled.set(false);
+        try {
+            return factory.create();
+        } finally {
+            enabled.set(true);
+        }
+    }
+    
+    private static boolean isEnabled() {
+        return enabled.get();
     }
 }
