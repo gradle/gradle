@@ -263,4 +263,12 @@ class JvmTest extends Specification {
         then:
         thrown(IllegalArgumentException)
     }
+    
+    def "describes accurately when created for supplied java home"() {
+        when:
+        def jvm = new Jvm(theOs, new File('dummyFolder'))
+
+        then:
+        jvm.toString().contains('dummyFolder')
+    }
 }

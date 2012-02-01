@@ -33,7 +33,7 @@ public class Jvm {
     private final File javaBase;
     //discovered java location
     private final File javaHome;
-    private final boolean strict;
+    private final boolean userSupplied;
 
     public static Jvm current() {
         return create(null);
@@ -62,12 +62,12 @@ public class Jvm {
             this.javaBase = GFileUtils.canonicalise(new File(System.getProperty("java.home")));
             File toolsJar = getToolsJar(javaBase);
             this.javaHome = toolsJar == null ? javaBase : toolsJar.getParentFile().getParentFile();
-            this.strict = false;
+            this.userSupplied = false;
         } else {
             //precisely use what the user wants and validate strictly further on
             this.javaBase = suppliedJavaBase;
             this.javaHome = suppliedJavaBase;
-            this.strict = true;
+            this.userSupplied = true;
         }
     }
     
@@ -92,7 +92,9 @@ public class Jvm {
 
     @Override
     public String toString() {
-        //TODO SF no longer accurate
+        if (userSupplied) {
+            return "User-supplied java: " + javaBase;
+        }
         return String.format("%s (%s %s)", SystemProperties.getJavaVersion(), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
     }
 
@@ -103,22 +105,22 @@ public class Jvm {
             return executable;
         }
 
-        if (strict) {
+        if (userSupplied) { //then we want to validate strictly
             throw new JavaHomeException(String.format("The supplied javaHome seems to be invalid."
                     + " I cannot find the %s executable. Tried location: %s", command, executable.getAbsolutePath()));
-        } else {
-            File pathExecutable = os.findInPath(command);
-            if (pathExecutable != null) {
-                LOGGER.info("Unable to find the '{}' executable using home: {}. We found it on the PATH: {}.",
-                        command, getJavaHome(), pathExecutable);
-                return pathExecutable;
-            } else {
-                LOGGER.warn("Unable to find the '{}' executable. Tried the java home: {} and the PATH."
-                        + " We will assume the executable can be ran in the current working folder.",
-                        command, getJavaHome());
-                return new File(os.getExecutableName(command));
-            }
         }
+
+        File pathExecutable = os.findInPath(command);
+        if (pathExecutable != null) {
+            LOGGER.info("Unable to find the '{}' executable using home: {}. We found it on the PATH: {}.",
+                    command, getJavaHome(), pathExecutable);
+            return pathExecutable;
+        }
+
+        LOGGER.warn("Unable to find the '{}' executable. Tried the java home: {} and the PATH."
+                + " We will assume the executable can be ran in the current working folder.",
+                command, getJavaHome());
+        return new File(os.getExecutableName(command));
     }
 
     /**
@@ -171,13 +173,17 @@ public class Jvm {
 
     /**
      * Returns the runtime jar. May return null, for example when Jvm was created via
-     * {@link #forHome(java.io.File)} and JDK location was supplied.
+     * {@link #forHome(java.io.File)} and jdk location was supplied.
      */
     public File getRuntimeJar() {
         File runtimeJar = new File(javaBase, "lib/rt.jar");
         return runtimeJar.exists() ? runtimeJar : null;
     }
 
+    /**
+     * Returns the tools jar. May return null, for example when Jvm was created via
+     * {@link #forHome(java.io.File)} and jre location was supplied.
+     */
     public File getToolsJar() {
         return getToolsJar(javaBase);
     }
