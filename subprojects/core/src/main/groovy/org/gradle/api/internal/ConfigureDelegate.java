@@ -88,6 +88,7 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         }
 
         // try the delegate again
+        onMissing.execute(name);
         return delegate.getProperty(name);
     }
 }
