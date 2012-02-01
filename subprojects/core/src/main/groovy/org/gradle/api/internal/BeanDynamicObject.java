@@ -44,11 +44,10 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     public DynamicObject determineDelegate(Object bean) {
-        // see GroovyObjectAdapter below for explanation
-        if ((bean instanceof GroovyObject) && !(bean instanceof DynamicObjectAware)) {
-            return new GroovyObjectAdapter();    
-        } else {
+        if (bean instanceof DynamicObject || bean instanceof DynamicObjectAware || !(bean instanceof GroovyObject)) {
             return new MetaClassAdapter();
+        } else {
+            return new GroovyObjectAdapter();
         }
     }
     
@@ -230,7 +229,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         @Override
         public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
-            return groovyObject.invokeMethod(name, arguments);
+            try {
+                return groovyObject.invokeMethod(name, arguments);
+            } catch (InvokerInvocationException e) {
+                if (e.getCause() instanceof RuntimeException) {
+                    throw (RuntimeException) e.getCause();
+                }
+                throw e;
+            }
         }
     }
 }
