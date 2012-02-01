@@ -23,6 +23,7 @@ import org.gradle.initialization.GradleLauncherAction
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
+import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.server.exec.DaemonCommandAction
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
@@ -72,8 +73,8 @@ class DaemonServerExceptionHandlingTest extends Specification {
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
                 return new DefaultDaemonCommandExecuter(loggingServices, get(ExecutorFactory), get(ProcessEnvironment)) {
-                    List<DaemonCommandAction> createActions() {
-                        def actions = super.createActions();
+                    List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
+                        def actions = super.createActions(daemonContext);
                         def failingAction = { throw new RuntimeException("boo!") } as DaemonCommandAction
                         //we need to inject the failing action in an appropriate place in the sequence
                         //that is after the ForwardClientInput

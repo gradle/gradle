@@ -28,9 +28,11 @@ class LogToClient extends BuildCommandOnly {
     private static final Logger LOGGER = Logging.getLogger(LogToClient.class);
 
     private final LoggingManagerInternal loggingManager;
-    
-    public LogToClient(LoggingManagerInternal loggingManager) {
+    private final Long daemonPid;
+
+    public LogToClient(LoggingManagerInternal loggingManager, Long daemonPid) {
         this.loggingManager = loggingManager;
+        this.daemonPid = daemonPid;
     }
         
     protected void doBuild(final DaemonCommandExecution execution, Build build) {
@@ -49,7 +51,7 @@ class LogToClient extends BuildCommandOnly {
         LOGGER.info("About to start relaying all logs to the client via the connection.");
         loggingManager.start();
         loggingManager.addOutputEventListener(listener);
-        LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS);
+        LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + daemonPid + ").");
 
         try {
             execution.proceed();

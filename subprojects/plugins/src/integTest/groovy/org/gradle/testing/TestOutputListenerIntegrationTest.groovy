@@ -188,7 +188,7 @@ test {
 }
 """
         when: "run without '-i'"
-        def result = executer.withTasks('test').run()
+        def result = executer.setAllowExtraLogging(false).withTasks('test').run()
         then:
         !result.output.contains('output from foo')
 

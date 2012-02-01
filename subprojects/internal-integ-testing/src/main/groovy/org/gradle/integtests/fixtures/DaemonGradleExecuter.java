@@ -15,19 +15,26 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DaemonGradleExecuter extends ForkingGradleExecuter {
+import static java.util.Arrays.asList;
+
+public class 
+        DaemonGradleExecuter extends ForkingGradleExecuter {
     private static final String DAEMON_REGISTRY_SYS_PROP = "org.gradle.integtest.daemon.registry";
     private final GradleDistribution distribution;
     private final File daemonBaseDir;
+    private final boolean allowExtraLogging;
 
-    public DaemonGradleExecuter(GradleDistribution distribution, File daemonBaseDir) {
+    public DaemonGradleExecuter(GradleDistribution distribution, File daemonBaseDir, boolean allowExtraLogging) {
         super(distribution.getGradleHomeDir());
         this.distribution = distribution;
         this.daemonBaseDir = daemonBaseDir;
+        this.allowExtraLogging = allowExtraLogging;
     }
 
     @Override
@@ -47,8 +54,21 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         } else {
             configureJvmArgs(args, distribution.getUserHomeDir().getAbsolutePath());
         }
+        
+        configureDefaultLogging(args);
 
         return args;
+    }
+
+    private void configureDefaultLogging(List<String> args) {
+        if(!allowExtraLogging) {
+            return;
+        }
+        List logOptions = asList("-i", "--info", "-d", "--debug", "-q", "--quite");
+        boolean alreadyConfigured = CollectionUtils.containsAny(args, logOptions);
+        if (!alreadyConfigured) {
+            args.add("-i");
+        }
     }
 
     private void configureJvmArgs(List<String> args, String registryBase) {

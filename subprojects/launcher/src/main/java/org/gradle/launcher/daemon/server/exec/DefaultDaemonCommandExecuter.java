@@ -15,10 +15,10 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
@@ -54,11 +54,11 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             command,
             daemonContext,
             daemonStateCoordinator,
-            createActions()
+            createActions(daemonContext)
         ).proceed();
     }
 
-    protected List<DaemonCommandAction> createActions() {
+    protected List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
         return new LinkedList<DaemonCommandAction>(Arrays.asList(
             new StopConnectionAfterExecution(),
             new HandleClientDisconnectBeforeSendingCommand(),
@@ -66,7 +66,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new HandleStop(),
             new StartBuildOrRespondWithBusy(),
             new EstablishBuildEnvironment(processEnvironment),
-            new LogToClient(loggingManager), // from this point down, logging is sent back to the client
+            new LogToClient(loggingManager, daemonContext.getPid()), // from this point down, logging is sent back to the client
             new ForwardClientInput(executorFactory),
             new ReturnResult(),
             new ResetDeprecationLogger(),
