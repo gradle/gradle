@@ -31,7 +31,7 @@ class ReportContainerBuilderTest extends Specification {
     DefaultReportContainer container
     
     DefaultReportContainer buildForTask(Task task = task, Closure config) {
-        container = ReportContainerBuilder.forTask(task).build(config);
+        container = ReportContainerBuilder.forTask(DefaultReportContainer, TaskGeneratedReport, task).build(config);
     }
     
     def "can create a container"() {

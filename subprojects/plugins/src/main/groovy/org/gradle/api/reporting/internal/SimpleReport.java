@@ -48,7 +48,7 @@ public class SimpleReport implements Report {
     }
     
     public File getDestination() {
-        return resolveToFile(destination);
+        return destination == null ? null : resolveToFile(destination);
     }
 
     public void setDestination(Object destination) {

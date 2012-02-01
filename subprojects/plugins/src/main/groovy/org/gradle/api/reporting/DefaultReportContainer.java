@@ -28,6 +28,7 @@ import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.Arrays;
+import java.util.SortedMap;
 
 public class DefaultReportContainer<T extends Report> extends DefaultNamedDomainObjectSet<T> implements ReportContainer<T>, Configurable<DefaultReportContainer> {
 
@@ -39,11 +40,11 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
 
     private NamedDomainObjectSet<T> enabled;
 
-    public DefaultReportContainer(Class<T> type, T... reports) {
+    public DefaultReportContainer(Class<? extends T> type, T... reports) {
         this(type, Arrays.asList(reports));
     }
 
-    public DefaultReportContainer(Class<T> type, Iterable<T> reports) {
+    public DefaultReportContainer(Class<? extends T> type, Iterable<T> reports) {
         super(type, new DirectInstantiator(), Report.NAMER);
         for (T report : reports) {
             if (getNamer().determineName(report).equals("enabled")) {
@@ -72,5 +73,14 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
     public DefaultReportContainer configure(Closure cl) {
         ConfigureUtil.configure(cl, new ConfigureDelegate(cl.getOwner(), this), false);
         return this;
+    }
+    
+    public T getFirstEnabled() {
+        SortedMap<String, T> map = enabled.getAsMap();
+        if (map.isEmpty()) {
+            return null;
+        } else {
+            return map.get(map.firstKey());
+        }
     }
 }

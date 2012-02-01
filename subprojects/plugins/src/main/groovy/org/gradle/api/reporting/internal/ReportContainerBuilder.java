@@ -18,43 +18,50 @@ package org.gradle.api.reporting.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Task;
+import org.gradle.api.internal.DirectInstantiator;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.DefaultReportContainer;
 import org.gradle.api.reporting.Report;
+import org.gradle.api.reporting.ReportContainer;
+import org.gradle.api.resources.ReadableResource;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class ReportContainerBuilder implements Configurable<ReportContainerBuilder> {
+public abstract class ReportContainerBuilder<C extends ReportContainer, R extends Report> implements Configurable<ReportContainerBuilder<C, R>> {
 
     private final Set<Report> reports = new HashSet<Report>();
     private final Instantiator instantiator;
+    private final Class<? extends C> containerType;
+    private final Class<? extends R> reportType;
 
-    protected ReportContainerBuilder(Instantiator instantiator) {
+    protected ReportContainerBuilder(Class<? extends C> containerType, Class<? extends R> reportType, Instantiator instantiator) {
+        this.containerType = containerType;
+        this.reportType = reportType;
         this.instantiator = instantiator;
     }
-
-    public static TaskReportContainerBuilder forTask(Task task) {
-        return new TaskReportContainerBuilder(task);
+    
+    public static <C extends ReportContainer, R extends Report> TaskReportContainerBuilder<C, R> forTask(Class<? extends C> containerType, Class<? extends R> reportType, Task task) {
+        return new TaskReportContainerBuilder<C, R>(containerType, reportType, task);
     }
     
-    public static class TaskReportContainerBuilder extends ReportContainerBuilder {
+    public static class TaskReportContainerBuilder<C extends ReportContainer, R extends Report> extends ReportContainerBuilder<C, R> {
         private Task task;
                
-        private TaskReportContainerBuilder(Task task) {
-            super(((ProjectInternal)task.getProject()).getServices().get(Instantiator.class));
+        private TaskReportContainerBuilder(Class<? extends C> containerType, Class<? extends R> reportType, Task task) {
+            super(containerType, reportType, ((ProjectInternal)task.getProject()).getServices().get(Instantiator.class));
             this.task = task;
         }
-
-        public TaskGeneratedReport singleFile(String name) {
-            return super.singleFile(TaskGeneratedReport.class, name);
+ 
+        public R singleFile(String name) {
+            return super.singleFile(getReportType(), name);
         }
-        
-        public TaskGeneratedReport multiFile(String name) {
-            return super.multiFile(TaskGeneratedReport.class, name);
+
+        public R multiFile(String name) {
+            return super.multiFile(getReportType(), name);
         }
         
         @Override
@@ -71,6 +78,10 @@ public abstract class ReportContainerBuilder implements Configurable<ReportConta
         }
     }
 
+    protected Class<? extends R> getReportType() {
+        return reportType;
+    }
+    
     public <T extends Report> T singleFile(Class<T> clazz, String name, Object... constructionArgs) {
         return add(clazz, arrangeConstructionArgs(clazz, name, false, constructionArgs));
     }
@@ -96,16 +107,16 @@ public abstract class ReportContainerBuilder implements Configurable<ReportConta
         return report;
     }
 
-    public ReportContainerBuilder configure(Closure cl) {
+    public ReportContainerBuilder<C, R> configure(Closure cl) {
         return ConfigureUtil.configure(cl, this, false);
     }
 
-    public DefaultReportContainer build(Closure config) {
+    public C build(Closure config) {
         configure(config);
         return build();
     }
 
-    public DefaultReportContainer<Report> build() {
-        return new DefaultReportContainer<Report>(Report.class, reports);
+    public C build() {
+        return instantiator.newInstance(containerType, reportType, reports);
     }
 }

@@ -18,7 +18,7 @@ package org.gradle.api.reporting;
 
 import groovy.lang.Closure;
 
-public interface Reporting<T extends DefaultReportContainer> {
+public interface Reporting<T extends ReportContainer> {
 
     T getReports();
     T reports(Closure closure);
