@@ -122,7 +122,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 // Could potentially distinguish between CommandFailure and DaemonFailure here.
                 throw ((Failure) firstResult).getValue();
             } else if (firstResult == null) {
-                LOGGER.warn("The first result from the daemon was empty. Most likely the daemon has died. Trying a different daemon...");
+                LOGGER.info("The first result from the daemon was empty. Most likely the daemon has died. Trying a different daemon...");
             } else {
                 throw new IllegalStateException(String.format(
                     "The first result from the Daemon: %s is a Result of a type we don't have a strategy to handle."
