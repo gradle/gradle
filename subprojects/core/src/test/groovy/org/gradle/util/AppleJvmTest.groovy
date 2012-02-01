@@ -24,7 +24,10 @@ class AppleJvmTest extends Specification {
     @Rule TemporaryFolder tmpDir = new TemporaryFolder()
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
     OperatingSystem os = Mock(OperatingSystem)
-    AppleJvm jvm = new AppleJvm(os)
+
+    AppleJvm getJvm() {
+        new AppleJvm(os)
+    }
 
     def "looks for runtime Jar in Java home directory"() {
         TestFile javaHomeDir = tmpDir.createDir('Home')

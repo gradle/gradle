@@ -25,7 +25,10 @@ class JvmTest extends Specification {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
     OperatingSystem os = Mock()
     OperatingSystem theOs = OperatingSystem.current()
-    Jvm jvm = new Jvm(os)
+
+    Jvm getJvm() {
+        new Jvm(os)
+    }
 
     def "uses system property to determine if Java 5/6/7"() {
         System.properties['java.version'] = "1.$version" as String
@@ -175,6 +178,35 @@ class JvmTest extends Specification {
         then:
         def ex = thrown(JavaHomeException)
         ex.message.contains('foobar')
+    }
+
+    def "falls back to PATH if executable cannot be found when using default java"() {
+        given:
+        def home = tmpDir.createDir("home")
+        System.properties['java.home'] = home.absolutePath
+        1 * os.getExecutableName(_ as String) >> "foobar.exe"
+        1 * os.findInPath("foobar") >> new File('/path/foobar.exe')
+
+        when:
+        def exec = jvm.getExecutable("foobar")
+
+        then:
+        exec == new File('/path/foobar.exe')
+    }
+
+    def "falls back to current dir if executable cannot be found anywhere"() {
+        given:
+        def home = tmpDir.createDir("home")
+        System.properties['java.home'] = home.absolutePath
+
+        os.getExecutableName(_ as String) >> "foobar.exe"
+        1 * os.findInPath("foobar") >> null
+
+        when:
+        def exec = jvm.getExecutable("foobar")
+
+        then:
+        exec == new File('foobar.exe')
     }
 
     def "provides decent feedback for invalid java home"() {

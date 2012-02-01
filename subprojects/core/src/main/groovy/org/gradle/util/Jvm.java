@@ -16,10 +16,9 @@
 
 package org.gradle.util;
 
-import org.apache.tools.ant.util.JavaEnvUtils;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.nativeplatform.OperatingSystem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.HashMap;
@@ -27,9 +26,11 @@ import java.util.Map;
 
 public class Jvm {
     
+    private final static Logger LOGGER = Logging.getLogger(Jvm.class);
+    
     private final OperatingSystem os;
-    private final File suppliedJavaHome;
-    private final static Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
+    private final File javaHome;
+    private final boolean strict;
 
     public static Jvm current() {
         return create(null);
@@ -47,11 +48,20 @@ public class Jvm {
         this(os, null);
     }
 
-    Jvm(OperatingSystem os, File suppliedJavaHome) {
+    Jvm(OperatingSystem os, File javaHome) {
         this.os = os;
-        this.suppliedJavaHome = suppliedJavaHome;
+        if (javaHome == null) {
+            //discover javaHome or simply use what's in the sys. property
+            File defaultHome = GFileUtils.canonicalise(new File(System.getProperty("java.home")));
+            this.javaHome = discoverJavaHome(defaultHome);
+            this.strict = false;
+        } else {
+            //precisely use what the user wants and validate when appropriate
+            this.javaHome = javaHome;
+            this.strict = true;
+        }
     }
-
+    
     /**
      * Creates jvm instance for given java home. Attempts to validate if provided javaHome is a valid jdk or jre location.
      *
@@ -66,6 +76,7 @@ public class Jvm {
             throw new IllegalArgumentException("Supplied javaHome must be a valid directory. You supplied: " + javaHome);
         }
         Jvm jvm = create(javaHome);
+        //some validation:
         jvm.getJavaExecutable();
         return jvm;
     }
@@ -76,22 +87,28 @@ public class Jvm {
     }
 
     private File findExecutable(String command) {
-        File javaHome = getJavaHome();
-        File execFile = new File(javaHome, "bin/" + command);
-        File executable = new File(os.getExecutableName(execFile.getAbsolutePath()));
+        File exec = new File(getJavaHome(), "bin/" + command);
+        File executable = new File(os.getExecutableName(exec.getAbsolutePath()));
         if (executable.isFile()) {
             return executable;
         }
 
-        if (suppliedJavaHome != null) {
+        if (strict) {
             throw new JavaHomeException(String.format("The supplied javaHome seems to be invalid."
                     + " I cannot find the %s executable. Tried location: %s", command, executable.getAbsolutePath()));
+        } else {
+            File pathExecutable = os.findInPath(command);
+            if (pathExecutable != null) {
+                LOGGER.info("Unable to find the '{}' executable using home: {}. We found it on the PATH: {}.",
+                        command, getJavaHome(), pathExecutable);
+                return pathExecutable;
+            } else {
+                LOGGER.warn("Unable to find the '{}' executable. Tried the java home: {} and the PATH."
+                        + " We will assume the executable can be ran in the current working folder.",
+                        command, getJavaHome());
+                return new File(os.getExecutableName(command));
+            }
         }
-
-        LOGGER.warn("Gradle was not able to find the java executable using home: "
-                + javaHome + ". We will assume the exectuable is on path.");
-        //grab the executable in a backwards compatible way, via ant utility.
-        return new File(JavaEnvUtils.getJdkExecutable(command));
     }
 
     /**
@@ -139,25 +156,25 @@ public class Jvm {
     }
 
     public File getJavaHome() {
-        File toolsJar = getToolsJar();
-        return toolsJar == null ? getEffectiveJavaHome() : toolsJar.getParentFile().getParentFile();
+        return javaHome;
     }
-    
-    private File getEffectiveJavaHome() {
-        if (suppliedJavaHome != null) {
-            return suppliedJavaHome;
-        }
-        return GFileUtils.canonicalise(new File(System.getProperty("java.home")));
+
+    private File discoverJavaHome(File candidateJavaHome) {
+        File toolsJar = getToolsJar(candidateJavaHome);
+        return toolsJar == null ? candidateJavaHome : toolsJar.getParentFile().getParentFile();
     }
 
     public File getRuntimeJar() {
-        File javaHome = getEffectiveJavaHome();
+        File javaHome = getJavaHome();
         File runtimeJar = new File(javaHome, "lib/rt.jar");
         return runtimeJar.exists() ? runtimeJar : null;
     }
 
     public File getToolsJar() {
-        File javaHome = getEffectiveJavaHome();
+        return getToolsJar(getJavaHome());
+    }
+
+    private File getToolsJar(File javaHome) {
         File toolsJar = new File(javaHome, "lib/tools.jar");
         if (toolsJar.exists()) {
             return toolsJar;
@@ -203,12 +220,12 @@ public class Jvm {
 
         @Override
         public File getJavaHome() {
-            return super.getEffectiveJavaHome();
+            return super.getJavaHome();
         }
 
         @Override
         public File getRuntimeJar() {
-            File javaHome = super.getEffectiveJavaHome();
+            File javaHome = super.getJavaHome();
             File runtimeJar = new File(javaHome.getParentFile(), "Classes/classes.jar");
             return runtimeJar.exists() ? runtimeJar : null;
         }
