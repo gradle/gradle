@@ -23,19 +23,19 @@ import org.gradle.api.specs.Specs;
  */
 public class CollectionFilter<T> implements Spec<T> {
 
-    private Class<T> type;
+    private Class<? extends T> type;
     private Spec<? super T> spec;
 
     public CollectionFilter(Class<T> type) {
         this(type, Specs.<T>satisfyAll());
     }
 
-    public CollectionFilter(Class<T> type, Spec<? super T> spec) {
+    public CollectionFilter(Class<? extends T> type, Spec<? super T> spec) {
         this.type = type;
         this.spec = spec;
     }
 
-    public Class<T> getType() {
+    public Class<? extends T> getType() {
         return type;
     }
 

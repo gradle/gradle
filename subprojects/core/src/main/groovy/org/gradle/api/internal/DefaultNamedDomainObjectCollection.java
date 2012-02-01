@@ -41,13 +41,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private final List<Rule> rules = new ArrayList<Rule>();
     private Set<String> applyingRulesFor = new HashSet<String>();
 
-    public DefaultNamedDomainObjectCollection(Class<T> type, Collection<T> store, Instantiator instantiator, Namer<? super T> namer) {
+    public DefaultNamedDomainObjectCollection(Class<? extends T> type, Collection<T> store, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store);
         this.instantiator = instantiator;
         this.namer = namer;
     }
 
-    protected DefaultNamedDomainObjectCollection(Class<T> type, Collection<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator, Namer<? super T> namer) {
+    protected DefaultNamedDomainObjectCollection(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store, eventRegister);
         this.instantiator = instantiator;
         this.namer = namer;
