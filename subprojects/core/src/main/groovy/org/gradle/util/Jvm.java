@@ -29,6 +29,9 @@ public class Jvm {
     private final static Logger LOGGER = Logging.getLogger(Jvm.class);
     
     private final OperatingSystem os;
+    //supplied java location
+    private final File javaBase;
+    //discovered java location
     private final File javaHome;
     private final boolean strict;
 
@@ -36,28 +39,34 @@ public class Jvm {
         return create(null);
     }
 
-    static Jvm create(File javaHome) {
+    static Jvm create(File javaBase) {
         String vendor = System.getProperty("java.vm.vendor");
         if (vendor.toLowerCase().startsWith("apple inc.")) {
-            return new AppleJvm(OperatingSystem.current(), javaHome);
+            return new AppleJvm(OperatingSystem.current(), javaBase);
         }
-        return new Jvm(OperatingSystem.current(), javaHome);
+        return new Jvm(OperatingSystem.current(), javaBase);
     }
 
     public Jvm(OperatingSystem os) {
         this(os, null);
     }
 
-    Jvm(OperatingSystem os, File javaHome) {
+    /**
+     * @param os the OS
+     * @param suppliedJavaBase initial location to discover from. May be jdk or jre.
+     */
+    Jvm(OperatingSystem os, File suppliedJavaBase) {
         this.os = os;
-        if (javaHome == null) {
-            //discover javaHome or simply use what's in the sys. property
-            File defaultHome = GFileUtils.canonicalise(new File(System.getProperty("java.home")));
-            this.javaHome = discoverJavaHome(defaultHome);
+        if (suppliedJavaBase == null) {
+            //discover based on what's in the sys. property
+            this.javaBase = GFileUtils.canonicalise(new File(System.getProperty("java.home")));
+            File toolsJar = getToolsJar(javaBase);
+            this.javaHome = toolsJar == null ? javaBase : toolsJar.getParentFile().getParentFile();
             this.strict = false;
         } else {
-            //precisely use what the user wants and validate when appropriate
-            this.javaHome = javaHome;
+            //precisely use what the user wants and validate strictly further on
+            this.javaBase = suppliedJavaBase;
+            this.javaHome = suppliedJavaBase;
             this.strict = true;
         }
     }
@@ -83,6 +92,7 @@ public class Jvm {
 
     @Override
     public String toString() {
+        //TODO SF no longer accurate
         return String.format("%s (%s %s)", SystemProperties.getJavaVersion(), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
     }
 
@@ -159,19 +169,17 @@ public class Jvm {
         return javaHome;
     }
 
-    private File discoverJavaHome(File candidateJavaHome) {
-        File toolsJar = getToolsJar(candidateJavaHome);
-        return toolsJar == null ? candidateJavaHome : toolsJar.getParentFile().getParentFile();
-    }
-
+    /**
+     * Returns the runtime jar. May return null, for example when Jvm was created via
+     * {@link #forHome(java.io.File)} and JDK location was supplied.
+     */
     public File getRuntimeJar() {
-        File javaHome = getJavaHome();
-        File runtimeJar = new File(javaHome, "lib/rt.jar");
+        File runtimeJar = new File(javaBase, "lib/rt.jar");
         return runtimeJar.exists() ? runtimeJar : null;
     }
 
     public File getToolsJar() {
-        return getToolsJar(getJavaHome());
+        return getToolsJar(javaBase);
     }
 
     private File getToolsJar(File javaHome) {
