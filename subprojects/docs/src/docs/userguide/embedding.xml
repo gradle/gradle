@@ -70,8 +70,7 @@
         </para>
 
         <para>The Tooling API is the official and recommended way to embed Gradle.
-            This means that the existing APIs, namely
-            <ulink url="http://gradle.org/current/docs/javadoc/org/gradle/tooling/GradleConnector.html">GradleConnector</ulink>
+            This means that the existing APIs, namely <apilink class="org.gradle.GradleLauncher"/>
             and the open API (the UIFactory and friends),
             are mildly deprecated and will be removed in some future version of Gradle.
             If you happen to use one of the above APIs, please consider changing your application to use the tooling API instead.
@@ -84,7 +83,7 @@
             This is exactly our intention - we don't expect this chapter to grow very much.
             Instead we will increase code samples and improve the documentation in the javadocs.
             The main entry point to the Tooling API is the
-            <ulink url="http://gradle.org/current/docs/javadoc/org/gradle/tooling/GradleConnector.html">GradleConnector</ulink>.
+            <apilink class="org.gradle.tooling.GradleConnector"/>.
             You can navigate from there and find code samples and other instructions.
             Pretty effective way of learning how to use the Tooling API is checking out and running
             the <emphasis>samples</emphasis> that live in <filename>$gradleHome/samples/toolingApi</filename>.
