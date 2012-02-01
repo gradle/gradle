@@ -184,4 +184,19 @@ class CodeNarcPluginTest extends Specification {
         expect:
         that(project.check, dependsOn(hasItems("codenarcMain", "codenarcCustom")))
     }
+
+    def "can customize task directly"() {
+        CodeNarc task = project.tasks.add("codenarcCustom", CodeNarc)
+
+        task.reports.xml {
+            enabled true
+            destination "build/foo.xml" 
+        }
+        
+        expect:
+        task.reports {
+            assert enabled == [html, xml] as Set
+            assert xml.destination == project.file("build/foo.xml")
+        }
+    }
 }
