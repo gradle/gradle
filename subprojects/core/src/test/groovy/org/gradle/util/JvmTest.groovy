@@ -81,6 +81,41 @@ class JvmTest extends Specification {
         jvm.toolsJar == toolsJar
     }
 
+    def "provides information when typical jdk installed"() {
+        given:
+        TestFile software = tmpDir.createDir('software')
+        software.create {
+            jdk {
+                jre { lib { file 'rt.jar' }}
+                lib { file 'tools.jar'}
+            }
+        }
+
+        when:
+        System.properties['java.home'] = software.file('jdk/jre').absolutePath
+
+        then:
+        jvm.javaHome.absolutePath == software.file('jdk').absolutePath
+        jvm.runtimeJar == software.file('jdk/jre/lib/rt.jar')
+        jvm.toolsJar == software.file('jdk/lib/tools.jar')
+    }
+
+    def "provides information when typical jre installed"() {
+        given:
+        TestFile software = tmpDir.createDir('software')
+        software.create {
+            jre { lib { file 'rt.jar' }}
+        }
+
+        when:
+        System.properties['java.home'] = software.file('jre').absolutePath
+
+        then:
+        jvm.javaHome.absolutePath == software.file('jre').absolutePath
+        jvm.runtimeJar == software.file('jre/lib/rt.jar')
+        jvm.toolsJar == null
+    }
+
     def "looks for tools Jar in parent of JRE's Java home directory"() {
         TestFile javaHomeDir = tmpDir.createDir('jdk')
         TestFile toolsJar = javaHomeDir.file('lib/tools.jar').createFile()
