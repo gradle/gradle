@@ -21,11 +21,20 @@ import org.gradle.api.tasks.*
 import org.gradle.api.file.FileCollection
 import org.apache.tools.ant.BuildException
 import org.gradle.api.GradleException
+import org.gradle.api.reporting.Report
+import org.gradle.api.reporting.Reporting
+import org.gradle.api.reporting.DefaultReportContainer
+import org.gradle.api.reporting.internal.ReportContainerBuilder
+import org.gradle.api.reporting.internal.TaskGeneratedReport
+import org.gradle.api.reporting.ReportContainer
+import org.gradle.api.InvalidUserDataException
+import org.gradle.util.DeprecationLogger
+import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
 
 /**
  * Runs CodeNarc against some source files.
  */
-class CodeNarc extends SourceTask implements VerificationTask {
+class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNarcReports> {
     /**
      * The class path containing the CodeNarc library to be used.
      */
@@ -42,13 +51,34 @@ class CodeNarc extends SourceTask implements VerificationTask {
      * The format type of the CodeNarc report.
      */
     @Input
-    String reportFormat
+    String getReportFormat() {
+        reports.firstEnabled?.name
+    }
 
-    /**
-     * The file to write the report to.
-     */
-    @OutputFile
+    void setReportFormat(String reportFormat) {
+        reports.each {
+            it.enabled == it.name == reportFormat
+        }
+    }
+
     File reportFile
+
+    @OutputFile @Optional
+    File getReportFile() {
+        reports.firstEnabled?.destination
+    }
+
+    void setReportFile(File reportFile) {
+        reports.firstEnabled?.destination = reportFile
+    }
+
+
+    private final CodeNarcReportsImpl reports = ReportContainerBuilder.forTask(CodeNarcReportsImpl, TaskGeneratedReport, this).build() {
+        singleFile "xml"
+        singleFile "html"
+        singleFile "console"
+        singleFile "text"
+    }
 
     /**
      * Whether or not the build should break when the verifications performed by this task fail.
@@ -63,9 +93,18 @@ class CodeNarc extends SourceTask implements VerificationTask {
 
         try {
             ant.codenarc(ruleSetFiles: "file:${getConfigFile()}", maxPriority1Violations: 0, maxPriority2Violations: 0, maxPriority3Violations: 0) {
-                report(type: getReportFormat()) {
-                    option(name: 'outputFile', value: getReportFile())
+                if (reportFormat) {
+                    report(type: reportFormat) {
+                        option(name: 'outputFile', value: reportFile)
+                    }
                 }
+
+                reports.enabled.each { Report r ->
+                    report(type: r.name) {
+                        option(name: 'outputFile', value: r.destination)
+                    }    
+                }
+
                 source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
             }
         } catch (BuildException e) {
@@ -78,4 +117,14 @@ class CodeNarc extends SourceTask implements VerificationTask {
             throw e
         }
     }
+
+    CodeNarcReports getReports() {
+        return reports;
+    }
+
+    CodeNarcReports reports(Closure closure) {
+        reports.configure(closure);
+    }
+
+
 }

@@ -82,12 +82,17 @@ class CodeNarcPlugin implements Plugin<Project> {
                     config
                 }
                 configFile = { extension.configFile }
-                reportFormat = { extension.reportFormat }
-                reportFile = {
-                    def fileSuffix = task.reportFormat == 'text' ? 'txt' : task.reportFormat
-                    new File(extension.reportsDir, "$prunedName.$fileSuffix")
-                }
                 ignoreFailures = { extension.ignoreFailures }
+            }
+
+            reports.all { report ->
+                report.conventionMapping.with {
+                    enabled = { report.name == extension.reportFormat }
+                    destination = {
+                        def fileSuffix = report.name == 'text' ? 'txt' : report.name
+                        new File(extension.reportsDir, "$prunedName.$fileSuffix")
+                    }
+                }
             }
         }
         
