@@ -59,7 +59,10 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
         }
     }
 
-    @OutputFile @Optional
+    /**
+     * The file to write the report to
+     */
+    @OutputFile
     File getReportFile() {
         reports.firstEnabled?.destination
     }
