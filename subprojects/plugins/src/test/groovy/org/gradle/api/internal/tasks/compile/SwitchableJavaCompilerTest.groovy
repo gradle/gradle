@@ -33,6 +33,7 @@ class SwitchableJavaCompilerTest extends Specification {
         1 * chosen.setSourceCompatibility(_)
         1 * chosen.setTargetCompatibility(_)
         1 * chosen.setCompileOptions(_)
+        1 * chosen.setDependencyCacheDir(_)
         1 * chosen.execute()
     }
 }
