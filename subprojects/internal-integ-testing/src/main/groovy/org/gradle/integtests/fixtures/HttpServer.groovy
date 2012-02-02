@@ -215,7 +215,7 @@ class HttpServer implements MethodRule {
         response.setDateHeader(HttpHeaders.LAST_MODIFIED, file.lastModified())
         response.setContentLength((int) file.length())
         response.setContentType(new MimeTypes().getMimeByExtension(file.name).toString())
-        response.outputStream.bytes = file.bytes
+        response.outputStream << new FileInputStream(file)
     }
 
     private sendDirectoryListing(HttpServletResponse response, File directory) {
