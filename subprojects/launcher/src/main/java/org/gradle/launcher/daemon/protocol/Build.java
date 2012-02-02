@@ -15,11 +15,11 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.StartParameter;
-import org.gradle.GradleLauncher;
 import org.gradle.BuildResult;
-import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.GradleLauncher;
+import org.gradle.StartParameter;
 import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.InitializationAware;
 
@@ -67,5 +67,13 @@ public class Build extends Command {
         BuildResult buildResult = action.run(launcher);
         buildResult.rethrowFailure();
         return action.getResult();
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{"
+                + "id=" + getIdentifier()
+                + ", currentDir=" + parameters.getCurrentDir()
+                + '}';
     }
 }

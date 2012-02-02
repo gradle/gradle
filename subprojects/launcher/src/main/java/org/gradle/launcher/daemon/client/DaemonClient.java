@@ -143,6 +143,9 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
 
                 if (object == null) {
                     throw new DaemonDisappearedException(build, connection);
+                    //TODO SF we can try sending something to the daemon and try out if he is really dead
+                    //if he's really dead we should deregister it if it is not already deregistered.
+                    //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
                 } else if (object instanceof Failure) {
                     // Could potentially distinguish between CommandFailure and DaemonFailure here.
                     throw ((Failure) object).getValue();

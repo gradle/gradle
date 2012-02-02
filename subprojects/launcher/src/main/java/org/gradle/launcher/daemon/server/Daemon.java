@@ -101,7 +101,7 @@ public class Daemon implements Runnable, Stoppable {
                         public void run() {
                             try {
                                 command = (Command) connection.receive();
-                                LOGGER.info("Daemon received command: {}", command);
+                                LOGGER.info("Daemon (pid: {}) received command: {}", daemonContext.getPid(), command);
                             } catch (RuntimeException e) {
                                 String message = String.format("Unable to receive command from connection: '%s'", connection);
                                 LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
