@@ -51,7 +51,9 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
                 pos++;
             }
         }
-        doLineText(text.substring(start, pos), false);
+        if (pos > start) {
+            doLineText(text.substring(start, pos), false);
+        }
     }
 
     /**
