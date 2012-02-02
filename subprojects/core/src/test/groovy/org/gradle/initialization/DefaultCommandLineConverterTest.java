@@ -189,6 +189,15 @@ public class DefaultCommandLineConverterTest {
         expectedSystemProperties.put(prop2, valueProp2);
         checkConversion("-D", prop1 + "=" + valueProp1, "-D", prop2 + "=" + valueProp2);
     }
+    
+    @Test
+    public void withSpecifiedGradleUserHomeDirectoryBySystemProperty() {
+        expectedGradleUserHome = testDir.file("home");
+        String propName = "gradle.user.home";
+        String propValue = expectedGradleUserHome.getAbsolutePath();
+        expectedSystemProperties = toMap(propName, propValue);
+        checkConversion("-D", propName+"="+propValue);
+    }
 
     @Test
     public void withStartProperties() {

@@ -110,7 +110,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         FileResolver resolver = new BaseDirFileResolver(FileSystems.getDefault(), startParameter.getCurrentDir());
 
         Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options);
-        startParameter.getSystemPropertiesArgs().putAll(systemProperties);
+        convertCommandLineSystemProperties(systemProperties, startParameter, resolver);
 
         for (String keyValueExpression : options.option(PROJECT_PROP).getValues()) {
             String[] elements = keyValueExpression.split("=");
@@ -200,5 +200,13 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         return startParameter;
+    }
+
+    void convertCommandLineSystemProperties(Map<String, String> systemProperties, StartParameter startParameter, FileResolver resolver) {
+        startParameter.getSystemPropertiesArgs().putAll(systemProperties);
+        String gradleUserHomeProp = "gradle.user.home";
+        if(systemProperties.containsKey(gradleUserHomeProp)){
+            startParameter.setGradleUserHomeDir(resolver.resolve(systemProperties.get(gradleUserHomeProp)));
+        }
     }
 }
