@@ -101,7 +101,6 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
 
     public void "downloads wrapper via proxy"() {        
         given:
-//        distribution.requireOwnUserHomeDir()
         proxyServer.start()
         prepareWrapper("http://not.a.real.domain")
         file("gradle.properties") << """
@@ -112,6 +111,29 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
         when:
         ExecutionResult result = wrapperExecuter.withTasks('hello').run()
         
+        then:
+        assertThat(result.output, containsString('hello'))
+
+        and:
+        proxyServer.requestCount == 1
+    }
+
+    public void "downloads wrapper via authenticated proxy"() {
+        given:
+        proxyServer.start()
+        proxyServer.requireAuthentication('my_user', 'my_password')
+
+        and:
+        prepareWrapper("http://not.a.real.domain")
+        file("gradle.properties") << """
+    systemProp.http.proxyHost=localhost
+    systemProp.http.proxyPort=${proxyServer.port}
+    systemProp.http.proxyUser=my_user
+    systemProp.http.proxyPassword=my_password
+"""
+        when:
+        ExecutionResult result = wrapperExecuter.withTasks('hello').run()
+
         then:
         assertThat(result.output, containsString('hello'))
 
