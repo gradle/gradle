@@ -51,9 +51,9 @@ public class ExecuteBuildAction implements GradleLauncherAction<Void>, Initializ
 
     @Override
     public String toString() {
-        return "ExecuteBuildAction{" +
-                "currentDir=" + currentDir +
-                ", args=" + args +
-                '}';
+        return "ExecuteBuildAction{"
+                + "currentDir=" + currentDir
+                + ", args=" + args
+                + '}';
     }
 }

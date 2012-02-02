@@ -65,12 +65,12 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
 
     @Override
     public String toString() {
-        return "DefaultBuildActionParameters{" +
-                "clientMetaData=" + clientMetaData +
-                ", startTime=" + startTime +
-                ", currentDir=" + currentDir +
-                ", systemProperties size=" + systemProperties.size() +
-                ", envVariables size=" + envVariables.size() +
-                '}';
+        return "DefaultBuildActionParameters{"
+                + "clientMetaData=" + clientMetaData
+                + ", startTime=" + startTime
+                + ", currentDir=" + currentDir
+                + ", systemProperties size=" + systemProperties.size()
+                + ", envVariables size=" + envVariables.size()
+                + '}';
     }
 }
