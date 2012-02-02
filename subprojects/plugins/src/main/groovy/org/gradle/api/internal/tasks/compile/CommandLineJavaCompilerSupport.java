@@ -50,6 +50,9 @@ public abstract class CommandLineJavaCompilerSupport extends JavaCompilerSupport
         if (compileOptions.isVerbose()) {
             options.add("-verbose");
         }
+        if (compileOptions.isDeprecation()) {
+            options.add("-deprecation");
+        }
         if (!compileOptions.isWarnings()) {
             options.add("-nowarn");
         }
@@ -59,6 +62,14 @@ public abstract class CommandLineJavaCompilerSupport extends JavaCompilerSupport
         if (compileOptions.getEncoding() != null) {
             options.add("-encoding");
             options.add(compileOptions.getEncoding());
+        }
+        if (compileOptions.getBootClasspath() != null) {
+            options.add("-bootclasspath");
+            options.add(compileOptions.getBootClasspath());
+        }
+        if (compileOptions.getExtensionDirs() != null) {
+            options.add("-extdirs");
+            options.add(compileOptions.getExtensionDirs());
         }
         if (classpath != null && classpath.iterator().hasNext()) {
             options.add("-classpath");

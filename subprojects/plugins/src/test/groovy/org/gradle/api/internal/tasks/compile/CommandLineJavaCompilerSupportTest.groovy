@@ -64,6 +64,20 @@ class CommandLineJavaCompilerSupportTest extends Specification {
         compiler.generateCommandLineOptions() == []
     }
 
+    def "generates -deprecation option"() {
+        when:
+        compiler.compileOptions.deprecation = true
+
+        then:
+        compiler.generateCommandLineOptions() == ["-deprecation"]
+
+        when:
+        compiler.compileOptions.deprecation = false
+
+        then:
+        compiler.generateCommandLineOptions() == []
+    }
+
     def "generates -nowarn option"() {
         when:
         compiler.compileOptions.warnings = true
@@ -94,16 +108,26 @@ class CommandLineJavaCompilerSupportTest extends Specification {
 
     def "generates -encoding option"() {
         when:
-        compiler.compileOptions.encoding = null
-
-        then:
-        compiler.generateCommandLineOptions() == []
-
-        when:
         compiler.compileOptions.encoding = "some-encoding"
 
         then:
         compiler.generateCommandLineOptions() == ["-encoding", "some-encoding"]
+    }
+
+    def "generates -bootclasspath option"() {
+        when:
+        compiler.compileOptions.bootClasspath = "/lib/lib1.jar:/lib/lib2.jar"
+
+        then:
+        compiler.generateCommandLineOptions() == ["-bootclasspath", "/lib/lib1.jar:/lib/lib2.jar"]
+    }
+
+    def "generates -extdirs option"() {
+        when:
+        compiler.compileOptions.extensionDirs = "/dir1:/dir2"
+
+        then:
+        compiler.generateCommandLineOptions() == ["-extdirs", "/dir1:/dir2"]
     }
 
     def "generates -classpath option"() {
