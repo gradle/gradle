@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality;
-
-import org.gradle.api.reporting.Report;
-import org.gradle.api.reporting.ReportContainer;
-
 /**
- * The reporting configuration for the the {@link CodeNarc} test.
+ * Class for the code quality tasks
  */
-public interface CodeNarcReports extends ReportContainer<Report> {
-    Report getXml();
-    Report getHtml();
-    Report getText();
-    Report getConsole();
-}
+package org.gradle.api.plugins.quality;
