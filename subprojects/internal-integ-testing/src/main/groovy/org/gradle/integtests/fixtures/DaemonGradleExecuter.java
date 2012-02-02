@@ -83,7 +83,7 @@ public class
         // specify that no jvm args should be provided
         if(!args.remove("-Dorg.gradle.jvmargs=")){
             args.add(0, "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m"
-                    + " -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=\"" + registryBase + "\"");
+                    + " -XX:+HeapDumpOnOutOfMemoryError");
         }
     }
 
