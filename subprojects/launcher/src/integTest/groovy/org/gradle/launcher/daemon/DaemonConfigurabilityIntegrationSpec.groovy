@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.nativeplatform.OperatingSystem
 import spock.lang.IgnoreIf
 
 /**
@@ -39,7 +40,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         """
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null || OperatingSystem.current().windows })
     def "honours java home specified in gradle.properties"() {
         given:
         File javaHome = AvailableJavaHomes.bestAlternative
