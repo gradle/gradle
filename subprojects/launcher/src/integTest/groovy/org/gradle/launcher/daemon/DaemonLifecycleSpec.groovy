@@ -16,22 +16,15 @@
 
 package org.gradle.launcher.daemon
 
-import ch.qos.logback.classic.Level
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.GradleHandle
 import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.util.Jvm
-import org.junit.Rule
-import org.slf4j.LoggerFactory
 import spock.lang.IgnoreIf
-import spock.lang.Specification
 import spock.lang.Timeout
-import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
 import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
 
 /**
@@ -42,9 +35,7 @@ import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
  * daemon registry state changes, executing actions at certain state changes.
  */
 @IgnoreIf({OperatingSystem.current().windows})
-class DaemonLifecycleSpec extends Specification {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter(daemon)
+class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     def daemonIdleTimeout = 5
 
@@ -99,11 +90,6 @@ class DaemonLifecycleSpec extends Specification {
 
     void stopDaemons() {
         run { stopDaemonsNow() }
-    }
-
-    void buildSucceeds(String script) {
-        distribution.file('build.gradle') << script
-        executer.withArguments("--info", "-Dorg.gradle.jvmargs=").run()
     }
 
     void stopDaemonsNow() {
@@ -172,11 +158,6 @@ class DaemonLifecycleSpec extends Specification {
 
     void doDaemonContext(gradleHandle, Closure assertions) {
         DefaultDaemonContext.parseFrom(gradleHandle.standardOutput).with(assertions)
-    }
-
-    def setup() {
-        distribution.requireIsolatedDaemons()
-        LoggerFactory.getLogger("org.gradle.cache.internal.DefaultFileLockManager").level = Level.INFO
     }
 
     def "daemons do some work - sit idle - then timeout and die"() {
@@ -391,27 +372,6 @@ class DaemonLifecycleSpec extends Specification {
 
         then:
         stopped()
-    }
-
-    def "honours jvm args specified in gradle.properties"() {
-        given:
-        distribution.file("gradle.properties") << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx16m"
-
-        expect:
-        buildSucceeds """
-assert System.getProperty('some-prop') == 'some-value'
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
-        """
-    }
-
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
-    def "honours java home specified in gradle.properties"() {
-        given:
-        File javaHome = AvailableJavaHomes.bestAlternative
-        distribution.file("gradle.properties") << "org.gradle.java.home=$javaHome"
-
-        expect:
-        buildSucceeds "assert System.getProperty('java.home').startsWith('$javaHome')"
     }
 
     def cleanup() {

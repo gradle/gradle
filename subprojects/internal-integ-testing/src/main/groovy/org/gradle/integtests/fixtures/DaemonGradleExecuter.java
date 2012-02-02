@@ -43,7 +43,6 @@ public class
 
         List<String> args = new ArrayList<String>();
         args.add("--daemon");
-        args.add("-Dorg.gradle.daemon.idletimeout=" + (5 * 60 * 1000));
 
         args.addAll(originalArgs);
 
@@ -54,7 +53,15 @@ public class
         } else {
             configureJvmArgs(args, distribution.getUserHomeDir().getAbsolutePath());
         }
-        
+
+        if (!args.toString().contains("-Dorg.gradle.daemon.idletimeout=")) {
+            //isolated daemons cannot be connected again
+            //so they should have low timeout
+            //otherwise, 5 mins.
+            int timeout = distribution.isUsingIsolatedDaemons()? 5000 : 5 * 60 * 1000;
+            args.add("-Dorg.gradle.daemon.idletimeout=" + timeout);
+        }
+
         configureDefaultLogging(args);
 
         return args;
