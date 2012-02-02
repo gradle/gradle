@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.cli;
 
-public class SystemPropertiesCommandLineConverter extends AbstractPropertiesCommandLineConverter {
+public class ProjectPropertiesCommandLineConverter extends AbstractPropertiesCommandLineConverter{
 
     @Override
     protected String getPropertyOption() {
-        return "D";
+        return "P";
     }
 
     @Override
     protected String getPropertyOptionDetailed() {
-        return "system-prop";
+        return "project-prop";
     }
 
     @Override
     protected String getPropertyOptionDescription() {
-        return "Set system property of the JVM (e.g. -Dmyprop=myvalue).";
+        return "Set project property for the build script (e.g. -Pmyprop=myvalue).";
     }
 }

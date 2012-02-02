@@ -22,12 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.cli.AbstractCommandLineConverter;
-import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.cli.CommandLineConverter;
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
-import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.gradle.cli.*;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.internal.nativeplatform.FileSystems;
@@ -64,10 +59,12 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
+    private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
 
     public void configure(CommandLineParser parser) {
         loggingConfigurationCommandLineConverter.configure(parser);
         systemPropertiesCommandLineConverter.configure(parser);
+        projectPropertiesCommandLineConverter.configure(parser);
         parser.allowMixedSubcommandsAndOptions();
         parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
         parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
@@ -81,7 +78,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specifies an initialization script.");
         parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specifies the settings file.");
         parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specifies the build file.");
-        parser.option(PROJECT_PROP, "project-prop").hasArguments().hasDescription("Set project property for the build script (e.g. -Pmyprop=myvalue).");
         parser.option(EMBEDDED_SCRIPT, "embedded").hasArgument().hasDescription("Specify an embedded build script.").deprecated("use an init script instead");
         parser.option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
         parser.option(NO_OPT).hasDescription("Ignore any task optimization.");
@@ -112,10 +108,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         Map<String, String> systemProperties = systemPropertiesCommandLineConverter.convert(options);
         convertCommandLineSystemProperties(systemProperties, startParameter, resolver);
 
-        for (String keyValueExpression : options.option(PROJECT_PROP).getValues()) {
-            String[] elements = keyValueExpression.split("=");
-            startParameter.getProjectProperties().put(elements[0], elements.length == 1 ? "" : elements[1]);
-        }
+        Map<String, String> projectProperties = projectPropertiesCommandLineConverter.convert(options);
+        startParameter.getProjectProperties().putAll(projectProperties);
 
         if (options.hasOption(NO_SEARCH_UPWARDS)) {
             startParameter.setSearchUpwards(false);
