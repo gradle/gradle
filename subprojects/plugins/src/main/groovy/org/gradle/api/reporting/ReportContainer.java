@@ -17,8 +17,9 @@
 package org.gradle.api.reporting;
 
 import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.util.Configurable;
 
-public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<T> {
+public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<T>, Configurable<ReportContainer<T>> {
 
     NamedDomainObjectSet<T> getEnabled();
 

@@ -24,13 +24,12 @@ import org.gradle.api.internal.ConfigureDelegate;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.DirectInstantiator;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.Arrays;
 import java.util.SortedMap;
 
-public class DefaultReportContainer<T extends Report> extends DefaultNamedDomainObjectSet<T> implements ReportContainer<T>, Configurable<DefaultReportContainer> {
+public class DefaultReportContainer<T extends Report> extends DefaultNamedDomainObjectSet<T> implements ReportContainer<T> {
 
     public static class ImmutableViolationException extends GradleException {
         public ImmutableViolationException() {
@@ -70,7 +69,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         return enabled;
     }
 
-    public DefaultReportContainer configure(Closure cl) {
+    public ReportContainer<T> configure(Closure cl) {
         ConfigureUtil.configure(cl, new ConfigureDelegate(cl.getOwner(), this), false);
         return this;
     }
