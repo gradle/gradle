@@ -59,8 +59,6 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
         }
     }
 
-    File reportFile
-
     @OutputFile @Optional
     File getReportFile() {
         reports.firstEnabled?.destination
@@ -69,7 +67,6 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
     void setReportFile(File reportFile) {
         reports.firstEnabled?.destination = reportFile
     }
-
 
     private final CodeNarcReportsImpl reports = ReportContainerBuilder.forTask(CodeNarcReportsImpl, TaskGeneratedReport, this).build() {
         singleFile "xml"
