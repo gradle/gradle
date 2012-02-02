@@ -36,6 +36,13 @@ class ForkingJavaCompilerIntegrationTest extends AbstractIntegrationSpec {
         errorOutput.contains("';' expected")
         !file("build/classes/main/compile/fork/Person.class").exists()
     }
+
+    def compileBadCodeWithoutFailing() {
+        expect:
+        succeeds("compileJava")
+        errorOutput.contains("';' expected")
+        !file("build/classes/main/compile/fork/Person.class").exists()
+    }
     
     def compileWithLongClasspath() {
         expect:

@@ -34,7 +34,7 @@ public class SunJavaCompiler extends CommandLineJavaCompilerSupport {
             options.add(file.getPath());
         }
         int exitCode = Main.compile(options.toArray(new String[options.size()]));
-        if (exitCode != 0) {
+        if (exitCode != 0 && compileOptions.isFailOnError()) {
             throw new CompilationFailedException();
         }
 

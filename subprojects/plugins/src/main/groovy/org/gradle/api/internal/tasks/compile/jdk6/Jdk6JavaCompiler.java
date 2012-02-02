@@ -41,7 +41,7 @@ public class Jdk6JavaCompiler extends CommandLineJavaCompilerSupport {
         javax.tools.JavaCompiler.CompilationTask task = compiler.getTask(null, null, null, options, null, compilationUnits);
 
         boolean success = task.call();
-        if (!success) {
+        if (!success && compileOptions.isFailOnError()) {
             throw new CompilationFailedException();
         }
         return new SimpleWorkResult(true);
