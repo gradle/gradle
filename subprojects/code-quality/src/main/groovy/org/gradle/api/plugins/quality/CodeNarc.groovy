@@ -15,21 +15,19 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.logging.LogLevel
-import org.gradle.api.tasks.*
 //import org.gradle.api.plugins.quality.internal.ConsoleReportWriter
-import org.gradle.api.file.FileCollection
+
+
 import org.apache.tools.ant.BuildException
 import org.gradle.api.GradleException
+import org.gradle.api.file.FileCollection
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.Reporting
-import org.gradle.api.reporting.DefaultReportContainer
 import org.gradle.api.reporting.internal.ReportContainerBuilder
 import org.gradle.api.reporting.internal.TaskGeneratedReport
-import org.gradle.api.reporting.ReportContainer
-import org.gradle.api.InvalidUserDataException
-import org.gradle.util.DeprecationLogger
-import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
+import org.gradle.api.tasks.*
 
 /**
  * Runs CodeNarc against some source files.
