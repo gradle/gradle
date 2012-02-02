@@ -360,6 +360,13 @@ gradle.taskGraph.whenReady {graph ->
     }
 }
 
+task quickCheck {
+    def i = gradle.startParameter.taskNames.findIndexOf { it ==~ /:?quickCheck/ }
+    if (i >= 0) {
+        gradle.startParameter.taskNames.addAll(i, ["codeQuality", "classes", "test", "doc:checkstyleApi"])
+    }
+}
+
 task developerBuild {
     description = 'Builds distributions and runs pre-checkin checks'
     group = 'build'
