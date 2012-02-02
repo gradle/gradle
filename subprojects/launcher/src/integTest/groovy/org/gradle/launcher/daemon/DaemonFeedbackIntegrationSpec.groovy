@@ -16,34 +16,18 @@
 
 package org.gradle.launcher.daemon
 
-import ch.qos.logback.classic.Level
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.launcher.daemon.logging.DaemonMessages
-import org.junit.Rule
-import org.slf4j.LoggerFactory
 import spock.lang.IgnoreIf
-import spock.lang.Specification
 import spock.lang.Timeout
-import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
 
 /**
  * by Szczepan Faber, created at: 1/20/12
  */
-class DaemonFeedbackIntegrationSpec extends Specification {
+class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
 
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter(daemon)
-
-    def setup() {
-        distribution.requireIsolatedDaemons()
-        LoggerFactory.getLogger("org.gradle.cache.internal.DefaultFileLockManager").level = Level.INFO
-    }
-
-    void cleanup() {
-        executer.withArguments("--stop", "--info")
-        executer.run()
+    def cleanup() {
+        stopDaemonsNow()
     }
 
     @Timeout(5)
