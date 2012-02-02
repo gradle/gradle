@@ -363,7 +363,7 @@ gradle.taskGraph.whenReady {graph ->
 task quickCheck {
     def i = gradle.startParameter.taskNames.findIndexOf { it ==~ /:?quickCheck/ }
     if (i >= 0) {
-        gradle.startParameter.taskNames.addAll(i, ["codeQuality", "classes", "test", "doc:checkstyleApi"])
+        gradle.startParameter.taskNames.addAll(i, ["doc:checkstyleApi", "codeQuality", "classes", "test"])
     }
 }
 
