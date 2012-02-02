@@ -34,7 +34,6 @@ import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
  * from the org.gradle.launcher.daemon.testing.* package to model a sequence of expected
  * daemon registry state changes, executing actions at certain state changes.
  */
-@IgnoreIf({OperatingSystem.current().windows})
 class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     def daemonIdleTimeout = 5
@@ -67,25 +66,39 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             if (javaHome) {
                 executer.withJavaHome(javaHome)
             }
+            //TODO SF when the tests are interrupted (for example, from idea)
+            //or when they break they seem to leave GradleDaemon and GradleMain processes hung forever
+            //the sanity check does not really help
             executer.usingProjectDirectory buildDirWithScript(builds.size(), """
                 task('watch') << {
                     println "waiting for stop file"
+                    int sanityCheck = System.currentTimeMillis() + 30000
                     while(!file("stop").exists()) {
                         sleep 100
+                        if (sanityCheck > System.currentTimeMillis()) {
+                            throw new RuntimeException("It seems the stop file was never created")
+                        }
                     }
                     println 'noticed stop file, finishing'
                 }
             """)
             builds << executer.start()
         }
+        //TODO SF - figure out how to add waitForBuildToWait somewhere here
     }
 
+
+
     void completeBuild(buildNum = 0) {
-        run { buildDir(buildNum).file("stop") << "stop" }
+        run {
+            buildDir(buildNum).file("stop") << "stop"
+        }
     }
 
     void waitForBuildToWait(buildNum = 0) {
-        run { poll { assert builds[buildNum].standardOutput.contains("waiting for stop file"); } }
+        run {
+            poll { assert builds[buildNum].standardOutput.contains("waiting for stop file"); }
+        }
     }
 
     void stopDaemons() {
@@ -239,6 +252,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
+    @IgnoreIf({OperatingSystem.current().windows}) //fails on windows
     def "sending stop to busy daemons cause them to disappear from the registry and disconnect from the client, and terminates the daemon process"() {
         when:
         startForegroundDaemon()
@@ -265,6 +279,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         foregroundDaemonFailed()
     }
 
+    @IgnoreIf({OperatingSystem.current().windows}) //hangs on windows
     def "tearing down client while daemon is building tears down daemon"() {
         when:
         startBuild()
@@ -279,6 +294,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
+    @IgnoreIf({OperatingSystem.current().windows}) //hangs on windows
     def "tearing down client while daemon is building tears down daemon _process_"() {
         when:
         startForegroundDaemon()
@@ -302,7 +318,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         foregroundDaemonFailed()
     }
 
-    @Timeout(60)
+    @IgnoreIf({OperatingSystem.current().windows}) //fails on windows
     def "tearing down daemon process produces nice error message for client"() {
         when:
         startForegroundDaemon()
@@ -329,7 +345,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         run { assert executer.daemonRegistry.busy.size() == 1; }
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null || {OperatingSystem.current().windows} })
     def "if a daemon exists but is using a different java home, a new compatible daemon will be created and used"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()
@@ -358,8 +374,9 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             assert javaHome == Jvm.current().javaHome
         }
     }
-    
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+
+    //TODO SF figure out how to detect java7
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null || {OperatingSystem.current().windows} })
     def "can stop a daemon that is using a different java home"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()
@@ -381,5 +398,4 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             stopDaemonsNow()
         }
     }
-
 }
