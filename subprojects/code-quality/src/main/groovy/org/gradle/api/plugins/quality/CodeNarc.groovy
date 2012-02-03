@@ -21,12 +21,11 @@ package org.gradle.api.plugins.quality
 import org.apache.tools.ant.BuildException
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.Instantiator
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.Reporting
-import org.gradle.api.reporting.internal.ReportContainerBuilder
-import org.gradle.api.reporting.internal.TaskGeneratedReport
 import org.gradle.api.tasks.*
 
 /**
@@ -71,12 +70,7 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
         reports.firstEnabled?.destination = reportFile
     }
 
-    private final CodeNarcReportsImpl reports = ReportContainerBuilder.forTask(CodeNarcReportsImpl, TaskGeneratedReport, this).build() {
-        singleFile "xml"
-        singleFile "html"
-        singleFile "console"
-        singleFile "text"
-    }
+    private final CodeNarcReports reports = services.get(Instantiator).newInstance(CodeNarcReportsImpl, this);
 
     /**
      * Whether or not the build should break when the verifications performed by this task fail.

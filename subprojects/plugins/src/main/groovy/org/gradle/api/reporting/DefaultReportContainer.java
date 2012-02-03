@@ -22,11 +22,10 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.ConfigureDelegate;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.DirectInstantiator;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.ConfigureUtil;
 
-import java.util.Arrays;
 import java.util.SortedMap;
 
 public class DefaultReportContainer<T extends Report> extends DefaultNamedDomainObjectSet<T> implements ReportContainer<T> {
@@ -39,18 +38,8 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
 
     private NamedDomainObjectSet<T> enabled;
 
-    public DefaultReportContainer(Class<? extends T> type, T... reports) {
-        this(type, Arrays.asList(reports));
-    }
-
-    public DefaultReportContainer(Class<? extends T> type, Iterable<T> reports) {
-        super(type, new DirectInstantiator(), Report.NAMER);
-        for (T report : reports) {
-            if (getNamer().determineName(report).equals("enabled")) {
-                throw new InvalidUserDataException("Reports cannot with a name of 'enabled' cannot be added to ReportContainers as it's reserved");
-            }
-            add(report);
-        }
+    public DefaultReportContainer(Class<? extends T> type, Instantiator instantiator) {
+        super(type, instantiator, Report.NAMER);
 
         enabled = matching(new Spec<T>() {
             public boolean isSatisfiedBy(T element) {
@@ -81,5 +70,16 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         } else {
             return map.get(map.firstKey());
         }
+    }
+
+    protected <N extends T> N add(Class<N> clazz, Object... constructionArgs) {
+        N report = getInstantiator().newInstance(clazz, constructionArgs);
+
+        if (report.getName().equals("enabled")) {
+            throw new InvalidUserDataException("Reports that are part of a ReportContainer cannot be named 'enabled'");
+        }
+
+        getStore().add(report);
+        return report;
     }
 }

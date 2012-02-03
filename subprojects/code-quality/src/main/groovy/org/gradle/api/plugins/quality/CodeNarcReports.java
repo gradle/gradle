@@ -26,5 +26,4 @@ public interface CodeNarcReports extends ReportContainer<Report> {
     Report getXml();
     Report getHtml();
     Report getText();
-    Report getConsole();
 }

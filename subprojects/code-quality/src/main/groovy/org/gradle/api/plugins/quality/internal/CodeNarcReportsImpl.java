@@ -16,13 +16,20 @@
 
 package org.gradle.api.plugins.quality.internal;
 
+import org.gradle.api.Task;
 import org.gradle.api.plugins.quality.CodeNarcReports;
-import org.gradle.api.reporting.DefaultReportContainer;
 import org.gradle.api.reporting.Report;
+import org.gradle.api.reporting.TaskReportContainer;
+import org.gradle.api.reporting.internal.TaskGeneratedReport;
 
-public class CodeNarcReportsImpl extends DefaultReportContainer<Report> implements CodeNarcReports {
-    public CodeNarcReportsImpl(Class<? extends Report> type, Iterable<Report> reports) {
-        super(type, reports);
+public class CodeNarcReportsImpl extends TaskReportContainer<Report> implements CodeNarcReports {
+
+    public CodeNarcReportsImpl(Task task) {
+        super(Report.class, task);
+
+        add(TaskGeneratedReport.class, "xml", false, task);
+        add(TaskGeneratedReport.class, "html", false, task);
+        add(TaskGeneratedReport.class, "text", false, task);
     }
 
     public Report getXml() {
@@ -31,10 +38,6 @@ public class CodeNarcReportsImpl extends DefaultReportContainer<Report> implemen
 
     public Report getHtml() {
         return getByName("html");
-    }
-
-    public Report getConsole() {
-        return getByName("console");
     }
 
     public Report getText() {

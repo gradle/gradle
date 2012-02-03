@@ -27,23 +27,36 @@ import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.reporting.internal.SimpleReport
 import spock.lang.Specification
 
-class DefaultReportContainerTest extends Specification {
+class DefaultReportContainerTest extends Specification { 
 
-    Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator());
+    static Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
 
-
-    Report createReport(String name) {
-        instantiator.newInstance(SimpleReport, name, false as boolean, new IdentityFileResolver())
+    static class TestReportContainer extends DefaultReportContainer {
+        TestReportContainer(Closure c) {
+            super(Report, DefaultReportContainerTest.instantiator)
+            
+            c.delegate = new Object() {
+                Report createReport(String name) {
+                    add(SimpleReport, name, false as boolean, new IdentityFileResolver())
+                }
+            }
+            
+            c()
+        }
     }
 
-    DefaultReportContainer createContainer(Report... reports) {
-        instantiator.newInstance(DefaultReportContainer, Report, reports.toList())
+    DefaultReportContainer createContainer(Closure c) {
+        instantiator.newInstance(TestReportContainer, c)
     }
 
     def container
 
     def setup() {
-        container = createContainer(createReport("a"), createReport("b"), createReport("c"))
+        container = createContainer {
+            createReport("a")
+            createReport("b")
+            createReport("c")
+        }
     }
     
     def "reports given at construction are available"() {
@@ -56,7 +69,7 @@ class DefaultReportContainerTest extends Specification {
 
     def "container is immutable"() {
         when:
-        container.add(createReport("d"))
+        container.add(new SimpleReport("d", false, new IdentityFileResolver()))
         
         then:
         thrown(DefaultReportContainer.ImmutableViolationException)
@@ -92,7 +105,9 @@ class DefaultReportContainerTest extends Specification {
 
     def "cannot add report named 'enabled'"() {
         when:
-        createContainer(createReport("enabled"))
+        createContainer {
+            createReport "enabled"
+        }
         
         then:
         thrown(InvalidUserDataException)
@@ -108,5 +123,9 @@ class DefaultReportContainerTest extends Specification {
         
         then:
         thrown(MissingMethodException)
+    }
+
+    def cleanupSpec() {
+        instantiator = null
     }
 }
