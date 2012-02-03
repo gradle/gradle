@@ -57,10 +57,7 @@ public class DaemonParameters {
     }
     
     List<String> getDefaultJvmArgs() {
-        List<String> out = new LinkedList<String>(asList("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"));
-        String heapDumpPath = new DaemonDir(baseDir).getVersionedDir().getAbsolutePath();
-        out.add("-XX:HeapDumpPath=\"" + heapDumpPath + "\"");
-        return out;
+        return new LinkedList<String>(asList("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"));
     }
 
     public boolean isEnabled() {

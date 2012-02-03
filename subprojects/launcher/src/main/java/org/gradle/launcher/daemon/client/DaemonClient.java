@@ -139,7 +139,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
 
             while (true) {
                 Object object = connection.receive();
-                LOGGER.debug("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
+                LOGGER.trace("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
 
                 if (object == null) {
                     throw new DaemonDisappearedException(build, connection);

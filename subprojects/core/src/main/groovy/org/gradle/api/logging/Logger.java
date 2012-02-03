@@ -32,6 +32,14 @@ public interface Logger extends org.slf4j.Logger {
     boolean isLifecycleEnabled();
 
     /**
+     * Multiple-parameters friendly debug method
+     *
+     * @param message the log message
+     * @param objects the log message parameters
+     */
+    void debug(String message, Object... objects);
+
+    /**
      * Logs the given message at lifecycle log level.
      *
      * @param message the log message.
