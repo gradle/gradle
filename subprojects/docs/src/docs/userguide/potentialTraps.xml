@@ -28,7 +28,7 @@
             methods. This is a heavily discussed behavior in the Groovy community.
             <footnote>
                 <para>One of those discussions can be found here:
-                    <ulink url='http://www.nabble.com/script-scoping-question-td16034724.html'/>
+                    <ulink url='http://groovy.329449.n5.nabble.com/script-scoping-question-td355887.html'/>
                 </para>
             </footnote>
         </para>
