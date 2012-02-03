@@ -23,8 +23,8 @@ public class TaskGeneratedReport extends SimpleReport {
 
     private final Task task;
 
-    public TaskGeneratedReport(String name, boolean multiFile, Task task) {
-        super(name, multiFile, ((ProjectInternal)(task.getProject())).getFileResolver());
+    public TaskGeneratedReport(String name, OutputType outputType, Task task) {
+        super(name, outputType, ((ProjectInternal)(task.getProject())).getFileResolver());
         this.task = task;
     }
 

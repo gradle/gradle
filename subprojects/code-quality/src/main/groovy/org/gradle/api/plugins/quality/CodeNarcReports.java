@@ -23,7 +23,25 @@ import org.gradle.api.reporting.ReportContainer;
  * The reporting configuration for the the {@link CodeNarc} test.
  */
 public interface CodeNarcReports extends ReportContainer<Report> {
+
+    /**
+     * The codenarc (single file) xml report
+     *
+     * @return The codenarc (single file) xml report
+     */
     Report getXml();
+
+    /**
+     * The codenarc (single file) html report
+     *
+     * @return The codenarc (single file) html report
+     */
     Report getHtml();
+
+    /**
+     * The codenarc (single file) text report
+     *
+     * @return The codenarc (single file) text report
+     */
     Report getText();
 }

@@ -30,12 +30,12 @@ public class SimpleReport implements Report {
 
     private Object destination;
     private boolean enabled;
-    private boolean multiFile;
+    private OutputType outputType;
 
-    public SimpleReport(String name, boolean multiFile, FileResolver fileResolver) {
+    public SimpleReport(String name, OutputType outputType, FileResolver fileResolver) {
         this.name = name;
         this.fileResolver = fileResolver;
-        this.multiFile = multiFile;
+        this.outputType = outputType;
     }
 
     public String getName() {
@@ -54,8 +54,8 @@ public class SimpleReport implements Report {
         this.destination = destination;
     }
 
-    public boolean isMultiFile() {
-        return multiFile;
+    public OutputType getOutputType() {
+        return outputType;
     }
 
     private File resolveToFile(Object file) {

@@ -40,5 +40,25 @@ public interface Report extends Serializable, Configurable<Report> {
 
     void setDestination(Object destination);
 
-    boolean isMultiFile();
+    /**
+     * The type of output the report produces
+     */
+    enum OutputType {
+
+        /**
+         * The report outputs a single file.
+         *
+         * That is, the {@link #getDestination()} file points a single file.
+         */
+        FILE,
+
+        /**
+         * The report outputs files into a directory.
+         *
+         * That is, the {@link #getDestination()} file points to a directory.
+         */
+        DIRECTORY
+    }
+
+    OutputType getOutputType();
 }

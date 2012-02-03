@@ -27,9 +27,9 @@ public class CodeNarcReportsImpl extends TaskReportContainer<Report> implements 
     public CodeNarcReportsImpl(Task task) {
         super(Report.class, task);
 
-        add(TaskGeneratedReport.class, "xml", false, task);
-        add(TaskGeneratedReport.class, "html", false, task);
-        add(TaskGeneratedReport.class, "text", false, task);
+        add(TaskGeneratedReport.class, "xml", Report.OutputType.FILE, task);
+        add(TaskGeneratedReport.class, "html", Report.OutputType.FILE, task);
+        add(TaskGeneratedReport.class, "text", Report.OutputType.FILE, task);
     }
 
     public Report getXml() {
