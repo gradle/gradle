@@ -17,12 +17,14 @@
 
 package org.gradle.api.internal.resource
 
+import org.gradle.testing.internal.util.Network
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.nullValue
 import static org.junit.Assert.*
 
 class UriResourceTest {
@@ -147,6 +149,8 @@ class UriResourceTest {
 
     @Test
     public void hasNoContentWhenUsingHttpUriAndFileDoesNotExist() {
+        if (Network.offline) { return } // when this test moves to spock, ignore this test instead of just passing.
+
         UriResource resource = new UriResource('<display-name>', new URI("http://www.gradle.org/unknown.txt"));
         assertFalse(resource.exists)
         try {
