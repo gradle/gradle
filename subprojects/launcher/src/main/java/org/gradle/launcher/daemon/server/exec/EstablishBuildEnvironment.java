@@ -15,6 +15,8 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.util.GFileUtils;
@@ -28,6 +30,7 @@ import java.util.Properties;
  */
 public class EstablishBuildEnvironment extends BuildCommandOnly {
     private final ProcessEnvironment processEnvironment;
+    private final static Logger LOGGER = Logging.getLogger(EstablishBuildEnvironment.class);
 
     public EstablishBuildEnvironment(ProcessEnvironment processEnvironment) {
         this.processEnvironment = processEnvironment;
@@ -49,6 +52,7 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
         System.setProperties(clientSystemProperties);
 
         Map<String, String> originalEnv = System.getenv();
+        LOGGER.debug("Configuring env variables: {}", build.getParameters().getEnvVariables());
         processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
 
         processEnvironment.maybeSetProcessDir(build.getParameters().getCurrentDir());

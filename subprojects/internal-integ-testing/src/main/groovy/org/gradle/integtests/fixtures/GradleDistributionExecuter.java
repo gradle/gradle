@@ -228,7 +228,9 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
             boolean useDaemon = executerType == Executer.daemon && getExecutable() == null;
             ForkingGradleExecuter forkingGradleExecuter = useDaemon ? new DaemonGradleExecuter(dist, daemonBaseDir, !isQuiet() && allowExtraLogging) : new ForkingGradleExecuter(dist.getGradleHomeDir());
             copyTo(forkingGradleExecuter);
-            forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
+            if (!dist.shouldAvoidConfiguringTmpDir()) {
+                forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
+            }
             returnedExecuter = forkingGradleExecuter;
 //        } else {
 //            System.setProperty("java.io.tmpdir", tmpDir.getAbsolutePath());

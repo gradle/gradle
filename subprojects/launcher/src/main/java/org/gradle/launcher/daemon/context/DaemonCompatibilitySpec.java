@@ -33,6 +33,6 @@ public class DaemonCompatibilitySpec implements Spec<DaemonContext> {
 
     @Override
     public String toString() {
-        return "Desired daemon context: " + desiredContext;
+        return desiredContext.toString();
     }
 }

@@ -87,6 +87,8 @@ public class DaemonStarter implements Runnable {
                     commandLine.append(arg);
                     commandLine.append("\" ");
                 }
+                LOGGER.debug("Windows command line for starting daemon: {}", commandLine);
+                LOGGER.debug("Windows environment variables: {}", System.getenv());
                 new WindowsProcessStarter().start(workingDir, commandLine.toString());
             } else {
                 Process process = new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();

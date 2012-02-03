@@ -24,7 +24,6 @@ import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.util.Jvm
 import spock.lang.IgnoreIf
-import spock.lang.Timeout
 import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
 
 /**
@@ -45,6 +44,13 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     def javaHome = null
 
     @Delegate DaemonEventSequenceBuilder sequenceBuilder = new DaemonEventSequenceBuilder()
+
+    def setup() {
+        //to work around an issue with the daemon having awkward jvm input arguments
+        //when GRADLE_OPTS contains -Djava.io.tmpdir with value that has spaces
+        //once this problem is fixed we could get rid of this workaround
+        distribution.avoidsConfiguringTmpDir()
+    }
 
     def buildDir(buildNum) {
         distribution.file("builds/$buildNum")
@@ -87,8 +93,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         //TODO SF - figure out how to add waitForBuildToWait somewhere here
     }
 
-
-
     void completeBuild(buildNum = 0) {
         run {
             buildDir(buildNum).file("stop") << "stop"
@@ -129,7 +133,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         if (javaHome) {
             executer.withJavaHome(javaHome)
         }
-        executer.withArguments("--foreground", "--info")
+        executer.withArguments("--foreground", "--info", "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}")
         foregroundDaemons << executer.start()
     }
 
@@ -191,6 +195,11 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     def "existing idle daemons are used"() {
+        given:
+        //idle timeout is high enough to catch the subtle problem of the
+        // 1st daemon timeouting and hence preventing us to verify if we connect to an existing daemon.
+        daemonIdleTimeout = 15
+
         when:
         startForegroundDaemon()
 
@@ -199,6 +208,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         when:
         startBuild()
+        waitForBuildToWait()
 
         then:
         busy()
@@ -252,8 +262,9 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
-    @IgnoreIf({OperatingSystem.current().windows}) //fails on windows
     def "sending stop to busy daemons cause them to disappear from the registry and disconnect from the client, and terminates the daemon process"() {
+        daemonIdleTimeout = 15
+
         when:
         startForegroundDaemon()
 
@@ -262,6 +273,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         when:
         startBuild()
+        waitForBuildToWait()
 
         then:
         busy()
