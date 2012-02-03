@@ -32,8 +32,7 @@ public class SimpleReport implements Report {
     private boolean enabled;
     private boolean multiFile;
 
-    // Note: Boolean because our instantiator can't deal with a primitive boolean
-    public SimpleReport(String name, Boolean multiFile, FileResolver fileResolver) {
+    public SimpleReport(String name, boolean multiFile, FileResolver fileResolver) {
         this.name = name;
         this.fileResolver = fileResolver;
         this.multiFile = multiFile;
@@ -67,11 +66,11 @@ public class SimpleReport implements Report {
         return ConfigureUtil.configure(configure, this, false);
     }
 
-    public Boolean isEnabled() {
+    public boolean isEnabled() {
         return enabled;
     }
 
-    public void setEnabled(Boolean enabled) {
+    public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 

@@ -17,16 +17,14 @@
 package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 
 public class TaskGeneratedReport extends SimpleReport {
 
     private final Task task;
 
-    // Note: Boolean because our instantiator can't deal with a primitive boolean
-    public TaskGeneratedReport(String name, Boolean multiFile, Task task) {
-        super(name, multiFile, ((ProjectInternal)((TaskInternal)task).getProject()).getFileResolver());
+    public TaskGeneratedReport(String name, boolean multiFile, Task task) {
+        super(name, multiFile, ((ProjectInternal)(task.getProject())).getFileResolver());
         this.task = task;
     }
 

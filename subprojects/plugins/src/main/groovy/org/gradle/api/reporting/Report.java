@@ -32,9 +32,9 @@ public interface Report extends Serializable, Configurable<Report> {
 
     String getName();
     
-    Boolean isEnabled();
+    boolean isEnabled();
     
-    void setEnabled(Boolean enabled);
+    void setEnabled(boolean enabled);
 
     File getDestination();
 
