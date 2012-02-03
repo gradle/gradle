@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon
 
 import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.tests.fixtures.ConcurrentTestUtil
 import spock.lang.IgnoreIf
 import spock.lang.Timeout
 
@@ -66,7 +67,7 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
         executer.withArguments("-i").run()
 
         then:
-        def log = readSingleDaemonLog(baseDir)
+        def log = readLog(baseDir)
 
         //output before started relying logs via connection
         log.count(DaemonMessages.PROCESS_STARTED) == 1
@@ -79,7 +80,7 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
         executer.withArguments("-i").run()
 
         then:
-        def aLog = readSingleDaemonLog(baseDir)
+        def aLog = readLog(baseDir)
 
         aLog.count(DaemonMessages.PROCESS_STARTED) == 1
         aLog.count(DaemonMessages.STARTED_RELAYING_LOGS) == 2
@@ -95,17 +96,21 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
         executer.withArguments("-i").run()
 
         then:
-        def log = readSingleDaemonLog(baseDir)
+        def log = readLog(baseDir)
         //TODO SF make sure that those are DEBUG statements
         log.findAll(DaemonMessages.STARTED_EXECUTING_COMMAND).size() == 1
         //if the log level was configured back to DEBUG after build:
-        log.findAll(DaemonMessages.FINISHED_EXECUTING_COMMAND).size() == 1
+        ConcurrentTestUtil.poll {
+            //in theory the client could have received result and complete
+            // but the daemon has not yet finished processing hence polling
+            readLog(baseDir).findAll(DaemonMessages.FINISHED_EXECUTING_COMMAND).size() == 1
+        }
 
         when: "another build requested with the same daemon with --info"
         executer.withArguments("-i").run()
 
         then:
-        def aLog = readSingleDaemonLog(baseDir)
+        def aLog = readLog(baseDir)
         aLog.findAll(DaemonMessages.STARTED_EXECUTING_COMMAND).size() == 2
     }
 
@@ -128,7 +133,7 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
         executer.withArguments("-q").run()
 
         then:
-        def log = readSingleDaemonLog(baseDir)
+        def log = readLog(baseDir)
 
         //before the build is requested we don't know the log level so we print eagerly
         log.count(DaemonMessages.PROCESS_STARTED) == 1
@@ -144,7 +149,7 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
         log.count('error me!') == 1
     }
 
-    String readSingleDaemonLog(baseDir) {
+    String readLog(baseDir) {
         //the gradle version dir
         baseDir.listFiles().length == 1
         def daemonFiles = baseDir.listFiles()[0].listFiles()
