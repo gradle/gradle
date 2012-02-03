@@ -75,4 +75,16 @@ public abstract class JavaCompilerSupport implements JavaCompiler, Serializable 
         other.setDependencyCacheDir(dependencyCacheDir);
         other.setCompileOptions(compileOptions);
     }
+
+    protected void listFilesIfRequested() {
+        if (!compileOptions.isListFiles()) { return; }
+        
+        StringBuilder builder = new StringBuilder();
+        builder.append("Source files to be compiled:");
+        for (File file : source) {
+            builder.append('\n');
+            builder.append(file);
+        }
+        System.out.println(builder.toString());
+    }
 }

@@ -28,11 +28,13 @@ public class SunJavaCompiler extends CommandLineJavaCompilerSupport {
 
     public WorkResult execute() {
         LOGGER.info("Compiling using Sun Java Compiler API.");
+        listFilesIfRequested();
 
         List<String> options = generateCommandLineOptions();
         for (File file : source) {
             options.add(file.getPath());
         }
+
         int exitCode = Main.compile(options.toArray(new String[options.size()]));
         if (exitCode != 0 && compileOptions.isFailOnError()) {
             throw new CompilationFailedException();

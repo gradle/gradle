@@ -65,4 +65,14 @@ class ForkingJavaCompilerIntegrationTest extends AbstractIntegrationSpec {
         !errorOutput
         file("build/classes/main/compile/fork/Person.class").exists()
     }
+    
+    def listSourceFiles() {
+        expect:
+        def result = executer.withTasks("compileJava").run()
+        result.output.contains("src/main/java/compile/fork/Person1.java");
+        result.output.contains("src/main/java/compile/fork/Person2.java");
+        !result.error
+        file("build/classes/main/compile/fork/Person1.class").exists()
+        file("build/classes/main/compile/fork/Person2.class").exists()
+    }
 }

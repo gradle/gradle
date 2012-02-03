@@ -33,6 +33,7 @@ public class Jdk6JavaCompiler extends CommandLineJavaCompilerSupport {
 
     public WorkResult execute() {
         LOGGER.info("Compiling using JDK 6 Java Compiler API.");
+        listFilesIfRequested();
 
         List<String> options = generateCommandLineOptions();
         javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
