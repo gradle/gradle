@@ -25,7 +25,9 @@ public abstract class AbstractPropertiesCommandLineConverter extends AbstractCom
     protected abstract String getPropertyOptionDescription();
 
     public void configure(CommandLineParser parser) {
-        parser.option(getPropertyOption(), getPropertyOptionDetailed()).hasArguments().hasDescription(getPropertyOptionDescription());
+        CommandLineOption option = parser.option(getPropertyOption(), getPropertyOptionDetailed());
+        option = option.hasArguments();
+        option.hasDescription(getPropertyOptionDescription());
     }
 
     protected Map<String, String> newInstance() {

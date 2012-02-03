@@ -29,14 +29,4 @@ class ProjectPropertiesCommandLineConverterTest extends Specification{
     expect:
     convert("-Pa=b", "-Pc=d") == [a: "b", c: "d"]
   }
-
-  def "parses project properties args with no property value"() {
-    expect:
-    convert("-Pa", "-Pb=") == [a: "", b: ""]
-  }
-
-  def "parses project properties arg containing equals"() {
-    expect:
-    convert("-Pprop=a b=c", "-Pprop2==", "-Pprop3=ab=") == [prop: 'a b=c', prop2: '=', prop3: 'ab=']
-  }
 }
