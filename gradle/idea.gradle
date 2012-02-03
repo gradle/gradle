@@ -177,54 +177,57 @@ idea {
 
         // Add an application configuration
         runManagerConfig.'@selected' = 'Application.Gradle'
-        def appConfig = new XmlParser().parseText('''
-    <configuration default="false" name="Gradle" type="Application" factoryName="Application">
-      <extension name="coverage" enabled="false" merge="false" />
-      <option name="MAIN_CLASS_NAME" value="org.gradle.debug.GradleRunConfiguration" />
-      <option name="VM_PARAMETERS" value="" />
-      <option name="PROGRAM_PARAMETERS" value="" />
-      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" value="" />
-      <option name="ENABLE_SWING_INSPECTOR" value="false" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <module name="integTest" />
-      <envs />
-      <RunnerSettings RunnerId="Debug">
-        <option name="DEBUG_PORT" value="63810" />
-        <option name="TRANSPORT" value="0" />
-        <option name="LOCAL" value="true" />
-      </RunnerSettings>
-      <RunnerSettings RunnerId="Run" />
-      <ConfigurationWrapper RunnerId="Debug" />
-      <ConfigurationWrapper RunnerId="Run" />
-      <method />
-    </configuration>
-    <configuration default="false" name="Gradle Precommit Check" type="Application" factoryName="Application">
-      <extension name="coverage" enabled="false" merge="false" />
-      <option name="MAIN_CLASS_NAME" value="org.gradle.testing.internal.util.IdeQuickCheckRunner" />
-      <option name="VM_PARAMETERS" value="" />
-      <option name="PROGRAM_PARAMETERS" value="" />
-      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" value="" />
-      <option name="ENABLE_SWING_INSPECTOR" value="false" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <module name="internalTesting" />
-      <envs />
-      <RunnerSettings RunnerId="Debug">
-        <option name="DEBUG_PORT" value="63810" />
-        <option name="TRANSPORT" value="0" />
-        <option name="LOCAL" value="true" />
-      </RunnerSettings>
-      <RunnerSettings RunnerId="Run" />
-      <ConfigurationWrapper RunnerId="Debug" />
-      <ConfigurationWrapper RunnerId="Run" />
-      <method />
-    </configuration>
-''')
-        runManagerConfig.append(appConfig)
+        def appConfig =
+
+        runManagerConfig.append(new XmlParser().parseText('''
+            <configuration default="false" name="Gradle" type="Application" factoryName="Application">
+              <extension name="coverage" enabled="false" merge="false" />
+              <option name="MAIN_CLASS_NAME" value="org.gradle.debug.GradleRunConfiguration" />
+              <option name="VM_PARAMETERS" value="" />
+              <option name="PROGRAM_PARAMETERS" value="" />
+              <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+              <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+              <option name="ALTERNATIVE_JRE_PATH" value="" />
+              <option name="ENABLE_SWING_INSPECTOR" value="false" />
+              <option name="ENV_VARIABLES" />
+              <option name="PASS_PARENT_ENVS" value="true" />
+              <module name="integTest" />
+              <envs />
+              <RunnerSettings RunnerId="Debug">
+                <option name="DEBUG_PORT" value="63810" />
+                <option name="TRANSPORT" value="0" />
+                <option name="LOCAL" value="true" />
+              </RunnerSettings>
+              <RunnerSettings RunnerId="Run" />
+              <ConfigurationWrapper RunnerId="Debug" />
+              <ConfigurationWrapper RunnerId="Run" />
+              <method />
+            </configuration>
+        '''))
+
+        runManagerConfig.append(new XmlParser().parseText('''
+            <configuration default="false" name="Gradle Precommit Check" type="Application" factoryName="Application">
+              <extension name="coverage" enabled="false" merge="false" />
+              <option name="MAIN_CLASS_NAME" value="org.gradle.testing.internal.util.IdeQuickCheckRunner" />
+              <option name="VM_PARAMETERS" value="" />
+              <option name="PROGRAM_PARAMETERS" value="" />
+              <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+              <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+              <option name="ALTERNATIVE_JRE_PATH" value="" />
+              <option name="ENABLE_SWING_INSPECTOR" value="false" />
+              <option name="ENV_VARIABLES" />
+              <option name="PASS_PARENT_ENVS" value="true" />
+              <module name="internalTesting" />
+              <envs />
+              <method />
+            </configuration>
+        '''))
+
+        runManagerConfig.append(new XmlParser().parseText('''
+            <list size="2">
+              <item index="0" class="java.lang.String" itemvalue="Application.Gradle" />
+              <item index="1" class="java.lang.String" itemvalue="Application.Gradle Precommit Check" />
+            </list>
+        '''))
     }
 }
