@@ -130,6 +130,9 @@ public abstract class AbstractClassGeneratorTest {
 
         bean = generator.newInstance(BeanWithConstructor.class);
         assertThat(bean.getProp(), equalTo("default value"));
+
+        bean = generator.newInstance(BeanWithConstructor.class, 127);
+        assertThat(bean.getProp(), equalTo("127"));
     }
 
     @Test
@@ -528,6 +531,10 @@ public abstract class AbstractClassGeneratorTest {
 
         public BeanWithConstructor(String value) {
             setProp(value);
+        }
+
+        public BeanWithConstructor(int value) {
+            setProp(String.valueOf(value));
         }
     }
 

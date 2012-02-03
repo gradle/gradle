@@ -89,9 +89,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     new String[0]);
             methodVisitor.visitCode();
 
-            // super(p0 .. pn)
-            for (int i = 0; i <= constructor.getParameterTypes().length; i++) {
-                methodVisitor.visitVarInsn(Opcodes.ALOAD, i);
+            // this.super(p0 .. pn)
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+            for (int i = 0; i < constructor.getParameterTypes().length; i++) {
+                methodVisitor.visitVarInsn(Type.getType(constructor.getParameterTypes()[i]).getOpcode(Opcodes.ILOAD), i+1);
             }
             methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), "<init>",
                     methodDescriptor);
@@ -534,7 +535,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Type boxedType = null;
             if (getter.getReturnType().isPrimitive()) {
                 // Box value
-                boxedType = Type.getType(getBoxedType(getter.getReturnType()));
+                boxedType = Type.getType(ReflectionUtil.getWrapperTypeForPrimitiveType(getter.getReturnType()));
                 String valueOfMethodDescriptor = Type.getMethodDescriptor(boxedType, new Type[]{returnType});
                 methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, boxedType.getInternalName(), "valueOf", valueOfMethodDescriptor);
             }
@@ -565,25 +566,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
-        }
-
-        private Class<?> getBoxedType(Class<?> type) {
-            if (type == Boolean.TYPE) {
-                return Boolean.class;
-            } else if (type == Long.TYPE) {
-                return Long.class;
-            } else if (type == Integer.TYPE) {
-                return Integer.class;
-            } else if (type == Short.TYPE) {
-                return Short.class;
-            } else if (type == Byte.TYPE) {
-                return Byte.class;
-            } else if (type == Float.TYPE) {
-                return Float.class;
-            } else if (type == Double.TYPE) {
-                return Double.class;
-            }
-            throw new IllegalArgumentException(String.format("Don't know how to box primitive of type %s.", type));
         }
 
         public void addSetter(MetaBeanProperty property) throws Exception {
