@@ -97,11 +97,14 @@ public class ForwardClientInput implements DaemonCommandAction {
                 // very soon because we are assuming we've just sent back the build result. We do this here
                 // in case the client tries to send input in between us sending back the result and it closing the connection.
                 try {
+                    LOGGER.debug("Waiting until the client disconnects so that we may no longer consume input...");
                     inputOrConnectionClosedLatch.await();
                 } catch (InterruptedException e) {
+                    LOGGER.debug("Interrupted while waiting for client to disconnect.");
                     throw UncheckedException.asUncheckedException(e);
                 } finally {
                     inputReceiver.stop();
+                    LOGGER.debug("The input receiver has been stopped.");
                 }
             }
         });

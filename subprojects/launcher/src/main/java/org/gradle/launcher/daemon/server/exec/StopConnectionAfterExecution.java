@@ -15,16 +15,25 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+
 public class StopConnectionAfterExecution implements DaemonCommandAction {
+    
+    private static final Logger LOGGER = Logging.getLogger(StopConnectionAfterExecution.class);
 
     public void execute(DaemonCommandExecution execution) {
         try {
             execution.proceed();
             //TODO SF this needs to be refactored down the road with consideration around exception handling
             //for now, we'll just execute all finalizers here
+            LOGGER.debug("Execution completed. Running finalizers...");
             execution.executeFinalizers();
+            LOGGER.debug("Finalizers execution complete.");
         } finally {
+            LOGGER.debug("Stopping connection: {}", execution.getConnection());
             execution.getConnection().stop();
+            LOGGER.debug("Connection stopped.");
         }
     }
 
