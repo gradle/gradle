@@ -75,4 +75,9 @@ class ForkingJavaCompilerIntegrationTest extends AbstractIntegrationSpec {
         file("build/classes/main/compile/fork/Person1.class").exists()
         file("build/classes/main/compile/fork/Person2.class").exists()
     }
+    
+    def nonJavaSourceFilesAreNotTolerated() {
+        expect:
+        fails("compileJava")
+    }
 }
