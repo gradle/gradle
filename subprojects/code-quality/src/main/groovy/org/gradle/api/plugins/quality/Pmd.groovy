@@ -16,13 +16,10 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.file.FileCollection
-
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.SourceTask
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.VerificationTask
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Input
+import org.gradle.api.internal.Instantiator
+import org.gradle.api.plugins.quality.internal.PmdReportsImpl
+import org.gradle.api.reporting.Reporting
+import org.gradle.api.tasks.*
 
 /**
  * Runs a set of static code analysis rules on Java source code files and
@@ -30,7 +27,7 @@ import org.gradle.api.tasks.Input
  *
  * @see PmdPlugin
  */
-class Pmd extends SourceTask implements VerificationTask {
+class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> {
     /**
      * The class path containing the PMD library to be used.
      */
@@ -53,22 +50,9 @@ class Pmd extends SourceTask implements VerificationTask {
      */
     @InputFiles
     FileCollection ruleSetFiles
-    
-    /**
-     * The file in which the XML report will be saved.
-     *
-     * Example: xmlReportFile = file("build/reports/pmdReport.xml")
-     */
-    @OutputFile
-    File xmlReportFile
 
-    /**
-     * The file in which the HTML report will be saved.
-     *
-     * Example: htmlReportFile = file("build/reports/pmdReport.html")
-     */
-    @OutputFile
-    File htmlReportFile
+    @Nested
+    private final PmdReportsImpl reports = services.get(Instantiator).newInstance(PmdReportsImpl, this)
 
     /**
      * Whether or not to allow the build to continue if there are warnings.
@@ -88,8 +72,22 @@ class Pmd extends SourceTask implements VerificationTask {
             getRuleSetFiles().each {
                 ruleset(it)
             }
-            formatter(type: 'betterhtml', toFile: getHtmlReportFile())
-            formatter(type: 'xml', toFile: getXmlReportFile())
+
+            if (reports.html.enabled) {
+                assert reports.html.destination.parentFile.exists()
+                formatter(type: 'betterhtml', toFile: reports.html.destination)
+            }
+            if (reports.xml.enabled) {
+                formatter(type: 'xml', toFile: reports.xml.destination)
+            }
         }
+    }
+
+    PmdReports reports(Closure closure) {
+        reports.configure(closure)
+    }
+
+    PmdReports getReports() {
+        reports
     }
 }

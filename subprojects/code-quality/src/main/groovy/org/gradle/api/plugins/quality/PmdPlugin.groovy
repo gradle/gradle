@@ -55,8 +55,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             ruleSetFiles = project.files()
         }
         extension.conventionMapping.with {
-            xmlReportsDir = { project.extensions.getByType(ReportingExtension).file("pmd") }
-            htmlReportsDir = { project.extensions.getByType(ReportingExtension).file("pmd") }
+            reportsDir = { project.extensions.getByType(ReportingExtension).file("pmd") }
         }
         return extension
     }
@@ -75,9 +74,14 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             }
             ruleSets = { extension.ruleSets }
             ruleSetFiles = { extension.ruleSetFiles }
-            xmlReportFile = { new File(extension.xmlReportsDir, "${baseName}.xml") }
-            htmlReportFile = { new File(extension.htmlReportsDir, "${baseName}.html") }
             ignoreFailures = { extension.ignoreFailures }
+
+            task.reports.all { report ->
+                report.conventionMapping.with {
+                    enabled = { true }
+                    destination = { new File(extension.reportsDir, "${baseName}.${report.name}") }
+                }
+            }
         }
     }
 

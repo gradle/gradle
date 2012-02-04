@@ -15,18 +15,15 @@
  */
 package org.gradle.api.plugins.quality
 
-import static org.gradle.util.Matchers.*
-import static org.hamcrest.Matchers.*
-
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.util.HelperUtil
-import org.gradle.api.tasks.SourceSet
-
-import spock.lang.Specification
-
-import static spock.util.matcher.HamcrestSupport.that
 import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.api.tasks.SourceSet
+import org.gradle.util.HelperUtil
+import spock.lang.Specification
+import static org.gradle.util.Matchers.dependsOn
+import static org.hamcrest.Matchers.*
+import static spock.util.matcher.HamcrestSupport.that
 
 class PmdPluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
@@ -55,8 +52,7 @@ class PmdPluginTest extends Specification {
         PmdExtension extension = project.extensions.pmd
         extension.ruleSets == ["basic"]
         extension.ruleSetFiles.empty
-        extension.xmlReportsDir == project.file("build/reports/pmd")
-        extension.htmlReportsDir == project.file("build/reports/pmd")
+        extension.reportsDir == project.file("build/reports/pmd")
         !extension.ignoreFailures
     }
 
@@ -83,8 +79,8 @@ class PmdPluginTest extends Specification {
             assert pmdClasspath == project.configurations.pmd
             assert ruleSets == ["basic"]
             assert ruleSetFiles.empty
-            assert xmlReportFile == project.file("build/reports/pmd/${sourceSet.name}.xml")
-            assert htmlReportFile == project.file("build/reports/pmd/${sourceSet.name}.html")
+            assert reports.xml.destination == project.file("build/reports/pmd/${sourceSet.name}.xml")
+            assert reports.html.destination == project.file("build/reports/pmd/${sourceSet.name}.html")
             assert ignoreFailures == false
         }
     }
@@ -98,8 +94,8 @@ class PmdPluginTest extends Specification {
         task.pmdClasspath == project.configurations.pmd
         task.ruleSets == ["basic"]
         task.ruleSetFiles.empty
-        task.xmlReportFile == project.file("build/reports/pmd/custom.xml")
-        task.htmlReportFile == project.file("build/reports/pmd/custom.html")
+        task.reports.xml.destination == project.file("build/reports/pmd/custom.xml")
+        task.reports.html.destination == project.file("build/reports/pmd/custom.html")
         task.ignoreFailures == false
     }
 
@@ -127,8 +123,7 @@ class PmdPluginTest extends Specification {
             sourceSets = [project.sourceSets.main]
             ruleSets = ["braces", "unusedcode"]
             ruleSetFiles = project.files("my-ruleset.xml")
-            xmlReportsDir = project.file("pmd-xml-reports")
-            htmlReportsDir = project.file("pmd-html-reports")
+            reportsDir = project.file("pmd-reports")
             ignoreFailures = true
         }
 
@@ -149,8 +144,8 @@ class PmdPluginTest extends Specification {
             assert pmdClasspath == project.configurations.pmd
             assert ruleSets == ["braces", "unusedcode"]
             assert ruleSetFiles.files == project.files("my-ruleset.xml").files
-            assert xmlReportFile == project.file("pmd-xml-reports/${sourceSet.name}.xml")
-            assert htmlReportFile == project.file("pmd-html-reports/${sourceSet.name}.html")
+            assert reports.xml.destination == project.file("pmd-reports/${sourceSet.name}.xml")
+            assert reports.html.destination == project.file("pmd-reports/${sourceSet.name}.html")
             assert ignoreFailures == true
         }
     }
@@ -160,8 +155,7 @@ class PmdPluginTest extends Specification {
         project.pmd {
             ruleSets = ["braces", "unusedcode"]
             ruleSetFiles = project.files("my-ruleset.xml")
-            xmlReportsDir = project.file("pmd-xml-reports")
-            htmlReportsDir = project.file("pmd-html-reports")
+            reportsDir = project.file("pmd-reports")
             ignoreFailures = true
         }
 
@@ -171,8 +165,9 @@ class PmdPluginTest extends Specification {
         task.pmdClasspath == project.configurations.pmd
         task.ruleSets == ["braces", "unusedcode"]
         task.ruleSetFiles.files == project.files("my-ruleset.xml").files
-        task.xmlReportFile == project.file("pmd-xml-reports/custom.xml")
-        task.htmlReportFile == project.file("pmd-html-reports/custom.html")
+        task.reports.xml.destination == project.file("pmd-reports/custom.xml")
+        task.reports.html.destination == project.file("pmd-reports/custom.html")
+        task.outputs.files.files == task.reports.enabled*.destination as Set
         task.ignoreFailures == true
     }
     
