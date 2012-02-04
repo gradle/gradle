@@ -1,21 +1,19 @@
 apply plugin: DocumentationPlugin
 
-documentation{
-    books {
-        quickStart {
-          sourceFile = file('src/docs/quick-start')
-        }
-        userGuide {
+books {
+    quickStart {
+        sourceFile = file('src/docs/quick-start')
+    }
+    userGuide {
 
-        }
-        developerGuide {
+    }
+    developerGuide {
 
-        }
     }
 }
 
 task books << {
-    documentation.books.each { book ->
+    books.each { book ->
         println "$book.name -> $book.sourceFile"
     }
 }
@@ -26,7 +24,7 @@ class DocumentationPlugin implements Plugin<Project> {
         books.all {
             sourceFile = project.file("src/docs/$name")
         }
-        project.extensions.documentation = new DocumentationPluginExtension(books)
+        project.extensions.books = books
     }
 }
 
@@ -36,17 +34,5 @@ class Book {
 
     Book(String name) {
         this.name = name
-    }
-}
-
-class DocumentationPluginExtension{
-    final NamedDomainObjectContainer<Book> books
-
-    DocumentationPluginExtension(NamedDomainObjectContainer<Book> books) {
-        this.books = books
-    }
-
-    def books(Closure cl) {
-        books.configure(cl)
     }
 }
