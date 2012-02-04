@@ -38,7 +38,7 @@ public class CodeQualityPlugin implements Plugin<Project> {
     static final String CODE_NARC_TEST_TASK = "codenarcTest"
 
     void apply(Project project) {
-        DeprecationLogger.nagUserOfReplacedPlugin('code-quality', 'checkstyle/codenarc')
+        DeprecationLogger.nagUserOfReplacedPlugin('code-quality', 'checkstyle or codenarc')
 
         this.project = project
 

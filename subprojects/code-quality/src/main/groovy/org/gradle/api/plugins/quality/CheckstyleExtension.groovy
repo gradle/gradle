@@ -15,13 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.Project
-
 class CheckstyleExtension extends CodeQualityExtension {
-    CheckstyleExtension(Project project) {
-        super(project)
-    }
-
     /**
      * The Checkstyle configuration file to use.
      */

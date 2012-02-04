@@ -15,18 +15,12 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.Project
-
 /**
  * Configuration options for the JDepend plugin.
  * 
  * @see JDependPlugin
  */
 class JDependExtension extends CodeQualityExtension {
-    JDependExtension(Project project) {
-        super(project)
-    }
-
     /**
      * The directory where JDepend reports will be saved. Defaults to <tt>$reporting.baseDir/jdepend</tt>.
      */

@@ -24,8 +24,10 @@ import org.gradle.api.Project
  * @see PmdPlugin
  */
 class PmdExtension extends CodeQualityExtension {
+    private final Project project
+
     PmdExtension(Project project) {
-        super(project)
+        this.project = project
     }
 
     /**

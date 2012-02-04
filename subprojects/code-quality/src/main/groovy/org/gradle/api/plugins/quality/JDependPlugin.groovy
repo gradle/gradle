@@ -31,7 +31,7 @@ import org.gradle.api.reporting.ReportingExtension
  * <p>
  * This plugin will automatically generate a task for each Java source set.
  * </p>
- * See {@link http://www.clarkware.com/software/JDepend.html} for more information.
+ * See <a href="http://www.clarkware.com/software/JDepend.html">JDepend</a> for more information.
  *
  * @see JDependExtension
  * @see JDepend
@@ -62,7 +62,7 @@ class JDependPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureJDependExtension() {
-        extension = instantiator.newInstance(JDependExtension, project)
+        extension = instantiator.newInstance(JDependExtension)
         project.extensions.jdepend = extension
         extension.with {
             toolVersion = "2.9.1"

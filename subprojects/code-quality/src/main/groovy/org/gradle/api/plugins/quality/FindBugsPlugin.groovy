@@ -68,7 +68,7 @@ class FindBugsPlugin implements Plugin<ProjectInternal> {
     }
 
     private configureFindBugsExtension() {
-        extension = instantiator.newInstance(FindBugsExtension, project)
+        extension = instantiator.newInstance(FindBugsExtension)
         project.extensions.findbugs = extension
         extension.with {
             toolVersion = "2.0.0"

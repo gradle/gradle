@@ -57,6 +57,7 @@ class CodeNarcPluginTest extends Specification {
         codenarc.configFile == project.file("config/codenarc/codenarc.xml")
         codenarc.reportFormat == "html"
         codenarc.reportsDir == project.file("build/reports/codenarc")
+        codenarc.sourceSets == project.sourceSets
         !codenarc.ignoreFailures
     }
 
@@ -126,7 +127,7 @@ class CodeNarcPluginTest extends Specification {
         def task = project.tasks.add("codenarcCustom", CodeNarc)
 
         expect:
-        task.description == "Run CodeNarc analysis for custom classes"
+        task.description == null
         task.defaultSource == null
         task.codenarcClasspath == project.configurations.codenarc
         task.configFile == project.file("config/codenarc/codenarc.xml")
@@ -146,7 +147,7 @@ class CodeNarcPluginTest extends Specification {
         }
 
         expect:
-        task.description == "Run CodeNarc analysis for custom classes"
+        task.description == null
         task.defaultSource == null
         task.codenarcClasspath == project.configurations.codenarc
         task.configFile == project.file("codenarc-config")
@@ -155,7 +156,7 @@ class CodeNarcPluginTest extends Specification {
         task.ignoreFailures == true
     }
     
-    def "adds all codenarc tasks to check lifecycle task"() {
+    def "adds codenarc tasks from each source sets to check lifecycle task"() {
         project.sourceSets {
             main
             test
@@ -165,7 +166,7 @@ class CodeNarcPluginTest extends Specification {
         project.tasks.add("codenarcCustom", CodeNarc)
         
         expect:
-        that(project.check, dependsOn(hasItems("codenarcMain", "codenarcTest", "codenarcOther", "codenarcCustom")))
+        that(project.check, dependsOn(hasItems("codenarcMain", "codenarcTest", "codenarcOther")))
     }
 
     def "can customize which tasks are added to check lifecycle task"() {
@@ -178,11 +179,11 @@ class CodeNarcPluginTest extends Specification {
         project.tasks.add("codenarcCustom", CodeNarc)
 
         project.codenarc {
-            checkTasks = ["codenarcMain", "codenarcCustom"]
+            sourceSets = [project.sourceSets.main]
         }
 
         expect:
-        that(project.check, dependsOn(hasItems("codenarcMain", "codenarcCustom")))
+        that(project.check, dependsOn(hasItems("codenarcMain")))
     }
 
     def "can customize task directly"() {

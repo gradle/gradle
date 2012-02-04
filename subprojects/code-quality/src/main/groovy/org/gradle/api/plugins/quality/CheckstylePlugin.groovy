@@ -48,7 +48,7 @@ class CheckstylePlugin implements Plugin<Project> {
     }
 
     private void configureCheckstyleExtension() {
-        extension = instantiator.newInstance(CheckstyleExtension, project)
+        extension = instantiator.newInstance(CheckstyleExtension)
         project.extensions.checkstyle = extension
 
         extension.with {

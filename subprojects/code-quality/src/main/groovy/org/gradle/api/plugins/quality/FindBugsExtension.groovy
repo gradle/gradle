@@ -15,18 +15,12 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.Project
-
 /**
  * Configuration options for the FindBugs plugin.
  *
  * @see FindBugsPlugin
  */
 class FindBugsExtension extends CodeQualityExtension {
-    FindBugsExtension(Project project) {
-        super(project)
-    }
-
     /**
      * The directory into which FindBugs reports will be saved. Defaults to <tt>$reporting.baseDir/findbugs</tt>.
      */

@@ -15,14 +15,9 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.Project
 import org.gradle.api.InvalidUserDataException
 
 class CodeNarcExtension extends CodeQualityExtension {
-    CodeNarcExtension(Project project) {
-        super(project)
-    }
-
     /**
      * The CodeNarc configuration file to use. Defaults to <tt>config/codenarc/codenarc.xml</tt>.
      */
