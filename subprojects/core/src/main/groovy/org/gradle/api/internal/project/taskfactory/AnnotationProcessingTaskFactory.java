@@ -206,7 +206,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                 if (parent != null) {
                     propertyName = parent.getName() + '.' + propertyName;
                 }
-                PropertyInfo propertyInfo = new PropertyInfo(this, parent, propertyName, method);
+                PropertyInfo propertyInfo = new PropertyInfo(type, this, parent, propertyName, method);
 
                 attachValidationActions(propertyInfo, fieldName);
 
@@ -289,12 +289,14 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         private ValidationAction notNullValidator = NO_OP_VALIDATION_ACTION;
         private UpdateAction configureAction = NO_OP_CONFIGURATION_ACTION;
         public boolean required;
+        private final Class<?> type;
 
-        private PropertyInfo(Validator validator, PropertyInfo parent, String propertyName, Method method) {
+        private PropertyInfo(Class<?> type, Validator validator, PropertyInfo parent, String propertyName, Method method) {
+            this.type = type;
             this.validator = validator;
             this.parent = parent;
             this.propertyName = propertyName;
-            this.method = method;
+            this.method = method;   
         }
 
         @Override
@@ -308,6 +310,19 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
         public Class<?> getType() {
             return method.getReturnType();
+        }
+
+        public Class<?> getInstanceVariableType() {
+            Class<?> currentType = type;
+            while (!currentType.equals(Object.class)) {
+                try {
+                    return currentType.getDeclaredField(propertyName).getType();
+                } catch (NoSuchFieldException e) {
+                    currentType = currentType.getSuperclass();
+                }
+            }
+
+            return null;
         }
 
         public AnnotatedElement getTarget() {

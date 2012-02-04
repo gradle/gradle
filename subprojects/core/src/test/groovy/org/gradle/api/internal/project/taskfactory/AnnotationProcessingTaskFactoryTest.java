@@ -575,14 +575,32 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
+    public void validatesNestedBeansWithPrivateType() {
+        TaskWithNestedBeanWithPrivateClass task = expectTaskCreated(TaskWithNestedBeanWithPrivateClass.class, new Object[]{existingFile, null});
+        assertValidationFails(task, "No value has been specified for property 'bean.inputFile'.");
+    }
+
+    @Test
     public void registersInputPropertyForNestedBeanClass() {
         TaskWithNestedBean task = expectTaskCreated(TaskWithNestedBean.class, new Object[]{null});
         assertThat(task.getInputs().getProperties().get("bean.class"), equalTo((Object) Bean.class.getName()));
     }
 
     @Test
+    public void registersInputPropertyForNestedBeanClassWithPrivateType() {
+        TaskWithNestedBeanWithPrivateClass task = expectTaskCreated(TaskWithNestedBeanWithPrivateClass.class, new Object[]{null, null});
+        assertThat(task.getInputs().getProperties().get("bean.class"), equalTo((Object) Bean2.class.getName()));
+    }
+
+    @Test
     public void doesNotRegisterInputPropertyWhenNestedBeanIsNull() {
         TaskWithOptionalNestedBean task = expectTaskCreated(TaskWithOptionalNestedBean.class);
+        assertThat(task.getInputs().getProperties().get("bean.class"), nullValue());
+    }
+
+    @Test
+    public void doesNotRegisterInputPropertyWhenNestedBeanWithPrivateTypeIsNull() {
+        TaskWithOptionalNestedBeanWithPrivateType task = expectTaskCreated(TaskWithOptionalNestedBeanWithPrivateType.class);
         assertThat(task.getInputs().getProperties().get("bean.class"), nullValue());
     }
 
@@ -594,8 +612,21 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
+    public void validationFailsWhenNestedBeanWithPrivateTypeIsNull() {
+        TaskWithNestedBeanWithPrivateClass task = expectTaskCreated(TaskWithNestedBeanWithPrivateClass.class, new Object[]{null, null});
+        task.bean = null;
+        assertValidationFails(task, "No value has been specified for property 'bean'.");
+    }
+
+    @Test
     public void validationSucceedsWhenNestedBeanIsNullAndMarkedOptional() {
         TaskWithOptionalNestedBean task = expectTaskCreated(TaskWithOptionalNestedBean.class);
+        task.execute();
+    }
+
+    @Test
+    public void validationSucceedsWhenNestedBeanWithPrivateTypeIsNullAndMarkedOptional() {
+        TaskWithOptionalNestedBeanWithPrivateType task = expectTaskCreated(TaskWithOptionalNestedBeanWithPrivateType.class);
         task.execute();
     }
 
@@ -890,6 +921,21 @@ public class AnnotationProcessingTaskFactoryTest {
         }
     }
 
+    
+    public static class TaskWithNestedBeanWithPrivateClass extends DefaultTask {
+        Bean2 bean = new Bean2();
+
+        public TaskWithNestedBeanWithPrivateClass(File inputFile, File inputFile2) {
+            bean.inputFile = inputFile;
+            bean.inputFile2 = inputFile2;
+        }
+
+        @Nested
+        public Bean getBean() {
+            return bean;
+        }
+    }
+    
     public static class TaskWithMultipleProperties extends TaskWithNestedBean {
         public TaskWithMultipleProperties(File inputFile) {
             super(inputFile);
@@ -908,12 +954,30 @@ public class AnnotationProcessingTaskFactoryTest {
         }
     }
 
+    public static class TaskWithOptionalNestedBeanWithPrivateType extends DefaultTask {
+        Bean2 bean = new Bean2();
+
+        @Nested @Optional
+        public Bean getBean() {
+            return null;
+        }
+    }
+
     public static class Bean {
         @InputFile
         File inputFile;
 
         public File getInputFile() {
             return inputFile;
+        }
+    }
+
+    public static class Bean2 extends Bean {
+        @InputFile
+        File inputFile2;
+
+        public File getInputFile() {
+            return inputFile2;
         }
     }
 }
