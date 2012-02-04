@@ -18,10 +18,8 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.util.DeprecationLogger
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.util.DeprecationLogger
 
 /**
  * A plugin which measures and enforces code quality for Java and Groovy projects.
