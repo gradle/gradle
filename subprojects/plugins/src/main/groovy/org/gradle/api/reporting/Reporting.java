@@ -18,9 +18,38 @@ package org.gradle.api.reporting;
 
 import groovy.lang.Closure;
 
+/**
+ * An object that provides reporting options
+ *
+ * @param <T> The base type of the report container
+ */
 public interface Reporting<T extends ReportContainer> {
 
+    /**
+     * Returns the report container.
+     *
+     * @param <N> The type of the report container
+     * @return The report container
+     */
     <N extends T> N getReports();
+
+    /**
+     * Allow configuration of the report container by closure.
+     *
+     * For example…
+     *
+     * <pre>
+     * reports {
+     *   html {
+     *     enabled false
+     *   }
+     *   xml.destination "build/reports/myReport.xml"
+     * }
+     * </pre>
+     * @param closure The configuration
+     * @param <N> The type of the report container
+     * @return The report container
+     */
     <N extends T> N reports(Closure closure);
 
 }
