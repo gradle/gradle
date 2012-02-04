@@ -24,7 +24,6 @@ import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.hasItems
 import static spock.util.matcher.HamcrestSupport.that
 import org.gradle.api.plugins.ReportingBasePlugin
-import org.gradle.api.plugins.JavaBasePlugin
 
 class CodeNarcPluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
