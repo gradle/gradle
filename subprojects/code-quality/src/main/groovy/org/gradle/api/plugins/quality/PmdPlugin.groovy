@@ -73,10 +73,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     }
 
     @Override
-    protected void configureForSourceSet(SourceSet sourceSet, Pmd task) {
-        task.with {
-            description = "Run PMD analysis for ${sourceSet.name} classes"
-        }
+    protected void configureTaskDefaults(Pmd task, String baseName) {
         task.conventionMapping.with {
             pmdClasspath = {
                 def config = project.configurations['pmd']
@@ -87,12 +84,21 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
                 }
                 config
             }
-            defaultSource = { sourceSet.allJava }
             ruleSets = { extension.ruleSets }
             ruleSetFiles = { extension.ruleSetFiles }
-            xmlReportFile = { new File(extension.xmlReportsDir, "${sourceSet.name}.xml") }
-            htmlReportFile = { new File(extension.htmlReportsDir, "${sourceSet.name}.html") }
+            xmlReportFile = { new File(extension.xmlReportsDir, "${baseName}.xml") }
+            htmlReportFile = { new File(extension.htmlReportsDir, "${baseName}.html") }
             ignoreFailures = { extension.ignoreFailures }
+        }
+    }
+
+    @Override
+    protected void configureForSourceSet(SourceSet sourceSet, Pmd task) {
+        task.with {
+            description = "Run PMD analysis for ${sourceSet.name} classes"
+        }
+        task.conventionMapping.with {
+            defaultSource = { sourceSet.allJava }
         }
     }
 }

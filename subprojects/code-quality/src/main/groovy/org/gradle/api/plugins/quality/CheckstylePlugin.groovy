@@ -63,11 +63,7 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     }
 
     @Override
-    protected void configureForSourceSet(SourceSet sourceSet, Checkstyle task) {
-        task.with {
-            description = "Run Checkstyle analysis for ${sourceSet.name} classes"
-            classpath = sourceSet.output
-        }
+    protected void configureTaskDefaults(Checkstyle task, String baseName) {
         task.conventionMapping.with {
             checkstyleClasspath = {
                 def config = project.configurations['checkstyle']
@@ -78,11 +74,21 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
                 }
                 config
             }
-            defaultSource = { sourceSet.allJava }
             configFile = { extension.configFile }
             configProperties = { extension.configProperties }
-            reportFile = { new File(extension.reportsDir, "${sourceSet.name}.xml") }
+            reportFile = { new File(extension.reportsDir, "${baseName}.xml") }
             ignoreFailures = { extension.ignoreFailures }
+        }
+    }
+
+    @Override
+    protected void configureForSourceSet(SourceSet sourceSet, Checkstyle task) {
+        task.with {
+            description = "Run Checkstyle analysis for ${sourceSet.name} classes"
+            classpath = sourceSet.output
+        }
+        task.conventionMapping.with {
+            defaultSource = { sourceSet.allJava }
         }
     }
 }

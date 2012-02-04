@@ -82,6 +82,20 @@ class FindBugsPluginTest extends Specification {
         }
     }
 
+    def "configures any additional FindBugs tasks"() {
+        def task = project.tasks.add("findbugsCustom", FindBugs)
+
+        expect:
+        task.description == null
+        task.defaultSource == null
+        task.classes == null
+        task.classpath == null
+        task.findbugsClasspath == project.configurations.findbugs
+        task.pluginClasspath == project.configurations.findbugsPlugins
+        task.reportFile == project.file("build/reports/findbugs/custom.xml")
+        task.ignoreFailures == false
+    }
+
     def "adds findbugs tasks to check lifecycle task"() {
         project.sourceSets {
             main
@@ -124,5 +138,23 @@ class FindBugsPluginTest extends Specification {
             assert reportFile == project.file("findbugs-reports/${sourceSet.name}.xml")
             assert ignoreFailures == true
         }
+    }
+    
+    def "can customize any additional FindBugs tasks via extension"() {
+        def task = project.tasks.add("findbugsCustom", FindBugs)
+        project.findbugs {
+            reportsDir = project.file("findbugs-reports")
+            ignoreFailures = true
+        }
+
+        expect:
+        task.description == null
+        task.defaultSource == null
+        task.classes == null
+        task.classpath == null
+        task.findbugsClasspath == project.configurations.findbugs
+        task.pluginClasspath == project.configurations.findbugsPlugins
+        task.reportFile == project.file("findbugs-reports/custom.xml")
+        task.ignoreFailures == true
     }
 }

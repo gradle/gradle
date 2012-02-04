@@ -72,11 +72,7 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
     }
 
     @Override
-    protected void configureForSourceSet(SourceSet sourceSet, JDepend task) {
-        task.with {
-            dependsOn(sourceSet.output)
-            description = "Run JDepend analysis for ${sourceSet.name} classes"
-        }
+    protected void configureTaskDefaults(JDepend task, String baseName) {
         task.conventionMapping.with {
             jdependClasspath = {
                 def config = project.configurations['jdepend']
@@ -91,9 +87,19 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
                 }
                 config
             }
-            classesDir = { sourceSet.output.classesDir }
-            reportFile = { new File(extension.reportsDir, "${sourceSet.name}.xml") }
+            reportFile = { new File(extension.reportsDir, "${baseName}.xml") }
             ignoreFailures = { extension.ignoreFailures }
+        }
+    }
+
+    @Override
+    protected void configureForSourceSet(SourceSet sourceSet, JDepend task) {
+        task.with {
+            dependsOn(sourceSet.output)
+            description = "Run JDepend analysis for ${sourceSet.name} classes"
+        }
+        task.conventionMapping.with {
+            classesDir = { sourceSet.output.classesDir }
         }
     }
 }

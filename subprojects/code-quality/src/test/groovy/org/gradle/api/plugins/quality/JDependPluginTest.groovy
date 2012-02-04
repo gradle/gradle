@@ -81,6 +81,17 @@ class JDependPluginTest extends Specification {
         }
     }
 
+    def "configures any additional JDepend tasks"() {
+        def task = project.tasks.add("jdependCustom", JDepend)
+
+        expect:
+        task.description == null
+        task.classesDir == null
+        task.jdependClasspath == project.configurations.jdepend
+        task.reportFile == project.file("build/reports/jdepend/custom.xml")
+        task.ignoreFailures == false
+    }
+
     def "adds jdepend tasks to check lifecycle task"() {
         project.sourceSets {
             main
@@ -111,6 +122,21 @@ class JDependPluginTest extends Specification {
         hasCustomizedSettings("jdependOther", project.sourceSets.other)
         that(project.check, dependsOn(hasItem('jdependMain')))
         that(project.check, dependsOn(not(hasItems('jdependTest', 'jdependOther'))))
+    }
+
+    def "can customize any additional JDepend tasks via extension"() {
+        def task = project.tasks.add("jdependCustom", JDepend)
+        project.jdepend {
+            reportsDir = project.file("jdepend-reports")
+            ignoreFailures = true
+        }
+
+        expect:
+        task.description == null
+        task.classesDir == null
+        task.jdependClasspath == project.configurations.jdepend
+        task.reportFile == project.file("jdepend-reports/custom.xml")
+        task.ignoreFailures == true
     }
 
     private void hasCustomizedSettings(String taskName, SourceSet sourceSet) {

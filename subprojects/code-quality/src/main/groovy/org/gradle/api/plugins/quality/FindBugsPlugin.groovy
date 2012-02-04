@@ -81,9 +81,8 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
     }
 
     @Override
-    protected void configureForSourceSet(SourceSet sourceSet, FindBugs task) {
+    protected void configureTaskDefaults(FindBugs task, String baseName) {
         task.with {
-            description = "Run FindBugs analysis for ${sourceSet.name} classes"
             pluginClasspath = project.configurations['findbugsPlugins']
         }
         task.conventionMapping.with {
@@ -97,6 +96,17 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
                 }
                 config
             }
+            reportFile = { new File(extension.reportsDir, "${baseName}.xml") }
+            ignoreFailures = { extension.ignoreFailures }
+        }
+    }
+
+    @Override
+    protected void configureForSourceSet(SourceSet sourceSet, FindBugs task) {
+        task.with {
+            description = "Run FindBugs analysis for ${sourceSet.name} classes"
+        }
+        task.conventionMapping.with {
             defaultSource = { sourceSet.allJava }
             classes = {
                 // the simple "classes = sourceSet.output" may lead to non-existing resources directory
@@ -106,8 +116,6 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
                 }
             }
             classpath = { sourceSet.compileClasspath }
-            reportFile = { new File(extension.reportsDir, "${sourceSet.name}.xml") }
-            ignoreFailures = { extension.ignoreFailures }
         }
     }
 }

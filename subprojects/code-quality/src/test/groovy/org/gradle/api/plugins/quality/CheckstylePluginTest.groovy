@@ -88,6 +88,19 @@ class CheckstylePluginTest extends Specification {
         }
     }
     
+    def "configures any additional checkstyle tasks"() {
+        def task = project.tasks.add("checkstyleCustom", Checkstyle)
+
+        expect:
+        task.description == null
+        task.defaultSource == null
+        task.checkstyleClasspath == project.configurations.checkstyle
+        task.configFile == project.file("config/checkstyle/checkstyle.xml")
+        task.configProperties == [:]
+        task.reportFile == project.file("build/reports/checkstyle/custom.xml")
+        task.ignoreFailures == false
+    }
+
     def "adds checkstyle tasks to check lifecycle task"() {
         project.sourceSets {
             main
@@ -135,4 +148,24 @@ class CheckstylePluginTest extends Specification {
             assert ignoreFailures == true
         }
     }
+    
+    def "can customize any additional checkstyle tasks via extension"() {
+        def task = project.tasks.add("checkstyleCustom", Checkstyle)
+        project.checkstyle {
+            configFile = project.file("checkstyle-config")
+            configProperties = [foo: "foo"]
+            reportsDir = project.file("checkstyle-reports")
+            ignoreFailures = true
+        }
+
+        expect:
+        task.description == null
+        task.defaultSource == null
+        task.checkstyleClasspath == project.configurations.checkstyle
+        task.configFile == project.file("checkstyle-config")
+        task.configProperties == [foo: "foo"]
+        task.reportFile == project.file("checkstyle-reports/custom.xml")
+        task.ignoreFailures == true
+    }
+    
 }

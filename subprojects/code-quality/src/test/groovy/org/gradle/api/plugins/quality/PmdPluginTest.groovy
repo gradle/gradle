@@ -86,6 +86,20 @@ class PmdPluginTest extends Specification {
             assert ignoreFailures == false
         }
     }
+    
+    def "configures any additional PMD tasks"() {
+        def task = project.tasks.add("pmdCustom", Pmd)
+
+        expect:
+        task.description == null
+        task.defaultSource == null
+        task.pmdClasspath == project.configurations.pmd
+        task.ruleSets == ["basic"]
+        task.ruleSetFiles.empty
+        task.xmlReportFile == project.file("build/reports/pmd/custom.xml")
+        task.htmlReportFile == project.file("build/reports/pmd/custom.html")
+        task.ignoreFailures == false
+    }
 
     def "adds pmd tasks to check lifecycle task"() {
         project.sourceSets {
@@ -136,4 +150,26 @@ class PmdPluginTest extends Specification {
             assert ignoreFailures == true
         }
     }
+    
+    def "can customize any additional PMD tasks via extension"() {
+        def task = project.tasks.add("pmdCustom", Pmd)
+        project.pmd {
+            ruleSets = ["braces", "unusedcode"]
+            ruleSetFiles = project.files("my-ruleset.xml")
+            xmlReportsDir = project.file("pmd-xml-reports")
+            htmlReportsDir = project.file("pmd-html-reports")
+            ignoreFailures = true
+        }
+
+        expect:
+        task.description == null
+        task.defaultSource == null
+        task.pmdClasspath == project.configurations.pmd
+        task.ruleSets == ["braces", "unusedcode"]
+        task.ruleSetFiles.files == project.files("my-ruleset.xml").files
+        task.xmlReportFile == project.file("pmd-xml-reports/custom.xml")
+        task.htmlReportFile == project.file("pmd-html-reports/custom.html")
+        task.ignoreFailures == true
+    }
+    
 }
