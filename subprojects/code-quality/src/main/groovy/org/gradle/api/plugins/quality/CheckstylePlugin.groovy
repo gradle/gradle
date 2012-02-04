@@ -15,14 +15,11 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.internal.Instantiator
-import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 
 class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
-    private Instantiator instantiator
     private CheckstyleExtension extension
 
     @Override
@@ -36,21 +33,12 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     }
 
     @Override
-    protected void beforeApply() {
-        this.project = project
-        instantiator = project.services.get(Instantiator)
-
-        project.plugins.apply(JavaBasePlugin)
-    }
-
-    @Override
     protected CodeQualityExtension createExtension() {
         extension = instantiator.newInstance(CheckstyleExtension)
         project.extensions.checkstyle = extension
 
         extension.with {
             toolVersion = "5.5"
-            sourceSets = project.sourceSets
         }
 
         extension.conventionMapping.with {

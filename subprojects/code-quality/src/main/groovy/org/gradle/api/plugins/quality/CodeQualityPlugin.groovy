@@ -51,13 +51,11 @@ public class CodeQualityPlugin implements Plugin<Project> {
         def javaPluginConvention = new JavaCodeQualityPluginConvention(project)
         project.convention.plugins.javaCodeQuality = javaPluginConvention
 
-        project.plugins.withType(JavaBasePlugin) {
-            project.plugins.apply(CheckstylePlugin)
-            project.checkstyle.conventionMapping.with {
-                configFile = { javaPluginConvention.checkstyleConfigFile }
-                configProperties = { javaPluginConvention.checkstyleProperties }
-                reportsDir = { javaPluginConvention.checkstyleResultsDir }
-            }
+        project.plugins.apply(CheckstylePlugin)
+        project.checkstyle.conventionMapping.with {
+            configFile = { javaPluginConvention.checkstyleConfigFile }
+            configProperties = { javaPluginConvention.checkstyleProperties }
+            reportsDir = { javaPluginConvention.checkstyleResultsDir }
         }
     }
 
@@ -65,13 +63,11 @@ public class CodeQualityPlugin implements Plugin<Project> {
         def groovyPluginConvention = new GroovyCodeQualityPluginConvention(project)
         project.convention.plugins.groovyCodeQuality = groovyPluginConvention
 
-        project.plugins.withType(GroovyBasePlugin) {
-            project.plugins.apply(CodeNarcPlugin)
-            project.codenarc.conventionMapping.with {
-                configFile = { groovyPluginConvention.codeNarcConfigFile }
-                reportFormat = { groovyPluginConvention.codeNarcReportsFormat }
-                reportsDir = { groovyPluginConvention.codeNarcReportsDir }
-            }
+        project.plugins.apply(CodeNarcPlugin)
+        project.codenarc.conventionMapping.with {
+            configFile = { groovyPluginConvention.codeNarcConfigFile }
+            reportFormat = { groovyPluginConvention.codeNarcReportsFormat }
+            reportsDir = { groovyPluginConvention.codeNarcReportsDir }
         }
     }
 }

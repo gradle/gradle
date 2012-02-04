@@ -15,8 +15,6 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.internal.Instantiator
-import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
@@ -35,7 +33,6 @@ import org.gradle.api.tasks.SourceSet
  * @see Pmd
  */
 class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
-    private Instantiator instantiator
     private PmdExtension extension
 
     @Override
@@ -49,19 +46,11 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     }
 
     @Override
-    protected void beforeApply() {
-        instantiator = project.services.get(Instantiator)
-
-        project.plugins.apply(JavaBasePlugin)
-    }
-
-    @Override
     protected CodeQualityExtension createExtension() {
         extension = instantiator.newInstance(PmdExtension, project)
         project.extensions.pmd = extension
         extension.with {
             toolVersion = "4.3"
-            sourceSets = project.sourceSets
             ruleSets = ["basic"]
             ruleSetFiles = project.files()
         }

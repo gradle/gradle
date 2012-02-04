@@ -26,6 +26,7 @@ import org.gradle.api.tasks.SourceSet
 import spock.lang.Specification
 
 import static spock.util.matcher.HamcrestSupport.that
+import org.gradle.api.plugins.ReportingBasePlugin
 
 class PmdPluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
@@ -34,9 +35,9 @@ class PmdPluginTest extends Specification {
         project.plugins.apply(PmdPlugin)
     }
 
-    def "applies java-base plugin"() {
+    def "applies reporting-base plugin"() {
         expect:
-        project.plugins.hasPlugin(JavaBasePlugin)
+        project.plugins.hasPlugin(ReportingBasePlugin)
     }
 
     def "configures pmd configuration"() {
@@ -60,6 +61,7 @@ class PmdPluginTest extends Specification {
     }
 
     def "configures pmd task for each source set"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -102,6 +104,7 @@ class PmdPluginTest extends Specification {
     }
 
     def "adds pmd tasks to check lifecycle task"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -113,6 +116,7 @@ class PmdPluginTest extends Specification {
     }
 
     def "can customize settings via extension"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test

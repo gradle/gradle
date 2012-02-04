@@ -19,16 +19,24 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.quality.CodeQualityExtension
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.api.internal.Instantiator
 
 abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
     protected ProjectInternal project
     protected CodeQualityExtension extension
+    protected Instantiator instantiator
 
     final void apply(ProjectInternal project) {
         this.project = project
+        instantiator = project.services.get(Instantiator)
+
         beforeApply()
+        project.plugins.apply(ReportingBasePlugin)
         createConfigurations()
         extension = createExtension()
+        configureExtensionRule()
         configureTaskRule()
         configureSourceSetRule()
         configureCheckTask()
@@ -46,6 +54,10 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
         return toolName.toLowerCase()
     }
 
+    protected Class<?> getBasePlugin() {
+        return JavaBasePlugin
+    }
+
     protected void beforeApply() {
     }
 
@@ -59,6 +71,13 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
 
     protected abstract CodeQualityExtension createExtension()
 
+    private void configureExtensionRule() {
+        extension.conventionMapping.sourceSets = { [] }
+        project.plugins.withType(basePlugin) {
+            extension.conventionMapping.sourceSets = { project.sourceSets }
+        }
+    }
+
     private void configureTaskRule() {
         project.tasks.withType(taskType) { T task ->
             def prunedName = (task.name - taskBaseName ?: task.name)
@@ -71,9 +90,11 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
     }
 
     private void configureSourceSetRule() {
-        project.sourceSets.all { SourceSet sourceSet ->
-            T task = project.tasks.add(sourceSet.getTaskName(taskBaseName, null), taskType)
-            configureForSourceSet(sourceSet, task)
+        project.plugins.withType(basePlugin) {
+            project.sourceSets.all { SourceSet sourceSet ->
+                T task = project.tasks.add(sourceSet.getTaskName(taskBaseName, null), taskType)
+                configureForSourceSet(sourceSet, task)
+            }
         }
     }
 
@@ -81,6 +102,8 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
     }
 
     private void configureCheckTask() {
-        project.tasks['check'].dependsOn { extension.sourceSets.collect { it.getTaskName(taskBaseName, null) }}
+        project.plugins.withType(basePlugin) {
+            project.tasks['check'].dependsOn { extension.sourceSets.collect { it.getTaskName(taskBaseName, null) }}
+        }
     }
 }

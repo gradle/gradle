@@ -23,6 +23,8 @@ import spock.lang.Specification
 import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.hasItems
 import static spock.util.matcher.HamcrestSupport.that
+import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.api.plugins.JavaBasePlugin
 
 class CodeNarcPluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
@@ -31,9 +33,9 @@ class CodeNarcPluginTest extends Specification {
         project.plugins.apply(CodeNarcPlugin)
     }
 
-    def "applies groovy-base plugin"() {
+    def "applies reporting-base plugin"() {
         expect:
-        project.plugins.hasPlugin(GroovyBasePlugin)
+        project.plugins.hasPlugin(ReportingBasePlugin)
     }
     
     def "adds codenarc configuration"() {
@@ -52,11 +54,12 @@ class CodeNarcPluginTest extends Specification {
         codenarc.configFile == project.file("config/codenarc/codenarc.xml")
         codenarc.reportFormat == "html"
         codenarc.reportsDir == project.file("build/reports/codenarc")
-        codenarc.sourceSets == project.sourceSets
+        codenarc.sourceSets == []
         !codenarc.ignoreFailures
     }
 
     def "adds codenarc task for each source set"() {
+        project.plugins.apply(GroovyBasePlugin)
         project.sourceSets {
             main
             test
@@ -84,6 +87,7 @@ class CodeNarcPluginTest extends Specification {
     }
 
     def "can customize per-source-set tasks via extension"() {
+        project.plugins.apply(GroovyBasePlugin)
         project.sourceSets {
             main
             test
@@ -152,6 +156,7 @@ class CodeNarcPluginTest extends Specification {
     }
     
     def "adds codenarc tasks from each source sets to check lifecycle task"() {
+        project.plugins.apply(GroovyBasePlugin)
         project.sourceSets {
             main
             test
@@ -165,6 +170,7 @@ class CodeNarcPluginTest extends Specification {
     }
 
     def "can customize which tasks are added to check lifecycle task"() {
+        project.plugins.apply(GroovyBasePlugin)
         project.sourceSets {
             main
             test

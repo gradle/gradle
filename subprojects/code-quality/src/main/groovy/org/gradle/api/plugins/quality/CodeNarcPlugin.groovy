@@ -15,14 +15,12 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.internal.Instantiator
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 
 class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
-    private Instantiator instantiator
     private CodeNarcExtension extension
 
     @Override
@@ -36,10 +34,8 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     }
 
     @Override
-    protected void beforeApply() {
-        instantiator = project.services.get(Instantiator)
-
-        project.plugins.apply(GroovyBasePlugin)
+    protected Class<?> getBasePlugin() {
+        return GroovyBasePlugin
     }
 
     @Override
@@ -48,7 +44,6 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         project.extensions.codenarc = extension
         extension.with {
             toolVersion = "0.16.1"
-            sourceSets = project.sourceSets
         }
         extension.conventionMapping.with {
             configFile = { project.rootProject.file("config/codenarc/codenarc.xml") }

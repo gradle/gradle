@@ -26,6 +26,7 @@ import org.gradle.api.tasks.SourceSet
 import spock.lang.Specification
 
 import static spock.util.matcher.HamcrestSupport.that
+import org.gradle.api.plugins.ReportingBasePlugin
 
 class JDependPluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
@@ -34,9 +35,9 @@ class JDependPluginTest extends Specification {
         project.plugins.apply(JDependPlugin)
     }
 
-    def "applies java-base plugin"() {
+    def "applies reporting-base plugin"() {
         expect:
-        project.plugins.hasPlugin(JavaBasePlugin)
+        project.plugins.hasPlugin(ReportingBasePlugin)
     }
 
     def "configures jdepend configuration"() {
@@ -57,6 +58,7 @@ class JDependPluginTest extends Specification {
     }
 
     def "configures jdepend task for each source set"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -93,6 +95,7 @@ class JDependPluginTest extends Specification {
     }
 
     def "adds jdepend tasks to check lifecycle task"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -104,6 +107,7 @@ class JDependPluginTest extends Specification {
     }
 
     def "can customize settings via extension"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test

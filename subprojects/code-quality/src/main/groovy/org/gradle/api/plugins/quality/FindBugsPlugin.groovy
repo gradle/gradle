@@ -15,8 +15,6 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.internal.Instantiator
-import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
@@ -36,7 +34,6 @@ import org.gradle.api.tasks.SourceSet
  * @see FindBugsExtension
  */
 class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
-    private Instantiator instantiator
     private FindBugsExtension extension
 
     @Override
@@ -51,10 +48,6 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
 
     @Override
     protected void beforeApply() {
-        instantiator = project.services.get(Instantiator)
-
-        project.plugins.apply(JavaBasePlugin)
-
         configureFindBugsConfigurations()
     }
 
@@ -72,7 +65,6 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
         project.extensions.findbugs = extension
         extension.with {
             toolVersion = "2.0.0"
-            sourceSets = project.sourceSets
         }
         extension.conventionMapping.with {
             reportsDir = { project.extensions.getByType(ReportingExtension).file("findbugs") }

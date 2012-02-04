@@ -16,8 +16,6 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Plugin
-import org.gradle.api.internal.Instantiator
-import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
@@ -37,7 +35,6 @@ import org.gradle.api.tasks.SourceSet
  * @see JDepend
  */
 class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
-    private Instantiator instantiator
     private JDependExtension extension
 
     @Override
@@ -51,19 +48,11 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
     }
 
     @Override
-    protected void beforeApply() {
-        instantiator = project.services.get(Instantiator)
-
-        project.plugins.apply(JavaBasePlugin)
-    }
-
-    @Override
     protected CodeQualityExtension createExtension() {
         extension = instantiator.newInstance(JDependExtension)
         project.extensions.jdepend = extension
         extension.with {
             toolVersion = "2.9.1"
-            sourceSets = project.sourceSets
         }
         extension.conventionMapping.with {
             reportsDir = { project.extensions.getByType(ReportingExtension).file("jdepend") }

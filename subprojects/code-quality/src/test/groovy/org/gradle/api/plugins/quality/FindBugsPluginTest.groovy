@@ -26,6 +26,7 @@ import org.gradle.api.tasks.SourceSet
 import spock.lang.Specification
 
 import static spock.util.matcher.HamcrestSupport.that
+import org.gradle.api.plugins.ReportingBasePlugin
 
 class FindBugsPluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
@@ -34,9 +35,9 @@ class FindBugsPluginTest extends Specification {
         project.plugins.apply(FindBugsPlugin)
     }
 
-    def "applies java-base plugin"() {
+    def "applies reporting-base plugin"() {
         expect:
-        project.plugins.hasPlugin(JavaBasePlugin)
+        project.plugins.hasPlugin(ReportingBasePlugin)
     }
 
     def "configures findbugs configuration"() {
@@ -57,6 +58,7 @@ class FindBugsPluginTest extends Specification {
     }
 
     def "configures findbugs task for each source set"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -97,6 +99,7 @@ class FindBugsPluginTest extends Specification {
     }
 
     def "adds findbugs tasks to check lifecycle task"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -108,6 +111,7 @@ class FindBugsPluginTest extends Specification {
     }
 
     def "can customize settings via extension"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
