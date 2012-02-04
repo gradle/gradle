@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.reporting.internal.SimpleReport
 import spock.lang.Specification
 
-class DefaultReportContainerTest extends Specification { 
+class DefaultReportContainerTest extends Specification {
 
     static Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
 

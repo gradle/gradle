@@ -47,7 +47,6 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
     /**
      * The format type of the CodeNarc report.
      */
-    @Input
     String getReportFormat() {
         reports.firstEnabled?.name
     }
@@ -61,7 +60,6 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
     /**
      * The file to write the report to
      */
-    @OutputFile
     File getReportFile() {
         reports.firstEnabled?.destination
     }
