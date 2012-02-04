@@ -15,12 +15,11 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.Plugin
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.internal.Instantiator
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.tasks.SourceSet
 
 /**
  * A plugin for the <a href="http://findbugs.sourceforge.net">FindBugs</a> byte code analyzer.
@@ -36,30 +35,30 @@ import org.gradle.api.reporting.ReportingExtension
  * @see FindBugs
  * @see FindBugsExtension
  */
-class FindBugsPlugin implements Plugin<ProjectInternal> {
-    private ProjectInternal project
+class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
     private Instantiator instantiator
     private FindBugsExtension extension
 
-    void apply(ProjectInternal project) {
-        this.project = project
+    @Override
+    protected String getToolName() {
+        return "FindBugs"
+    }
+
+    @Override
+    protected Class<FindBugs> getTaskType() {
+        return FindBugs
+    }
+
+    @Override
+    protected void beforeApply() {
         instantiator = project.services.get(Instantiator)
-    
+
         project.plugins.apply(JavaBasePlugin)
 
         configureFindBugsConfigurations()
-        configureFindBugsExtension()
-        configureFindBugsTasks()
-        configureCheckTask()
     }
 
     private configureFindBugsConfigurations() {
-        project.configurations.add('findbugs').with {
-            visible = false
-            transitive = true
-            description = 'The FindBugs libraries to be used for this project.'
-        }
-
         project.configurations.add('findbugsPlugins').with {
             visible = false
             transitive = true
@@ -67,7 +66,8 @@ class FindBugsPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private configureFindBugsExtension() {
+    @Override
+    protected CodeQualityExtension createExtension() {
         extension = instantiator.newInstance(FindBugsExtension)
         project.extensions.findbugs = extension
         extension.with {
@@ -77,42 +77,37 @@ class FindBugsPlugin implements Plugin<ProjectInternal> {
         extension.conventionMapping.with {
             reportsDir = { project.extensions.getByType(ReportingExtension).file("findbugs") }
         }
+        return extension
     }
 
-    private void configureFindBugsTasks() {
-        project.sourceSets.all { SourceSet sourceSet ->
-            def task = project.tasks.add(sourceSet.getTaskName('findbugs', null), FindBugs)
-            task.with {
-                description = "Run FindBugs analysis for ${sourceSet.name} classes"
-                pluginClasspath = project.configurations['findbugsPlugins']
-            }
-            task.conventionMapping.with {
-                findbugsClasspath = {
-                    def config = project.configurations['findbugs']
-                    if (config.dependencies.empty) {
-                        project.dependencies {
-                            findbugs "com.google.code.findbugs:findbugs:$extension.toolVersion"
-                            findbugs "com.google.code.findbugs:findbugs-ant:$extension.toolVersion"
-                        }
-                    }
-                    config
-                }
-                defaultSource = { sourceSet.allJava }
-                classes = {
-                    // the simple "classes = sourceSet.output" may lead to non-existing resources directory
-                    // being passed to FindBugs Ant task, resulting in an error
-                    project.fileTree(sourceSet.output.classesDir) {
-                        builtBy sourceSet.output
-                    }
-                } 
-                classpath = { sourceSet.compileClasspath }
-                reportFile = { new File(extension.reportsDir, "${sourceSet.name}.xml") }
-                ignoreFailures = { extension.ignoreFailures }
-            }
+    @Override
+    protected void configureForSourceSet(SourceSet sourceSet, FindBugs task) {
+        task.with {
+            description = "Run FindBugs analysis for ${sourceSet.name} classes"
+            pluginClasspath = project.configurations['findbugsPlugins']
         }
-    }
-
-    private void configureCheckTask() {
-        project.tasks['check'].dependsOn { extension.sourceSets.collect { it.getTaskName('findbugs', null) }}
+        task.conventionMapping.with {
+            findbugsClasspath = {
+                def config = project.configurations['findbugs']
+                if (config.dependencies.empty) {
+                    project.dependencies {
+                        findbugs "com.google.code.findbugs:findbugs:$extension.toolVersion"
+                        findbugs "com.google.code.findbugs:findbugs-ant:$extension.toolVersion"
+                    }
+                }
+                config
+            }
+            defaultSource = { sourceSet.allJava }
+            classes = {
+                // the simple "classes = sourceSet.output" may lead to non-existing resources directory
+                // being passed to FindBugs Ant task, resulting in an error
+                project.fileTree(sourceSet.output.classesDir) {
+                    builtBy sourceSet.output
+                }
+            }
+            classpath = { sourceSet.compileClasspath }
+            reportFile = { new File(extension.reportsDir, "${sourceSet.name}.xml") }
+            ignoreFailures = { extension.ignoreFailures }
+        }
     }
 }

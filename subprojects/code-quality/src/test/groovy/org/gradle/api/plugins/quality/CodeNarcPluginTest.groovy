@@ -16,29 +16,24 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Project
-import org.gradle.util.HelperUtil
+import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.tasks.SourceSet
-
+import org.gradle.util.HelperUtil
 import spock.lang.Specification
-
 import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.hasItems
-
 import static spock.util.matcher.HamcrestSupport.that
-import org.gradle.api.plugins.ReportingBasePlugin
-import org.gradle.api.plugins.GroovyPlugin
 
 class CodeNarcPluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
 
     def setup() {
         project.plugins.apply(CodeNarcPlugin)
-        project.plugins.apply(GroovyPlugin)
     }
 
-    def "applies reporting-base plugin"() {
+    def "applies groovy-base plugin"() {
         expect:
-        project.plugins.hasPlugin(ReportingBasePlugin)
+        project.plugins.hasPlugin(GroovyBasePlugin)
     }
     
     def "adds codenarc configuration"() {
