@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.util.Jvm
+import spock.lang.IgnoreIf
 
 /**
  * by Szczepan Faber, created at: 1/20/12
@@ -39,22 +39,14 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         """
     }
 
-//    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
     def "honours java home specified in gradle.properties"() {
         given:
         File javaHome = AvailableJavaHomes.bestAlternative
-        javaHome = Jvm.current().javaHome
         String javaPath = javaHome.canonicalPath.replaceAll("\\\\", "\\\\\\\\")
         distribution.file("gradle.properties") << "org.gradle.java.home=" + javaPath
 
         expect:
         buildSucceeds "assert System.getProperty('java.home').startsWith('${javaPath}')"
-    }
-    
-    def findMacAlt() {
-        expect:
-        def a  = AvailableJavaHomes.bestAlternative
-        
-        println "a: $a"
     }
 }
