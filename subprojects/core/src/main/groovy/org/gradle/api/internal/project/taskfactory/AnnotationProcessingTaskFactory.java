@@ -23,10 +23,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputDirectories;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 import org.gradle.util.ReflectionUtil;
 
 import java.io.File;
@@ -44,23 +41,29 @@ import java.util.concurrent.Callable;
 public class AnnotationProcessingTaskFactory implements ITaskFactory {
     private final ITaskFactory taskFactory;
     private final Map<Class, List<Action<Task>>> actionsForType = new HashMap<Class, List<Action<Task>>>();
+    
+    private final Transformer<Iterable<File>, Object> filePropertyTransformer = new Transformer<Iterable<File>, Object>() {
+        public Iterable<File> transform(Object original) {
+            File file = (File) original;
+            return file == null ? Collections.<File>emptyList() : Collections.singleton(file);
+        }
+    };
+
+    private final Transformer<Iterable<File>, Object> iterableFilePropertyTransformer = new Transformer<Iterable<File>, Object>() {
+        @SuppressWarnings("unchecked")
+        public Iterable<File> transform(Object original) {
+            return original != null ? (Iterable<File>) original : Collections.<File>emptyList();
+        }
+    };
+    
     private final List<? extends PropertyAnnotationHandler> handlers = Arrays.asList(
             new InputFilePropertyAnnotationHandler(),
             new InputDirectoryPropertyAnnotationHandler(),
             new InputFilesPropertyAnnotationHandler(),
-            new OutputFilePropertyAnnotationHandler(),
-            new OutputDirectoryPropertyAnnotationHandler(OutputDirectory.class, new Transformer<Iterable<File>, Object>() {
-                public Iterable<File> transform(Object original) {
-                    File file = (File) original;
-                    return file == null ? Collections.<File>emptyList() : Collections.singleton(file);
-                }
-            }),
-            new OutputDirectoryPropertyAnnotationHandler(OutputDirectories.class, new Transformer<Iterable<File>, Object>() {
-                @SuppressWarnings("unchecked")
-                public Iterable<File> transform(Object original) {
-                    return original != null ? (Iterable<File>) original : Collections.<File>emptyList();
-                }
-            }),
+            new OutputFilePropertyAnnotationHandler(OutputFile.class, filePropertyTransformer),
+            new OutputFilePropertyAnnotationHandler(OutputFiles.class, iterableFilePropertyTransformer),
+            new OutputDirectoryPropertyAnnotationHandler(OutputDirectory.class, filePropertyTransformer),
+            new OutputDirectoryPropertyAnnotationHandler(OutputDirectories.class, iterableFilePropertyTransformer),
             new InputPropertyAnnotationHandler(),
             new NestedBeanPropertyAnnotationHandler());
     private final ValidationAction notNullValidator = new ValidationAction() {
