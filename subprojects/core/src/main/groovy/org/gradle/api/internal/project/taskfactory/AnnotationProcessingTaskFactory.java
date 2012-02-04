@@ -19,13 +19,17 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectories;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.ReflectionUtil;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -45,7 +49,18 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             new InputDirectoryPropertyAnnotationHandler(),
             new InputFilesPropertyAnnotationHandler(),
             new OutputFilePropertyAnnotationHandler(),
-            new OutputDirectoryPropertyAnnotationHandler(),
+            new OutputDirectoryPropertyAnnotationHandler(OutputDirectory.class, new Transformer<Iterable<File>, Object>() {
+                public Iterable<File> transform(Object original) {
+                    File file = (File) original;
+                    return file == null ? Collections.<File>emptyList() : Collections.singleton(file);
+                }
+            }),
+            new OutputDirectoryPropertyAnnotationHandler(OutputDirectories.class, new Transformer<Iterable<File>, Object>() {
+                @SuppressWarnings("unchecked")
+                public Iterable<File> transform(Object original) {
+                    return original != null ? (Iterable<File>) original : Collections.<File>emptyList();
+                }
+            }),
             new InputPropertyAnnotationHandler(),
             new NestedBeanPropertyAnnotationHandler());
     private final ValidationAction notNullValidator = new ValidationAction() {
