@@ -31,7 +31,7 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
         stopDaemonsNow()
     }
 
-    @Timeout(5)
+    @Timeout(10)
     @IgnoreIf({OperatingSystem.current().isWindows()})
     def "promptly shows decent message when daemon cannot be started"() {
         when:
@@ -43,7 +43,7 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
         ex.message.contains("-Xyz")
     }
 
-    @Timeout(5)
+    @Timeout(10)
     def "promptly shows decent message when awkward java home used"() {
         def dummyJdk = distribution.file("dummyJdk").createDir()
         assert dummyJdk.isDirectory()
