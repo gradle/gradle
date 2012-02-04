@@ -18,9 +18,9 @@ package org.gradle.api.plugins.quality
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.Instantiator
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.tasks.SourceSet
 
 class CheckstylePlugin implements Plugin<Project> {
     private Project project
@@ -85,6 +85,7 @@ class CheckstylePlugin implements Plugin<Project> {
                 configProperties = { extension.configProperties }
                 reportFile = { new File(extension.reportsDir, "${sourceSet.name}.xml") }
                 ignoreFailures = { extension.ignoreFailures }
+                displayViolations = { extension.displayViolations }
             }
         }
     }

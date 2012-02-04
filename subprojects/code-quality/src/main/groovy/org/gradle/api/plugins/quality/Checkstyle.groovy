@@ -15,10 +15,10 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.*
 import org.gradle.api.GradleException
+import org.gradle.api.file.FileCollection
 import org.gradle.util.DeprecationLogger
+import org.gradle.api.tasks.*
 
 /**
  * Runs Checkstyle against some source files.
@@ -103,6 +103,11 @@ class Checkstyle extends SourceTask implements VerificationTask {
      */
     boolean ignoreFailures
 
+    /**
+     * Whether or not the build should display violations on the console or not.
+     */
+    boolean displayViolations
+
     @TaskAction
     public void run() {
         def propertyName = "org.gradle.checkstyle.violations"
@@ -112,7 +117,9 @@ class Checkstyle extends SourceTask implements VerificationTask {
         ant.checkstyle(config: getConfigFile(), failOnViolation: false, failureProperty: propertyName) {
             getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
             getClasspath().addToAntBuilder(ant, 'classpath')
-            formatter(type: 'plain', useFile: false)
+            if (displayViolations) {
+                formatter(type: 'plain', useFile: false)
+            }
             formatter(type: 'xml', toFile: getReportFile())
             getConfigProperties().each { key, value ->
                 property(key: key, value: value.toString())

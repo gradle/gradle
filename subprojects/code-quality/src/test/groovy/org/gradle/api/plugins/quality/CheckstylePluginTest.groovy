@@ -16,18 +16,13 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Project
-
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.tasks.SourceSet
 import org.gradle.util.HelperUtil
-
 import spock.lang.Specification
-
-import static spock.util.matcher.HamcrestSupport.*
 import static org.gradle.util.Matchers.dependsOn
-import static org.hamcrest.Matchers.hasItem
-import static org.hamcrest.Matchers.hasItems
-import static org.hamcrest.Matchers.not
+import static org.hamcrest.Matchers.*
+import static spock.util.matcher.HamcrestSupport.that
 
 class CheckstylePluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
@@ -85,6 +80,7 @@ class CheckstylePluginTest extends Specification {
             assert configProperties == [:]
             assert reportFile == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
             assert ignoreFailures == false
+            assert displayViolations == true
         }
     }
     
@@ -122,6 +118,23 @@ class CheckstylePluginTest extends Specification {
         that(project.check, dependsOn(not(hasItems('checkstyleTest', 'checkstyleOther'))))
     }
 
+    def "can suppress std out display of violations via displayViolations=false"() {
+        project.sourceSets {
+            main
+            test
+            other
+        }
+
+        project.checkstyle {
+            displayViolations = false
+        }
+
+        expect:
+        def task = project.tasks.findByName("checkstyleMain")
+        assert task instanceof Checkstyle
+        assert task.displayViolations == false
+    }
+
     private void hasCustomizedSettings(String taskName, SourceSet sourceSet) {
         def task = project.tasks.findByName(taskName)
         assert task instanceof Checkstyle
@@ -133,6 +146,7 @@ class CheckstylePluginTest extends Specification {
             assert configProperties == [foo: "foo"]
             assert reportFile == project.file("checkstyle-reports/${sourceSet.name}.xml")
             assert ignoreFailures == true
+            assert displayViolations == true
         }
     }
 }

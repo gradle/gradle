@@ -28,11 +28,11 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     def setup() {
-        writeBuildFile()
         writeConfigFile()
     }
 
     def "analyze good code"() {
+        writeBuildFile()
         file('src/main/java/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
         file('src/test/java/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'
         file('src/main/groovy/org/gradle/Class2.java') << 'package org.gradle; class Class1 { }'
@@ -47,6 +47,7 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     def "analyze bad code"() {
+        writeBuildFile()
         file("src/main/java/org/gradle/class1.java") << "package org.gradle; class class1 { }"
         file("src/test/java/org/gradle/testclass1.java") << "package org.gradle; class testclass1 { }"
         file("src/main/groovy/org/gradle/class2.java") << "package org.gradle; class class2 { }"
@@ -56,8 +57,26 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         fails("check")
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at"))
+        assert failure.error =~ /Name 'class1' must match pattern/
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
+    }
+
+    def "analyze bad code suppressing console output"() {
+        writeBuildFileWithDisplayViolationsFalse()
+        file("src/main/java/org/gradle/class1.java") << "package org.gradle; class class1 { }"
+        file("src/test/java/org/gradle/testclass1.java") << "package org.gradle; class testclass1 { }"
+        file("src/main/groovy/org/gradle/class2.java") << "package org.gradle; class class2 { }"
+        file("src/test/groovy/org/gradle/testclass2.java") << "package org.gradle; class testclass2 { }"
+
+        expect:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain'")
+        failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at"))
+        assert failure.error !=~ /Name 'class1' must match pattern/
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
+
     }
 
     private Matcher<String> containsClass(String className) {
@@ -75,6 +94,25 @@ repositories {
 
 dependencies {
     groovy localGroovy()
+}
+        """
+    }
+
+    private void writeBuildFileWithDisplayViolationsFalse() {
+        file("build.gradle") << """
+apply plugin: "groovy"
+apply plugin: "checkstyle"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    groovy localGroovy()
+}
+
+checkstyleMain {
+    displayViolations = false
 }
         """
     }
