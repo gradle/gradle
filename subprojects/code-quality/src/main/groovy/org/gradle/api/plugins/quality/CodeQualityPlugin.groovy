@@ -19,6 +19,9 @@ package org.gradle.api.plugins.quality
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.util.DeprecationLogger
+import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.GroovyBasePlugin
+import org.gradle.api.plugins.ReportingBasePlugin
 
 /**
  * A plugin which measures and enforces code quality for Java and Groovy projects.
@@ -39,33 +42,36 @@ public class CodeQualityPlugin implements Plugin<Project> {
 
         this.project = project
 
+        project.plugins.apply(ReportingBasePlugin)
         configureCheckstyle()
         configureCodeNarc()
     }
 
     private void configureCheckstyle() {
-        project.plugins.apply(CheckstylePlugin)
-
         def javaPluginConvention = new JavaCodeQualityPluginConvention(project)
         project.convention.plugins.javaCodeQuality = javaPluginConvention
 
-        project.checkstyle.conventionMapping.with {
-            configFile = { javaPluginConvention.checkstyleConfigFile }
-            configProperties = { javaPluginConvention.checkstyleProperties }
-            reportsDir = { javaPluginConvention.checkstyleResultsDir }
+        project.plugins.withType(JavaBasePlugin) {
+            project.plugins.apply(CheckstylePlugin)
+            project.checkstyle.conventionMapping.with {
+                configFile = { javaPluginConvention.checkstyleConfigFile }
+                configProperties = { javaPluginConvention.checkstyleProperties }
+                reportsDir = { javaPluginConvention.checkstyleResultsDir }
+            }
         }
     }
 
     private void configureCodeNarc() {
-        project.plugins.apply(CodeNarcPlugin)
-
         def groovyPluginConvention = new GroovyCodeQualityPluginConvention(project)
         project.convention.plugins.groovyCodeQuality = groovyPluginConvention
 
-        project.codenarc.conventionMapping.with {
-            configFile = { groovyPluginConvention.codeNarcConfigFile }
-            reportFormat = { groovyPluginConvention.codeNarcReportsFormat }
-            reportsDir = { groovyPluginConvention.codeNarcReportsDir }
+        project.plugins.withType(GroovyBasePlugin) {
+            project.plugins.apply(CodeNarcPlugin)
+            project.codenarc.conventionMapping.with {
+                configFile = { groovyPluginConvention.codeNarcConfigFile }
+                reportFormat = { groovyPluginConvention.codeNarcReportsFormat }
+                reportsDir = { groovyPluginConvention.codeNarcReportsDir }
+            }
         }
     }
 }

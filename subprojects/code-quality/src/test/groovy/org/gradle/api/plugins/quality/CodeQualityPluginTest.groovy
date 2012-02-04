@@ -25,6 +25,7 @@ import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.GroovyBasePlugin
 
 class CodeQualityPluginTest {
     private final Project project = HelperUtil.createRootProject()
@@ -34,13 +35,21 @@ class CodeQualityPluginTest {
         plugin.apply(project)
 
         assertTrue(project.plugins.hasPlugin(ReportingBasePlugin))
+        assertFalse(project.plugins.hasPlugin(JavaBasePlugin))
+        assertFalse(project.plugins.hasPlugin(GroovyBasePlugin))
     }
 
     @Test public void addsConventionObjectsToProject() {
         plugin.apply(project)
 
         assertThat(project.convention.plugins.javaCodeQuality, instanceOf(JavaCodeQualityPluginConvention))
+        assertThat(project.checkstyleProperties, equalTo([:]))
+        assertThat(project.checkstyleConfigFile, equalTo(project.file("config/checkstyle/checkstyle.xml")))
+        assertThat(project.file("build/checkstyle"), equalTo(project.checkstyleResultsDir))
+
         assertThat(project.convention.plugins.groovyCodeQuality, instanceOf(GroovyCodeQualityPluginConvention))
+        assertThat(project.codeNarcConfigFile, equalTo(project.file("config/codenarc/codenarc.xml")))
+        assertThat(project.codeNarcReportsDir, equalTo(project.file("build/reports/codenarc")))
     }
 
     @Test public void createsTasksAndAppliesMappingsForEachJavaSourceSet() {
