@@ -68,7 +68,7 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
         reports.firstEnabled?.destination = reportFile
     }
 
-    private final CodeNarcReports reports = services.get(Instantiator).newInstance(CodeNarcReportsImpl, this);
+    private final CodeNarcReportsImpl reports = services.get(Instantiator).newInstance(CodeNarcReportsImpl, this);
 
     /**
      * Whether or not the build should break when the verifications performed by this task fail.

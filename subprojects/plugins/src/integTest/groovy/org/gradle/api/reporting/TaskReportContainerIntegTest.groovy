@@ -17,7 +17,6 @@
 package org.gradle.api.reporting
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.api.reporting.internal.TaskGeneratedReport
 
 class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
     
@@ -40,25 +39,30 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task createReports { task ->
+            class TestTask extends DefaultTask {
+                @Nested
+                TaskReportContainer reports = project.services.get(org.gradle.api.internal.Instantiator).newInstance(TestTaskReportContainer, this)
+
+                @TaskAction
+                def doStuff() {
+                    reports.enabled.each {
+                         if (it.outputType == Report.OutputType.FILE) {
+                             assert it.destination.parentFile.exists() && it.destination.parentFile.directory
+                             it.destination << project.value
+                         } else {
+                             assert it.destination.exists() && it.destination.directory
+                             new File(it.destination, "file1") << project.value
+                             new File(it.destination, "file2") << project.value
+                         }
+                    }
+                }
+            }
+
+            task createReports(type: TestTask) { task ->
                 inputs.property "foo", { project.value }
-                reports = project.services.get(org.gradle.api.internal.Instantiator).newInstance(TestTaskReportContainer, task)
                 reports.all {
                     it.enabled true
-                    destination it.name
-                }
-                doLast {
-                    reports.enabled.each {
-                        if (it.outputType == Report.OutputType.FILE) {
-                            it.destination.parentFile.mkdirs()
-                            it.destination << project.value
-                        } else {
-                            it.destination.mkdirs()
-                            // assert it.destination.exists() && it.destination.directory
-                            new File(it.destination, "file1") << project.value
-                            new File(it.destination, "file2") << project.value
-                        }  
-                    }    
+                    destination it.outputType == Report.OutputType.DIRECTORY ? it.name : "\$it.name/file"
                 }
             }
         """ 
@@ -67,10 +71,9 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
     def "task up to date when no reporting configuration change"() {
         expect:
         succeeds(task) && task in nonSkippedTasks
-        
+
         and:
         succeeds(task) && task in skippedTasks
-        
     }
 
     def "task not up to date when enabled set changes"() {
@@ -112,5 +115,4 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
         then:
         succeeds(task) && task in nonSkippedTasks
     }
-    
 }

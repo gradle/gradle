@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 
 public interface Reporting<T extends ReportContainer> {
 
-    T getReports();
-    T reports(Closure closure);
+    <N extends T> N getReports();
+    <N extends T> N reports(Closure closure);
 
 }
