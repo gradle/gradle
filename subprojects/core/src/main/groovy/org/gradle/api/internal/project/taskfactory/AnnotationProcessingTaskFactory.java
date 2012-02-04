@@ -144,7 +144,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                 ClassLoader original = Thread.currentThread().getContextClassLoader();
                 Thread.currentThread().setContextClassLoader(method.getDeclaringClass().getClassLoader());
                 try {
-                    ReflectionUtil.invoke(task, method.getName(), new Object[0]);
+                    ReflectionUtil.invoke(task, method.getName());
                 } finally {
                     Thread.currentThread().setContextClassLoader(original);
                 }
@@ -337,7 +337,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                 bean = parentValue.getValue();
             }
 
-            final Object value = ReflectionUtil.invoke(bean, method.getName(), new Object[0]);
+            final Object value = ReflectionUtil.invoke(bean, method.getName());
 
             return new PropertyValue() {
                 public Object getValue() {
