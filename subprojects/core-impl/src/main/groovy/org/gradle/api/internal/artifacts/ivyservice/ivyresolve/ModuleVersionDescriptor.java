@@ -15,8 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 
-public interface ModuleVersionDescriptor extends ModuleVersionResolver {
+public interface ModuleVersionDescriptor {
+    ModuleRevisionId getId();
+
+    ModuleDescriptor getDescriptor();
+
     boolean isChanging();
 }

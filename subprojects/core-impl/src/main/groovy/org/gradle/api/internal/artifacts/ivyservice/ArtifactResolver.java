@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.module.descriptor.Artifact;
 
-public interface ModuleVersionResolver {
+public interface ArtifactResolver {
     /**
-     * Returns the id of this module version, resolving it if required.
+     * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    ModuleRevisionId getId() throws ModuleVersionResolveException;
-
-    /**
-     * Returns the descriptor for this module version, resolving it if required.
-     */
-    ModuleDescriptor getDescriptor() throws ModuleVersionResolveException;
+    ArtifactResolveResult resolve(Artifact artifact);
 }
