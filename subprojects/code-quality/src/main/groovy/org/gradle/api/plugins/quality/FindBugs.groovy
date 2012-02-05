@@ -23,6 +23,7 @@ import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.VerificationTask
 import org.gradle.api.tasks.SkipWhenEmpty
+import org.gradle.api.internal.project.IsolatedAntBuilder
 
 /**
  * Analyzes code with <a href="http://findbugs.sourceforge.net">FindBugs</a>.
@@ -73,27 +74,30 @@ class FindBugs extends SourceTask implements VerificationTask {
 
         getReportFile().parentFile.mkdirs()
 
-		ant.taskdef(name: 'findbugs', classname: 'edu.umd.cs.findbugs.anttask.FindBugsTask', classpath: getFindbugsClasspath().asPath)
-		ant.findbugs(debug: logger.isDebugEnabled(), outputFile: getReportFile(), errorProperty: errorProp, warningsProperty: warningsProp) {
-            getFindbugsClasspath().addToAntBuilder(ant, 'classpath')
-            getPluginClasspath().addToAntBuilder(ant, 'pluginList')
-            getClasses().addToAntBuilder(ant, 'auxAnalyzepath')
-            // FindBugs can't handle either of the following being empty on Windows
-            // leads to strange (parsing?) errors like "file src/main/java/-exitcode not found"
-            addUnlessEmpty(getClasspath(), 'auxClasspath')
-            addUnlessEmpty(getSource(), 'sourcePath')
+        def antBuilder = services.get(IsolatedAntBuilder)
+        antBuilder.withClasspath(getFindbugsClasspath()).execute {
+            ant.taskdef(name: 'findbugs', classname: 'edu.umd.cs.findbugs.anttask.FindBugsTask')
+            ant.findbugs(debug: logger.isDebugEnabled(), outputFile: getReportFile(), errorProperty: errorProp, warningsProperty: warningsProp) {
+                getFindbugsClasspath().addToAntBuilder(ant, 'classpath')
+                getPluginClasspath().addToAntBuilder(ant, 'pluginList')
+                getClasses().addToAntBuilder(ant, 'auxAnalyzepath')
+                // FindBugs can't handle either of the following being empty on Windows
+                // leads to strange (parsing?) errors like "file src/main/java/-exitcode not found"
+                addUnlessEmpty(ant, getClasspath(), 'auxClasspath')
+                addUnlessEmpty(ant, getSource(), 'sourcePath')
+            }
+
+            if (ant.project.properties[errorProp]) {
+                throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.")
+            }
+
+            if (ant.project.properties[warningsProp] && !ignoreFailures) {
+                throw new GradleException("FindBugs rule violations were found. See the report at ${getReportFile()}.")
+            }
         }
-		
-        if (ant.properties[errorProp]) {
-            throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.")
-        }
-      
-		if (ant.properties[warningsProp] && !ignoreFailures) {
-			throw new GradleException("FindBugs rule violations were found. See the report at ${getReportFile()}.")
-		}
     }
 
-    protected void addUnlessEmpty(FileCollection files, String nodeName) {
+    protected void addUnlessEmpty(Object ant, FileCollection files, String nodeName) {
         if (!files.empty) {
           files.addToAntBuilder(ant, nodeName)
         }

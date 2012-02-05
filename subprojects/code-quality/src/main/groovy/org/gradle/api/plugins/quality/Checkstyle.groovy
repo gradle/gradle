@@ -19,6 +19,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
 import org.gradle.api.GradleException
 import org.gradle.util.DeprecationLogger
+import org.gradle.api.internal.project.IsolatedAntBuilder
 
 /**
  * Runs Checkstyle against some source files.
@@ -106,21 +107,23 @@ class Checkstyle extends SourceTask implements VerificationTask {
     @TaskAction
     public void run() {
         def propertyName = "org.gradle.checkstyle.violations"
+        def antBuilder = services.get(IsolatedAntBuilder)
+        antBuilder.withClasspath(getCheckstyleClasspath()).execute {
+            ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
 
-        ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask', classpath: getCheckstyleClasspath().asPath)
-
-        ant.checkstyle(config: getConfigFile(), failOnViolation: false, failureProperty: propertyName) {
-            getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-            getClasspath().addToAntBuilder(ant, 'classpath')
-            formatter(type: 'plain', useFile: false)
-            formatter(type: 'xml', toFile: getReportFile())
-            getConfigProperties().each { key, value ->
-                property(key: key, value: value.toString())
+            ant.checkstyle(config: getConfigFile(), failOnViolation: false, failureProperty: propertyName) {
+                getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+                getClasspath().addToAntBuilder(ant, 'classpath')
+                formatter(type: 'plain', useFile: false)
+                formatter(type: 'xml', toFile: getReportFile())
+                getConfigProperties().each { key, value ->
+                    property(key: key, value: value.toString())
+                }
             }
-        }
 
-        if (!getIgnoreFailures() && ant.properties[propertyName]) {
-            throw new GradleException("Checkstyle rule violations were found. See the report at ${getReportFile()}.")
+            if (!getIgnoreFailures() && ant.project.properties[propertyName]) {
+                throw new GradleException("Checkstyle rule violations were found. See the report at ${getReportFile()}.")
+            }
         }
     }
 }

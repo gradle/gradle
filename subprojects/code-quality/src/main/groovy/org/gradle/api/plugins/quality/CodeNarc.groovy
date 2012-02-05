@@ -18,10 +18,10 @@ package org.gradle.api.plugins.quality
 //import org.gradle.api.plugins.quality.internal.ConsoleReportWriter
 
 
-import org.apache.tools.ant.BuildException
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.Instantiator
+import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
 import org.gradle.api.reporting.Report
@@ -78,33 +78,34 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
     @TaskAction
     void run() {
         logging.captureStandardOutput(LogLevel.INFO)
-
-        ant.taskdef(name: 'codenarc', classname: 'org.codenarc.ant.CodeNarcTask', classpath: getCodenarcClasspath().asPath)
-
-        try {
-            ant.codenarc(ruleSetFiles: "file:${getConfigFile()}", maxPriority1Violations: 0, maxPriority2Violations: 0, maxPriority3Violations: 0) {
-                if (reportFormat) {
-                    report(type: reportFormat) {
-                        option(name: 'outputFile', value: reportFile)
+        def antBuilder = services.get(IsolatedAntBuilder)
+        antBuilder.withClasspath(getCodenarcClasspath()).execute {
+            ant.taskdef(name: 'codenarc', classname: 'org.codenarc.ant.CodeNarcTask')
+            try {
+                ant.codenarc(ruleSetFiles: "file:${getConfigFile()}", maxPriority1Violations: 0, maxPriority2Violations: 0, maxPriority3Violations: 0) {
+                    if (reportFormat) {
+                        report(type: reportFormat) {
+                            option(name: 'outputFile', value: reportFile)
+                        }
                     }
-                }
 
-                reports.enabled.each { Report r ->
-                    report(type: r.name) {
-                        option(name: 'outputFile', value: r.destination)
-                    }    
-                }
+                    reports.enabled.each { Report r ->
+                        report(type: r.name) {
+                            option(name: 'outputFile', value: r.destination)
+                        }
+                    }
 
-                source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-            }
-        } catch (BuildException e) {
-            if (e.message.matches('Exceeded maximum number of priority \\d* violations.*')) {
-                if (getIgnoreFailures()) {
-                    return
+                    source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
                 }
-                throw new GradleException("CodeNarc rule violations were found. See the report at ${getReportFile()}.", e)
+            } catch (Exception e) {
+                if (e.message.matches('Exceeded maximum number of priority \\d* violations.*')) {
+                    if (getIgnoreFailures()) {
+                        return
+                    }
+                    throw new GradleException("CodeNarc rule violations were found. See the report at ${getReportFile()}.", e)
+                }
+                throw e
             }
-            throw e
         }
     }
 

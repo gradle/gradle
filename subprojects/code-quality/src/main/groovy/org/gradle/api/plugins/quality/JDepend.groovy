@@ -23,6 +23,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.VerificationTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.internal.project.IsolatedAntBuilder
 
 /**
  * Analyzes code with <a href="http://clarkware.com/software/JDepend.html">.
@@ -59,11 +60,13 @@ class JDepend extends DefaultTask implements VerificationTask {
 
     @TaskAction
     void run() {
-        ant.taskdef(name: 'jdepend', classname: 'org.apache.tools.ant.taskdefs.optional.jdepend.JDependTask',
-                classpath: getJdependClasspath().asPath)
-        ant.jdepend(format: 'xml', outputFile: getReportFile(), haltOnError: !getIgnoreFailures()) {
-            classespath {
-                pathElement(location: getClassesDir())
+        def antBuilder = services.get(IsolatedAntBuilder)
+        antBuilder.withClasspath(getJdependClasspath()).execute {
+            ant.taskdef(name: 'jdepend', classname: 'org.apache.tools.ant.taskdefs.optional.jdepend.JDependTask')
+            ant.jdepend(format: 'xml', outputFile: getReportFile(), haltOnError: !getIgnoreFailures()) {
+                classespath {
+                    pathElement(location: getClassesDir())
+                }
             }
         }
     }

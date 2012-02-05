@@ -103,6 +103,16 @@ class DefaultIsolatedAntBuilderTest {
     }
 
     @Test
+    public void canAccessAntBuilderFromWithinClosures() {
+        builder.execute {
+            assertThat(ant, sameInstance(delegate))
+            
+            ant.property(name: 'prop', value: 'a message')
+            assertThat(project.properties.prop, equalTo('a message'))
+        }
+    }
+
+    @Test
     public void attachesLogger() {
         builder.execute {
             property(name: 'message', value: 'a message')

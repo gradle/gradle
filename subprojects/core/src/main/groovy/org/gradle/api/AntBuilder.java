@@ -43,4 +43,12 @@ public abstract class AntBuilder extends groovy.util.AntBuilder {
      * @param antBuildFile The build file. This is resolved as per {@link Project#file(Object)}.
      */
     public abstract void importBuild(Object antBuildFile);
+
+    /**
+     * Returns this AntBuilder. Useful when you need to pass this builder to methods from within closures.
+     * @return this
+     */
+    public AntBuilder getAnt() {
+        return this;
+    }
 }
