@@ -81,7 +81,7 @@ public class LoopbackDependencyResolver extends RestrictedDependencyResolver {
             public ArtifactOrigin create() {
                 try {
                     DependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(artifact.getModuleRevisionId(), false);
-                    File artifactFile = userResolverChain.resolve(dependencyDescriptor).resolve(artifact).getFile();
+                    File artifactFile = userResolverChain.resolve(dependencyDescriptor).getArtifactResolver().resolve(artifact).getFile();
                     return new ArtifactOrigin(artifact, false, artifactFile.getAbsolutePath());
                 } catch (ModuleVersionNotFoundException e) {
                     return null;

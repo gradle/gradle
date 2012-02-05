@@ -337,7 +337,7 @@ public class DependencyGraphBuilder {
             Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
             for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
                 MDArtifact artifact = new MDArtifact(childConfiguration.descriptor, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
-                artifacts.add(resolvedArtifactFactory.create(childConfiguration.getResult(), artifact, selector.resolve()));
+                artifacts.add(resolvedArtifactFactory.create(childConfiguration.getResult(), artifact, selector.resolve().getArtifactResolver()));
             }
             return artifacts;
         }
@@ -648,7 +648,7 @@ public class DependencyGraphBuilder {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
                 for (String config : heirarchy) {
                     for (Artifact artifact : descriptor.getArtifacts(config)) {
-                        artifacts.add(resolvedArtifactFactory.create(getResult(), artifact, moduleRevision.resolver.resolve()));
+                        artifacts.add(resolvedArtifactFactory.create(getResult(), artifact, moduleRevision.resolver.resolve().getArtifactResolver()));
                     }
                 }
             }

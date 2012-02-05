@@ -200,6 +200,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
     def "can resolve artifact for a module version"() {
         def dependency = dependency()
         def artifact = artifact()
+        ArtifactResolver targetResolver = Mock()
         ArtifactResolveResult resolvedArtifact = Mock()
 
         when:
@@ -210,18 +211,20 @@ class LazyDependencyToModuleResolverTest extends Specification {
         _ * resolvedModule.descriptor >> module()
 
         when:
-        def artifactResult = resolveResult.resolve(artifact)
+        def artifactResult = resolveResult.artifactResolver.resolve(artifact)
 
         then:
         artifactResult == resolvedArtifact
 
         and:
-        _ * resolvedModule.resolve(artifact) >> resolvedArtifact
+        _ * resolvedModule.artifactResolver >> targetResolver
+        1 * targetResolver.resolve(artifact) >> resolvedArtifact
     }
     
     def "wraps unexpected failure to resolve artifact"() {
         def dependency = dependency()
         def artifact = artifact()
+        ArtifactResolver targetResolver = Mock()
         def failure = new RuntimeException("broken")
 
         when:
@@ -232,7 +235,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
         _ * resolvedModule.descriptor >> module()
 
         when:
-        def artifactResult = resolveResult.resolve(artifact)
+        def artifactResult = resolveResult.artifactResolver.resolve(artifact)
 
         then:
         artifactResult.failure instanceof ArtifactResolveException
@@ -240,7 +243,8 @@ class LazyDependencyToModuleResolverTest extends Specification {
         artifactResult.failure.cause == failure
 
         and:
-        _ * resolvedModule.resolve(artifact) >> { throw failure }
+        _ * resolvedModule.artifactResolver >> targetResolver
+        _ * targetResolver.resolve(artifact) >> { throw failure }
 
         when:
         artifactResult.file

@@ -106,7 +106,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
         return comparison < 0 ? two : one;
     }
 
-    private class ModuleResolution implements ArtifactInfo, ModuleVersionResolveResult {
+    private static class ModuleResolution implements ArtifactInfo, ModuleVersionResolveResult {
         public final ModuleVersionRepository repository;
         public final ModuleVersionDescriptor module;
 
@@ -127,20 +127,10 @@ public class UserResolverChain implements DependencyToModuleResolver {
             return module.getDescriptor();
         }
 
-        public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
-            LOGGER.debug("Attempting to download {} using repository {}", artifact, repository);
-            File file;
-            try {
-                file = repository.download(artifact);
-            } catch (ArtifactResolveException e) {
-                return new BrokenArtifactResolveResult(e);
-            }
-            if (file == null) {
-                return new BrokenArtifactResolveResult(new ArtifactNotFoundException(artifact));
-            }
-            return new FileBackedArtifactResolveResult(file);
+        public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
+            return new ModuleVersionRepositoryBackedArtifactResolver(repository);
         }
-        
+
         public boolean isGeneratedModuleDescriptor() {
             if (module == null) {
                 throw new IllegalStateException();
@@ -154,6 +144,28 @@ public class UserResolverChain implements DependencyToModuleResolver {
 
         public String getRevision() {
             return module.getId().getRevision();
+        }
+    }
+
+    private static final class ModuleVersionRepositoryBackedArtifactResolver implements ArtifactResolver {
+        private final ModuleVersionRepository repository;
+
+        private ModuleVersionRepositoryBackedArtifactResolver(ModuleVersionRepository repository) {
+            this.repository = repository;
+        }
+
+        public ArtifactResolveResult resolve(Artifact artifact) {
+            LOGGER.debug("Attempting to download {} using repository {}", artifact, repository);
+            File file;
+            try {
+                file = repository.download(artifact);
+            } catch (ArtifactResolveException e) {
+                return new BrokenArtifactResolveResult(e);
+            }
+            if (file == null) {
+                return new BrokenArtifactResolveResult(new ArtifactNotFoundException(artifact));
+            }
+            return new FileBackedArtifactResolveResult(file);
         }
     }
 }
