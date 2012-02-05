@@ -15,7 +15,7 @@
  */
 package org.gradle.build.docs.dsl.docbook;
 
-import org.gradle.util.UncheckedException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
