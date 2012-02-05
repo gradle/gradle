@@ -20,6 +20,7 @@ import org.gradle.api.internal.Instantiator
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
+import org.gradle.api.internal.project.IsolatedAntBuilder
 
 /**
  * Runs a set of static code analysis rules on Java source code files and
@@ -63,22 +64,25 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
 
     @TaskAction
     void run() {
-        ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask', classpath: getPmdClasspath().asPath)
-        ant.pmd(failOnRuleViolation: !getIgnoreFailures()) {
-            getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-            getRuleSets().each {
-                ruleset(it)
-            }
-            getRuleSetFiles().each {
-                ruleset(it)
-            }
+        def antBuilder = services.get(IsolatedAntBuilder)
+        antBuilder.withClasspath(getPmdClasspath()).execute {
+            ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
+            ant.pmd(failOnRuleViolation: !getIgnoreFailures()) {
+                getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+                getRuleSets().each {
+                    ruleset(it)
+                }
+                getRuleSetFiles().each {
+                    ruleset(it)
+                }
 
-            if (reports.html.enabled) {
-                assert reports.html.destination.parentFile.exists()
-                formatter(type: 'betterhtml', toFile: reports.html.destination)
-            }
-            if (reports.xml.enabled) {
-                formatter(type: 'xml', toFile: reports.xml.destination)
+                if (reports.html.enabled) {
+                    assert reports.html.destination.parentFile.exists()
+                    formatter(type: 'betterhtml', toFile: reports.html.destination)
+                }
+                if (reports.xml.enabled) {
+                    formatter(type: 'xml', toFile: reports.xml.destination)
+                }
             }
         }
     }
