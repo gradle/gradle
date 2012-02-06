@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.ConfigureDelegate;
@@ -31,12 +30,6 @@ import org.gradle.util.ConfigureUtil;
 import java.util.SortedMap;
 
 public class DefaultReportContainer<T extends Report> extends DefaultNamedDomainObjectSet<T> implements ReportContainer<T> {
-
-    public static class ImmutableViolationException extends GradleException {
-        public ImmutableViolationException() {
-            super("DefaultReportContainer objects are immutable");
-        }
-    }
 
     private NamedDomainObjectSet<T> enabled;
 

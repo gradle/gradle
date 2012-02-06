@@ -25,6 +25,7 @@ import org.gradle.api.internal.DirectInstantiator
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.reporting.Report
+import org.gradle.api.reporting.ReportContainer
 import spock.lang.Specification
 
 class DefaultReportContainerTest extends Specification {
@@ -72,13 +73,13 @@ class DefaultReportContainerTest extends Specification {
         container.add(new SimpleReport("d", Report.OutputType.FILE, new IdentityFileResolver()))
         
         then:
-        thrown(DefaultReportContainer.ImmutableViolationException)
+        thrown(ReportContainer.ImmutableViolationException)
         
         when:
         container.clear()
 
         then:
-        thrown(DefaultReportContainer.ImmutableViolationException)
+        thrown(ReportContainer.ImmutableViolationException)
     }
     
     def "enable empty by default"() {
