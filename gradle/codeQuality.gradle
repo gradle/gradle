@@ -7,7 +7,7 @@ checkstyleConfigDir = "$configDir/checkstyle"
 
 checkstyle {
     configFile = new File(checkstyleConfigDir, "checkstyle.xml")
-    configProperties = [checkstyleConfigDir: checkstyleConfigDir]
+    configProperties.checkstyleConfigDir = checkstyleConfigDir
 }
 
 codenarc {
@@ -20,7 +20,7 @@ plugins.withType(GroovyBasePlugin) {
             configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
             source sourceSet.allGroovy
             classpath = sourceSet.compileClasspath
-            reportsFile = new File(checkstyle.reportsDir, "${sourceSet.name}-groovy.xml")
+            reports.xml.destination new File(checkstyle.reportsDir, "${sourceSet.name}-groovy.xml")
         }
     }
 }
