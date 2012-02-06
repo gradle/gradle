@@ -376,6 +376,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         run { assert executer.daemonRegistry.busy.size() == 1; }
     }
 
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
     def "if a daemon exists but is using a different java home, a new compatible daemon will be created and used"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()
@@ -405,6 +406,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
     }
 
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
     def "can stop a daemon that is using a different java home"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()
