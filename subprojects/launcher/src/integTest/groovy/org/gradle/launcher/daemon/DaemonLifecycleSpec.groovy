@@ -78,10 +78,13 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             executer.usingProjectDirectory buildDirWithScript(builds.size(), """
                 task('watch') << {
                     println "waiting for stop file"
-                    int sanityCheck = System.currentTimeMillis() + 30000
+                    long sanityCheck = System.currentTimeMillis() + 20000L
                     while(!file("stop").exists()) {
                         sleep 100
-                        if (sanityCheck > System.currentTimeMillis()) {
+                        if (file("exit").exists()) {
+                            System.exit(1)
+                        }
+                        if (System.currentTimeMillis() > sanityCheck) {
                             throw new RuntimeException("It seems the stop file was never created")
                         }
                     }
@@ -137,6 +140,13 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         foregroundDaemons << executer.start()
     }
 
+    //this is a windows-safe way of killing the process
+    void disappearDaemon(int num = 0) {
+        run {
+            buildDir(num).file("exit") << "exit"
+        }
+    }
+
     void killForegroundDaemon(int num = 0) {
         run { foregroundDaemons[num].abort().waitForFailure() }
     }
@@ -153,7 +163,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         run { failed foregroundDaemons[num] }
     }
 
-    void failed(handle) {
+    void failed(GradleHandle handle) {
         assert handle.waitForFailure()
     }
 
@@ -291,10 +301,18 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         foregroundDaemonFailed()
     }
 
-    @IgnoreIf({OperatingSystem.current().windows}) //hangs on windows
+    @IgnoreIf({OperatingSystem.current().windows})
+    //(SF) On windows at the moment, we cannot reliably kill the client without waiting for the daemon to complete
+    //It's because of the way windows handles pipes for child processes.
+    //basically, process.waitFor() completes and you can get hold of the exit value,
+    //however, the process still sits there blocked on reading the child process' outputs.
+    //Next steps:
+    // 1. We can revisit this problem once we solve the daemon feedback story and we have a jna process starter that is able to consume the inputs
+    // 2. We can make this test working on java7 (because processbuilder in jre7 is more powerful)
     def "tearing down client while daemon is building tears down daemon"() {
         when:
         startBuild()
+        waitForBuildToWait()
 
         then:
         busy()
@@ -306,7 +324,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
-    @IgnoreIf({OperatingSystem.current().windows}) //hangs on windows
+    @IgnoreIf({OperatingSystem.current().windows})
+    //See the comment in the previous test
     def "tearing down client while daemon is building tears down daemon _process_"() {
         when:
         startForegroundDaemon()
@@ -316,6 +335,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         when:
         startBuild()
+        waitForBuildToWait()
 
         then:
         busy()
@@ -330,7 +350,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         foregroundDaemonFailed()
     }
 
-    @IgnoreIf({OperatingSystem.current().windows}) //fails on windows
     def "tearing down daemon process produces nice error message for client"() {
         when:
         startForegroundDaemon()
@@ -345,7 +364,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         busy()
 
         when:
-        killForegroundDaemon()
+        disappearDaemon()
 
         then:
         buildFailedWithDaemonDisappearedMessage()
@@ -357,7 +376,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         run { assert executer.daemonRegistry.busy.size() == 1; }
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null || {OperatingSystem.current().windows} })
     def "if a daemon exists but is using a different java home, a new compatible daemon will be created and used"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()
@@ -387,8 +405,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
     }
 
-    //TODO SF figure out how to detect java7
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null || {OperatingSystem.current().windows} })
     def "can stop a daemon that is using a different java home"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()
