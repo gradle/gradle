@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
+import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 
@@ -76,8 +77,16 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
                 }
                 config
             }
-            reportFile = { new File(extension.reportsDir, "${baseName}.xml") }
             ignoreFailures = { extension.ignoreFailures }
+        }
+        task.reports.all { Report report ->
+            report.conventionMapping.with {
+                enabled = { report.name == "xml" }
+                destination = {
+                    def fileSuffix = report.name == 'text' ? 'txt' : report.name
+                    new File(extension.reportsDir, "${baseName}.${fileSuffix}")
+                }
+            }
         }
     }
 
