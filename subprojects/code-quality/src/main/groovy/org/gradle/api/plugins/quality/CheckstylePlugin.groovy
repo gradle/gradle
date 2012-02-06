@@ -39,11 +39,11 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
         extension.with {
             toolVersion = "5.5"
+            configProperties = [:]
         }
 
         extension.conventionMapping.with {
             configFile = { project.file("config/checkstyle/checkstyle.xml") }
-            configProperties = { [:] }
             reportsDir = { project.extensions.getByType(ReportingExtension).file("checkstyle") }
         }
 
