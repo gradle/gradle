@@ -39,7 +39,6 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
         extension.with {
             toolVersion = "5.5"
-            configProperties = [:]
         }
 
         extension.conventionMapping.with {
