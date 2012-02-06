@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+apply from: "$rootDir/gradle/providedConfiguration.gradle"
+
 configurations {
     testFixtures
 }
@@ -35,7 +37,8 @@ dependencies {
     compile libraries.junit
     compile libraries.slf4j_api
     compile 'org.testng:testng:6.3.1'
-    compile files(Jvm.current().toolsJar) // needed by SunJavaCompiler
+
+    provided files(Jvm.current().toolsJar) // for SunJavaCompiler
 
     runtime libraries.commons_cli
 
