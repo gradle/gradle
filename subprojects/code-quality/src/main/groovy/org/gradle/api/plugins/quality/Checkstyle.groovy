@@ -15,16 +15,19 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.*
 import org.gradle.api.GradleException
-import org.gradle.util.DeprecationLogger
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.project.IsolatedAntBuilder
+import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl
+import org.gradle.api.reporting.Reporting
+import org.gradle.util.DeprecationLogger
+import org.gradle.api.tasks.*
 
 /**
  * Runs Checkstyle against some source files.
  */
-class Checkstyle extends SourceTask implements VerificationTask {
+class Checkstyle extends SourceTask implements VerificationTask, Reporting<CheckstyleReports> {
     /**
      * The class path containing the Checkstyle library to be used.
      */
@@ -77,9 +80,59 @@ class Checkstyle extends SourceTask implements VerificationTask {
 
     /**
      * The file in which the XML report will be saved.
+     *
+     * @deprecated Use reports.xml.destination
      */
-    @OutputFile
-    File reportFile
+    @Deprecated
+    File getReportFile() {
+        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.reportFile", "Checkstyle.reports.xml.destination")
+        reports.xml.destination
+    }
+
+    /**
+     * The file in which the XML report will be saved.
+     *
+     * @deprecated Use reports.xml.destination
+     */
+    @Deprecated
+    void setReportFile(File file) {
+        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.reportFile", "Checkstyle.reports.xml.destination")
+        reports.xml.destination = file
+    }
+
+    @Nested
+    private final CheckstyleReportsImpl reports = services.get(Instantiator).newInstance(CheckstyleReportsImpl, this)
+
+    /**
+     * The reports container.
+     *
+     * @return The reports container
+     */
+    CheckstyleReports getReports() {
+        reports
+    }
+
+    /**
+     * Configures the reports container.
+     *
+     * The contained reports can be configured by name and closures. Example:
+     *
+     * <pre>
+     * checkstyleTask {
+     *   reports {
+     *     xml {
+     *       destination "build/codenarc.xml"
+     *     }
+     *   }
+     * }
+     * </pre>
+     *
+     * @param closure The configuration
+     * @return The reports container
+     */
+    CheckstyleReports reports(Closure closure) {
+        reports.configure(closure)
+    }
 
     /**
      * @deprecated renamed to <tt>reportFile</tt>
@@ -115,14 +168,21 @@ class Checkstyle extends SourceTask implements VerificationTask {
                 getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
                 getClasspath().addToAntBuilder(ant, 'classpath')
                 formatter(type: 'plain', useFile: false)
-                formatter(type: 'xml', toFile: getReportFile())
+                if (reports.xml.enabled) {
+                    formatter(type: 'xml', toFile: reports.xml.destination)
+                }
+
                 getConfigProperties().each { key, value ->
                     property(key: key, value: value.toString())
                 }
             }
 
             if (!getIgnoreFailures() && ant.project.properties[propertyName]) {
-                throw new GradleException("Checkstyle rule violations were found. See the report at ${getReportFile()}.")
+                if (reports.xml.enabled) {
+                    throw new GradleException("Checkstyle rule violations were found. See the report at ${reports.xml.destination}.")
+                } else {
+                    throw new GradleException("Checkstyle rule violations were found")
+                }
             }
         }
     }

@@ -64,8 +64,12 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
             }
             configFile = { extension.configFile }
             configProperties = { extension.configProperties }
-            reportFile = { new File(extension.reportsDir, "${baseName}.xml") }
             ignoreFailures = { extension.ignoreFailures }
+        }
+
+        task.reports.xml.conventionMapping.with {
+            enabled = { true }
+            destination = { new File(extension.reportsDir, "${baseName}.xml") }
         }
     }
 
