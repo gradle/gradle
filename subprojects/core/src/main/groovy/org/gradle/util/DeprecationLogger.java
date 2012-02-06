@@ -94,6 +94,7 @@ public class DeprecationLogger {
     public static void nagUserWith(String message) {
         if (isEnabled() && METHODS.add(message)) {
             LOGGER.warn(message);
+            logTraceIfNecessary();
         }
     }
     
