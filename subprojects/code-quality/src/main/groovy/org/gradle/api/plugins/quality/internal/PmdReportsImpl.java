@@ -19,8 +19,8 @@ package org.gradle.api.plugins.quality.internal;
 import org.gradle.api.Task;
 import org.gradle.api.plugins.quality.PmdReports;
 import org.gradle.api.reporting.Report;
-import org.gradle.api.reporting.TaskReportContainer;
 import org.gradle.api.reporting.internal.TaskGeneratedReport;
+import org.gradle.api.reporting.internal.TaskReportContainer;
 
 public class PmdReportsImpl extends TaskReportContainer<Report> implements PmdReports {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting;
+package org.gradle.api.reporting.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.GradleException;
@@ -23,6 +23,8 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.ConfigureDelegate;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.Instantiator;
+import org.gradle.api.reporting.Report;
+import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.ConfigureUtil;
 

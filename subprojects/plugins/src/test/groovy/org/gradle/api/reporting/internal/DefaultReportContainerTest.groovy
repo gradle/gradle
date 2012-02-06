@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.api.reporting
+package org.gradle.api.reporting.internal
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.AsmBackedClassGenerator
@@ -24,7 +24,7 @@ import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.DirectInstantiator
 import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.file.IdentityFileResolver
-import org.gradle.api.reporting.internal.SimpleReport
+import org.gradle.api.reporting.Report
 import spock.lang.Specification
 
 class DefaultReportContainerTest extends Specification {

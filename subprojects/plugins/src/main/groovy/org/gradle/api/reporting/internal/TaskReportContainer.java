@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting;
+package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.reporting.Report;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Input;
