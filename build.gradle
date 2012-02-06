@@ -228,7 +228,7 @@ task uploadArchives(dependsOn: publishedProjects()*.uploadArchives)
 task publishLocalArchives(dependsOn: publishedProjects()*.publishLocalArchives)
 
 task aggregateTestReports(type: TestReportAggregator) {
-    testReportDir = file("${reportsDir}/tests")
+    testReportDir = reporting.file("tests")
     testResultsDir = file("${buildDir}/test-results")
     projects = subprojects
 }

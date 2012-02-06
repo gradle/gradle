@@ -254,7 +254,7 @@ task checkstyleApi(type: Checkstyle) {
     source javadoc.source
     configFile = file("$checkstyleConfigDir/checkstyle-api.xml")
     classpath = files()
-    resultFile = file("$checkstyleResultsDir/checkstyle-api.xml")
+    reportFile = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
 //TODO SF - generates for java as well, rename to codedoc?

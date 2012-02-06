@@ -9,7 +9,7 @@ dependencies {
 sourceSets.all { sourceSet ->
     def taskName = sourceSet.getTaskName('classycle', null)
     task(taskName){
-        def reportFile = file("$reportsDir/classcycle/${sourceSet.name}.xml")
+        def reportFile = reporting.file("classcycle/${sourceSet.name}.xml")
         inputs.files sourceSet.output
         outputs.file reportFile
         doLast {
