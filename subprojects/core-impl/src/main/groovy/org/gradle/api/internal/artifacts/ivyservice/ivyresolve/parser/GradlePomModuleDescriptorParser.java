@@ -244,7 +244,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
 
                 for (Object o : domReader.getDependencies()) {
                     PomReader.PomDependencyData dep = (PomReader.PomDependencyData) o;
-                    mdBuilder.addDependency(res, dep);
+                    mdBuilder.addDependency(dep);
                 }
 
                 if (parentDescr != null) {
