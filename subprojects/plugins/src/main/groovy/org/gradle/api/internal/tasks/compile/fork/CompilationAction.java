@@ -60,23 +60,9 @@ public class CompilationAction extends JavaCompilerSupport implements Action<Wor
     }
 
     private JavaCompiler createCompiler() {
-        JavaCompilerChooser chooser = createCompilerChooser();
-        JavaCompiler compiler = new SwitchableJavaCompiler(chooser);
-        compiler.setSource(source);
-        compiler.setDestinationDir(destinationDir);
-        compiler.setClasspath(classpath);
-        compiler.setSourceCompatibility(sourceCompatibility);
-        compiler.setTargetCompatibility(targetCompatibility);
-        compiler.setCompileOptions(compileOptions);
+        JavaCompilerFactory factory = new InProcessJavaCompilerFactory();
+        JavaCompiler compiler = new DelegatingJavaCompiler(factory);
+        configure(compiler);
         return compiler;
-    }
-
-    private JavaCompilerChooser createCompilerChooser() {
-        Factory<AntBuilder> antBuilderFactory = new Factory<AntBuilder>() {
-            public AntBuilder create() {
-                return new BasicAntBuilder();
-            }
-        };
-        return new InProcessJavaCompilerChooser(antBuilderFactory);
     }
 }

@@ -15,11 +15,18 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.api.tasks.WorkResult;
 
-/**
- * Strategy used by SwitchableJavaCompiler to choose the actual compiler.
- */
-public interface JavaCompilerChooser {
-    JavaCompiler choose(CompileOptions options);
+public class DelegatingJavaCompiler extends JavaCompilerSupport {
+    private final JavaCompilerFactory compilerFactory;
+    
+    public DelegatingJavaCompiler(JavaCompilerFactory compilerFactory) {
+        this.compilerFactory = compilerFactory;
+    }
+
+    public WorkResult execute() {
+        JavaCompiler delegate = compilerFactory.create(compileOptions);
+        configure(delegate);
+        return delegate.execute();
+    }
 }

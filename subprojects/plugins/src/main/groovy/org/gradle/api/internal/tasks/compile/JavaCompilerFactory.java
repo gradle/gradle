@@ -17,19 +17,9 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.CompileOptions;
 
-public class AntOrForkingJavaCompilerChooser implements JavaCompilerChooser {
-    private final JavaCompiler antCompiler;
-    private final JavaCompiler forkingCompiler;
-
-    public AntOrForkingJavaCompilerChooser(JavaCompiler antCompiler, JavaCompiler forkingCompiler) {
-        this.antCompiler = antCompiler;
-        this.forkingCompiler = forkingCompiler;
-    }
-
-    public JavaCompiler choose(CompileOptions options) {
-        if (options.isFork() && !options.getForkOptions().isUseAntForking()) {
-            return forkingCompiler;
-        }
-        return antCompiler;
-    }
+/**
+ * Strategy used by SwitchableJavaCompiler to choose the actual compiler.
+ */
+public interface JavaCompilerFactory {
+    JavaCompiler create(CompileOptions options);
 }
