@@ -19,12 +19,13 @@ package org.gradle.util;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.util.jvm.JavaInfo;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Jvm {
+public class Jvm implements JavaInfo {
     
     private final static Logger LOGGER = Logging.getLogger(Jvm.class);
     
@@ -80,7 +81,7 @@ public class Jvm {
      * @throws org.gradle.util.JavaHomeException when supplied javaHome does not seem to be a valid jdk or jre location
      * @throws IllegalArgumentException when supplied javaHome is not a valid folder
      */
-    public static Jvm forHome(File javaHome) throws JavaHomeException, IllegalArgumentException {
+    public static JavaInfo forHome(File javaHome) throws JavaHomeException, IllegalArgumentException {
         if (javaHome == null || !javaHome.isDirectory()) {
             throw new IllegalArgumentException("Supplied javaHome must be a valid directory. You supplied: " + javaHome);
         }
@@ -124,24 +125,21 @@ public class Jvm {
     }
 
     /**
-     * @return the executable
-     * @throws JavaHomeException when executable cannot be found
+     * {@inheritDoc}
      */
     public File getJavaExecutable() throws JavaHomeException {
         return findExecutable("java");
     }
 
     /**
-     * @return the executable
-     * @throws JavaHomeException when executable cannot be found
+     * {@inheritDoc}
      */
     public File getJavadocExecutable() throws JavaHomeException {
         return findExecutable("javadoc");
     }
 
     /**
-     * @return the executable
-     * @throws JavaHomeException when executable cannot be found
+     * {@inheritDoc}
      */
     public File getExecutable(String name) throws JavaHomeException {
         return findExecutable(name);
@@ -167,13 +165,15 @@ public class Jvm {
         return isJava6() || isJava7();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public File getJavaHome() {
         return javaHome;
     }
 
     /**
-     * Returns the runtime jar. May return null, for example when Jvm was created via
-     * {@link #forHome(java.io.File)} and jdk location was supplied.
+     * {@inheritDoc}
      */
     public File getRuntimeJar() {
         File runtimeJar = new File(javaBase, "lib/rt.jar");
@@ -181,8 +181,7 @@ public class Jvm {
     }
 
     /**
-     * Returns the tools jar. May return null, for example when Jvm was created via
-     * {@link #forHome(java.io.File)} and jre location was supplied.
+     * {@inheritDoc}
      */
     public File getToolsJar() {
         return getToolsJar(javaBase);
@@ -211,10 +210,16 @@ public class Jvm {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
         return envVars;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public boolean getSupportsAppleScript() {
         return false;
     }
@@ -232,11 +237,17 @@ public class Jvm {
             super(current, javaHome);
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public File getJavaHome() {
             return super.getJavaHome();
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public File getRuntimeJar() {
             File javaHome = super.getJavaHome();
@@ -244,11 +255,17 @@ public class Jvm {
             return runtimeJar.exists() ? runtimeJar : null;
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public File getToolsJar() {
             return getRuntimeJar();
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
             Map<String, Object> vars = new HashMap<String, Object>();
@@ -261,6 +278,9 @@ public class Jvm {
             return vars;
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public boolean getSupportsAppleScript() {
             return true;
