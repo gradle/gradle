@@ -25,8 +25,6 @@ import org.junit.Rule
 
 class StartScriptGeneratorTest extends Specification {
 
-    //@Rule public TemporaryFolder testFolder = new TemporaryFolder();
-
     def generator = new StartScriptGenerator();
 
     def "classpath for unix script uses slashes as path separator"() {
