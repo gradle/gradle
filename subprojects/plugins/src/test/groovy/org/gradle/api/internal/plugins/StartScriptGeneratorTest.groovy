@@ -20,8 +20,6 @@ package org.gradle.api.internal.plugins
 
 import spock.lang.Specification
 import org.gradle.util.WrapUtil
-import org.junit.rules.TemporaryFolder
-import org.junit.Rule
 
 class StartScriptGeneratorTest extends Specification {
 
