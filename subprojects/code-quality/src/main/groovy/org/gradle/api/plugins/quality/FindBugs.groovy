@@ -127,7 +127,11 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
             }
 
             if (ant.project.properties[warningsProp] && !ignoreFailures) {
-                throw new GradleException("FindBugs rule violations were found. See the report at ${getReportFile()}.")
+                if (reportArguments.outputFile) {
+                    throw new GradleException("FindBugs rule violations were found. See the report at ${reportArguments.outputFile}.")
+                } else {
+                    throw new GradleException("FindBugs rule violations were found.")
+                }
             }
         }
     }
