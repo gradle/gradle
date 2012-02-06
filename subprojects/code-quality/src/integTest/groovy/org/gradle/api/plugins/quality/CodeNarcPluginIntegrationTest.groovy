@@ -38,6 +38,21 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/codenarc/test.html").exists()
     }
 
+    def "is incremental"() {
+        given:
+        goodCode()
+        
+        expect:
+        succeeds("codenarcMain") && ":codenarcMain" in nonSkippedTasks
+        succeeds(":codenarcMain") && ":codenarcMain" in skippedTasks
+
+        when:
+        file("build/reports/codenarc/main.html").delete()
+
+        then:
+        succeeds("codenarcMain") && ":codenarcMain" in nonSkippedTasks
+    }
+    
     def "can generate multiple reports"() {
         given:
         buildFile << """
