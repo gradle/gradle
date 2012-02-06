@@ -15,6 +15,7 @@
  */
 package org.gradle.util;
 
+import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.internal.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,8 @@ public class DeprecationLogger {
         }
     };
 
+    public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
+
     public static void reset() {
         PLUGINS.clear();
         METHODS.clear();
@@ -49,6 +52,7 @@ public class DeprecationLogger {
             LOGGER.warn(String.format(
                     "The %s plugin has been deprecated and will be removed in the next version of Gradle. Please use the %s plugin instead.",
                     pluginName, replacement));
+            logTraceIfNecessary();
         }
     }
     
@@ -57,6 +61,7 @@ public class DeprecationLogger {
             LOGGER.warn(String.format(
                     "The %s method has been deprecated and will be removed in the next version of Gradle. Please use the %s method instead.",
                     methodName, replacement));
+            logTraceIfNecessary();
         }
     }
 
@@ -65,6 +70,7 @@ public class DeprecationLogger {
             LOGGER.warn(String.format(
                     "The %s property has been deprecated and will be removed in the next version of Gradle. Please use the %s property instead.",
                     propertyName, replacement));
+            logTraceIfNecessary();
         }
     }
 
@@ -72,6 +78,7 @@ public class DeprecationLogger {
         if (isEnabled() && METHODS.add(methodName)) {
             LOGGER.warn(String.format("The %s method has been deprecated and will be removed in the next version of Gradle.",
                     methodName));
+            logTraceIfNecessary();
         }
     }
 
@@ -80,6 +87,7 @@ public class DeprecationLogger {
             LOGGER.warn(String.format(
                     "The %s named parameter has been deprecated and will be removed in the next version of Gradle. Please use the %s named parameter instead.",
                     parameterName, replacement));
+            logTraceIfNecessary();
         }
     }
 
@@ -97,7 +105,22 @@ public class DeprecationLogger {
             ENABLED.set(true);
         }
     }
-    
+
+    private static boolean isTraceLoggingEnabled() {
+        return Boolean.getBoolean(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
+    }
+
+    private static void logTraceIfNecessary() {
+        if (isTraceLoggingEnabled()) {
+            StackTraceElement[] stack = StackTraceUtils.sanitize(new Exception()).getStackTrace();
+            for (StackTraceElement frame : stack) {
+                if (!frame.getClassName().startsWith(DeprecationLogger.class.getName())) {
+                    LOGGER.warn("    {}", frame.toString());
+                }
+            }
+        }
+    }
+
     private static boolean isEnabled() {
         return ENABLED.get();
     }
