@@ -32,15 +32,14 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     def "analyze good code"() {
-        file("src/main/java/org/gradle/Class1.java") << "package org.gradle; class Class1 { public boolean isFoo(Object arg) { return true; } }"
-        file("src/test/java/org/gradle/Class1Test.java") << "package org.gradle; class Class1Test { public boolean isFoo(Object arg) { return true; } }"
+        goodCode()
         
         expect:
         succeeds("check")
 		file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
 		file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
-    
+
     void "analyze bad code"() {
         file("src/main/java/org/gradle/Class1.java") << "package org.gradle; class Class1 { public boolean equals(Object arg) { return true; } }"
 
@@ -49,6 +48,83 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
 		failure.assertHasDescription("Execution failed for task ':findbugsMain'")
         failure.assertThatCause(startsWith("FindBugs rule violations were found. See the report at"))
 		file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))
+    }
+
+    def "is incremental"() {
+        given:
+        goodCode()
+
+        expect:
+        succeeds("findbugsMain") && ":findbugsMain" in nonSkippedTasks
+        succeeds(":findbugsMain") && ":findbugsMain" in skippedTasks
+
+        when:
+        file("build/reports/findbugs/main.xml").delete()
+
+        then:
+        succeeds("findbugsMain") && ":findbugsMain" in nonSkippedTasks
+    }
+
+    def "cannot generate multiple reports"() {
+        given:
+        buildFile << """
+            findbugsMain.reports {
+                xml.enabled true
+                html.enabled true
+            }
+        """
+
+        and:
+        goodCode()
+
+        expect:
+        fails "findbugsMain"
+
+        failure.assertHasCause "Findbugs tasks can only have one report enabled"
+    }
+    
+    def "can generate html reports"() {
+        given:
+        buildFile << """
+            findbugsMain.reports {
+                xml.enabled false
+                html.enabled true
+            }
+        """
+        
+        and:
+        goodCode()
+        
+        when:
+        run "findbugsMain"
+        
+        then:
+        file("build/reports/findbugs/main.html").exists()
+    }
+
+    def "can generate no reports"() {
+        given:
+        buildFile << """
+            findbugsMain.reports {
+                xml.enabled false
+                html.enabled false
+            }
+        """
+
+        and:
+        goodCode()
+
+        expect:
+        succeeds "findbugsMain"
+
+        and:
+        !file("build/reports/findbugs/main.html").exists()
+        !file("build/reports/findbugs/main.xml").exists()
+    }
+
+    private goodCode() {
+        file("src/main/java/org/gradle/Class1.java") << "package org.gradle; class Class1 { public boolean isFoo(Object arg) { return true; } }"
+        file("src/test/java/org/gradle/Class1Test.java") << "package org.gradle; class Class1Test { public boolean isFoo(Object arg) { return true; } }"
     }
 
     private Matcher<String> containsClass(String className) {
