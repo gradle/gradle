@@ -21,8 +21,8 @@ import com.google.common.collect.Lists;
 
 import java.io.File;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Keep in mind that this is a serialized value object.
@@ -58,7 +58,7 @@ public class DefaultDaemonContext implements DaemonContext {
             List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(5)));
             return new DefaultDaemonContext(new File(javaHome), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts);
         } else {
-            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: " + source);
+            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + source + "].");
         }
     }
 
