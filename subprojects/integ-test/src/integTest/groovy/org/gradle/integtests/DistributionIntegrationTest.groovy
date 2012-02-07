@@ -26,14 +26,10 @@ import org.junit.Test
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
-import org.gradle.util.PreconditionVerifier
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class DistributionIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final PreconditionVerifier preconditions = new PreconditionVerifier()
     private String version = GradleVersion.current().version
 
     @Test
@@ -106,7 +102,9 @@ class DistributionIntegrationTest {
         assertIsGradleJar(contentsDir.file("lib/gradle-ui-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-launcher-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-tooling-api-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/gradle-wrapper-${version}.jar"))
+        def wrapperJar = contentsDir.file("lib/gradle-wrapper-${version}.jar")
+        assertIsGradleJar(wrapperJar)
+        assert wrapperJar.length() < 20 * 1024; // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
 
         // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-core-impl-${version}.jar"))

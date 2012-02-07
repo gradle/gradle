@@ -16,8 +16,8 @@
 package org.gradle.util;
 
 public class DistributionLocator {
-    private static final String S3_RELEASE_REPOSITORY = "http://downloads.gradle.org/distributions";
-    private static final String S3_SNAPSHOT_REPOSITORY = "http://downloads.gradle.org/distributions-snapshots";
+    private static final String RELEASE_REPOSITORY = "http://services.gradle.org/distributions";
+    private static final String SNAPSHOT_REPOSITORY = "http://services.gradle.org/distributions-snapshots";
 
     public String getDistributionFor(GradleVersion version) {
         return getDistribution(getDistributionRepository(version), version, "gradle", "bin");
@@ -25,9 +25,9 @@ public class DistributionLocator {
 
     public String getDistributionRepository(GradleVersion version) {
         if (version.isSnapshot()) {
-            return S3_SNAPSHOT_REPOSITORY;
+            return SNAPSHOT_REPOSITORY;
         } else {
-            return S3_RELEASE_REPOSITORY;
+            return RELEASE_REPOSITORY;
         }
     }
 
