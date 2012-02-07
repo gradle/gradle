@@ -31,10 +31,10 @@ import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer
  */
 class StoppingDaemonSmokeIntegrationSpec extends DaemonIntegrationSpec {
 
-    def concurrent = new ConcurrentTestUtil()
+    def concurrent = new ConcurrentTestUtil(20000)
     @Rule def temp = new TemporaryFolder()
 
-    @Timeout(10)
+    @Timeout(50)
     def "does not deadlock when multiple stop requests are sent"() {
         given: "multiple daemons started"
         3.times { idx ->
