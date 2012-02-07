@@ -136,7 +136,7 @@ class DistributionIntegrationTest {
         assertThat(jar.manifest.mainAttributes.getValue('Implementation-Title'), equalTo('Gradle'))
     }
 
-    @Test @Requires(TestPrecondition.NOT_WINDOWS)
+    @Test
     void sourceZipContents() {
         TestFile srcZip = dist.distributionsDir.file("gradle-$version-src.zip")
         srcZip.usingNativeTools().unzipTo(dist.testDir)
