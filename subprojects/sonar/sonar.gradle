@@ -19,20 +19,17 @@ apply from: "$rootDir/gradle/providedConfiguration.gradle"
 dependencies {
     groovy libraries.groovy
 
-    compile project(':core')
-    compile project(':plugins')
+    compile project(":core")
+    compile project(":plugins")
     compile libraries.guava
     compile libraries.slf4j_api
     compile "org.codehaus.sonar:sonar-batch-bootstrapper:2.9@jar"
 
-    // TODO: strip down to a minimum; our build shouldn't need to download stuff like Hibernate
-    provided("org.codehaus.sonar:sonar-batch:2.9") {
-        exclude module: "google-collections" // prevent clash with guava at compile time
-    }
-}
-
-configurations.all {
-    resolutionStrategy.force(versions.commons_io)
+    // minimal dependencies to make our code compile
+    // we don't ship these dependencies because sonar-batch-bootstrapper will download them (and many more) at runtime
+    provided "org.codehaus.sonar:sonar-batch:2.9@jar"
+    provided "org.codehaus.sonar:sonar-plugin-api:2.9@jar"
+    provided "commons-configuration:commons-configuration:1.6@jar"
 }
 
 useTestFixtures()

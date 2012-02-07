@@ -86,6 +86,7 @@ libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:ht
     dependency "org.apache.httpcomponents:httpcore:4.1.2@jar"
     dependency libraries.jcl_to_slf4j
     dependency "commons-codec:commons-codec:1.4@jar"
+    dependency "org.samba.jcifs:jcifs:1.3.17"
 }
 
 libraries.maven_ant_tasks = dependencies.module("org.apache.maven:maven-ant-tasks:2.1.3") {
@@ -132,6 +133,9 @@ allprojects {
         mavenRepo(url: 'http://m2repo.spockframework.org/snapshots/')
         ivy {
             url 'http://repo.jfrog.org/artifactory/gradle-wharf-local'
+        }
+        maven {
+            url 'http://repository.amdatu.org/maven2'
         }
     }
 

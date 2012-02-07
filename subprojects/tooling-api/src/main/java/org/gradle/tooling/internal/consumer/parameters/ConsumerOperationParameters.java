@@ -79,7 +79,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             throw new IllegalArgumentException("Supplied javaHome is not a valid folder. You supplied: " + javaHome);
         }
         try {
-            Jvm.forHome(javaHome).getJavaExecutable();
+            Jvm.forHome(javaHome);
         } catch (JavaHomeException e) {
             throw new IllegalArgumentException(
                 "Supplied javaHome does not seem to be a valid java location. You supplied: " + javaHome + "."

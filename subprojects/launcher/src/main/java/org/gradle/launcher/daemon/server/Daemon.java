@@ -148,13 +148,19 @@ public class Daemon implements Runnable, Stoppable {
             
             Runnable onStop = new Runnable() {
                 public void run() {
-                    LOGGER.info("Stop requested. Daemon is stopping accepting new connections...");
-                    registryUpdater.onStop();
+                    LOGGER.info("Daemon is stopping accepting new connections...");
                     connector.stop(); // will block until any running commands are finished
                 }
             };
 
-            stateCoordinator = new DaemonStateCoordinator(onStart, onStartCommand, onFinishCommand, onStop);
+            Runnable onStopRequested = new Runnable() {
+                public void run() {
+                    LOGGER.info("Stop requested. Daemon is removing its presence from the registry...");
+                    registryUpdater.onStop();
+                }
+            };
+
+            stateCoordinator = new DaemonStateCoordinator(onStart, onStartCommand, onFinishCommand, onStop, onStopRequested);
 
             // ready, set, go
             stateCoordinator.start();

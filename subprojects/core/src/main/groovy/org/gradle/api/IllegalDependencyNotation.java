@@ -16,7 +16,7 @@
 package org.gradle.api;
 
 /**
- * This exceptions is thrown, if a dependency is declared with a ilegal notation.
+ * This exceptions is thrown, if a dependency is declared with a illegal notation.
  * 
  * @author Hans Dockter
  */

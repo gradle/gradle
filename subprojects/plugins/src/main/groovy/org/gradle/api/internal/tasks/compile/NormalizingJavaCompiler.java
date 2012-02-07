@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import org.gradle.api.tasks.WorkResult;
 import java.io.File;
 
 /**
- * A {@link JavaCompiler} which does some normalisation of the compile configuration before delegating to some other compiler.
+ * A {@link JavaCompiler} which does some normalization of the compile configuration before delegating to some other compiler.
  */
-public class NormalisingJavaCompiler extends JavaCompilerSupport {
+public class NormalizingJavaCompiler extends JavaCompilerSupport {
     private final JavaCompiler compiler;
 
-    public NormalisingJavaCompiler(JavaCompiler compiler) {
+    public NormalizingJavaCompiler(JavaCompiler compiler) {
         this.compiler = compiler;
     }
 

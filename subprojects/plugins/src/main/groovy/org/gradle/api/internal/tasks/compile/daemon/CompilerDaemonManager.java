@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.compile.daemon;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.Stoppable;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
@@ -27,6 +29,7 @@ import org.gradle.util.Jvm;
 import java.io.File;
 
 public class CompilerDaemonManager implements Stoppable {
+    private static final Logger LOGGER = Logging.getLogger(CompilerDaemonManager.class);
     private static final CompilerDaemonManager INSTANCE = new CompilerDaemonManager();
     
     private DefaultCompilerDaemon daemon;
@@ -45,10 +48,13 @@ public class CompilerDaemonManager implements Stoppable {
     }
     
     public void stop() {
+        System.out.println("Stopping Gradle compiler daemon.");
         process.waitForStop();
+        System.out.println("Gradle compiler daemon stopped.");
     }
     
     private void startDaemon(ProjectInternal project) {
+        System.out.println("Starting Gradle compiler daemon.");
         WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
         File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
@@ -61,6 +67,7 @@ public class CompilerDaemonManager implements Stoppable {
         daemon = new DefaultCompilerDaemon();
         process = builder.worker(daemon).build();
         process.start();
+        System.out.println("Gradle compiler daemon started.");
     }
     
     private void registerShutdownListener(ProjectInternal project) {
