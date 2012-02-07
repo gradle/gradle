@@ -31,6 +31,7 @@ public class DaemonJavaCompiler extends JavaCompilerSupport {
     }
 
     public WorkResult execute() {
+        configure(delegate);
         CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project);
         CompileResult result = daemon.execute(delegate);
         if (result.isSuccess()) {
