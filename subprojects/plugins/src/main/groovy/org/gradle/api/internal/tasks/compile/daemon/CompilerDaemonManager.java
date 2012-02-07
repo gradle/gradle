@@ -22,6 +22,9 @@ import org.gradle.internal.Stoppable;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.util.Jvm;
+
+import java.io.File;
 
 public class CompilerDaemonManager implements Stoppable {
     private static final CompilerDaemonManager INSTANCE = new CompilerDaemonManager();
@@ -47,6 +50,10 @@ public class CompilerDaemonManager implements Stoppable {
     
     private void startDaemon(ProjectInternal project) {
         WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
+        File toolsJar = Jvm.current().getToolsJar();
+        if (toolsJar != null) {
+            builder.getApplicationClasspath().add(toolsJar); // for SunJavaCompiler
+        }
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setMinHeapSize("128m");
         javaCommand.setMaxHeapSize("1g");

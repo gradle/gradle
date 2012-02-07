@@ -23,6 +23,9 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.util.Jvm;
+
+import java.io.File;
 
 public class ForkingJavaCompiler extends JavaCompilerSupport {
     private final ProjectInternal project;
@@ -50,6 +53,10 @@ public class ForkingJavaCompiler extends JavaCompilerSupport {
 
     private WorkerProcess createWorkerProcess() {
         WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
+        File toolsJar = Jvm.current().getToolsJar();
+        if (toolsJar != null) {
+            builder.getApplicationClasspath().add(toolsJar); // for SunJavaCompiler
+        }
         ForkOptions forkOptions = getCompileOptions().getForkOptions();
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setMinHeapSize(forkOptions.getMemoryInitialSize());
