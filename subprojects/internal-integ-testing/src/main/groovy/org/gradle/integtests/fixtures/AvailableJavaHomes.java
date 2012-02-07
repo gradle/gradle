@@ -66,6 +66,20 @@ abstract public class AvailableJavaHomes {
                     }
                 }
             }
+        } else if (OperatingSystem.current().isWindows()) {
+            //very simple algorithm trying to find java on windows
+            File installedJavas = new File("c:/Program Files/Java");
+            File[] files = installedJavas.listFiles();
+            for (File file : files) {
+                if (file.getName().startsWith("jdk")) {
+                    if (jvm.isJava6() && !file.getName().contains("1.6")) {
+                        return file;
+                    }
+                    if (jvm.isJava7() && !file.getName().contains("1.7")) {
+                        return file;
+                    }
+                }
+            }
         }
 
         return null;

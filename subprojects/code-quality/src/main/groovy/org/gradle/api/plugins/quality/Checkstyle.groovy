@@ -15,15 +15,19 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.*
 import org.gradle.api.GradleException
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.Instantiator
+import org.gradle.api.internal.project.IsolatedAntBuilder
+import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl
+import org.gradle.api.reporting.Reporting
 import org.gradle.util.DeprecationLogger
+import org.gradle.api.tasks.*
 
 /**
  * Runs Checkstyle against some source files.
  */
-class Checkstyle extends SourceTask implements VerificationTask {
+class Checkstyle extends SourceTask implements VerificationTask, Reporting<CheckstyleReports> {
     /**
      * The class path containing the Checkstyle library to be used.
      */
@@ -58,7 +62,7 @@ class Checkstyle extends SourceTask implements VerificationTask {
      */
     @Deprecated
     Map<String, Object> getProperties() {
-        DeprecationLogger.nagUserOfReplacedProperty("properties", "configProperties")
+        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.properties", "configProperties")
         getConfigProperties()
     }
 
@@ -70,32 +74,62 @@ class Checkstyle extends SourceTask implements VerificationTask {
      */
     @Deprecated
     void setProperties(Map<String, Object> properties) {
-        DeprecationLogger.nagUserOfReplacedProperty("properties", "configProperties")
+        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.properties", "configProperties")
         setConfigProperties(properties)
     }
 
-    /**
-     * The file in which the XML report will be saved.
-     */
-    @OutputFile
-    File reportFile
+    @Nested
+    private final CheckstyleReportsImpl reports = services.get(Instantiator).newInstance(CheckstyleReportsImpl, this)
 
     /**
-     * @deprecated renamed to <tt>reportFile</tt>
+     * The reports container.
+     *
+     * @return The reports container
      */
-    @Deprecated
-    File getResultFile() {
-        DeprecationLogger.nagUserOfReplacedProperty("resultFile", "reportFile")
-        getReportFile()
+    CheckstyleReports getReports() {
+        reports
     }
 
     /**
-     * @deprecated renamed to <tt>reportFile</tt>
+     * Configures the reports container.
+     *
+     * The contained reports can be configured by name and closures. Example:
+     *
+     * <pre>
+     * checkstyleTask {
+     *   reports {
+     *     xml {
+     *       destination "build/codenarc.xml"
+     *     }
+     *   }
+     * }
+     * </pre>
+     *
+     * @param closure The configuration
+     * @return The reports container
+     */
+    CheckstyleReports reports(Closure closure) {
+        reports.configure(closure)
+    }
+
+    /**
+     * Returns the destination file for the XML report.
+     *
+     * @deprecated Use {@code reports.xml.destination} instead.
+     */
+    @Deprecated
+    File getResultFile() {
+        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.resultFile", "reports.xml.destination")
+        return reports.xml.destination
+    }
+
+    /**
+     * @deprecated Use {@code reports.xml.destination} instead.
      */
     @Deprecated
     void setResultFile(File file) {
-        DeprecationLogger.nagUserOfReplacedProperty("resultFile", "reportFile")
-        setReportFile(file)
+        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.resultFile", "reports.xml.destination")
+        reports.xml.destination = file
     }
 
     /**
@@ -106,21 +140,30 @@ class Checkstyle extends SourceTask implements VerificationTask {
     @TaskAction
     public void run() {
         def propertyName = "org.gradle.checkstyle.violations"
+        def antBuilder = services.get(IsolatedAntBuilder)
+        antBuilder.withClasspath(getCheckstyleClasspath()).execute {
+            ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
 
-        ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask', classpath: getCheckstyleClasspath().asPath)
+            ant.checkstyle(config: getConfigFile(), failOnViolation: false, failureProperty: propertyName) {
+                getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+                getClasspath().addToAntBuilder(ant, 'classpath')
+                formatter(type: 'plain', useFile: false)
+                if (reports.xml.enabled) {
+                    formatter(type: 'xml', toFile: reports.xml.destination)
+                }
 
-        ant.checkstyle(config: getConfigFile(), failOnViolation: false, failureProperty: propertyName) {
-            getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-            getClasspath().addToAntBuilder(ant, 'classpath')
-            formatter(type: 'plain', useFile: false)
-            formatter(type: 'xml', toFile: getReportFile())
-            getConfigProperties().each { key, value ->
-                property(key: key, value: value.toString())
+                getConfigProperties().each { key, value ->
+                    property(key: key, value: value.toString())
+                }
             }
-        }
 
-        if (!getIgnoreFailures() && ant.properties[propertyName]) {
-            throw new GradleException("Checkstyle rule violations were found. See the report at ${getReportFile()}.")
+            if (!getIgnoreFailures() && ant.project.properties[propertyName]) {
+                if (reports.xml.enabled) {
+                    throw new GradleException("Checkstyle rule violations were found. See the report at ${reports.xml.destination}.")
+                } else {
+                    throw new GradleException("Checkstyle rule violations were found")
+                }
+            }
         }
     }
 }

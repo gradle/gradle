@@ -69,15 +69,15 @@ public class ForwardClientInput implements DaemonCommandAction {
                         LOGGER.info("Putting forwarded input '{}' on daemon's stdin", new String(forwardedInput.getBytes()).replace("\n", "\\n"));
                         inputSource.write(forwardedInput.getBytes());
 
-                    } catch (IOException e) {
-                        LOGGER.warn("Received IO exception trying to forward client input", e);
+                    } catch (Exception e) {
+                        LOGGER.warn("Received exception trying to forward client input", e);
                     }
                 } else if (command instanceof CloseInput) {
                     try {
                         LOGGER.info("Closing daemons standard input as requested by received command: {}", command);
                         inputSource.close();
-                    } catch (IOException e) {
-                        LOGGER.warn("IO exception closing output stream connected to replacement stdin", e);
+                    } catch (Exception e) {
+                        LOGGER.warn("Exception closing output stream connected to replacement stdin", e);
                     } finally {
                         countDownInputOrConnectionClosedLatch.run();
                     }
@@ -97,11 +97,14 @@ public class ForwardClientInput implements DaemonCommandAction {
                 // very soon because we are assuming we've just sent back the build result. We do this here
                 // in case the client tries to send input in between us sending back the result and it closing the connection.
                 try {
+                    LOGGER.debug("Waiting until the client disconnects so that we may no longer consume input...");
                     inputOrConnectionClosedLatch.await();
                 } catch (InterruptedException e) {
+                    LOGGER.debug("Interrupted while waiting for client to disconnect.");
                     throw UncheckedException.asUncheckedException(e);
                 } finally {
                     inputReceiver.stop();
+                    LOGGER.debug("The input receiver has been stopped.");
                 }
             }
         });

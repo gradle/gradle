@@ -13,7 +13,7 @@
             <tr><td>ignoreFailures</td><td><literal>false</literal></td></tr>
             <tr><td>configProperties</td><td><literal>project.checkstyleProperties</literal></td></tr>
             <tr>
-                <td>reportFile</td>
+                <td>resultFile</td>
                 <td>
                     <filename><replaceable>${project.checkstyleResultsDir}</replaceable>/<replaceable>${sourceSet.name}</replaceable>.xml</filename>
                 </td></tr>

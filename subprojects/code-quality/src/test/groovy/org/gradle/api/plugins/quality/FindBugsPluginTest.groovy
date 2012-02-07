@@ -15,16 +15,14 @@
  */
 package org.gradle.api.plugins.quality
 
-import static org.gradle.util.Matchers.*
-import static org.hamcrest.Matchers.*
-
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.util.HelperUtil
+import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
-
+import org.gradle.util.HelperUtil
 import spock.lang.Specification
-
+import static org.gradle.util.Matchers.dependsOn
+import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
 
 class FindBugsPluginTest extends Specification {
@@ -34,9 +32,9 @@ class FindBugsPluginTest extends Specification {
         project.plugins.apply(FindBugsPlugin)
     }
 
-    def "applies java-base plugin"() {
+    def "applies reporting-base plugin"() {
         expect:
-        project.plugins.hasPlugin(JavaBasePlugin)
+        project.plugins.hasPlugin(ReportingBasePlugin)
     }
 
     def "configures findbugs configuration"() {
@@ -57,6 +55,7 @@ class FindBugsPluginTest extends Specification {
     }
 
     def "configures findbugs task for each source set"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -77,12 +76,27 @@ class FindBugsPluginTest extends Specification {
             assert defaultSource == sourceSet.allJava
             assert findbugsClasspath == project.configurations.findbugs
             assert classes.empty // no classes to analyze
-            assert reportFile == project.file("build/reports/findbugs/${sourceSet.name}.xml")
+            assert reports.xml.destination == project.file("build/reports/findbugs/${sourceSet.name}.xml")
             assert ignoreFailures == false
         }
     }
 
+    def "configures any additional FindBugs tasks"() {
+        def task = project.tasks.add("findbugsCustom", FindBugs)
+
+        expect:
+        task.description == null
+        task.defaultSource == null
+        task.classes == null
+        task.classpath == null
+        task.findbugsClasspath == project.configurations.findbugs
+        task.pluginClasspath == project.configurations.findbugsPlugins
+        task.reports.xml.destination == project.file("build/reports/findbugs/custom.xml")
+        task.ignoreFailures == false
+    }
+
     def "adds findbugs tasks to check lifecycle task"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -94,6 +108,7 @@ class FindBugsPluginTest extends Specification {
     }
 
     def "can customize settings via extension"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -121,8 +136,45 @@ class FindBugsPluginTest extends Specification {
             assert description == "Run FindBugs analysis for ${sourceSet.name} classes"
             assert defaultSource == sourceSet.allJava
             assert findbugsClasspath == project.configurations.findbugs
-            assert reportFile == project.file("findbugs-reports/${sourceSet.name}.xml")
+            assert reports.xml.destination == project.file("findbugs-reports/${sourceSet.name}.xml")
             assert ignoreFailures == true
         }
+    }
+    
+    def "can customize any additional FindBugs tasks via extension"() {
+        def task = project.tasks.add("findbugsCustom", FindBugs)
+        project.findbugs {
+            reportsDir = project.file("findbugs-reports")
+            ignoreFailures = true
+        }
+
+        expect:
+        task.description == null
+        task.defaultSource == null
+        task.classes == null
+        task.classpath == null
+        task.findbugsClasspath == project.configurations.findbugs
+        task.pluginClasspath == project.configurations.findbugsPlugins
+        task.reports.xml.destination == project.file("findbugs-reports/custom.xml")
+        task.ignoreFailures == true
+    }
+
+    def "can configure reporting"() {
+        given:
+        project.plugins.apply(JavaBasePlugin)
+        project.sourceSets {
+            main
+        }
+
+        when:
+        project.findbugsMain.reports {
+            html {
+                enabled true
+            }
+            xml.destination "foo"
+        }
+
+        then:
+        notThrown()
     }
 }

@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal
 
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
 
 public class DynamicObjectHelperTestHelper {
     public static void assertCanGetAllProperties (DynamicObjectHelperTest.Bean bean) {
@@ -89,5 +90,37 @@ public class GroovyBean extends DynamicBean {
 
     def groovyMethod(a, b) {
         "groovy:$a.$b".toString()
+    }
+}
+
+class DynamicGroovyBean {
+    
+    private holder = null;
+    
+    Map called = [:]
+    
+    def propertyMissing(String name) {
+        if (name == "foo") {
+            return holder;
+        } else {
+            throw new MissingPropertyException(name, getClass())
+        }
+    }
+
+    def propertyMissing(String name, value) {
+        if (name == "foo") {
+            holder = value;
+        } else {
+            throw new MissingPropertyException(name, getClass())
+        }
+
+    }
+    
+    def methodMissing(String name, args) {
+        if (name == "bar") {
+            args[0] * 2   
+        } else {
+            throw new groovy.lang.MissingMethodException(name, getClass(), args)
+        }
     }
 }

@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 
 import org.junit.Rule
+import org.hamcrest.Matchers
 
 class ForkingJavaCompilerIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources()
@@ -26,28 +27,35 @@ class ForkingJavaCompilerIntegrationTest extends AbstractIntegrationSpec {
     def compileGoodCode() {
         expect:
         succeeds("compileJava")
-        output.contains("[javac] Compiling 1 source file")
+        !errorOutput
         file("build/classes/main/compile/fork/Person.class").exists()
     }
     
     def compileBadCode() {
         expect:
         fails("compileJava")
-        output.contains("[javac] Compiling 1 source file")
-        output.contains("';' expected")
+        errorOutput.contains("';' expected")
+        !file("build/classes/main/compile/fork/Person.class").exists()
+    }
+
+    def compileBadCodeWithoutFailing() {
+        expect:
+        succeeds("compileJava")
+        errorOutput.contains("';' expected")
         !file("build/classes/main/compile/fork/Person.class").exists()
     }
     
     def compileWithLongClasspath() {
         expect:
         succeeds("compileJava")
-        output.contains("[javac] Compiling 1 source file")
+        !errorOutput
         file("build/classes/main/compile/fork/Person.class").exists()
     }
 
     def compileWithCustomHeapSettings() {
         expect:
         succeeds("compileJava")
+        !errorOutput
         file("build/classes/main/compile/fork/Person.class").exists()
         // couldn't find a good way to verify that heap settings take effect
     }
@@ -55,7 +63,23 @@ class ForkingJavaCompilerIntegrationTest extends AbstractIntegrationSpec {
     def useAntForking() {
         expect:
         succeeds("compileJava")
-        !output.contains("[javac]") // not sure why, but at least it allows us to tell apart Ant forking from Gradle forking
+        !errorOutput
         file("build/classes/main/compile/fork/Person.class").exists()
+    }
+    
+    def listSourceFiles() {
+        expect:
+        succeeds("compileJava")
+        output.contains(new File("src/main/java/compile/fork/Person1.java").toString())
+        output.contains(new File("src/main/java/compile/fork/Person2.java").toString())
+        !errorOutput
+        file("build/classes/main/compile/fork/Person1.class").exists()
+        file("build/classes/main/compile/fork/Person2.class").exists()
+    }
+    
+    def nonJavaSourceFilesAreNotTolerated() {
+        expect:
+        fails("compileJava")
+        failure.assertThatCause(Matchers.startsWith("Cannot compile non-Java source file"))
     }
 }

@@ -15,17 +15,24 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.logging.LogLevel
-import org.gradle.api.tasks.*
 //import org.gradle.api.plugins.quality.internal.ConsoleReportWriter
-import org.gradle.api.file.FileCollection
-import org.apache.tools.ant.BuildException
+
+
 import org.gradle.api.GradleException
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.Instantiator
+import org.gradle.api.internal.project.IsolatedAntBuilder
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
+import org.gradle.api.reporting.Report
+import org.gradle.api.reporting.Reporting
+import org.gradle.api.tasks.*
+import org.gradle.util.DeprecationLogger
 
 /**
  * Runs CodeNarc against some source files.
  */
-class CodeNarc extends SourceTask implements VerificationTask {
+class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNarcReports> {
     /**
      * The class path containing the CodeNarc library to be used.
      */
@@ -40,15 +47,48 @@ class CodeNarc extends SourceTask implements VerificationTask {
 
     /**
      * The format type of the CodeNarc report.
+     *
+     * @deprecated Use {@code reports.<report-type>.enabled} instead.
      */
-    @Input
-    String reportFormat
+    @Deprecated
+    String getReportFormat() {
+        DeprecationLogger.nagUserOfReplacedProperty("CodeNarc.reportFormat", "reports.<report-type>.enabled")
+        reports.firstEnabled?.name
+    }
 
     /**
-     * The file to write the report to.
+     * @deprecated Use {@code reports.<report-type>.enabled} instead.
      */
-    @OutputFile
-    File reportFile
+    @Deprecated
+    void setReportFormat(String reportFormat) {
+        DeprecationLogger.nagUserOfReplacedProperty("CodeNarc.reportFormat", "reports.<report-type>.enabled")
+        reports.each {
+            it.enabled == it.name == reportFormat
+        }
+    }
+
+    /**
+     * The file to write the report to
+     *
+     * @deprecated Use {@code reports.<report-type>.destination} instead.
+     */
+    @Deprecated
+    File getReportFile() {
+        DeprecationLogger.nagUserOfReplacedProperty("CodeNarc.reportFile", "reports.<report-type>.destination")
+        reports.firstEnabled?.destination
+    }
+
+    /**
+     * @deprecated Use {@code reports.<report-type>.destination} instead.
+     */
+    @Deprecated
+    void setReportFile(File reportFile) {
+        DeprecationLogger.nagUserOfReplacedProperty("CodeNarc.reportFile", "reports.<report-type>.destination")
+        reports.firstEnabled?.destination = reportFile
+    }
+
+    @Nested
+    private final CodeNarcReportsImpl reports = services.get(Instantiator).newInstance(CodeNarcReportsImpl, this)
 
     /**
      * Whether or not the build should break when the verifications performed by this task fail.
@@ -58,24 +98,42 @@ class CodeNarc extends SourceTask implements VerificationTask {
     @TaskAction
     void run() {
         logging.captureStandardOutput(LogLevel.INFO)
+        def antBuilder = services.get(IsolatedAntBuilder)
+        antBuilder.withClasspath(getCodenarcClasspath()).execute {
+            ant.taskdef(name: 'codenarc', classname: 'org.codenarc.ant.CodeNarcTask')
+            try {
+                ant.codenarc(ruleSetFiles: "file:${getConfigFile()}", maxPriority1Violations: 0, maxPriority2Violations: 0, maxPriority3Violations: 0) {
+                    reports.enabled.each { Report r ->
+                        report(type: r.name) {
+                            option(name: 'outputFile', value: r.destination)
+                        }
+                    }
 
-        ant.taskdef(name: 'codenarc', classname: 'org.codenarc.ant.CodeNarcTask', classpath: getCodenarcClasspath().asPath)
-
-        try {
-            ant.codenarc(ruleSetFiles: "file:${getConfigFile()}", maxPriority1Violations: 0, maxPriority2Violations: 0, maxPriority3Violations: 0) {
-                report(type: getReportFormat()) {
-                    option(name: 'outputFile', value: getReportFile())
+                    source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
                 }
-                source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-            }
-        } catch (BuildException e) {
-            if (e.message.matches('Exceeded maximum number of priority \\d* violations.*')) {
-                if (getIgnoreFailures()) {
-                    return
+            } catch (Exception e) {
+                if (e.message.matches('Exceeded maximum number of priority \\d* violations.*')) {
+                    if (getIgnoreFailures()) {
+                        return
+                    }
+                    if (reports.html.enabled) {
+                        throw new GradleException("CodeNarc rule violations were found. See the report at ${reports.html.destination}.", e)
+                    } else {
+                        throw new GradleException("CodeNarc rule violations were found.", e)
+                    }
                 }
-                throw new GradleException("CodeNarc rule violations were found. See the report at ${getReportFile()}.", e)
+                throw e
             }
-            throw e
         }
     }
+
+    CodeNarcReports getReports() {
+        return reports
+    }
+
+    CodeNarcReports reports(Closure closure) {
+        reports.configure(closure)
+    }
+
+
 }

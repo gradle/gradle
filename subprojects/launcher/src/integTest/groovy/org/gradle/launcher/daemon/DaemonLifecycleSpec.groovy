@@ -16,22 +16,14 @@
 
 package org.gradle.launcher.daemon
 
-import ch.qos.logback.classic.Level
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.GradleHandle
 import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.util.Jvm
-import org.junit.Rule
-import org.slf4j.LoggerFactory
 import spock.lang.IgnoreIf
-import spock.lang.Specification
-import spock.lang.Timeout
-import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
 import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
 
 /**
@@ -41,10 +33,7 @@ import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
  * from the org.gradle.launcher.daemon.testing.* package to model a sequence of expected
  * daemon registry state changes, executing actions at certain state changes.
  */
-@IgnoreIf({OperatingSystem.current().windows})
-class DaemonLifecycleSpec extends Specification {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter(daemon)
+class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     def daemonIdleTimeout = 5
 
@@ -55,6 +44,13 @@ class DaemonLifecycleSpec extends Specification {
     def javaHome = null
 
     @Delegate DaemonEventSequenceBuilder sequenceBuilder = new DaemonEventSequenceBuilder()
+
+    def setup() {
+        //to work around an issue with the daemon having awkward jvm input arguments
+        //when GRADLE_OPTS contains -Djava.io.tmpdir with value that has spaces
+        //once this problem is fixed we could get rid of this workaround
+        distribution.avoidsConfiguringTmpDir()
+    }
 
     def buildDir(buildNum) {
         distribution.file("builds/$buildNum")
@@ -76,34 +72,44 @@ class DaemonLifecycleSpec extends Specification {
             if (javaHome) {
                 executer.withJavaHome(javaHome)
             }
+            //TODO SF when the tests are interrupted (for example, from idea)
+            //or when they break they seem to leave GradleDaemon and GradleMain processes hung forever
+            //the sanity check does not really help
             executer.usingProjectDirectory buildDirWithScript(builds.size(), """
                 task('watch') << {
                     println "waiting for stop file"
+                    long sanityCheck = System.currentTimeMillis() + 20000L
                     while(!file("stop").exists()) {
                         sleep 100
+                        if (file("exit").exists()) {
+                            System.exit(1)
+                        }
+                        if (System.currentTimeMillis() > sanityCheck) {
+                            throw new RuntimeException("It seems the stop file was never created")
+                        }
                     }
                     println 'noticed stop file, finishing'
                 }
             """)
             builds << executer.start()
         }
+        //TODO SF - figure out how to add waitForBuildToWait somewhere here
     }
 
     void completeBuild(buildNum = 0) {
-        run { buildDir(buildNum).file("stop") << "stop" }
+        run {
+            buildDir(buildNum).file("stop") << "stop"
+        }
     }
 
     void waitForBuildToWait(buildNum = 0) {
-        run { poll { assert builds[buildNum].standardOutput.contains("waiting for stop file"); } }
+        run {
+            poll { assert builds[buildNum].standardOutput.contains("waiting for stop file"); }
+        }
     }
 
     void stopDaemons() {
         run { stopDaemonsNow() }
-    }
-
-    void buildSucceeds(String script) {
-        distribution.file('build.gradle') << script
-        executer.withArguments("--info", "-Dorg.gradle.jvmargs=").run()
     }
 
     void stopDaemonsNow() {
@@ -130,8 +136,15 @@ class DaemonLifecycleSpec extends Specification {
         if (javaHome) {
             executer.withJavaHome(javaHome)
         }
-        executer.withArguments("--foreground", "--info")
+        executer.withArguments("--foreground", "--info", "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}")
         foregroundDaemons << executer.start()
+    }
+
+    //this is a windows-safe way of killing the process
+    void disappearDaemon(int num = 0) {
+        run {
+            buildDir(num).file("exit") << "exit"
+        }
     }
 
     void killForegroundDaemon(int num = 0) {
@@ -150,7 +163,7 @@ class DaemonLifecycleSpec extends Specification {
         run { failed foregroundDaemons[num] }
     }
 
-    void failed(handle) {
+    void failed(GradleHandle handle) {
         assert handle.waitForFailure()
     }
 
@@ -174,11 +187,6 @@ class DaemonLifecycleSpec extends Specification {
         DefaultDaemonContext.parseFrom(gradleHandle.standardOutput).with(assertions)
     }
 
-    def setup() {
-        distribution.requireIsolatedDaemons()
-        LoggerFactory.getLogger("org.gradle.cache.internal.DefaultFileLockManager").level = Level.INFO
-    }
-
     def "daemons do some work - sit idle - then timeout and die"() {
         when:
         startBuild()
@@ -197,6 +205,11 @@ class DaemonLifecycleSpec extends Specification {
     }
 
     def "existing idle daemons are used"() {
+        given:
+        //idle timeout is high enough to catch the subtle problem of the
+        // 1st daemon timeouting and hence preventing us to verify if we connect to an existing daemon.
+        daemonIdleTimeout = 15
+
         when:
         startForegroundDaemon()
 
@@ -205,6 +218,7 @@ class DaemonLifecycleSpec extends Specification {
 
         when:
         startBuild()
+        waitForBuildToWait()
 
         then:
         busy()
@@ -259,6 +273,8 @@ class DaemonLifecycleSpec extends Specification {
     }
 
     def "sending stop to busy daemons cause them to disappear from the registry and disconnect from the client, and terminates the daemon process"() {
+        daemonIdleTimeout = 15
+
         when:
         startForegroundDaemon()
 
@@ -267,6 +283,7 @@ class DaemonLifecycleSpec extends Specification {
 
         when:
         startBuild()
+        waitForBuildToWait()
 
         then:
         busy()
@@ -284,9 +301,18 @@ class DaemonLifecycleSpec extends Specification {
         foregroundDaemonFailed()
     }
 
+    @IgnoreIf({OperatingSystem.current().windows})
+    //(SF) On windows at the moment, we cannot reliably kill the client without waiting for the daemon to complete
+    //It's because of the way windows handles pipes for child processes.
+    //basically, process.waitFor() completes and you can get hold of the exit value,
+    //however, the process still sits there blocked on reading the child process' outputs.
+    //Next steps:
+    // 1. We can revisit this problem once we solve the daemon feedback story and we have a jna process starter that is able to consume the inputs
+    // 2. We can make this test working on java7 (because processbuilder in jre7 is more powerful)
     def "tearing down client while daemon is building tears down daemon"() {
         when:
         startBuild()
+        waitForBuildToWait()
 
         then:
         busy()
@@ -298,6 +324,8 @@ class DaemonLifecycleSpec extends Specification {
         stopped()
     }
 
+    @IgnoreIf({OperatingSystem.current().windows})
+    //See the comment in the previous test
     def "tearing down client while daemon is building tears down daemon _process_"() {
         when:
         startForegroundDaemon()
@@ -307,6 +335,7 @@ class DaemonLifecycleSpec extends Specification {
 
         when:
         startBuild()
+        waitForBuildToWait()
 
         then:
         busy()
@@ -321,7 +350,6 @@ class DaemonLifecycleSpec extends Specification {
         foregroundDaemonFailed()
     }
 
-    @Timeout(60)
     def "tearing down daemon process produces nice error message for client"() {
         when:
         startForegroundDaemon()
@@ -336,7 +364,7 @@ class DaemonLifecycleSpec extends Specification {
         busy()
 
         when:
-        killForegroundDaemon()
+        disappearDaemon()
 
         then:
         buildFailedWithDaemonDisappearedMessage()
@@ -348,7 +376,7 @@ class DaemonLifecycleSpec extends Specification {
         run { assert executer.daemonRegistry.busy.size() == 1; }
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
     def "if a daemon exists but is using a different java home, a new compatible daemon will be created and used"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()
@@ -377,8 +405,8 @@ class DaemonLifecycleSpec extends Specification {
             assert javaHome == Jvm.current().javaHome
         }
     }
-    
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
     def "can stop a daemon that is using a different java home"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()
@@ -393,27 +421,6 @@ class DaemonLifecycleSpec extends Specification {
         stopped()
     }
 
-    def "honours jvm args specified in gradle.properties"() {
-        given:
-        distribution.file("gradle.properties") << "org.gradle.jvmargs=-Dsome-prop=some-value -Xmx16m"
-
-        expect:
-        buildSucceeds """
-assert System.getProperty('some-prop') == 'some-value'
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
-        """
-    }
-
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
-    def "honours java home specified in gradle.properties"() {
-        given:
-        File javaHome = AvailableJavaHomes.bestAlternative
-        distribution.file("gradle.properties") << "org.gradle.java.home=$javaHome"
-
-        expect:
-        buildSucceeds "assert System.getProperty('java.home').startsWith('$javaHome')"
-    }
-
     def cleanup() {
         try {
             sequenceBuilder.build(executer.daemonRegistry).run()
@@ -421,5 +428,4 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
             stopDaemonsNow()
         }
     }
-
 }

@@ -17,6 +17,8 @@
 package org.gradle.wrapper;
 
 import java.io.*;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -27,6 +29,16 @@ import java.net.URLConnection;
 public class Download implements IDownload {
     private static final int PROGRESS_CHUNK = 20000;
     private static final int BUFFER_SIZE = 10000;
+
+    public Download() {
+        configureProxyAuthentication();
+    }
+
+    private void configureProxyAuthentication() {
+        if (System.getProperty("http.proxyUser") != null) {
+            Authenticator.setDefault(new SystemPropertiesProxyAuthenticator());
+        }
+    }
 
     public void download(URI address, File destination) throws Exception {
         if (destination.exists()) {
@@ -69,5 +81,13 @@ public class Download implements IDownload {
         }
     }
 
+    private static class SystemPropertiesProxyAuthenticator extends Authenticator {
+        @Override
+        protected PasswordAuthentication getPasswordAuthentication() {
+            return new PasswordAuthentication(
+                    System.getProperty("http.proxyUser"),
+                    System.getProperty("http.proxyPassword", "").toCharArray());
+        }
+    }
 
 }

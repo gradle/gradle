@@ -15,16 +15,14 @@
  */
 package org.gradle.api.plugins.quality
 
-import static org.gradle.util.Matchers.*
-import static org.hamcrest.Matchers.*
-
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.util.HelperUtil
+import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
-
+import org.gradle.util.HelperUtil
 import spock.lang.Specification
-
+import static org.gradle.util.Matchers.dependsOn
+import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
 
 class JDependPluginTest extends Specification {
@@ -34,9 +32,9 @@ class JDependPluginTest extends Specification {
         project.plugins.apply(JDependPlugin)
     }
 
-    def "applies java-base plugin"() {
+    def "applies reporting-base plugin"() {
         expect:
-        project.plugins.hasPlugin(JavaBasePlugin)
+        project.plugins.hasPlugin(ReportingBasePlugin)
     }
 
     def "configures jdepend configuration"() {
@@ -57,6 +55,7 @@ class JDependPluginTest extends Specification {
     }
 
     def "configures jdepend task for each source set"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -76,12 +75,24 @@ class JDependPluginTest extends Specification {
             assert description == "Run JDepend analysis for ${sourceSet.name} classes"
             assert jdependClasspath == project.configurations.jdepend
             assert classesDir == sourceSet.output.classesDir
-            assert reportFile == project.file("build/reports/jdepend/${sourceSet.name}.xml")
+            assert reports.xml.destination == project.file("build/reports/jdepend/${sourceSet.name}.xml")
             assert ignoreFailures == false
         }
     }
 
+    def "configures any additional JDepend tasks"() {
+        def task = project.tasks.add("jdependCustom", JDepend)
+
+        expect:
+        task.description == null
+        task.classesDir == null
+        task.jdependClasspath == project.configurations.jdepend
+        task.reports.xml.destination == project.file("build/reports/jdepend/custom.xml")
+        task.ignoreFailures == false
+    }
+
     def "adds jdepend tasks to check lifecycle task"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -93,6 +104,7 @@ class JDependPluginTest extends Specification {
     }
 
     def "can customize settings via extension"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -113,6 +125,40 @@ class JDependPluginTest extends Specification {
         that(project.check, dependsOn(not(hasItems('jdependTest', 'jdependOther'))))
     }
 
+    def "can customize any additional JDepend tasks via extension"() {
+        def task = project.tasks.add("jdependCustom", JDepend)
+        project.jdepend {
+            reportsDir = project.file("jdepend-reports")
+            ignoreFailures = true
+        }
+
+        expect:
+        task.description == null
+        task.classesDir == null
+        task.jdependClasspath == project.configurations.jdepend
+        task.reports.xml.destination == project.file("jdepend-reports/custom.xml")
+        task.ignoreFailures == true
+    }
+
+    def "can configure reporting"() {
+        given:
+        project.plugins.apply(JavaBasePlugin)
+        project.sourceSets {
+            main
+        }
+
+        when:
+        project.jdependMain.reports {
+            text {
+                enabled true
+            }
+            xml.destination "foo"
+        }
+
+        then:
+        notThrown()
+    }
+
     private void hasCustomizedSettings(String taskName, SourceSet sourceSet) {
         def task = project.tasks.findByName(taskName)
         assert task instanceof JDepend
@@ -120,7 +166,7 @@ class JDependPluginTest extends Specification {
             assert description == "Run JDepend analysis for ${sourceSet.name} classes"
             assert jdependClasspath == project.configurations.jdepend
             assert classesDir == sourceSet.output.classesDir
-            assert reportFile == project.file("jdepend-reports/${sourceSet.name}.xml")
+            assert reports.xml.destination == project.file("jdepend-reports/${sourceSet.name}.xml")
             assert ignoreFailures == true
         }
     }

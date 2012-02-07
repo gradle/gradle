@@ -16,13 +16,11 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.file.FileCollection
-
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.SourceTask
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.VerificationTask
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Input
+import org.gradle.api.internal.Instantiator
+import org.gradle.api.plugins.quality.internal.PmdReportsImpl
+import org.gradle.api.reporting.Reporting
+import org.gradle.api.tasks.*
+import org.gradle.api.internal.project.IsolatedAntBuilder
 
 /**
  * Runs a set of static code analysis rules on Java source code files and
@@ -30,7 +28,7 @@ import org.gradle.api.tasks.Input
  *
  * @see PmdPlugin
  */
-class Pmd extends SourceTask implements VerificationTask {
+class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> {
     /**
      * The class path containing the PMD library to be used.
      */
@@ -53,22 +51,9 @@ class Pmd extends SourceTask implements VerificationTask {
      */
     @InputFiles
     FileCollection ruleSetFiles
-    
-    /**
-     * The file in which the XML report will be saved.
-     *
-     * Example: xmlReportFile = file("build/reports/pmdReport.xml")
-     */
-    @OutputFile
-    File xmlReportFile
 
-    /**
-     * The file in which the HTML report will be saved.
-     *
-     * Example: htmlReportFile = file("build/reports/pmdReport.html")
-     */
-    @OutputFile
-    File htmlReportFile
+    @Nested
+    private final PmdReportsImpl reports = services.get(Instantiator).newInstance(PmdReportsImpl, this)
 
     /**
      * Whether or not to allow the build to continue if there are warnings.
@@ -79,17 +64,34 @@ class Pmd extends SourceTask implements VerificationTask {
 
     @TaskAction
     void run() {
-        ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask', classpath: getPmdClasspath().asPath)
-        ant.pmd(failOnRuleViolation: !getIgnoreFailures()) {
-            getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-            getRuleSets().each {
-                ruleset(it)
+        def antBuilder = services.get(IsolatedAntBuilder)
+        antBuilder.withClasspath(getPmdClasspath()).execute {
+            ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
+            ant.pmd(failOnRuleViolation: !getIgnoreFailures()) {
+                getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+                getRuleSets().each {
+                    ruleset(it)
+                }
+                getRuleSetFiles().each {
+                    ruleset(it)
+                }
+
+                if (reports.html.enabled) {
+                    assert reports.html.destination.parentFile.exists()
+                    formatter(type: 'betterhtml', toFile: reports.html.destination)
+                }
+                if (reports.xml.enabled) {
+                    formatter(type: 'xml', toFile: reports.xml.destination)
+                }
             }
-            getRuleSetFiles().each {
-                ruleset(it)
-            }
-            formatter(type: 'betterhtml', toFile: getHtmlReportFile())
-            formatter(type: 'xml', toFile: getXmlReportFile())
         }
+    }
+
+    PmdReports reports(Closure closure) {
+        reports.configure(closure)
+    }
+
+    PmdReports getReports() {
+        reports
     }
 }

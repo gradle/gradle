@@ -87,6 +87,7 @@ public class CustomPlugin implements Plugin<Project> {
         } catch (ClassNotFoundException e) {
             // expected
         }
+        assert Thread.currentThread().contextClassLoader == getClass().classLoader
         p.task('test')
     }
 }

@@ -323,9 +323,9 @@ public class ResourceCollectionResolver extends BasicResolver {
     public void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
         String destinationPattern;
         if ("ivy".equals(artifact.getType()) && !getIvyPatterns().isEmpty()) {
-            destinationPattern = (String) getIvyPatterns().get(0);
+            destinationPattern = getIvyPatterns().get(0);
         } else if (!getArtifactPatterns().isEmpty()) {
-            destinationPattern = (String) getArtifactPatterns().get(0);
+            destinationPattern = getArtifactPatterns().get(0);
         } else {
             throw new IllegalStateException("impossible to publish " + artifact + " using " + this + ": no artifact pattern defined");
         }

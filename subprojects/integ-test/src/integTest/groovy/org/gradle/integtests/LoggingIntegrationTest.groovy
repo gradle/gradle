@@ -21,6 +21,7 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import org.gradle.integtests.fixtures.*
+import org.gradle.util.SystemProperties
 
 /**
  * @author Hans Dockter
@@ -101,6 +102,8 @@ class LoggingIntegrationTest {
                 'LOGGER: evaluated project :project1',
                 'LOGGER: evaluated project :project2',
                 'LOGGER: executed task :project1:log',
+                'LOGGER: executed task :project1:logInfo',
+                'LOGGER: executed task :project1:logLifecycle',
                 'LOGGER: task :project1:log starting work',
                 'LOGGER: task :project1:log completed work',
                 'main buildSrc info',
@@ -220,22 +223,22 @@ class LoggingIntegrationTest {
 
         String initScript = new File(loggingDir, 'init.gradle').absolutePath
         String[] allArgs = level.args + ['-I', initScript]
-        return executer.inDirectory(loggingDir).withArguments(allArgs).withTasks('log').run()
+        return executer.setAllowExtraLogging(false).inDirectory(loggingDir).withArguments(allArgs).withTasks('log').run()
     }
 
     def runBroken(LogLevel level) {
         TestFile loggingDir = dist.testDir
 
-        return executer.inDirectory(loggingDir).withTasks('broken').runWithFailure()
+        return executer.setAllowExtraLogging(false).inDirectory(loggingDir).withTasks('broken').runWithFailure()
     }
 
     def runMultiThreaded(LogLevel level) {
         resources.maybeCopy('LoggingIntegrationTest/multiThreaded')
-        return executer.withArguments(level.args).withTasks('log').run()
+        return executer.setAllowExtraLogging(false).withArguments(level.args).withTasks('log').run()
     }
 
     def runSample(LogLevel level) {
-        return executer.inDirectory(sampleResources.dir).withArguments(level.args).withTasks('log').run()
+        return executer.setAllowExtraLogging(false).inDirectory(sampleResources.dir).withArguments(level.args).withTasks('log').run()
     }
 
     void checkOutput(Closure run, LogLevel level) {
@@ -253,11 +256,11 @@ class LoggingIntegrationTest {
         )
 
         resources.maybeCopy('LoggingIntegrationTest/deprecated')
-        ExecutionResult result = executer.withArguments(deprecated.args).withTasks('log').run()
+        ExecutionResult result = executer.withDeprecationChecksDisabled().withArguments(deprecated.args).withTasks('log').run()
         deprecated.checkOuts(result)
 
         // Ensure warnings are logged the second time
-        ExecutionResult secondResult = executer.withArguments(deprecated.args).withTasks('log').run()
+        ExecutionResult secondResult = executer.withDeprecationChecksDisabled().withArguments(deprecated.args).withTasks('log').run()
         deprecated.checkOuts(secondResult)
     }
 
@@ -278,54 +281,85 @@ class LoggingIntegrationTest {
 }
 
 class LogLevel {
-    List args
-    List infoMessages
-    List errorMessages
-    List allMessages
-    Closure matchPartialLine = {expected, actual -> expected == actual }
+    List<String> args
+    List<String> infoMessages
+    List<String> errorMessages
+    List<String> allMessages
+    Closure validator = {OutputOccurrence occurrence ->
+        occurrence.assertIsAtEndOfLine()
+        occurrence.assertIsAtStartOfLine()
+    }
 
     def getForbiddenMessages() {
         allMessages - (infoMessages + errorMessages)
     }
 
     def checkOuts(ExecutionResult result) {
-        infoMessages.each {List messages ->
-            checkOuts(true, result.output, messages, matchPartialLine)
+        infoMessages.each {List<String> messages ->
+            checkOuts(true, result.output, messages, validator)
         }
-        errorMessages.each {List messages ->
-            checkOuts(true, result.error, messages, matchPartialLine)
+        errorMessages.each {List<String> messages ->
+            checkOuts(true, result.error, messages, validator)
         }
-        forbiddenMessages.each {List messages ->
-            checkOuts(false, result.output, messages) {expected, actual-> actual.contains(expected)}
-            checkOuts(false, result.error, messages) {expected, actual-> actual.contains(expected)}
+        forbiddenMessages.each {List<String> messages ->
+            checkOuts(false, result.output, messages) {occurrence -> }
+            checkOuts(false, result.error, messages) {occurrence -> }
         }
     }
 
-    def checkOuts(boolean shouldContain, String result, List outs, Closure partialLine) {
+    def checkOuts(boolean shouldContain, String result, List<String> outs, Closure validator) {
         outs.each {String expectedOut ->
-            def found = result.readLines().findAll {partialLine.call(expectedOut, it)}
-            def expectedCount = outs.findAll {partialLine.call(expectedOut, it)}.size()
-            if (found.empty && shouldContain) {
-                throw new AssertionFailedError("Could not find expected line '$expectedOut' in output:\n$result")
+            def filters = outs.findAll { other -> other != expectedOut && other.startsWith(expectedOut) }
+
+            // Find all locations of the expected string in the output
+            List<Integer> matches = []
+            int pos = 0;
+            while (pos < result.length()) {
+                int match = result.indexOf(expectedOut, pos)
+                if (match < 0) {
+                    break
+                }
+
+                // Filter matches with other expected strings that have this string as a prefix
+                boolean filter = filters.find { other -> result.substring(match).startsWith(other)} != null
+                if (!filter) {
+                    matches << match
+                }
+                pos = match + expectedOut.length()
             }
-            if (!found.empty && !shouldContain) {
-                throw new AssertionFailedError("Found unexpected line '$expectedOut' in output:\n$result")
+
+            // Check we found the expected number of occurrences of the expected string
+            if (!shouldContain) {
+                if (!matches.empty) {
+                    throw new AssertionFailedError("Found unexpected content '$expectedOut' in output:\n$result")
+                }
+            } else {
+                if (matches.empty) {
+                    throw new AssertionFailedError("Could not find expected content '$expectedOut' in output:\n$result")
+                }
+                if (matches.size() > 1) {
+                    throw new AssertionFailedError("Expected content '$expectedOut' should occur exactly once but found ${matches.size()} times in output:\n$result")
+                }
+
+                // Validate each occurrence
+                matches.each {
+                    validator.call(new OutputOccurrence(expectedOut, result, it))
+                }
             }
-            assert found.empty || found.size() == expectedCount : "'$expectedOut' should occur exactly $expectedCount but found ${found.size()} times in output:\n$result"
         }
     }
 }
 
 class LogOutput {
-    final List quietMessages = []
-    final List errorMessages = []
-    final List warningMessages = []
-    final List lifecycleMessages = []
-    final List infoMessages = []
-    final List debugMessages = []
-    final List traceMessages = []
-    final List forbiddenMessages = []
-    final List allOuts = [
+    final List<String> quietMessages = []
+    final List<String> errorMessages = []
+    final List<String> warningMessages = []
+    final List<String> lifecycleMessages = []
+    final List<String> infoMessages = []
+    final List<String> debugMessages = []
+    final List<String> traceMessages = []
+    final List<String> forbiddenMessages = []
+    final List<String> allOuts = [
             errorMessages,
             quietMessages,
             warningMessages,
@@ -384,6 +418,53 @@ class LogOutput {
             infoMessages: [quietMessages, warningMessages, lifecycleMessages, infoMessages, debugMessages],
             errorMessages: [errorMessages],
             allMessages: allOuts,
-            matchPartialLine: {expected, actual -> actual.endsWith(expected) /*&& actual =~ /\[.+?\] \[.+?\] .+/ */}
+            validator: {OutputOccurrence occurrence ->
+                occurrence.assertIsAtEndOfLine()
+                occurrence.assertHasPrefix(/.+ \[.+\] \[.+\] /)
+            }
     )
+}
+
+class OutputOccurrence {
+    final String expected
+    final String actual
+    final int index
+
+    OutputOccurrence(String expected, String actual, int index) {
+        this.expected = expected
+        this.actual = actual
+        this.index = index
+    }
+
+    void assertIsAtStartOfLine() {
+        if (index == 0) {
+            return
+        }
+        int startLine = index - SystemProperties.lineSeparator.length()
+        if (startLine < 0 || !actual.substring(startLine).startsWith(SystemProperties.lineSeparator)) {
+            throw new AssertionFailedError("Expected content '$expected' is not at the start of a line in output $actual.")
+        }
+    }
+
+    void assertIsAtEndOfLine() {
+        int endLine = index + expected.length()
+        if (endLine == actual.length()) {
+            return
+        }
+        if (!actual.substring(endLine).startsWith(SystemProperties.lineSeparator)) {
+            throw new AssertionFailedError("Expected content '$expected' is not at the end of a line in output $actual.")
+        }
+    }
+
+    void assertHasPrefix(String pattern) {
+        int startLine = actual.lastIndexOf(SystemProperties.lineSeparator, index)
+        if (startLine < 0) {
+            startLine = 0
+        } else {
+            startLine += SystemProperties.lineSeparator.length()
+        }
+        
+        String actualPrefix = actual.substring(startLine, index)
+        assert actualPrefix.matches(pattern): "Unexpected prefix '$actualPrefix' found for line containing content '$expected' in output $actual"
+    }
 }

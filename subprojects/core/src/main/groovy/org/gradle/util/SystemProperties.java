@@ -30,4 +30,8 @@ public class SystemProperties {
     public static String getUserHome() {
         return System.getProperty("user.home");
     }
+
+    public static String getJavaVersion() {
+        return System.getProperty("java.version");
+    }
 }

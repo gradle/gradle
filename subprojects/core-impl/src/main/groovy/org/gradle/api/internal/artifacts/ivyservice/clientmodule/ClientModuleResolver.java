@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult;
@@ -44,24 +43,34 @@ public class ClientModuleResolver implements DependencyToModuleResolver {
         }
 
         ClientModuleDependencyDescriptor clientModuleDependencyDescriptor = (ClientModuleDependencyDescriptor) dependencyDescriptor;
-        final ModuleDescriptor moduleDescriptor = clientModuleDependencyDescriptor.getTargetModule();
+        ModuleDescriptor moduleDescriptor = clientModuleDependencyDescriptor.getTargetModule();
 
-        return new ModuleVersionResolveResult() {
-            public ModuleVersionResolveException getFailure() {
-                return resolveResult.getFailure();
-            }
+        return new ClientModuleResolveResult(resolveResult, moduleDescriptor);
+    }
 
-            public ModuleRevisionId getId() throws ModuleVersionResolveException {
-                return moduleDescriptor.getModuleRevisionId();
-            }
+    private static class ClientModuleResolveResult implements ModuleVersionResolveResult {
+        private final ModuleVersionResolveResult resolveResult;
+        private final ModuleDescriptor moduleDescriptor;
 
-            public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
-                return moduleDescriptor;
-            }
+        public ClientModuleResolveResult(ModuleVersionResolveResult resolveResult, ModuleDescriptor moduleDescriptor) {
+            this.resolveResult = resolveResult;
+            this.moduleDescriptor = moduleDescriptor;
+        }
 
-            public ArtifactResolveResult resolve(Artifact artifact) {
-                return resolveResult.resolve(artifact);
-            }
-        };
+        public ModuleVersionResolveException getFailure() {
+            return null;
+        }
+
+        public ModuleRevisionId getId() throws ModuleVersionResolveException {
+            return moduleDescriptor.getModuleRevisionId();
+        }
+
+        public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
+            return moduleDescriptor;
+        }
+
+        public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
+            return resolveResult.getArtifactResolver();
+        }
     }
 }

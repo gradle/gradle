@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 public class DefaultModuleVersionDescriptor implements ModuleVersionDescriptor {
     private final ModuleDescriptor moduleDescriptor;
@@ -28,11 +27,11 @@ public class DefaultModuleVersionDescriptor implements ModuleVersionDescriptor {
         this.changing = changing;
     }
 
-    public ModuleRevisionId getId() throws ModuleVersionResolveException {
+    public ModuleRevisionId getId() {
         return moduleDescriptor.getResolvedModuleRevisionId();
     }
 
-    public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
+    public ModuleDescriptor getDescriptor() {
         return moduleDescriptor;
     }
 

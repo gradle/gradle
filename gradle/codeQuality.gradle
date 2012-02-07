@@ -1,11 +1,18 @@
-apply plugin: 'code-quality'
+apply plugin: 'checkstyle'
+apply plugin: 'codenarc'
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
 
 checkstyleConfigDir = "$configDir/checkstyle"
-checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")
-codeNarcConfigFileName = "$configDir/codenarc.xml"
-checkstyleProperties.checkstyleConfigDir = checkstyleConfigDir
+
+checkstyle {
+    configFile = new File(checkstyleConfigDir, "checkstyle.xml")
+    configProperties.checkstyleConfigDir = checkstyleConfigDir
+}
+
+codenarc {
+    configFile = new File(configDir, "codenarc.xml")
+}
 
 plugins.withType(GroovyBasePlugin) {
     sourceSets.all { sourceSet ->
@@ -13,7 +20,7 @@ plugins.withType(GroovyBasePlugin) {
             configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
             source sourceSet.allGroovy
             classpath = sourceSet.compileClasspath
-            resultFile = new File(checkstyleResultsDir, "${sourceSet.name}-groovy.xml")
+            reports.xml.destination new File(checkstyle.reportsDir, "${sourceSet.name}-groovy.xml")
         }
     }
 }

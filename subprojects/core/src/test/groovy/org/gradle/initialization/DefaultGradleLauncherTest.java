@@ -73,8 +73,8 @@ public class DefaultGradleLauncherTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     private ExceptionAnalyser exceptionAnalyserMock = context.mock(ExceptionAnalyser.class);
-
     private LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class);
+    private ModelConfigurationListener modelListenerMock = context.mock(ModelConfigurationListener.class);
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -106,7 +106,7 @@ public class DefaultGradleLauncherTest {
 
         gradleLauncher = new DefaultGradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
                 buildLoaderMock, buildConfigurerMock, buildBroadcaster, exceptionAnalyserMock, loggingManagerMock,
-                buildExecuter);
+                modelListenerMock, buildExecuter);
 
         context.checking(new Expectations() {
             {
@@ -242,6 +242,7 @@ public class DefaultGradleLauncherTest {
             one(buildBroadcaster).buildStarted(gradleMock);
             one(buildBroadcaster).projectsLoaded(gradleMock);
             one(buildBroadcaster).projectsEvaluated(gradleMock);
+            one(modelListenerMock).onConfigure(gradleMock);
             one(exceptionAnalyserMock).transform(failure);
             will(returnValue(transformedException));
             one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
@@ -280,6 +281,7 @@ public class DefaultGradleLauncherTest {
             one(buildBroadcaster).projectsLoaded(gradleMock);
             one(buildBroadcaster).projectsEvaluated(gradleMock);
             one(buildBroadcaster).buildFinished(with(result(nullValue(Throwable.class))));
+            one(modelListenerMock).onConfigure(gradleMock);
         }});
     }
 

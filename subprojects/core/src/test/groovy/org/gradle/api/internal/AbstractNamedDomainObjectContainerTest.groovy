@@ -15,14 +15,20 @@
  */
 package org.gradle.api.internal
 
-import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 import org.junit.Ignore
+import org.junit.Test
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 class AbstractNamedDomainObjectContainerTest {
     private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
     private final AbstractNamedDomainObjectContainer container = instantiator.newInstance(TestContainer.class, instantiator)
+
+    @Test
+    public void isDynamicObjectAware() {
+        assertThat(container, instanceOf(DynamicObjectAware));
+    }
 
     @Test
     public void canAddObjectWithName() {

@@ -95,8 +95,8 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
 
         boolean didFail = execResult.getExitValue() != 0;
         if (didFail != expectFailure) {
-            String message = String.format("Gradle execution %s in %s with: %s %nError:%n%s%n-----%n",
-                    expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), error);
+            String message = String.format("Gradle execution %s in %s with: %s %nOutput:%n%s%n-----%nError:%n%s%n-----%n",
+                    expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), output, error);
             throw new RuntimeException(message);
         }
 

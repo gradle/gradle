@@ -16,12 +16,11 @@
 package org.gradle.api.internal;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.ReflectionUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class DirectInstantiator implements Instantiator {
     public <T> T newInstance(Class<T> type, Object... params) {
@@ -52,8 +51,15 @@ public class DirectInstantiator implements Instantiator {
         }
         for (int i = 0; i < params.length; i++) {
             Object param = params[i];
-            if (param != null && !constructor.getParameterTypes()[i].isInstance(param)) {
-                return false;
+            Class<?> parameterType = constructor.getParameterTypes()[i];
+            if (parameterType.isPrimitive()) {
+                if (!ReflectionUtil.getWrapperTypeForPrimitiveType(parameterType).isInstance(param)) {
+                    return false;
+                }
+            } else {
+                if (param != null && !parameterType.isInstance(param)) {
+                    return false;
+                }
             }
         }
         return true;

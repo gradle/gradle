@@ -15,15 +15,8 @@
  */
 package org.gradle.api.internal.tasks.compile.fork;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.AntBuilder;
-import org.gradle.internal.Factory;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.internal.project.ant.BasicAntBuilder;
-import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
-import org.gradle.api.internal.tasks.compile.JavaCompiler;
-import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
+import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.WorkerProcessContext;
@@ -37,23 +30,11 @@ public class CompilationAction extends JavaCompilerSupport implements Action<Wor
 
     public void execute(WorkerProcessContext workerProcessContext) {
         ObjectConnection connection = workerProcessContext.getServerConnection();
-        final CompilationListener listener = connection.addOutgoing(CompilationListener.class);
-        
-        Factory<AntBuilder> antBuilderFactory = new Factory<AntBuilder>() {
-            public AntBuilder create() {
-                return new BasicAntBuilder();
-            }
-        };
+        CompilationListener listener = connection.addOutgoing(CompilationListener.class);
         
         try {
-            JavaCompiler javaCompiler = new AntJavaCompiler(antBuilderFactory);
-            javaCompiler.setSource(source);
-            javaCompiler.setDestinationDir(destinationDir);
-            javaCompiler.setClasspath(classpath);
-            javaCompiler.setSourceCompatibility(sourceCompatibility);
-            javaCompiler.setTargetCompatibility(targetCompatibility);
-            javaCompiler.setCompileOptions(compileOptions);
-            WorkResult result = javaCompiler.execute();
+            JavaCompiler compiler = createCompiler();
+            WorkResult result = compiler.execute();
             listener.completed(new CompilationResult(result.getDidWork(), null));
         } catch (Throwable t) {
             listener.completed(new CompilationResult(true, t));
@@ -62,13 +43,10 @@ public class CompilationAction extends JavaCompilerSupport implements Action<Wor
         }
     }
 
-    public CompilationAction makeSerializable() {
-        if (!(source instanceof Serializable)) {
-            source = new SimpleFileCollection(source.getFiles());
-        }
-        if (!(classpath instanceof Serializable)) {
-            classpath = new SimpleFileCollection(Lists.newArrayList(classpath));
-        }
-        return this;
+    private JavaCompiler createCompiler() {
+        JavaCompilerFactory factory = new InProcessJavaCompilerFactory();
+        JavaCompiler compiler = new DelegatingJavaCompiler(factory);
+        configure(compiler);
+        return compiler;
     }
 }

@@ -15,13 +15,9 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.Plugin
-import org.gradle.api.plugins.JavaBasePlugin
-
-import org.gradle.api.internal.Instantiator
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.tasks.SourceSet
+import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.tasks.SourceSet
 
 /**
  *  A plugin for the <a href="http://pmd.sourceforge.net/">PMD source code analyzer.
@@ -36,73 +32,66 @@ import org.gradle.api.reporting.ReportingExtension
  * @see PmdExtension
  * @see Pmd
  */
-class PmdPlugin implements Plugin<ProjectInternal> {
-    private ProjectInternal project
-    private Instantiator instantiator
+class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     private PmdExtension extension
 
-    void apply(ProjectInternal project) {
-        this.project = project
-        instantiator = project.services.get(Instantiator)
-
-        project.plugins.apply(JavaBasePlugin)
-
-        configurePmdConfiguration()
-        configurePmdExtension()
-        configurePmdTasks()
-        configureCheckTask()
+    @Override
+    protected String getToolName() {
+        return "PMD"
     }
 
-    private void configurePmdExtension() {
+    @Override
+    protected Class<Pmd> getTaskType() {
+        return Pmd
+    }
+
+    @Override
+    protected CodeQualityExtension createExtension() {
         extension = instantiator.newInstance(PmdExtension, project)
         project.extensions.pmd = extension
         extension.with {
             toolVersion = "4.3"
-            sourceSets = project.sourceSets
             ruleSets = ["basic"]
             ruleSetFiles = project.files()
         }
         extension.conventionMapping.with {
-            xmlReportsDir = { project.extensions.getByType(ReportingExtension).file("pmd") }
-            htmlReportsDir = { project.extensions.getByType(ReportingExtension).file("pmd") }
+            reportsDir = { project.extensions.getByType(ReportingExtension).file("pmd") }
         }
+        return extension
     }
 
-    private configurePmdConfiguration() {
-        project.configurations.add('pmd').with {
-            visible = false
-            transitive = true
-            description = 'The PMD libraries to be used for this project.'
-        }
-    }
-
-    private void configurePmdTasks() {
-        project.sourceSets.all { SourceSet sourceSet ->
-            def task = project.tasks.add(sourceSet.getTaskName('pmd', null), Pmd)
-            task.with {
-                description = "Run PMD analysis for ${sourceSet.name} classes"
-            }
-            task.conventionMapping.with {
-                pmdClasspath = {
-                    def config = project.configurations['pmd']
-                    if (config.dependencies.empty) {
-                        project.dependencies {
-                            pmd "pmd:pmd:$extension.toolVersion"
-                        }
+    @Override
+    protected void configureTaskDefaults(Pmd task, String baseName) {
+        task.conventionMapping.with {
+            pmdClasspath = {
+                def config = project.configurations['pmd']
+                if (config.dependencies.empty) {
+                    project.dependencies {
+                        pmd "pmd:pmd:$extension.toolVersion"
                     }
-                    config
                 }
-                defaultSource = { sourceSet.allJava }
-                ruleSets = { extension.ruleSets }
-                ruleSetFiles = { extension.ruleSetFiles }
-                xmlReportFile = { new File(extension.xmlReportsDir, "${sourceSet.name}.xml") }
-                htmlReportFile = { new File(extension.htmlReportsDir, "${sourceSet.name}.html") }
-                ignoreFailures = { extension.ignoreFailures }
+                config
+            }
+            ruleSets = { extension.ruleSets }
+            ruleSetFiles = { extension.ruleSetFiles }
+            ignoreFailures = { extension.ignoreFailures }
+
+            task.reports.all { report ->
+                report.conventionMapping.with {
+                    enabled = { true }
+                    destination = { new File(extension.reportsDir, "${baseName}.${report.name}") }
+                }
             }
         }
     }
 
-    private void configureCheckTask() {
-        project.tasks['check'].dependsOn { extension.sourceSets.collect { it.getTaskName('pmd', null) }}
+    @Override
+    protected void configureForSourceSet(SourceSet sourceSet, Pmd task) {
+        task.with {
+            description = "Run PMD analysis for ${sourceSet.name} classes"
+        }
+        task.conventionMapping.with {
+            defaultSource = { sourceSet.allJava }
+        }
     }
 }

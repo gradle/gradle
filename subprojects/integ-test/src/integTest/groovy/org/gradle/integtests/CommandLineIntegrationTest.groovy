@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.nativeplatform.FileSystems
 import org.gradle.internal.nativeplatform.OperatingSystem
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.gradle.util.*
@@ -160,7 +159,7 @@ public class CommandLineIntegrationTest {
         assert someAbsoluteDir.exists()
     }
 
-    @Test @Ignore
+    @Test
     public void systemPropGradleUserHomeHasPrecedenceOverEnvVariable() {
         // the actual testing is done in the build script.
         File gradleUserHomeDir = dist.testFile("customUserHome")

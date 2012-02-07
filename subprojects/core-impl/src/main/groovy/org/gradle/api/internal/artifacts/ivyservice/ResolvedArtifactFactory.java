@@ -31,7 +31,7 @@ public class ResolvedArtifactFactory {
         this.lockingManager = lockingManager;
     }
 
-    public ResolvedArtifact create(ResolvedDependency owner, final Artifact artifact, final ModuleVersionResolveResult resolver) {
+    public ResolvedArtifact create(ResolvedDependency owner, final Artifact artifact, final ArtifactResolver resolver) {
         return new DefaultResolvedArtifact(owner, artifact, new FileSource() {
             public File get() {
                 return lockingManager.useCache(String.format("download %s", artifact), new Factory<File>() {

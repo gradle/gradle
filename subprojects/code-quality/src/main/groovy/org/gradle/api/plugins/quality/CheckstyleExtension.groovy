@@ -15,13 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.Project
-
 class CheckstyleExtension extends CodeQualityExtension {
-    CheckstyleExtension(Project project) {
-        super(project)
-    }
-
     /**
      * The Checkstyle configuration file to use.
      */
@@ -36,5 +30,5 @@ class CheckstyleExtension extends CodeQualityExtension {
      * The properties available for use in the configuration file. These are substituted into the configuration
      * file. Defaults to the empty map.
      */
-    Map<String, Object> configProperties
+    Map<String, Object> configProperties = [:]
 }

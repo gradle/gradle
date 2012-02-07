@@ -31,7 +31,7 @@ import java.io.File;
 public class DefaultResolvedArtifact implements ResolvedArtifact {
     private final ResolvedDependency resolvedDependency;
     private final Artifact artifact;
-    private final FileSource artifactSource;
+    private FileSource artifactSource;
     private File file;
 
     public DefaultResolvedArtifact(ResolvedDependency resolvedDependency, Artifact artifact, FileSource artifactSource) {
@@ -105,6 +105,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     public File getFile() {
         if (file == null) {
             file = artifactSource.get();
+            artifactSource = null;
         }
         return file;
     }

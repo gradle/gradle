@@ -15,8 +15,8 @@
  */
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -188,7 +188,7 @@ test {
 }
 """
         when: "run without '-i'"
-        def result = executer.withTasks('test').run()
+        def result = executer.setAllowExtraLogging(false).withTasks('test').run()
         then:
         !result.output.contains('output from foo')
 

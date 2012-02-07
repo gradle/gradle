@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.compile
 
 import spock.lang.Specification
 import org.gradle.api.tasks.WorkResult
-import org.gradle.api.internal.file.collections.SimpleFileCollection
 
 class CommandLineJavaCompilerSupportTest extends Specification {
     def compiler = new CommandLineJavaCompilerSupport() {
@@ -65,6 +64,20 @@ class CommandLineJavaCompilerSupportTest extends Specification {
         compiler.generateCommandLineOptions() == []
     }
 
+    def "generates -deprecation option"() {
+        when:
+        compiler.compileOptions.deprecation = true
+
+        then:
+        compiler.generateCommandLineOptions() == ["-deprecation"]
+
+        when:
+        compiler.compileOptions.deprecation = false
+
+        then:
+        compiler.generateCommandLineOptions() == []
+    }
+
     def "generates -nowarn option"() {
         when:
         compiler.compileOptions.warnings = true
@@ -95,16 +108,26 @@ class CommandLineJavaCompilerSupportTest extends Specification {
 
     def "generates -encoding option"() {
         when:
-        compiler.compileOptions.encoding = null
-
-        then:
-        compiler.generateCommandLineOptions() == []
-
-        when:
         compiler.compileOptions.encoding = "some-encoding"
 
         then:
         compiler.generateCommandLineOptions() == ["-encoding", "some-encoding"]
+    }
+
+    def "generates -bootclasspath option"() {
+        when:
+        compiler.compileOptions.bootClasspath = "/lib/lib1.jar:/lib/lib2.jar"
+
+        then:
+        compiler.generateCommandLineOptions() == ["-bootclasspath", "/lib/lib1.jar:/lib/lib2.jar"]
+    }
+
+    def "generates -extdirs option"() {
+        when:
+        compiler.compileOptions.extensionDirs = "/dir1:/dir2"
+
+        then:
+        compiler.generateCommandLineOptions() == ["-extdirs", "/dir1:/dir2"]
     }
 
     def "generates -classpath option"() {
@@ -122,16 +145,4 @@ class CommandLineJavaCompilerSupportTest extends Specification {
         expect:
         compiler.generateCommandLineOptions() == ["-a", "value-a", "-b", "value-b"]
     }
-    
-    def "adds source files"() {
-        def file1 = new File("/src/Class1.java")
-        def file2 = new File("/src/Class2.java")
-        compiler.source = new SimpleFileCollection(file1, file2)
-
-        expect:
-        compiler.generateCommandLineOptions() == [file1.path, file2.path]
-    }
-
-
-
 }

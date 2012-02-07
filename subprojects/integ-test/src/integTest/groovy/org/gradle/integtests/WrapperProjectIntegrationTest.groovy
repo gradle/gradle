@@ -16,67 +16,140 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.junit.Before
-import org.junit.Test
+import org.gradle.integtests.fixtures.HttpServer
+import org.gradle.integtests.fixtures.TestProxyServer
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
+import spock.lang.Issue
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
-import spock.lang.Issue
 
 /**
  * @author Hans Dockter
  */
-class WrapperProjectIntegrationTest extends AbstractIntegrationTest {
+class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
+    @Rule
+    public final HttpServer server = new HttpServer()
+    @Rule
+    public final TestProxyServer proxyServer = new TestProxyServer(server)
+    @Rule
+    public SetSystemProperties systemProperties = new SetSystemProperties()
 
-    @Before
-    public void createBuildScript() {
-        file("build.gradle") << """
-            import org.gradle.api.tasks.wrapper.Wrapper
-            task wrapper(type: Wrapper) {
-                zipBase = Wrapper.PathBase.PROJECT
-                zipPath = 'wrapper'
-                archiveBase = Wrapper.PathBase.PROJECT
-                archivePath = 'dist'
-                distributionUrl = '${distribution.binDistribution.toURI().toURL()}'
-                distributionBase = Wrapper.PathBase.PROJECT
-                distributionPath = 'dist'
-            }
-
-            task hello << {
-                println 'hello'
-            }
-
-            task echoProperty << {
-                println "fooD=" + project.properties["fooD"]
-            }
-        """
-        
-        executer.withTasks('wrapper').run()
+    void setup() {
+        server.start()
     }
     
     GradleDistributionExecuter getWrapperExecuter() {
         executer.usingExecutable('gradlew').inDirectory(testDir)
     }
-    
-    @Test
-    public void hasNonZeroExitCodeOnBuildFailure() {
+
+    private prepareWrapper(String baseUrl) {
+        file("build.gradle") << """
+    import org.gradle.api.tasks.wrapper.Wrapper
+    task wrapper(type: Wrapper) {
+        zipBase = Wrapper.PathBase.PROJECT
+        zipPath = 'wrapper'
+        archiveBase = Wrapper.PathBase.PROJECT
+        archivePath = 'dist'
+        distributionUrl = '${baseUrl}/gradlew/dist'
+        distributionBase = Wrapper.PathBase.PROJECT
+        distributionPath = 'dist'
+    }
+
+    task hello << {
+        println 'hello'
+    }
+
+    task echoProperty << {
+        println "fooD=" + project.properties["fooD"]
+    }
+"""
+
+        executer.withTasks('wrapper').run()
+
+        server.allowGet("/gradlew/dist", distribution.binDistribution)
+    }
+
+    public void "has non-zero exit code on build failure"() {
+        given:
+        prepareWrapper("http://localhost:${server.port}")
+
+        expect:
+        server.allowGet("/gradlew/dist", distribution.binDistribution)
+
+        when:
         ExecutionFailure failure = wrapperExecuter.withTasks('unknown').runWithFailure()
+        
+        then:
         failure.assertHasDescription("Task 'unknown' not found in root project")
     }
 
-    @Test
-    public void wrapperSample() {
+    public void "runs sample target using wrapper"() {        
+        given:
+        prepareWrapper("http://localhost:${server.port}")
+
+        when:
         ExecutionResult result = wrapperExecuter.withTasks('hello').run()
+        
+        then:
         assertThat(result.output, containsString('hello'))
     }
-    
-    @Test
+
+    public void "downloads wrapper via proxy"() {        
+        given:
+        proxyServer.start()
+        prepareWrapper("http://not.a.real.domain")
+        file("gradle.properties") << """
+    systemProp.http.proxyHost=localhost
+    systemProp.http.proxyPort=${proxyServer.port}
+"""
+
+        when:
+        ExecutionResult result = wrapperExecuter.withTasks('hello').run()
+        
+        then:
+        assertThat(result.output, containsString('hello'))
+
+        and:
+        proxyServer.requestCount == 1
+    }
+
+    public void "downloads wrapper via authenticated proxy"() {
+        given:
+        proxyServer.start()
+        proxyServer.requireAuthentication('my_user', 'my_password')
+
+        and:
+        prepareWrapper("http://not.a.real.domain")
+        file("gradle.properties") << """
+    systemProp.http.proxyHost=localhost
+    systemProp.http.proxyPort=${proxyServer.port}
+    systemProp.http.proxyUser=my_user
+    systemProp.http.proxyPassword=my_password
+"""
+        when:
+        ExecutionResult result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('hello'))
+
+        and:
+        proxyServer.requestCount == 1
+    }
+
     @Issue("http://issues.gradle.org/browse/GRADLE-1871")
-    public void canSpecifyProjectPropertiesContainingD() {
+    public void "can specify project properties containing D"() {
+        given:
+        prepareWrapper("http://localhost:${server.port}")
+
+        when:
         ExecutionResult result = wrapperExecuter.withArguments("-PfooD=bar").withTasks('echoProperty').run()
+
+        then:
         assertThat(result.output, containsString("fooD=bar"))
     }
 }

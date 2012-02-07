@@ -18,13 +18,16 @@ package org.gradle.api.internal;
 import groovy.lang.*;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.internal.plugins.DefaultConvention;
+import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.plugins.Convention;
+import org.gradle.testfixtures.ProjectBuilder;
 import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.util.Map;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public class DynamicObjectHelperTest {
     @Test
@@ -719,6 +722,51 @@ public class DynamicObjectHelperTest {
         assertFalse(inherited.hasMethod("javaMethod", "a", "b"));
     }
     
+    @Test
+    public void canGetObjectAsDynamicObject() {
+        Bean bean = new Bean();
+        assertThat(DynamicObjectHelper.asDynamicObject(bean), sameInstance((DynamicObject) bean));
+
+        AbstractProject project = (AbstractProject)ProjectBuilder.builder().build();
+        assertThat(DynamicObjectHelper.asDynamicObject(project), sameInstance(project.getAsDynamicObject()));
+
+        assertThat(DynamicObjectHelper.asDynamicObject(new Object()), instanceOf(DynamicObject.class));
+    }
+
+    @Test
+    public void canGetAndSetGroovyDynamicProperties() {
+        DynamicObject object = new BeanDynamicObject(new DynamicGroovyBean());
+        object.setProperty("foo", "bar");
+        assertThat((String)object.getProperty("foo"), equalTo("bar"));
+
+        try {
+            object.getProperty("additional");
+            fail();
+        } catch (MissingPropertyException e) {
+            assertThat(e.getMessage(), equalTo("No such property: additional for class: org.gradle.api.internal.DynamicGroovyBean"));
+        }
+
+        try {
+            object.setProperty("additional", "foo");
+            fail();
+        } catch (MissingPropertyException e) {
+            assertThat(e.getMessage(), equalTo("No such property: additional for class: org.gradle.api.internal.DynamicGroovyBean"));
+        }
+    }
+
+    @Test
+    public void canCallGroovyDynamicMethods() {
+        DynamicObject object = new BeanDynamicObject(new DynamicGroovyBean());
+        Integer doubled = (Integer)object.invokeMethod("bar", 1);
+        assertThat(doubled, equalTo(2));
+
+        try {
+            object.invokeMethod("xxx", 1, 2, 3);
+            fail();
+        } catch (MissingMethodException e) {
+            assertThat(e.getMessage(), startsWith("No signature of method: org.gradle.api.internal.DynamicGroovyBean.xxx() is applicable for argument types: (java.lang.Integer, java.lang.Integer, java.lang.Integer) values: [1, 2, 3]\nPossible solutions:"));
+        }
+    }
     public static class Bean implements DynamicObject {
         private String readWriteProperty;
         private String readOnlyProperty;

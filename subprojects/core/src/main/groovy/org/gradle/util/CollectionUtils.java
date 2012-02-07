@@ -18,11 +18,7 @@ package org.gradle.util;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.Transformer;
 
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.LinkedHashSet;
-import java.util.Collection;
+import java.util.*;
 
 abstract public class CollectionUtils {
 
@@ -45,6 +41,10 @@ abstract public class CollectionUtils {
 
     public static <R, I> List<R> collect(List<? extends I> list, Transformer<R, I> transformer) {
         return collect(list, new LinkedList<R>(), transformer);
+    }
+
+    public static <R, I> Set<R> collect(Set<? extends I> set, Transformer<R, I> transformer) {
+        return collect(set, new HashSet<R>(), transformer);
     }
 
     public static <R, I, C extends Collection<R>> C collect(Collection<? extends I> source, C destination, Transformer<R, I> transformer) {

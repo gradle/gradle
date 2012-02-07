@@ -1,0 +1,11 @@
+apply plugin: "java"
+
+compileJava.options.with {
+    useAnt = false
+    fork = true
+    failOnError = false
+}
+
+dependencies {
+    compile localGroovy()
+}

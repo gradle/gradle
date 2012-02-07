@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 
@@ -38,7 +37,7 @@ public class BrokenModuleVersionResolveResult implements ModuleVersionResolveRes
         throw failure;
     }
 
-    public ArtifactResolveResult resolve(Artifact artifact) {
+    public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
         throw failure;
     }
 }

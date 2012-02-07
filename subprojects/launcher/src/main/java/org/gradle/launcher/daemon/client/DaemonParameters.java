@@ -24,7 +24,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
@@ -57,10 +56,7 @@ public class DaemonParameters {
     }
     
     List<String> getDefaultJvmArgs() {
-        List<String> out = new LinkedList<String>(asList("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"));
-        String heapDumpPath = new DaemonDir(baseDir).getVersionedDir().getAbsolutePath();
-        out.add("-XX:HeapDumpPath=\"" + heapDumpPath + "\"");
-        return out;
+        return new LinkedList<String>(asList("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"));
     }
 
     public boolean isEnabled() {

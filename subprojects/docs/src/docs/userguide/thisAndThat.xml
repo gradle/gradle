@@ -181,7 +181,7 @@ systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
             <para>If your proxy requires NTLM authentication, you may need to provide the authentication domain as well as the username and password.
                 There are 2 ways that you can provide the domain for authenticating to a NTLM proxy:
                 <itemizedlist>
-                    <listitem>Set the <literal>http.proxyUser</literal> system property to a value like <literal>[domain]/[username]</literal>.
+                    <listitem>Set the <literal>http.proxyUser</literal> system property to a value like <literal><replaceable>domain</replaceable>/<replaceable>username</replaceable></literal>.
                     </listitem>
                     <listitem>Provide the authentication domain via the <literal>http.auth.ntlm.domain</literal> system property.
                     </listitem>

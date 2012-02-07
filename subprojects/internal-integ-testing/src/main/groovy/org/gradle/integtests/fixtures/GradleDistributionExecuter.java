@@ -46,6 +46,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
     private boolean deprecationChecksOn = true;
     private Executer executerType;
     private File daemonBaseDir;
+    private boolean allowExtraLogging = true;
 
     public enum Executer {
         embedded(false),
@@ -182,7 +183,7 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
     private void assertNoDeprecationWarnings(String output, String displayName) {
         boolean javacWarning = containsLine(matchesRegexp(".*use(s)? or override(s)? a deprecated API\\.")).matches(output);
-        boolean deprecationWarning = containsLine(matchesRegexp(".*deprecated.*")).matches(output);
+        boolean deprecationWarning = containsLine(matchesRegexp(".* deprecated.*")).matches(output);
         if (deprecationWarning && !javacWarning) {
             throw new AssertionError(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n", displayName, output));
         }
@@ -192,6 +193,15 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
         if (containsLine(matchesRegexp("\\s+at [\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
             throw new AssertionError(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n", displayName, output));
         }
+    }
+
+    /**
+     * set true to allow the executer to increase the log level if necessary
+     * to help out debugging. Set false to make the executer never update the log level.
+     */
+    public GradleDistributionExecuter setAllowExtraLogging(boolean allowExtraLogging) {
+        this.allowExtraLogging = allowExtraLogging;
+        return this;
     }
 
     protected GradleExecuter configureExecuter() {
@@ -216,9 +226,11 @@ public class GradleDistributionExecuter extends AbstractDelegatingGradleExecuter
 
         if (executerType.forks || !inProcessGradleExecuter.canExecute()) {
             boolean useDaemon = executerType == Executer.daemon && getExecutable() == null;
-            ForkingGradleExecuter forkingGradleExecuter = useDaemon ? new DaemonGradleExecuter(dist, daemonBaseDir) : new ForkingGradleExecuter(dist.getGradleHomeDir());
+            ForkingGradleExecuter forkingGradleExecuter = useDaemon ? new DaemonGradleExecuter(dist, daemonBaseDir, !isQuiet() && allowExtraLogging) : new ForkingGradleExecuter(dist.getGradleHomeDir());
             copyTo(forkingGradleExecuter);
-            forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
+            if (!dist.shouldAvoidConfiguringTmpDir()) {
+                forkingGradleExecuter.addGradleOpts(String.format("-Djava.io.tmpdir=%s", tmpDir));
+            }
             returnedExecuter = forkingGradleExecuter;
 //        } else {
 //            System.setProperty("java.io.tmpdir", tmpDir.getAbsolutePath());

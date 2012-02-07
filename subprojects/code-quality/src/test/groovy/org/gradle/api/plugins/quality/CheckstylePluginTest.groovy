@@ -16,18 +16,14 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Project
-
+import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.util.HelperUtil
-
 import spock.lang.Specification
-
-import static spock.util.matcher.HamcrestSupport.*
 import static org.gradle.util.Matchers.dependsOn
-import static org.hamcrest.Matchers.hasItem
-import static org.hamcrest.Matchers.hasItems
-import static org.hamcrest.Matchers.not
+import static org.hamcrest.Matchers.*
+import static spock.util.matcher.HamcrestSupport.that
+import org.gradle.api.plugins.JavaBasePlugin
 
 class CheckstylePluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
@@ -36,9 +32,9 @@ class CheckstylePluginTest extends Specification {
         project.plugins.apply(CheckstylePlugin)
     }
 
-    def "applies java-base plugin"() {
+    def "applies reporting-base plugin"() {
         expect:
-        project.plugins.hasPlugin(JavaBasePlugin)
+        project.plugins.hasPlugin(ReportingBasePlugin)
     }
     
     def "configures checkstyle configuration"() {
@@ -61,6 +57,7 @@ class CheckstylePluginTest extends Specification {
     }
 
     def "configures checkstyle task for each source set"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -83,12 +80,26 @@ class CheckstylePluginTest extends Specification {
             assert classpath == sourceSet.output
             assert configFile == project.file("config/checkstyle/checkstyle.xml")
             assert configProperties == [:]
-            assert reportFile == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
+            assert resultFile == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
             assert ignoreFailures == false
         }
     }
     
+    def "configures any additional checkstyle tasks"() {
+        def task = project.tasks.add("checkstyleCustom", Checkstyle)
+
+        expect:
+        task.description == null
+        task.defaultSource == null
+        task.checkstyleClasspath == project.configurations.checkstyle
+        task.configFile == project.file("config/checkstyle/checkstyle.xml")
+        task.configProperties == [:]
+        task.resultFile == project.file("build/reports/checkstyle/custom.xml")
+        task.ignoreFailures == false
+    }
+
     def "adds checkstyle tasks to check lifecycle task"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -100,6 +111,7 @@ class CheckstylePluginTest extends Specification {
     }
     
     def "can customize settings via extension"() {
+        project.plugins.apply(JavaBasePlugin)
         project.sourceSets {
             main
             test
@@ -131,8 +143,28 @@ class CheckstylePluginTest extends Specification {
             assert checkstyleClasspath == project.configurations["checkstyle"]
             assert configFile == project.file("checkstyle-config")
             assert configProperties == [foo: "foo"]
-            assert reportFile == project.file("checkstyle-reports/${sourceSet.name}.xml")
+            assert resultFile == project.file("checkstyle-reports/${sourceSet.name}.xml")
             assert ignoreFailures == true
         }
     }
+    
+    def "can customize any additional checkstyle tasks via extension"() {
+        def task = project.tasks.add("checkstyleCustom", Checkstyle)
+        project.checkstyle {
+            configFile = project.file("checkstyle-config")
+            configProperties = [foo: "foo"]
+            reportsDir = project.file("checkstyle-reports")
+            ignoreFailures = true
+        }
+
+        expect:
+        task.description == null
+        task.defaultSource == null
+        task.checkstyleClasspath == project.configurations.checkstyle
+        task.configFile == project.file("checkstyle-config")
+        task.configProperties == [foo: "foo"]
+        task.resultFile == project.file("checkstyle-reports/custom.xml")
+        task.ignoreFailures == true
+    }
+    
 }

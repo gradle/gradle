@@ -46,6 +46,24 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
         return new StaticVersionResolveResult(dependencyDescriptor);
     }
 
+    private static class ErrorHandlingArtifactResolver implements ArtifactResolver {
+        private final ArtifactResolver resolver;
+
+        private ErrorHandlingArtifactResolver(ArtifactResolver resolver) {
+            this.resolver = resolver;
+        }
+
+        public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
+            ArtifactResolveResult result;
+            try {
+                result = resolver.resolve(artifact);
+            } catch (Throwable t) {
+                return new BrokenArtifactResolveResult(new ArtifactResolveException(artifact, t));
+            }
+            return result;
+        }
+    }
+
     private static class DefaultModuleVersionResolveResult implements ModuleVersionResolveResult {
         private final ModuleVersionResolveResult resolver;
 
@@ -65,14 +83,8 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             return resolver.getDescriptor();
         }
 
-        public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
-            ArtifactResolveResult result;
-            try {
-                result = resolver.resolve(artifact);
-            } catch (Throwable t) {
-                return new BrokenArtifactResolveResult(new ArtifactResolveException(artifact, t));
-            }
-            return result;
+        public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
+            return new ErrorHandlingArtifactResolver(resolver.getArtifactResolver());
         }
     }
 

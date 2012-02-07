@@ -37,7 +37,6 @@ class ForkOptionsTest {
             assert executable == null
             assert memoryInitialSize == null
             assert memoryMaximumSize == null
-            assert useAntForking
             assert tempDir == null
             assert jvmArgs == []
         }

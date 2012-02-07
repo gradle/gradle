@@ -29,7 +29,15 @@ class CompileOptions extends AbstractOptions {
      */
     @Input
     boolean failOnError = true
+
+    /**
+     * Specifies whether the compile task should produce verbose output.
+     */
     boolean verbose = false
+
+    /**
+     * Specifies whether the compile task should list the files to be compiled.
+     */
     boolean listFiles = false
 
     /**
@@ -47,8 +55,13 @@ class CompileOptions extends AbstractOptions {
      */
     @Input @Optional
     String encoding = null
+
+    /**
+     * Whether to produce optimized byte code. Note that this flag is ignored by Sun's javac starting with
+     * JDK 1.3 (since compile-time optimization is unnecessary)
+     */
     @Input
-    boolean optimize
+    boolean optimize = false
 
     /**
      * Specifies whether debugging information should be included in the generated {@code .class} files. The default
@@ -89,6 +102,7 @@ class CompileOptions extends AbstractOptions {
      */
     @Input @Optional
     String compiler = null
+
     @Input
     boolean includeJavaRuntime = false
 
@@ -110,12 +124,24 @@ class CompileOptions extends AbstractOptions {
     @Input
     List<String> compilerArgs = []
 
+    /**
+     * Whether to use the Ant javac task or Gradle's own Java compiler integration.
+     * Defaults to <tt>true</tt>.
+     */
+    boolean useAnt = true
+
+    /**
+     * Convenience method to set fork options with named parameter syntax.
+     */
     CompileOptions fork(Map forkArgs) {
         fork = true
         forkOptions.define(forkArgs)
         this
     }
 
+    /**
+     * Convenience method to set debug options with named parameter syntax.
+     */
     CompileOptions debug(Map debugArgs) {
         debug = true
         debugOptions.define(debugArgs)
@@ -134,7 +160,7 @@ class CompileOptions extends AbstractOptions {
     }
 
     List excludedFieldsFromOptionMap() {
-        ['debugOptions', 'forkOptions', 'compilerArgs', 'dependOptions', 'useDepend']
+        ['debugOptions', 'forkOptions', 'compilerArgs', 'dependOptions', 'useDepend', 'useAnt']
     }
 
     Map fieldName2AntMap() {
@@ -155,7 +181,7 @@ class CompileOptions extends AbstractOptions {
 
     Map optionMap() {
         def map = super.optionMap() + debugOptions.optionMap()
-        if (forkOptions.useAntForking) {
+        if (useAnt) {
             map.putAll(forkOptions.optionMap())
         }
         map

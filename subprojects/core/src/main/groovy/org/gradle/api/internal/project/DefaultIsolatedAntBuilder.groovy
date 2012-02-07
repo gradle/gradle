@@ -112,6 +112,10 @@ class AntBuilderDelegate extends BuilderSupport {
         this.builder = builder;
     }
 
+    def getAnt() {
+        return this
+    }
+
     def propertyMissing(String name) {
         builder."$name"
     }

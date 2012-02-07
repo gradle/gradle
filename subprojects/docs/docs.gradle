@@ -20,7 +20,7 @@ import org.gradle.build.docs.AssembleSamplesDocTask
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.ExtractDslMetaDataTask
 import org.gradle.build.GenerateReleasesXml
-import org.gradle.os.OperatingSystem
+import org.gradle.internal.nativeplatform.OperatingSystem
 
 apply plugin: 'base'
 
@@ -147,11 +147,9 @@ task dslHtml(type: Docbook2Xhtml) {
     source dslStandaloneDocbook
     destDir = new File(docsDir, 'dsl')
     stylesheetName = 'dslHtml.xsl'
-    resources = fileTree {
-        from cssSrcDir
+    resources = fileTree(cssSrcDir) {
         include '*.css'
-    } + fileTree {
-        from dslSrcDir
+    } + fileTree(dslSrcDir) {
         include '*.js'
     }
 }
@@ -184,12 +182,10 @@ task userguideHtml(type: Docbook2Xhtml) {
     source userguideDocbook
     destDir = userguideDir
     stylesheetName = 'userGuideHtml.xsl'
-    resources = fileTree {
-        from userguideSrcDir
+    resources = fileTree(userguideSrcDir) {
         include 'img/*.png'
     }
-    resources += fileTree {
-        from cssSrcDir
+    resources += fileTree(cssSrcDir) {
         include '*.css'
     }
 }
@@ -198,12 +194,10 @@ task userguideSingleHtml(type: Docbook2Xhtml) {
     source userguideDocbook
     destFile = new File(userguideDir, 'userguide_single.html')
     stylesheetName = 'userGuideSingleHtml.xsl'
-    resources = fileTree {
-        from userguideSrcDir
+    resources = fileTree(userguideSrcDir) {
         include 'img/*.png'
     }
-    resources += fileTree {
-        from cssSrcDir
+    resources += fileTree(cssSrcDir) {
         include '*.css'
     }
 }
@@ -212,12 +206,10 @@ task userguideXhtml(type: Docbook2Xhtml) {
     source pdfUserguideDocbook
     destFile = new File(buildDir, 'tmp/userguidePdf/userguidePdf.html')
     stylesheetName = 'userGuidePdf.xsl'
-    resources = fileTree {
-        from userguideSrcDir
+    resources = fileTree(userguideSrcDir) {
         include 'img/*.png'
     }
-    resources += fileTree {
-        from cssSrcDir
+    resources += fileTree(cssSrcDir) {
         include '*.css'
     }
 }
@@ -254,7 +246,7 @@ task checkstyleApi(type: Checkstyle) {
     source javadoc.source
     configFile = file("$checkstyleConfigDir/checkstyle-api.xml")
     classpath = files()
-    resultFile = file("$checkstyleResultsDir/checkstyle-api.xml")
+    reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
 //TODO SF - generates for java as well, rename to codedoc?

@@ -36,6 +36,8 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         this.clientMetaData = clientMetaData;
         this.startTime = startTime;
         this.currentDir = currentDir;
+        assert systemProperties != null;
+        assert envVariables != null;
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
         this.envVariables = new HashMap<String, String>(envVariables);
@@ -59,5 +61,16 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
 
     public File getCurrentDir() {
         return currentDir;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultBuildActionParameters{"
+                + "clientMetaData=" + clientMetaData
+                + ", startTime=" + startTime
+                + ", currentDir=" + currentDir
+                + ", systemProperties size=" + systemProperties.size()
+                + ", envVariables size=" + envVariables.size()
+                + '}';
     }
 }

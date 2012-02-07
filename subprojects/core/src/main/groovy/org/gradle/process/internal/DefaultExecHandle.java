@@ -30,7 +30,10 @@ import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -215,7 +218,7 @@ public class DefaultExecHandle implements ExecHandle {
             lock.unlock();
         }
 
-        LOGGER.debug("Process finished for {}.", displayName);
+        LOGGER.debug("Process finished (code: {}) for {}.", exitCode, displayName);
 
         broadcast.getSource().executionFinished(this, result);
         broadcast.stop();

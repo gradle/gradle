@@ -16,24 +16,20 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Project
-import org.gradle.util.HelperUtil
+import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.tasks.SourceSet
-
+import org.gradle.util.HelperUtil
 import spock.lang.Specification
-
 import static org.gradle.util.Matchers.dependsOn
 import static org.hamcrest.Matchers.hasItems
-
 import static spock.util.matcher.HamcrestSupport.that
 import org.gradle.api.plugins.ReportingBasePlugin
-import org.gradle.api.plugins.GroovyPlugin
 
 class CodeNarcPluginTest extends Specification {
     Project project = HelperUtil.createRootProject()
 
     def setup() {
         project.plugins.apply(CodeNarcPlugin)
-        project.plugins.apply(GroovyPlugin)
     }
 
     def "applies reporting-base plugin"() {
@@ -57,10 +53,12 @@ class CodeNarcPluginTest extends Specification {
         codenarc.configFile == project.file("config/codenarc/codenarc.xml")
         codenarc.reportFormat == "html"
         codenarc.reportsDir == project.file("build/reports/codenarc")
+        codenarc.sourceSets == []
         !codenarc.ignoreFailures
     }
 
     def "adds codenarc task for each source set"() {
+        project.plugins.apply(GroovyBasePlugin)
         project.sourceSets {
             main
             test
@@ -88,6 +86,7 @@ class CodeNarcPluginTest extends Specification {
     }
 
     def "can customize per-source-set tasks via extension"() {
+        project.plugins.apply(GroovyBasePlugin)
         project.sourceSets {
             main
             test
@@ -126,7 +125,7 @@ class CodeNarcPluginTest extends Specification {
         def task = project.tasks.add("codenarcCustom", CodeNarc)
 
         expect:
-        task.description == "Run CodeNarc analysis for custom classes"
+        task.description == null
         task.defaultSource == null
         task.codenarcClasspath == project.configurations.codenarc
         task.configFile == project.file("config/codenarc/codenarc.xml")
@@ -146,7 +145,7 @@ class CodeNarcPluginTest extends Specification {
         }
 
         expect:
-        task.description == "Run CodeNarc analysis for custom classes"
+        task.description == null
         task.defaultSource == null
         task.codenarcClasspath == project.configurations.codenarc
         task.configFile == project.file("codenarc-config")
@@ -155,7 +154,8 @@ class CodeNarcPluginTest extends Specification {
         task.ignoreFailures == true
     }
     
-    def "adds all codenarc tasks to check lifecycle task"() {
+    def "adds codenarc tasks from each source sets to check lifecycle task"() {
+        project.plugins.apply(GroovyBasePlugin)
         project.sourceSets {
             main
             test
@@ -165,10 +165,11 @@ class CodeNarcPluginTest extends Specification {
         project.tasks.add("codenarcCustom", CodeNarc)
         
         expect:
-        that(project.check, dependsOn(hasItems("codenarcMain", "codenarcTest", "codenarcOther", "codenarcCustom")))
+        that(project.check, dependsOn(hasItems("codenarcMain", "codenarcTest", "codenarcOther")))
     }
 
     def "can customize which tasks are added to check lifecycle task"() {
+        project.plugins.apply(GroovyBasePlugin)
         project.sourceSets {
             main
             test
@@ -178,10 +179,25 @@ class CodeNarcPluginTest extends Specification {
         project.tasks.add("codenarcCustom", CodeNarc)
 
         project.codenarc {
-            checkTasks = ["codenarcMain", "codenarcCustom"]
+            sourceSets = [project.sourceSets.main]
         }
 
         expect:
-        that(project.check, dependsOn(hasItems("codenarcMain", "codenarcCustom")))
+        that(project.check, dependsOn(hasItems("codenarcMain")))
+    }
+
+    def "can customize task directly"() {
+        CodeNarc task = project.tasks.add("codenarcCustom", CodeNarc)
+
+        task.reports.xml {
+            enabled true
+            destination "build/foo.xml" 
+        }
+        
+        expect:
+        task.reports {
+            assert enabled == [html, xml] as Set
+            assert xml.destination == project.file("build/foo.xml")
+        }
     }
 }

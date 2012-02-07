@@ -17,18 +17,19 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.api.tasks.testing.Test
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
-import spock.lang.Specification
-import static org.gradle.util.WrapUtil.toLinkedSet
-import static org.gradle.util.Matchers.*
-import org.gradle.api.tasks.testing.Test
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Specification
+import static org.gradle.util.Matchers.sameCollection
+import static org.gradle.util.WrapUtil.toLinkedSet
 
 /**
  * @author Hans Dockter
@@ -143,7 +144,7 @@ class JavaBasePluginTest extends Specification {
 
         def javadoc = project.createTask('customJavadoc', type: Javadoc)
         javadoc.destinationDir == project.file("$project.docsDir/javadoc")
-        javadoc.title == project.apiDocTitle
+        javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 
     void appliesMappingsToCustomJarTasks() {

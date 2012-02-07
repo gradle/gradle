@@ -29,17 +29,92 @@ class JDependPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     def "analyze code"() {
-        file("src/main/java/org/gradle/Class1.java") <<
-                "package org.gradle; class Class1 { public boolean is() { return true; } }"
-        file("src/test/java/org/gradle/Class1Test.java") <<
-                "package org.gradle; class Class1Test { public boolean is() { return true; } }"
+        goodCode()
 
         expect:
         succeeds("check")
         file("build/reports/jdepend/main.xml").assertContents(containsString("org.gradle.Class1"))
         file("build/reports/jdepend/test.xml").assertContents(containsString("org.gradle.Class1Test"))
     }
-    
+
+    def "is incremental"() {
+        given:
+        goodCode()
+
+        expect:
+        succeeds("jdependMain") && ":jdependMain" in nonSkippedTasks
+        succeeds(":jdependMain") && ":jdependMain" in skippedTasks
+
+        when:
+        file("build/reports/jdepend/main.xml").delete()
+
+        then:
+        succeeds("jdependMain") && ":jdependMain" in nonSkippedTasks
+    }
+
+    def "cannot generate multiple reports"() {
+        given:
+        buildFile << """
+            jdependMain.reports {
+                xml.enabled true
+                text.enabled true
+            }
+        """
+
+        and:
+        goodCode()
+
+        expect:
+        fails "jdependMain"
+
+        failure.assertHasCause "JDepend tasks can only have one report enabled"
+    }
+
+    def "can generate text reports"() {
+        given:
+        buildFile << """
+            jdependMain.reports {
+                xml.enabled false
+                text.enabled true
+            }
+        """
+
+        and:
+        goodCode()
+
+        when:
+        run "jdependMain"
+
+        then:
+        file("build/reports/jdepend/main.txt").exists()
+    }
+
+    def "can't generate no reports"() {
+        given:
+        buildFile << """
+            jdependMain.reports {
+                xml.enabled false
+                text.enabled false
+            }
+        """
+
+        and:
+        goodCode()
+
+        expect:
+        fails "jdependMain"
+
+        and:
+        failure.assertHasCause "JDepend tasks must have one report enabled"
+    }
+
+    private goodCode() {
+        file("src/main/java/org/gradle/Class1.java") <<
+                "package org.gradle; class Class1 { public boolean is() { return true; } }"
+        file("src/test/java/org/gradle/Class1Test.java") <<
+                "package org.gradle; class Class1Test { public boolean is() { return true; } }"
+    }
+
     private void writeBuildFile() {
         file("build.gradle") << """
 apply plugin: "java"

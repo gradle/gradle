@@ -30,10 +30,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     def "analyze good code"() {
-        file("src/main/groovy/org/gradle/class1.java") << "package org.gradle; class class1 { }"
-        file("src/test/groovy/org/gradle/testclass1.java") << "package org.gradle; class testclass1 { }"
-        file("src/main/groovy/org/gradle/Class2.groovy") << "package org.gradle; class Class2 { }"
-        file("src/test/groovy/org/gradle/TestClass2.groovy") << "package org.gradle; class TestClass2 { }"
+        goodCode()
 
         expect:
         succeeds("check")
@@ -41,6 +38,41 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/codenarc/test.html").exists()
     }
 
+    def "is incremental"() {
+        given:
+        goodCode()
+        
+        expect:
+        succeeds("codenarcMain") && ":codenarcMain" in nonSkippedTasks
+        succeeds(":codenarcMain") && ":codenarcMain" in skippedTasks
+
+        when:
+        file("build/reports/codenarc/main.html").delete()
+
+        then:
+        succeeds("codenarcMain") && ":codenarcMain" in nonSkippedTasks
+    }
+    
+    def "can generate multiple reports"() {
+        given:
+        buildFile << """
+            codenarcMain.reports {
+                xml.enabled true
+                text.enabled true
+            }
+        """
+
+        and:
+        goodCode()
+        
+        expect:
+        succeeds("check")
+        ":codenarcMain" in nonSkippedTasks
+        file("build/reports/codenarc/main.html").exists()
+        file("build/reports/codenarc/main.xml").exists()
+        file("build/reports/codenarc/main.txt").exists()
+    }
+    
     def "analyze bad code"() {
         file("src/main/groovy/org/gradle/class1.java") << "package org.gradle; class class1 { }"
         file("src/main/groovy/org/gradle/Class2.groovy") << "package org.gradle; class Class2 { }"
@@ -55,6 +87,13 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/codenarc/test.html").text.contains("testclass2")
     }
 
+    private goodCode() {
+        file("src/main/groovy/org/gradle/class1.java") << "package org.gradle; class class1 { }"
+        file("src/test/groovy/org/gradle/testclass1.java") << "package org.gradle; class testclass1 { }"
+        file("src/main/groovy/org/gradle/Class2.groovy") << "package org.gradle; class Class2 { }"
+        file("src/test/groovy/org/gradle/TestClass2.groovy") << "package org.gradle; class TestClass2 { }"
+    }
+    
     private void writeBuildFile() {
         file("build.gradle") << """
 apply plugin: "groovy"

@@ -16,11 +16,10 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Plugin
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.tasks.SourceSet
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.Instantiator
+import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
+import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.tasks.SourceSet
 
 /**
  * <p>
@@ -31,77 +30,74 @@ import org.gradle.api.reporting.ReportingExtension
  * <p>
  * This plugin will automatically generate a task for each Java source set.
  * </p>
- * See {@link http://www.clarkware.com/software/JDepend.html} for more information.
+ * See <a href="http://www.clarkware.com/software/JDepend.html">JDepend</a> for more information.
  *
  * @see JDependExtension
  * @see JDepend
  */
-class JDependPlugin implements Plugin<ProjectInternal> {
-    private ProjectInternal project
-    private Instantiator instantiator
+class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
     private JDependExtension extension
 
-    void apply(ProjectInternal project) {
-        this.project = project
-        instantiator = project.services.get(Instantiator)
-
-        project.plugins.apply(JavaBasePlugin)
-
-        configureJDependConfiguration()
-        configureJDependExtension()
-        configureJDependTasks()
-        configureCheckTask()
+    @Override
+    protected String getToolName() {
+        return "JDepend"
     }
 
-    private void configureJDependConfiguration() {
-        project.configurations.add('jdepend').with {
-            visible = false
-            transitive = true
-            description = 'The JDepend libraries to be used for this project.'
-        }
+    @Override
+    protected Class<JDepend> getTaskType() {
+        return JDepend
     }
 
-    private void configureJDependExtension() {
-        extension = instantiator.newInstance(JDependExtension, project)
+    @Override
+    protected CodeQualityExtension createExtension() {
+        extension = instantiator.newInstance(JDependExtension)
         project.extensions.jdepend = extension
         extension.with {
             toolVersion = "2.9.1"
-            sourceSets = project.sourceSets
         }
         extension.conventionMapping.with {
             reportsDir = { project.extensions.getByType(ReportingExtension).file("jdepend") }
         }
+        return extension
     }
 
-    private void configureJDependTasks() {
-        project.sourceSets.all { SourceSet sourceSet ->
-            def task = project.tasks.add(sourceSet.getTaskName('jdepend', null), JDepend)
-            task.with {
-                dependsOn(sourceSet.output)
-                description = "Run JDepend analysis for ${sourceSet.name} classes"
-            }
-            task.conventionMapping.with {
-                jdependClasspath = {
-                    def config = project.configurations['jdepend']
-                    if (config.dependencies.empty) {
-                        project.dependencies {
-                            jdepend "jdepend:jdepend:$extension.toolVersion"
-                            jdepend("org.apache.ant:ant-jdepend:1.8.2") {
-                                exclude module: "ant"
-                                exclude module: "ant-launcher"
-                            }
+    @Override
+    protected void configureTaskDefaults(JDepend task, String baseName) {
+        task.conventionMapping.with {
+            jdependClasspath = {
+                def config = project.configurations['jdepend']
+                if (config.dependencies.empty) {
+                    project.dependencies {
+                        jdepend "jdepend:jdepend:$extension.toolVersion"
+                        jdepend("org.apache.ant:ant-jdepend:1.8.2") {
+                            exclude module: "ant"
+                            exclude module: "ant-launcher"
                         }
                     }
-                    config
                 }
-                classesDir = { sourceSet.output.classesDir }
-                reportFile = { new File(extension.reportsDir, "${sourceSet.name}.xml") }
-                ignoreFailures = { extension.ignoreFailures }
+                config
+            }
+            ignoreFailures = { extension.ignoreFailures }
+        }
+        task.reports.all { Report report ->
+            report.conventionMapping.with {
+                enabled = { report.name == "xml" }
+                destination = {
+                    def fileSuffix = report.name == 'text' ? 'txt' : report.name
+                    new File(extension.reportsDir, "${baseName}.${fileSuffix}")
+                }
             }
         }
     }
 
-    private void configureCheckTask() {
-        project.tasks['check'].dependsOn { extension.sourceSets.collect { it.getTaskName('jdepend', null) }}
+    @Override
+    protected void configureForSourceSet(SourceSet sourceSet, JDepend task) {
+        task.with {
+            dependsOn(sourceSet.output)
+            description = "Run JDepend analysis for ${sourceSet.name} classes"
+        }
+        task.conventionMapping.with {
+            classesDir = { sourceSet.output.classesDir }
+        }
     }
 }

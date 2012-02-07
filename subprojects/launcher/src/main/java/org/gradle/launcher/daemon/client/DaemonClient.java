@@ -22,6 +22,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.*;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
@@ -76,11 +77,11 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         Spec<DaemonContext> stoppableDaemonSpec = Specs.satisfyAll();
         DaemonConnection connection = connector.maybeConnect(stoppableDaemonSpec);
         if (connection == null) {
-            LOGGER.lifecycle("No Gradle daemons are running.");
+            LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);
             return;
         }
 
-        LOGGER.lifecycle("Stopping daemon.");
+        LOGGER.lifecycle("Stopping daemon(s).");
         //iterate and stop all daemons
         while (connection != null) {
             new StopDispatcher().dispatch(clientMetaData, connection.getConnection());
@@ -105,6 +106,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
 
             Object firstResult;
             try {
+                LOGGER.info("Connected to the daemon. Dispatching {} request.", build);
                 connection.dispatch(build);
                 firstResult = connection.receive();
             } catch (Exception e) {
@@ -121,9 +123,11 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 // Could potentially distinguish between CommandFailure and DaemonFailure here.
                 throw ((Failure) firstResult).getValue();
             } else if (firstResult == null) {
-                LOGGER.warn("The first result from the daemon was empty. Most likely the daemon has died. Trying a different daemon...");
+                LOGGER.info("The first result from the daemon was empty. Most likely the daemon has died. Trying a different daemon...");
             } else {
-                throw new IllegalStateException(String.format("Daemon returned %s for which there is no strategy to handle (i.e. is an unknown Result type)", firstResult));
+                throw new IllegalStateException(String.format(
+                    "The first result from the Daemon: %s is a Result of a type we don't have a strategy to handle."
+                    + "Earlier, %s request was sent to the daemon.", firstResult, build));
             }
         }
     }
@@ -136,10 +140,13 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
 
             while (true) {
                 Object object = connection.receive();
-                LOGGER.debug("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
+                LOGGER.trace("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
 
                 if (object == null) {
                     throw new DaemonDisappearedException(build, connection);
+                    //TODO SF we can try sending something to the daemon and try out if he is really dead
+                    //if he's really dead we should deregister it if it is not already deregistered.
+                    //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
                 } else if (object instanceof Failure) {
                     // Could potentially distinguish between CommandFailure and DaemonFailure here.
                     throw ((Failure) object).getValue();

@@ -1,4 +1,4 @@
-import org.gradle.os.OperatingSystem
+import org.gradle.internal.nativeplatform.OperatingSystem
 
 apply from: "$rootDir/gradle/classycle.gradle"
 

@@ -15,8 +15,8 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.file.FileCollection
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 
 /**
  * Configuration options for the PMD plugin.
@@ -24,8 +24,10 @@ import org.gradle.api.Project
  * @see PmdPlugin
  */
 class PmdExtension extends CodeQualityExtension {
+    private final Project project
+
     PmdExtension(Project project) {
-        super(project)
+        this.project = project
     }
 
     /**
@@ -69,12 +71,7 @@ class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * The directory in which XML reports will be saved. Defaults to <tt>$reporting.baseDir/pmd</tt>.
+     * The directory where PMD reports will be saved. Defaults to <tt>$reportsDir/pmd</tt>.
      */
-    File xmlReportsDir
-
-    /**
-     * The directory in which HTML reports will be saved. Defaults to <tt>$reporting.baseDir/pmd</tt>.
-     */
-    File htmlReportsDir
+    File reportsDir
 }

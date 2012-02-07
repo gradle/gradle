@@ -217,7 +217,7 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
             String details = GradlePluginLord.getGradleExceptionMessage(buildResult.getFailure(), gradle.getStartParameter().getShowStacktrace());
             output += details;
 
-            client.sendMessage(ProtocolConstants.EXECUTION_COMPLETED_TYPE, output, new Boolean(wasSuccessful));
+            client.sendMessage(ProtocolConstants.EXECUTION_COMPLETED_TYPE, output, wasSuccessful);
 
             client.sendMessage(ProtocolConstants.EXITING, null, null);
             client.stop();

@@ -56,18 +56,28 @@ class StartScriptGenerator {
     private final engine = new SimpleTemplateEngine()
 
     void generateUnixScript(File unixScript) {
-        def unixClassPath = classpath.collect { "\$APP_HOME/$it" }.join(":")
+        String nativeOutput = generateUnixScriptContent()
+        writeToFile(nativeOutput, unixScript)
+        createExecutablePermission(unixScript)
+    }
+
+    String generateUnixScriptContent() {
+        def unixClassPath = classpath.collect { "\$APP_HOME/${it.replace('\\', '/')}" }.join(":")
         def binding = [applicationName: applicationName,
                 optsEnvironmentVar: optsEnvironmentVar,
                 mainClassName: mainClassName,
                 appNameSystemProperty: appNameSystemProperty,
                 appHomeRelativePath: appHomeRelativePath,
                 classpath: unixClassPath]
-        generateScript('unixStartScript.txt', binding, TextUtil.unixLineSeparator, unixScript)
-        createExecutablePermission(unixScript)
+        return generateNativeOutput('unixStartScript.txt', binding, TextUtil.unixLineSeparator)
     }
 
     void generateWindowsScript(File windowsScript) {
+        String nativeOutput = generateWindowsScriptContent()
+        writeToFile(nativeOutput, windowsScript);
+    }
+
+    String generateWindowsScriptContent() {
         def windowsClassPath = classpath.collect { "%APP_HOME%\\${it.replace('/', '\\')}" }.join(";")
         def appHome = appHomeRelativePath.replace('/', '\\')
         def binding = [applicationName: applicationName,
@@ -77,7 +87,8 @@ class StartScriptGenerator {
                 appNameSystemProperty: appNameSystemProperty,
                 appHomeRelativePath: appHome,
                 classpath: windowsClassPath]
-        generateScript('windowsStartScript.txt', binding, TextUtil.windowsLineSeparator, windowsScript)
+        return generateNativeOutput('windowsStartScript.txt', binding, TextUtil.windowsLineSeparator)
+
     }
 
     private void createExecutablePermission(File unixScriptFile) {
@@ -88,13 +99,19 @@ class StartScriptGenerator {
         chmod.execute()
     }
 
-    private void generateScript(String templateName, Map binding, String lineSeparator, File outputFile) {
+    void writeToFile(String scriptContent, File scriptFile) {
+        scriptFile.parentFile.mkdirs()
+        scriptFile.write(scriptContent)
+    }
+
+
+    private String generateNativeOutput(String templateName, Map binding, String lineSeparator) {
         def stream = StartScriptGenerator.getResource(templateName)
         def templateText = stream.text
         def output = engine.createTemplate(templateText).make(binding)
         def nativeOutput = TextUtil.convertLineSeparators(output as String, lineSeparator)
-        outputFile.parentFile.mkdirs()
-        outputFile.write(nativeOutput)
+        return nativeOutput;
+
     }
 
     private String getAppHomeRelativePath() {

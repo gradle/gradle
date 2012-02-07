@@ -40,6 +40,9 @@ class DistributionLocatorIntegrationTest extends Specification {
     }
 
     void urlExist(String url) {
-        new URL(url).openStream().close()
+        HttpURLConnection connection = new URL(url).openConnection()
+        connection.requestMethod = "HEAD"
+        connection.connect()
+        assert connection.responseCode == 200
     }
 }

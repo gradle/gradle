@@ -15,10 +15,25 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Nullable;
 
-public interface ModuleVersionResolveResult extends ModuleVersionResolver {
+public interface ModuleVersionResolveResult {
+    /**
+     * Returns the id of this module version.
+     *
+     * @throws ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
+     */
+    ModuleRevisionId getId() throws ModuleVersionResolveException;
+
+    /**
+     * Returns the descriptor for this module version.
+     *
+     * @throws ModuleVersionResolveException If resolution was unsuccessful and the descriptor is not available.
+     */
+    ModuleDescriptor getDescriptor() throws ModuleVersionResolveException;
+
     /**
      * Returns the resolve failure, if any.
      */
@@ -26,7 +41,9 @@ public interface ModuleVersionResolveResult extends ModuleVersionResolver {
     ModuleVersionResolveException getFailure();
 
     /**
-     * Resolves the given artifact of this module. Any failures are packaged up in the result.
+     * Returns the artifact resolver for this module.
+     *
+     * @throws ModuleVersionResolveException If resolution was unsuccessful and artifacts are not available.
      */
-    ArtifactResolveResult resolve(Artifact artifact);
+    ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException;
 }

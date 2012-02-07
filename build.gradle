@@ -38,13 +38,16 @@ apply plugin: 'java-base'
 
 archivesBaseName = 'gradle'
 
+versions = [
+    commons_io: 'commons-io:commons-io:1.4'
+]
 libraries = [
     ant: dependencies.module('org.apache.ant:ant:1.8.2') {
         dependency 'org.apache.ant:ant-launcher:1.8.2@jar'
     },
     asm: 'asm:asm-all:3.3.1@jar',
     commons_cli: 'commons-cli:commons-cli:1.2@jar',
-    commons_io: 'commons-io:commons-io:1.4@jar',
+    commons_io: dependencies.module(versions.commons_io),
     commons_lang: 'commons-lang:commons-lang:2.6@jar',
     commons_collections: 'commons-collections:commons-collections:3.2.1@jar',
     ivy: 'org.apache.ivy:ivy:2.2.0@jar',
@@ -83,6 +86,7 @@ libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:ht
     dependency "org.apache.httpcomponents:httpcore:4.1.2@jar"
     dependency libraries.jcl_to_slf4j
     dependency "commons-codec:commons-codec:1.4@jar"
+    dependency "org.samba.jcifs:jcifs:1.3.17"
 }
 
 libraries.maven_ant_tasks = dependencies.module("org.apache.maven:maven-ant-tasks:2.1.3") {
@@ -129,6 +133,9 @@ allprojects {
         mavenRepo(url: 'http://m2repo.spockframework.org/snapshots/')
         ivy {
             url 'http://repo.jfrog.org/artifactory/gradle-wharf-local'
+        }
+        maven {
+            url 'http://repository.amdatu.org/maven2'
         }
     }
 
@@ -228,7 +235,7 @@ task uploadArchives(dependsOn: publishedProjects()*.uploadArchives)
 task publishLocalArchives(dependsOn: publishedProjects()*.publishLocalArchives)
 
 task aggregateTestReports(type: TestReportAggregator) {
-    testReportDir = file("${reportsDir}/tests")
+    testReportDir = reporting.file("tests")
     testResultsDir = file("${buildDir}/test-results")
     projects = subprojects
 }
@@ -357,6 +364,13 @@ gradle.taskGraph.whenReady {graph ->
         // check properties defined and fail early
         artifactoryUserName
         artifactoryUserPassword
+    }
+}
+
+task quickCheck {
+    def i = gradle.startParameter.taskNames.findIndexOf { it ==~ /:?quickCheck/ }
+    if (i >= 0) {
+        gradle.startParameter.taskNames.addAll(i, ["doc:checkstyleApi", "codeQuality", "classes", "test"])
     }
 }
 

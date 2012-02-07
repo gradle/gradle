@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.util.DeprecationLogger
 
 /**
@@ -35,20 +36,20 @@ public class CodeQualityPlugin implements Plugin<Project> {
     static final String CODE_NARC_TEST_TASK = "codenarcTest"
 
     void apply(Project project) {
-        DeprecationLogger.nagUserOfReplacedPlugin('code-quality', 'checkstyle/codenarc')
+        DeprecationLogger.nagUserOfReplacedPlugin('code-quality', 'checkstyle or codenarc')
 
         this.project = project
 
+        project.plugins.apply(ReportingBasePlugin)
         configureCheckstyle()
         configureCodeNarc()
     }
 
     private void configureCheckstyle() {
-        project.plugins.apply(CheckstylePlugin)
-
         def javaPluginConvention = new JavaCodeQualityPluginConvention(project)
         project.convention.plugins.javaCodeQuality = javaPluginConvention
 
+        project.plugins.apply(CheckstylePlugin)
         project.checkstyle.conventionMapping.with {
             configFile = { javaPluginConvention.checkstyleConfigFile }
             configProperties = { javaPluginConvention.checkstyleProperties }
@@ -57,11 +58,10 @@ public class CodeQualityPlugin implements Plugin<Project> {
     }
 
     private void configureCodeNarc() {
-        project.plugins.apply(CodeNarcPlugin)
-
         def groovyPluginConvention = new GroovyCodeQualityPluginConvention(project)
         project.convention.plugins.groovyCodeQuality = groovyPluginConvention
 
+        project.plugins.apply(CodeNarcPlugin)
         project.codenarc.conventionMapping.with {
             configFile = { groovyPluginConvention.codeNarcConfigFile }
             reportFormat = { groovyPluginConvention.codeNarcReportsFormat }

@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
 
 import java.io.BufferedReader;
@@ -30,10 +31,12 @@ import static org.junit.Assert.assertThat;
 public class OutputScrapingExecutionResult implements ExecutionResult {
     private final String output;
     private final String error;
-    
+
+    //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
     private final Pattern skippedTaskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE))");
-    private final Pattern notSkippedTaskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)");
-    private final Pattern taskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)(\\s+.+)?");
+
+    //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
+    private final Pattern taskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s*))");
 
     public OutputScrapingExecutionResult(String output, String error) {
         this.output = output;
@@ -75,20 +78,26 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public ExecutionResult assertTasksNotSkipped(String... taskPaths) {
-        Set<String> tasks = new HashSet<String>(grepTasks(notSkippedTaskPattern));
+        Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
         Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
         assertThat(String.format("Expected executed tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
         return this;
     }
 
+    private Collection<String> getNotSkippedTasks() {
+        List all = getExecutedTasks();
+        Set skipped = getSkippedTasks();
+        return CollectionUtils.subtract(all, skipped);
+    }
+
     public ExecutionResult assertTaskNotSkipped(String taskPath) {
-        Set<String> tasks = new HashSet<String>(grepTasks(notSkippedTaskPattern));
+        Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
         assertThat(String.format("Expected executed task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
         return this;
     }
 
     private List<String> grepTasks(final Pattern pattern) {
-        final List<String> tasks = new ArrayList<String>();
+        final LinkedList<String> tasks = new LinkedList<String>();
 
         eachLine(new Action<String>() {
             public void execute(String s) {
@@ -96,7 +105,11 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 if (matcher.matches()) {
                     String taskName = matcher.group(1);
                     if (!taskName.startsWith(":buildSrc:")) {
-                        tasks.add(taskName);
+                        //for INFO/DEBUG level the task may appear twice - once for the execution, once for the UP-TO-DATE
+                        //so I'm not adding the task to the list if it is the same as previously added task.
+                        if (tasks.size() == 0 || !tasks.getLast().equals(taskName)) {
+                            tasks.add(taskName);
+                        }
                     }
                 }
             }

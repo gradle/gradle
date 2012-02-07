@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile.fork;
 
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.ForkOptions;
@@ -23,26 +23,24 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.util.Jvm;
 
 import java.io.File;
 
 public class ForkingJavaCompiler extends JavaCompilerSupport {
-    private final ServiceRegistry services;
-    private final File workingDir;
+    private final ProjectInternal project;
     
     private final CompilationAction action = new CompilationAction();
     private CompilationResult result;
 
-    public ForkingJavaCompiler(ServiceRegistry services, File workingDir) {
-        this.services = services;
-        this.workingDir = workingDir;
+    public ForkingJavaCompiler(ProjectInternal project) {
+        this.project = project;
     }
 
     public WorkResult execute() {
         configure(action);
         WorkerProcess process = createWorkerProcess();
         process.start();
-        // TODO: only works when done after start() - does this risk to lose some messages?
         registerCompilationListener(process);
         process.waitForStop();
 
@@ -54,14 +52,18 @@ public class ForkingJavaCompiler extends JavaCompilerSupport {
     }
 
     private WorkerProcess createWorkerProcess() {
-        WorkerProcessBuilder builder = services.getFactory(WorkerProcessBuilder.class).create();
+        WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
+        File toolsJar = Jvm.current().getToolsJar();
+        if (toolsJar != null) {
+            builder.getApplicationClasspath().add(toolsJar); // for SunJavaCompiler
+        }
         ForkOptions forkOptions = getCompileOptions().getForkOptions();
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setMinHeapSize(forkOptions.getMemoryInitialSize());
         javaCommand.setMaxHeapSize(forkOptions.getMemoryMaximumSize());
         javaCommand.setJvmArgs(forkOptions.getJvmArgs());
-        javaCommand.setWorkingDir(workingDir); // TODO: w/o setting this, we get a "cannot resolve '.' to absolute path" exception
-        return builder.worker(action.makeSerializable()).build();
+        javaCommand.setWorkingDir(project.getProjectDir()); // TODO: w/o setting this, we get a "cannot resolve '.' to absolute path" exception
+        return builder.worker(action).build();
     }
 
     private void registerCompilationListener(WorkerProcess process) {

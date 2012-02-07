@@ -25,7 +25,7 @@ import java.io.File;
  * A repository of module versions.
  *
  * <p>Current contains a subset of methods from {@link org.apache.ivy.plugins.resolver.DependencyResolver}, while we transition away from it.
- * The plan is to sync with (or replace with) {@link org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolver}.
+ * The plan is to sync with (or replace with) {@link org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver}.
  */
 public interface ModuleVersionRepository {
     String getId();

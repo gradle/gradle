@@ -30,16 +30,16 @@ import java.util.*;
 
 public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T> {
 
-    private final Class<T> type;
+    private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
     private final Collection<T> store;
     private final Set<Runnable> mutateActions = new LinkedHashSet<Runnable>();
 
-    public DefaultDomainObjectCollection(Class<T> type, Collection<T> store) {
+    public DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store) {
         this(type, store, new CollectionEventRegister<T>());
     }
 
-    protected DefaultDomainObjectCollection(Class<T> type, Collection<T> store, CollectionEventRegister<T> eventRegister) {
+    protected DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister) {
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
@@ -49,7 +49,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter));
     }
 
-    public Class<T> getType() {
+    public Class<? extends T> getType() {
         return type;
     }
 
@@ -69,7 +69,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return new CollectionFilter<S>(type);
     }
 
-    protected <S extends T> CollectionFilter<S> createFilter(Class<S> type, Spec<? super S> spec) {
+    protected <S extends T> CollectionFilter<S> createFilter(Class<? extends S> type, Spec<? super S> spec) {
         return new CollectionFilter<S>(type, spec);
     }
 

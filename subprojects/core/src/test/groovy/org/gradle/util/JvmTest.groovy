@@ -25,7 +25,25 @@ class JvmTest extends Specification {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
     OperatingSystem os = Mock()
     OperatingSystem theOs = OperatingSystem.current()
-    Jvm jvm = new Jvm(os)
+
+    Jvm getJvm() {
+        new Jvm(os)
+    }
+
+    def "uses system property to determine if Java 5/6/7"() {
+        System.properties['java.version'] = "1.$version" as String
+
+        expect:
+        jvm."java$version"
+        !jvm."java$other1"
+        !jvm."java$other2"
+
+        where:
+        version | other1 | other2
+        5       | 6      | 7
+        6       | 7      | 5
+        7       | 5      | 6
+    }
 
     def "uses system property to determine if compatible with Java 5"() {
         System.properties['java.version'] = '1.5'
@@ -61,6 +79,41 @@ class JvmTest extends Specification {
         expect:
         jvm.javaHome == javaHomeDir
         jvm.toolsJar == toolsJar
+    }
+
+    def "provides information when typical jdk installed"() {
+        given:
+        TestFile software = tmpDir.createDir('software')
+        software.create {
+            jdk {
+                jre { lib { file 'rt.jar' }}
+                lib { file 'tools.jar'}
+            }
+        }
+
+        when:
+        System.properties['java.home'] = software.file('jdk/jre').absolutePath
+
+        then:
+        jvm.javaHome.absolutePath == software.file('jdk').absolutePath
+        jvm.runtimeJar == software.file('jdk/jre/lib/rt.jar')
+        jvm.toolsJar == software.file('jdk/lib/tools.jar')
+    }
+
+    def "provides information when typical jre installed"() {
+        given:
+        TestFile software = tmpDir.createDir('software')
+        software.create {
+            jre { lib { file 'rt.jar' }}
+        }
+
+        when:
+        System.properties['java.home'] = software.file('jre').absolutePath
+
+        then:
+        jvm.javaHome.absolutePath == software.file('jre').absolutePath
+        jvm.runtimeJar == software.file('jre/lib/rt.jar')
+        jvm.toolsJar == null
     }
 
     def "looks for tools Jar in parent of JRE's Java home directory"() {
@@ -162,6 +215,35 @@ class JvmTest extends Specification {
         ex.message.contains('foobar')
     }
 
+    def "falls back to PATH if executable cannot be found when using default java"() {
+        given:
+        def home = tmpDir.createDir("home")
+        System.properties['java.home'] = home.absolutePath
+        1 * os.getExecutableName(_ as String) >> "foobar.exe"
+        1 * os.findInPath("foobar") >> new File('/path/foobar.exe')
+
+        when:
+        def exec = jvm.getExecutable("foobar")
+
+        then:
+        exec == new File('/path/foobar.exe')
+    }
+
+    def "falls back to current dir if executable cannot be found anywhere"() {
+        given:
+        def home = tmpDir.createDir("home")
+        System.properties['java.home'] = home.absolutePath
+
+        os.getExecutableName(_ as String) >> "foobar.exe"
+        1 * os.findInPath("foobar") >> null
+
+        when:
+        def exec = jvm.getExecutable("foobar")
+
+        then:
+        exec == new File('foobar.exe')
+    }
+
     def "provides decent feedback for invalid java home"() {
         given:
         def someHome = tmpDir.createDir("someHome")
@@ -180,5 +262,13 @@ class JvmTest extends Specification {
 
         then:
         thrown(IllegalArgumentException)
+    }
+    
+    def "describes accurately when created for supplied java home"() {
+        when:
+        def jvm = new Jvm(theOs, new File('dummyFolder'))
+
+        then:
+        jvm.toString().contains('dummyFolder')
     }
 }

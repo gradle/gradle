@@ -17,18 +17,19 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.listener.ContextClassLoaderProxy;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.WorkerProcessContext;
-import org.gradle.util.*;
+import org.gradle.util.CompositeIdGenerator;
+import org.gradle.util.IdGenerator;
+import org.gradle.util.LongIdGenerator;
+import org.gradle.util.TrueTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,6 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     private CountDownLatch completed;
     private TestClassProcessor processor;
     private TestResultProcessor resultProcessor;
-    private StoppableExecutor testExecutor;
 
     public TestWorker(WorkerTestClassProcessorFactory factory) {
         this.factory = factory;
@@ -51,7 +51,6 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     public void execute(WorkerProcessContext workerProcessContext) {
         LOGGER.info("{} executing tests.", workerProcessContext.getDisplayName());
 
-        testExecutor = new DefaultExecutorFactory().create(workerProcessContext.getDisplayName() + " test executor"); 
         completed = new CountDownLatch(1);
 
         System.setProperty(WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
@@ -87,37 +86,12 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         processor.startProcessing(resultProcessor);
     }
 
-    static private class ExceptionHolder {
-        public Throwable thrown;
-    }
-    
     public void processTestClass(final TestClassRunInfo testClass) {
-        final CountDownLatch executionFinishedLatch = new CountDownLatch(1);
-        final ExceptionHolder exceptionHolder = new ExceptionHolder();
-        
-        // Execute the tests in a separate thread to protect against the tests affecting
-        // our current thread (which is reused for future messages)
-        // http://issues.gradle.org/browse/GRADLE-1948
-        testExecutor.execute(new Runnable() {
-            public void run() {
-                try {
-                    processor.processTestClass(testClass);
-                } catch (Throwable e) {
-                    exceptionHolder.thrown = e;
-                } finally {
-                    executionFinishedLatch.countDown();
-                }
-            }
-        });
-        
         try {
-            executionFinishedLatch.await();
-        } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
-        
-        if (exceptionHolder.thrown != null) {
-            throw UncheckedException.asUncheckedException(exceptionHolder.thrown);
+            processor.processTestClass(testClass);
+        } finally {
+            // Clean the interrupted status
+            Thread.interrupted();
         }
     }
 

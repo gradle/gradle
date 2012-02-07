@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit
 import org.gradle.messaging.dispatch.Dispatch
 import org.gradle.messaging.dispatch.DispatchFailureHandler
 import org.gradle.util.ConcurrentSpecification
+import spock.lang.Timeout
 
 class ProtocolStackTest extends ConcurrentSpecification {
     final Protocol<String> top = Mock()
@@ -66,6 +67,7 @@ class ProtocolStackTest extends ConcurrentSpecification {
         stack?.stop()
     }
 
+    @Timeout(5)
     def "top protocol can dispatch incoming message during start"() {
         Protocol<String> protocol = Mock()
         def dispatched = startsAsyncAction()

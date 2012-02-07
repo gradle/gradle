@@ -15,9 +15,12 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -28,6 +31,8 @@ import java.util.List;
  * that need to generate command-line options.
  */
 public abstract class CommandLineJavaCompilerSupport extends JavaCompilerSupport {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompilerSupport.class);
+    
     protected List<String> generateCommandLineOptions() {
         List<String> options = new ArrayList<String>();
         if (sourceCompatibility != null) {
@@ -45,6 +50,9 @@ public abstract class CommandLineJavaCompilerSupport extends JavaCompilerSupport
         if (compileOptions.isVerbose()) {
             options.add("-verbose");
         }
+        if (compileOptions.isDeprecation()) {
+            options.add("-deprecation");
+        }
         if (!compileOptions.isWarnings()) {
             options.add("-nowarn");
         }
@@ -55,6 +63,14 @@ public abstract class CommandLineJavaCompilerSupport extends JavaCompilerSupport
             options.add("-encoding");
             options.add(compileOptions.getEncoding());
         }
+        if (compileOptions.getBootClasspath() != null) {
+            options.add("-bootclasspath");
+            options.add(compileOptions.getBootClasspath());
+        }
+        if (compileOptions.getExtensionDirs() != null) {
+            options.add("-extdirs");
+            options.add(compileOptions.getExtensionDirs());
+        }
         if (classpath != null && classpath.iterator().hasNext()) {
             options.add("-classpath");
             options.add(toFileCollection(classpath).getAsPath());
@@ -62,10 +78,9 @@ public abstract class CommandLineJavaCompilerSupport extends JavaCompilerSupport
         if (compileOptions.getCompilerArgs() != null) {
             options.addAll(compileOptions.getCompilerArgs());
         }
-        if (source != null) {
-            for (File file : source) {
-                options.add(file.getPath());
-            }
+
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Invoking Java compiler with options '{}'", Joiner.on(' ').join(options));
         }
 
         return options;

@@ -20,6 +20,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.List;
 
 public class SunJavaCompiler extends CommandLineJavaCompilerSupport {
@@ -27,10 +28,15 @@ public class SunJavaCompiler extends CommandLineJavaCompilerSupport {
 
     public WorkResult execute() {
         LOGGER.info("Compiling using Sun Java Compiler API.");
+        listFilesIfRequested();
 
         List<String> options = generateCommandLineOptions();
+        for (File file : source) {
+            options.add(file.getPath());
+        }
+
         int exitCode = Main.compile(options.toArray(new String[options.size()]));
-        if (exitCode != 0) {
+        if (exitCode != 0 && compileOptions.isFailOnError()) {
             throw new CompilationFailedException();
         }
 

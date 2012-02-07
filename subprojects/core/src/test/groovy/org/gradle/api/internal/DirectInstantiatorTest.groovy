@@ -57,6 +57,13 @@ class DirectInstantiatorTest extends Specification {
         numberResult.result == 5
     }
 
+    def "unboxes constructor parameters"() {
+        expect:
+        def result = instantiator.newInstance(SomeTypeWithPrimitiveTypes, true)
+        result instanceof SomeTypeWithPrimitiveTypes
+        result.result
+    }
+
     def "fails when target class has ambiguous constructor"() {
         when:
         instantiator.newInstance(TypeWithAmbiguousConstructor, "param")
@@ -66,11 +73,11 @@ class DirectInstantiatorTest extends Specification {
         e.message == "Found multiple public constructors for ${TypeWithAmbiguousConstructor} which accept parameters [param]."
 
         when:
-        instantiator.newInstance(TypeWithAmbiguousConstructor, [null] as Object[])
+        instantiator.newInstance(TypeWithAmbiguousConstructor, true)
 
         then:
         e = thrown()
-        e.message == "Found multiple public constructors for ${TypeWithAmbiguousConstructor} which accept parameters [null]."
+        e.message == "Found multiple public constructors for ${TypeWithAmbiguousConstructor} which accept parameters [true]."
     }
 
     def "fails when target class has no matching public constructor"() {
@@ -89,6 +96,37 @@ class DirectInstantiatorTest extends Specification {
         then:
         e = thrown()
         e.message == "Could not find any public constructor for ${SomeType} which accepts parameters [a, b]."
+
+        when:
+        instantiator.newInstance(SomeType, false)
+
+        then:
+        e = thrown()
+        e.message == "Could not find any public constructor for ${SomeType} which accepts parameters [false]."
+
+        when:
+
+        instantiator.newInstance(SomeTypeWithPrimitiveTypes, "a")
+
+        then:
+        e = thrown()
+        e.message == "Could not find any public constructor for ${SomeTypeWithPrimitiveTypes} which accepts parameters [a]."
+
+        when:
+
+        instantiator.newInstance(SomeTypeWithPrimitiveTypes, 22)
+
+        then:
+        e = thrown()
+        e.message == "Could not find any public constructor for ${SomeTypeWithPrimitiveTypes} which accepts parameters [22]."
+
+        when:
+
+        instantiator.newInstance(SomeTypeWithPrimitiveTypes, [null] as Object[])
+
+        then:
+        e = thrown()
+        e.message == "Could not find any public constructor for ${SomeTypeWithPrimitiveTypes} which accepts parameters [null]."
     }
 
     def "rethrows unchecked exception thrown by constructor"() {
@@ -136,10 +174,24 @@ class SomeTypeWithMultipleConstructors {
     }
 }
 
+class SomeTypeWithPrimitiveTypes {
+    final Object result
+
+    SomeTypeWithPrimitiveTypes(boolean result) {
+        this.result = result
+    }
+}
+
 class TypeWithAmbiguousConstructor {
-    TypeWithAmbiguousConstructor(Object param) {
+    TypeWithAmbiguousConstructor(CharSequence param) {
     }
 
     TypeWithAmbiguousConstructor(String param) {
+    }
+
+    TypeWithAmbiguousConstructor(Boolean param) {
+    }
+
+    TypeWithAmbiguousConstructor(boolean param) {
     }
 }

@@ -34,7 +34,7 @@ class CppExeConventionPlugin implements Plugin<Project> {
             }
             executables {
                 main {
-                    sourceSets << cpp.sourceSets.main
+                    sourceSets << project.cpp.sourceSets.main
                 }
             }
             

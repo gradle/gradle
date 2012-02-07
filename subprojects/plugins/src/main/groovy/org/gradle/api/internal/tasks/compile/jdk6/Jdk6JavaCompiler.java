@@ -33,6 +33,7 @@ public class Jdk6JavaCompiler extends CommandLineJavaCompilerSupport {
 
     public WorkResult execute() {
         LOGGER.info("Compiling using JDK 6 Java Compiler API.");
+        listFilesIfRequested();
 
         List<String> options = generateCommandLineOptions();
         javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -41,7 +42,7 @@ public class Jdk6JavaCompiler extends CommandLineJavaCompilerSupport {
         javax.tools.JavaCompiler.CompilationTask task = compiler.getTask(null, null, null, options, null, compilationUnits);
 
         boolean success = task.call();
-        if (!success) {
+        if (!success && compileOptions.isFailOnError()) {
             throw new CompilationFailedException();
         }
         return new SimpleWorkResult(true);

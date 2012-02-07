@@ -15,9 +15,9 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -54,6 +54,7 @@ public class ReportingBasePluginConvention {
      */
     @Deprecated
     public String getReportsDirName() {
+        DeprecationLogger.nagUserOfReplacedProperty("reportsDirName", "reporting.baseDir");
         return extension.getBaseDir().getName();
     }
 
@@ -65,6 +66,7 @@ public class ReportingBasePluginConvention {
      */
     @Deprecated
     public void setReportsDirName(final String reportsDirName) {
+        DeprecationLogger.nagUserOfReplacedProperty("reportsDirName", "reporting.baseDir");
         extension.setBaseDir(new Callable<File>() {
             public File call() throws Exception {
                 return project.getFileResolver().withBaseDir(project.getBuildDir()).resolve(reportsDirName);
@@ -80,6 +82,7 @@ public class ReportingBasePluginConvention {
      */
     @Deprecated
     public File getReportsDir() {
+        DeprecationLogger.nagUserOfReplacedProperty("reportsDir", "reporting.baseDir");
         return extension.getBaseDir();
     }
 
@@ -91,11 +94,7 @@ public class ReportingBasePluginConvention {
      */
     @Deprecated
     public String getApiDocTitle() {
-        Object version = project.getVersion();
-        if (Project.DEFAULT_VERSION.equals(version)) {
-            return String.format("%s API", project.getName());
-        } else {
-            return String.format("%s %s API", project.getName(), version);
-        }
+        DeprecationLogger.nagUserOfReplacedProperty("apiDocTitle", "reporting.apiDocTitle");
+        return extension.getApiDocTitle();
     }
 }

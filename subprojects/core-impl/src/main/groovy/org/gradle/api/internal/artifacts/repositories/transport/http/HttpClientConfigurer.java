@@ -28,6 +28,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.repositories.transport.http.ntlm.NTLMCredentials;
+import org.gradle.api.internal.artifacts.repositories.transport.http.ntlm.NTLMSchemeFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
@@ -56,6 +58,7 @@ public class HttpClientConfigurer {
     }
 
     public void configure(DefaultHttpClient httpClient) {
+        NTLMSchemeFactory.register(httpClient);
         configureCredentials(httpClient, httpSettings.getCredentials());
         configureProxy(httpClient, httpSettings.getProxySettings());
         configureRetryHandler(httpClient);

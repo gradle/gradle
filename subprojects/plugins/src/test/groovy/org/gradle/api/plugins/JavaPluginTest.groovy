@@ -20,9 +20,9 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.plugins.EmbeddableJavaProject
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
@@ -32,13 +32,11 @@ import org.gradle.util.HelperUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.junit.Test
-import static org.gradle.util.Matchers.builtBy
-import static org.gradle.util.Matchers.dependsOn
+import static org.gradle.util.Matchers.*
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import static org.gradle.util.Matchers.sameCollection
 
 /**
  * @author Hans Dockter
@@ -202,7 +200,7 @@ class JavaPluginTest {
         assertThat(task.source.files, equalTo(project.sourceSets.main.allJava.files))
         assertThat(task.classpath, sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/javadoc")))
-        assertThat(task.title, equalTo(project.apiDocTitle))
+        assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
 
         task = project.tasks["buildArchives"]
         assertThat(task, instanceOf(DefaultTask))

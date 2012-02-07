@@ -15,13 +15,9 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.Project
+import org.gradle.api.InvalidUserDataException
 
 class CodeNarcExtension extends CodeQualityExtension {
-    CodeNarcExtension(Project project) {
-        super(project)
-    }
-
     /**
      * The CodeNarc configuration file to use. Defaults to <tt>config/codenarc/codenarc.xml</tt>.
      */
@@ -32,6 +28,14 @@ class CodeNarcExtension extends CodeQualityExtension {
      * Defaults to <tt>html</tt>.
      */
     String reportFormat
+
+    void setReportFormat(String reportFormat) {
+        if (reportFormat in ["xml", "html", "console", "text"]) {
+            this.reportFormat = reportFormat    
+        } else {
+            throw new InvalidUserDataException("'$reportFormat' is not a valid codenarc report format")
+        }
+    }
 
     /**
      * The directory where CodeNarc reports will be saved. Defaults to <tt>$reportsDir/codenarc</tt>.

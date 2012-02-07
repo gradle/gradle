@@ -40,7 +40,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         this.project = project;
     }
 
-    protected DefaultTaskCollection(Class<T> type, Set<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator, ProjectInternal project) {
+    protected DefaultTaskCollection(Class<? extends T> type, Set<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator, ProjectInternal project) {
         super(type, store, eventRegister, instantiator, new Task.Namer());
         this.project = project;
     }

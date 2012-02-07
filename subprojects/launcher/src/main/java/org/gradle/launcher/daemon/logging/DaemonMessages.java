@@ -22,8 +22,9 @@ package org.gradle.launcher.daemon.logging;
 public class DaemonMessages {
     
     public final static String PROCESS_STARTED = "Daemon process started.";
-    public final static String STARTED_RELAYING_LOGS = "Daemon started relaying all logging output to the client.";
+    public final static String STARTED_RELAYING_LOGS = "The client will now receive all logging from the daemon (pid: ";
     public final static String UNABLE_TO_START_DAEMON = "Unable to start the daemon process.";
     public final static String STARTED_EXECUTING_COMMAND = "Starting executing command: ";
     public final static String FINISHED_EXECUTING_COMMAND = "Finishing executing command: ";
+    public final static String NO_DAEMONS_RUNNING = "No Gradle daemons are running.";
 }

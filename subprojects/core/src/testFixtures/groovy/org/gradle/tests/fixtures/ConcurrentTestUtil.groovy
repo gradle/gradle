@@ -54,6 +54,12 @@ class ConcurrentTestUtil implements TestRule {
     private List<Throwable> failures = []
     private timeout = 5000
 
+    public ConcurrentTestUtil() {}
+
+    public ConcurrentTestUtil(int timeout) {
+        this.timeout = timeout
+    }
+
     Statement apply(Statement base, Description description) {
         return new Statement() {
             void evaluate() {

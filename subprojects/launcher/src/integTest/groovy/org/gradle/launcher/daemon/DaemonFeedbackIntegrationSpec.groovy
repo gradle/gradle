@@ -16,37 +16,22 @@
 
 package org.gradle.launcher.daemon
 
-import ch.qos.logback.classic.Level
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.launcher.daemon.logging.DaemonMessages
-import org.junit.Rule
-import org.slf4j.LoggerFactory
+import org.gradle.tests.fixtures.ConcurrentTestUtil
 import spock.lang.IgnoreIf
-import spock.lang.Specification
 import spock.lang.Timeout
-import static org.gradle.integtests.fixtures.GradleDistributionExecuter.Executer.daemon
 
 /**
  * by Szczepan Faber, created at: 1/20/12
  */
-class DaemonFeedbackIntegrationSpec extends Specification {
+class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
 
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter(daemon)
-
-    def setup() {
-        distribution.requireIsolatedDaemons()
-        LoggerFactory.getLogger("org.gradle.cache.internal.DefaultFileLockManager").level = Level.INFO
+    def cleanup() {
+        stopDaemonsNow()
     }
 
-    void cleanup() {
-        executer.withArguments("--stop", "--info")
-        executer.run()
-    }
-
-    @Timeout(5)
+    @Timeout(10)
     @IgnoreIf({OperatingSystem.current().isWindows()})
     def "promptly shows decent message when daemon cannot be started"() {
         when:
@@ -58,7 +43,7 @@ class DaemonFeedbackIntegrationSpec extends Specification {
         ex.message.contains("-Xyz")
     }
 
-    @Timeout(5)
+    @Timeout(10)
     def "promptly shows decent message when awkward java home used"() {
         def dummyJdk = distribution.file("dummyJdk").createDir()
         assert dummyJdk.isDirectory()
@@ -82,7 +67,7 @@ class DaemonFeedbackIntegrationSpec extends Specification {
         executer.withArguments("-i").run()
 
         then:
-        def log = readSingleDaemonLog(baseDir)
+        def log = readLog(baseDir)
 
         //output before started relying logs via connection
         log.count(DaemonMessages.PROCESS_STARTED) == 1
@@ -95,7 +80,7 @@ class DaemonFeedbackIntegrationSpec extends Specification {
         executer.withArguments("-i").run()
 
         then:
-        def aLog = readSingleDaemonLog(baseDir)
+        def aLog = readLog(baseDir)
 
         aLog.count(DaemonMessages.PROCESS_STARTED) == 1
         aLog.count(DaemonMessages.STARTED_RELAYING_LOGS) == 2
@@ -111,17 +96,21 @@ class DaemonFeedbackIntegrationSpec extends Specification {
         executer.withArguments("-i").run()
 
         then:
-        def log = readSingleDaemonLog(baseDir)
+        def log = readLog(baseDir)
         //TODO SF make sure that those are DEBUG statements
         log.findAll(DaemonMessages.STARTED_EXECUTING_COMMAND).size() == 1
         //if the log level was configured back to DEBUG after build:
-        log.findAll(DaemonMessages.FINISHED_EXECUTING_COMMAND).size() == 1
+        ConcurrentTestUtil.poll {
+            //in theory the client could have received result and complete
+            // but the daemon has not yet finished processing hence polling
+            readLog(baseDir).findAll(DaemonMessages.FINISHED_EXECUTING_COMMAND).size() == 1
+        }
 
         when: "another build requested with the same daemon with --info"
         executer.withArguments("-i").run()
 
         then:
-        def aLog = readSingleDaemonLog(baseDir)
+        def aLog = readLog(baseDir)
         aLog.findAll(DaemonMessages.STARTED_EXECUTING_COMMAND).size() == 2
     }
 
@@ -141,10 +130,10 @@ class DaemonFeedbackIntegrationSpec extends Specification {
         """
 
         when:
-        executer.run()
+        executer.withArguments("-q").run()
 
         then:
-        def log = readSingleDaemonLog(baseDir)
+        def log = readLog(baseDir)
 
         //before the build is requested we don't know the log level so we print eagerly
         log.count(DaemonMessages.PROCESS_STARTED) == 1
@@ -155,12 +144,12 @@ class DaemonFeedbackIntegrationSpec extends Specification {
         log.count('info me!') == 0
         log.count('println me!') == 1
         log.count('quiet me!') == 1
-        log.count('lifecycle me!') == 1
-        log.count('warn me!') == 1
+        log.count('lifecycle me!') == 0
+        log.count('warn me!') == 0
         log.count('error me!') == 1
     }
 
-    String readSingleDaemonLog(baseDir) {
+    String readLog(baseDir) {
         //the gradle version dir
         baseDir.listFiles().length == 1
         def daemonFiles = baseDir.listFiles()[0].listFiles()

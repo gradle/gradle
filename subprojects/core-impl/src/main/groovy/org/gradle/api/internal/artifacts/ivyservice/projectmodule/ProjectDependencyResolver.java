@@ -27,36 +27,54 @@ import java.io.File;
 public class ProjectDependencyResolver implements DependencyToModuleResolver {
     private final ProjectModuleRegistry projectModuleRegistry;
     private final DependencyToModuleResolver resolver;
+    private final ProjectArtifactResolver artifactResolver;
 
     public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleResolver resolver) {
         this.projectModuleRegistry = projectModuleRegistry;
         this.resolver = resolver;
+        artifactResolver = new ProjectArtifactResolver();
     }
 
     public ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
-        final ModuleDescriptor moduleDescriptor = projectModuleRegistry.findProject(dependencyDescriptor);
+        ModuleDescriptor moduleDescriptor = projectModuleRegistry.findProject(dependencyDescriptor);
 
         if (moduleDescriptor == null) {
             return resolver.resolve(dependencyDescriptor);
         }
 
-        return new ModuleVersionResolveResult() {
-            public ModuleVersionResolveException getFailure() {
-                return null;
-            }
+        return new ProjectDependencyModuleVersionResolveResult(moduleDescriptor, artifactResolver);
+    }
 
-            public ModuleRevisionId getId() throws ModuleVersionResolveException {
-                return moduleDescriptor.getModuleRevisionId();
-            }
+    private static class ProjectArtifactResolver implements ArtifactResolver {
+        public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
+            String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
+            return new FileBackedArtifactResolveResult(new File(path));
+        }
+    }
 
-            public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
-                return moduleDescriptor;
-            }
+    private static class ProjectDependencyModuleVersionResolveResult implements ModuleVersionResolveResult {
+        private final ModuleDescriptor moduleDescriptor;
+        private final ArtifactResolver artifactResolver;
 
-            public ArtifactResolveResult resolve(Artifact artifact) throws ArtifactResolveException {
-                String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
-                return new FileBackedArtifactResolveResult(new File(path));
-            }
-        };
+        public ProjectDependencyModuleVersionResolveResult(ModuleDescriptor moduleDescriptor, ArtifactResolver artifactResolver) {
+            this.moduleDescriptor = moduleDescriptor;
+            this.artifactResolver = artifactResolver;
+        }
+
+        public ModuleVersionResolveException getFailure() {
+            return null;
+        }
+
+        public ModuleRevisionId getId() throws ModuleVersionResolveException {
+            return moduleDescriptor.getModuleRevisionId();
+        }
+
+        public ModuleDescriptor getDescriptor() throws ModuleVersionResolveException {
+            return moduleDescriptor;
+        }
+
+        public ArtifactResolver getArtifactResolver() throws ModuleVersionResolveException {
+            return artifactResolver;
+        }
     }
 }

@@ -28,7 +28,11 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
     }
 
     public void attachActions(final PropertyActionContext context) {
-        context.attachActions(context.getType());
+        Class<?> nestedType = context.getInstanceVariableType();
+        if (nestedType == null) {
+            nestedType = context.getType();
+        }
+        context.attachActions(nestedType);
         context.setConfigureAction(new UpdateAction() {
             public void update(Task task, final Callable<Object> futureValue) {
                 task.getInputs().property(context.getName() + ".class", new Callable<Object>() {

@@ -55,4 +55,9 @@ public class ExecOutputHandleRunner implements Runnable {
             LOGGER.error(String.format("Could not %s.", displayName), t);
         }
     }
+
+    @Override
+    public String toString() {
+        return displayName;
+    }
 }

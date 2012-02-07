@@ -27,7 +27,8 @@ public interface ModuleVersionIdResolveResult {
 
     /**
      * Returns the id of this module version.
-     * @throws ModuleVersionResolveException If resolution was unsuccessful
+     *
+     * @throws ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
      */
     ModuleRevisionId getId() throws ModuleVersionResolveException;
 

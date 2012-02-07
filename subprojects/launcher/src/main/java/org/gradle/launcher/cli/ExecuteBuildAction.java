@@ -18,9 +18,9 @@ package org.gradle.launcher.cli;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
+import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.cli.ParsedCommandLine;
 import org.gradle.launcher.exec.InitializationAware;
 
 import java.io.File;
@@ -47,5 +47,13 @@ public class ExecuteBuildAction implements GradleLauncherAction<Void>, Initializ
 
     public Void getResult() {
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "ExecuteBuildAction{"
+                + "currentDir=" + currentDir
+                + ", args=" + args
+                + '}';
     }
 }

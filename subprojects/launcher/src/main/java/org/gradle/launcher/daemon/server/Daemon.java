@@ -101,7 +101,7 @@ public class Daemon implements Runnable, Stoppable {
                         public void run() {
                             try {
                                 command = (Command) connection.receive();
-                                LOGGER.info("Daemon received command: {}", command);
+                                LOGGER.info("Daemon (pid: {}) received command: {}", daemonContext.getPid(), command);
                             } catch (RuntimeException e) {
                                 String message = String.format("Unable to receive command from connection: '%s'", connection);
                                 LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
@@ -148,13 +148,19 @@ public class Daemon implements Runnable, Stoppable {
             
             Runnable onStop = new Runnable() {
                 public void run() {
-                    LOGGER.info("Stop requested. Daemon is stopping accepting new connections...");
-                    registryUpdater.onStop();
+                    LOGGER.info("Daemon is stopping accepting new connections...");
                     connector.stop(); // will block until any running commands are finished
                 }
             };
 
-            stateCoordinator = new DaemonStateCoordinator(onStart, onStartCommand, onFinishCommand, onStop);
+            Runnable onStopRequested = new Runnable() {
+                public void run() {
+                    LOGGER.info("Stop requested. Daemon is removing its presence from the registry...");
+                    registryUpdater.onStop();
+                }
+            };
+
+            stateCoordinator = new DaemonStateCoordinator(onStart, onStartCommand, onFinishCommand, onStop, onStopRequested);
 
             // ready, set, go
             stateCoordinator.start();

@@ -101,29 +101,29 @@ public class WrapperTest extends AbstractTaskTest {
     @Test
     public void testDownloadsFromReleaseRepositoryForReleaseVersions() {
         wrapper.setGradleVersion("0.9.1");
-        assertEquals("http://downloads.gradle.org/distributions", wrapper.getUrlRoot());
-        assertEquals("http://downloads.gradle.org/distributions/gradle-0.9.1-bin.zip", wrapper.getDistributionUrl());
+        assertEquals("http://services.gradle.org/distributions", wrapper.getUrlRoot());
+        assertEquals("http://services.gradle.org/distributions/gradle-0.9.1-bin.zip", wrapper.getDistributionUrl());
     }
 
     @Test
     public void testDownloadsFromReleaseRepositoryForPreviewReleaseVersions() {
         wrapper.setGradleVersion("1.0-milestone-1");
-        assertEquals("http://downloads.gradle.org/distributions", wrapper.getUrlRoot());
-        assertEquals("http://downloads.gradle.org/distributions/gradle-1.0-milestone-1-bin.zip", wrapper.getDistributionUrl());
+        assertEquals("http://services.gradle.org/distributions", wrapper.getUrlRoot());
+        assertEquals("http://services.gradle.org/distributions/gradle-1.0-milestone-1-bin.zip", wrapper.getDistributionUrl());
     }
 
     @Test
     public void testDownloadsFromSnapshotRepositoryForSnapshotVersions() {
         wrapper.setGradleVersion("0.9.1-20101224110000+1100");
-        assertEquals("http://downloads.gradle.org/distributions-snapshots", wrapper.getUrlRoot());
-        assertEquals("http://downloads.gradle.org/distributions-snapshots/gradle-0.9.1-20101224110000+1100-bin.zip", wrapper.getDistributionUrl());
+        assertEquals("http://services.gradle.org/distributions-snapshots", wrapper.getUrlRoot());
+        assertEquals("http://services.gradle.org/distributions-snapshots/gradle-0.9.1-20101224110000+1100-bin.zip", wrapper.getDistributionUrl());
     }
 
     @Test
     public void testUsesExplicitlyDefinedDistributionUrl() {
         wrapper.setGradleVersion("0.9");
         wrapper.setDistributionUrl("http://some-url");
-        assertEquals("http://downloads.gradle.org/distributions", wrapper.getUrlRoot());
+        assertEquals("http://services.gradle.org/distributions", wrapper.getUrlRoot());
         assertEquals("http://some-url", wrapper.getDistributionUrl());
     }
 
