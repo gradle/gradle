@@ -62,7 +62,7 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
      */
     @Deprecated
     Map<String, Object> getProperties() {
-        DeprecationLogger.nagUserOfReplacedProperty("properties", "configProperties")
+        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.properties", "configProperties")
         getConfigProperties()
     }
 
@@ -74,30 +74,8 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
      */
     @Deprecated
     void setProperties(Map<String, Object> properties) {
-        DeprecationLogger.nagUserOfReplacedProperty("properties", "configProperties")
+        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.properties", "configProperties")
         setConfigProperties(properties)
-    }
-
-    /**
-     * The file in which the XML report will be saved.
-     *
-     * @deprecated Use reports.xml.destination
-     */
-    @Deprecated
-    File getReportFile() {
-        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.reportFile", "Checkstyle.reports.xml.destination")
-        reports.xml.destination
-    }
-
-    /**
-     * The file in which the XML report will be saved.
-     *
-     * @deprecated Use reports.xml.destination
-     */
-    @Deprecated
-    void setReportFile(File file) {
-        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.reportFile", "Checkstyle.reports.xml.destination")
-        reports.xml.destination = file
     }
 
     @Nested
@@ -135,21 +113,23 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
     }
 
     /**
-     * @deprecated renamed to <tt>reportFile</tt>
+     * Returns the destination file for the XML report.
+     *
+     * @deprecated Use {@code reports.xml.destination} instead.
      */
     @Deprecated
     File getResultFile() {
-        DeprecationLogger.nagUserOfReplacedProperty("resultFile", "reportFile")
-        getReportFile()
+        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.resultFile", "reports.xml.destination")
+        return reports.xml.destination
     }
 
     /**
-     * @deprecated renamed to <tt>reportFile</tt>
+     * @deprecated Use {@code reports.xml.destination} instead.
      */
     @Deprecated
     void setResultFile(File file) {
-        DeprecationLogger.nagUserOfReplacedProperty("resultFile", "reportFile")
-        setReportFile(file)
+        DeprecationLogger.nagUserOfReplacedProperty("Checkstyle.resultFile", "reports.xml.destination")
+        reports.xml.destination = file
     }
 
     /**

@@ -80,7 +80,7 @@ class CheckstylePluginTest extends Specification {
             assert classpath == sourceSet.output
             assert configFile == project.file("config/checkstyle/checkstyle.xml")
             assert configProperties == [:]
-            assert reportFile == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
+            assert resultFile == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
             assert ignoreFailures == false
         }
     }
@@ -94,7 +94,7 @@ class CheckstylePluginTest extends Specification {
         task.checkstyleClasspath == project.configurations.checkstyle
         task.configFile == project.file("config/checkstyle/checkstyle.xml")
         task.configProperties == [:]
-        task.reportFile == project.file("build/reports/checkstyle/custom.xml")
+        task.resultFile == project.file("build/reports/checkstyle/custom.xml")
         task.ignoreFailures == false
     }
 
@@ -143,7 +143,7 @@ class CheckstylePluginTest extends Specification {
             assert checkstyleClasspath == project.configurations["checkstyle"]
             assert configFile == project.file("checkstyle-config")
             assert configProperties == [foo: "foo"]
-            assert reportFile == project.file("checkstyle-reports/${sourceSet.name}.xml")
+            assert resultFile == project.file("checkstyle-reports/${sourceSet.name}.xml")
             assert ignoreFailures == true
         }
     }
@@ -163,7 +163,7 @@ class CheckstylePluginTest extends Specification {
         task.checkstyleClasspath == project.configurations.checkstyle
         task.configFile == project.file("checkstyle-config")
         task.configProperties == [foo: "foo"]
-        task.reportFile == project.file("checkstyle-reports/custom.xml")
+        task.resultFile == project.file("checkstyle-reports/custom.xml")
         task.ignoreFailures == true
     }
     
