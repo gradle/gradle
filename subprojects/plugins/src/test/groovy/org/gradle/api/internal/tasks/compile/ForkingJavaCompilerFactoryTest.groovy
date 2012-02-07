@@ -22,14 +22,17 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.compile.fork.ForkingJavaCompiler
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler
+import org.gradle.util.Jvm
 
 class ForkingJavaCompilerFactoryTest extends Specification {
     def inProcessCompiler = Mock(JavaCompiler)
     def inProcessCompilerFactory = Mock(JavaCompilerFactory)
-    def factory = new DefaultJavaCompilerFactory(Mock(ProjectInternal), Mock(Factory), inProcessCompilerFactory)
+    def jvm = Mock(Jvm)
+    def factory = new DefaultJavaCompilerFactory(Mock(ProjectInternal), Mock(Factory), inProcessCompilerFactory, jvm)
     def options = new CompileOptions()
     
     def setup() {
+        jvm.isJava7() >> false
         inProcessCompilerFactory.create(_) >> inProcessCompiler
     }
 
