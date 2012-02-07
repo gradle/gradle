@@ -63,7 +63,7 @@ public class ForkingJavaCompiler extends JavaCompilerSupport {
         javaCommand.setMaxHeapSize(forkOptions.getMemoryMaximumSize());
         javaCommand.setJvmArgs(forkOptions.getJvmArgs());
         javaCommand.setWorkingDir(project.getProjectDir()); // TODO: w/o setting this, we get a "cannot resolve '.' to absolute path" exception
-        return builder.worker(action.makeSerializable()).build();
+        return builder.worker(action).build();
     }
 
     private void registerCompilationListener(WorkerProcess process) {

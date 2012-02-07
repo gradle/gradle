@@ -15,10 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile.fork;
 
-import com.google.common.collect.Lists;
-
 import org.gradle.api.Action;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.messaging.remote.ObjectConnection;
@@ -44,16 +41,6 @@ public class CompilationAction extends JavaCompilerSupport implements Action<Wor
         } finally {
             connection.stop();
         }
-    }
-
-    public CompilationAction makeSerializable() {
-        if (!(source instanceof Serializable)) {
-            source = new SimpleFileCollection(source.getFiles());
-        }
-        if (!(classpath instanceof Serializable)) {
-            classpath = new SimpleFileCollection(Lists.newArrayList(classpath));
-        }
-        return this;
     }
 
     private JavaCompiler createCompiler() {

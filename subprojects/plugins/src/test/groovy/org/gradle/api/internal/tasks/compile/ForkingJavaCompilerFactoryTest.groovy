@@ -48,7 +48,9 @@ class ForkingJavaCompilerFactoryTest extends Specification {
         options.fork = false
 
         expect:
-        factory.create(options).is(inProcessCompiler)
+        def compiler = factory.create(options)
+        compiler instanceof NormalisingJavaCompiler
+        compiler.compiler.is(inProcessCompiler)
     }
 
     def "creates forking compiler when fork=true and useCompilerDaemon=false"() {
@@ -57,7 +59,9 @@ class ForkingJavaCompilerFactoryTest extends Specification {
         options.forkOptions.useCompilerDaemon = false
 
         expect:
-        factory.create(options) instanceof ForkingJavaCompiler
+        def compiler = factory.create(options)
+        compiler instanceof NormalisingJavaCompiler
+        compiler.compiler instanceof ForkingJavaCompiler
     }
 
     def "creates daemon compiler when fork=true and useCompilerDaemon=true"() {
@@ -66,6 +70,8 @@ class ForkingJavaCompilerFactoryTest extends Specification {
         options.forkOptions.useCompilerDaemon = true
 
         expect:
-        factory.create(options) instanceof DaemonJavaCompiler
+        def compiler = factory.create(options)
+        compiler instanceof NormalisingJavaCompiler
+        compiler.compiler instanceof DaemonJavaCompiler
     }
 }

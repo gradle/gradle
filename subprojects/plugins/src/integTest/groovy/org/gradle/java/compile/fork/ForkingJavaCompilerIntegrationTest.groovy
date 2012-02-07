@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 
 import org.junit.Rule
+import org.hamcrest.Matchers
 
 class ForkingJavaCompilerIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources()
@@ -79,5 +80,6 @@ class ForkingJavaCompilerIntegrationTest extends AbstractIntegrationSpec {
     def nonJavaSourceFilesAreNotTolerated() {
         expect:
         fails("compileJava")
+        failure.assertThatCause(Matchers.startsWith("Cannot compile non-Java source file"))
     }
 }

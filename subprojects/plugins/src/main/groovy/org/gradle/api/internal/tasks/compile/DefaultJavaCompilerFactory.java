@@ -37,6 +37,10 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         if (options.isUseAnt()) {
             return new AntJavaCompiler(antBuilderFactory);
         }
+        return new NormalisingJavaCompiler(createTargetCompiler(options));
+    }
+
+    private JavaCompiler createTargetCompiler(CompileOptions options) {
         if (!options.isFork()) {
             return inProcessCompilerFactory.create(options);
         }
