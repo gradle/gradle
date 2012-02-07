@@ -20,9 +20,9 @@ import org.gradle.api.tasks.WorkResult
 import org.gradle.api.file.FileCollection
 import org.gradle.api.InvalidUserDataException
 
-class NormalisingJavaCompilerTest extends Specification {
+class NormalizingJavaCompilerTest extends Specification {
     final JavaCompiler target = Mock()
-    final NormalisingJavaCompiler compiler = new NormalisingJavaCompiler(target)
+    final NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
 
     def "delegates to target compiler"() {
         WorkResult workResult = Mock()

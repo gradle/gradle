@@ -23,12 +23,12 @@ import org.gradle.api.tasks.WorkResult;
 import java.io.File;
 
 /**
- * A {@link JavaCompiler} which does some normalisation of the compile configuration before delegating to some other compiler.
+ * A {@link JavaCompiler} which does some normalization of the compile configuration before delegating to some other compiler.
  */
-public class NormalisingJavaCompiler extends JavaCompilerSupport {
+public class NormalizingJavaCompiler extends JavaCompilerSupport {
     private final JavaCompiler compiler;
 
-    public NormalisingJavaCompiler(JavaCompiler compiler) {
+    public NormalizingJavaCompiler(JavaCompiler compiler) {
         this.compiler = compiler;
     }
 

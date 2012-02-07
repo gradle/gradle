@@ -49,7 +49,7 @@ class ForkingJavaCompilerFactoryTest extends Specification {
 
         expect:
         def compiler = factory.create(options)
-        compiler instanceof NormalisingJavaCompiler
+        compiler instanceof NormalizingJavaCompiler
         compiler.compiler.is(inProcessCompiler)
     }
 
@@ -60,7 +60,7 @@ class ForkingJavaCompilerFactoryTest extends Specification {
 
         expect:
         def compiler = factory.create(options)
-        compiler instanceof NormalisingJavaCompiler
+        compiler instanceof NormalizingJavaCompiler
         compiler.compiler instanceof ForkingJavaCompiler
     }
 
@@ -71,7 +71,7 @@ class ForkingJavaCompilerFactoryTest extends Specification {
 
         expect:
         def compiler = factory.create(options)
-        compiler instanceof NormalisingJavaCompiler
+        compiler instanceof NormalizingJavaCompiler
         compiler.compiler instanceof DaemonJavaCompiler
     }
 }
