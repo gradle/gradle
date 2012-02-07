@@ -66,6 +66,11 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
             visible = false
             transitive = true
             description = "The ${toolName} libraries to be used for this project."
+            // Don't need these things, they're provided by the runtime
+            exclude group: 'ant', module: 'ant'
+            exclude group: 'org.apache.ant', module: 'ant'
+            exclude group: 'org.codehaus.groovy', module: 'groovy'
+            exclude group: 'org.codehaus.groovy', module: 'groovy-all'
         }
     }
 
