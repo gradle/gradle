@@ -26,8 +26,8 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.Reporting
-import org.gradle.api.tasks.*
 import org.gradle.util.DeprecationLogger
+import org.gradle.api.tasks.*
 
 /**
  * Runs CodeNarc against some source files.

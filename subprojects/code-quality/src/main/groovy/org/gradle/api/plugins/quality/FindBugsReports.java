@@ -16,8 +16,8 @@
 
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
+import org.gradle.api.reporting.SingleFileReport;
 
 /**
  * The reporting configuration for the the {@link FindBugs} task.
@@ -25,20 +25,20 @@ import org.gradle.api.reporting.ReportContainer;
  * Only one of the xml or html reports can be enabled when the task executes. If more than one is enabled, an {@link org.gradle.api.InvalidUserDataException}
  * will be thrown.
  */
-public interface FindBugsReports extends ReportContainer<Report> {
+public interface FindBugsReports extends ReportContainer<SingleFileReport> {
 
     /**
-     * The findbugs (single file) xml report
+     * The findbugs xml report
      *
-     * @return The findbugs (single file) xml report
+     * @return The findbugs xml report
      */
-    Report getXml();
+    SingleFileReport getXml();
 
     /**
-     * The findbugs (single file) html report
+     * The findbugs html report
      *
-     * @return The findbugs (single file) html report
+     * @return The findbugs html report
      */
-    Report getHtml();
+    SingleFileReport getHtml();
     
 }

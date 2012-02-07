@@ -18,29 +18,29 @@ package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.plugins.quality.CodeNarcReports;
-import org.gradle.api.reporting.Report;
-import org.gradle.api.reporting.internal.TaskGeneratedReport;
+import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 
-public class CodeNarcReportsImpl extends TaskReportContainer<Report> implements CodeNarcReports {
+public class CodeNarcReportsImpl extends TaskReportContainer<SingleFileReport> implements CodeNarcReports {
 
     public CodeNarcReportsImpl(Task task) {
-        super(Report.class, task);
+        super(SingleFileReport.class, task);
 
-        add(TaskGeneratedReport.class, "xml", Report.OutputType.FILE, task);
-        add(TaskGeneratedReport.class, "html", Report.OutputType.FILE, task);
-        add(TaskGeneratedReport.class, "text", Report.OutputType.FILE, task);
+        add(TaskGeneratedSingleFileReport.class, "xml", task);
+        add(TaskGeneratedSingleFileReport.class, "html", task);
+        add(TaskGeneratedSingleFileReport.class, "text", task);
     }
 
-    public Report getXml() {
+    public SingleFileReport getXml() {
         return getByName("xml");
     }
 
-    public Report getHtml() {
+    public SingleFileReport getHtml() {
         return getByName("html");
     }
 
-    public Report getText() {
+    public SingleFileReport getText() {
         return getByName("text");
     }
 }

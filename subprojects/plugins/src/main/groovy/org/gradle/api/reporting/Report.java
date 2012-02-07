@@ -38,8 +38,6 @@ public interface Report extends Serializable, Configurable<Report> {
 
     File getDestination();
 
-    void setDestination(Object destination);
-
     /**
      * The type of output the report produces
      */
@@ -61,4 +59,5 @@ public interface Report extends Serializable, Configurable<Report> {
     }
 
     OutputType getOutputType();
+
 }
