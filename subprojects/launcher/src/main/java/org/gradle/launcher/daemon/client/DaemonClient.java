@@ -22,6 +22,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.*;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.GradleLauncherActionExecuter;
@@ -76,11 +77,11 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         Spec<DaemonContext> stoppableDaemonSpec = Specs.satisfyAll();
         DaemonConnection connection = connector.maybeConnect(stoppableDaemonSpec);
         if (connection == null) {
-            LOGGER.lifecycle("No Gradle daemons are running.");
+            LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);
             return;
         }
 
-        LOGGER.lifecycle("Stopping daemon.");
+        LOGGER.lifecycle("Stopping daemon(s).");
         //iterate and stop all daemons
         while (connection != null) {
             new StopDispatcher().dispatch(clientMetaData, connection.getConnection());
