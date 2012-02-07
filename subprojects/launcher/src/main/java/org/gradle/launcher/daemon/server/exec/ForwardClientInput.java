@@ -69,15 +69,15 @@ public class ForwardClientInput implements DaemonCommandAction {
                         LOGGER.info("Putting forwarded input '{}' on daemon's stdin", new String(forwardedInput.getBytes()).replace("\n", "\\n"));
                         inputSource.write(forwardedInput.getBytes());
 
-                    } catch (IOException e) {
-                        LOGGER.warn("Received IO exception trying to forward client input", e);
+                    } catch (Exception e) {
+                        LOGGER.warn("Received exception trying to forward client input", e);
                     }
                 } else if (command instanceof CloseInput) {
                     try {
                         LOGGER.info("Closing daemons standard input as requested by received command: {}", command);
                         inputSource.close();
-                    } catch (IOException e) {
-                        LOGGER.warn("IO exception closing output stream connected to replacement stdin", e);
+                    } catch (Exception e) {
+                        LOGGER.warn("Exception closing output stream connected to replacement stdin", e);
                     } finally {
                         countDownInputOrConnectionClosedLatch.run();
                     }
