@@ -37,7 +37,7 @@ class DistributionIntegrationTest {
     private String version = GradleVersion.current().version
 
     @Test
-    public void binZipContents() {
+    void binZipContents() {
         TestFile binZip = dist.distributionsDir.file("gradle-$version-bin.zip")
         binZip.usingNativeTools().unzipTo(dist.testDir)
         TestFile contentsDir = dist.testDir.file("gradle-$version")
@@ -51,7 +51,7 @@ class DistributionIntegrationTest {
     }
 
     @Test
-    public void allZipContents() {
+    void allZipContents() {
         TestFile binZip = dist.distributionsDir.file("gradle-$version-all.zip")
         binZip.usingNativeTools().unzipTo(dist.testDir)
         TestFile contentsDir = dist.testDir.file("gradle-$version")
@@ -89,7 +89,7 @@ class DistributionIntegrationTest {
         contentsDir.file('docs/dsl/index.html').assertContents(containsString("<title>Gradle DSL Version ${version}</title>"))
     }
 
-    private def checkMinimalContents(TestFile contentsDir) {
+    private void checkMinimalContents(TestFile contentsDir) {
         // Check it can be executed
         executer.inDirectory(contentsDir).usingExecutable('bin/gradle').withTaskList().run()
 
@@ -126,16 +126,20 @@ class DistributionIntegrationTest {
 
         // Docs
         contentsDir.file('getting-started.html').assertIsFile()
+        
+        // Jars that must not be shipped
+        assert !contentsDir.file("lib/tools.jar").exists()
+        assert !contentsDir.file("lib/plugins/tools.jar").exists()
     }
 
-    private def assertIsGradleJar(TestFile jar) {
+    private void assertIsGradleJar(TestFile jar) {
         jar.assertIsFile()
         assertThat(jar.manifest.mainAttributes.getValue('Implementation-Version'), equalTo(version))
         assertThat(jar.manifest.mainAttributes.getValue('Implementation-Title'), equalTo('Gradle'))
     }
 
     @Test @Requires(TestPrecondition.NOT_WINDOWS)
-    public void sourceZipContents() {
+    void sourceZipContents() {
         TestFile srcZip = dist.distributionsDir.file("gradle-$version-src.zip")
         srcZip.usingNativeTools().unzipTo(dist.testDir)
         TestFile contentsDir = dist.testDir.file("gradle-$version")
