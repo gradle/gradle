@@ -20,7 +20,9 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.internal.WorkerProcessContext;
 
-public class DefaultCompilerDaemon implements Action<WorkerProcessContext>, CompilerDaemon {
+import java.io.Serializable;
+
+public class DefaultCompilerDaemon implements Action<WorkerProcessContext>, CompilerDaemon, Serializable {
     public void execute(WorkerProcessContext context) {
         context.getServerConnection().addIncoming(CompilerDaemon.class, this);
     }
