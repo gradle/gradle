@@ -31,4 +31,8 @@ dependencies {
     }
 }
 
+configurations.all {
+    resolutionStrategy.force(versions.commons_io)
+}
+
 useTestFixtures()
