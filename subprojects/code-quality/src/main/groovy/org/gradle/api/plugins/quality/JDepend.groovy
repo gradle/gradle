@@ -26,9 +26,9 @@ import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
 
 /**
- * Analyzes code with <a href="http://clarkware.com/software/JDepend.html">.
+ * Analyzes code with <a href="http://clarkware.com/software/JDepend.html">JDepend</a>.
  */
-class JDepend extends DefaultTask implements VerificationTask, Reporting<Report> {
+class JDepend extends DefaultTask implements VerificationTask, Reporting<JDependReports> {
     /**
      * The class path containing the JDepend library to be used.
      */
