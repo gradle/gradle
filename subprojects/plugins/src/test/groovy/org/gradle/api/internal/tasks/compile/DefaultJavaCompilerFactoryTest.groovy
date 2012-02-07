@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.internal.project.ProjectInternal
@@ -44,6 +46,6 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         JavaCompiler compiler = factory.create(compileOptionsMock)
         then:
         1 * jvmMock.isJava7() >> false
-        compiler instanceof NormalisingJavaCompiler
+        compiler instanceof NormalizingJavaCompiler
     }
 }
