@@ -47,6 +47,9 @@ dependencies {
     runtime libraries.log4j_to_slf4j
     runtime libraries.jcl_to_slf4j
 
+    testCompile libraries.log4j_to_slf4j
+    testCompile libraries.jcl_to_slf4j
+
     testRuntime "xerces:xercesImpl:2.9.1"
 
     testFixturesCompile project(":internalTesting")

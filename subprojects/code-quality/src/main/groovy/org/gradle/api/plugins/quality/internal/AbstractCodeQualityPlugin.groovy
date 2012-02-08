@@ -71,6 +71,11 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
             exclude group: 'org.apache.ant', module: 'ant'
             exclude group: 'org.codehaus.groovy', module: 'groovy'
             exclude group: 'org.codehaus.groovy', module: 'groovy-all'
+            exclude group: 'org.slf4j', module: 'slf4j-api'
+            exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
+            exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
+            exclude group: 'commons-logging', module: 'commons-logging'
+            exclude group: 'log4j', module: 'log4j'
         }
     }
 
