@@ -19,26 +19,31 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.util.Jvm
 import spock.lang.Specification
+import java.lang.management.ManagementFactory
 
 class Jdk7CompliantJavaCompilerTest extends Specification{
 
+    String defaultBootclasspath;
+
+    def setup(){
+        defaultBootclasspath = ManagementFactory.runtimeMXBean.bootClassPath;
+    }
+
     def "with sourcelevel = jdk7 bootclasspath keeps clean"() {
-            setup:
-                JavaCompiler delegateCompiler = Mock()
-                Jvm jvmMock = Mock();
-                Jdk7CompliantJavaCompiler compiler = new Jdk7CompliantJavaCompiler(delegateCompiler, jvmMock)
-                CompileOptions compileOptions = Mock();
-                compiler.setCompileOptions(compileOptions)
-                compiler.setSourceCompatibility(sourceCompatibility)
-            when:
-                compiler.execute()
-            then:
-                compileOptions.bootClasspath == null
-            where:
-                    sourceCompatibility << [null, "7", "1.7"]
-        }
+        setup:
+            JavaCompiler delegateCompiler = Mock()
+            Jdk7CompliantJavaCompiler compiler = new Jdk7CompliantJavaCompiler(delegateCompiler)
+            CompileOptions compileOptions = Mock();
+            compiler.setCompileOptions(compileOptions)
+            compiler.setSourceCompatibility(sourceCompatibility)
+        when:
+            compiler.execute()
+        then:
+            compileOptions.bootClasspath == null
+        where:
+            sourceCompatibility << [null, "7", "1.7"]
+    }
 
     def "manually defined bootstrap classpath isnt touched"(){
         setup:
@@ -50,25 +55,22 @@ class Jdk7CompliantJavaCompilerTest extends Specification{
         when:
             compiler.execute()
         then:
+            0 * compileOptions.setBootClasspath(_)
             compileOptions.bootClasspath == "dummy.jar"
     }
 
-    def "classpath is augmented with rt.jar when sourcelevel!=jdk7 and bootstrap = null "() {
-            setup:
-                JavaCompiler delegateCompiler = Mock()
-                Jvm jvmMock = Mock();
-                File rtJar = Mock();
-                Jdk7CompliantJavaCompiler compiler = new Jdk7CompliantJavaCompiler(delegateCompiler, jvmMock)
-                CompileOptions compileOptions = Mock();
-                compiler.setSourceCompatibility(sourceCompatibility)
-                compiler.setCompileOptions(compileOptions)
-                rtJar.getAbsolutePath() >> "rt.jar"
-                jvmMock.getRuntimeJar() >> rtJar
-            when:
-                compiler.execute()
-            then:
-                1 * jvmMock.getRuntimeJar() >> rtJar
-            where:
-                sourceCompatibility << ["1.5", "5", "1.6", "6"]
+    def "classpath is augmented with bootclasspath when sourcelevel!=jdk7 and bootstrap = null "() {
+        setup:
+            JavaCompiler delegateCompiler = Mock()
+            Jdk7CompliantJavaCompiler compiler = new Jdk7CompliantJavaCompiler(delegateCompiler)
+            CompileOptions compileOptions = Mock();
+            compiler.setSourceCompatibility(sourceCompatibility)
+            compiler.setCompileOptions(compileOptions)
+        when:
+            compiler.execute()
+        then:
+            1 * compileOptions.setBootClasspath(defaultBootclasspath)
+        where:
+            sourceCompatibility << ["1.5", "5", "1.6", "6"]
     }
 }

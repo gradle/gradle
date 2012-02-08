@@ -17,19 +17,20 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.util.Jvm;
+
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 
 public class Jdk7CompliantJavaCompiler extends JavaCompilerSupport {
     JavaCompiler compilerDelegate;
-    private Jvm jvm;
+    private String defaultBootClasspath;
 
     public Jdk7CompliantJavaCompiler(JavaCompiler delegate) {
-        this(delegate, Jvm.current());
-    }
-
-    Jdk7CompliantJavaCompiler(JavaCompiler delegate, Jvm jvm) {
         this.compilerDelegate = delegate;
-        this.jvm = jvm;
+        final RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+        if(runtimeMXBean.isBootClassPathSupported()){
+            this.defaultBootClasspath = runtimeMXBean.getBootClassPath();
+        }
     }
 
     public WorkResult execute() {
@@ -41,8 +42,7 @@ public class Jdk7CompliantJavaCompiler extends JavaCompilerSupport {
     private void augmentBoostrapClasspath() {
         if (!jdk7SourceCompatibility()){
             if (bootstrapClasspathNotSet()){
-                String rtPath = jvm.getRuntimeJar().getAbsolutePath();
-                compileOptions.setBootClasspath(rtPath);
+                compileOptions.setBootClasspath(defaultBootClasspath);
             }
         }
     }
