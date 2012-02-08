@@ -1,0 +1,16 @@
+apply plugin: "java"
+
+compileJava.options.with {
+    useAnt = false
+    fork = true
+    forkOptions.with {
+        memoryInitialSize = '64m'
+        memoryMaximumSize = '128m'
+        useAntForking = false
+    }
+    forkOptions.useCompilerDaemon = true
+}
+
+dependencies {
+    compile localGroovy()
+}

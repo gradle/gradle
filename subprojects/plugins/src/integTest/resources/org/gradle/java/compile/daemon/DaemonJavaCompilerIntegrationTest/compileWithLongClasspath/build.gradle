@@ -1,0 +1,12 @@
+apply plugin: "java"
+
+compileJava.options.with {
+    useAnt = false
+    fork = true
+    forkOptions.useCompilerDaemon = true
+}
+
+dependencies {
+    compile localGroovy()
+    compile files((1..999).collect { "$projectDir/lib/library${it}.jar" })
+}
