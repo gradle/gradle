@@ -32,6 +32,7 @@ import static org.gradle.util.Matchers.dependsOn
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.plugins.JavaBasePlugin
 
 /**
  * @author David Gileadi
@@ -125,9 +126,16 @@ class EarPluginTest {
         assertThat(task.destinationDir, equalTo(project.libsDir))
     }
 
-    @Test public void appliesMappingsToArchiveTasksForJavaProject() {
-        project.plugins.apply(JavaPlugin.class)
+    @Test public void worksWithJavaBasePluginAppliedBeforeEarPlugin() {
+        project.plugins.apply(JavaBasePlugin.class)
         earPlugin.apply(project)
+        def task = project.task(type: Ear, 'customEar')
+        assertThat(task.destinationDir, equalTo(project.libsDir))
+    }
+
+    @Test public void appliesMappingsToArchiveTasksForJavaProject() {
+        earPlugin.apply(project)
+        project.plugins.apply(JavaPlugin.class)
 
         def task = project.task(type: Ear, 'customEar') {
             earModel = new EarPluginConvention(null)
