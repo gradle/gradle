@@ -149,55 +149,41 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
         log.count('warn me!') == 0
         log.count('error me!') == 1
     }
-    
+
     def "foreground daemon log honors log levels for logging"() {
         given:
         def baseDir = distribution.file("daemonBaseDir").createDir()
-        executer.withDaemonBaseDir(baseDir)
         distribution.file("build.gradle") << """
-            println 'println me!'
-
             logger.debug('debug me!')
             logger.info('info me!')
-            logger.quiet('quiet me!')
-            logger.lifecycle('lifecycle me!')
-            logger.warn('warn me!')
-            logger.error('error me!')
         """
 
-        when: "foreground daemon started with --info"
-        def foregroundDaemon = executer.withArguments("--foreground", "--info").start()
+        when:
+        def daemon = executer.setAllowExtraLogging(false).withDaemonBaseDir(baseDir).withArguments("--foreground").start()
         
         then:
-        poll { assert foregroundDaemon.standardOutput.contains(DaemonMessages.PROCESS_STARTED) }
+        poll { assert daemon.standardOutput.contains(DaemonMessages.PROCESS_STARTED) }
 
-        when: "quiet build is requested"
-        //TODO SF more reliable way of matching foreground daemon with a build request
-        def client = executer.withDaemonBaseDir(baseDir).withArguments("-q", "-Dorg.gradle.jvmargs=-ea").run()
+        when:
+        def infoBuild = executer.withDaemonBaseDir(baseDir).withArguments("-i", "-Dorg.gradle.jvmargs=-ea").run()
 
         then:
         getLogs(baseDir).size() == 0 //we should connect to the foreground daemon so no log was created
-        
-        def daemonLog = foregroundDaemon.standardOutput
-        def clientLog = client.output
 
-        //println "***daemon log:\n$daemonLog\n"
-        //println "***client log:\n$clientLog\n"
+        daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
+        daemon.standardOutput.count("info me!") == 1
 
-        //daemon infrastructure honors the info level
-        daemonLog.count(DaemonMessages.PROCESS_STARTED) == 1
-        //after starting the build, we honor client's log level
-        daemonLog.count(DaemonMessages.STARTED_RELAYING_LOGS) == 0
+        infoBuild.output.count("debug me!") == 0
+        infoBuild.output.count("info me!") == 1
 
-        //client output honors the quiet level:
-        clientLog.count(DaemonMessages.STARTED_RELAYING_LOGS) == 0
+        when:
+        def debugBuild = executer.withDaemonBaseDir(baseDir).withArguments("-d", "-Dorg.gradle.jvmargs=-ea").run()
 
-        clientLog.count('debug me!') == 0
-        clientLog.count('info me!') == 0
-        clientLog.count('println me!') == 1
-        clientLog.count('quiet me!') == 1
-        clientLog.count('lifecycle me!') == 0
-        clientLog.count('warn me!') == 0
+        then:
+        daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
+        daemon.standardOutput.count("debug me!") == 1
+
+        debugBuild.output.count("debug me!") == 1
     }
 
     List<File> getLogs(baseDir) {

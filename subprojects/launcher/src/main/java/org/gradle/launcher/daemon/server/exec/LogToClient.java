@@ -48,7 +48,7 @@ class LogToClient extends BuildCommandOnly {
         };
 
         loggingManager.setLevel(build.getStartParameter().getLogLevel());
-        LOGGER.info("About to start relaying all logs to the client via the connection.");
+        LOGGER.info(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
         loggingManager.start();
         loggingManager.addOutputEventListener(listener);
         LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + daemonPid + ").");

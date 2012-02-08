@@ -27,4 +27,5 @@ public class DaemonMessages {
     public final static String STARTED_EXECUTING_COMMAND = "Starting executing command: ";
     public final static String FINISHED_EXECUTING_COMMAND = "Finishing executing command: ";
     public final static String NO_DAEMONS_RUNNING = "No Gradle daemons are running.";
+    public final static String ABOUT_TO_START_RELAYING_LOGS = "About to start relaying all logs to the client via the connection.";
 }
