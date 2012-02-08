@@ -286,7 +286,7 @@ public class GradlePomModuleDescriptorBuilder {
         ConfMapper mapping = MAVEN2_CONF_MAPPING.get(scope);
         mapping.addMappingConfs(dd, dep.isOptional());
         Map<String, String> extraAtt = new HashMap<String, String>();
-        boolean hasClassifier = dep.getClassifier() != null;
+        boolean hasClassifier = dep.getClassifier() != null && dep.getClassifier().length() > 0;
         boolean hasNonJarType = dep.getType() != null && !"jar".equals(dep.getType());
         if (hasClassifier || hasNonJarType) {
             String type = "jar";

@@ -64,6 +64,7 @@ class PomParserTest extends Specification {
         hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
         descriptor.dependencies.length == 1
         descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
+        hasDefaultDependencyArtifact(descriptor.dependencies.first())
     }
 
     def "pom with dependency with classifier"() {
@@ -96,6 +97,37 @@ class PomParserTest extends Specification {
         hasDependencyArtifact(descriptor.dependencies.first(), 'artifact-two', 'jar', 'jar', 'classifier-two')
     }
 
+    @Issue("GRADLE-2068")
+    def "pom with dependency with empty classifier is treated like dependency without classifier"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>version-two</version>
+            <classifier></classifier>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
+        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
+        descriptor.dependencies.length == 1
+        descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
+        hasDefaultDependencyArtifact(descriptor.dependencies.first())
+    }
+
     private ModuleDescriptor parsePom() {
         GradlePomModuleDescriptorParser.getInstance().parseDescriptor(ivySettings, pomFile.toURL(), false)
     }
@@ -105,6 +137,10 @@ class PomParserTest extends Specification {
         def artifact = descriptor.allArtifacts.first()
         assert artifact.id == artifactId(descriptor.moduleRevisionId, name, type, ext)
         assert artifact.extraAttributes['classifier'] == classifier
+    }
+    
+    private void hasDefaultDependencyArtifact(DependencyDescriptor descriptor) {
+        descriptor.allDependencyArtifacts.length == 0
     }
 
     private void hasDependencyArtifact(DependencyDescriptor descriptor, String name, String type, String ext, String classifier = null) {
