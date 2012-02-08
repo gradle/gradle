@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,51 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.Factory
-import spock.lang.Specification
 import org.gradle.util.Jvm
 
-class DefaultJavaCompilerFactoryTest extends Specification {
+import spock.lang.Specification
 
-    CompileOptions compileOptionsMock = Mock();
+class DefaultJavaCompilerFactoryTest extends Specification {
+    CompileOptions compileOptionsMock = Mock()
     ProjectInternal projectInternal = Mock()
     Factory factoryMock = Mock()
-    JavaCompilerFactory jcFactory = Mock();
-    Jvm jvmMock = Mock(Jvm);
-    DefaultJavaCompilerFactory factory = new DefaultJavaCompilerFactory(projectInternal, factoryMock, jcFactory, jvmMock);
+    JavaCompilerFactory jcFactory = Mock()
+    Jvm jvmMock = Mock()
+    DefaultJavaCompilerFactory factory = new DefaultJavaCompilerFactory(projectInternal, factoryMock, jcFactory, jvmMock)
 
-    def "ant compiler is not decorated at all"(){
+    def "does not decorate Ant compiler"() {
         when:
-            JavaCompiler compiler = factory.create(compileOptionsMock)
+        JavaCompiler compiler = factory.create(compileOptionsMock)
+
         then:
-            0 * jvmMock.isJava7() >> true
-            1 * compileOptionsMock.isUseAnt() >> true
-            compiler instanceof AntJavaCompiler
+        0 * jvmMock.isJava7()
+        1 * compileOptionsMock.isUseAnt() >> true
+        compiler instanceof AntJavaCompiler
     }
 
-    def "compiler get decorated with Jdk7AwareCompiler if useAnt=false & jdk is 1.7"() {
+    def "decorates with NormalizingJavaCompiler if useAnt=false and JDK is not 1.7"() {
         when:
-            JavaCompiler compiler = factory.create(compileOptionsMock)
+        JavaCompiler compiler = factory.create(compileOptionsMock)
+
         then:
-            1 * compileOptionsMock.isUseAnt() >> false
-            1 * jvmMock.isJava7() >> true
-            compiler instanceof Jdk7CompliantJavaCompiler
-            compiler.compilerDelegate instanceof NormalizingJavaCompiler
+        1 * jvmMock.isJava7() >> false
+        compiler instanceof NormalizingJavaCompiler
     }
 
-    def "return Normal if used jdk is not 1.7"() {
-
+    def "decorates with NormalizingJavaCompiler and Jdk7CompliantJavaCompiler if useAnt=false and JDK is 1.7"() {
         when:
-            JavaCompiler compiler = factory.create(compileOptionsMock)
+        JavaCompiler compiler = factory.create(compileOptionsMock)
+
         then:
-            1 * jvmMock.isJava7() >> false
-            compiler instanceof NormalizingJavaCompiler
+        1 * compileOptionsMock.isUseAnt() >> false
+        1 * jvmMock.isJava7() >> true
+        compiler instanceof Jdk7CompliantJavaCompiler
+        compiler.compilerDelegate instanceof NormalizingJavaCompiler
     }
 }
