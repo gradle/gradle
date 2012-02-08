@@ -50,7 +50,7 @@ public class SimpleReport implements Report {
         return destination == null ? null : resolveToFile(destination);
     }
 
-    public void setDestination(Object destination) {
+    protected void setDestination(Object destination) {
         this.destination = destination;
     }
 

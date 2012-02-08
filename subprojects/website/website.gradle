@@ -330,6 +330,7 @@ class S3PutTask extends SourceTask {
         def service = createService()
         source.each { File file ->
             def s3Object = new S3Object(file)
+            s3Object.addMetadata("gradle-release-date", project.version.timestamp)
             eachObjects.execute(s3Object)
             logger.lifecycle "uploading '$file.name' to '$s3Object.key'"
             service.putObject(bucketName, s3Object)

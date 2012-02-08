@@ -16,25 +16,25 @@
 
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
+import org.gradle.api.reporting.SingleFileReport;
 
 /**
  * The reporting configuration for the the {@link Pmd} task.
  */
-public interface PmdReports extends ReportContainer<Report> {
+public interface PmdReports extends ReportContainer<SingleFileReport> {
 
     /**
      * The pmd (single file) html report
      *
      * @return The pmd (single file) html report
      */
-    Report getHtml();
+    SingleFileReport getHtml();
 
     /**
      * The pmd (single file) xml report
      *
      * @return The pmd (single file) xml report
      */
-    Report getXml();
+    SingleFileReport getXml();
 }

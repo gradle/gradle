@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality;
+package org.gradle.api.reporting;
 
-import org.gradle.api.reporting.ReportContainer;
-import org.gradle.api.reporting.SingleFileReport;
-
-/**
- * The reporting configuration for the the {@link Checkstyle} test.
- */
-public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
+public interface SingleFileReport extends Report {
+    
+    void setDestination(Object file);
 
     /**
-     * The checkstyle xml report
-     *
-     * @return The checkstyle xml report
+     * Always returns {@link Report.OutputType#FILE}
+     * @return {@link Report.OutputType#FILE}
      */
-    SingleFileReport getXml();
+    OutputType getOutputType();
 
 }

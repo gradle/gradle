@@ -18,24 +18,24 @@ package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.plugins.quality.JDependReports;
-import org.gradle.api.reporting.Report;
-import org.gradle.api.reporting.internal.TaskGeneratedReport;
+import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 
-public class JDependReportsImpl extends TaskReportContainer<Report> implements JDependReports {
+public class JDependReportsImpl extends TaskReportContainer<SingleFileReport> implements JDependReports {
 
     public JDependReportsImpl(Task task) {
-        super(Report.class, task);
+        super(SingleFileReport.class, task);
         
-        add(TaskGeneratedReport.class, "xml", Report.OutputType.FILE, task);
-        add(TaskGeneratedReport.class, "text", Report.OutputType.FILE, task);
+        add(TaskGeneratedSingleFileReport.class, "xml", task);
+        add(TaskGeneratedSingleFileReport.class, "text", task);
     }
 
-    public Report getXml() {
+    public SingleFileReport getXml() {
         return getByName("xml");
     }
 
-    public Report getText() {
+    public SingleFileReport getText() {
         return getByName("text");
     }
 

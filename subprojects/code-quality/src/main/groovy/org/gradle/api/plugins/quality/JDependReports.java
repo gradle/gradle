@@ -16,8 +16,8 @@
 
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
+import org.gradle.api.reporting.SingleFileReport;
 
 /**
  * The reporting configuration for the the {@link JDepend} task.
@@ -25,20 +25,20 @@ import org.gradle.api.reporting.ReportContainer;
  * Exactly one of the xml or html reports can be enabled when the task executes. If more than one or none is enabled, an {@link org.gradle.api.InvalidUserDataException}
  * will be thrown.
  */
-public interface JDependReports extends ReportContainer<Report> {
+public interface JDependReports extends ReportContainer<SingleFileReport> {
 
     /**
-     * The jdepend (single file) xml report
+     * The jdepend xml report
      *
-     * @return The findbugs (single file) xml report
+     * @return The jdepend xml report
      */
-    Report getXml();
+    SingleFileReport getXml();
 
     /**
-     * The jdepend (single file) text report
+     * The jdepend text report
      *
-     * @return The findbugs (single file) text report
+     * @return The jdepend text report
      */
-    Report getText();
+    SingleFileReport getText();
      
 }

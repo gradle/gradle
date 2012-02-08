@@ -18,24 +18,24 @@ package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.plugins.quality.PmdReports;
-import org.gradle.api.reporting.Report;
-import org.gradle.api.reporting.internal.TaskGeneratedReport;
+import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 
-public class PmdReportsImpl extends TaskReportContainer<Report> implements PmdReports {
+public class PmdReportsImpl extends TaskReportContainer<SingleFileReport> implements PmdReports {
 
     public PmdReportsImpl(Task task) {
-        super(Report.class, task);
+        super(SingleFileReport.class, task);
         
-        add(TaskGeneratedReport.class, "html", Report.OutputType.FILE, task);
-        add(TaskGeneratedReport.class, "xml", Report.OutputType.FILE, task);
+        add(TaskGeneratedSingleFileReport.class, "html", task);
+        add(TaskGeneratedSingleFileReport.class, "xml", task);
     }
 
-    public Report getHtml() {
+    public SingleFileReport getHtml() {
         return getByName("html");
     }
 
-    public Report getXml() {
+    public SingleFileReport getXml() {
         return getByName("xml");
     }
 }

@@ -21,11 +21,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 
 public class TaskGeneratedReport extends SimpleReport {
 
-    private final Task task;
-
     public TaskGeneratedReport(String name, OutputType outputType, Task task) {
         super(name, outputType, ((ProjectInternal)(task.getProject())).getFileResolver());
-        this.task = task;
     }
 
 }

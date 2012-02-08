@@ -17,10 +17,10 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.Instantiator
+import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
-import org.gradle.api.internal.project.IsolatedAntBuilder
 
 /**
  * Runs a set of static code analysis rules on Java source code files and

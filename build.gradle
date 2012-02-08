@@ -134,9 +134,6 @@ allprojects {
         ivy {
             url 'http://repo.jfrog.org/artifactory/gradle-wharf-local'
         }
-        maven {
-            url 'http://repository.amdatu.org/maven2'
-        }
     }
 
     configurations {

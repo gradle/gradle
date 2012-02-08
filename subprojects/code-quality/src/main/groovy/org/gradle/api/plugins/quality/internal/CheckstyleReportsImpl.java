@@ -18,18 +18,18 @@ package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.plugins.quality.CheckstyleReports;
-import org.gradle.api.reporting.Report;
-import org.gradle.api.reporting.internal.TaskGeneratedReport;
+import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 
-public class CheckstyleReportsImpl extends TaskReportContainer<Report> implements CheckstyleReports {
+public class CheckstyleReportsImpl extends TaskReportContainer<SingleFileReport> implements CheckstyleReports {
     public CheckstyleReportsImpl(Task task) {
-        super(Report.class, task);
+        super(SingleFileReport.class, task);
         
-        add(TaskGeneratedReport.class, "xml", Report.OutputType.FILE, task);
+        add(TaskGeneratedSingleFileReport.class, "xml", task);
     }
 
-    public Report getXml() {
+    public SingleFileReport getXml() {
         return getByName("xml");
     }
 }
