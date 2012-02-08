@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -75,7 +76,7 @@ public class DaemonServices extends DefaultServiceRegistry {
                 get(DaemonContext.class),
                 "password",
                 new DefaultDaemonCommandExecuter(
-                        loggingServices,
+                        new DefaultGradleLauncherFactory(loggingServices),
                         get(ExecutorFactory.class),
                         get(ProcessEnvironment.class),
                         loggingManager),

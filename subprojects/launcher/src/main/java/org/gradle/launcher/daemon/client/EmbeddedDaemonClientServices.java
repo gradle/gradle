@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.service.ServiceRegistry;
@@ -61,7 +62,8 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
 
     protected DaemonCommandExecuter createDaemonCommandExecuter() {
         LoggingManagerInternal mgr = getLoggingServices().getFactory(LoggingManagerInternal.class).create();
-        return new DefaultDaemonCommandExecuter(getLoggingServices(), get(ExecutorFactory.class), get(ProcessEnvironment.class), mgr);
+        return new DefaultDaemonCommandExecuter(new DefaultGradleLauncherFactory(getLoggingServices()),
+                get(ExecutorFactory.class), get(ProcessEnvironment.class), mgr);
     }
 
     public EmbeddedDaemonClientServices(ServiceRegistry loggingServices, boolean displayOutput) {
