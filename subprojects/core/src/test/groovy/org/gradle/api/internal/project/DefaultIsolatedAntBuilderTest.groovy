@@ -37,8 +37,6 @@ import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
 import org.apache.tools.ant.Task
 import org.gradle.util.ClasspathUtil
-import org.apache.commons.logging.LogFactory
-import org.gradle.foundation.ProjectConverterTest
 
 class DefaultIsolatedAntBuilderTest {
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry()
