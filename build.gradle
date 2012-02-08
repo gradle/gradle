@@ -454,7 +454,7 @@ def wrapperUpdateTask = { name, label ->
     task "${name}Wrapper"(type: Wrapper) {
         doFirst {
             try {
-                def version = new groovy.json.JsonSlurper().parseText(new URL("http://gradle.org/versions/$label").text)
+                def version = new groovy.json.JsonSlurper().parseText(new URL("http://services.gradle.org/versions/$label").text)
                 println "updating wrapper to $label version: $version.version (downloadUrl: $version.downloadUrl)"
                 distributionUrl version.downloadUrl
             } catch (FileNotFoundException e) {
