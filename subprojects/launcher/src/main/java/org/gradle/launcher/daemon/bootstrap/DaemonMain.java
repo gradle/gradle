@@ -84,7 +84,8 @@ public class DaemonMain extends EntryPoint {
 
     protected void doAction(ExecutionListener listener) {
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newChildProcessLogging();
-        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, loggingRegistry);
+        LoggingManagerInternal loggingManager = loggingRegistry.getFactory(LoggingManagerInternal.class).create();
+        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, loggingRegistry, loggingManager);
         DaemonDir daemonDir = daemonServices.get(DaemonDir.class);
         final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
         final Long pid = daemonContext.getPid();
@@ -100,16 +101,12 @@ public class DaemonMain extends EntryPoint {
             //so that logging gets its way to the daemon log:
             loggingRegistry.get(OutputEventRenderer.class).addStandardOutputAndError();
 
-            //logging manager takes care of static slf4j configuration stuff, etc.
-            LoggingManagerInternal loggingManager = loggingRegistry.getFactory(LoggingManagerInternal.class).create();
             //Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
             //Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)
             loggingManager.setLevel(LogLevel.DEBUG);
-            //TODO SF we could make it slightly nicer. E.g. rely on the logging manager to replace std out on start
-            //and explicitly only demonize the process (e.g. close err/out).
-            //Then add some unit-test coverage to make sure process is demonized and out/err replaced
-            loggingManager.start();
         }
+
+        loggingManager.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {

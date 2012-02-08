@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
@@ -36,10 +37,13 @@ class LogToClient extends BuildCommandOnly {
     }
         
     protected void doBuild(final DaemonCommandExecution execution, Build build) {
+        final LogLevel buildLogLevel = build.getStartParameter().getLogLevel();
         OutputEventListener listener = new OutputEventListener() {
             public void onOutput(OutputEvent event) {
                 try {
-                    execution.getConnection().dispatch(event);
+                    if (event.getLogLevel().compareTo(buildLogLevel) >= 0) {
+                        execution.getConnection().dispatch(event);
+                    }
                 } catch (Exception e) {
                     //Ignore. It means the client has disconnected so no point sending him any log output.
                     //we should be checking if client still listens elsewhere anyway.
@@ -47,9 +51,7 @@ class LogToClient extends BuildCommandOnly {
             }
         };
 
-        loggingManager.setLevel(build.getStartParameter().getLogLevel());
         LOGGER.info(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
-        loggingManager.start();
         loggingManager.addOutputEventListener(listener);
         LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + daemonPid + ").");
 
@@ -57,7 +59,6 @@ class LogToClient extends BuildCommandOnly {
             execution.proceed();
         } finally {
             loggingManager.removeOutputEventListener(listener);
-            loggingManager.stop();
         }
     } 
 }

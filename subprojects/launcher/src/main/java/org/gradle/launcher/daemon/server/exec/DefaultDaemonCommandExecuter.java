@@ -41,10 +41,11 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
     private final GradleLauncherFactory launcherFactory;
     private final ProcessEnvironment processEnvironment;
 
-    public DefaultDaemonCommandExecuter(ServiceRegistry loggingServices, ExecutorFactory executorFactory, ProcessEnvironment processEnvironment) {
+    public DefaultDaemonCommandExecuter(ServiceRegistry loggingServices, ExecutorFactory executorFactory,
+                                        ProcessEnvironment processEnvironment, LoggingManagerInternal loggingManager) {
         this.executorFactory = executorFactory;
         this.processEnvironment = processEnvironment;
-        this.loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
+        this.loggingManager = loggingManager;
         this.launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
     }
 

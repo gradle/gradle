@@ -16,15 +16,16 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.process.internal.JvmOptions;
@@ -39,11 +40,13 @@ public class DaemonServices extends DefaultServiceRegistry {
     private final File daemonBaseDir;
     private final Integer idleTimeoutMs;
     private final ServiceRegistry loggingServices;
+    private final LoggingManagerInternal loggingManager;
 
-    public DaemonServices(File daemonBaseDir, Integer idleTimeoutMs, ServiceRegistry loggingServices) {
+    public DaemonServices(File daemonBaseDir, Integer idleTimeoutMs, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager) {
         this.daemonBaseDir = daemonBaseDir;
         this.idleTimeoutMs = idleTimeoutMs;
         this.loggingServices = loggingServices;
+        this.loggingManager = loggingManager;
 
         add(new NativeServices());
         add(new DaemonRegistryServices(daemonBaseDir));
@@ -74,7 +77,8 @@ public class DaemonServices extends DefaultServiceRegistry {
                 new DefaultDaemonCommandExecuter(
                         loggingServices,
                         get(ExecutorFactory.class),
-                        get(ProcessEnvironment.class)),
+                        get(ProcessEnvironment.class),
+                        loggingManager),
                 get(ExecutorFactory.class));
     }
 

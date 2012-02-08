@@ -88,27 +88,29 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
         aLog.count('Hello build!') == 2
     }
 
-    def "daemon infrastructure logs with DEBUG"() {
+    def "background daemon infrastructure logs with DEBUG"() {
         given:
         def baseDir = distribution.file("daemonBaseDir").createDir()
         executer.withDaemonBaseDir(baseDir)
+        distribution.file("build.gradle") << "task foo << { println 'hey!' }"
 
         when: "runing build with --info"
-        executer.withArguments("-i").run()
+        executer.withArguments("-i").withTasks('foo').run()
 
         then:
         def log = readLog(baseDir)
-        //TODO SF make sure that those are DEBUG statements
         log.findAll(DaemonMessages.STARTED_EXECUTING_COMMAND).size() == 1
-        //if the log level was configured back to DEBUG after build:
+
         ConcurrentTestUtil.poll {
             //in theory the client could have received result and complete
             // but the daemon has not yet finished processing hence polling
-            readLog(baseDir).findAll(DaemonMessages.FINISHED_EXECUTING_COMMAND).size() == 1
+            def daemonLog = readLog(baseDir)
+            daemonLog.findAll(DaemonMessages.FINISHED_EXECUTING_COMMAND).size() == 1
+            daemonLog.findAll(DaemonMessages.FINISHED_BUILD).size() == 1
         }
 
         when: "another build requested with the same daemon with --info"
-        executer.withArguments("-i").run()
+        executer.withArguments("-i").withTasks('foo').run()
 
         then:
         def aLog = readLog(baseDir)
@@ -136,10 +138,8 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
         then:
         def log = readLog(baseDir)
 
-        //before the build is requested we don't know the log level so we print eagerly
-        log.count(DaemonMessages.PROCESS_STARTED) == 1
-        //after the build started log level is understood
-        log.count(DaemonMessages.STARTED_RELAYING_LOGS) == 0
+        //daemon logs to file eagerly regardless of the build log level
+        log.count(DaemonMessages.STARTED_RELAYING_LOGS) == 1
         //output from the build:
         log.count('debug me!') == 0
         log.count('info me!') == 0
