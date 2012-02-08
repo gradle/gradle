@@ -18,10 +18,14 @@ package org.gradle.api.internal.tasks.compile.daemon;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.UncheckedException;
 
 public class DaemonJavaCompiler extends JavaCompilerSupport {
+    private static final Logger LOGGER = Logging.getLogger(DaemonJavaCompiler.class);
+    
     private final ProjectInternal project;
     private final JavaCompiler delegate;
 
@@ -34,7 +38,7 @@ public class DaemonJavaCompiler extends JavaCompilerSupport {
         configure(delegate);
         CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project);
         CompileResult result = daemon.execute(delegate);
-        if (result.isSuccess()) {
+        if (result.isSuccess() || !compileOptions.isFailOnError()) {
             return result;
         }
         throw UncheckedException.asUncheckedException(result.getException());

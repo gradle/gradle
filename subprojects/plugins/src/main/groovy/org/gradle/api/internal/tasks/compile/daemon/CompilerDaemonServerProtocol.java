@@ -15,24 +15,12 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.api.tasks.WorkResult;
-import org.gradle.process.internal.WorkerProcessContext;
+import org.gradle.internal.Stoppable;
 
-import java.io.Serializable;
-
-public class DefaultCompilerDaemon implements Action<WorkerProcessContext>, CompilerDaemon, Serializable {
-    public void execute(WorkerProcessContext context) {
-        context.getServerConnection().addIncoming(CompilerDaemon.class, this);
-    }
-
-    public CompileResult execute(Compiler compiler) {
-        try {
-            WorkResult result = compiler.execute();
-            return new CompileResult(result.getDidWork(), null);
-        } catch (Throwable t) {
-            return new CompileResult(true, t);
-        }
-    }
+/**
+ * Server part of the compiler daemon protocol. Used to submit compilation jobs.
+ */
+public interface CompilerDaemonServerProtocol extends Stoppable {
+    void execute(Compiler compiler);
 }

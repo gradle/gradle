@@ -15,12 +15,9 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.internal.Stoppable;
-
 /**
- * A service that executes compilers in a (potentially) long-lived process.
+ * Client part of the compiler daemon protocol. Used to report back compilation results.
  */
-public interface CompilerDaemon extends Stoppable {
-    CompileResult execute(Compiler compiler);
+public interface CompilerDaemonClientProtocol {
+    void executed(CompileResult result);
 }

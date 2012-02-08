@@ -20,7 +20,6 @@ import org.gradle.BuildResult;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.Stoppable;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
@@ -28,11 +27,14 @@ import org.gradle.util.Jvm;
 
 import java.io.File;
 
-public class CompilerDaemonManager implements Stoppable {
+/**
+ * Controls the lifecycle of the compiler daemon and provides access to it.
+ */
+public class CompilerDaemonManager {
     private static final Logger LOGGER = Logging.getLogger(CompilerDaemonManager.class);
     private static final CompilerDaemonManager INSTANCE = new CompilerDaemonManager();
     
-    private DefaultCompilerDaemon daemon;
+    private volatile CompilerDaemonClient client;
     private WorkerProcess process;
     
     public static CompilerDaemonManager getInstance() {
@@ -40,41 +42,40 @@ public class CompilerDaemonManager implements Stoppable {
     }
     
     public CompilerDaemon getDaemon(ProjectInternal project) {
-        if (daemon == null) {
+        if (client == null) {
             startDaemon(project);
-            registerShutdownListener(project);
+            stopDaemonOnceBuildFinished(project);
         }
-        return daemon;
-    }
-    
-    public void stop() {
-        System.out.println("Stopping Gradle compiler daemon.");
-        process.waitForStop();
-        System.out.println("Gradle compiler daemon stopped.");
+        return client;
     }
     
     private void startDaemon(ProjectInternal project) {
-        System.out.println("Starting Gradle compiler daemon.");
+        LOGGER.info("Starting Gradle compiler daemon.");
         WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
+        builder.setLogLevel(project.getGradle().getStartParameter().getLogLevel()); // TODO: respect per-compile-task log level
         File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
             builder.getApplicationClasspath().add(toolsJar); // for SunJavaCompiler
         }
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-        javaCommand.setMinHeapSize("128m");
+        javaCommand.setMinHeapSize("128m"); // TODO: add extension object on Gradle for configuring daemon
         javaCommand.setMaxHeapSize("1g");
         javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
-        daemon = new DefaultCompilerDaemon();
-        process = builder.worker(daemon).build();
+        process = builder.worker(new CompilerDaemonServer()).build();
         process.start();
-        System.out.println("Gradle compiler daemon started.");
+        CompilerDaemonServerProtocol server = process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
+        client = new CompilerDaemonClient(server);
+        process.getConnection().addIncoming(CompilerDaemonClientProtocol.class, client);
+        LOGGER.info("Gradle compiler daemon started.");
     }
     
-    private void registerShutdownListener(ProjectInternal project) {
+    private void stopDaemonOnceBuildFinished(ProjectInternal project) {
         project.getGradle().addBuildListener(new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
-                stop();
+                client.stop();
+                client = null;
+                process.waitForStop();
             }
         });
     }
