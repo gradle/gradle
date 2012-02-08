@@ -28,10 +28,9 @@ public interface Reporting<T extends ReportContainer> {
     /**
      * Returns the report container.
      *
-     * @param <N> The type of the report container
      * @return The report container
      */
-    <N extends T> N getReports();
+    T getReports();
 
     /**
      * Allow configuration of the report container by closure.
@@ -47,9 +46,7 @@ public interface Reporting<T extends ReportContainer> {
      * }
      * </pre>
      * @param closure The configuration
-     * @param <N> The type of the report container
      * @return The report container
      */
-    <N extends T> N reports(Closure closure);
-
+    T reports(Closure closure);
 }
