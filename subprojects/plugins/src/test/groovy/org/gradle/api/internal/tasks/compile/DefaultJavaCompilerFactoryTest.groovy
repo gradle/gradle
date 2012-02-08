@@ -33,19 +33,31 @@ class DefaultJavaCompilerFactoryTest extends Specification {
     Jvm jvmMock = Mock(Jvm);
     DefaultJavaCompilerFactory factory = new DefaultJavaCompilerFactory(projectInternal, factoryMock, jcFactory, jvmMock);
 
-    def "return Jdk7AwareCompiler if used jdk is 1.7"() {
+    def "ant compiler is not decorated at all"(){
         when:
-        JavaCompiler compiler = factory.create(compileOptionsMock)
+            JavaCompiler compiler = factory.create(compileOptionsMock)
         then:
-        1 * jvmMock.isJava7() >> true
-        compiler instanceof Jdk7CompliantJavaCompiler
+            0 * jvmMock.isJava7() >> true
+            1 * compileOptionsMock.isUseAnt() >> true
+            compiler instanceof AntJavaCompiler
+    }
+
+    def "compiler get decorated with Jdk7AwareCompiler if useAnt=false & jdk is 1.7"() {
+        when:
+            JavaCompiler compiler = factory.create(compileOptionsMock)
+        then:
+            1 * compileOptionsMock.isUseAnt() >> false
+            1 * jvmMock.isJava7() >> true
+            compiler instanceof Jdk7CompliantJavaCompiler
+            compiler.compilerDelegate instanceof NormalizingJavaCompiler
     }
 
     def "return Normal if used jdk is not 1.7"() {
+
         when:
-        JavaCompiler compiler = factory.create(compileOptionsMock)
+            JavaCompiler compiler = factory.create(compileOptionsMock)
         then:
-        1 * jvmMock.isJava7() >> false
-        compiler instanceof NormalizingJavaCompiler
+            1 * jvmMock.isJava7() >> false
+            compiler instanceof NormalizingJavaCompiler
     }
 }

@@ -20,7 +20,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.Jvm;
 
 public class Jdk7CompliantJavaCompiler extends JavaCompilerSupport {
-    private JavaCompiler compilerDelegate;
+    JavaCompiler compilerDelegate;
     private Jvm jvm;
 
     public Jdk7CompliantJavaCompiler(JavaCompiler delegate) {
