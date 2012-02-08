@@ -22,7 +22,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.client.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonGreeter;
-import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
@@ -110,8 +109,6 @@ public class DaemonMain extends EntryPoint {
             //and explicitly only demonize the process (e.g. close err/out).
             //Then add some unit-test coverage to make sure process is demonized and out/err replaced
             loggingManager.start();
-            
-            LOGGER.info(DaemonMessages.PROCESS_STARTED);
         }
 
         Runtime.getRuntime().addShutdownHook(new Thread() {

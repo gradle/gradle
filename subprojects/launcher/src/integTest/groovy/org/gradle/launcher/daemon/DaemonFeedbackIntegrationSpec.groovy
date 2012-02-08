@@ -21,6 +21,7 @@ import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.tests.fixtures.ConcurrentTestUtil
 import spock.lang.IgnoreIf
 import spock.lang.Timeout
+import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
 
 /**
  * by Szczepan Faber, created at: 1/20/12
@@ -148,16 +149,71 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
         log.count('warn me!') == 0
         log.count('error me!') == 1
     }
+    
+    def "foreground daemon log honors log levels for logging"() {
+        given:
+        def baseDir = distribution.file("daemonBaseDir").createDir()
+        executer.withDaemonBaseDir(baseDir)
+        distribution.file("build.gradle") << """
+            println 'println me!'
 
-    String readLog(baseDir) {
+            logger.debug('debug me!')
+            logger.info('info me!')
+            logger.quiet('quiet me!')
+            logger.lifecycle('lifecycle me!')
+            logger.warn('warn me!')
+            logger.error('error me!')
+        """
+
+        when: "foreground daemon started with --info"
+        def foregroundDaemon = executer.withArguments("--foreground", "--info").start()
+        
+        then:
+        poll { assert foregroundDaemon.standardOutput.contains(DaemonMessages.PROCESS_STARTED) }
+
+        when: "quiet build is requested"
+        //TODO SF more reliable way of matching foreground daemon with a build request
+        def client = executer.withDaemonBaseDir(baseDir).withArguments("-q", "-Dorg.gradle.jvmargs=-ea").run()
+
+        then:
+        getLogs(baseDir).size() == 0 //we should connect to the foreground daemon so no log was created
+        
+        def daemonLog = foregroundDaemon.standardOutput
+        def clientLog = client.output
+
+        //println "***daemon log:\n$daemonLog\n"
+        //println "***client log:\n$clientLog\n"
+
+        //daemon infrastructure honors the info level
+        daemonLog.count(DaemonMessages.PROCESS_STARTED) == 1
+        //after starting the build, we honor client's log level
+        daemonLog.count(DaemonMessages.STARTED_RELAYING_LOGS) == 0
+
+        //client output honors the quiet level:
+        clientLog.count(DaemonMessages.STARTED_RELAYING_LOGS) == 0
+
+        clientLog.count('debug me!') == 0
+        clientLog.count('info me!') == 0
+        clientLog.count('println me!') == 1
+        clientLog.count('quiet me!') == 1
+        clientLog.count('lifecycle me!') == 0
+        clientLog.count('warn me!') == 0
+    }
+
+    List<File> getLogs(baseDir) {
         //the gradle version dir
-        baseDir.listFiles().length == 1
+        assert baseDir.listFiles().length == 1
         def daemonFiles = baseDir.listFiles()[0].listFiles()
 
-        //assert single log
-        assert daemonFiles.count { it.name.endsWith('.log') } == 1
-        def daemonLog = daemonFiles.find { it.name.endsWith('.log') }
+        daemonFiles.findAll { it.name.endsWith('.log') }
+    }
 
-        daemonLog.text
+    String readLog(baseDir) {
+        def logs = getLogs(baseDir)
+
+        //assert single log
+        assert logs.size() == 1
+
+        logs[0].text
     }
 }
