@@ -55,7 +55,6 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
     private final ClassLoader messageClassLoader;
     private final String broadcastGroup;
     private final SocketInetAddress broadcastAddress;
-    private final MessageOriginator messageOriginator;
     private DefaultMessagingClient messagingClient;
     private DefaultMultiChannelConnector multiChannelConnector;
     private TcpIncomingConnector<Message> incomingConnector;
@@ -77,8 +76,6 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
         this.messageClassLoader = messageClassLoader;
         this.broadcastGroup = broadcastGroup;
         this.broadcastAddress = broadcastAddress;
-
-        this.messageOriginator = new MessageOriginator(idGenerator.generateId(), determineNodeName());
     }
 
     private static SocketInetAddress defaultBroadcastAddress() {
@@ -90,11 +87,13 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
     }
 
     private static String determineNodeName() {
+        String hostName;
         try {
-            return String.format("%s@%s", System.getProperty("user.name"), InetAddress.getLocalHost().getHostName());
+            hostName = InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
-            throw UncheckedException.asUncheckedException(e);
+            hostName = new InetAddressFactory().findRemoteAddresses().get(0).toString();
         }
+        return String.format("%s@%s", System.getProperty("user.name"), hostName);
     }
 
     public void stop() {
@@ -113,6 +112,10 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
         stoppable.add(multicastConnection);
         stoppable.add(executorFactory);
         stoppable.stop();
+    }
+
+    protected MessageOriginator createMessageOriginator() {
+        return new MessageOriginator(idGenerator.generateId(), determineNodeName());
     }
 
     protected ExecutorFactory createExecutorFactory() {
@@ -161,7 +164,7 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
 
     protected IncomingBroadcast createIncomingBroadcast() {
         incomingBroadcast = new DefaultIncomingBroadcast(
-                messageOriginator,
+                get(MessageOriginator.class),
                 broadcastGroup,
                 get(AsyncConnection.class),
                 get(IncomingConnector.class),
@@ -173,7 +176,7 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
 
     protected OutgoingBroadcast createOutgoingBroadcast() {
         outgoingBroadcast = new DefaultOutgoingBroadcast(
-                messageOriginator,
+                get(MessageOriginator.class),
                 broadcastGroup,
                 get(AsyncConnection.class),
                 get(OutgoingConnector.class),
