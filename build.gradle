@@ -368,9 +368,14 @@ gradle.taskGraph.whenReady {graph ->
 }
 
 task quickCheck {
-    def i = gradle.startParameter.taskNames.findIndexOf { it ==~ /:?quickCheck/ }
+    def i = gradle.startParameter.taskNames.findIndexOf { it ==~ /(?i):?(quickCheck|qC)/ }
     if (i >= 0) {
         gradle.startParameter.taskNames.addAll(i, ["doc:checkstyleApi", "codeQuality", "classes", "test"])
+    }
+    doFirst {
+        if (i < 0) {
+            throw new GradleException("Due to the way it is implemented, the 'quickCheck' task has to be invoked directly, and its name can only be abbreviated to 'qC'.")
+        }
     }
 }
 
