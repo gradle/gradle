@@ -7,6 +7,7 @@ idea.project.jdkName = '1.6'
 
 repositories {
     mavenCentral()
+    mavenRepo(url: 'http://repo.gradle.org/gradle/libs-releases-local')
 }
 
 configurations {
@@ -16,9 +17,15 @@ configurations {
 dependencies {
     junit 'junit:junit:4.10'
     groovy localGroovy()
+    testCompile 'junit:junit:4.10'
+
+    //spock
     testCompile 'org.spockframework:spock-core:0.5-groovy-1.8@jar',
-            'org.objenesis:objenesis:1.2', 'cglib:cglib-nodep:2.2',
-            'junit:junit:4.10'
+            'org.objenesis:objenesis:1.2', 'cglib:cglib-nodep:2.2'
+
+    //tooling api
+    testCompile 'org.gradle:gradle-tooling-api:1.0-milestone-7'
+    testRuntime 'org.slf4j:slf4j-simple:1.6.4'
 }
 
 task small(type: GeneratorTask, description: 'Generates a small project') {
