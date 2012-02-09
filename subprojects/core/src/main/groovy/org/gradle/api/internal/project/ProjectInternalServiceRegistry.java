@@ -100,7 +100,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected Convention createConvention() {
-        return new DefaultConvention();
+        return new DefaultConvention(get(Instantiator.class));
     }
 
     //TODO SF what's going on here?

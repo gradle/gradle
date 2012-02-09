@@ -19,13 +19,17 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.UnknownDomainObjectException
 import spock.lang.Specification
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.internal.ClassGeneratorBackedInstantiator
+import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.DirectInstantiator
 
 /**
  * @author: Szczepan Faber, created at: 6/24/11
  */
 public class ExtensionContainerTest extends Specification {
 
-    def container = new DefaultConvention()
+    def container = new DefaultConvention(new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator()))
     def extension = new FooExtension()
     def barExtension = new BarExtension()
 
@@ -154,6 +158,21 @@ public class ExtensionContainerTest extends Specification {
         container.findByType(Parent) == child
         container.getByType(Parent) == child
     }
+    
+    def "can create ExtensionAware extensions"() {
+        given:
+        container.add("foo", Parent)
+        def extension = container.getByName("foo")
+
+        expect:
+        extension instanceof ExtensionAware
+        
+        when:
+        extension.extensions.add("thing", Thing, "bar")
+        
+        then:
+        extension.thing.name == "bar"
+    }
 
 }
 
@@ -162,3 +181,11 @@ class Impl implements Capability {}
 
 class Parent {}
 class Child extends Parent {}
+class Thing {
+    String name
+
+    Thing(String name) {
+        this.name = name
+    }
+
+}
