@@ -31,6 +31,21 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         and:
         failureHasCause "Cannot perform signing task ':signJar' because it has no configured signatory"
     }
-    
+
+    def "trying to perform a signing operation without a signatory when not required does not error"() {
+        when:
+        buildFile << """
+            signing {
+                sign jar
+                required = false
+            }
+        """
+
+        then:
+        succeeds ":signJar"
+
+        and:
+        ":signJar" in skippedTasks
+    }
     
 }
