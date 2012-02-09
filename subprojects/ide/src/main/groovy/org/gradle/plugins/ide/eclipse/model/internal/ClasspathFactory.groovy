@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 
+import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeLocalFileDependency
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor.IdeProjectDependency
@@ -88,18 +89,26 @@ class ClasspathFactory {
     private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, String declaredConfigurationName, FileReferenceFactory referenceFactory) {
         def binaryRef = referenceFactory.fromFile(binary)
         def sourceRef = referenceFactory.fromFile(source)
-        def javadocRef = referenceFactory.fromFile(javadoc)
+        def javadocRef = referenceFactory.fromPath(toJarURLString(javadoc));
         def out
         if (binaryRef.relativeToPathVariable) {
             out = new Variable(binaryRef)
         } else {
             out = new Library(binaryRef)
         }
-        out.sourcePath = sourceRef
         out.javadocPath = javadocRef
+        out.sourcePath = sourceRef
         out.exported = true
         out.declaredConfigurationName = declaredConfigurationName
         out
+    }
+
+    String toJarURLString(File archive) {
+        if(!archive){
+            return null
+        }
+        //windows needs an additional backslash in jar urls
+        return "jar:file:${OperatingSystem.current().windows ? '/' : ''}${archive.absolutePath}!/"
     }
 }
 
