@@ -73,6 +73,6 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         URL[] urls = GFileUtils.toURLArray(implementationClasspath);
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(classLoader);
         filteringClassLoader.allowPackage("org.gradle.tooling.internal.protocol");
-        return new ObservableUrlClassLoader(filteringClassLoader, urls);
+        return new MutableURLClassLoader(filteringClassLoader, urls);
     }
 }

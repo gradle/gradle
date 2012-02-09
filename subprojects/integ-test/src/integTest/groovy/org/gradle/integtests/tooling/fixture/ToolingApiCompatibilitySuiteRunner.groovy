@@ -148,7 +148,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             def testClassPath = []
             testClassPath << ClasspathUtil.getClasspathForClass(target)
 
-            return new ObservableUrlClassLoader(parentClassLoader, testClassPath.collect { it.toURI().toURL() })
+            return new MutableURLClassLoader(parentClassLoader, testClassPath.collect { it.toURI().toURL() })
         }
 
         @Override
