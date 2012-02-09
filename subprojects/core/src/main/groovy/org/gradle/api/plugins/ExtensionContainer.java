@@ -34,6 +34,19 @@ public interface ExtensionContainer {
     void add(String name, Object extension);
 
     /**
+     * Adds a new extension to this container, that itself is dynamically made {@link ExtensionAware}.
+     * 
+     * A new instance of the given {@code type} will be created using the given {@code constructionArguments}. The new
+     * instance will have been dynamically which means that you can cast the object to {@link ExtensionAware}.
+     * 
+     * @see #add(String, Object) 
+     * @param name The name for the extension
+     * @param type The type of the extension
+     * @param constructionArguments The arguments to be used to construct the extension instance
+     */
+    void add(String name, Class<?> type, Object... constructionArguments);
+
+    /**
      * Looks for the extension of a given type (useful to avoid casting). If none found it will throw an exception.
      *
      * @param type extension type

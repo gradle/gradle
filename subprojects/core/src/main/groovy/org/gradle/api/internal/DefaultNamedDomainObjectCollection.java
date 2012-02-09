@@ -35,8 +35,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private final Namer<? super T> namer;
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
-    private final Convention convention = new DefaultConvention();
-    private final DynamicObject dynamicObject = new DynamicObjectHelper(new ContainerDynamicObject(elementsDynamicObject), convention);
+    private final Convention convention;
+    private final DynamicObject dynamicObject;
 
     private final List<Rule> rules = new ArrayList<Rule>();
     private Set<String> applyingRulesFor = new HashSet<String>();
@@ -44,12 +44,16 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     public DefaultNamedDomainObjectCollection(Class<? extends T> type, Collection<T> store, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store);
         this.instantiator = instantiator;
+        this.convention = new DefaultConvention(instantiator);
+        this.dynamicObject = new DynamicObjectHelper(new ContainerDynamicObject(elementsDynamicObject), convention);
         this.namer = namer;
     }
 
     protected DefaultNamedDomainObjectCollection(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store, eventRegister);
         this.instantiator = instantiator;
+        this.convention = new DefaultConvention(instantiator);
+        this.dynamicObject = new DynamicObjectHelper(new ContainerDynamicObject(elementsDynamicObject), convention);
         this.namer = namer;
     }
 

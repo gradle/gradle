@@ -360,7 +360,32 @@ assert 'overridden value' == global
 
         executer.inDirectory(testDir).withTasks("test").run();
     }
-    
+
+    @Test
+    void canAddExtensionsToDynamicExtensions() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file('build.gradle') << '''
+            class Extension {
+                String name
+                Extension(String name) {
+                    this.name = name
+                }
+            }
+
+            project.extensions.add("l1", Extension, "l1")
+            project.l1.extensions.add("l2", Extension, "l2")
+            project.l1.l2.extensions.add("l3", Extension, "l3")
+
+            task test << {
+                assert project.l1.name == "l1"
+                assert project.l1.l2.name == "l2"
+                assert project.l1.l2.l3.name == "l3"
+            }
+        '''
+
+        executer.inDirectory(testDir).withTasks("test").run();
+    }
+
     @Test
     public void canInjectMethodsFromParentProject() {
         TestFile testDir = dist.getTestDir();
