@@ -37,6 +37,11 @@ class MultiParentClassLoaderTest {
     }
 
     @Test
+    public void parentsAreNotVisibleViaSuperClass() {
+        assertThat(loader.parent, nullValue())
+    }
+
+    @Test
     public void loadsClassFromParentsInOrderSpecified() {
         Class stringClass = String.class
         Class integerClass = Integer.class

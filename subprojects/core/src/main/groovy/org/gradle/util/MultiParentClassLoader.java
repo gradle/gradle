@@ -29,7 +29,7 @@ public class MultiParentClassLoader extends ClassLoader {
     private final JavaMethod<ClassLoader, Package> getPackageMethod;
 
     public MultiParentClassLoader(ClassLoader... parents) {
-        super(parents.length == 0 ? null : parents[0]);
+        super(null);
         this.parents = new CopyOnWriteArrayList<ClassLoader>(Arrays.asList(parents));
         getPackagesMethod = JavaMethod.create(ClassLoader.class, Package[].class, "getPackages");
         getPackageMethod = JavaMethod.create(ClassLoader.class, Package.class, "getPackage", String.class);
