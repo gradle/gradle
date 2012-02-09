@@ -36,6 +36,7 @@ class GeneratorTask extends DefaultTask {
     int sourceFiles = 1
     Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
+    @InputFiles FileCollection testDependencies
 
     final List<TestProject> projects = []
     final SimpleTemplateEngine engine = new SimpleTemplateEngine()
@@ -90,9 +91,8 @@ class GeneratorTask extends DefaultTask {
                 files: subprojectNames.empty ? [] : ['settings.gradle'],
                 includeSource: subprojectNames.empty
 
-        Configuration configuration = project.configurations.junit
         project.copy {
-            from configuration
+            from testDependencies
             into new File(getDestDir(), 'lib/test')
         }
     }

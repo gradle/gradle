@@ -8,6 +8,7 @@ buildscript {
 }
 
 apply from: 'src/generator.groovy'
+apply plugin: 'base'
 
 repositories {
     mavenCentral()
@@ -20,8 +21,6 @@ configurations {
 dependencies {
     junit 'junit:junit:4.8.2'
 }
-
-apply plugin: 'base'
 
 task small(type: GeneratorTask, description: 'Generates a small project') {
 }
@@ -50,5 +49,6 @@ task multiGroovy(type: GeneratorTask, description: 'Generates a multi-project gr
 def generators = tasks.withType(GeneratorTask)
 generators.all {
     group = 'Project setup'
+    testDependencies = configurations.junit
 }
 task all(dependsOn: generators)
