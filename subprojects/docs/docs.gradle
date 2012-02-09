@@ -67,13 +67,11 @@ tasks.withType(Docbook2Xhtml) {
     stylesheetsDir = userguideStyleSheets.destinationDir
 }
 tasks.withType(UserGuideTransformTask) {
-    classpath = configurations.userGuideTask
     dependsOn samples, dslDocbook
     snippetsDir = samples.snippetsDir
     linksFile = dslDocbook.linksFile
 }
 tasks.withType(AssembleDslDocTask) {
-    classpath = configurations.userGuideTask
     classDocbookDir = dslSrcDir
 }
 
