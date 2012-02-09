@@ -38,7 +38,10 @@ public class ModuleDescriptorStore {
 
     public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
         File moduleDescriptorFile = moduleDescriptorFileStore.getModuleDescriptorFile(repository, moduleRevisionId);
-        return parseModuleDescriptorFile(moduleDescriptorFile);
+        if (moduleDescriptorFile.exists()) {
+            return parseModuleDescriptorFile(moduleDescriptorFile);
+        }
+        return null;
     }
 
     private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile)  {

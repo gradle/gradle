@@ -63,6 +63,8 @@ task deleteCacheFiles(type: Delete) {
         
         when:
         server.resetExpectations()
+        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
+        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
 
         then:
         succeeds('listJars')
