@@ -96,7 +96,7 @@ class TestNGIntegrationTest {
         doJavaJdk15Failing("6.3.1")
     }
 
-    private doJavaJdk15Failing(String testNGVersion) {
+    private void doJavaJdk15Failing(String testNGVersion) {
         def execution = executer.withTasks("test").withArguments("-PtestNGVersion=$testNGVersion").runWithFailure().assertThatCause(startsWith('There were failing tests'))
 
         def result = new TestNGExecutionResult(dist.testDir)
