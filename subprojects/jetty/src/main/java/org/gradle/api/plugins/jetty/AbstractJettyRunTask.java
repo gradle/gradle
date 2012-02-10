@@ -413,6 +413,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.overrideWebXml = overrideWebXml;
     }
 
+    /**
+     * Returns the frequency of filesystem scans for detecting changed files
+     */
     public int getScanIntervalSeconds() {
         return scanIntervalSeconds;
     }
@@ -440,6 +443,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.webAppConfig = webAppConfig;
     }
 
+    /**
+     * Returns strategy for reloading the webapp ('automatic' or 'manual')
+     */
     public String getReload() {
         return reload;
     }

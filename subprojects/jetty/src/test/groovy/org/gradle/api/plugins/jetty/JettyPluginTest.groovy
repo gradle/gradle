@@ -55,16 +55,16 @@ public class JettyPluginTest {
         assertThat(task.stopPort, equalTo(project.stopPort))
     }
 
-    @Test
-    public void addsMappingToNewJettyTasks() {
-        new JettyPlugin().apply(project)
+        @Test
+        public void addsMappingToNewJettyTasks() {
+            new JettyPlugin().apply(project)
 
-        def task = project.tasks.add('customRun', JettyRun)
-        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.httpPort, equalTo(project.httpPort))
+            def task = project.tasks.add('customRun', JettyRun)
+            assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
+            assertThat(task.httpPort, equalTo(project.httpPort))
 
-        task = project.tasks.add('customWar', JettyRunWar)
-        assertThat(task, dependsOn(WarPlugin.WAR_TASK_NAME))
-        assertThat(task.httpPort, equalTo(project.httpPort))
-    }
+            task = project.tasks.add('customWar', JettyRunWar)
+            assertThat(task, dependsOn(WarPlugin.WAR_TASK_NAME))
+            assertThat(task.httpPort, equalTo(project.httpPort))
+        }
 }
