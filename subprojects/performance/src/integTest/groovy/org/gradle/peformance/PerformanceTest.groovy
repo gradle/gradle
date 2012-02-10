@@ -8,22 +8,17 @@ import org.gradle.integtests.fixtures.*
  */
 class PerformanceTest extends Specification {
 
+    def current = new GradleDistribution()
+    def previous = new ReleasedVersions(current).last
+
     def "small project"() {
-        given:
-        def GradleDistribution current = new GradleDistribution()
-        def previous = new ReleasedVersions(current).last
-
-        def projectDir = findProjectDir("small")
-
         when:
-        def previousExecuter = executer(previous, projectDir)
+        def previousExecuter = executer(previous, "small")
         int previousResult = executionTime {
             previousExecuter.run()
         }
 
-        def projectDir2 = findProjectDir("small")
-
-        def currentExecuter = executer(current, projectDir2)
+        def currentExecuter = executer(current, "small")
         int currentResult = executionTime {
             currentExecuter.run()
         }
@@ -32,7 +27,8 @@ class PerformanceTest extends Specification {
         previousResult <= currentResult
     }
 
-    private GradleExecuter executer(BasicGradleDistribution dist, File projectDir) {
+    private GradleExecuter executer(BasicGradleDistribution dist, String testProjectName) {
+        def projectDir = findProjectDir(testProjectName)
         def executer
         if (dist instanceof GradleDistribution) {
             executer = new GradleDistributionExecuter(GradleDistributionExecuter.Executer.forking, dist)
@@ -57,9 +53,9 @@ class PerformanceTest extends Specification {
                 return dir
             }
         }
-        def message = "Looks like the sample '$name' was not generated.\nI've tried to find it at:\n"
+        def message = "Looks like the test project '$name' was not generated.\nI've tried to find it at:\n"
         dirs.each { message += "  $it\n" }
-        message +="Please run 'gradlew performance:$name' to generate the sample."
+        message +="Please run 'gradlew performance:$name' to generate the test project."
         assert false: message
     }
 }
