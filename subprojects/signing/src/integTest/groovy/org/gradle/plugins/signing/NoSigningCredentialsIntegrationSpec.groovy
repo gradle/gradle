@@ -16,7 +16,11 @@
 package org.gradle.plugins.signing
 
 class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
-    
+
+    def setup() {
+        executer.withArguments("-info")
+    }
+
     def "trying to perform a signing operation without a signatory produces reasonable error"() {
         when:
         buildFile << """
