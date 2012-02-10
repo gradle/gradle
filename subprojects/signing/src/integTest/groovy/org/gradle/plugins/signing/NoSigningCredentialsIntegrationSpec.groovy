@@ -37,7 +37,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         buildFile << """
             signing {
                 sign configurations.archives
-                required = false
+                required = { false }
             }
         """ << uploadArchives() << signDeploymentPom()
 

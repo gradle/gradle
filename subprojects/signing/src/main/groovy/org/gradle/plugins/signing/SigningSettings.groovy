@@ -29,6 +29,7 @@ import org.gradle.plugins.signing.type.SignatureTypeProvider
 import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider
 
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
+import java.util.concurrent.Callable
 
 /**
  * The global signing configuration for a project.
@@ -51,13 +52,34 @@ class SigningSettings {
      * <p>Changing this will not affect any signing already configured.</p>
      */
     Configuration configuration
-    
+
+    private required = true
+
+    /**
+     * Whether or not this task should fail if no signatory or signature type are configured at generation time.
+     *
+     * If {@code required} is a {@link Callable}, it will be stored and “called” on demand (i.e. when {@link #isRequired()}
+     * is called) and the return value will be interpreting according to the Groovy Truth. For any other type, the value
+     * will be stored and evaluated on demand according to the Groovy Truth.
+     */
+    void setRequired(Object required) {
+        this.required = required
+    }
+
     /**
      * Whether or not this task should fail if no signatory or signature type are configured at generation time.
      * 
      * <p>Defaults to {@code true}.</p>
+     *
+     * @see #setRequired(Object)
      */
-    boolean required = true
+    boolean isRequired() {
+        if (required instanceof Callable) {
+            required.call()
+        } else {
+            required
+        }
+    }
     
     /**
      * The provider of signature types.
@@ -142,22 +164,6 @@ class SigningSettings {
     }
     
     /**
-     * Whether or not signing tasks should fail if no signatory or signature type are configured at generation time.
-     * 
-     * <p>Defaults to {@code true}.</p>
-     */
-    boolean getRequired() {
-        required
-    }
-    
-    /**
-     * Sets whether or not signing tasks should fail if no signatory or signature type are configured at generation time.
-     */
-    void setRequired(boolean required) {
-        this.required = required
-    }
-    
-    /**
      * Sets whether or not signing tasks should fail if no signatory or signature type are configured at generation time.
      */
     void required(boolean required) {
@@ -175,7 +181,7 @@ class SigningSettings {
         
         spec.conventionMapping.map('signatory') { getSignatory() }
         spec.conventionMapping.map('signatureType') { getSignatureType() }
-        spec.conventionMapping.required = { getRequired() }
+        spec.conventionMapping.required = { isRequired() }
     }
     
     /**
