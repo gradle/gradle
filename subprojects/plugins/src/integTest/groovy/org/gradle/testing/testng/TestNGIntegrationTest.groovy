@@ -148,7 +148,7 @@ test {
     }
     
     @Test
-    void useTestGroups() {
+    void supportsTestGroups() {
         executer.withTasks("test").run()
         def result = new TestNGExecutionResult(dist.testDir)
         result.assertTestClassesExecuted('org.gradle.groups.SomeTest')
