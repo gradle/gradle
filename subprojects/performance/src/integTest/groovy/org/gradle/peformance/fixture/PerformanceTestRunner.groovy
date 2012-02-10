@@ -69,6 +69,9 @@ public class PerformanceTestRunner {
         } else {
             executer = dist.executer()
         }
+        if (gradleOpts) {
+            executer.withGradleOpts(gradleOpts as String[])
+        }
         return executer.withArguments('-u').inDirectory(projectDir).withTasks('clean', 'build')
     }
 }

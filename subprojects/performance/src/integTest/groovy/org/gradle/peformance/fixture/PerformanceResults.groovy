@@ -33,8 +33,8 @@ public class PerformanceResults {
 
     void assertEveryBuildSucceeds() {
         assert previous.size() == current.size()
-        def previousExceptions = previous.findAll { it.exception }
-        def currentExceptions  = previous.findAll { it.exception }
+        def previousExceptions = previous.findAll { it.exception }.collect() { it.exception }
+        def currentExceptions  = previous.findAll { it.exception }.collect() { it.exception }
         assert previousExceptions.isEmpty() & currentExceptions.isEmpty()
     }
 
