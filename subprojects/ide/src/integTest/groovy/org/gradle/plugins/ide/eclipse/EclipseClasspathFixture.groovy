@@ -114,7 +114,7 @@ class EclipseClasspathFixture {
         void assertHasJavadoc(File file) {
             assert entry.attributes
             assert entry.attributes[0].attribute[0].@name == 'javadoc_location'
-            assert entry.attributes[0].attribute[0].@value == jarUrl(file)
+            assert entry.attributes[0].attribute[0].@value == jarUrl(file).replace(File.separator, '/')
         }
 
         void assertHasJavadoc(String file) {
@@ -124,7 +124,7 @@ class EclipseClasspathFixture {
         }
 
         String jarUrl(String filePath) {
-            "jar:file:${OperatingSystem.current().windows ? '/' : ''}${filePath.replace(File.separator, '/')}!/"
+            "jar:file:${OperatingSystem.current().windows ? '/' : ''}${filePath}!/"
         }
         
         String jarUrl(File filePath){
