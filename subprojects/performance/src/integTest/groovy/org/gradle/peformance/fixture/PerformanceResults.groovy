@@ -16,7 +16,11 @@
 
 package org.gradle.peformance.fixture
 
+import org.gradle.api.logging.Logging
+
 public class PerformanceResults {
+
+    private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
     List<MeasuredOperation> previous = new LinkedList<MeasuredOperation>()
     List<MeasuredOperation> current = new LinkedList<MeasuredOperation>()
@@ -32,6 +36,7 @@ public class PerformanceResults {
     }
 
     void assertEveryBuildSucceeds() {
+        LOGGER.info("Asserting all builds have succeeded...");
         assert previous.size() == current.size()
         def previousExceptions = previous.findAll { it.exception }.collect() { it.exception }
         def currentExceptions  = previous.findAll { it.exception }.collect() { it.exception }
@@ -39,9 +44,14 @@ public class PerformanceResults {
     }
 
     void assertCurrentReleaseIsNotSlower() {
-        assert previous.size() == current.size()
+        assertEveryBuildSucceeds()
         long averagePrevious = previous.collect { it.executionTime }.sum() / previous.size()
         long averageCurrent  = current.collect { it.executionTime }.sum() / current.size()
+
+        LOGGER.info("Asserting on build times. The stats are:\n"
+            + "  previous: $previous\n"
+            + "  current : $current")
+
         assert averageCurrent <= averagePrevious : """Looks like the current gradle is slower than latest release.
 previous release build times: ${previous}
 current gradle build times:   ${current}

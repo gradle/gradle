@@ -16,22 +16,32 @@
 
 package org.gradle.peformance.fixture
 
+import org.gradle.util.Clock
+
 /**
  * by Szczepan Faber, created at: 2/10/12
  */
 public class MeasuredOperation {
     long executionTime
     Exception exception
+    String prettyTime
+    
+    String toString() {
+        prettyTime
+    }
 
     static MeasuredOperation measure(Closure operation) {
-        long before = System.currentTimeMillis()
         def out = new MeasuredOperation()
+        def clock = new Clock()
+        clock.reset()
         try {
             operation()
         } catch (Exception e) {
             out.exception = e
         }
-        out.executionTime = System.currentTimeMillis() - before
+        //not very atomic... :)
+        out.prettyTime = clock.time
+        out.executionTime = clock.timeInMs
         return out
     }
 }

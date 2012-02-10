@@ -42,7 +42,7 @@ generators.all {
 }
 task all(dependsOn: generators)
 
-task prepareSamples(dependsOn: small)
+task prepareSamples(dependsOn: small, multi)
 
 tasks.integTest.dependsOn prepareSamples
 
