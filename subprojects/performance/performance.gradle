@@ -42,6 +42,10 @@ generators.all {
 }
 task all(dependsOn: generators)
 
+task prepareSamples(dependsOn: small)
+
+tasks.integTest.dependsOn prepareSamples
+
 task performanceTest(dependsOn: tasks.integTest)
 
 gradle.taskGraph.whenReady {
