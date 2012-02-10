@@ -145,6 +145,9 @@ class SigningPluginConvention {
      * }
      * </pre>
      * <p>You can optionally provide a configuration closure to fine tune the {@link SignOperation sign operation} for the POM.</p>
+     * <p>
+     * If {@project.signing.required} is set to false and the signature cannot be generated (e.g. no configured signatory),
+     * this method will silently do nothing. That is, a signature for the POM file will not be uploaded.
      * 
      * @param mavenDeployment The deployment to sign the POM of
      * @param closure the configuration of the underlying {@link SignOperation sign operation} for the pom (optional)
@@ -157,6 +160,12 @@ class SigningPluginConvention {
         }
         
         def pomSignature = signOperation.singleSignature
+        if (!pomSignature.file.exists()) {
+            // This means that the signature was not required and we couldn't generate the signature
+            // (most likely project.required == false and there is no signatory)
+            // So just noop
+            return
+        }
         
         // Have to alter the “type” of the artifact to match what is published
         // See http://issues.gradle.org/browse/GRADLE-1589

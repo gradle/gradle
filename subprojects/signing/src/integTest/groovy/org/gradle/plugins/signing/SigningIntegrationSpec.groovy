@@ -153,4 +153,22 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         assert !ivyRepoFile("${jarFileName - '.jar'}.asc").exists()
         assert !fileRepoFile("${jarFileName - '.jar'}.asc").exists()
     }
+
+    String signDeploymentPom() {
+        return """
+            uploadArchives {
+                repositories.mavenDeployer {
+                    beforeDeployment { signPom(it) }
+                }
+            }
+        """
+    }
+    
+    File pom(String name = "sign-1.0") {
+        m2RepoFile("${name}.pom")
+    }
+
+    File pomSignature(String name = "sign-1.0") {
+        m2RepoFile("${name}.pom.asc")
+    }
 }

@@ -175,10 +175,7 @@ class SigningSettings {
         
         spec.conventionMapping.map('signatory') { getSignatory() }
         spec.conventionMapping.map('signatureType') { getSignatureType() }
-
-        if (spec instanceof Sign) {
-            spec.conventionMapping.required = { getRequired() }
-        }
+        spec.conventionMapping.required = { getRequired() }
     }
     
     /**

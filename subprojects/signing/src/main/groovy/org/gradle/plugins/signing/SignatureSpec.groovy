@@ -50,5 +50,23 @@ interface SignatureSpec {
      * @param type the signature type to use
      */
     void setSignatureType(SignatureType type)
-    
+
+    /**
+     * Whether or not it is required that this signature be generated.
+     *
+     * A signature may not be able to be generated if a signatory and/or a signature type have not been specified.
+     * If it is required and cannot be generated, an exception will be thrown. Otherwise, it will not be generated.
+     *
+     * @return Whether or not it is required that this signature be generated.
+     */
+    boolean isRequired()
+
+    /**
+     * Whether or not it is required that this signature be generated.
+     *
+     * @see #isRequired
+     * @param Whether or not it is required that this signature be generated.
+     *
+     */
+    void setRequired(boolean required)
 }

@@ -39,7 +39,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
                 sign configurations.archives
                 required = false
             }
-        """ << uploadArchives()
+        """ << uploadArchives() << signDeploymentPom()
 
         then:
         succeeds ":uploadArchives"
@@ -50,6 +50,8 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         and:
         jarUploaded()
         signatureNotUploaded()
+        pom().exists()
+        !pomSignature().exists()
 
         when:
         buildFile << keyInfo.addAsPropertiesScript()
@@ -63,6 +65,8 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         and:
         jarUploaded()
         signatureUploaded()
+        pom().exists()
+        pomSignature().exists()
     }
     
 }

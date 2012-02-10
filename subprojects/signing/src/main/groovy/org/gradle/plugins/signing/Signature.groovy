@@ -255,6 +255,7 @@ class Signature extends AbstractPublishArtifact {
      * @return The signature file. May be {@code null} if unknown at this time.
      */
     File getFile() {
+
         if (file == null) {
             def toSign = getToSign()
             def signatureType = getSignatureType()
@@ -298,17 +299,29 @@ class Signature extends AbstractPublishArtifact {
     void generate() {
         def toSign = getToSign()
         if (toSign == null) {
-            throw new InvalidUserDataException("Unable to generate signature as the file to sign has not been specified")
+            if (signatureSpec.required) {
+                throw new InvalidUserDataException("Unable to generate signature as the file to sign has not been specified")
+            } else {
+                return
+            }
         }
         
         def signatory = getSignatory()
         if (signatory == null) {
-            throw new InvalidUserDataException("Unable to generate signature for '$toSign' as no signatory is available to sign")
+            if (signatureSpec.required) {
+                throw new InvalidUserDataException("Unable to generate signature for '$toSign' as no signatory is available to sign")
+            } else {
+                return
+            }
         }
         
         def signatureType = getSignatureType()
         if (signatureType == null) {
-            throw new InvalidUserDataException("Unable to generate signature for '$toSign' as no signature type has been configured")
+            if (signatureSpec.required) {
+                throw new InvalidUserDataException("Unable to generate signature for '$toSign' as no signature type has been configured")
+            } else {
+                return
+            }
         }
         
         signatureType.sign(signatory, toSign)
