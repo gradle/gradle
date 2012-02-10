@@ -24,11 +24,15 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     
     @Rule public final TestResources resources = new TestResources("keys")
 
+    String jarFileName = "sign-1.0.jar"
+
     def setup() {
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'signing'
             archivesBaseName = 'sign'
+            group = 'sign'
+            version = '1.0'
         """
     }
 
@@ -89,4 +93,64 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         }
     }
     
+    String uploadArchives() {
+        return """
+            apply plugin: "maven"
+            uploadArchives {
+                repositories {
+                    mavenDeployer {
+                        repository(url: "file://\$buildDir/m2Repo/")
+                    }
+                    flatDir {
+                        name "fileRepo"
+                        dirs "build/fileRepo"
+                    }
+                    ivy {
+                        url "file://\$buildDir/ivyRepo/"
+                        layout "pattern"
+                        artifactPattern "\$buildDir/ivyRepo/[artifact]-[revision](.[ext])"
+                        ivyPattern "\$buildDir/ivyRepo/[artifact]-[revision](.[ext])"
+                    }
+                }
+            }
+        """
+    }
+
+    File m2RepoFile(String name) {
+        file("build", "m2repo", "sign", "sign", "1.0", name)
+    }
+
+    File ivyRepoFile(String name) {
+        file("build", "ivyRepo", name)
+    }
+
+    File fileRepoFile(String name) {
+        file("build", "fileRepo", name)
+    }
+
+
+    void jarUploaded(String jarFileName = jarFileName) {
+        assert m2RepoFile(jarFileName).exists()
+        assert m2RepoFile(jarFileName).exists()
+        assert ivyRepoFile(jarFileName).exists()
+        assert fileRepoFile(jarFileName).exists()
+    }
+
+    void jarNotUploaded() {
+        assert !m2RepoFile(jarFileName).exists()
+        assert !ivyRepoFile(jarFileName).exists()
+        assert !fileRepoFile(jarFileName).exists()
+    }
+
+    void signatureUploaded(String jarFileName = jarFileName) {
+        assert m2RepoFile("${jarFileName}.asc").exists()
+        assert ivyRepoFile("${jarFileName - '.jar'}.asc").exists()
+        assert fileRepoFile("${jarFileName - '.jar'}.asc").exists()
+    }
+
+    void signatureNotUploaded(String jarFileName = jarFileName) {
+        assert !m2RepoFile("${jarFileName}.asc").exists()
+        assert !ivyRepoFile("${jarFileName - '.jar'}.asc").exists()
+        assert !fileRepoFile("${jarFileName - '.jar'}.asc").exists()
+    }
 }

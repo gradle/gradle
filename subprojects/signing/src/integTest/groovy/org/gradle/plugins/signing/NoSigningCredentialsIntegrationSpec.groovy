@@ -23,29 +23,46 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
             signing {
                 sign jar
             }
-        """
+        """ << uploadArchives()
         
         then:
-        fails ":signJar"
+        fails ":uploadArchives"
         
         and:
         failureHasCause "Cannot perform signing task ':signJar' because it has no configured signatory"
     }
 
-    def "trying to perform a signing operation without a signatory when not required does not error"() {
+    def "trying to perform a signing operation without a signatory when not required does not error, and other artifacts still uploaded"() {
         when:
         buildFile << """
             signing {
-                sign jar
+                sign configurations.archives
                 required = false
             }
-        """
+        """ << uploadArchives()
 
         then:
-        succeeds ":signJar"
+        succeeds ":uploadArchives"
 
         and:
-        ":signJar" in skippedTasks
+        ":signArchives" in skippedTasks
+
+        and:
+        jarUploaded()
+        signatureNotUploaded()
+
+        when:
+        buildFile << keyInfo.addAsPropertiesScript()
+
+        then:
+        succeeds ":uploadArchives"
+
+        and:
+        ":signArchives" in nonSkippedTasks
+
+        and:
+        jarUploaded()
+        signatureUploaded()
     }
     
 }
