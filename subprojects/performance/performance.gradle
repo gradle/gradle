@@ -42,11 +42,13 @@ generators.all {
 }
 task all(dependsOn: generators)
 
-task prepareSamples(dependsOn: small, multi)
+task prepareSamples(dependsOn: [small, multi])
 
 tasks.integTest.dependsOn prepareSamples
 
-task performanceTest(dependsOn: tasks.integTest)
+task performanceTest(dependsOn: tasks.integTest) {
+    description = "Runs the performance test (note that performanceTest is not a part of 'check' or 'test')"
+}
 
 gradle.taskGraph.whenReady {
     if (!it.hasTask(':performance:performanceTest')) {
