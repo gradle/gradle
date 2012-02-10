@@ -146,4 +146,12 @@ test {
 """
         executer.withTasks("test").run()
     }
+    
+    @Test
+    void useTestGroups() {
+        executer.withTasks("test").run()
+        def result = new TestNGExecutionResult(dist.testDir)
+        result.assertTestClassesExecuted('org.gradle.groups.SomeTest')
+        result.testClass('org.gradle.groups.SomeTest').assertTestsExecuted("databaseTest")
+    }
 }
