@@ -119,7 +119,7 @@ class FileReferenceFactory {
 
         public String getJarURL(){
             //windows needs an additional backslash in jar urls
-            return "jar:file:${OperatingSystem.current().windows ? '/' : ''}${file.absolutePath}!/"
+            return "jar:file:${OperatingSystem.current().windows ? '/' : ''}${file.absolutePath.replace(File.separator, '/')}!/"
         }
 
         @Override
