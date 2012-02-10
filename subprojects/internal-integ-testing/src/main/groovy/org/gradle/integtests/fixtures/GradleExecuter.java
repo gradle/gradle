@@ -137,4 +137,13 @@ public interface GradleExecuter {
      * @return the handle, never null.
      */
     GradleHandle start();
+
+    /**
+     * Only makes sense for the forking executor or foreground daemon.
+     *
+     * @param gradleOpts the jvm opts
+     *
+     * @return this executer
+     */
+    GradleExecuter withGradleOpts(String ... gradleOpts);
 }

@@ -11,20 +11,22 @@ class PerformanceTest extends Specification {
     def current = new GradleDistribution()
     def previous = new ReleasedVersions(current).last
 
-    def "small project"() {
+    def "current release is not worse than the previous one"() {
         when:
-        def previousExecuter = executer(previous, "small")
-        int previousResult = executionTime {
+        //actually, fails only at 16m
+        def previousExecuter = executer(previous, "small").withGradleOpts("-Xmx20m")
+        def previousResult = measure {
             previousExecuter.run()
         }
 
-        def currentExecuter = executer(current, "small")
-        int currentResult = executionTime {
+        def currentExecuter = executer(current, "small").withGradleOpts("-Xmx20m")
+        def currentResult = measure {
             currentExecuter.run()
         }
 
         then:
-        previousResult <= currentResult
+        previousResult.exception == null & currentResult.exception == null
+        previousResult.executionTime <= currentResult.executionTime
     }
 
     private GradleExecuter executer(BasicGradleDistribution dist, String testProjectName) {
@@ -37,11 +39,22 @@ class PerformanceTest extends Specification {
         }
         return executer.withArguments('-u').inDirectory(projectDir).withTasks('clean', 'build')
     }
+    
+    class MeasuredResult {
+        long executionTime
+        Exception exception
+    }
 
-    long executionTime(Closure operation) {
+    MeasuredResult measure(Closure operation) {
         long before = System.currentTimeMillis()
-        operation()
-        return System.currentTimeMillis() - before
+        def out = new MeasuredResult()
+        try {
+            operation()
+        } catch (Exception e) {
+            out.exception = e
+        }
+        out.executionTime = System.currentTimeMillis() - before
+        return out
     }
 
     File findProjectDir(String name) {
