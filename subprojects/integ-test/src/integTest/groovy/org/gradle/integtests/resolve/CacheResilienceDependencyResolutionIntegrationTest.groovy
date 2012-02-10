@@ -37,7 +37,7 @@ public class CacheResilienceDependencyResolutionIntegrationTest extends Abstract
         def module = repo.module('group', 'projectA', '1.2')
         module.publish()
 
-        def cacheDir = distribution.userHomeDir.file('caches')
+        def cacheDir = distribution.userHomeDir.file('caches').toURI()
 
         and:
         buildFile << """
