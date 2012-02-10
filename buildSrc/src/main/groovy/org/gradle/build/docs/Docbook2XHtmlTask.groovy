@@ -68,6 +68,7 @@ class Docbook2Xhtml extends SourceTask {
                 args fvd.file.absolutePath
                 args result.absolutePath
                 args destDir ?: ""
+                jvmArgs '-Xmx256m'
                 classpath ClasspathUtil.getClasspathForClass(XslTransformer)
                 classpath this.classpath
                 classpath new File(stylesheetsDir, 'extensions/xalan27.jar')
