@@ -1,60 +1,14 @@
-apply from: 'src/generator.groovy'
-apply plugin: 'base'
-apply plugin: 'idea'
-apply plugin: 'groovy'
+println """-------
+Note:
+All test project generator tasks have been moved to:
+  subprojects/performance
 
-idea.project.jdkName = '1.6'
+If you need to generate some test project please use:
+  gradlew performance:<template>
+for example:
+  gradlew performance:small
 
-repositories {
-    mavenCentral()
-    mavenRepo(url: 'http://repo.gradle.org/gradle/libs-releases-local')
-}
-
-configurations {
-    junit
-}
-
-dependencies {
-    junit 'junit:junit:4.10'
-    groovy localGroovy()
-    testCompile 'junit:junit:4.10'
-
-    //spock
-    testCompile 'org.spockframework:spock-core:0.5-groovy-1.8@jar',
-            'org.objenesis:objenesis:1.2', 'cglib:cglib-nodep:2.2'
-
-    //tooling api
-    testCompile 'org.gradle:gradle-tooling-api:1.0-milestone-7'
-    testRuntime 'org.slf4j:slf4j-simple:1.6.4'
-}
-
-task small(type: GeneratorTask, description: 'Generates a small project') {
-}
-
-task largeSrc(type: GeneratorTask, description: 'Generates a single project with lots of source files') {
-    sourceFiles = 50000
-    linesOfCodePerSourceFile = 20
-}
-
-task multi(type: GeneratorTask, description: 'Generates a multi-project build') {
-    projects = 25
-    sourceFiles = 100
-}
-
-task mixedSize(type: GeneratorTask) {
-    projects = 400
-    sourceFiles = 100
-    projects[1].sourceFiles = 20000
-}
-
-task multiGroovy(type: GeneratorTask, description: 'Generates a multi-project groovy build') {
-    projects = 25
-    groovyProject = true
-}
-
-def generators = tasks.withType(GeneratorTask)
-generators.all {
-    group = 'Project setup'
-    testDependencies = configurations.junit
-}
-task all(dependsOn: generators)
+To see all generator tasks, please run:
+  gradlew performance:tasks
+-------
+"""

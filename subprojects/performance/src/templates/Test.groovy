@@ -1,6 +1,7 @@
 package ${packageName};
 
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals
 
 public class ${testClassName} {
     private final ${productionClassName} production = new ${productionClassName}("value");

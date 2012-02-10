@@ -29,7 +29,7 @@ class TestProject {
     }
 }
 
-class GeneratorTask extends DefaultTask {
+class ProjectGeneratorTask extends DefaultTask {
     @OutputDirectory
     File destDir
     boolean groovyProject
@@ -42,7 +42,7 @@ class GeneratorTask extends DefaultTask {
     final SimpleTemplateEngine engine = new SimpleTemplateEngine()
     final Map<File, Template> templates = [:]
 
-    def GeneratorTask() {
+    def ProjectGeneratorTask() {
         outputs.upToDateWhen { false }
         setProjects(1)
         destDir = project.file("${project.buildDir}/${name}")
@@ -104,7 +104,7 @@ class GeneratorTask extends DefaultTask {
 
     def generateProject(Map args, TestProject testProject) {
         File projectDir = args.projectDir
-        println "Generating $testProject.name"
+        logger.lifecycle"Generating test project '$testProject.name' into $projectDir"
 
         List files = args.files + [
                 'build.gradle',
@@ -164,4 +164,4 @@ class GeneratorTask extends DefaultTask {
 }
 
 //workaround for referring to task types defined in plugin scripts
-project.setProperty('GeneratorTask', GeneratorTask)
+project.setProperty('ProjectGeneratorTask', ProjectGeneratorTask)
