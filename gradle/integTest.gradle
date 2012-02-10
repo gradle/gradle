@@ -59,7 +59,7 @@ integTestTasks.all {
     systemProperties['org.gradle.integtest.versions'] = 'latest'
 
     doFirst {
-        testReportDir = file("${project.reportDir}/$name")
+        testReportDir = file("${project.reporting,baseDir}/$name")
         systemProperties['integTest.gradleHomeDir'] = integTestImageDir.absolutePath
         systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
         systemProperties['integTest.samplesdir'] = project(":docs").samplesDir.absolutePath
