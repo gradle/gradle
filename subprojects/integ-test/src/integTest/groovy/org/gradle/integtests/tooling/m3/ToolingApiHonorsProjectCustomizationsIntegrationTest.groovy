@@ -125,6 +125,6 @@ eclipse { classpath { downloadJavadoc = true } }
         eclipseProject.classpath.size() == 2
         eclipseProject.classpath.collect { it.file.name } as Set == ['commons-lang-2.5.jar', 'commons-io-1.4.jar' ] as Set
         eclipseProject.classpath.collect { it.source?.name } as Set == ['commons-lang-2.5-sources.jar', 'commons-io-1.4-sources.jar'] as Set
-        eclipseProject.classpath.collect { it.javadoc?.name } as Set == ['commons-lang-2.5-javadoc.jar', 'commons-io-1.4-javadoc.jar'] as Set
+        eclipseProject.classpath.collect { println it; it.javadoc?.name } as Set == ['commons-lang-2.5-javadoc.jar', 'commons-io-1.4-javadoc.jar'] as Set
     }
 }

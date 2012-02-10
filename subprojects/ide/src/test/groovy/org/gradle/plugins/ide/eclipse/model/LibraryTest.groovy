@@ -28,7 +28,7 @@ class LibraryTest extends Specification {
                     <classpathentry exported="true" kind="lib" path="/ant.jar" sourcepath="/ant-src.jar">
                         <attributes>
                             <attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="mynative"/>
-                            <attribute name="javadoc_location" value="jar:file:/ant-javadoc.jar!/path"/>
+                            <attribute name="javadoc_location" value="jar:file:/ant-javadoc.jar!/"/>
                         </attributes>
                         <accessrules>
                             <accessrule kind="nonaccessible" pattern="secret**"/>
@@ -71,7 +71,7 @@ class LibraryTest extends Specification {
         library.nativeLibraryLocation = 'mynative'
         library.accessRules += [new AccessRule('nonaccessible', 'secret**')]
         library.sourcePath = fileReferenceFactory.fromPath("/ant-src.jar")
-        library.javadocPath = fileReferenceFactory.fromPath("jar:file:/ant-javadoc.jar!/path")
+        library.javadocPath = fileReferenceFactory.fromPath("/ant-javadoc.jar")
         return library
     }
 }

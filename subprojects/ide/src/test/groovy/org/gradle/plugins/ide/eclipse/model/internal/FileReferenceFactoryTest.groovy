@@ -20,6 +20,7 @@ import org.junit.Rule
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.gradle.util.Matchers
+import org.gradle.internal.nativeplatform.OperatingSystem
 
 class FileReferenceFactoryTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -73,6 +74,22 @@ class FileReferenceFactoryTest extends Specification {
         !reference.relativeToPathVariable
     }
 
+    def "creates a reference from a jar url"() {
+        TestFile file = tmpDir.file("file.txt")
+
+        expect:
+        def reference = factory.fromJarURL(jarUrL(file))
+        reference.file == file
+        reference.path == relpath(file)
+        reference.jarURL == jarUrL(file);
+        !reference.relativeToPathVariable
+    }
+
+    def "creates null reference for a null jar url"() {
+        expect:
+        factory.fromJarURL(null) == null
+    }
+
     def "creates null reference for a null file path"() {
         expect:
         factory.fromPath(null) == null
@@ -106,5 +123,9 @@ class FileReferenceFactoryTest extends Specification {
 
     private String relpath(File file) {
         return file.absolutePath.replace(File.separator, '/')
+    }
+
+    private String jarUrL(File file) {
+        return "jar:file:${OperatingSystem.current().windows ? '/' : ''}${file.absolutePath}!/"
     }
 }

@@ -111,7 +111,7 @@ dependencies {
     }
 
     @Test
-    void substituesPathVariablesIntoLibraryPaths() {
+    void substituesPathVariablesIntoLibraryPathsExceptForJavadoc() {
         //given
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
         module.artifact(classifier: 'sources')
@@ -144,8 +144,10 @@ eclipse {
         assert libraries.size() == 2
         libraries[0].assertHasJar('REPO_DIR/coolGroup/niceArtifact/1.0/niceArtifact-1.0.jar')
         libraries[0].assertHasSource('REPO_DIR/coolGroup/niceArtifact/1.0/niceArtifact-1.0-sources.jar')
-        libraries[0].assertHasJavadoc('REPO_DIR/coolGroup/niceArtifact/1.0/niceArtifact-1.0-javadoc.jar')
         libraries[1].assertHasJar('LIB_DIR/dep.jar')
+
+        //javadoc is not substituted
+        libraries[0].assertHasJavadoc(file("repo/coolGroup/niceArtifact/1.0/niceArtifact-1.0-javadoc.jar"))
     }
 
     @Test
@@ -200,7 +202,6 @@ eclipse {
         assert containers[2] == 'andYetAnotherContainer'
 
         assert classpath.output == 'build-eclipse'
-
         assert classpath.classpath.message[0].text() == 'be cool'
     }
 

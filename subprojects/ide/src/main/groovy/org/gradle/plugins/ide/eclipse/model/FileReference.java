@@ -32,6 +32,10 @@ public interface FileReference {
     File getFile();
 
     /**
+     * Returns the jar URL of the file
+     */
+    String getJarURL();
+    /**
      * Returns true if this reference is relative to a path variable.
      */
     boolean isRelativeToPathVariable();

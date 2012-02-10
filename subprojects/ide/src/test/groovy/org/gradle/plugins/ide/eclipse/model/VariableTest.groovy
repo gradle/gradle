@@ -28,7 +28,7 @@ class VariableTest extends Specification {
                 <classpathentry exported="true" kind="var" path="/GRADLE_CACHE/ant.jar" sourcepath="/GRADLE_CACHE/ant-src.jar">
                     <attributes>
                         <attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="mynative"/>
-                        <attribute name="javadoc_location" value="jar:file:/GRADLE_CACHE/ant-javadoc.jar!/path"/>
+                        <attribute name="javadoc_location" value="jar:file:/PATH/TO/CACHE/ant-javadoc.jar!/"/>
                     </attributes>
                     <accessrules>
                         <accessrule kind="nonaccessible" pattern="secret**"/>
@@ -71,7 +71,7 @@ class VariableTest extends Specification {
         variable.nativeLibraryLocation = 'mynative'
         variable.accessRules += [new AccessRule('nonaccessible', 'secret**')]
         variable.sourcePath = fileReferenceFactory.fromVariablePath("/GRADLE_CACHE/ant-src.jar")
-        variable.javadocPath = fileReferenceFactory.fromVariablePath("jar:file:/GRADLE_CACHE/ant-javadoc.jar!/path")
+        variable.javadocPath = fileReferenceFactory.fromJarURL("jar:file:/PATH/TO/CACHE/ant-javadoc.jar!/")
         return variable
     }
 }

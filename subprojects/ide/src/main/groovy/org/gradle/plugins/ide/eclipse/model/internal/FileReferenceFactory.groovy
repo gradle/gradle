@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse.model.internal
 
 import org.gradle.plugins.ide.eclipse.model.FileReference
+import org.gradle.internal.nativeplatform.OperatingSystem
 
 class FileReferenceFactory {
     private final Map<String, File> variables = [:]
@@ -66,6 +67,17 @@ class FileReferenceFactory {
     }
 
     /**
+     * Creates a reference to the given path. Returns null for for null path
+     */
+    FileReference fromJarURL(String url) {
+        if (url== null) {
+            return null
+        }
+        //cut the pre and postfix of this url
+        String path = url - "jar:file:${OperatingSystem.current().windows ? '/': ''}" - "!/"
+        new FileReferenceImpl(new File(path), path, false)
+    }
+    /**
      * Creates a reference to the given path containing a variable reference. Returns null for null variable path
      */
     FileReference fromVariablePath(String path) {
@@ -103,6 +115,11 @@ class FileReferenceFactory {
             }
 
             return file.equals(obj.file)
+        }
+
+        public String getJarURL(){
+            //windows needs an additional backslash in jar urls
+            return "jar:file:${OperatingSystem.current().windows ? '/' : ''}${file.absolutePath}!/"
         }
 
         @Override
