@@ -26,7 +26,7 @@ uploadArchives {
 // END SNIPPET sign-pom
             repository(url: uri("${buildDir}/repo"))
 // START SNIPPET sign-pom
-            beforeDeployment { MavenDeployment deployment -> signPom(deployment) }
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
         }
     }
 }

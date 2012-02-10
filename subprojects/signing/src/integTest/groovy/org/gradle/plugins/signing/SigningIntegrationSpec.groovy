@@ -158,7 +158,7 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         return """
             uploadArchives {
                 repositories.mavenDeployer {
-                    beforeDeployment { signPom(it) }
+                    beforeDeployment { signing.signPom(it) }
                 }
             }
         """

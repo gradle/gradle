@@ -46,7 +46,7 @@ class ConventionSmokeSpec extends SigningProjectSpec {
     def "signing configuration"() {
         expect:
         signing != null
-        signing instanceof SigningSettings
+        signing instanceof SigningExtension
         signing.project == project
     }
     
@@ -79,7 +79,7 @@ class ConventionSmokeSpec extends SigningProjectSpec {
     def "can supply a callable as the required value"() {
         given:
         def flag = false
-        signing.required = { flag }
+        signing.required { flag }
         
         expect:
         !signing.required
