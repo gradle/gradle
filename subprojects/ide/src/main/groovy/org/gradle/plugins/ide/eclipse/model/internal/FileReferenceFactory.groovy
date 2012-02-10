@@ -122,6 +122,14 @@ class FileReferenceFactory {
             return "jar:file:${OperatingSystem.current().windows ? '/' : ''}${file.absolutePath.replace(File.separator, '/')}!/"
         }
 
+        public String toString() {
+            return "{" +
+                    "file='" + file + '\'' +
+                    "path='" + path + '\'' +
+                    ", jarUrl='" + getJarURL() + '\'' +
+                    '}';
+        }
+
         @Override
         int hashCode() {
             return file.hashCode()
