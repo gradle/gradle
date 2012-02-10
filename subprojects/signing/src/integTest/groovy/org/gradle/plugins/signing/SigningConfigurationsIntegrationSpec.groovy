@@ -39,8 +39,8 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         executedAndNotSkipped ":signArchives", ":signMeta"
         
         and:
-        file("build", "libs", "sign.jar.asc").text
-        file("build", "libs", "sign-javadoc.jar.asc").text
-        file("build", "libs", "sign-sources.jar.asc").text
+        file("build", "libs", "sign-1.0.jar.asc").text
+        file("build", "libs", "sign-1.0-javadoc.jar.asc").text
+        file("build", "libs", "sign-1.0-sources.jar.asc").text
     }
 }
