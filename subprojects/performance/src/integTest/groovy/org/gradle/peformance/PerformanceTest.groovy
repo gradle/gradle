@@ -49,13 +49,17 @@ class PerformanceTest extends Specification {
     }
 
     File findProjectDir(String name) {
-        def projectDir = new File("subprojects/performance/build/$name").absoluteFile
-        if (!projectDir.isDirectory()) {
-            def message = "Looks like the sample '$name' was not generated.\n" +
-                "I've tried to find it at: $projectDir\n" +
-                "Please run 'gradlew performance:$name' to generate the sample."
-            assert false: message
+        def base = "subprojects/performance/build"
+        def locations = ["$base/$name", "../../$base/$name"]
+        def dirs = locations.collect { new File(it).absoluteFile }
+        for (File dir: dirs) {
+            if (dir.isDirectory()) {
+                return dir
+            }
         }
-        projectDir
+        def message = "Looks like the sample '$name' was not generated.\nI've tried to find it at:\n"
+        dirs.each { message += "  $it\n" }
+        message +="Please run 'gradlew performance:$name' to generate the sample."
+        assert false: message
     }
 }
