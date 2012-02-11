@@ -162,7 +162,7 @@ task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samples
 }
 
 // This is used for the PDF, where we need absolute links to the javadoc etc.
-task pdfUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
+task pdfUserguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
     javadocUrl = project.version.javadocUrl
     groovydocUrl = project.version.groovydocUrl
@@ -201,7 +201,7 @@ task userguideSingleHtml(type: Docbook2Xhtml) {
     }
 }
 
-task userguideXhtml(type: Docbook2Xhtml) {
+task pdfUserguideXhtml(type: Docbook2Xhtml) {
     source pdfUserguideDocbook
     destFile = new File(buildDir, 'tmp/userguidePdf/userguidePdf.html')
     stylesheetName = 'userGuidePdf.xsl'
@@ -213,9 +213,9 @@ task userguideXhtml(type: Docbook2Xhtml) {
     }
 }
 
-task userguidePdf(type: Xhtml2Pdf, dependsOn: userguideXhtml) {
+task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
     inputs.dir cssSrcDir
-    sourceFile = userguideXhtml.destFile
+    sourceFile = pdfUserguideXhtml.destFile
     destFile = new File(userguideDir, 'userguide.pdf')
     classpath = configurations.userGuideTask
 }
@@ -303,10 +303,6 @@ class Xhtml2Pdf extends DefaultTask {
 
     @InputFiles
     FileCollection classpath
-
-    def Xhtml2Pdf() {
-        onlyIf { !OperatingSystem.current().isWindows() }
-    }
 
     @TaskAction
     def transform() {
