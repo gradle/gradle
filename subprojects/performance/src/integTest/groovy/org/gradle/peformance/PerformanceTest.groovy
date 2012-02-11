@@ -51,6 +51,6 @@ class PerformanceTest extends Specification {
         where:
         testProject | heapSize
         "small"     | '-Xmx17m' //fails with 16m
-        "multi"     | '-Xmx56m' //fails with 54m
+        "multi"     | '-Xmx62m' //fails with 54m on my box, with 60m on ci
     }
 }
