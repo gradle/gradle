@@ -111,7 +111,7 @@ public class GradlePomModuleDescriptorBuilder {
     private static final String DEPENDENCY_MANAGEMENT = "m:dependency.management";
     private static final String PROPERTIES = "m:properties";
     private static final String EXTRA_INFO_DELIMITER = "__";
-    private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin");
+    private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
 
     static interface ConfMapper {
         public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional);

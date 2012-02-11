@@ -128,6 +128,27 @@ class PomParserTest extends Specification {
         hasDefaultDependencyArtifact(descriptor.dependencies.first())
     }
 
+    @Issue("GRADLE-2076")
+    def "pom with packaging of type eclipse-plugin creates jar artifact"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <packaging>eclipse-plugin</packaging>
+</project>
+"""
+        and:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
+        hasArtifact(descriptor, 'artifact-one', 'eclipse-plugin', 'jar')
+        descriptor.dependencies.length == 0
+    }
+
     private ModuleDescriptor parsePom() {
         GradlePomModuleDescriptorParser.getInstance().parseDescriptor(ivySettings, pomFile.toURL(), false)
     }
