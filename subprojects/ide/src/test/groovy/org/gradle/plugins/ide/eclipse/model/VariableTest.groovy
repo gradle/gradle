@@ -18,17 +18,18 @@ package org.gradle.plugins.ide.eclipse.model
 import spock.lang.Specification
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 import org.gradle.util.Matchers
+import org.gradle.internal.nativeplatform.OperatingSystem
 
 /**
  * @author Hans Dockter
  */
 
 class VariableTest extends Specification {
-    final static String XML_TEXT = '''
+    final static String XML_TEXT_TEMPLATE = '''
                 <classpathentry exported="true" kind="var" path="/GRADLE_CACHE/ant.jar" sourcepath="/GRADLE_CACHE/ant-src.jar">
                     <attributes>
                         <attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="mynative"/>
-                        <attribute name="javadoc_location" value="jar:file:/PATH/TO/CACHE/ant-javadoc.jar!/"/>
+                        <attribute name="javadoc_location" value="jar:file:%ABSOLUTE_PATH_PREFIX%/ant-javadoc.jar!/"/>
                     </attributes>
                     <accessrules>
                         <accessrule kind="nonaccessible" pattern="secret**"/>
@@ -36,9 +37,18 @@ class VariableTest extends Specification {
                 </classpathentry>'''
     final fileReferenceFactory = new FileReferenceFactory()
 
+    String platformXml;
+
+
+    def setup() {
+        //xml differs on windows and mac due to required absolute paths for javadoc
+        def osDependenAbsolutePathPrefix = OperatingSystem.current().windows ? "/C:" : ""
+        platformXml = XML_TEXT_TEMPLATE.replace("%ABSOLUTE_PATH_PREFIX%", osDependenAbsolutePathPrefix);
+    }
+
     def canReadFromXml() {
         when:
-        Variable variable = new Variable(new XmlParser().parseText(XML_TEXT), fileReferenceFactory)
+        Variable variable = new Variable(new XmlParser().parseText(platformXml), fileReferenceFactory)
 
         then:
         variable == createVariable()
@@ -71,7 +81,7 @@ class VariableTest extends Specification {
         variable.nativeLibraryLocation = 'mynative'
         variable.accessRules += [new AccessRule('nonaccessible', 'secret**')]
         variable.sourcePath = fileReferenceFactory.fromVariablePath("/GRADLE_CACHE/ant-src.jar")
-        variable.javadocPath = fileReferenceFactory.fromJarURL("jar:file:/PATH/TO/CACHE/ant-javadoc.jar!/")
+        variable.javadocPath = fileReferenceFactory.fromPath("/ant-javadoc.jar")
         return variable
     }
 }
