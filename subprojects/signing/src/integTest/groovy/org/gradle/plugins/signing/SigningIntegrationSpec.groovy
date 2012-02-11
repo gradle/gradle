@@ -121,7 +121,7 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     File m2RepoFile(String name) {
-        file("build", "m2repo", "sign", "sign", "1.0", name)
+        file("build", "m2Repo", "sign", "sign", "1.0", name)
     }
 
     File ivyRepoFile(String name) {
