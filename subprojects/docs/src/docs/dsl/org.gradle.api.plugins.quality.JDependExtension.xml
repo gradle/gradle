@@ -5,10 +5,12 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default</td>
                 </tr>
             </thead>
             <tr>
-                <td>signing</td>
+                <td>toolVersion</td>
+                <td><literal>2.9.1</literal></td>
             </tr>
         </table>
     </section>
@@ -20,15 +22,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>signing</td>
-            </tr>
-            <tr>
-                <td>sign</td>
-            </tr>
-            <tr>
-                <td>signPom</td>
-            </tr>
         </table>
     </section>
 </section>

@@ -36,6 +36,7 @@ import org.gradle.build.docs.dsl.model.TypeMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.gradle.util.Clock
+import org.gradle.build.docs.DocGenerationException
 
 /**
  * Extracts meta-data from the Groovy and Java source files which make up the Gradle DSL. Persists the meta-data to a file
@@ -79,7 +80,7 @@ class ExtractDslMetaDataTask extends SourceTask {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Could not parse '$sourceFile'.", e)
+            throw new DocGenerationException("Could not parse '$sourceFile'.", e)
         }
     }
 

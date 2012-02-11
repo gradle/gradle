@@ -28,24 +28,19 @@ class SigningPlugin implements Plugin<Project> {
     /**
      * <p>Adds the ability to digitially sign files and artifacts.</p>
      * 
-     * <p>Attaches a {@link org.gradle.plugins.signing.SigningPluginConvention signing convention} with the name “signing”, connected to a
-     * {@link org.gradle.plugins.signing.SigningSettings signing settings} for this project.</p>
+     * <p>Adds the extensnion {@link org.gradle.plugins.signing.SigningExtension} with the name “signing”.
+     * <p>Also adds conventions to all {@link org.gradle.plugins.signing.Sign sign tasks} to use the signing extension setting defaults.</p>
      * 
-     * <p>Also adds conventions to all {@link org.gradle.plugins.signing.Sign sign tasks} to use the signing setting defaults.</p>
-     * 
-     * @see org.gradle.plugins.signing.SigningPluginConvention
-     * @see org.gradle.plugins.signing.SigningSettings#addSignatureSpecConventions(SigningSpec)
+     * @see org.gradle.plugins.signing.SigningExtension
      */
     void apply(Project project) {
         project.plugins.apply(BasePlugin)
-        
-        def settings = new SigningSettings(project)
-        def convention = new SigningPluginConvention(settings)
+
+        project.extensions.add("signing", SigningExtension, project)
+        def extension = project.signing
+
+        def convention = new SigningPluginConvention(extension)
         project.convention.plugins.signing = convention
-        
-        project.tasks.withType(Sign) { task ->
-            project.settings.addSignatureSpecConventions(task)
-        }
     }
     
 }

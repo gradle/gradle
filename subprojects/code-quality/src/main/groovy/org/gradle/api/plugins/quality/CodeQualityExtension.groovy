@@ -20,21 +20,16 @@ import org.gradle.api.tasks.SourceSet
 abstract class CodeQualityExtension {
     /**
      * The version of the code quality tool to be used.
-     *
-     * Example: toolVersion = "5.5"
      */
     String toolVersion
 
     /**
      * The source sets to be analyzed as part of the <tt>check</tt> and <tt>build</tt> tasks.
-     * Defaults to <tt>project.sourceSets</tt> (i.e. all source sets in the project).
-     *
-     * Example: sourceSets = [project.sourceSets.main]
      */
     Collection<SourceSet> sourceSets
 
     /**
-     * Whether or not to allow the build to continue if there are warnings. Defaults to <tt>false</tt>.
+     * Whether or not to allow the build to continue if there are warnings.
      *
      * Example: ignoreFailures = true
      */

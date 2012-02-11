@@ -20,7 +20,7 @@ uploadArchives {
         mavenDeployer {
             repository(url: uri("${buildDir}/repo"))
             if (isReleaseVersion) {
-                beforeDeployment { MavenDeployment deployment -> signPom(deployment) }
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
             }
         }
     }

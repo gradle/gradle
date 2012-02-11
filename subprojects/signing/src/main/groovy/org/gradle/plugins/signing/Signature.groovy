@@ -58,7 +58,7 @@ class Signature extends AbstractPublishArtifact {
     /**
      * The type of the signature artifact.
      * 
-     * @see getType()
+     * @see #getType()
      */
     String type
     
@@ -102,7 +102,7 @@ class Signature extends AbstractPublishArtifact {
      * 
      * @param toSign The artifact that is to be signed
      * @param signatureSpec The specification of how the artifact is to be signed
-     * @param tasks The task(s) that will invoke {@link generate()} on this signature (optional)
+     * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     Signature(PublishArtifact toSign, SignatureSpec signatureSpec, Object... tasks) {
         this({ toSign.file }, { toSign.classifier }, signatureSpec, tasks)
@@ -114,7 +114,7 @@ class Signature extends AbstractPublishArtifact {
      * 
      * @param toSign The file that is to be signed
      * @param signatureSpec The specification of how the artifact is to be signed
-     * @param tasks The task(s) that will invoke {@link generate()} on this signature (optional)
+     * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     Signature(File toSign, SignatureSpec signatureSpec, Object... tasks) {
         this({ toSign }, null, signatureSpec, tasks)
@@ -126,7 +126,7 @@ class Signature extends AbstractPublishArtifact {
      * @param toSign The file that is to be signed
      * @param classifier The classifier to assign to the signature (should match the files)
      * @param signatureSpec The specification of how the artifact is to be signed
-     * @param tasks The task(s) that will invoke {@link generate()} on this signature (optional)
+     * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     Signature(File toSign, String classifier, SignatureSpec signatureSpec, Object... tasks) {
         this({ toSign }, { classifier }, signatureSpec, tasks)
@@ -140,7 +140,7 @@ class Signature extends AbstractPublishArtifact {
      * @param toSign A closure that produces a File for the object to sign (non File return values will be used as the path to the file)
      * @param classifier A closure that produces the classifier to assign to the signature artifact on demand
      * @param signatureSpec The specification of how the artifact is to be signed
-     * @param tasks The task(s) that will invoke {@link generate()} on this signature (optional)
+     * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     Signature(Closure toSign, Closure classifier, SignatureSpec signatureSpec, Object... tasks) {
         super(tasks)
@@ -173,7 +173,7 @@ class Signature extends AbstractPublishArtifact {
      * @return The name. May be {@code null} if unknown at this time.
      */
     String getName() {
-        name == null ? getFile()?.name : name
+        name == null ? (toSignArtifact?.name ?: getFile()?.name) : name
     }
     
     /**
@@ -250,11 +250,12 @@ class Signature extends AbstractPublishArtifact {
     /**
      * The file for the generated signature, which may not yet exist.
      * 
-     * <p>Defaults to a file alongside the {@link #toSign() file to sign} with the extension of the {@link #getSignatureType() signature type}.</p>
+     * <p>Defaults to a file alongside the {@link #getToSign() file to sign} with the extension of the {@link #getSignatureType() signature type}.</p>
      * 
      * @return The signature file. May be {@code null} if unknown at this time.
      */
     File getFile() {
+
         if (file == null) {
             def toSign = getToSign()
             def signatureType = getSignatureType()
@@ -298,17 +299,29 @@ class Signature extends AbstractPublishArtifact {
     void generate() {
         def toSign = getToSign()
         if (toSign == null) {
-            throw new InvalidUserDataException("Unable to generate signature as the file to sign has not been specified")
+            if (signatureSpec.required) {
+                throw new InvalidUserDataException("Unable to generate signature as the file to sign has not been specified")
+            } else {
+                return
+            }
         }
         
         def signatory = getSignatory()
         if (signatory == null) {
-            throw new InvalidUserDataException("Unable to generate signature for '$toSign' as no signatory is available to sign")
+            if (signatureSpec.required) {
+                throw new InvalidUserDataException("Unable to generate signature for '$toSign' as no signatory is available to sign")
+            } else {
+                return
+            }
         }
         
         def signatureType = getSignatureType()
         if (signatureType == null) {
-            throw new InvalidUserDataException("Unable to generate signature for '$toSign' as no signature type has been configured")
+            if (signatureSpec.required) {
+                throw new InvalidUserDataException("Unable to generate signature for '$toSign' as no signature type has been configured")
+            } else {
+                return
+            }
         }
         
         signatureType.sign(signatory, toSign)

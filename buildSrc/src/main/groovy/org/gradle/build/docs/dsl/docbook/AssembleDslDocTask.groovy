@@ -23,6 +23,7 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.docs.BuildableDOMCategory
+import org.gradle.build.docs.DocGenerationException
 import org.gradle.build.docs.XIncludeAwareXmlProvider
 import org.gradle.build.docs.dsl.ClassLinkMetaData
 import org.gradle.build.docs.dsl.LinkMetaData
@@ -89,6 +90,11 @@ class AssembleDslDocTask extends DefaultTask {
                 def root = mainDocbookTemplate.documentElement
                 root.section.table.each { Element table ->
                     mergeContent(table, model, linkRepository)
+                }
+                extensions.each { name, plugin ->
+                    plugin.extensionClasses.each { extension ->
+                        generateDocForType(root.ownerDocument, model, linkRepository, model.getClassDoc(extension.extensionClass))
+                    }
                 }
             }
         }
@@ -183,10 +189,20 @@ class AssembleDslDocTask extends DefaultTask {
     def mergeType(Element typeTr, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository) {
         String className = typeTr.td[0].text().trim()
         ClassDoc classDoc = model.getClassDoc(className)
+        generateDocForType(typeTr.ownerDocument, model, linkRepository, classDoc)
+        typeTr.children = {
+            td {
+                link(linkend: classDoc.id) { literal(classDoc.simpleName) }
+            }
+            td(classDoc.description)
+        }
+    }
+
+    def generateDocForType(Document document, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository, ClassDoc classDoc) {
         try {
             //classDoc renderer renders the content of the class and also links to properties/methods
-            new ClassDocRenderer(new LinkRenderer(typeTr.ownerDocument, model)).mergeContent(classDoc)
-            def linkMetaData = linkRepository.get(className)
+            new ClassDocRenderer(new LinkRenderer(document, model)).mergeContent(classDoc)
+            def linkMetaData = linkRepository.get(classDoc.name)
             linkMetaData.style = LinkMetaData.Style.Dsldoc
             classDoc.classMethods.each { methodDoc ->
                 linkMetaData.addMethod(methodDoc.metaData, LinkMetaData.Style.Dsldoc)
@@ -197,16 +213,10 @@ class AssembleDslDocTask extends DefaultTask {
             classDoc.classProperties.each { propertyDoc ->
                 linkMetaData.addGetterMethod(propertyDoc.name, propertyDoc.metaData.getter)
             }
-            Element root = typeTr.ownerDocument.documentElement
-            root << classDoc.classSection
-            typeTr.children = {
-                td {
-                    link(linkend: classDoc.id) { literal(classDoc.simpleName) }
-                }
-                td(classDoc.description)
-            }
+            document.documentElement << classDoc.classSection
         } catch (Exception e) {
-            throw new RuntimeException("Failed to generate documentation for class '$className'.", e)
+            throw new DocGenerationException("Failed to generate documentation for class '$className'.", e)
         }
     }
 }
+
