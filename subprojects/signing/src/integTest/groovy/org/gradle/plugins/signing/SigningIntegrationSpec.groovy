@@ -34,6 +34,10 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
             group = 'sign'
             version = '1.0'
         """
+        
+        file("src", "main", "java", "Thing.java") << """
+            public class Thing {}
+        """
     }
 
     static class KeyInfo {
@@ -117,7 +121,7 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     File m2RepoFile(String name) {
-        file("build", "m2repo", "sign", "sign", "1.0", name)
+        file("build", "m2Repo", "sign", "sign", "1.0", name)
     }
 
     File ivyRepoFile(String name) {
