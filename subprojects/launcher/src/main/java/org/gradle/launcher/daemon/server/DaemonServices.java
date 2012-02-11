@@ -28,9 +28,13 @@ import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.process.internal.JvmOptions;
+import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
@@ -59,7 +63,18 @@ public class DaemonServices extends DefaultServiceRegistry {
         builder.setIdleTimeout(idleTimeoutMs);
 
         JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
-        jvmOptions.setAllJvmArgs(ManagementFactory.getRuntimeMXBean().getInputArguments());
+        List<String> inputArguments = new ArrayList<String>(ManagementFactory.getRuntimeMXBean().getInputArguments());
+        if (Jvm.current().isIbmJvm()) {
+            // Filter out the implicit jvm args that the ibm jvm adds
+            Iterator<String> iter = inputArguments.iterator();
+            while (iter.hasNext()) {
+                String arg = iter.next();
+                if (!arg.startsWith("-") || arg.startsWith("-Xjcl") || arg.equals("-Xdump")) {
+                    iter.remove();
+                }
+            }
+        }
+        jvmOptions.setAllJvmArgs(inputArguments);
         builder.setDaemonOpts(jvmOptions.getAllJvmArgsWithoutSystemProperties());
 
         return builder.create();

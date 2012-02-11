@@ -40,15 +40,18 @@ public class Jvm implements JavaInfo {
         return create(null);
     }
 
-    static Jvm create(File javaBase) {
+    private static Jvm create(File javaBase) {
         String vendor = System.getProperty("java.vm.vendor");
         if (vendor.toLowerCase().startsWith("apple inc.")) {
             return new AppleJvm(OperatingSystem.current(), javaBase);
         }
+        if (vendor.toLowerCase().startsWith("ibm corporation")) {
+            return new IbmJvm(OperatingSystem.current(), javaBase);
+        }
         return new Jvm(OperatingSystem.current(), javaBase);
     }
 
-    public Jvm(OperatingSystem os) {
+    Jvm(OperatingSystem os) {
         this(os, null);
     }
 
@@ -224,12 +227,27 @@ public class Jvm implements JavaInfo {
         return false;
     }
 
+    public boolean isIbmJvm() {
+        return false;
+    }
+
+    static class IbmJvm extends Jvm {
+        IbmJvm(OperatingSystem os, File suppliedJavaBase) {
+            super(os, suppliedJavaBase);
+        }
+
+        @Override
+        public boolean isIbmJvm() {
+            return true;
+        }
+    }
+
     /**
      * Note: Implementation assumes that an Apple JVM always comes with a JDK rather than a JRE,
      * but this is likely an over-simplification.
      */
-    public static class AppleJvm extends Jvm {
-        public AppleJvm(OperatingSystem os) {
+    static class AppleJvm extends Jvm {
+        AppleJvm(OperatingSystem os) {
             super(os);
         }
 
