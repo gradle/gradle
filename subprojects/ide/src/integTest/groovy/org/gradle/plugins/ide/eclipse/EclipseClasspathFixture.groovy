@@ -124,7 +124,7 @@ class EclipseClasspathFixture {
         }
 
         String jarUrl(String filePath) {
-            "jar:file:${OperatingSystem.current().windows ? '/' : ''}${filePath}!/"
+            "jar:file:${OperatingSystem.current().windows ? '/' : ''}${filePath.replace(File.separator, '/')}!/"
         }
         
         String jarUrl(File filePath){
