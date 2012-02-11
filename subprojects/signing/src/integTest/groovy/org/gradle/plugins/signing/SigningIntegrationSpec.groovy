@@ -34,6 +34,10 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
             group = 'sign'
             version = '1.0'
         """
+        
+        file("src", "main", "java", "Thing.java") << """
+            public class Thing {}
+        """
     }
 
     static class KeyInfo {
