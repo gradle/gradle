@@ -15,17 +15,27 @@
  */
 package org.gradle.build.docs;
 
-import javax.xml.transform.*;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class XslTransformer {
-    public static void main(String[] args) throws TransformerException {
+    public static void main(String[] args) throws TransformerException, IOException {
+        if (args.length < 3 || args.length > 4) {
+            throw new IllegalArgumentException("USAGE: <style-sheet> <source-file> <dest-file> [dest-dir]");
+        }
         File stylesheet = new File(args[0]);
         File source = new File(args[1]);
         File dest = new File(args[2]);
-        String destDir = args[3];
+        String destDir = "";
+        if (args.length > 3) {
+            destDir = args[3];
+        }
 
         System.out.format("=> stylesheet %s%n", stylesheet);
         System.out.format("=> source %s%n", source);
@@ -40,6 +50,11 @@ public class XslTransformer {
         if (destDir.length() > 0) {
             transformer.setParameter("base.dir", destDir + "/");
         }
-        transformer.transform(new StreamSource(source), new StreamResult(dest));
+        FileOutputStream outstr = new FileOutputStream(dest);
+        try {
+            transformer.transform(new StreamSource(source), new StreamResult(outstr));
+        } finally {
+            outstr.close();
+        }
     }
 }
