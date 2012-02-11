@@ -38,11 +38,10 @@ class LibraryTest extends Specification {
     final fileReferenceFactory = new FileReferenceFactory()
 
     String platformXml;
-    String osDependenAbsolutePathPrefix
 
     def setup(){
         //xml differs on windows and mac due to required absolute paths for javadoc
-        osDependenAbsolutePathPrefix = OperatingSystem.current().windows ? "/C:" : ""
+        String osDependenAbsolutePathPrefix = OperatingSystem.current().windows ? "/C:" : ""
         platformXml = XML_TEXT_TEMPLATE.replace("%ABSOLUTE_PATH_PREFIX%", osDependenAbsolutePathPrefix);
     }
 
@@ -81,7 +80,7 @@ class LibraryTest extends Specification {
         library.nativeLibraryLocation = 'mynative'
         library.accessRules += [new AccessRule('nonaccessible', 'secret**')]
         library.sourcePath = fileReferenceFactory.fromPath("/ant-src.jar")
-        library.javadocPath = fileReferenceFactory.fromPath("${osDependenAbsolutePathPrefix}/ant-javadoc.jar")
+        library.javadocPath = fileReferenceFactory.fromPath("${OperatingSystem.current().windows ? "C:" : ""}/ant-javadoc.jar")
         return library
     }
 }

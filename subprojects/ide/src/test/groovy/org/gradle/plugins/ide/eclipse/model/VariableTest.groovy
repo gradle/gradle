@@ -38,11 +38,10 @@ class VariableTest extends Specification {
     final fileReferenceFactory = new FileReferenceFactory()
 
     String platformXml;
-    String osDependenAbsolutePathPrefix
 
     def setup() {
         //xml differs on windows and mac due to required absolute paths for javadoc
-        osDependenAbsolutePathPrefix = OperatingSystem.current().windows ? "/C:" : ""
+        String osDependenAbsolutePathPrefix = OperatingSystem.current().windows ? "/C:" : ""
         platformXml = XML_TEXT_TEMPLATE.replace("%ABSOLUTE_PATH_PREFIX%", osDependenAbsolutePathPrefix);
     }
 
@@ -81,7 +80,7 @@ class VariableTest extends Specification {
         variable.nativeLibraryLocation = 'mynative'
         variable.accessRules += [new AccessRule('nonaccessible', 'secret**')]
         variable.sourcePath = fileReferenceFactory.fromVariablePath("/GRADLE_CACHE/ant-src.jar")
-        variable.javadocPath = fileReferenceFactory.fromPath("${osDependenAbsolutePathPrefix}/ant-javadoc.jar")
+        variable.javadocPath = fileReferenceFactory.fromPath("${OperatingSystem.current().windows ? "C:" : ""}/ant-javadoc.jar")
         return variable
     }
 }
