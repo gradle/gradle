@@ -164,6 +164,15 @@ class JvmTest extends Specification {
         jvm.getClass() == Jvm
     }
 
+    def "uses system property to determine if IBM JVM"() {
+        when:
+        System.properties['java.vm.vendor'] = 'IBM Corporation'
+        def jvm = Jvm.current()
+
+        then:
+        jvm.getClass() == Jvm.IbmJvm
+    }
+
     def "finds executable if for java home supplied"() {
         System.properties['java.vm.vendor'] = 'Sun'
 
