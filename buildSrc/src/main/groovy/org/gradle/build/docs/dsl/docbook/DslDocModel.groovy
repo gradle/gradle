@@ -16,12 +16,11 @@
 package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.XIncludeAwareXmlProvider
-
-import org.gradle.build.docs.dsl.model.ClassMetaData
-import org.w3c.dom.Document
-import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.dsl.TypeNameResolver
 import org.gradle.build.docs.dsl.model.ClassExtensionMetaData
+import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.model.ClassMetaDataRepository
+import org.w3c.dom.Document
 
 class DslDocModel {
     private final File classDocbookDir
@@ -75,8 +74,10 @@ class DslDocModel {
             def doc = new ClassDoc(className, provider.parse(classFile), document, classMetaData, extensionMetaData, this, javadocConverter)
             doc.mergeContent()
             return doc
+        } catch (ClassDocGenerationException e) {
+            throw e
         } catch (Exception e) {
-            throw new RuntimeException("Could not load the class documentation for class '$className'.", e)
+            throw new ClassDocGenerationException("Could not load the class documentation for class '$className'.", e)
         }
     }
 }
