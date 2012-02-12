@@ -12,6 +12,18 @@
                 <td>toolVersion</td>
                 <td><literal>4.3</literal></td>
             </tr>
+            <tr>
+                <td>reportsDir</td>
+                <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/pmd</literal></td>
+            </tr>
+            <tr>
+                <td>ruleSets</td>
+                <td><literal>["basic"]</literal></td>
+            </tr>
+            <tr>
+                <td>ruleSetFiles</td>
+                <td><literal>[]</literal></td>
+            </tr>
         </table>
     </section>
     <section>
@@ -22,6 +34,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>ruleSets</td>
+            </tr>
+            <tr>
+                <td>ruleSetFiles</td>
+            </tr>
         </table>
     </section>
 </section>

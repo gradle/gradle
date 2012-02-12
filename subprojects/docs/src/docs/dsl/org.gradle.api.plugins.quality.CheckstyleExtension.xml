@@ -12,6 +12,18 @@
                 <td>toolVersion</td>
                 <td><literal>5.5</literal></td>
             </tr>
+            <tr>
+                <td>reportsDir</td>
+                <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/checkstyle</literal></td>
+            </tr>
+            <tr>
+                <td>configFile</td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/config/checkstyle/checkstyle.xml</literal></td>
+            </tr>
+            <tr>
+                <td>configProperties</td>
+                <td><literal>[:]</literal></td>
+            </tr>
         </table>
     </section>
     <section>
