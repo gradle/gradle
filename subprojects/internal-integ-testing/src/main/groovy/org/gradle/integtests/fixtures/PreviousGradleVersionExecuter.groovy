@@ -66,8 +66,16 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     }
 
     boolean worksWith(Jvm jvm) {
+        // Milestone 4 was broken on the IBM jvm
+        if (jvm.ibmJvm && version == GradleVersion.version('1.0-milestone-4')) {
+            return false
+        }
         // 0.9-rc-1 was broken for Java 5
-        return version == GradleVersion.version('0.9-rc-1') ? jvm.isJava6Compatible() : jvm.isJava5Compatible()
+        if (version == GradleVersion.version('0.9-rc-1')) {
+            return jvm.isJava6Compatible()
+        }
+
+        return jvm.isJava5Compatible()
     }
 
     boolean worksWith(OperatingSystem os) {
@@ -83,6 +91,11 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     }
     
     boolean daemonSupported() {
+        // Milestone 7 was broken on the IBM jvm
+        if (Jvm.current().ibmJvm && version == GradleVersion.version('1.0-milestone-7')) {
+            return false
+        }
+
         if (OperatingSystem.current().isWindows()) {
             // On windows, daemon is ok for anything > 1.0-milestone-3
             return version > GradleVersion.version('1.0-milestone-3')
