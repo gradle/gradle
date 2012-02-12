@@ -28,6 +28,7 @@ test {
 
 tasks.matching { it instanceof Compile || it instanceof GroovyCompile }.all {
     options.compilerArgs << "-Xlint:unchecked"
+    options.useAnt = false
 }
 
 tasks.withType(Jar).each { jar ->
