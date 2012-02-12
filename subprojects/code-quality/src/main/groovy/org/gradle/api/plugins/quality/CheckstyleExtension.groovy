@@ -22,13 +22,8 @@ class CheckstyleExtension extends CodeQualityExtension {
     File configFile
     
     /**
-     * The directory into which Checkstyle reports will be saved. Defaults to <tt>$reporting.baseDir/findbugs</tt>.
-     */
-    File reportsDir
-
-    /**
      * The properties available for use in the configuration file. These are substituted into the configuration
-     * file. Defaults to the empty map.
+     * file.
      */
     Map<String, Object> configProperties = [:]
 }

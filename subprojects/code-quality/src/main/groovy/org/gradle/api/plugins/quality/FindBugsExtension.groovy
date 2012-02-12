@@ -21,8 +21,4 @@ package org.gradle.api.plugins.quality
  * @see FindBugsPlugin
  */
 class FindBugsExtension extends CodeQualityExtension {
-    /**
-     * The directory into which FindBugs reports will be saved. Defaults to <tt>$reporting.baseDir/findbugs</tt>.
-     */
-    File reportsDir
 }

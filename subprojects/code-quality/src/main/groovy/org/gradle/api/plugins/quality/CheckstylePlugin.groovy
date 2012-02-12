@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 
 class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
@@ -39,11 +38,7 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
         extension.with {
             toolVersion = "5.5"
-        }
-
-        extension.conventionMapping.with {
-            configFile = { project.file("config/checkstyle/checkstyle.xml") }
-            reportsDir = { project.extensions.getByType(ReportingExtension).file("checkstyle") }
+            configFile = project.file("config/checkstyle/checkstyle.xml")
         }
 
         return extension

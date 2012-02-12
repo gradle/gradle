@@ -17,7 +17,6 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.reporting.Report
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 
 /**
@@ -66,9 +65,6 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
         project.extensions.findbugs = extension
         extension.with {
             toolVersion = "2.0.0"
-        }
-        extension.conventionMapping.with {
-            reportsDir = { project.extensions.getByType(ReportingExtension).file("findbugs") }
         }
         return extension
     }

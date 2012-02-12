@@ -34,4 +34,9 @@ abstract class CodeQualityExtension {
      * Example: ignoreFailures = true
      */
     boolean ignoreFailures = false
+
+    /**
+     * The directory where reports will be generated.
+     */
+    File reportsDir
 }
