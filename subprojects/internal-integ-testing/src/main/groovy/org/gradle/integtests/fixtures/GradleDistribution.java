@@ -71,7 +71,7 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
         return true;
     }
 
-    public boolean daemonSupported() {
+    public boolean isDaemonSupported() {
         return true;
     }
 

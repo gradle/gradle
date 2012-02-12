@@ -53,7 +53,7 @@ public interface BasicGradleDistribution {
     /**
      * Returns true if the daemon is supported by this distribution.
      */
-    boolean daemonSupported();
+    boolean isDaemonSupported();
 
     /**
      *
@@ -67,7 +67,7 @@ public interface BasicGradleDistribution {
     boolean isOpenApiSupported();
 
     /**
-     * Returns true if the wrapper can execute a build using the given version.
+     * Returns true if the wrapper from this distribution can execute a build using the specified version.
      */
     boolean wrapperCanExecute(String version);
 }

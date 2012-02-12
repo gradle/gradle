@@ -77,6 +77,9 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
         @Override
         protected boolean isEnabled() {
+            if (!gradle.daemonSupported) {
+                return false
+            }
             MinToolingApiVersion minToolingApiVersion = target.getAnnotation(MinToolingApiVersion)
             if (minToolingApiVersion && GradleVersion.version(toolingApi.version) < extractVersion(minToolingApiVersion)) {
                 return false

@@ -90,7 +90,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         throw new UnsupportedOperationException()
     }
     
-    boolean daemonSupported() {
+    boolean isDaemonSupported() {
         // Milestone 7 was broken on the IBM jvm
         if (Jvm.current().ibmJvm && version == GradleVersion.version('1.0-milestone-7')) {
             return false
