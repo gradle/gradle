@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.daemon;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.compile.ForkOptions;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -56,6 +57,10 @@ public class DaemonForkOptions {
     }
 
     private int getHeapSizeMb(String heapSize) {
+        if (heapSize == null) {
+            return -1; // unspecified
+        }
+
         String normalized = heapSize.trim().toLowerCase();
         try {
             if (normalized.endsWith("m")) {
@@ -71,6 +76,10 @@ public class DaemonForkOptions {
     }
     
     private Set<String> getNormalizedJvmArgs(List<String> jvmArgs) {
+        if (jvmArgs == null) {
+            return Collections.emptySet();
+        }
+
         Set<String> normalized = new HashSet<String>(jvmArgs.size());
         for (String jvmArg : jvmArgs) {
             normalized.add(jvmArg.trim());
