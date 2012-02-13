@@ -48,9 +48,8 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
         Project project = withConnection { it.getModel(Project.class) }
 
         then:
-        def inputArgsInBuild = project.description.split('##')
-        inputArgsInBuild.length == env.java.jvmArguments.size()
-        inputArgsInBuild.each { env.java.jvmArguments.contains(it) }
+        def inputArgsInBuild = project.description.split('##') as List
+        env.java.jvmArguments.each { inputArgsInBuild.contains(it) }
     }
 
     def "informs about java home as in the build script"() {

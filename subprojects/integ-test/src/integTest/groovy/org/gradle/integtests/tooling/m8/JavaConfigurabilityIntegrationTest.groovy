@@ -50,8 +50,7 @@ class JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
         }
 
         then:
-        env.java.jvmArguments.contains("-Xmx333m")
-        env.java.jvmArguments.contains("-Xms13m")
+        env.java.jvmArguments == ["-Xms13m", "-Xmx333m"]
     }
 
     def "uses sensible java defaults if nulls configured"() {
@@ -115,9 +114,8 @@ assert System.getProperty('some-prop') == 'BBB'
         }
 
         then:
-        def inputArgsInBuild = project.description.split('##')
-        inputArgsInBuild.length == env.java.jvmArguments.size()
-        inputArgsInBuild.each { env.java.jvmArguments.contains(it) }
+        def inputArgsInBuild = project.description.split('##') as List
+        env.java.jvmArguments.each { inputArgsInBuild.contains(it) }
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
