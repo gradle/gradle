@@ -129,6 +129,35 @@ dependencies {
     }
 
     @Test
+        void libraryReferenceSubstitutesPathVariable() {
+            def repoDir = file("repo")
+            def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").publish().artifactFile
+
+            runIdeaTask """
+    apply plugin: "java"
+    apply plugin: "idea"
+
+    repositories {
+        maven { url "${repoDir.toURI()}" }
+    }
+
+    idea {
+       pathVariables("GRADLE_REPO": file("${repoDir}"))
+    }
+
+    dependencies {
+        compile "myGroup:myArtifact1:1.0"
+    }
+            """
+
+            def module = parseImlFile("root")
+            def libs = module.component.orderEntry.library
+            assert libs.size() == 1
+            assert libs.CLASSES.root*.@url*.text().collect { new File(it).name } as Set == [artifact1.name + "!"] as Set
+            assert libs.CLASSES.root*.@url*.text().collect { it.replace("\$GRADLE_REPO\$", repoDir.absolutePath)} as Set == ["jar://${artifact1.getAbsolutePath()}!/"] as Set
+        }
+
+    @Test
     void onlyAddsSourceDirsThatExistOnFileSystem() {
         runIdeaTask """
 apply plugin: "java"
