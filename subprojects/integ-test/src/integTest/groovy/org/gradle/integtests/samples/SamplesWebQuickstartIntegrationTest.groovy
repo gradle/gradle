@@ -64,7 +64,7 @@ stopPort = ${portFinder.nextAvailable}
 
 task runTest << {
     URL url = new URL("http://localhost:\$httpPort/quickstart")
-    long expiry = System.currentTimeMillis() + 20000
+    long expiry = System.currentTimeMillis() + 30000
     while (System.currentTimeMillis() <= expiry) {
         try {
             println url.text
