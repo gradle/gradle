@@ -261,6 +261,15 @@ task groovydoc(type: Groovydoc) {
         [javaApiUrl, groovyApiUrl].each {
             link(it, *(new URL("$it/package-list").text.tokenize("\n")))
         }
+
+        docTitle = "Gradle API $version"
+        windowTitle = "Gradle API $version"
+        footer = "Gradle API $version"
+    }
+    
+    doLast {
+        def index = new File(destinationDir, "index.html")
+        index.text = index.text.replace("{todo.title}", windowTitle) // workaround groovydoc bug
     }
 
     gradle.taskGraph.whenReady {
