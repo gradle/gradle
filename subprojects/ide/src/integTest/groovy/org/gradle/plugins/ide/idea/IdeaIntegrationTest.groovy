@@ -154,7 +154,7 @@ dependencies {
             def libs = module.component.orderEntry.library
             assert libs.size() == 1
             assert libs.CLASSES.root*.@url*.text().collect { new File(it).name } as Set == [artifact1.name + "!"] as Set
-            assert libs.CLASSES.root*.@url*.text().collect { it.replace("\$GRADLE_REPO\$", repoDir.absolutePath)} as Set == ["jar://${artifact1.getAbsolutePath()}!/"] as Set
+            assert libs.CLASSES.root*.@url*.text().collect { it.replace("\$GRADLE_REPO\$", repoDir.absolutePath.replace(File.separator, "/"))} as Set == ["jar://${artifact1.getAbsolutePath().replace(File.separator, "/")}!/"] as Set
         }
 
     @Test
