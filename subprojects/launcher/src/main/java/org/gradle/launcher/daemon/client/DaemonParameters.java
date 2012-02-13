@@ -15,8 +15,6 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -172,7 +170,7 @@ public class DaemonParameters {
         }
         propertyValue = properties.get(JVM_ARGS_SYS_PROPERTY);
         if (propertyValue != null) {
-            setJvmArgs(Lists.newArrayList(Splitter.onPattern("\\s").omitEmptyStrings().split(propertyValue.toString())));
+            setJvmArgs(JvmOptions.fromString(propertyValue.toString()));
         }
         propertyValue = properties.get(DAEMON_SYS_PROPERTY);
         if (propertyValue != null) {

@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 /**
@@ -36,6 +37,18 @@ class DaemonConfigurabilityIntegrationSpec extends DaemonIntegrationSpec {
         buildSucceeds """
 assert System.getProperty('some-prop') == 'some-value'
 assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
+        """
+    }
+
+    @Ignore //TODO
+    def "honours jvm args that contain a space in gradle.properties"() {
+        given:
+        distribution.file("gradle.properties") << 'org.gradle.jvmargs=-Dsome-prop="i have space"'
+
+        expect:
+        buildSucceeds """
+assert System.getProperty('some-prop') == 'i have space'
+//assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx16m')
         """
     }
 

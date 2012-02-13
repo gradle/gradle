@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
@@ -239,5 +241,9 @@ public class JvmOptions {
         target.setBootstrapClasspath(bootstrapClasspath);
         target.setEnableAssertions(assertionsEnabled);
         target.setDebug(debug);
+    }
+
+    public static List<String> fromString(String propertyValue) {
+        return Lists.newArrayList(Splitter.onPattern("\\s").omitEmptyStrings().split(propertyValue));
     }
 }
