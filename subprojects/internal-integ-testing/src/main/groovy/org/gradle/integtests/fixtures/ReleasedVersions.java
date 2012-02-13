@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
@@ -62,21 +63,15 @@ public class ReleasedVersions {
     }
 
     public BasicGradleDistribution getPreviousOf(BasicGradleDistribution distro) {
-        GradleVersion ver = GradleVersion.version(distro.getVersion());
-        if (ver.isSnapshot()) {
-            //assuming that the snapshot is always the latest and greatest
-            //last of the already released is what we're after
-            return getLast();
+        GradleVersion distroVersion = GradleVersion.version(distro.getVersion());
+
+        for (String candidate : Lists.reverse(RELEASED)) {
+            GradleVersion candidateVersion = GradleVersion.version(candidate);
+            if (distroVersion.compareTo(candidateVersion) > 0) {
+                return current.previousVersion(candidate);
+            }
         }
 
-        //simply iterate the list and get the previous element
-        String previous = RELEASED.get(0);
-        for (String version : RELEASED.subList(1, RELEASED.size())) {
-            if (ver.getVersion().equals(version)) {
-                return current.previousVersion(previous);
-            }
-            previous = version;
-        }
         throw new RuntimeException("I don't know the previous version of: " + distro);
     }
 }
