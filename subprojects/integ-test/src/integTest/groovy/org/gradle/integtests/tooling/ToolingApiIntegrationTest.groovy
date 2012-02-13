@@ -28,7 +28,7 @@ import spock.lang.Specification
 class ToolingApiIntegrationTest extends Specification {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     final ToolingApi toolingApi = new ToolingApi(dist)
-    final BasicGradleDistribution otherVersion = dist.previousVersion('1.0-milestone-5')
+    final BasicGradleDistribution otherVersion = dist.previousVersion('1.0-milestone-6')
     TestFile projectDir = dist.testDir
 
     def "tooling api uses to the current version of gradle when none has been specified"() {
