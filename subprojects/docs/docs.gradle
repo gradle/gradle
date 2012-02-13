@@ -262,6 +262,15 @@ task groovydoc(type: Groovydoc) {
             link(it, *(new URL("$it/package-list").text.tokenize("\n")))
         }
     }
+
+    gradle.taskGraph.whenReady {
+        if (it.hasTask(groovydoc)) {
+            def systemCharset = java.nio.charset.Charset.defaultCharset().name()
+            if (systemCharset != "UTF-8") {
+                throw new InvalidUserDataException("Cannot run $groovydoc.name task unless system charset is UTF-8 (it's $systemCharset, set -Dfile.encoding=UTF-8) in GRADLE_OPTS")
+            }
+        }
+    }
 }
 
 task checkstyleApi(type: Checkstyle) {
