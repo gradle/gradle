@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -30,12 +32,13 @@ import java.io.File;
 /**
  * Controls the lifecycle of the compiler daemon and provides access to it.
  */
+@NotThreadSafe
 public class CompilerDaemonManager {
     private static final Logger LOGGER = Logging.getLogger(CompilerDaemonManager.class);
     private static final CompilerDaemonManager INSTANCE = new CompilerDaemonManager();
     
     private volatile CompilerDaemonClient client;
-    private WorkerProcess process;
+    private volatile WorkerProcess process;
     
     public static CompilerDaemonManager getInstance() {
         return INSTANCE;
@@ -53,6 +56,10 @@ public class CompilerDaemonManager {
     }
     
     public void stop() {
+        if (client == null) {
+            return;
+        }
+
         LOGGER.info("Stopping Gradle compiler daemon.");
         client.stop();
         client = null;
