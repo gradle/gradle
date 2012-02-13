@@ -32,6 +32,11 @@ integTestTasks.all {
             exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
         }
     }
+
+
+    // You can filter the userguide samples to be run by specifying this system property.
+    // E.g. ./gradlew integTest:integTest -D:integTest:integTest.single=UserGuideSamplesIntegrationTest -Dorg.gradle.userguide.samples.filter=signing/.+
+    systemProperty "org.gradle.userguide.samples.filter", System.getProperty("org.gradle.userguide.samples.filter")
 }
 
 daemonIntegTest {

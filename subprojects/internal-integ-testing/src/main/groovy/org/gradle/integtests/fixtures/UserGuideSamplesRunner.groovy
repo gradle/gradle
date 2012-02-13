@@ -27,6 +27,7 @@ import org.junit.runner.Description
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
+import java.util.regex.Pattern
 
 class UserGuideSamplesRunner extends Runner {
     private static final String NL = SystemProperties.lineSeparator
@@ -36,23 +37,37 @@ class UserGuideSamplesRunner extends Runner {
     Map<Description, SampleRun> samples;
     GradleDistribution dist = new GradleDistribution()
     GradleDistributionExecuter executer = new GradleDistributionExecuter(dist)
+    Pattern dirFilter = null 
 
     def UserGuideSamplesRunner(Class<?> testClass) {
         this.testClass = testClass
         this.description = Description.createSuiteDescription(testClass)
+        this.dirFilter = getDirFilterPattern()
         samples = new LinkedHashMap()
         for (sample in getScriptsForSamples(dist.userGuideInfoDir)) {
-            Description childDescription = Description.createTestDescription(testClass, sample.id)
-            description.addChild(childDescription)
-            samples.put(childDescription, sample)
+            if (shouldInclude(sample)) {
+                Description childDescription = Description.createTestDescription(testClass, sample.id)
+                description.addChild(childDescription)
+                samples.put(childDescription, sample)
 
-            println "Sample $sample.id dir: $sample.subDir"
-            sample.runs.each { println "    args: $it.args expect: $it.outputFile" }
+                println "Sample $sample.id dir: $sample.subDir"
+                sample.runs.each { println "    args: $it.args expect: $it.outputFile" }
+            }
         }
+    }
+
+    private static Pattern getDirFilterPattern() {
+        String filter = System.properties["org.gradle.userguide.samples.filter"]
+        filter ? Pattern.compile(filter) : null
     }
 
     Description getDescription() {
         return description
+    }
+
+    private boolean shouldInclude(SampleRun run) {
+        println run.subDir
+        dirFilter ? run.subDir ==~ dirFilter : true
     }
 
     void run(RunNotifier notifier) {

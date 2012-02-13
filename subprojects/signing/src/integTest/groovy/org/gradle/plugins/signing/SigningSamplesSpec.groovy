@@ -44,7 +44,7 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
         run "uploadArchives"
 
         then:
-        !(":signArchives" in executedTasks)
+        ":signArchives" in skippedTasks
 
         and:
         repo.module('gradle', 'conditional', '1.0-SNAPSHOT').assertArtifactsPublished('conditional-1.0-SNAPSHOT.pom', 'conditional-1.0-SNAPSHOT.jar')

@@ -220,6 +220,9 @@ task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
     classpath = configurations.userGuideTask
 }
 
+def javaApiUrl = "http://docs.oracle.com/javase/1.5.0/docs/api/"
+def groovyApiUrl = "http://groovy.codehaus.org/gapi/"
+
 task javadoc(type: Javadoc) {
     group = 'documentation'
     options.encoding = 'utf-8'
@@ -234,18 +237,11 @@ task javadoc(type: Javadoc) {
     include 'org/gradle/testfixtures/**'
     include 'org/gradle/tooling/**'
     exclude '**/internal/**'
-    options.links("http://docs.oracle.com/javase/1.5.0/docs/api/", "http://groovy.codehaus.org/gapi/", "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
+    options.links(javaApiUrl, groovyApiUrl, "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")
     doFirst {
         title = "Gradle API $version"
     }
-}
-
-task checkstyleApi(type: Checkstyle) {
-    source javadoc.source
-    configFile = file("$checkstyleConfigDir/checkstyle-api.xml")
-    classpath = files()
-    reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
 //TODO SF - generates for java as well, rename to codedoc?
@@ -260,6 +256,36 @@ task groovydoc(type: Groovydoc) {
         title = "Gradle API $version"
     }
     groovyClasspath = project(':core').configurations.groovy
+    doFirst {
+        [javaApiUrl, groovyApiUrl].each {
+            link(it, *(new URL("$it/package-list").text.tokenize("\n")))
+        }
+
+        docTitle = "Gradle API $version"
+        windowTitle = "Gradle API $version"
+        footer = "Gradle API $version"
+    }
+    
+    doLast {
+        def index = new File(destinationDir, "index.html")
+        index.text = index.text.replace("{todo.title}", windowTitle) // workaround groovydoc bug
+    }
+
+    gradle.taskGraph.whenReady {
+        if (it.hasTask(groovydoc)) {
+            def systemCharset = java.nio.charset.Charset.defaultCharset().name()
+            if (systemCharset != "UTF-8") {
+                throw new InvalidUserDataException("Cannot run $groovydoc.name task unless system charset is UTF-8 (it's $systemCharset, set -Dfile.encoding=UTF-8) in GRADLE_OPTS")
+            }
+        }
+    }
+}
+
+task checkstyleApi(type: Checkstyle) {
+    source javadoc.source
+    configFile = file("$checkstyleConfigDir/checkstyle-api.xml")
+    classpath = files()
+    reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
 task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples]) {
