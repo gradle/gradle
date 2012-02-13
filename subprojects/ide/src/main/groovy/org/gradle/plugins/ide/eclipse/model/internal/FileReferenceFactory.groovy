@@ -74,7 +74,8 @@ class FileReferenceFactory {
         }
         //cut the pre and postfix of this url
         URI fileURI = new URI(jarURI - "jar:" - "!/");
-        new FileReferenceImpl(new File(fileURI), fileURI.path, false);
+        File file = new File(fileURI);
+        new FileReferenceImpl(file, file.getAbsolutePath(), false);
     }
     /**
      * Creates a reference to the given path containing a variable reference. Returns null for null variable path
