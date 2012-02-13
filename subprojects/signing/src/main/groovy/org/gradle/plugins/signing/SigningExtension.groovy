@@ -40,7 +40,7 @@ import org.gradle.api.internal.Instantiator
 class SigningExtension {
     
     /**
-     * The name of the configuration that all signature artifacts will be placed into (“signatures”)
+     * The name of the configuration that all signature artifacts will be placed into ("signatures")
      */
     static final String DEFAULT_CONFIGURATION_NAME = "signatures"
     
@@ -61,7 +61,7 @@ class SigningExtension {
     /**
      * Whether or not this task should fail if no signatory or signature type are configured at generation time.
      *
-     * If {@code required} is a {@link Callable}, it will be stored and “called” on demand (i.e. when {@link #isRequired()}
+     * If {@code required} is a {@link Callable}, it will be stored and "called" on demand (i.e. when {@link #isRequired()}
      * is called) and the return value will be interpreting according to the Groovy Truth. For any other type, the value
      * will be stored and evaluated on demand according to the Groovy Truth.
      */
@@ -185,10 +185,10 @@ class SigningExtension {
     }
     
     /**
-     * Creates signing tasks that depend on and sign the “archive” produced by the given tasks.
+     * Creates signing tasks that depend on and sign the "archive" produced by the given tasks.
      *
-     * <p>The created tasks will be named “sign«input task name capitalized»”. That is, given a task with the name “jar”
-     * the created task will be named “signJar”.
+     * <p>The created tasks will be named "sign«input task name capitalized»". That is, given a task with the name "jar"
+     * the created task will be named "signJar".
      * <p>
      * If the task is not an {@link org.gradle.api.tasks.bundling.AbstractArchiveTask}, an 
      * {@link org.gradle.api.InvalidUserDataException} will be thrown.</p>
@@ -211,8 +211,8 @@ class SigningExtension {
     /**
      * Creates signing tasks that sign {@link Configuration#getAllArtifacts() all of the artifacts} of the given configurations.
      *
-     * <p>The created tasks will be named “sign«configuration name capitalized»”. That is, given a configuration with the name “archives”
-     * the created task will be named “signArchives”.
+     * <p>The created tasks will be named "sign«configuration name capitalized»". That is, given a configuration with the name "archives"
+     * the created task will be named "signArchives".
      *
      * The signature artifact for the created task is added to the {@link #getConfiguration() for this settings object}.
      *
@@ -345,7 +345,7 @@ class SigningExtension {
             return
         }
 
-        // Have to alter the “type” of the artifact to match what is published
+        // Have to alter the "type" of the artifact to match what is published
         // See http://issues.gradle.org/browse/GRADLE-1589
         pomSignature.type = "pom." + pomSignature.signatureType.extension
 
