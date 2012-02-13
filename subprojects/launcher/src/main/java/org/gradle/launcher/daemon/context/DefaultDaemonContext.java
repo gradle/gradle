@@ -16,13 +16,9 @@
 package org.gradle.launcher.daemon.context;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 
 import java.io.File;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Keep in mind that this is a serialized value object.
@@ -43,23 +39,6 @@ public class DefaultDaemonContext implements DaemonContext {
         this.pid = pid;
         this.idleTimeout = idleTimeout;
         this.daemonOpts = daemonOpts;
-    }
-
-    public static DaemonContext parseFrom(String source) {
-        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?),daemonOpts=([^\\n]+)].*",
-                Pattern.MULTILINE + Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(source);
-
-        if (matcher.matches()) {
-            String javaHome = matcher.group(1);
-            String daemonRegistryDir = matcher.group(2);
-            Long pid = Long.parseLong(matcher.group(3));
-            Integer idleTimeout = Integer.decode(matcher.group(4));
-            List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(5)));
-            return new DefaultDaemonContext(new File(javaHome), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts);
-        } else {
-            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + source + "].");
-        }
     }
 
     public String toString() {

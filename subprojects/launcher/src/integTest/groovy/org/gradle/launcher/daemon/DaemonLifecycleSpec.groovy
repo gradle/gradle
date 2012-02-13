@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.GradleHandle
 import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
-import org.gradle.launcher.daemon.context.DefaultDaemonContext
+import org.gradle.launcher.daemon.testing.DaemonContextParser
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.util.Jvm
 import spock.lang.IgnoreIf
@@ -184,7 +184,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     void doDaemonContext(gradleHandle, Closure assertions) {
-        DefaultDaemonContext.parseFrom(gradleHandle.standardOutput).with(assertions)
+        DaemonContextParser.parseFrom(gradleHandle.standardOutput).with(assertions)
     }
 
     def "daemons do some work - sit idle - then timeout and die"() {
