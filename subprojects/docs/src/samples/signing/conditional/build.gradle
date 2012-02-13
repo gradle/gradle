@@ -9,9 +9,8 @@ version = '1.0-SNAPSHOT'
 isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 signing {
-    if (isReleaseVersion) {
-        sign configurations.archives
-    }
+    required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
 }
 // END SNIPPET conditional-signing
 
