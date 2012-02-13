@@ -22,10 +22,12 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
 public class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClientProtocol {
+    private final DaemonForkOptions forkOptions;
     private final CompilerDaemonServerProtocol server;
     private final BlockingQueue<CompileResult> compileResults = new SynchronousQueue<CompileResult>();
 
-    public CompilerDaemonClient(CompilerDaemonServerProtocol server) {
+    public CompilerDaemonClient(DaemonForkOptions forkOptions, CompilerDaemonServerProtocol server) {
+        this.forkOptions = forkOptions;
         this.server = server;
     }
 
@@ -36,6 +38,10 @@ public class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClien
         } catch (InterruptedException e) {
             throw UncheckedException.asUncheckedException(e);
         }
+    }
+
+    public boolean isCompatibleWith(DaemonForkOptions required) {
+        return forkOptions.isCompatibleWith(required);
     }
 
     public void stop() {

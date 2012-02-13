@@ -24,8 +24,6 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.UncheckedException;
 
 public class DaemonJavaCompiler extends JavaCompilerSupport {
-    private static final Logger LOGGER = Logging.getLogger(DaemonJavaCompiler.class);
-    
     private final ProjectInternal project;
     private final JavaCompiler delegate;
 
@@ -36,7 +34,8 @@ public class DaemonJavaCompiler extends JavaCompilerSupport {
 
     public WorkResult execute() {
         configure(delegate);
-        CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project);
+        DaemonForkOptions forkOptions = new DaemonForkOptions(getCompileOptions().getForkOptions());
+        CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project, forkOptions);
         CompileResult result = daemon.execute(delegate);
         if (result.isSuccess() || !compileOptions.isFailOnError()) {
             return result;

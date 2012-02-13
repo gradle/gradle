@@ -23,4 +23,5 @@ import org.gradle.internal.Stoppable;
  */
 public interface CompilerDaemon extends Stoppable {
     CompileResult execute(Compiler compiler);
+    boolean isCompatibleWith(DaemonForkOptions required);
 }

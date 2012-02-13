@@ -41,30 +41,42 @@ public class CompilerDaemonManager {
         return INSTANCE;
     }
     
-    public CompilerDaemon getDaemon(ProjectInternal project) {
+    public CompilerDaemon getDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
+        if (client != null && !client.isCompatibleWith(forkOptions)) {
+            stop();
+        }
         if (client == null) {
-            startDaemon(project);
+            startDaemon(project, forkOptions);
             stopDaemonOnceBuildFinished(project);
         }
         return client;
     }
     
-    private void startDaemon(ProjectInternal project) {
+    public void stop() {
+        LOGGER.info("Stopping Gradle compiler daemon.");
+        client.stop();
+        client = null;
+        process.waitForStop();
+        LOGGER.info("Gradle compiler daemon stopped.");
+    }
+    
+    private void startDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
         LOGGER.info("Starting Gradle compiler daemon.");
         WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
-        builder.setLogLevel(project.getGradle().getStartParameter().getLogLevel()); // TODO: respect per-compile-task log level
+        builder.setLogLevel(project.getGradle().getStartParameter().getLogLevel()); // NOTE: might make sense to respect per-compile-task log level
         File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
             builder.getApplicationClasspath().add(toolsJar); // for SunJavaCompiler
         }
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-        javaCommand.setMinHeapSize("128m"); // TODO: add extension object on Gradle for configuring daemon
-        javaCommand.setMaxHeapSize("1g");
+        javaCommand.setMinHeapSize(forkOptions.getMinHeapSize());
+        javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
+        javaCommand.setJvmArgs(forkOptions.getJvmArgs());
         javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
         process = builder.worker(new CompilerDaemonServer()).build();
         process.start();
         CompilerDaemonServerProtocol server = process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
-        client = new CompilerDaemonClient(server);
+        client = new CompilerDaemonClient(forkOptions, server);
         process.getConnection().addIncoming(CompilerDaemonClientProtocol.class, client);
         LOGGER.info("Gradle compiler daemon started.");
     }
@@ -73,9 +85,7 @@ public class CompilerDaemonManager {
         project.getGradle().addBuildListener(new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
-                client.stop();
-                client = null;
-                process.waitForStop();
+                stop();
             }
         });
     }
