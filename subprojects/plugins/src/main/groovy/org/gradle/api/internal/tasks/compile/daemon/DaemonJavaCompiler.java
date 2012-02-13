@@ -18,8 +18,6 @@ package org.gradle.api.internal.tasks.compile.daemon;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.UncheckedException;
 
