@@ -154,7 +154,7 @@ dependencies {
             def libs = module.component.orderEntry.library
             assert libs.size() == 1
             assert libs.CLASSES.root*.@url*.text().collect { new File(it).name } as Set == [artifact1.name + "!"] as Set
-            assert libs.CLASSES.root*.@url*.text().collect { it.replace("\$GRADLE_REPO\$", repoDir.absolutePath.replace(File.separator, "/"))} as Set == ["jar://${artifact1.getAbsolutePath().replace(File.separator, "/")}!/"] as Set
+            assert libs.CLASSES.root*.@url*.text().collect { it.replace("\$GRADLE_REPO\$", relPath(repoDir))} as Set == ["jar://${relPath(artifact1)}!/"] as Set
         }
 
     @Test
@@ -360,5 +360,9 @@ apply plugin: "idea"
 
     private containsDir(path, urls) {
         urls.any { it.endsWith(path) }
+    }
+
+    private String relPath(File file){
+        return file.absolutePath.replace(File.separator, "/")
     }
 }
