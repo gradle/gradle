@@ -247,6 +247,16 @@ literal code</programlisting><para> does something.
         _ * classMetaData.className >> 'org.gradle.Class'
     }
 
+    def convertsAnAElementWithAnHref() {
+        _ * classMetaData.rawCommentText >> '<a href="http://gradle.org">some value</a>'
+
+        when:
+        def result = parser.parse(classMetaData, listener)
+
+        then:
+        format(result.docbook) == '<para><ulink url="http://gradle.org">some value</ulink></para>'
+    }
+
     def convertsAnEmElementToAnEmphasisElement() {
         _ * classMetaData.rawCommentText >> '<em>text</em>'
 

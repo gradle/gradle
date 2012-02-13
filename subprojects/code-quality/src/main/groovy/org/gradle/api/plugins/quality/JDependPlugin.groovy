@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.reporting.Report
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 
 /**
@@ -55,9 +54,6 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
         extension.with {
             toolVersion = "2.9.1"
         }
-        extension.conventionMapping.with {
-            reportsDir = { project.extensions.getByType(ReportingExtension).file("jdepend") }
-        }
         return extension
     }
 
@@ -69,15 +65,11 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
                 if (config.dependencies.empty) {
                     project.dependencies {
                         jdepend "jdepend:jdepend:$extension.toolVersion"
-                        jdepend("org.apache.ant:ant-jdepend:1.8.2") {
-                            exclude module: "ant"
-                            exclude module: "ant-launcher"
-                        }
+                        jdepend("org.apache.ant:ant-jdepend:1.8.2")
                     }
                 }
                 config
             }
-            ignoreFailures = { extension.ignoreFailures }
         }
         task.reports.all { Report report ->
             report.conventionMapping.with {

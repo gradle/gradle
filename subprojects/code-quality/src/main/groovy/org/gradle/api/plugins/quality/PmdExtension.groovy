@@ -33,8 +33,7 @@ class PmdExtension extends CodeQualityExtension {
     /**
      *
      * The built-in rule sets to be used. See the <a href="http://pmd.sourceforge.net/rules/index.html">official list</a> of built-in rule sets.
-     * Defaults to <tt>basic</tt>.
-     * 
+     *
      * Example: ruleSets = ["basic", "braces"]
      */
     List<String> ruleSets
@@ -52,7 +51,7 @@ class PmdExtension extends CodeQualityExtension {
 
     /**
      * The custom rule set files to be used. See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for
-     * how to author a rule set file. Defaults to <tt>none</tt>.
+     * how to author a rule set file.
      *
      * Example: ruleSetFiles = files("config/pmd/myRuleSet.xml")
      *
@@ -69,9 +68,4 @@ class PmdExtension extends CodeQualityExtension {
     void ruleSetFiles(Object... ruleSetFiles) {
         this.ruleSetFiles.add(project.files(ruleSetFiles))
     }
-
-    /**
-     * The directory where PMD reports will be saved. Defaults to <tt>$reportsDir/pmd</tt>.
-     */
-    File reportsDir
 }

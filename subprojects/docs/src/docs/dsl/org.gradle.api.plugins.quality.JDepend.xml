@@ -5,16 +5,20 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default</td>
+                    <td>Default with <literal>jdepend</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
-                <td>toolVersion</td>
-                <td><literal>2.0.0</literal></td>
+                <td>jdependClasspath</td>
+                <td><literal>project.configurations.jdepend</literal></td>
             </tr>
             <tr>
-                <td>reportsDir</td>
-                <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/findbugs</literal></td>
+                <td>classesDir</td>
+                <td><literal><replaceable>sourceSet</replaceable>.output.classesDir</literal></td>
+            </tr>
+            <tr>
+                <td>reports</td>
+                <td></td>
             </tr>
         </table>
     </section>
@@ -26,6 +30,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>reports</td>
+            </tr>
         </table>
     </section>
 </section>

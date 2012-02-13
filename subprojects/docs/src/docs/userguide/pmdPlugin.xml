@@ -65,4 +65,30 @@
             </tr>
         </table>
     </section>
+
+    <section>
+        <title>Dependency management</title>
+        <para>The PMD plugin adds the following dependency configurations:</para>
+        <table>
+            <title>PMD plugin - dependency configurations</title>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <filename>pmd</filename>
+                </td>
+                <td>The PMD libraries to use</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Configuration</title>
+        <para>See <apilink class="org.gradle.api.plugins.quality.PmdExtension"/>.</para>
+    </section>
+
 </chapter>

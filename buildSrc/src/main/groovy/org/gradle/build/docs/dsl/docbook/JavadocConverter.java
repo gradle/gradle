@@ -126,6 +126,7 @@ public class JavadocConverter {
         handler.add(new TableHandler(nodes, document));
         handler.add(new AnchorElementHandler(nodes, document, classMetaData));
         handler.add(new AToLinkTranslatingHandler(nodes, document, classMetaData));
+        handler.add(new AToUlinkTranslatingHandler(nodes, document));
         handler.add(new UnknownJavadocTagHandler(nodes, document, listener));
         handler.add(new UnknownHtmlElementHandler(nodes, document, listener));
 
@@ -647,6 +648,38 @@ public class JavadocConverter {
             Element element = document.createElement("link");
             String targetId = String.format("%s.%s", classMetaData.getClassName(), href.substring(1));
             element.setAttribute("linkend", targetId);
+            nodes.push(elementName, element);
+            return true;
+        }
+
+        public void onEndElement(String element) {
+            nodes.pop(element);
+        }
+
+        public void onText(String text) {
+            nodes.appendChild(text);
+        }
+    }
+
+    private static class AToUlinkTranslatingHandler implements HtmlElementHandler {
+        private final NodeStack nodes;
+        private final Document document;
+
+        private AToUlinkTranslatingHandler(NodeStack nodes, Document document) {
+            this.nodes = nodes;
+            this.document = document;
+        }
+
+        public boolean onStartElement(String elementName, Map<String, String> attributes) {
+            if (!elementName.equals("a") || !attributes.containsKey("href")) {
+                return false;
+            }
+            String href = attributes.get("href");
+            if (href.startsWith("#")) {
+                return false;
+            }
+            Element element = document.createElement("ulink");
+            element.setAttribute("url", href);
             nodes.push(elementName, element);
             return true;
         }

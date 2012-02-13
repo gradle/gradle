@@ -5,32 +5,32 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>checkstyle</literal> plugin</td>
+                    <td>Default with <literal>pmd</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
-                <td>classpath</td>
+                <td>classes</td>
                 <td><literal><replaceable>sourceSet</replaceable>.output</literal></td>
             </tr>
             <tr>
-                <td>configFile</td>
-                <td><literal>project.checkstyle.configFile</literal></td>
-            </tr>
-            <tr>
-                <td>ignoreFailures</td>
-                <td><literal>project.checkstyle.ignoreFailures</literal></td>
-            </tr>
-            <tr>
-                <td>configProperties</td>
-                <td><literal>project.checkstyle.configProperties</literal></td>
+                <td>classpath</td>
+                <td><literal><replaceable>sourceSet</replaceable>.compileClasspath</literal></td>
             </tr>
             <tr>
                 <td>source</td>
                 <td><literal><replaceable>sourceSet</replaceable>.allJava</literal></td>
             </tr>
             <tr>
-                <td>checkstyleClasspath</td>
-                <td><literal>project.configurations.checkstyle</literal></td>
+                <td>findbugsClasspath</td>
+                <td><literal>project.configurations.findbugs</literal></td>
+            </tr>
+            <tr>
+                <td>pluginClasspath</td>
+                <td><literal>project.configurations.findbugsPlugins</literal></td>
+            </tr>
+            <tr>
+                <td>ignoreFailures</td>
+                <td><literal>project.findbugs.ignoreFailures</literal></td>
             </tr>
             <tr>
                 <td>reports</td>
