@@ -4,7 +4,6 @@ compileJava {
   options.with {
     useAnt = false
     fork = true
-    forkOptions.useCompilerDaemon = true
   }
   source += files("src/main/java/compile/fork/resource.txt")
 }

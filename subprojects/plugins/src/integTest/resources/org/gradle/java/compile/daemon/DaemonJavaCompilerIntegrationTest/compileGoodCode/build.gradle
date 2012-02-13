@@ -3,7 +3,6 @@ apply plugin: "java"
 compileJava.options.with {
     useAnt = false
     fork = true
-    forkOptions.useCompilerDaemon = true
 }
 
 dependencies {

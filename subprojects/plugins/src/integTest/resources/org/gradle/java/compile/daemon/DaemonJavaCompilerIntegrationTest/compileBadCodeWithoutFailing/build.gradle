@@ -4,7 +4,6 @@ compileJava.options.with {
     useAnt = false
     fork = true
     failOnError = false
-    forkOptions.useCompilerDaemon = true
 }
 
 dependencies {
