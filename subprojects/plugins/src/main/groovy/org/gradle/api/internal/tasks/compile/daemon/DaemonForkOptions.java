@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Nullable;
 import org.gradle.api.tasks.compile.ForkOptions;
 
 import java.util.Collections;
@@ -28,7 +29,7 @@ public class DaemonForkOptions {
     private final String maxHeapSize;
     private final List<String> jvmArgs;
 
-    public DaemonForkOptions(String minHeapSize, String maxHeapSize, List<String> jvmArgs) {
+    public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, @Nullable List<String> jvmArgs) {
         this.minHeapSize = minHeapSize;
         this.maxHeapSize = maxHeapSize;
         this.jvmArgs = jvmArgs;

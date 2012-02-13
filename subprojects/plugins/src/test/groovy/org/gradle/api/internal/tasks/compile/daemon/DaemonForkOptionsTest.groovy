@@ -43,41 +43,50 @@ class DaemonForkOptionsTest extends Specification {
         settings.isCompatibleWith(settings)
     }
 
-    def "is compatible with different representation of same memory requirements"() {
+    def "is compatible with same settings"() {
         def settings1 = new DaemonForkOptions("128m", "1g", ["-server", "-esa"])
-        def settings2 = new DaemonForkOptions("128m", "1024m", ["-server", "-esa"])
+        def settings2 = new DaemonForkOptions("128m", "1g", ["-server", "-esa"])
+
+        expect:
+        settings1.isCompatibleWith(settings2)
+    }
+
+
+    def "is compatible with different representation of same memory requirements"() {
+        def settings1 = new DaemonForkOptions("1024m", "2g", [])
+        def settings2 = new DaemonForkOptions("1g", "2048m", [])
 
         expect:
         settings1.isCompatibleWith(settings2)
     }
 
     def "is compatible with lower memory requirements"() {
-        def settings1 = new DaemonForkOptions("128m", "1g", ["-server", "-esa"])
-        def settings2 = new DaemonForkOptions("64m", "512m", ["-server", "-esa"])
+        def settings1 = new DaemonForkOptions("128m", "1g", [])
+        def settings2 = new DaemonForkOptions("64m", "512m", [])
 
         expect:
         settings1.isCompatibleWith(settings2)
     }
 
     def "is not compatible with higher memory requirements"() {
-        def settings1 = new DaemonForkOptions("128m", "1g", ["-server", "-esa"])
-        def settings2 = new DaemonForkOptions("256m", "512m", ["-server", "-esa"])
+        def settings1 = new DaemonForkOptions("128m", "1g", [])
+        def settings2 = new DaemonForkOptions("256m", "512m", [])
 
         expect:
         !settings1.isCompatibleWith(settings2)
     }
 
     def "is compatible with same set of JVM args"() {
-        def settings1 = new DaemonForkOptions("128m", "1g", ["-server", "-esa"])
-        def settings2 = new DaemonForkOptions("128m", "1m", ["-esa", "-server"])
+        def settings1 = new DaemonForkOptions("128M", "1g", ["-server", "-esa"])
+        def settings2 = new DaemonForkOptions("128M", "1g", ["-esa", "-server"])
 
         expect:
         settings1.isCompatibleWith(settings2)
     }
 
     def "is not compatible with different set of JVM args"() {
-        def settings1 = new DaemonForkOptions("128m", "1g", ["-server", "-esa"])
-        def settings2 = new DaemonForkOptions("128m", "1g", ["-client", "-esa"])
+        def settings1 = new DaemonForkOptions("128M", "1g", ["-server", "-esa"])
+        def settings2 = new DaemonForkOptions("128M", "1g", ["-client", "-esa"])
 
         expect:
         !settings1.isCompatibleWith(settings2)
@@ -92,18 +101,46 @@ class DaemonForkOptionsTest extends Specification {
     }
 
     def "capitalization of memory options is irrelevant"() {
-        def settings1 = new DaemonForkOptions("128M", "1g", ["-server", "-esa"])
-        def settings2 = new DaemonForkOptions("128m", "1G", ["-server", "-esa"])
+        def settings1 = new DaemonForkOptions("128M", "1g", [])
+        def settings2 = new DaemonForkOptions("128m", "1G", [])
 
         expect:
         settings1.isCompatibleWith(settings2)
     }
 
     def "capitalization of JVM args is relevant"() {
-        def settings1 = new DaemonForkOptions("128m", "1g", ["-Server", "-esa"])
-        def settings2 = new DaemonForkOptions("128m", "1g", ["-server", "-esa"])
+        def settings1 = new DaemonForkOptions("128M", "1g", ["-Server", "-esa"])
+        def settings2 = new DaemonForkOptions("128M", "1g", ["-server", "-esa"])
 
         expect:
         !settings1.isCompatibleWith(settings2)
+    }
+
+    def "all options are optional"() {
+        when:
+        new DaemonForkOptions(null, null, null)
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "unspecified JVM args are compatible with unspecified and empty JVM args"() {
+        def settings1 = new DaemonForkOptions("128m", "1g", null)
+        def settings2 = new DaemonForkOptions("128m", "1g", null)
+        def settings3 = new DaemonForkOptions("128m", "1g", [])
+
+        expect:
+        settings1.isCompatibleWith(settings2)
+        settings1.isCompatibleWith(settings3)
+    }
+
+    def "unspecified memory options are only compatible with unspecified memory options"() {
+        def settings1 = new DaemonForkOptions(null, null, [])
+        def settings2 = new DaemonForkOptions(null, null, [])
+        def settings3 = new DaemonForkOptions("8m", "64m", [])
+
+        expect:
+        settings1.isCompatibleWith(settings2)
+        !settings1.isCompatibleWith(settings3)
     }
 }
