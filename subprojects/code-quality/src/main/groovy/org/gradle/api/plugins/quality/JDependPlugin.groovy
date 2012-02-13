@@ -70,7 +70,6 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
                 }
                 config
             }
-            ignoreFailures = { extension.ignoreFailures }
         }
         task.reports.all { Report report ->
             report.conventionMapping.with {

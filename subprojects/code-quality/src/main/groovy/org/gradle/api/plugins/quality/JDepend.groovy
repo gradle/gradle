@@ -27,7 +27,7 @@ import org.gradle.api.tasks.*
 /**
  * Analyzes code with <a href="http://clarkware.com/software/JDepend.html">JDepend</a>.
  */
-class JDepend extends DefaultTask implements VerificationTask, Reporting<JDependReports> {
+class JDepend extends DefaultTask implements Reporting<JDependReports> {
     /**
      * The class path containing the JDepend library to be used.
      */
@@ -80,11 +80,6 @@ class JDepend extends DefaultTask implements VerificationTask, Reporting<JDepend
         reports.configure(closure)
     }
 
-    /**
-     * Whether or not this task will ignore failures and continue running the build.
-     */
-    boolean ignoreFailures
-
     @TaskAction
     void run() {
         Map<String, ?> reportArguments = [:]
@@ -99,8 +94,8 @@ class JDepend extends DefaultTask implements VerificationTask, Reporting<JDepend
 
         def antBuilder = services.get(IsolatedAntBuilder)
         antBuilder.withClasspath(getJdependClasspath()).execute {
-            ant.taskdef(name: 'jdepend', classname: 'org.apache.tools.ant.taskdefs.optional.jdepend.JDependTask')
-            ant.jdepend(haltOnError: !getIgnoreFailures(), *:reportArguments) {
+            ant.taskdef(name: 'jdependreport', classname: 'org.apache.tools.ant.taskdefs.optional.jdepend.JDependTask')
+            ant.jdependreport(*:reportArguments) {
                 classespath {
                     pathElement(location: getClassesDir())
                 }

@@ -76,7 +76,6 @@ class JDependPluginTest extends Specification {
             assert jdependClasspath == project.configurations.jdepend
             assert classesDir == sourceSet.output.classesDir
             assert reports.xml.destination == project.file("build/reports/jdepend/${sourceSet.name}.xml")
-            assert ignoreFailures == false
         }
     }
 
@@ -88,7 +87,6 @@ class JDependPluginTest extends Specification {
         task.classesDir == null
         task.jdependClasspath == project.configurations.jdepend
         task.reports.xml.destination == project.file("build/reports/jdepend/custom.xml")
-        task.ignoreFailures == false
     }
 
     def "adds jdepend tasks to check lifecycle task"() {
@@ -129,7 +127,6 @@ class JDependPluginTest extends Specification {
         def task = project.tasks.add("jdependCustom", JDepend)
         project.jdepend {
             reportsDir = project.file("jdepend-reports")
-            ignoreFailures = true
         }
 
         expect:
@@ -137,7 +134,6 @@ class JDependPluginTest extends Specification {
         task.classesDir == null
         task.jdependClasspath == project.configurations.jdepend
         task.reports.xml.destination == project.file("jdepend-reports/custom.xml")
-        task.ignoreFailures == true
     }
 
     def "can configure reporting"() {
@@ -167,7 +163,6 @@ class JDependPluginTest extends Specification {
             assert jdependClasspath == project.configurations.jdepend
             assert classesDir == sourceSet.output.classesDir
             assert reports.xml.destination == project.file("jdepend-reports/${sourceSet.name}.xml")
-            assert ignoreFailures == true
         }
     }
 }
