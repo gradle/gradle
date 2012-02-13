@@ -8,6 +8,18 @@
                     <td>Default with <literal>jdepend</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>jdependClasspath</td>
+                <td><literal>project.configurations.jdepend</literal></td>
+            </tr>
+            <tr>
+                <td>classesDir</td>
+                <td><literal><replaceable>sourceSet</replaceable>.output.classesDir</literal></td>
+            </tr>
+            <tr>
+                <td>reports</td>
+                <td></td>
+            </tr>
         </table>
     </section>
     <section>
@@ -18,6 +30,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>reports</td>
+            </tr>
         </table>
     </section>
 </section>
