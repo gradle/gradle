@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler;
-import org.gradle.api.internal.tasks.compile.fork.ForkingJavaCompiler;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
 import org.gradle.util.Jvm;
@@ -53,12 +52,9 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     }
 
     private JavaCompiler createTargetCompiler(CompileOptions options) {
-        if (!options.isFork()) {
-            return inProcessCompilerFactory.create(options);
-        }
-        if (options.getForkOptions().isUseCompilerDaemon()) {
+        if (options.isFork()) {
             return new DaemonJavaCompiler(project, inProcessCompilerFactory.create(options));
         }
-        return new ForkingJavaCompiler(project);
+        return inProcessCompilerFactory.create(options);
     }
 }

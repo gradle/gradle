@@ -20,7 +20,6 @@ import spock.lang.Specification
 import org.gradle.internal.Factory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.compile.fork.ForkingJavaCompiler
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler
 import org.gradle.util.Jvm
 
@@ -56,21 +55,9 @@ class ForkingJavaCompilerFactoryTest extends Specification {
         compiler.compiler.is(inProcessCompiler)
     }
 
-    def "creates forking compiler when fork=true and useCompilerDaemon=false"() {
+    def "creates daemon compiler when fork=true"() {
         options.useAnt = false
         options.fork = true
-        options.forkOptions.useCompilerDaemon = false
-
-        expect:
-        def compiler = factory.create(options)
-        compiler instanceof NormalizingJavaCompiler
-        compiler.compiler instanceof ForkingJavaCompiler
-    }
-
-    def "creates daemon compiler when fork=true and useCompilerDaemon=true"() {
-        options.useAnt = false
-        options.fork = true
-        options.forkOptions.useCompilerDaemon = true
 
         expect:
         def compiler = factory.create(options)
