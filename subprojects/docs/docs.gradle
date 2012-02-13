@@ -221,6 +221,9 @@ task userguidePdf(type: Xhtml2Pdf, dependsOn: userguideXhtml) {
     classpath = configurations.userGuideTask
 }
 
+def javaApiUrl = "http://docs.oracle.com/javase/1.5.0/docs/api/"
+def groovyApiUrl = "http://groovy.codehaus.org/gapi/"
+
 task javadoc(type: Javadoc) {
     group = 'documentation'
     options.encoding = 'utf-8'
@@ -235,18 +238,11 @@ task javadoc(type: Javadoc) {
     include 'org/gradle/testfixtures/**'
     include 'org/gradle/tooling/**'
     exclude '**/internal/**'
-    options.links("http://docs.oracle.com/javase/1.5.0/docs/api/", "http://groovy.codehaus.org/gapi/", "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
+    options.links(javaApiUrl, groovyApiUrl, "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")
     doFirst {
         title = "Gradle API $version"
     }
-}
-
-task checkstyleApi(type: Checkstyle) {
-    source javadoc.source
-    configFile = file("$checkstyleConfigDir/checkstyle-api.xml")
-    classpath = files()
-    reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
 //TODO SF - generates for java as well, rename to codedoc?
@@ -261,6 +257,18 @@ task groovydoc(type: Groovydoc) {
         title = "Gradle API $version"
     }
     groovyClasspath = project(':core').configurations.groovy
+    doFirst {
+        [javaApiUrl, groovyApiUrl].each {
+            link(it, *(new URL("$it/package-list").text.tokenize("\n")))
+        }
+    }
+}
+
+task checkstyleApi(type: Checkstyle) {
+    source javadoc.source
+    configFile = file("$checkstyleConfigDir/checkstyle-api.xml")
+    classpath = files()
+    reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
 task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples]) {
