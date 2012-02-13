@@ -23,7 +23,9 @@ package org.gradle.api.tasks.bundling;
 public enum Compression {
     NONE("tar"),
     GZIP("tgz"),
-    BZIP2("tbz2");
+    BZIP2("tbz2"),
+    BZ2("bz2"),
+    GZ("gz");
 
     private final String extension;
 
