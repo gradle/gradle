@@ -21,6 +21,7 @@
 /buildSrc/*.ipr
 /buildSrc/*.iws
 /buildSrc/*.iml
+/buildSrc/out
 *.classpath
 *.project
 *.settings
