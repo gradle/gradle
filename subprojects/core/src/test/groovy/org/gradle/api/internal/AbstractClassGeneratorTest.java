@@ -19,11 +19,13 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.ConventionValue;
+import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -468,6 +470,17 @@ public abstract class AbstractClassGeneratorTest {
 
         assertThat(call("{ it.prop 1}", bean), nullValue());
         assertThat(bean.getProp(), equalTo("<1>"));
+
+        // failing, seems to be that set method override doesn't work for iterables - GRADLE-2097
+        //assertThat(call("{ bean, list -> bean.things(list) }", bean, new LinkedList<Object>()), nullValue());
+        //assertThat(bean.getThings().size(), equalTo(0));
+
+        //assertThat(call("{ bean -> bean.things([1,2,3]) }", bean), nullValue());
+        //assertThat(bean.getThings().size(), equalTo(3));
+
+        //FileCollection files = ProjectBuilder.builder().build().files();
+        //assertThat(call("{ bean, fc -> bean.files fc}", bean, files), nullValue());
+        //assertThat(bean.getFiles(), sameInstance(files));
     }
 
     @Test
@@ -540,6 +553,8 @@ public abstract class AbstractClassGeneratorTest {
 
     public static class BeanWithDslMethods extends Bean {
         private String prop;
+        private FileCollection files;
+        private List<Object> things;
 
         public String getProp() {
             return prop;
@@ -547,6 +562,22 @@ public abstract class AbstractClassGeneratorTest {
 
         public void setProp(String prop) {
             this.prop = prop;
+        }
+
+        public FileCollection getFiles() {
+            return files;
+        }
+
+        public void setFiles(FileCollection files) {
+            this.files = files;
+        }
+
+        public List<Object> getThings() {
+            return things;
+        }
+
+        public void setThings(List<Object> things) {
+            this.things = things;
         }
 
         public BeanWithDslMethods prop(String property) {
