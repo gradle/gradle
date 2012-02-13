@@ -28,7 +28,7 @@ abstract class AbstractLibrary extends AbstractClasspathEntry {
 
     AbstractLibrary(Node node, FileReferenceFactory fileReferenceFactory) {
         super(node)
-        javadocPath = fileReferenceFactory.fromJarURL(entryAttributes.javadoc_location)
+        javadocPath = fileReferenceFactory.fromJarURI(entryAttributes.javadoc_location)
     }
 
     AbstractLibrary(FileReference library) {

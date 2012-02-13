@@ -15,10 +15,9 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
-import spock.lang.Specification
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 import org.gradle.util.Matchers
-import org.gradle.internal.nativeplatform.OperatingSystem
+import spock.lang.Specification
 
 /**
  * @author Hans Dockter
@@ -29,7 +28,7 @@ class VariableTest extends Specification {
                 <classpathentry exported="true" kind="var" path="/GRADLE_CACHE/ant.jar" sourcepath="/GRADLE_CACHE/ant-src.jar">
                     <attributes>
                         <attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="mynative"/>
-                        <attribute name="javadoc_location" value="jar:file:%ABSOLUTE_PATH_PREFIX%/ant-javadoc.jar!/"/>
+                        <attribute name="javadoc_location" value="jar:%FILE_URI%!/"/>
                     </attributes>
                     <accessrules>
                         <accessrule kind="nonaccessible" pattern="secret**"/>
@@ -39,11 +38,10 @@ class VariableTest extends Specification {
 
     String platformXml;
 
-    def setup() {
-        //xml differs on windows and mac due to required absolute paths for javadoc
-        String osDependenAbsolutePathPrefix = OperatingSystem.current().windows ? "/C:" : ""
-        platformXml = XML_TEXT_TEMPLATE.replace("%ABSOLUTE_PATH_PREFIX%", osDependenAbsolutePathPrefix);
-    }
+    def setup(){
+            //xml differs on windows and mac due to required absolute paths for javadoc uri
+            platformXml = XML_TEXT_TEMPLATE.replace("%FILE_URI%", new File("ant-javadoc.jar").toURI().toString());
+        }
 
     def canReadFromXml() {
         when:
@@ -80,7 +78,7 @@ class VariableTest extends Specification {
         variable.nativeLibraryLocation = 'mynative'
         variable.accessRules += [new AccessRule('nonaccessible', 'secret**')]
         variable.sourcePath = fileReferenceFactory.fromVariablePath("/GRADLE_CACHE/ant-src.jar")
-        variable.javadocPath = fileReferenceFactory.fromPath("${OperatingSystem.current().windows ? "C:" : ""}/ant-javadoc.jar")
+        variable.javadocPath = fileReferenceFactory.fromJarURI("jar:${new File("ant-javadoc.jar").toURI()}!/");
         return variable
     }
 }
