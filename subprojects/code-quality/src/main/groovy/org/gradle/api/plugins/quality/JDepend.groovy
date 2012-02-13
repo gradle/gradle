@@ -95,7 +95,7 @@ class JDepend extends DefaultTask implements Reporting<JDependReports> {
         def antBuilder = services.get(IsolatedAntBuilder)
         antBuilder.withClasspath(getJdependClasspath()).execute {
             ant.taskdef(name: 'jdependreport', classname: 'org.apache.tools.ant.taskdefs.optional.jdepend.JDependTask')
-            ant.jdependreport(*:reportArguments) {
+            ant.jdependreport(*:reportArguments, haltonerror: true) {
                 classespath {
                     pathElement(location: getClassesDir())
                 }
