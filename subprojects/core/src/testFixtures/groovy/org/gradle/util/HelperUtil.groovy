@@ -126,8 +126,8 @@ class HelperUtil {
          new GroovyShell().parse(code)
      }
 
-     static Object call(String text, Object params) {
-         toClosure(text).call(params)
+     static Object call(String text, Object... params) {
+         toClosure(text).call(*params)
      }
 
      static Closure toClosure(String text) {
