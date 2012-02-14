@@ -27,5 +27,7 @@ public interface PatternBasedResolver extends DependencyResolver {
 
     void setM2compatible(boolean b);
 
+    List getIvyPatterns();
+
     List getArtifactPatterns();
 }

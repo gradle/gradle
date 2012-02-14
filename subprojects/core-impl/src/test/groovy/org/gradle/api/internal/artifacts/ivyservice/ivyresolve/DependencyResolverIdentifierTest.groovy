@@ -1,0 +1,92 @@
+/*
+ * Copyright 2011 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+
+
+import org.apache.ivy.plugins.resolver.DependencyResolver
+import spock.lang.Specification
+import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver
+import org.gradle.api.internal.artifacts.repositories.ResourceCollectionResolver
+
+public class DependencyResolverIdentifierTest extends Specification {
+    def "dependency resolvers of unknown type are identified by their name"() {
+        given:
+        DependencyResolver resolver1 = Mock()
+        DependencyResolver resolver1a = Mock()
+        DependencyResolver resolver2 = Mock()
+
+        when:
+        resolver1.name >> 'name1'
+        resolver1a.name >> 'name1'
+        resolver2.name >> 'name2'
+
+        then:
+        id(resolver1) == id(resolver1a)
+        id(resolver1) != id(resolver2)
+    }
+
+    def "dependency resolvers of type AbstractPatternBasedResolver are differentiated by their patterns"() {
+        given:
+        AbstractPatternsBasedResolver resolver1 = Mock()
+        AbstractPatternsBasedResolver resolver1a = Mock()
+        AbstractPatternsBasedResolver resolver2 = Mock()
+        AbstractPatternsBasedResolver resolver2a = Mock()
+
+        when:
+        resolver1.ivyPatterns >> ['ivy1', 'ivy2']
+        resolver1.artifactPatterns >> ['artifact1', 'artifact2']
+        resolver1a.ivyPatterns >> ['ivy1', 'ivy2']
+        resolver1a.artifactPatterns >> ['artifact1', 'artifact2']
+        resolver2.ivyPatterns >> ['ivy1', 'different']
+        resolver2.artifactPatterns >> ['artifact1', 'artifact2']
+        resolver2a.ivyPatterns >> ['ivy1', 'ivy2']
+        resolver2a.artifactPatterns >> ['artifact1', 'different']
+
+        then:
+        id(resolver1) == id(resolver1a)
+        id(resolver1) != id(resolver2)
+        id(resolver1) != id(resolver2a)
+        id(resolver2) != id(resolver2a)
+    }
+
+    def "dependency resolvers of type ResourceCollectionResolver are differentiated by their patterns"() {
+        given:
+        ResourceCollectionResolver resolver1 = Mock()
+        ResourceCollectionResolver resolver1a = Mock()
+        ResourceCollectionResolver resolver2 = Mock()
+        ResourceCollectionResolver resolver2a = Mock()
+
+        when:
+        resolver1.ivyPatterns >> ['ivy1', 'ivy2']
+        resolver1.artifactPatterns >> ['artifact1', 'artifact2']
+        resolver1a.ivyPatterns >> ['ivy1', 'ivy2']
+        resolver1a.artifactPatterns >> ['artifact1', 'artifact2']
+        resolver2.ivyPatterns >> ['ivy1', 'different']
+        resolver2.artifactPatterns >> ['artifact1', 'artifact2']
+        resolver2a.ivyPatterns >> ['ivy1', 'ivy2']
+        resolver2a.artifactPatterns >> ['artifact1', 'different']
+
+        then:
+        id(resolver1) == id(resolver1a)
+        id(resolver1) != id(resolver2)
+        id(resolver1) != id(resolver2a)
+        id(resolver2) != id(resolver2a)
+    }
+
+    def id(DependencyResolver resolver) {
+        return new DependencyResolverIdentifier(resolver).id
+    }
+}
