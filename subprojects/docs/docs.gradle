@@ -244,8 +244,21 @@ task javadoc(type: Javadoc) {
     }
 }
 
+task configureGroovyDoc {
+    doFirst {
+        project.configure(groovydoc) {
+            [javaApiUrl, groovyApiUrl].each {
+                link(it, *(new URL("$it/package-list").text.tokenize("\n")))
+            }
+            docTitle = "Gradle API $version"
+            windowTitle = "Gradle API $version"
+            footer = "Gradle API $version"
+        }
+    }
+}
+
 //TODO SF - generates for java as well, rename to codedoc?
-task groovydoc(type: Groovydoc) {
+task groovydoc(type: Groovydoc, dependsOn: configureGroovyDoc) {
     group = 'documentation'
     source groovyProjects().collect {project -> project.sourceSets.main.groovy + project.sourceSets.main.java }
     destinationDir = new File(docsDir, 'groovydoc')
@@ -256,16 +269,6 @@ task groovydoc(type: Groovydoc) {
         title = "Gradle API $version"
     }
     groovyClasspath = project(':core').configurations.groovy
-    doFirst {
-        [javaApiUrl, groovyApiUrl].each {
-            link(it, *(new URL("$it/package-list").text.tokenize("\n")))
-        }
-
-        docTitle = "Gradle API $version"
-        windowTitle = "Gradle API $version"
-        footer = "Gradle API $version"
-    }
-    
     doLast {
         def index = new File(destinationDir, "index.html")
         index.text = index.text.replace("{todo.title}", windowTitle) // workaround groovydoc bug
