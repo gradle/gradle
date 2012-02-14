@@ -22,7 +22,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.client.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonGreeter;
-import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.DaemonStoppedException;
@@ -32,11 +31,8 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
+import java.util.UUID;
 
 /**
  * The entry point for a daemon process.
@@ -55,7 +51,7 @@ public class DaemonMain extends EntryPoint {
 
     public static void main(String[] args) {
         if (args.length != 4) {
-            invalidArgs("3 arguments are required: <gradle-version> <daemon-dir> <timeout-millis> <daemonUid>");
+            invalidArgs("Following arguments are required: <gradle-version> <daemon-dir> <timeout-millis> <daemonUid>");
         }
         File daemonBaseDir = new File(args[1]);
 

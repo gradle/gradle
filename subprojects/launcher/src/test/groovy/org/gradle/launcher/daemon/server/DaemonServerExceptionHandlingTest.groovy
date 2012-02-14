@@ -74,8 +74,8 @@ class DaemonServerExceptionHandlingTest extends Specification {
         //we need to override some methods to inject a failure action into the sequence
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
-                return new DefaultDaemonCommandExecuter(new DefaultGradleLauncherFactory(loggingServices), get(ExecutorFactory), get(ProcessEnvironment),
-                        loggingServices.getFactory(LoggingManagerInternal.class).create()) {
+                return new DefaultDaemonCommandExecuter(new DefaultGradleLauncherFactory(loggingServices), get(ExecutorFactory),
+                        get(ProcessEnvironment), loggingServices.getFactory(LoggingManagerInternal.class).create(), new File("dummy")) {
                     List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
                         def actions = super.createActions(daemonContext);
                         def failingAction = { throw new RuntimeException("boo!") } as DaemonCommandAction

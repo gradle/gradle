@@ -25,6 +25,7 @@ import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.DisconnectAwareConnectionDecorator;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,11 +39,13 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
     private final LoggingManagerInternal loggingManager;
     private final GradleLauncherFactory launcherFactory;
     private final ProcessEnvironment processEnvironment;
+    private final File daemonLog;
 
     public DefaultDaemonCommandExecuter(GradleLauncherFactory launcherFactory, ExecutorFactory executorFactory,
-                                        ProcessEnvironment processEnvironment, LoggingManagerInternal loggingManager) {
+                                        ProcessEnvironment processEnvironment, LoggingManagerInternal loggingManager, File daemonLog) {
         this.executorFactory = executorFactory;
         this.processEnvironment = processEnvironment;
+        this.daemonLog = daemonLog;
         this.loggingManager = loggingManager;
         this.launcherFactory = launcherFactory;
     }
@@ -65,7 +68,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new HandleStop(),
             new StartBuildOrRespondWithBusy(),
             new EstablishBuildEnvironment(processEnvironment),
-            new LogToClient(loggingManager, daemonContext.getPid()), // from this point down, logging is sent back to the client
+            new LogToClient(loggingManager, daemonContext.getPid(), daemonLog), // from this point down, logging is sent back to the client
             new ForwardClientInput(executorFactory),
             new ReturnResult(),
             new ResetDeprecationLogger(),
