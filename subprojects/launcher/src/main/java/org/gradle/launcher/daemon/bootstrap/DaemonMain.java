@@ -51,7 +51,6 @@ public class DaemonMain extends EntryPoint {
 
     private final String daemonUid;
     private final File daemonBaseDir;
-    private final boolean redirectIo;
     private final int idleTimeoutMs;
 
     public static void main(String[] args) {
@@ -73,7 +72,7 @@ public class DaemonMain extends EntryPoint {
         parameters.setBaseDir(daemonBaseDir);
         parameters.setIdleTimeout(idleTimeoutMs);
 
-        new DaemonMain(parameters, true).run();
+        new DaemonMain(parameters).run();
     }
 
     private static void invalidArgs(String message) {
@@ -82,11 +81,10 @@ public class DaemonMain extends EntryPoint {
         System.exit(1);
     }
 
-    public DaemonMain(DaemonParameters parameters, boolean redirectIo) {
+    public DaemonMain(DaemonParameters parameters) {
         this.daemonUid = parameters.getUid();
         this.daemonBaseDir = parameters.getBaseDir();
         this.idleTimeoutMs = parameters.getIdleTimeout();
-        this.redirectIo = redirectIo;
     }
 
     protected void doAction(ExecutionListener listener) {
@@ -96,23 +94,7 @@ public class DaemonMain extends EntryPoint {
         DaemonDir daemonDir = daemonServices.get(DaemonDir.class);
         final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
 
-        if (redirectIo) {
-            //create log file
-            PrintStream log = createLogOutput(daemonDir, daemonContext);
-            
-            //close all streams and redirect IO
-            redirectOutputsAndInput(log);
-            
-            //after redirecting we need to add the new std out/err to the renderer singleton
-            //so that logging gets its way to the daemon log:
-            loggingRegistry.get(OutputEventRenderer.class).addStandardOutputAndError();
-
-            //Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
-            //Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)
-            loggingManager.setLevel(LogLevel.DEBUG);
-        }
-
-        loggingManager.start();
+        initialiseLogging(loggingRegistry, loggingManager, daemonDir, daemonContext);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
@@ -120,8 +102,7 @@ public class DaemonMain extends EntryPoint {
             }
         });
 
-        Daemon daemon = daemonServices.get(Daemon.class);
-        daemon.start();
+        Daemon daemon = startDaemon(daemonServices);
         try {
             daemon.awaitIdleTimeout(idleTimeoutMs);
             LOGGER.info("Daemon hit idle timeout (" + idleTimeoutMs + "ms), stopping");
@@ -130,6 +111,30 @@ public class DaemonMain extends EntryPoint {
             LOGGER.info("Daemon stopping due to stop request");
             listener.onFailure(e);
         }
+    }
+
+    protected void initialiseLogging(LoggingServiceRegistry loggingRegistry, LoggingManagerInternal loggingManager, DaemonDir daemonDir, DaemonContext daemonContext) {
+        //create log file
+        PrintStream log = createLogOutput(daemonDir, daemonContext);
+
+        //close all streams and redirect IO
+        redirectOutputsAndInput(log);
+
+        //after redirecting we need to add the new std out/err to the renderer singleton
+        //so that logging gets its way to the daemon log:
+        loggingRegistry.get(OutputEventRenderer.class).addStandardOutputAndError();
+
+        //Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
+        //Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)
+        loggingManager.setLevel(LogLevel.DEBUG);
+
+        loggingManager.start();
+    }
+
+    protected Daemon startDaemon(DaemonServices daemonServices) {
+        Daemon daemon = daemonServices.get(Daemon.class);
+        daemon.start();
+        return daemon;
     }
 
     private static PrintStream createLogOutput(DaemonDir daemonDir, DaemonContext daemonContext) {

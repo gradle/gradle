@@ -27,7 +27,7 @@ import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplicatio
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.daemon.bootstrap.DaemonMain;
+import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.client.DaemonParameters;
@@ -131,8 +131,7 @@ public class CommandLineActionFactory {
         daemonParameters.configureFromGradleUserHome(startParameter.getGradleUserHomeDir());
         daemonParameters.configureFromSystemProperties(mergedSystemProperties);
         if (commandLine.hasOption(FOREGROUND)) {
-            return new ActionAdapter(new DaemonMain(daemonParameters, false));
-            // TODO:DAZ Need to mark as idle somehow
+            return new ActionAdapter(new ForegroundDaemonMain(daemonParameters));
         }
 
         DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, System.in);

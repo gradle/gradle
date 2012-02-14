@@ -78,6 +78,10 @@ public class Daemon implements Runnable, Stoppable {
         return daemonContext.getUid();
     }
 
+    public Address getAddress() {
+        return connectorAddress;
+    }
+
     /**
      * Starts the daemon, receiving connections asynchronously (i.e. returns immediately).
      * 
