@@ -243,7 +243,22 @@ public class JvmOptions {
         target.setDebug(debug);
     }
 
-    public static List<String> fromString(String propertyValue) {
-        return Lists.newArrayList(Splitter.onPattern("\\s").omitEmptyStrings().split(propertyValue));
+    public static List<String> fromString(String input) {
+        //split on whitespace but only if it's not inside double quotes
+        List<String> split = Lists.newArrayList(Splitter.onPattern("\\s(?=([^\"]*\"[^\"]*\")*[^\"]*$)")
+                .omitEmptyStrings()
+                .split(input));
+        
+        //now lets get rid of the property value quotes, e.g "-Dfoo=bar" -> -Dfoo=bar, -Dfoo="bar" -> -Dfoo=bar
+        List<String> out = new ArrayList<String>();
+        for (String s : split) {
+            if ((s.startsWith("-D") || s.startsWith("\"-D")) && s.endsWith("\"")) {
+                out.add(s.replaceFirst("\"", "").substring(0, s.length()-2));
+            } else {
+                out.add(s);
+            }
+        }
+        
+        return out;
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal
 
+import org.gradle.api.internal.file.IdentityFileResolver
 import spock.lang.Specification
 
 /**
@@ -27,8 +28,27 @@ class JvmOptionsTest extends Specification {
         expect:
         JvmOptions.fromString("") == []
         JvmOptions.fromString("-Xmx512m") == ["-Xmx512m"]
-        JvmOptions.fromString("-Xmx512m   -Dfoo=bar\n-XDebug") == ["-Xmx512m", "-Dfoo=bar", "-XDebug"]
-        //TODO:
-        //JvmOptions.fromString("-Xmx512m -Dfoo=bar -Dfoo2=\"hey buddy\"") == ["-Xmx512m", "-Dfoo=bar", "-Dfoo2=\"hey buddy\""]
+        JvmOptions.fromString("\t-Xmx512m\n") == ["-Xmx512m"]
+        JvmOptions.fromString(" -Xmx512m   -Dfoo=bar\n-XDebug  ") == ["-Xmx512m", "-Dfoo=bar", "-XDebug"]
+    }
+
+    def "reads quoted options from String"() {
+        expect:
+        JvmOptions.fromString("-Dfoo=bar -Dfoo2=\"hey buddy\" -Dfoo3=baz") ==
+                ["-Dfoo=bar", "-Dfoo2=hey buddy", "-Dfoo3=baz"]
+
+        JvmOptions.fromString("  -Dfoo=\" bar \"  " ) == ["-Dfoo= bar "]
+        JvmOptions.fromString("  -Dx=\"\"  -Dy=\"\n\" " ) == ["-Dx=", "-Dy=\n"]
+        JvmOptions.fromString(" \"-Dx= a b c \" -Dy=\" x y z \" ") == ["-Dx= a b c ", "-Dy= x y z "]
+    }
+    
+    def "understands quoted system properties"() {
+        def opts = new JvmOptions(new IdentityFileResolver())
+
+        when:
+        opts.jvmArgs(JvmOptions.fromString("  -Dfoo=\" hey man! \"  " ))
+
+        then:
+        opts.getSystemProperties().get("foo") == " hey man! "
     }
 }
