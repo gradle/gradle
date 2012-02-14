@@ -15,13 +15,17 @@
  */
 package org.gradle.api.internal.file.archive;
 
+import java.util.Map;
+import java.util.HashMap;
+
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import org.gradle.util.Resources;
+import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.junit.Test;
 import org.junit.Rule;
-import org.gradle.util.TemporaryFolder;
 import static org.gradle.util.WrapUtil.*;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
 import static org.gradle.api.file.FileVisitorUtil.*;
@@ -31,8 +35,8 @@ import org.gradle.api.GradleException;
 import static java.util.Collections.*;
 
 public class ZipFileTreeTest {
-    @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
+    @Rule public final Resources resources = new Resources();
     private final TestFile zipFile = tmpDir.getDir().file("test.zip");
     private final TestFile rootDir = tmpDir.getDir().file("root");
     private final TestFile expandDir = tmpDir.getDir().file("tmp");
@@ -90,5 +94,16 @@ public class ZipFileTreeTest {
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo("Could not expand ZIP '" + zipFile + "'."));
         }
+    }
+
+    @Test
+    public void expectedFilePermissionsAreFound() {
+        resources.findResource("permissions.zip").copyTo(zipFile);
+
+        final Map<String, Integer> expected = new HashMap<String, Integer>();
+        expected.put("file", 0644);
+        expected.put("folder", 0755);
+
+        assertVisitsPermissions(tree, expected);
     }
 }

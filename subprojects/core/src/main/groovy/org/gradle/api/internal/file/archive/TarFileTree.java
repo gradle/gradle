@@ -150,6 +150,10 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         public RelativePath getRelativePath() {
             return new RelativePath(!entry.isDirectory(), entry.getName().split("/"));
         }
+
+        public int getMode() {
+            return entry.getMode() & 0777;
+        }
     }
 
     private static class NoCloseTarInputStream extends TarInputStream {

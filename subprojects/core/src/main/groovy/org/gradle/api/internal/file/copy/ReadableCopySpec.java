@@ -25,9 +25,9 @@ import java.util.Collection;
 public interface ReadableCopySpec {
     RelativePath getDestPath();
 
-    int getFileMode();
+    Integer getFileMode();
 
-    int getDirMode();
+    Integer getDirMode();
 
     FileTree getSource();
 

@@ -23,7 +23,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.EmptyCopySpecVisitor;
-import org.gradle.api.internal.file.copy.ReadableCopySpec;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +31,6 @@ import java.io.OutputStream;
 public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
     private TarOutputStream tarOutStr;
     private File tarFile;
-    private ReadableCopySpec spec;
 
     public void startVisit(CopyAction action) {
         TarCopyAction archiveAction = (TarCopyAction) action;
@@ -53,42 +51,51 @@ public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
             throw new UncheckedIOException(e);
         } finally {
             tarOutStr = null;
-            spec = null;
         }
     }
 
-    public void visitSpec(ReadableCopySpec spec) {
-        this.spec = spec;
+    public void visitFile(FileVisitDetails fileDetails) {
+        visitFileOrDir(fileDetails);
     }
 
-    public void visitFile(FileVisitDetails fileDetails) {
+    public void visitDir(FileVisitDetails dirDetails) {
+        visitFileOrDir(dirDetails);
+    }
+
+    public boolean getDidWork() {
+        return true;
+    }
+
+    private void visitFileOrDir(FileVisitDetails fileDetails) {
         try {
-            TarEntry archiveEntry = new TarEntry(fileDetails.getRelativePath().getPathString());
-            archiveEntry.setModTime(fileDetails.getLastModified());
-            archiveEntry.setSize(fileDetails.getSize());
-            archiveEntry.setMode(UnixStat.FILE_FLAG | spec.getFileMode());
-            tarOutStr.putNextEntry(archiveEntry);
-            fileDetails.copyTo(tarOutStr);
+            final TarEntry entry = new TarEntry(getEntryPath(fileDetails));
+            entry.setModTime(fileDetails.getLastModified());
+            entry.setMode(getEntryMode(fileDetails));
+            writeEntry(fileDetails, entry);
             tarOutStr.closeEntry();
         } catch (Exception e) {
             throw new GradleException(String.format("Could not add %s to TAR '%s'.", fileDetails, tarFile), e);
         }
     }
 
-    public void visitDir(FileVisitDetails dirDetails) {
-        try {
-            // Trailing slash on name indicates entry is a directory
-            TarEntry archiveEntry = new TarEntry(dirDetails.getRelativePath().getPathString() + '/');
-            archiveEntry.setModTime(dirDetails.getLastModified());
-            archiveEntry.setMode(UnixStat.DIR_FLAG | spec.getDirMode());
-            tarOutStr.putNextEntry(archiveEntry);
-            tarOutStr.closeEntry();
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not add %s to TAR '%s'.", dirDetails, tarFile), e);
-        }
+    private String getEntryPath(FileVisitDetails fileDetails) {
+        // Trailing slash on name indicates entry is a directory
+        return fileDetails.getRelativePath().getPathString()
+            + (fileDetails.isDirectory() ? '/' : "");
     }
 
-    public boolean getDidWork() {
-        return true;
+    private int getEntryMode(FileVisitDetails fileDetails) {
+        return (fileDetails.isDirectory() ? UnixStat.DIR_FLAG : UnixStat.FILE_FLAG)
+            | fileDetails.getMode();
+    }
+
+    private void writeEntry(FileVisitDetails fileDetails, TarEntry entry) throws IOException {
+        if (!fileDetails.isDirectory()) {
+            entry.setSize(fileDetails.getSize());
+        }
+        tarOutStr.putNextEntry(entry);
+        if (!fileDetails.isDirectory()) {
+            fileDetails.copyTo(tarOutStr);
+        }
     }
 }

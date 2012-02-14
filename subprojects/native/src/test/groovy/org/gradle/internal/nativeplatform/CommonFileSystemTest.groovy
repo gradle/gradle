@@ -23,7 +23,7 @@ import org.junit.Rule
 import org.gradle.util.TemporaryFolder
 
 class CommonFileSystemTest extends Specification {
-    @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
     def fs = FileSystems.default
     def posix = PosixUtil.current()
 

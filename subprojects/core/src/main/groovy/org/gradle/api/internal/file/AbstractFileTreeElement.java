@@ -19,6 +19,8 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.internal.nativeplatform.FileSystems;
+import org.gradle.internal.nativeplatform.FileSystem;
 
 import java.io.*;
 
@@ -60,6 +62,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
                 copyFile(target);
             }
             target.setLastModified(getLastModified());
+            FileSystems.getDefault().chmod(target, getMode());
             return true;
         } catch (Exception e) {
             throw new GradleException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
@@ -73,5 +76,11 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
         } finally {
             outputStream.close();
         }
+    }
+
+    public int getMode() {
+        return isDirectory()
+            ? FileSystem.DEFAULT_DIR_MODE
+            : FileSystem.DEFAULT_FILE_MODE;
     }
 }

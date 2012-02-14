@@ -299,8 +299,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
 
         if (TestPrecondition.FILE_PERMISSIONS.fulfilled) {
-            expandDir.file('prefix/dir1').assertPermissions(equalTo("rwxr-xr-x"))
-            expandDir.file('prefix/dir1/renamed_file1.txt').assertPermissions(equalTo("rw-r--r--"))
             expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
             expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
         }
@@ -344,8 +342,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         expandDir.file('dir1/file1.txt').assertContents(equalTo('[abc]'))
 
         if (TestPrecondition.FILE_PERMISSIONS.fulfilled) {
-            expandDir.file('dir1').assertPermissions(equalTo("rwxr-xr-x"))
-            expandDir.file('dir1/file1.txt').assertPermissions(equalTo("rw-r--r--"))
             expandDir.file('scripts/dir2').assertPermissions(equalTo("rwxr-x---"))
             expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("rwxr-xr--"))
         }

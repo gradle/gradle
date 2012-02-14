@@ -56,6 +56,7 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
         private final FilterChain filterChain = new FilterChain();
         private RelativePath relativePath;
         private boolean excluded;
+        private Integer mode;
 
         public FileVisitDetailsImpl(FileVisitDetails fileDetails, ReadableCopySpec spec) {
             this.fileDetails = fileDetails;
@@ -128,6 +129,19 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
             return relativePath;
         }
 
+        public int getMode() {
+            if (this.mode != null) {
+                return this.mode;
+            }
+
+            final Integer specMode = fileDetails.isDirectory() ? spec.getDirMode() : spec.getFileMode();
+            if (specMode != null) {
+                return specMode;
+            }
+
+            return fileDetails.getMode();
+        }
+
         public void setRelativePath(RelativePath path) {
             this.relativePath = path;
         }
@@ -142,6 +156,10 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
 
         public void exclude() {
             excluded = true;
+        }
+
+        public void setMode(int mode) {
+            this.mode = mode;
         }
 
         public ContentFilterable filter(Closure closure) {
