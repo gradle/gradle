@@ -31,18 +31,18 @@ import java.util.regex.Pattern;
  */
 public class DaemonContextParser {
     public static DaemonContext parseFrom(String source) {
-        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?),daemonOpts=([^\\n]+)].*",
+        Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[uid=([^\\n]+),javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?),daemonOpts=([^\\n]+)].*",
                 Pattern.MULTILINE + Pattern.DOTALL);
         Matcher matcher = pattern.matcher(source);
 
         if (matcher.matches()) {
-            String javaHome = matcher.group(1);
-            String daemonRegistryDir = matcher.group(2);
-            Long pid = Long.parseLong(matcher.group(3));
-            Integer idleTimeout = Integer.decode(matcher.group(4));
-            //below won't work if some jvm opt contain comma but for testing purposes it should do
-            List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(5)));
-            return new DefaultDaemonContext(new File(javaHome), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts);
+            String uid = matcher.group(1);
+            String javaHome = matcher.group(2);
+            String daemonRegistryDir = matcher.group(3);
+            Long pid = Long.parseLong(matcher.group(4));
+            Integer idleTimeout = Integer.decode(matcher.group(5));
+            List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(6)));
+            return new DefaultDaemonContext(uid, new File(javaHome), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts);
         } else {
             throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + source + "].");
         }
