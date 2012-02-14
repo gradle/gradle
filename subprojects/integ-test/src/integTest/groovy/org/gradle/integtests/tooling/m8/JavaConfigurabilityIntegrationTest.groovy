@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.internal.nativeplatform.OperatingSystem
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.Project
@@ -29,6 +28,8 @@ import org.gradle.util.Jvm
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
@@ -187,7 +188,7 @@ assert System.getProperty('some-prop') == 'BBB'
     }
 
     @Issue("GRADLE-1799")
-    @IgnoreIf({OperatingSystem.current().isWindows()})
+    @Requires(TestPrecondition.NOT_WINDOWS)
     @Timeout(5)
     def "promptly discovers rubbish jvm arguments"() {
         when:
