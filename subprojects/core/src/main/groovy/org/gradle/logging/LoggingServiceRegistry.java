@@ -109,8 +109,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
             compositeConfigurer.add(new JavaUtilLoggingConfigurer());
             return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, getStdOutLoggingSystem(), getStdErrLoggingSystem());
         } else {
-            //TODO SF further refactoring
-            return new DefaultLoggingManagerFactory(renderer, renderer, new NoOpLoggingSystem(), new NoOpLoggingSystem());
+            return new EmbeddedLoggingManagerFactory(renderer);
         }
     }
 
