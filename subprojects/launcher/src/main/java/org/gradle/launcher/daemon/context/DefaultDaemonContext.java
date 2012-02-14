@@ -27,13 +27,15 @@ import java.util.List;
  */
 public class DefaultDaemonContext implements DaemonContext {
 
+    private final String uid;
     private final File javaHome;
     private final File daemonRegistryDir;
     private final Long pid;
     private final Integer idleTimeout;
     private final List<String> daemonOpts;
 
-    public DefaultDaemonContext(File javaHome, File daemonRegistryDir, Long pid, Integer idleTimeout, List<String> daemonOpts) {
+    public DefaultDaemonContext(String uid, File javaHome, File daemonRegistryDir, Long pid, Integer idleTimeout, List<String> daemonOpts) {
+        this.uid = uid;
         this.javaHome = javaHome;
         this.daemonRegistryDir = daemonRegistryDir;
         this.pid = pid;
@@ -42,8 +44,12 @@ public class DefaultDaemonContext implements DaemonContext {
     }
 
     public String toString() {
-        return String.format("DefaultDaemonContext[javaHome=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,daemonOpts=%s]",
-                javaHome, daemonRegistryDir, pid, idleTimeout, Joiner.on(',').join(daemonOpts));
+        return String.format("DefaultDaemonContext[uid=%s,javaHome=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,daemonOpts=%s]",
+                uid, javaHome, daemonRegistryDir, pid, idleTimeout, Joiner.on(',').join(daemonOpts));
+    }
+
+    public String getUid() {
+        return uid;
     }
 
     public File getJavaHome() {

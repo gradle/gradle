@@ -36,6 +36,8 @@ import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 
+import java.util.UUID;
+
 /**
  * Wires together the embedded daemon client.
  */
@@ -86,6 +88,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
 
     @Override
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
+        builder.setUid(UUID.randomUUID().toString());
         builder.setDaemonRegistryDir(new DaemonDir(new DaemonParameters().getBaseDir()).getRegistry());
     }
 
@@ -97,7 +100,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
         return new DaemonTcpServerConnector();
     }
 
-    protected Runnable makeDaemonStarter() {
+    protected DaemonStarter createDaemonStarter() {
         return new EmbeddedDaemonStarter((EmbeddedDaemonRegistry)get(DaemonRegistry.class), getFactory(Daemon.class));
     }
 }

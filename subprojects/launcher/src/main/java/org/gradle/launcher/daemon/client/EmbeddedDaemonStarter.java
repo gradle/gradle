@@ -19,7 +19,7 @@ import org.gradle.internal.Factory;
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
 import org.gradle.launcher.daemon.server.Daemon;
 
-class EmbeddedDaemonStarter implements Runnable {
+class EmbeddedDaemonStarter implements DaemonStarter {
 
     private final EmbeddedDaemonRegistry daemonRegistry;
     private final Factory<Daemon> daemonFactory;
@@ -29,7 +29,9 @@ class EmbeddedDaemonStarter implements Runnable {
         this.daemonFactory = daemonFactory;
     }
 
-    public void run() {
-        daemonRegistry.startDaemon(daemonFactory.create());
+    public String startDaemon() {
+        Daemon daemon = daemonFactory.create();
+        daemonRegistry.startDaemon(daemon);
+        return daemon.getUid();
     }
 }

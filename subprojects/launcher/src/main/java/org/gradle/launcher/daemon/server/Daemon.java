@@ -74,6 +74,10 @@ public class Daemon implements Runnable, Stoppable {
         handlersExecutor = executorFactory.create("Daemon Connection Handler");
     }
 
+    public String getUid() {
+        return daemonContext.getUid();
+    }
+
     /**
      * Starts the daemon, receiving connections asynchronously (i.e. returns immediately).
      * 

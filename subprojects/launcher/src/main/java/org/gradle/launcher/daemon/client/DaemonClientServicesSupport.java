@@ -92,10 +92,10 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
     }
 
     protected DaemonConnector createDaemonConnector() {
-        return new DefaultDaemonConnector(get(DaemonRegistry.class), get(OutgoingConnector.class), makeDaemonStarter());
+        return new DefaultDaemonConnector(get(DaemonRegistry.class), get(OutgoingConnector.class), get(DaemonStarter.class));
     }
 
     abstract protected DaemonRegistry createDaemonRegistry();
     
-    abstract Runnable makeDaemonStarter();
+    abstract protected DaemonStarter createDaemonStarter();
 }

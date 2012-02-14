@@ -22,7 +22,7 @@ import org.gradle.logging.LoggingServiceRegistry
 import spock.lang.Specification
 
 class DaemonServicesTest extends Specification {
-    final DaemonServices services = new DaemonServices(new File("daemon-base"), 100, 
+    final DaemonServices services = new DaemonServices(new File("daemon-base"), 100, "uid",
             LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal))
 
     def "makes a DaemonDir available"() {

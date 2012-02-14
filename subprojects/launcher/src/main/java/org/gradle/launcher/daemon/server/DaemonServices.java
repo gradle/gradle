@@ -44,14 +44,16 @@ import java.util.List;
 public class DaemonServices extends DefaultServiceRegistry {
     private final File daemonBaseDir;
     private final Integer idleTimeoutMs;
+    private final String daemonUid;
     private final ServiceRegistry loggingServices;
     private final LoggingManagerInternal loggingManager;
 
-    public DaemonServices(File daemonBaseDir, Integer idleTimeoutMs, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager) {
+    public DaemonServices(File daemonBaseDir, Integer idleTimeoutMs, String daemonUid, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager) {
         this.daemonBaseDir = daemonBaseDir;
         this.idleTimeoutMs = idleTimeoutMs;
         this.loggingServices = loggingServices;
         this.loggingManager = loggingManager;
+        this.daemonUid = daemonUid;
 
         add(new NativeServices());
         add(new DaemonRegistryServices(daemonBaseDir));
@@ -65,6 +67,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         DaemonContextBuilder builder = new DaemonContextBuilder(get(ProcessEnvironment.class));
         builder.setDaemonRegistryDir(daemonBaseDir);
         builder.setIdleTimeout(idleTimeoutMs);
+        builder.setUid(daemonUid);
 
         JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
         List<String> inputArguments = new ArrayList<String>(ManagementFactory.getRuntimeMXBean().getInputArguments());

@@ -43,22 +43,32 @@ public class DaemonParameters {
     public static final String JAVA_HOME_SYS_PROPERTY = "org.gradle.java.home";
     public static final String DAEMON_SYS_PROPERTY = "org.gradle.daemon";
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
+    private final String uid;
     private File baseDir = new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon");
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
     private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
     private boolean enabled;
     private File javaHome;
 
-    public DaemonParameters() {
+    public DaemonParameters(String uid) {
+        this.uid = uid;
         jvmOptions.setAllJvmArgs(getDefaultJvmArgs());
     }
-    
+
+    public DaemonParameters() {
+        this(UUID.randomUUID().toString());
+    }
+
     List<String> getDefaultJvmArgs() {
         return new LinkedList<String>(asList("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"));
     }
 
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public String getUid() {
+        return uid;
     }
 
     public File getBaseDir() {

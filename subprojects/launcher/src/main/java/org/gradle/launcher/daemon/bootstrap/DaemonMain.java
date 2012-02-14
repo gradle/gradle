@@ -32,8 +32,11 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 
-import java.io.*;
-import java.util.UUID;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 
 /**
  * The entry point for a daemon process.
@@ -46,13 +49,14 @@ public class DaemonMain extends EntryPoint {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonMain.class);
 
-    final private File daemonBaseDir;
-    final private boolean redirectIo;
-    final private int idleTimeoutMs;
+    private final String daemonUid;
+    private final File daemonBaseDir;
+    private final boolean redirectIo;
+    private final int idleTimeoutMs;
 
     public static void main(String[] args) {
-        if (args.length != 3) {
-            invalidArgs("3 arguments are required: <gradle-version> <daemon-dir> <timeout-millis>");
+        if (args.length != 4) {
+            invalidArgs("3 arguments are required: <gradle-version> <daemon-dir> <timeout-millis> <daemonUid>");
         }
         File daemonBaseDir = new File(args[1]);
 
@@ -63,7 +67,9 @@ public class DaemonMain extends EntryPoint {
             invalidArgs("Second argument must be a whole number (i.e. daemon idle timeout in ms)");
         }
 
-        DaemonParameters parameters = new DaemonParameters();
+        String daemonUid = args[3];
+
+        DaemonParameters parameters = new DaemonParameters(daemonUid);
         parameters.setBaseDir(daemonBaseDir);
         parameters.setIdleTimeout(idleTimeoutMs);
 
@@ -77,6 +83,7 @@ public class DaemonMain extends EntryPoint {
     }
 
     public DaemonMain(DaemonParameters parameters, boolean redirectIo) {
+        this.daemonUid = parameters.getUid();
         this.daemonBaseDir = parameters.getBaseDir();
         this.idleTimeoutMs = parameters.getIdleTimeout();
         this.redirectIo = redirectIo;
@@ -85,14 +92,13 @@ public class DaemonMain extends EntryPoint {
     protected void doAction(ExecutionListener listener) {
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newChildProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.getFactory(LoggingManagerInternal.class).create();
-        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, loggingRegistry, loggingManager);
+        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, daemonUid, loggingRegistry, loggingManager);
         DaemonDir daemonDir = daemonServices.get(DaemonDir.class);
         final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
-        final Long pid = daemonContext.getPid();
 
         if (redirectIo) {
             //create log file
-            PrintStream log = createLogOutput(daemonDir, pid);
+            PrintStream log = createLogOutput(daemonDir, daemonContext);
             
             //close all streams and redirect IO
             redirectOutputsAndInput(log);
@@ -110,7 +116,7 @@ public class DaemonMain extends EntryPoint {
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
-                LOGGER.info("Daemon[pid = {}] finishing", pid);
+                LOGGER.info("Daemon[pid = {}] finishing", daemonContext.getPid());
             }
         });
 
@@ -126,8 +132,8 @@ public class DaemonMain extends EntryPoint {
         }
     }
 
-    private static PrintStream createLogOutput(DaemonDir daemonDir, Long pid) {
-        String logFileName = String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid);
+    private static PrintStream createLogOutput(DaemonDir daemonDir, DaemonContext daemonContext) {
+        String logFileName = String.format("daemon-%s.out.log", daemonContext.getPid() == null ? daemonContext.getUid() : daemonContext.getPid());
         File logFile = new File(daemonDir.getVersionedDir(), logFileName);
         try {
             Files.createParentDirs(logFile);

@@ -38,11 +38,11 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
     private final DaemonRegistry daemonRegistry;
     private final OutgoingConnector<Object> connector;
-    private final Runnable daemonStarter;
+    private final DaemonStarter daemonStarter;
 
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector<Object> connector, Runnable daemonStarter) {
+    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector<Object> connector, DaemonStarter daemonStarter) {
         this.daemonRegistry = daemonRegistry;
         this.connector = connector;
         this.daemonStarter = daemonStarter;
@@ -92,7 +92,9 @@ public class DefaultDaemonConnector implements DaemonConnector {
         }
 
         LOGGER.info("Starting Gradle daemon");
-        daemonStarter.run();
+        final String uid = daemonStarter.startDaemon();
+        LOGGER.debug("Started Gradle Daemon with UID = {}", uid);
+        Spec<DaemonContext> sameUidConstraint = exactUidConstraint(uid);
         long expiry = System.currentTimeMillis() + connectTimeout;
         do {
             try {
@@ -100,13 +102,22 @@ public class DefaultDaemonConnector implements DaemonConnector {
             } catch (InterruptedException e) {
                 throw UncheckedException.asUncheckedException(e);
             }
-            connection = findConnection(daemonRegistry.getIdle(), constraint);
+            // Look for 'our' daemon among the busy daemons - daemons start in busy state so that nobody else will grab them.
+            connection = findConnection(daemonRegistry.getBusy(), sameUidConstraint);
             if (connection != null) {
                 return connection;
             }
         } while (System.currentTimeMillis() < expiry);
 
         throw new GradleException("Timeout waiting to connect to Gradle daemon.");
+    }
+
+    private Spec<DaemonContext> exactUidConstraint(final String uid) {
+        return new Spec<DaemonContext>() {
+            public boolean isSatisfiedBy(DaemonContext element) {
+                return element.getUid().equals(uid);
+            }
+        };
     }
 
     public DaemonRegistry getDaemonRegistry() {

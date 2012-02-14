@@ -63,6 +63,7 @@ class DomainRegistryUpdater {
         LOGGER.info("Advertising the daemon address to the clients: {}", connectorAddress);
         LOGGER.debug("Advertised daemon context: {}", daemonContext);
         daemonRegistry.store(connectorAddress, daemonContext, password);
+        daemonRegistry.markBusy(connectorAddress);
     }
 
     public void onStop() {

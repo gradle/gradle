@@ -33,6 +33,7 @@ import static org.gradle.util.GFileUtils.canonicalise;
  */
 public class DaemonContextBuilder implements Factory<DaemonContext> {
 
+    private String uid;
     private File javaHome;
     private File daemonRegistryDir;
     private Long pid;
@@ -58,6 +59,14 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
 
     public void setDaemonRegistryDir(File daemonRegistryDir) {
         this.daemonRegistryDir = daemonRegistryDir;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     public Long getPid() {
@@ -91,6 +100,6 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         if (daemonRegistryDir == null) {
             throw new IllegalStateException("Registry dir must be specified.");
         }
-        return new DefaultDaemonContext(javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts);
+        return new DefaultDaemonContext(uid, javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts);
     }
 }

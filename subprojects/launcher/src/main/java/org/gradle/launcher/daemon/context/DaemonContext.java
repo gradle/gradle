@@ -35,6 +35,11 @@ import java.util.List;
 public interface DaemonContext extends Serializable {
 
     /**
+     * The unique identifier for this daemon.
+     */
+    String getUid();
+
+    /**
      * The JAVA_HOME in use, as the canonical file.
      */
     File getJavaHome();

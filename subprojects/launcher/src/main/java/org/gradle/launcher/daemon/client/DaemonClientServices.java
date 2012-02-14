@@ -42,8 +42,8 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
         return registryServices.get(DaemonRegistry.class);
     }
 
-    public Runnable makeDaemonStarter() {
-        return new DaemonStarter(registryServices.get(DaemonDir.class), daemonParameters);
+    public DaemonStarter createDaemonStarter() {
+        return new DefaultDaemonStarter(registryServices.get(DaemonDir.class), daemonParameters);
     }
 
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {

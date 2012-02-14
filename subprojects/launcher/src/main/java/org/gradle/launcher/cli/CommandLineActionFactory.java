@@ -18,7 +18,6 @@ package org.gradle.launcher.cli;
 import org.gradle.BuildExceptionReporter;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
@@ -27,6 +26,7 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.bootstrap.DaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
@@ -130,6 +130,11 @@ public class CommandLineActionFactory {
         daemonParameters.configureFromBuildDir(startParameter.getCurrentDir(), startParameter.isSearchUpwards());
         daemonParameters.configureFromGradleUserHome(startParameter.getGradleUserHomeDir());
         daemonParameters.configureFromSystemProperties(mergedSystemProperties);
+        if (commandLine.hasOption(FOREGROUND)) {
+            return new ActionAdapter(new DaemonMain(daemonParameters, false));
+            // TODO:DAZ Need to mark as idle somehow
+        }
+
         DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
 
@@ -138,16 +143,18 @@ public class CommandLineActionFactory {
         useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
 
-        if (commandLine.hasOption(FOREGROUND)) {
-            return new ActionAdapter(new DaemonMain(daemonParameters, false));
-        }
         if (commandLine.hasOption(STOP)) {
+            // TODO:DAZ This should use a different client hat matches any Daemon. Then we can use Stop to mean "Stop any daemon this client can connect to".
             return new ActionAdapter(new StopDaemonAction(client));
         }
         if (useDaemon) {
             return new ActionAdapter(
                     new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData(), startTime, daemonParameters.getEffectiveSystemProperties(), System.getenv()));
         }
+
+        // TODO:DAZ Compare current environment with this environment. If no match, then run build using 'private' daemon
+        // Same DaemonBuildAction as above
+        // Client is created with no-match-DaemonCompatibilitySpec, so it will always create a new Daemon
 
         return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData(), startTime));
     }
