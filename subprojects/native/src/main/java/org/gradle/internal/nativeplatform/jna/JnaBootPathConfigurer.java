@@ -45,7 +45,7 @@ public class JnaBootPathConfigurer {
     }
 
     public void configure() throws NativeIntegrationUnavailableException {
-        File tmpDir = new File(storageDir, "jna");
+        File tmpDir = new File(storageDir, "jna/3.4.0");
         tmpDir.mkdirs();
         String jnaLibName = OperatingSystem.current().isMacOsX() ? "libjnidispatch.jnilib" : System.mapLibraryName("jnidispatch");
         File libFile = new File(tmpDir, jnaLibName);
@@ -71,5 +71,6 @@ public class JnaBootPathConfigurer {
             }
         }
         System.setProperty("jna.boot.library.path", tmpDir.getAbsolutePath());
+        System.setProperty("jna.nounpack", String.valueOf(true));
     }
 }

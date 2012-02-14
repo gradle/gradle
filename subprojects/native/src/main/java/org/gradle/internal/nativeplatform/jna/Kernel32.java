@@ -16,87 +16,23 @@
 
 package org.gradle.internal.nativeplatform.jna;
 
-import com.sun.jna.*;
+import com.sun.jna.Native;
+import com.sun.jna.WString;
 
 /**
 * Windows' Kernel32
 */
-public interface Kernel32 extends Library {
+public interface Kernel32 extends com.sun.jna.platform.win32.Kernel32 {
 
     //CHECKSTYLE:OFF
 
     Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32", Kernel32.class);
-
-    // Process creation flags
-    int DETACHED_PROCESS = 0x00000008;
-
-    int GetLastError();
-
-    boolean CloseHandle(HANDLE hObject);
-
-    boolean CreateProcessW(WString lpApplicationName, WString lpCommandLine, SecurityAttributes lpProcessAttributes,
-                           SecurityAttributes lpThreadAttributes, boolean bInheritHandles, int dwCreationFlags,
-                           Pointer lpEnvironment, WString lpCurrentDirectory, StartupInfo lpStartupInfo,
-                           ProcessInfo lpProcessInformation);
 
     boolean SetEnvironmentVariableW(WString lpName, WString lpValue);
 
     boolean SetCurrentDirectoryW(WString lpPathName);
 
     int GetCurrentDirectoryW(int nBufferLength, char[] lpBuffer);
-
-    int GetCurrentProcessId();
-
-    class HANDLE extends PointerType {
-        public HANDLE() {
-        }
-
-        public HANDLE(Pointer p) {
-            super(p);
-        }
-    }
-
-    class SecurityAttributes extends Structure {
-        public int nLength;
-        public Pointer lpSecurityDescriptor;
-        public boolean bInheritHandle;
-
-        public SecurityAttributes() {
-            nLength = size();
-        }
-    }
-
-    class StartupInfo extends Structure {
-        public int cb;
-        public WString lpReserved;
-        public WString lpDesktop;
-        public WString lpTitle;
-        public int dwX;
-        public int dwY;
-        public int dwXSize;
-        public int dwYSize;
-        public int dwXCountChars;
-        public int dwYCountChars;
-        public int dwFillAttribute;
-        public int dwFlags;
-        public short wShowWindow;
-        public short cbReserved2;
-        public Pointer lpReserved2;
-        public HANDLE hStdInput;
-        public HANDLE hStdOutput;
-        public HANDLE hStdError;
-
-        public StartupInfo() {
-            cb = size();
-        }
-    }
-
-    class ProcessInfo extends Structure {
-        public HANDLE hProcess;
-        public HANDLE hThread;
-        public int dwProcessId;
-        public int dwThreadId;
-    }
 
     //CHECKSTYLE:ON
 }
