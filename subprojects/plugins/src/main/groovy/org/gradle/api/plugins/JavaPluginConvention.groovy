@@ -140,7 +140,7 @@ class JavaPluginConvention {
      * Returns the source compatibility used for compiling Java sources.
      */
     JavaVersion getSourceCompatibility() {
-        srcCompat ?: JavaVersion.VERSION_1_5
+        srcCompat ?: JavaVersion.toVersion(System.getProperty("java.version"))
     }
 
     /**
