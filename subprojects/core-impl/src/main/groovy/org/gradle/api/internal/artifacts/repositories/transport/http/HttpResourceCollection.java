@@ -157,6 +157,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
     }
 
     private CachedHttpResource findCachedResource(String source, List<CachedArtifact> candidates) {
+        // TODO:DAZ This is the last remnant of Wharf dependency: replace it
         ChecksumType checksumType = ChecksumType.sha1;
         String checksumUrl = source + checksumType.ext();
 

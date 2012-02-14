@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolu
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.util.WrapUtil;
-import org.jfrog.wharf.ivy.model.WharfResolverMetadata;
 
 import java.util.List;
 
@@ -67,6 +66,7 @@ public class ResolveIvyFactory {
         List<DependencyResolver> rawResolvers = resolverProvider.getResolvers();
 
         // Unfortunately, WharfResolverMetadata requires the resolver to have settings to calculate an id.
+        // TODO:DAZ Now that we're not using WharfResolverMetadata, see if this can be fixed.
         // We then need to set the ivySettings on the delegating resolver as well
         IvySettings ivySettings = settingsConverter.convertForResolve(loopbackDependencyResolver, rawResolvers);
         Ivy ivy = ivyFactory.createIvy(ivySettings);
@@ -75,9 +75,8 @@ public class ResolveIvyFactory {
         IvyContextualiser contextualiser = new IvyContextualiser(ivy, resolveData);
         for (DependencyResolver rawResolver : rawResolvers) {
             rawResolver.setSettings(ivySettings);
-            String resolverId = new WharfResolverMetadata(rawResolver).getId();
 
-            ModuleVersionRepository moduleVersionRepository = new DependencyResolverAdapter(resolverId, rawResolver);
+            ModuleVersionRepository moduleVersionRepository = new DependencyResolverAdapter(rawResolver);
             moduleVersionRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
             moduleVersionRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
             ModuleVersionRepository cachingRepository =
