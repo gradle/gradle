@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.internal.consumer.ConnectorServices
-import org.gradle.tooling.internal.provider.logging.ToolingProviderMessages
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
@@ -127,7 +126,7 @@ project.logger.debug("debug logging yyy");
     }
 
     void shouldNotContainProviderLogging(String output) {
-        assert !output.contains(ToolingProviderMessages.PROVIDER_HELLO)
-        assert !output.contains(ToolingProviderMessages.TOOLING_API_HELLO)
+        assert !output.contains("Provider implementation created.")
+        assert !output.contains("Tooling API uses target gradle version:")
     }
 }

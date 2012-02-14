@@ -31,7 +31,6 @@ import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.input.AdaptedOperationParameters;
 import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
-import org.gradle.tooling.internal.provider.logging.ToolingProviderMessages;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -46,7 +45,7 @@ public class DefaultConnection implements InternalConnection {
     private final SingleOpLoggingConfigurer slf4jLoggingConfigurer = new SingleOpLoggingConfigurer(new SimpleSlf4jLoggingConfigurer());
 
     public DefaultConnection() {
-        LOGGER.debug(ToolingProviderMessages.PROVIDER_HELLO);
+        LOGGER.debug("Provider implementation created.");
         //embedded use of the tooling api is not supported publicly so we don't care about its thread safety
         //we can keep still keep this state:
         embeddedExecuterSupport = new EmbeddedExecuterSupport();
@@ -73,7 +72,7 @@ public class DefaultConnection implements InternalConnection {
     }
 
     private void logTargetVersion() {
-        LOGGER.info(ToolingProviderMessages.TOOLING_API_HELLO + " {}.", GradleVersion.current().getVersion());
+        LOGGER.info("Tooling API uses target gradle version:" + " {}.", GradleVersion.current().getVersion());
     }
 
     @Deprecated //getTheModel method has much convenient interface, e.g. avoids locking to building only models of a specific type
