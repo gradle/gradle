@@ -146,4 +146,13 @@ public interface GradleExecuter {
      * @return this executer
      */
     GradleExecuter withGradleOpts(String ... gradleOpts);
+
+    /**
+     * Sets the default character encoding to use.
+     *
+     * Only makes sense for forking executers.
+     *
+     * @return this executer
+     */
+    GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding);
 }

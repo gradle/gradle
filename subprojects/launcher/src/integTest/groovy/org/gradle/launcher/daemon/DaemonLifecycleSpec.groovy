@@ -42,6 +42,9 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     // set this to change the java home used to launch any gradle, set back to null to use current JVM
     def javaHome = null
+    
+    // set this to change the desired default encoding for the build request
+    def buildEncoding = null
 
     @Delegate DaemonEventSequenceBuilder sequenceBuilder = new DaemonEventSequenceBuilder()
 
@@ -62,7 +65,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         dir
     }
 
-    void startBuild() {
+    void startBuild(String javaHome = null, String buildEncoding = null) {
         run {
             executer.withTasks("watch")
             executer.withArguments(
@@ -71,6 +74,9 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
                     "-Dorg.gradle.jvmargs=-ea")
             if (javaHome) {
                 executer.withJavaHome(javaHome)
+            }
+            if (buildEncoding) {
+                executer.withDefaultCharacterEncoding(buildEncoding)
             }
             //TODO SF when the tests are interrupted (for example, from idea)
             //or when they break they seem to leave GradleDaemon and GradleMain processes hung forever
@@ -127,6 +133,14 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     void startForegroundDaemonWithAlternateJavaHome() {
         run {
             javaHome = AvailableJavaHomes.bestAlternative
+            startForegroundDaemonNow()
+            javaHome = null
+        }
+    }
+
+    void startForegroundDaemonWithDefaultCharacterEncoding(String encoding) {
+        run {
+            executer.withDefaultCharacterEncoding(encoding)
             startForegroundDaemonNow()
             javaHome = null
         }
@@ -421,6 +435,37 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
+    def "if a daemon exists but is using a file encoding, a new compatible daemon will be created and used"() {
+        when:
+        startBuild(null, "US-ASCII")
+        waitForBuildToWait()
+
+        then:
+        busy()
+        daemonContext {
+            assert daemonOpts.contains("-Dfile.encoding=US-ASCII")
+        }
+
+        then:
+        completeBuild()
+
+        then:
+        idle()
+
+        when:
+        startBuild(null, "UTF-8")
+        waitForBuildToWait()
+
+        then:
+        state 1, 1
+        daemonContext(1) {
+            assert daemonOpts.contains("-Dfile.encoding=UTF-8")
+        }
+
+        then:
+        completeBuild()
+    }
+    
     def cleanup() {
         try {
             sequenceBuilder.build(executer.daemonRegistry).run()

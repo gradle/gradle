@@ -21,6 +21,7 @@ import org.gradle.util.TextUtil;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -43,6 +44,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private String buildScriptText;
     private File settingsFile;
     private InputStream stdin;
+    private String defaultCharacterEncoding;
     //gradle opts make sense only for forking executer but having them here makes more sense
     protected final List<String> gradleOpts = new ArrayList<String>();
 
@@ -64,6 +66,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         javaHome = null;
         environmentVars.clear();
         stdin = null;
+        defaultCharacterEncoding = null;
         return this;
     }
 
@@ -114,6 +117,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         executer.withUserHomeDir(userHomeDir);
         if (stdin != null) {
             executer.withStdIn(stdin);
+        }
+        if (defaultCharacterEncoding != null) {
+            executer.withDefaultCharacterEncoding(defaultCharacterEncoding);
         }
         executer.withGradleOpts(gradleOpts.toArray(new String[gradleOpts.size()]));
     }
@@ -190,6 +196,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public InputStream getStdin() {
         return stdin == null ? new ByteArrayInputStream(new byte[0]) : stdin;
+    }
+
+    public GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding) {
+        this.defaultCharacterEncoding = defaultCharacterEncoding;
+        return this;
+    }
+
+    public String getDefaultCharacterEncoding() {
+        return defaultCharacterEncoding == null ? Charset.defaultCharset().name() : defaultCharacterEncoding;
     }
 
     public GradleExecuter withSearchUpwards() {

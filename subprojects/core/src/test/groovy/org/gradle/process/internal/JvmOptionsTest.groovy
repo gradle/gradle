@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.IdentityFileResolver
@@ -43,12 +45,29 @@ class JvmOptionsTest extends Specification {
     }
     
     def "understands quoted system properties"() {
-        def opts = new JvmOptions(new IdentityFileResolver())
-
-        when:
-        opts.jvmArgs(JvmOptions.fromString("  -Dfoo=\" hey man! \"  " ))
-
-        then:
-        opts.getSystemProperties().get("foo") == " hey man! "
+        expect:
+        parse("  -Dfoo=\" hey man! \"  " ).getSystemProperties().get("foo") == " hey man! "
     }
+
+    def "can parse file encoding property"() {
+        expect:
+        parse("-Dfile.encoding=UTF-8 -Dfoo.encoding=blah -Dfile.encoding=UTF-16").defaultCharacterEncoding == "UTF-16"
+    }
+
+    def "system properties are always before the symbolic arguments"() {
+        expect:
+        parse("-Xms1G -Dfile.encoding=UTF-8 -Dfoo.encoding=blah -Dfile.encoding=UTF-16").allJvmArgs == ["-Dfoo.encoding=blah", "-Xms1G", "-Dfile.encoding=UTF-16"]
+    }
+
+    private JvmOptions createOpts() {
+        return new JvmOptions(new IdentityFileResolver())
+    }
+    
+    private JvmOptions parse(String optsString) {
+        def opts = createOpts()
+        opts.jvmArgs(JvmOptions.fromString(optsString))
+        opts
+    }
+    
+    
 }

@@ -35,7 +35,7 @@ class DaemonParametersTest extends Specification {
         parameters.systemProperties.isEmpty()
         // Not that reasonable
         parameters.effectiveJvmArgs.containsAll(parameters.defaultJvmArgs)
-        parameters.effectiveJvmArgs.size() == parameters.defaultJvmArgs.size()
+        parameters.effectiveJvmArgs.size() == parameters.defaultJvmArgs.size() + 1 // + 1 because effective JVM args contains -Dfile.encoding
     }
 
     def "determines base dir from user home dir"() {

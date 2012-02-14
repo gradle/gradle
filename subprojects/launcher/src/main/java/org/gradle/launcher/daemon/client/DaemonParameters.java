@@ -31,7 +31,6 @@ import org.gradle.util.Jvm;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -79,19 +78,7 @@ public class DaemonParameters {
     }
 
     public List<String> getEffectiveJvmArgs() {
-        List<String> jvmArgs = jvmOptions.getAllJvmArgsWithoutSystemProperties();
-
-        // GRADLE-2099 - forward on the default platform encoding to the daemon.
-        //
-        // The “file.encoding” system property is not part of the JVM standard, but both the
-        // Sun and IBM JVMs support this system property. We should at some point abstract this
-        // behind the Jvm class though.
-        //
-        // We also need a more sophisticated mechanism because the default charset of the client
-        // may not necessarily be the desired charset of the daemon.
-        jvmArgs.add(String.format("-Dfile.encoding=%s", Charset.defaultCharset().name()));
-
-        return jvmArgs;
+        return jvmOptions.getAllJvmArgsWithoutSystemProperties();
     }
 
     public List<String> getAllJvmArgs() {
@@ -203,4 +190,5 @@ public class DaemonParameters {
             }
         }
     }
+
 }

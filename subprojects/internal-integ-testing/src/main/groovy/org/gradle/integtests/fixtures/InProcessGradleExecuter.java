@@ -46,6 +46,7 @@ import org.hamcrest.Matcher;
 import java.io.File;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.util.*;
 
 import static org.gradle.util.Matchers.*;
@@ -82,7 +83,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected GradleHandle doStart() {
-        return new ForkingGradleHandle(new Factory<JavaExecHandleBuilder>() {
+        return new ForkingGradleHandle(getDefaultCharacterEncoding(), new Factory<JavaExecHandleBuilder>() {
             public JavaExecHandleBuilder create() {
                 JavaExecHandleBuilder builder = new JavaExecHandleBuilder(new IdentityFileResolver());
                 builder.workingDir(getWorkingDir());
@@ -152,6 +153,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     public void assertCanExecute() {
         assertNull(getExecutable());
         assertEquals(getJavaHome(), Jvm.current().getJavaHome());
+        assertEquals(getDefaultCharacterEncoding(), Charset.defaultCharset().name());
     }
 
     public boolean canExecute() {

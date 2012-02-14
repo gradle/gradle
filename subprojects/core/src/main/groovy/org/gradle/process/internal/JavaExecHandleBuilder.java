@@ -114,6 +114,14 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         javaOptions.setMinHeapSize(heapSize);
     }
 
+    public String getDefaultCharacterEncoding() {
+        return javaOptions.getDefaultCharacterEncoding();
+    }
+
+    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+        javaOptions.setDefaultCharacterEncoding(defaultCharacterEncoding);
+    }
+
     public String getMaxHeapSize() {
         return javaOptions.getMaxHeapSize();
     }

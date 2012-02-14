@@ -166,6 +166,20 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
+    public String getDefaultCharacterEncoding() {
+        return javaExecHandleBuilder.getDefaultCharacterEncoding();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+        javaExecHandleBuilder.setDefaultCharacterEncoding(defaultCharacterEncoding);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public String getMaxHeapSize() {
         return javaExecHandleBuilder.getMaxHeapSize();
     }

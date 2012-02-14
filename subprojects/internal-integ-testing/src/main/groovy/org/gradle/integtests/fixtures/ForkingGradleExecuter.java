@@ -128,7 +128,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     public GradleHandle doStart() {
-        return new ForkingGradleHandle(new Factory<ExecHandleBuilder>() {
+        return new ForkingGradleHandle(getDefaultCharacterEncoding(), new Factory<ExecHandleBuilder>() {
             public ExecHandleBuilder create() {
                 return createExecHandleBuilder();
             }
@@ -158,6 +158,10 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                 result.append(gradleOpt);
             }
         }
+        
+        result.append(" -Dfile.encoding=");
+        result.append(getDefaultCharacterEncoding());
+
         return result.toString();
     }
 

@@ -24,12 +24,14 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JvmOptions {
     private static final Pattern SYS_PROP_PATTERN = Pattern.compile("-D(.+?)=(.*)");
+    private static final Pattern DEFAULT_ENCODING_PATTERN = Pattern.compile("-Dfile\\Q.\\Eencoding=(.*)");
     private static final Pattern NO_ARG_SYS_PROP_PATTERN = Pattern.compile("-D([^=]+)");
     private static final Pattern MIN_HEAP_PATTERN = Pattern.compile("-Xms(.+)");
     private static final Pattern MAX_HEAP_PATTERN = Pattern.compile("-Xmx(.+)");
@@ -42,13 +44,14 @@ public class JvmOptions {
     private String maxHeapSize;
     private boolean assertionsEnabled;
     private boolean debug;
+    private String defaultCharacterEncoding;
 
     public JvmOptions(FileResolver resolver) {
         this.bootstrapClasspath = new DefaultConfigurableFileCollection(resolver, null);
     }
 
     public List<String> getAllJvmArgs() {
-        List<String> args = getAllJvmArgsWithoutSystemProperties();
+        List<String> args = new LinkedList<String>();
         for (Map.Entry<String, Object> entry : getSystemProperties().entrySet()) {
             if (entry.getValue() != null) {
                 args.add(String.format("-D%s=%s", entry.getKey(), entry.getValue().toString()));
@@ -56,6 +59,11 @@ public class JvmOptions {
                 args.add(String.format("-D%s", entry.getKey()));
             }
         }
+
+        // We have to add these after the system properties so they can override any system properties
+        // (identical properties later in the command line override earlier ones)
+        args.addAll(getAllJvmArgsWithoutSystemProperties());
+
         return args;
     }
     
@@ -72,6 +80,11 @@ public class JvmOptions {
         if (!bootstrapClasspath.isEmpty()) {
             args.add(String.format("-Xbootclasspath:%s", bootstrapClasspath.getAsPath()));
         }
+
+        // This is implemented as a system property, but doesn't really function like one
+        // So we include it in this “no system property” set.
+        addDefaultEncodingJvmArg(args);
+
         if (assertionsEnabled) {
             args.add("-ea");
         }
@@ -107,7 +120,13 @@ public class JvmOptions {
     public void jvmArgs(Iterable<?> arguments) {
         for (Object argument : arguments) {
             String argStr = argument.toString();
-            Matcher matcher = SYS_PROP_PATTERN.matcher(argStr);
+
+            Matcher matcher = DEFAULT_ENCODING_PATTERN.matcher(argStr);
+            if (matcher.matches()) {
+                defaultCharacterEncoding = matcher.group(1);
+                continue;
+            }
+            matcher = SYS_PROP_PATTERN.matcher(argStr);
             if (matcher.matches()) {
                 systemProperties.put(matcher.group(1), matcher.group(2));
                 continue;
@@ -215,6 +234,29 @@ public class JvmOptions {
 
     public void setMaxHeapSize(String heapSize) {
         this.maxHeapSize = heapSize;
+    }
+
+    public String getDefaultCharacterEncoding() {
+        return defaultCharacterEncoding;
+    }
+
+    public String getEffectiveDefaultCharacterEncoding() {
+        if (defaultCharacterEncoding != null) {
+            return defaultCharacterEncoding;
+        } else {
+            return Charset.defaultCharset().name();
+        }
+    }
+
+    private void addDefaultEncodingJvmArg(List<String> jvmArgs) {
+        // The “file.encoding” system property is not part of the JVM standard, but both the
+        // Sun and IBM JVMs support this system property. We should at some point abstract this
+        // behind the Jvm class.
+        jvmArgs.add(String.format("-Dfile.encoding=%s", getEffectiveDefaultCharacterEncoding()));
+    }
+
+    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+        this.defaultCharacterEncoding = defaultCharacterEncoding;
     }
 
     public boolean getEnableAssertions() {
