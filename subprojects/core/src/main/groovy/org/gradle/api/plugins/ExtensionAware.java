@@ -22,7 +22,7 @@ package org.gradle.api.plugins;
  * object's {@link ExtensionContainer}, passing the extension object. The extension becomes a dynamic property of this target object:</p>
  *
  * <pre autoTested="">
- * extensions.add('custom', new MyPojo())
+ * extensions.add('custom', MyPojo)
  *
  * // Extension is available as a property
  * custom.someProperty = 'value'
@@ -31,6 +31,17 @@ package org.gradle.api.plugins;
  * custom {
  *     someProperty = 'value'
  * }
+ *
+ * // Extensions can themselves be extended
+ * custom.extensions.add('nested', MyPojo)
+ *
+ * custom {
+ *     nested {
+ *         someProperty = 'other value'
+ *     }
+ * }
+ *
+ * custom.nested.someProperty = 'other value'
  *
  * class MyPojo {
  *     String someProperty
