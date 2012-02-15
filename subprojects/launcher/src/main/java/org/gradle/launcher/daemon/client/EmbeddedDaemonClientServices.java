@@ -37,6 +37,7 @@ import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 
 import java.io.File;
+import java.util.UUID;
 
 /**
  * Wires together the embedded daemon client.

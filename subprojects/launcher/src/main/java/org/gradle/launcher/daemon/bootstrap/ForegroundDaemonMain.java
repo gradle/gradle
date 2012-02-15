@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 package org.gradle.launcher.daemon.bootstrap;
 
 import org.gradle.launcher.daemon.client.DaemonParameters;
-import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.logging.internal.OutputEventRenderer;
+
+import java.io.File;
 
 public class ForegroundDaemonMain extends DaemonMain {
     public ForegroundDaemonMain(DaemonParameters parameters) {
@@ -30,7 +30,7 @@ public class ForegroundDaemonMain extends DaemonMain {
     }
 
     @Override
-    protected void initialiseLogging(LoggingServiceRegistry loggingRegistry, LoggingManagerInternal loggingManager, DaemonDir daemonDir, DaemonContext daemonContext) {
+    protected void initialiseLogging(OutputEventRenderer renderer, LoggingManagerInternal loggingManager, File daemonLog) {
         // Don't redirect IO for foreground daemon
         loggingManager.start();
     }

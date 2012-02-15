@@ -32,7 +32,6 @@ import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 
 import java.io.*;
-import java.util.UUID;
 
 /**
  * The entry point for a daemon process.
@@ -87,10 +86,10 @@ public class DaemonMain extends EntryPoint {
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newChildProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.getFactory(LoggingManagerInternal.class).create();
         DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, daemonUid, loggingRegistry, loggingManager);
-        DaemonDir daemonDir = daemonServices.get(DaemonDir.class);
+        File daemonLog = daemonServices.getDaemonLogFile();
         final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
 
-        initialiseLogging(loggingRegistry, loggingManager, daemonDir, daemonContext);
+        initialiseLogging(loggingRegistry.get(OutputEventRenderer.class), loggingManager, daemonLog);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
@@ -109,16 +108,23 @@ public class DaemonMain extends EntryPoint {
         }
     }
 
-    protected void initialiseLogging(LoggingServiceRegistry loggingRegistry, LoggingManagerInternal loggingManager, DaemonDir daemonDir, DaemonContext daemonContext) {
+    protected void initialiseLogging(OutputEventRenderer renderer, LoggingManagerInternal loggingManager, File daemonLog) {
         //create log file
-        PrintStream log = createLogOutput(daemonDir, daemonContext);
+        PrintStream result;
+        try {
+            Files.createParentDirs(daemonLog);
+            result = new PrintStream(new FileOutputStream(daemonLog), true);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to create daemon log file", e);
+        }
+        PrintStream log = result;
 
         //close all streams and redirect IO
         redirectOutputsAndInput(log);
 
         //after redirecting we need to add the new std out/err to the renderer singleton
         //so that logging gets its way to the daemon log:
-        loggingRegistry.get(OutputEventRenderer.class).addStandardOutputAndError();
+        renderer.addStandardOutputAndError();
 
         //Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
         //Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)
@@ -131,17 +137,6 @@ public class DaemonMain extends EntryPoint {
         Daemon daemon = daemonServices.get(Daemon.class);
         daemon.start();
         return daemon;
-    }
-
-    private static PrintStream createLogOutput(DaemonDir daemonDir, DaemonContext daemonContext) {
-        String logFileName = String.format("daemon-%s.out.log", daemonContext.getPid() == null ? daemonContext.getUid() : daemonContext.getPid());
-        File logFile = new File(daemonDir.getVersionedDir(), logFileName);
-        try {
-            Files.createParentDirs(logFile);
-            return new PrintStream(new FileOutputStream(logFile), true);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to create daemon log file", e);
-        }
     }
 
     private static void redirectOutputsAndInput(OutputStream log) {
