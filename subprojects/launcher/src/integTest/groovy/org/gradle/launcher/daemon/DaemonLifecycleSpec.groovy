@@ -455,12 +455,15 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         state 1, 1
+
+        then:
+        completeBuild(1)
+        
+        then:
+        idle 2
         daemonContext(1) {
             assert daemonOpts.contains("-Dfile.encoding=UTF-8")
         }
-
-        then:
-        completeBuild()
     }
     
     def cleanup() {
