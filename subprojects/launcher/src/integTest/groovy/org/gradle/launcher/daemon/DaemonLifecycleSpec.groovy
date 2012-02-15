@@ -78,9 +78,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             if (buildEncoding) {
                 executer.withDefaultCharacterEncoding(buildEncoding)
             }
-            //TODO SF when the tests are interrupted (for example, from idea)
-            //or when they break they seem to leave GradleDaemon and GradleMain processes hung forever
-            //the sanity check does not really help
             executer.usingProjectDirectory buildDirWithScript(builds.size(), """
                 task('watch') << {
                     println "waiting for stop file"
