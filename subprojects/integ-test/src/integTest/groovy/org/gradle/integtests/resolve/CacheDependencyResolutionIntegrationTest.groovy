@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyRepository
 import org.junit.Rule
 
-public class CacheResilienceDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
+public class CacheDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
 
@@ -68,5 +68,58 @@ task deleteCacheFiles(type: Delete) {
 
         then:
         succeeds('listJars')
+    }
+
+    public void "cache entries are segregated between different repositories"() {
+        server.start()
+        given:
+        def repo1 = new IvyRepository(file('ivy-repo-a'))
+        def module1 = repo1.module('org.gradle', 'testproject', '1.0').publish()
+        def repo2 = new IvyRepository(file('ivy-repo-b'))
+        def module2 = repo2.module('org.gradle', 'testproject', '1.0').publish()
+        module2.jarFile << "Some extra content"
+
+        and:
+        settingsFile << "include 'a','b'"
+        buildFile << """
+subprojects {
+    configurations {
+        test
+    }
+    dependencies {
+        test "org.gradle:testproject:1.0"
+    }
+    task retrieve(type: Sync) {
+        into 'build'
+        from configurations.test
+    }
+}
+project('a') {
+    repositories {
+        ivy { url "http://localhost:${server.port}/repo-a" }
+    }
+}
+project('b') {
+    repositories {
+        ivy { url "http://localhost:${server.port}/repo-b" }
+    }
+}
+"""
+
+        when:
+        server.expectGet('/repo-a/org.gradle/testproject/1.0/ivy-1.0.xml', module1.ivyFile)
+        server.expectGet('/repo-a/org.gradle/testproject/1.0/testproject-1.0.jar', module1.jarFile)
+
+        server.expectGet('/repo-b/org.gradle/testproject/1.0/ivy-1.0.xml.sha1', module2.sha1File(module2.ivyFile))
+        server.expectGet('/repo-b/org.gradle/testproject/1.0/ivy-1.0.xml', module2.ivyFile)
+        server.expectGet('/repo-b/org.gradle/testproject/1.0/testproject-1.0.jar.sha1', module2.sha1File(module2.jarFile))
+        server.expectGet('/repo-b/org.gradle/testproject/1.0/testproject-1.0.jar', module2.jarFile)
+
+        then:
+        succeeds 'retrieve'
+
+        and:
+        file('a/build/testproject-1.0.jar').assertIsCopyOf(module1.jarFile)
+        file('b/build/testproject-1.0.jar').assertIsCopyOf(module2.jarFile)
     }
 }
