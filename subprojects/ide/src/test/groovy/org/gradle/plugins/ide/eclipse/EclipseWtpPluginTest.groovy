@@ -60,6 +60,7 @@ class EclipseWtpPluginTest extends Specification {
      def applyToWarProject_shouldHaveWebProjectAndClasspathTask() {
         when:
         project.apply(plugin: 'war')
+        project.sourceCompatibility = 1.5
         wtpPlugin.apply(project)
 
         then:

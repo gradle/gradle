@@ -18,6 +18,12 @@ defaultTasks 'eclipse', 'cleanEclipse'
 
 allprojects {
     apply plugin: 'eclipse-wtp'
+
+    group = 'org.gradle'
+
+    plugins.withType(JavaBasePlugin) {
+        sourceCompatibility = 1.5
+    }
 }
 
 subprojects {
