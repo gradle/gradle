@@ -143,7 +143,7 @@ public class CommandLineActionFactory {
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
 
         if (commandLine.hasOption(STOP)) {
-            // TODO:DAZ This should use a different client hat matches any Daemon. Then we can use Stop to mean "Stop any daemon this client can connect to".
+            // TODO:DAZ This should use a different client that matches any Daemon. Then we can use Stop to mean "Stop any daemon this client can connect to".
             return new ActionAdapter(new StopDaemonAction(client));
         }
         if (useDaemon) {

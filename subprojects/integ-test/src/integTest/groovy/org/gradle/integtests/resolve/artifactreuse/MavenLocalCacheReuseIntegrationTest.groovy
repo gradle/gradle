@@ -49,8 +49,6 @@ task retrieve(type: Sync) {
 """
 
         when:
-        // TODO:DAZ Remove this: it's only here for tracking down a sporadic build failure
-//        executer.withArguments('-d')
         server.expectGet('/gradletest/maven/local/cache/test/foo/1.0/foo-1.0.pom.sha1', repoFile.file('gradletest/maven/local/cache/test/foo/1.0/foo-1.0.pom.sha1'))
         server.expectGet('/gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar.sha1', repoFile.file('gradletest/maven/local/cache/test/foo/1.0/foo-1.0.jar.sha1'))
 
@@ -80,8 +78,6 @@ uploadArchives {
 }
 """
 
-        // TODO:DAZ Remove this: it's only here for tracking down a sporadic build failure
-//        executer.withArguments('-d')
         run 'install'
         run 'uploadArchives'
     }
