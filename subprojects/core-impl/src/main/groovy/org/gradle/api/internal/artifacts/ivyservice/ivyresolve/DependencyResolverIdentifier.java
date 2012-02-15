@@ -34,10 +34,16 @@ public class DependencyResolverIdentifier {
             ResourceCollectionResolver resourceCollectionResolver = (ResourceCollectionResolver) resolver;
             parts.add(joinPatterns(resourceCollectionResolver.getIvyPatterns()));
             parts.add(joinPatterns(resourceCollectionResolver.getArtifactPatterns()));
+            if (resourceCollectionResolver.isM2compatible()) {
+                parts.add("m2compatible");
+            }
         } else if (resolver instanceof AbstractPatternsBasedResolver) {
             AbstractPatternsBasedResolver patternsBasedResolver = (AbstractPatternsBasedResolver) resolver;
             parts.add(joinPatterns(patternsBasedResolver.getIvyPatterns()));
             parts.add(joinPatterns(patternsBasedResolver.getArtifactPatterns()));
+            if (patternsBasedResolver.isM2compatible()) {
+                parts.add("m2compatible");
+            }
         } else {
             parts.add(resolver.getName());
             // TODO We should not be assuming equality between resolvers here based on name...
