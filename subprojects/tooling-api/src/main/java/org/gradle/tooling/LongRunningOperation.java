@@ -95,11 +95,11 @@ public interface LongRunningOperation {
      * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as java or gradle environment.
      * If you want to get hold of this information you can ask tooling API to build this model.
      * <p>
-     * If not configured or null passed the sensible default will be used.
+     * If not configured, null an empty array passed then the reasonable default will be used.
      *
      * @param jvmArguments to use for the gradle process
      * @return this
-     * @since 1.0-milestone-8
+     * @since 1.0-milestone-9
      */
     LongRunningOperation setJvmArguments(String... jvmArguments);
 
