@@ -41,6 +41,9 @@ public class ConventionAwareHelper implements ConventionMapping {
 
     private Map<String, ConventionValue> conventionMapping = new HashMap<String, ConventionValue>();
 
+    /**
+     * @see org.gradle.api.internal.AsmBackedClassGenerator.ClassBuilderImpl#mixInConventionAware()
+     */
     public ConventionAwareHelper(IConventionAware source) {
         this.source = source;
         this.convention = new DefaultConvention();
