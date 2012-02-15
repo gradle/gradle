@@ -83,6 +83,11 @@ public class JavaVersionTest {
         conversionFails(2.0);
         conversionFails(4.2);
     }
+    
+    @Test
+    public void currentReturnsJvmVersion() {
+        assertThat(JavaVersion.current(), equalTo(JavaVersion.toVersion(System.getProperty("java.version"))));
+    }
 
     @Test
     public void convertsNullToNull() {
