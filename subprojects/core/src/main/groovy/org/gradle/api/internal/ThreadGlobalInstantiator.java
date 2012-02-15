@@ -48,4 +48,13 @@ public abstract class ThreadGlobalInstantiator {
             stack.pop();
         }
     }
+
+    public static Instantiator getOrCreate() {
+        Instantiator instantiator = get();
+        if (instantiator != null) {
+            return instantiator;
+        } else {
+            return new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator());
+        }
+    }
 }
