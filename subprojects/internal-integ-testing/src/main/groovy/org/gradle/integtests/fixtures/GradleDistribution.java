@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.*;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;

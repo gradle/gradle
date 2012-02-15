@@ -17,7 +17,7 @@ package org.gradle.internal.nativeplatform.jna;
 
 import org.gradle.internal.nativeplatform.NativeIntegrationException;
 import org.gradle.internal.nativeplatform.NativeIntegrationUnavailableException;
-import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 
 import java.io.File;

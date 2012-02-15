@@ -21,7 +21,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.nativeplatform.NativeIntegrationUnavailableException;
-import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.jruby.ext.posix.POSIX;

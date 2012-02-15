@@ -25,7 +25,7 @@ import org.gradle.cache.internal.DefaultProcessMetaDataProvider
 import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.internal.nativeplatform.services.NativeServices
-import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion

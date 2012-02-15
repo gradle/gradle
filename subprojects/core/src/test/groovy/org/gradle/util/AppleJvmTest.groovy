@@ -15,7 +15,7 @@
  */
 package org.gradle.util
 
-import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Jvm.AppleJvm
 import org.junit.Rule
 import spock.lang.Specification

@@ -16,7 +16,7 @@
 package org.gradle.api.plugins.announce.internal
 
 import org.gradle.api.internal.ProcessOperations
-import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 
 class GrowlNotifyBackedAnnouncer extends Growl {
     private final ProcessOperations processOperations

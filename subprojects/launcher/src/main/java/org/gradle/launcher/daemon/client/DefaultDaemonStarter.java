@@ -19,7 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.nativeplatform.jna.WindowsProcessStarter;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.logging.DaemonGreeter;

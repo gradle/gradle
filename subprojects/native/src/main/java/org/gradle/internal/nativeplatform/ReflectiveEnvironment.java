@@ -16,6 +16,8 @@
 
 package org.gradle.internal.nativeplatform;
 
+import org.gradle.internal.os.OperatingSystem;
+
 import java.lang.reflect.Field;
 import java.util.Map;
 

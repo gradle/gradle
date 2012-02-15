@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.tests.fixtures.ConcurrentTestUtil
 import spock.lang.IgnoreIf

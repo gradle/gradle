@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.Jvm;
 import org.gradle.util.TestFile;
 

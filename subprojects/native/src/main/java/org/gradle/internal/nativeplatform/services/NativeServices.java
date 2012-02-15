@@ -16,6 +16,7 @@
 package org.gradle.internal.nativeplatform.services;
 
 import org.gradle.internal.nativeplatform.*;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.nativeplatform.jna.PosixBackedProcessEnvironment;
 import org.gradle.internal.nativeplatform.jna.UnsupportedEnvironment;

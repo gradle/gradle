@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.eclipse
 import java.util.regex.Pattern
 import org.gradle.util.TestFile
 import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
-import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 
 class EclipseClasspathFixture {
     final TestFile projectDir

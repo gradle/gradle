@@ -16,7 +16,7 @@
 package org.gradle.internal.nativeplatform.services
 
 import org.gradle.internal.nativeplatform.FileSystem
-import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.jruby.ext.posix.POSIX
 import spock.lang.Specification

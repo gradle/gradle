@@ -17,7 +17,7 @@
 package org.gradle.integtests.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Jvm
 import org.gradle.internal.nativeplatform.FileSystems

@@ -19,7 +19,7 @@ package org.gradle.internal.nativeplatform.jna;
 import org.apache.commons.io.IOUtils;
 import org.gradle.internal.nativeplatform.NativeIntegrationException;
 import org.gradle.internal.nativeplatform.NativeIntegrationUnavailableException;
-import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
 import java.io.FileOutputStream;
