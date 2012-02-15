@@ -15,9 +15,12 @@
  */
 package org.gradle.api;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class JavaVersionTest {
     @Test

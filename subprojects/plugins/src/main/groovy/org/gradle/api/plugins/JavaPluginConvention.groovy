@@ -23,10 +23,10 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.reporting.ReportingExtension
 
 /**
  * Is mixed in into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
@@ -140,7 +140,7 @@ class JavaPluginConvention {
      * Returns the source compatibility used for compiling Java sources.
      */
     JavaVersion getSourceCompatibility() {
-        srcCompat ?: JavaVersion.current();
+        srcCompat ?: JavaVersion.VERSION_1_5
     }
 
     /**

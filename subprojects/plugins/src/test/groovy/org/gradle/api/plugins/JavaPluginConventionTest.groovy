@@ -56,12 +56,8 @@ class JavaPluginConventionTest {
         assertEquals('docs', convention.docsDirName)
         assertEquals('test-results', convention.testResultsDirName)
         assertEquals('tests', convention.testReportDirName)
-    }
-
-    @Test public void sourceCompatibilityDefaultsToCurentJvmVersion() {
-        JavaVersion currentJvmVersion = JavaVersion.toVersion(System.properties["java.version"]);
-        assertEquals(currentJvmVersion, convention.sourceCompatibility)
-        assertEquals(currentJvmVersion, convention.targetCompatibility)
+        assertEquals(JavaVersion.VERSION_1_5, convention.sourceCompatibility)
+        assertEquals(JavaVersion.VERSION_1_5, convention.targetCompatibility)
     }
 
     @Test public void canConfigureSourceSets() {
