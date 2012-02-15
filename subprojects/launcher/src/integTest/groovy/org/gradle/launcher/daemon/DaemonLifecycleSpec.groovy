@@ -433,6 +433,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     def "if a daemon exists but is using a file encoding, a new compatible daemon will be created and used"() {
+        daemonIdleTimeout = 15
+
         when:
         startBuild(null, "US-ASCII")
         waitForBuildToWait()
