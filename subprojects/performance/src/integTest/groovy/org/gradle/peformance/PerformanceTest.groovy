@@ -33,13 +33,13 @@ class PerformanceTest extends Specification {
     @Unroll({"Project '$testProject' ran $runs times. Current release is not slower than the previous one."})
     def "speed"() {
         expect:
-        def result = new PerformanceTestRunner(testProject: testProject, runs: runs, warmUpRuns: 1).run()
+        def result = new PerformanceTestRunner(testProject: testProject, runs: runs, warmUpRuns: 1, accuracyMs: accuracyMs).run()
         result.assertCurrentReleaseIsNotSlower()
 
         where:
-        testProject | runs
-        "small"     | 10
-        "multi"     | 10
+        testProject | runs | accuracyMs
+        "small"     | 10   | 500
+        "multi"     | 10   | 1000
     }
 
     @Unroll({"Project '$testProject' with heap size: $heapSize. Current release does not require more memory than the previous one."})
@@ -50,7 +50,7 @@ class PerformanceTest extends Specification {
 
         where:
         testProject | heapSize
-        "small"     | '-Xmx17m' //fails with 16m
-        "multi"     | '-Xmx62m' //fails with 54m on my box, with 60m on ci
+        "small"     | '-Xmx18m' //fails with 16m
+        "multi"     | '-Xmx64m' //fails with 54m on my box, with 60m on ci
     }
 }

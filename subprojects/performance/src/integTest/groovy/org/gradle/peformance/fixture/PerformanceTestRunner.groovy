@@ -29,11 +29,13 @@ public class PerformanceTestRunner {
     String testProject
     int runs
     int warmUpRuns
+    int accuracyMs
     List<String> gradleOpts
 
-    def results = new PerformanceResults()
+    def results
 
     PerformanceResults run() {
+        results = new PerformanceResults(accuracyMs: accuracyMs)
         LOGGER.lifecycle("Running performance tests for test project '{}', no. # runs: {}", testProject, runs)
         warmUpRuns.times {
             LOGGER.info("Executing warm-up run #${it+1}")
