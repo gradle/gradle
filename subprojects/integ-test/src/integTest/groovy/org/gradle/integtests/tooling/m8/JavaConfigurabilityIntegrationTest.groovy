@@ -16,17 +16,14 @@
 
 package org.gradle.integtests.tooling.m8
 
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.util.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
 
@@ -103,46 +100,6 @@ assert System.getProperty('some-prop') == 'BBB'
         then:
         def inputArgsInBuild = project.description.split('##') as List
         env.java.jvmArguments.each { inputArgsInBuild.contains(it) }
-    }
-
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
-    def "customized java home is reflected in the java.home and the build model"() {
-        given:
-        dist.file('build.gradle') << "project.description = System.getProperty('java.home')"
-
-        when:
-        File javaHome = AvailableJavaHomes.bestAlternative
-        BuildEnvironment env
-        Project project
-        withConnection {
-            env = it.model(BuildEnvironment.class).setJavaHome(javaHome).get()
-            project = it.model(Project.class).setJavaHome(javaHome).get()
-        }
-
-        then:
-        project.description.startsWith(env.java.javaHome.toString())
-    }
-
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
-    def "tooling api provided java home takes precedence over gradle.properties"() {
-        File javaHome = AvailableJavaHomes.bestAlternative
-        File otherJava = Jvm.current().getJavaHome()
-
-        dist.file('build.gradle') << "assert System.getProperty('java.home').startsWith('$javaHome')"
-        dist.file('gradle.properties') << "org.gradle.java.home=${otherJava.absolutePath}"
-
-        when:
-        def env = withConnection {
-            it.newBuild().setJavaHome(javaHome).run() //the assert
-            it.model(BuildEnvironment.class)
-                    .setJavaHome(javaHome)
-                    .get()
-        }
-
-        then:
-        env != null
-        env.java.javaHome == javaHome
-        env.java.javaHome != otherJava
     }
 
     @Issue("GRADLE-1799")
