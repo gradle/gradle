@@ -86,6 +86,39 @@ public class DependencyResolverIdentifierTest extends Specification {
         id(resolver2) != id(resolver2a)
     }
 
+    def "dependency resolvers of type AbstractPatternBasedResolver are differentiated by m2compatible flag"() {
+        given:
+        AbstractPatternsBasedResolver resolver1 = Mock()
+        AbstractPatternsBasedResolver resolver2 = Mock()
+
+        when:
+        resolver1.ivyPatterns >> ['ivy1']
+        resolver1.artifactPatterns >> ['artifact1']
+        resolver1.m2compatible >> false
+        resolver2.ivyPatterns >> ['ivy1']
+        resolver2.artifactPatterns >> ['artifact1']
+        resolver2.m2compatible >> true
+
+        then:
+        id(resolver1) != id(resolver2)
+    }
+
+    def "dependency resolvers of type ResourceCollectionResolver are differentiated by m2compatible flag"() {
+        given:
+        ResourceCollectionResolver resolver1 = Mock()
+        ResourceCollectionResolver resolver2 = Mock()
+
+        when:
+        resolver1.ivyPatterns >> ['ivy1']
+        resolver1.artifactPatterns >> ['artifact1']
+        resolver2.ivyPatterns >> ['ivy1']
+        resolver2.artifactPatterns >> ['artifact1']
+        resolver2.m2compatible >> true
+
+        then:
+        id(resolver1) != id(resolver2)
+    }
+
     def id(DependencyResolver resolver) {
         return new DependencyResolverIdentifier(resolver).id
     }
