@@ -88,7 +88,7 @@ public class DaemonParameters {
     }
 
     public List<String> getEffectiveJvmArgs() {
-        return jvmOptions.getAllJvmArgsWithoutSystemProperties();
+        return jvmOptions.getAllImmutableJvmArgs();
     }
 
     public List<String> getAllJvmArgs() {

@@ -62,12 +62,16 @@ public class JvmOptions {
 
         // We have to add these after the system properties so they can override any system properties
         // (identical properties later in the command line override earlier ones)
-        args.addAll(getAllJvmArgsWithoutSystemProperties());
+        args.addAll(getAllImmutableJvmArgs());
 
         return args;
     }
-    
-    public List<String> getAllJvmArgsWithoutSystemProperties() {
+
+    /**
+     * @return all immutable jvm args. It excludes most system properties.
+     * Only implicitly immutable system properties like "file.encoding" are included.
+     */
+    public List<String> getAllImmutableJvmArgs() {
         List<String> args = new ArrayList<String>();
         args.addAll(getJvmArgs());
         if (minHeapSize != null) {

@@ -89,7 +89,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         }
 
         jvmOptions.setAllJvmArgs(inputArguments);
-        List<String> opts = jvmOptions.getAllJvmArgsWithoutSystemProperties();
+        List<String> opts = jvmOptions.getAllImmutableJvmArgs();
         LOGGER.debug("Creating daemon context with opts: {}", opts);
         
         builder.setDaemonOpts(opts);
