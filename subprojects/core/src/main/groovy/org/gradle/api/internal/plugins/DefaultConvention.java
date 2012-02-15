@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.*;
 import org.gradle.api.plugins.Convention;
 
@@ -34,14 +35,15 @@ public class DefaultConvention implements Convention {
     private final Instantiator instantiator;
 
     /**
-     * This method should be used in runtime code proper as it uses a new class generator for each instance.
+     * This method should be used in runtime code proper as means that the convention cannot create
+     * dynamic extensions.
      *
      * It's here for backwards compatibility with our tests and for convenience.
      *
      * @see #DefaultConvention(org.gradle.api.internal.Instantiator)
      */
     public DefaultConvention() {
-        this(new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator()));
+        this.instantiator = null;
     }
 
     public DefaultConvention(Instantiator instantiator) {
@@ -54,6 +56,13 @@ public class DefaultConvention implements Convention {
 
     public DynamicObject getExtensionsAsDynamicObject() {
         return extensionsDynamicObject;
+    }
+
+    private Instantiator getInstantiator() {
+        if (instantiator == null) {
+            throw new GradleException("request for DefaultConvention.instantiator when the object was constructed without a convention");
+        }
+        return instantiator;
     }
 
     public <T> T getPlugin(Class<T> type) {
@@ -91,7 +100,7 @@ public class DefaultConvention implements Convention {
     }
 
     public void add(String name, Class<?> type, Object... constructionArguments) {
-        add(name, instantiator.newInstance(type, constructionArguments));
+        add(name, getInstantiator().newInstance(type, constructionArguments));
     }
 
     public <T> T getByType(Class<T> type) {
