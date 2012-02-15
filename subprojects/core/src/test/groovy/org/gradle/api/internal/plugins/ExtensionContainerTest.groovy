@@ -168,7 +168,7 @@ public class ExtensionContainerTest extends Specification {
         extension instanceof ExtensionAware
         
         when:
-        extension.extensions.add("thing", Thing, "bar")
+        extension.extensions.addDecorated("thing", Thing, "bar")
         
         then:
         extension.thing.name == "bar"

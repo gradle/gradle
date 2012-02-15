@@ -372,9 +372,9 @@ assert 'overridden value' == global
                 }
             }
 
-            project.extensions.add("l1", Extension, "l1")
-            project.l1.extensions.add("l2", Extension, "l2")
-            project.l1.l2.extensions.add("l3", Extension, "l3")
+            project.extensions.addDecorated("l1", Extension, "l1")
+            project.l1.extensions.addDecorated("l2", Extension, "l2")
+            project.l1.l2.extensions.addDecorated("l3", Extension, "l3")
 
             task test << {
                 assert project.l1.name == "l1"

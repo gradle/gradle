@@ -21,6 +21,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.*;
 import org.gradle.api.plugins.Convention;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.*;
 
@@ -93,14 +94,21 @@ public class DefaultConvention implements Convention {
 
     public void add(String name, Object extension) {
         if (extension instanceof Class) {
-            add(name, (Class<?>)extension, new Object[0]);
+            addDecorated(name, (Class<?>) extension);
         } else {
             extensionsStorage.add(name, extension);
         }
     }
 
     public void add(String name, Class<?> type, Object... constructionArguments) {
-        add(name, getInstantiator().newInstance(type, constructionArguments));
+        DeprecationLogger.nagUserOfReplacedMethod("extensions.add(String, Class, Object...)", "extensions.addDecorated(String, Class, Object...)");
+        addDecorated(name, type, constructionArguments);
+    }
+
+    public <T> T addDecorated(String name, Class<T> type, Object... constructionArguments) {
+        T instance = getInstantiator().newInstance(type, constructionArguments);
+        add(name, instance);
+        return instance;
     }
 
     public <T> T getByType(Class<T> type) {

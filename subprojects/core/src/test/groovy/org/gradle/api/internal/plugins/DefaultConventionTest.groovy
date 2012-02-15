@@ -23,6 +23,7 @@ import org.junit.Before
 import org.junit.Test
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.*
+import org.gradle.api.internal.ThreadGlobalInstantiator
 
 /**
  * @author Hans Dockter
@@ -135,6 +136,12 @@ class DefaultConventionTest {
         convention.extensionsAsDynamicObject.foo {
             assertEquals("Hello world!", message);
         }
+    }
+
+    @Test void canAddDecoratedExtensions() {
+        convention = new DefaultConvention(ThreadGlobalInstantiator.getOrCreate())
+        FooExtension extension = convention.addDecorated("foo", FooExtension)
+        assert extension.is(convention.getByName("foo"))
     }
 
     static class FooExtension {
