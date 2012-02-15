@@ -37,34 +37,34 @@ class ToolingApi {
         this.dist = dist
     }
 
-    def withConnector(Closure cl) {
+    void withConnector(Closure cl) {
         connectorConfigurers << cl
     }
 
-    def withConnection(Closure cl) {
+    public <T> T withConnection(Closure<T> cl) {
         GradleConnector connector = connector()
         withConnection(connector, cl)
     }
 
-    def withConnection(GradleConnector connector, Closure cl) {
+    public <T> T withConnection(GradleConnector connector, Closure<T> cl) {
         try {
-            withConnectionRaw(connector, cl)
+            return withConnectionRaw(connector, cl)
         } catch (UnsupportedVersionException e) {
             throw new IntegrationTestHint(e);
         }
     }
 
-    def maybeFailWithConnection(Closure cl) {
+    public Throwable maybeFailWithConnection(Closure cl) {
         GradleConnector connector = connector()
         try {
             withConnectionRaw(connector, cl)
+            return null
         } catch (Throwable e) {
             return e
         }
-        return null
     }
 
-    private def withConnectionRaw(GradleConnector connector, Closure cl) {
+    private <T> T withConnectionRaw(GradleConnector connector, Closure<T> cl) {
         ProjectConnection connection = connector.connect()
         try {
             return cl.call(connection)

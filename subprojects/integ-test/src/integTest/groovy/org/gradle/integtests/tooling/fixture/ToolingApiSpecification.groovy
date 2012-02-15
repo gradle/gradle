@@ -68,11 +68,11 @@ abstract class ToolingApiSpecification extends Specification {
         return true
     }
 
-    def withConnection(Closure cl) {
+    public <T> T withConnection(Closure<T> cl) {
         toolingApi.withConnection(cl)
     }
 
-    def withConnection(GradleConnector connector, Closure cl) {
+    public <T> T withConnection(GradleConnector connector, Closure<T> cl) {
         toolingApi.withConnection(connector, cl)
     }
 
@@ -80,7 +80,7 @@ abstract class ToolingApiSpecification extends Specification {
         toolingApi.connector()
     }
 
-    def maybeFailWithConnection(Closure cl) {
+    Throwable maybeFailWithConnection(Closure cl) {
         toolingApi.maybeFailWithConnection(cl)
     }
 }
