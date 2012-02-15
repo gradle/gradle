@@ -20,8 +20,6 @@ import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
-import org.gradle.util.JavaHomeException;
-import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.io.InputStream;
@@ -78,17 +76,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         if (!javaHome.isDirectory()) {
             throw new IllegalArgumentException("Supplied javaHome is not a valid folder. You supplied: " + javaHome);
         }
-        try {
-            Jvm.forHome(javaHome);
-        } catch (JavaHomeException e) {
-            throw new IllegalArgumentException(
-                "Supplied javaHome does not seem to be a valid java location. You supplied: " + javaHome + "."
-                        + " I could not find the java executable in that location.", e);
-        }
     }
 
     public void setJvmArguments(String... jvmArguments) {
-        this.jvmArguments = jvmArguments != null ? Arrays.asList(jvmArguments) : null;
+        this.jvmArguments = jvmArguments != null && jvmArguments.length > 0 ? Arrays.asList(jvmArguments) : null;
     }
 
     public long getStartTime() {

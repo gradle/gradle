@@ -20,16 +20,15 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.Jvm
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
@@ -51,7 +50,8 @@ class JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
         }
 
         then:
-        env.java.jvmArguments == ["-Xms13m", "-Xmx333m"]
+        env.java.jvmArguments.contains "-Xms13m"
+        env.java.jvmArguments.contains "-Xmx333m"
     }
 
     def "uses sensible java defaults if nulls configured"() {
@@ -59,7 +59,6 @@ class JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
         BuildEnvironment env = withConnection {
             def model = it.model(BuildEnvironment.class)
             model
-                .setJavaHome(null)
                 .setJvmArguments(null)
                 .get()
         }
@@ -173,21 +172,6 @@ assert System.getProperty('some-prop') == 'BBB'
     }
 
     @Issue("GRADLE-1799")
-    @Timeout(5)
-    def "promptly discovers when java is not a valid installation"() {
-        def dummyJdk = dist.file("dummyJdk").createDir()
-        
-        when:
-        withConnection {
-            it.newBuild().setJavaHome(dummyJdk)
-        }
-
-        then:
-        def ex = thrown(IllegalArgumentException)
-        ex.message.contains("dummyJdk")
-    }
-
-    @Issue("GRADLE-1799")
     @Requires(TestPrecondition.NOT_WINDOWS)
     @Timeout(5)
     def "promptly discovers rubbish jvm arguments"() {
@@ -201,6 +185,6 @@ assert System.getProperty('some-prop') == 'BBB'
         then:
         ex instanceof GradleConnectionException
         ex.cause.message.contains "-Xasdf"
-        ex.cause.message.contains DaemonMessages.UNABLE_TO_START_DAEMON
+        ex.cause.message.contains "Unable to start the daemon"
     }
 }
