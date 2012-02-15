@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
+import org.gradle.util.TextUtil
 
 class CopyTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
     @Rule TemporaryFolder tmpDir = new TemporaryFolder()
@@ -30,7 +31,7 @@ class CopyTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
             $assertModesFunction
 
             task copy(type: Tar) {
-                from tarTree('${referenceArchive.absolutePath}')
+                from tarTree('${TextUtil.escapeString(referenceArchive.absolutePath)}')
                 dirMode = 0777
                 eachFile {
                     if (it.name == 'script') {
@@ -66,7 +67,7 @@ class CopyTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
             def preservedModes = [:]
             task copyPreserved(type: Tar) {
-                from tarTree('${referenceArchive.absolutePath}')
+                from tarTree('${TextUtil.escapeString(referenceArchive.absolutePath)}')
                 eachFile {
                     preservedModes[it.name] = toOctalString(it.mode)
                 }
@@ -74,7 +75,7 @@ class CopyTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
             def overriddenModes = [:]
             task copyOverridden(type: Tar) {
-                from tarTree('${referenceArchive.absolutePath}')
+                from tarTree('${TextUtil.escapeString(referenceArchive.absolutePath)}')
                 fileMode = 0123
                 eachFile {
                     overriddenModes[it.name] = toOctalString(it.mode)
@@ -115,15 +116,15 @@ class CopyTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
             $assertModesFunction
 
             task createReference(type: Tar) { 
-                destinationDir = file('$tmpDir.dir')
-                archiveName = '${archive.name}'
-                from file('${archiveTmp.absolutePath}')
+                destinationDir = file('${TextUtil.escapeString(tmpDir.dir)}')
+                archiveName = '${TextUtil.escapeString(archive.name)}'
+                from file('${TextUtil.escapeString(archiveTmp.absolutePath)}')
                 fileMode = $mode
                 dirMode = $mode
             }
 
             task verifyReference(dependsOn: createReference) << {
-                assertModes(tarTree(file('${archive.absolutePath}')), [
+                assertModes(tarTree(file('${TextUtil.escapeString(archive.absolutePath)}')), [
                     file: toOctalString($mode),
                     script: toOctalString($mode),
                     folder: toOctalString($mode)
