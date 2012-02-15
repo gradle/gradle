@@ -39,7 +39,6 @@ import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCa
 import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.hash.HashValue;
-import org.jfrog.wharf.ivy.checksum.ChecksumType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -157,9 +156,8 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
     }
 
     private CachedHttpResource findCachedResource(String source, List<CachedArtifact> candidates) {
-        // TODO:DAZ This is the last remnant of Wharf dependency: replace it
-        ChecksumType checksumType = ChecksumType.sha1;
-        String checksumUrl = source + checksumType.ext();
+        String checksumType = "SHA-1";
+        String checksumUrl = source + ".sha1";
 
         HashValue sha1 = downloadSha1(checksumUrl);
         if (sha1 == null) {

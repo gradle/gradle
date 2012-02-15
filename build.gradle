@@ -131,9 +131,6 @@ allprojects {
         mavenRepo(url: 'http://repo.gradle.org/gradle/libs')
         mavenRepo(url: 'http://repository.codehaus.org/')
         mavenRepo(url: 'http://m2repo.spockframework.org/snapshots/')
-        ivy {
-            url 'http://repo.jfrog.org/artifactory/gradle-wharf-local'
-        }
     }
 
     configurations {

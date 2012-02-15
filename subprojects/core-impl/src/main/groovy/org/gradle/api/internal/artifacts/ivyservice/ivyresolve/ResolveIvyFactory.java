@@ -65,15 +65,13 @@ public class ResolveIvyFactory {
         LoopbackDependencyResolver loopbackDependencyResolver = new LoopbackDependencyResolver(SettingsConverter.LOOPBACK_RESOLVER_NAME, userResolverChain, cacheLockingManager);
         List<DependencyResolver> rawResolvers = resolverProvider.getResolvers();
 
-        // Unfortunately, WharfResolverMetadata requires the resolver to have settings to calculate an id.
-        // TODO:DAZ Now that we're not using WharfResolverMetadata, see if this can be fixed.
-        // We then need to set the ivySettings on the delegating resolver as well
         IvySettings ivySettings = settingsConverter.convertForResolve(loopbackDependencyResolver, rawResolvers);
         Ivy ivy = ivyFactory.createIvy(ivySettings);
         ResolveData resolveData = createResolveData(ivy, configuration.getName());
 
         IvyContextualiser contextualiser = new IvyContextualiser(ivy, resolveData);
         for (DependencyResolver rawResolver : rawResolvers) {
+            // TODO:DAZ This could be lazily provided via the ivy context. Then we can change resolverProvider.getResolvers() -> getRepositories().
             rawResolver.setSettings(ivySettings);
 
             ModuleVersionRepository moduleVersionRepository = new DependencyResolverAdapter(rawResolver);
