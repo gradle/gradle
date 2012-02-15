@@ -48,4 +48,11 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      * @param path the new path for this file.
      */
     void setRelativePath(RelativePath path);
+
+    /**
+     * Sets the Unix permissions of this file.
+     *
+     * @param mode the Unix permissions, e.g. {@code 0644}.
+     */
+    void setMode(int mode);
 }

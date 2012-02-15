@@ -15,10 +15,14 @@
  */
 package org.gradle.api.internal.file.archive;
 
+import java.util.Map;
+import java.util.HashMap;
+
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.FileResource;
 import org.gradle.api.internal.file.MaybeCompressedFileResource;
+import org.gradle.util.Resources;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.junit.Rule;
@@ -27,6 +31,7 @@ import org.junit.Test;
 import static java.util.Collections.EMPTY_LIST;
 import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
 import static org.gradle.api.file.FileVisitorUtil.assertVisits;
+import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.containsString;
@@ -35,8 +40,8 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class TarFileTreeTest {
-    @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
+    @Rule public final Resources resources = new Resources();
     private final TestFile tarFile = tmpDir.getDir().file("test.tar");
     private final TestFile rootDir = tmpDir.getDir().file("root");
     private final TestFile expandDir = tmpDir.getDir().file("tmp");
@@ -123,5 +128,16 @@ public class TarFileTreeTest {
         } catch (GradleException e) {
             assertThat(e.getMessage(), containsString("Unable to expand TAR '" + tarFile + "'"));
         }
+    }
+
+    @Test
+    public void expectedFilePermissionsAreFound() {
+        resources.findResource("permissions.tar").copyTo(tarFile);
+
+        final Map<String, Integer> expected = new HashMap<String, Integer>();
+        expected.put("file", 0644);
+        expected.put("folder", 0755);
+
+        assertVisitsPermissions(tree, expected);
     }
 }

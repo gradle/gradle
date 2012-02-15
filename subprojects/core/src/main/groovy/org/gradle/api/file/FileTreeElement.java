@@ -98,4 +98,11 @@ public interface FileTreeElement {
      * @return The path. Never returns null.
      */
     RelativePath getRelativePath();
+
+    /**
+     * Returns the Unix permissions of this file, e.g. {@code 0644}.
+     *
+     * @return The Unix file permissions.
+     */
+    int getMode();
 }

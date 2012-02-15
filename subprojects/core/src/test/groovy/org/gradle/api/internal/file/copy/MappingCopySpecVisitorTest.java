@@ -200,6 +200,9 @@ public class MappingCopySpecVisitorTest {
     public void copyActionCanFilterContentWhenFileIsCopiedToFile() {
         final FileCopyDetails mappedDetails = expectActionExecutedWhenFileVisited();
 
+        // shortcut the permission logic by explicitly setting permissions
+        mappedDetails.setMode(0644);
+
         context.checking(new Expectations() {{
             one(details).open();
             will(returnValue(new ByteArrayInputStream("content".getBytes())));
@@ -241,6 +244,62 @@ public class MappingCopySpecVisitorTest {
         }});
 
         assertThat(mappedDetails.getFile(), sameInstance(file));
+    }
+
+    @Test
+    public void permissionsArePreservedByDefault() {
+        FileCopyDetails copyDetails = expectActionExecutedWhenFileVisited();
+
+        context.checking(new Expectations(){{
+            one(details).isDirectory();
+            will(returnValue(true));
+
+            one(spec).getDirMode();
+            will(returnValue(null));
+
+            one(details).getMode();
+            will(returnValue(123));
+        }});
+
+        assertThat(copyDetails.getMode(), equalTo(123));
+    }
+
+    @Test
+    public void filePermissionsCanBeOverriddenBySpec() {
+        FileCopyDetails copyDetails = expectActionExecutedWhenFileVisited();
+
+        context.checking(new Expectations(){{
+            one(details).isDirectory();
+            will(returnValue(false));
+
+            one(spec).getFileMode();
+            will(returnValue(234));
+        }});
+
+        assertThat(copyDetails.getMode(), equalTo(234));
+    }
+
+    @Test
+    public void directoryPermissionsCanBeOverriddenBySpec() {
+        FileCopyDetails copyDetails = expectActionExecutedWhenFileVisited();
+
+        context.checking(new Expectations(){{
+            one(details).isDirectory();
+            will(returnValue(true));
+
+            one(spec).getDirMode();
+            will(returnValue(345));
+        }});
+
+        assertThat(copyDetails.getMode(), equalTo(345));
+    }
+
+    @Test
+    public void permissionsCanBeOverriddenByCopyAction() {
+        FileCopyDetails copyDetails = expectActionExecutedWhenFileVisited();
+
+        copyDetails.setMode(456);
+        assertThat(copyDetails.getMode(), equalTo(456));
     }
 
     private FileVisitDetails expectSpecAndFileVisited() {
