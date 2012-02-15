@@ -68,19 +68,6 @@ class JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
         !env.java.jvmArguments.empty
     }
 
-    def "may use no jvm args if requested"() {
-        when:
-        BuildEnvironment env = withConnection {
-            def model = it.model(BuildEnvironment.class)
-            model
-                .setJvmArguments(new String[0])
-                .get()
-        }
-
-        then:
-        env.java.jvmArguments == []
-    }
-
     def "tooling api provided jvm args take precedence over gradle.properties"() {
         dist.file('build.gradle') << """
 assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx23m')
