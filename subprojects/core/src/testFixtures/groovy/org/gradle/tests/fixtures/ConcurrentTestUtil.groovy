@@ -556,10 +556,14 @@ class StartAsyncAction extends AbstractAsyncAction {
         Date timeout = shortTimeout()
         withLock {
             if (startThread == null) {
-                throw new IllegalStateException("Action has not been started.")
+                def e = new IllegalStateException("Action has not been started.")
+                e.printStackTrace()
+                throw e
             }
             if (Thread.currentThread() == startThread) {
-                throw new IllegalStateException("Cannot wait for action to complete from the thread that is executing it.")
+                def e = new IllegalStateException("Cannot wait for action to complete from the thread that is executing it.")
+                e.printStackTrace()
+                throw e
             }
             while (!started && !failure) {
                 if (!condition.awaitUntil(timeout)) {
