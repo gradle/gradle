@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
+import groovy.lang.GString;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -117,12 +118,16 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (!GUtil.isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
-        if (!(path instanceof String)) {
+        if (isNoString(path)) {
             DeprecationLogger.nagUserWith(String.format("Converting class %s to a task dependency using toString()."
                     + " This has been deprecated and will be removed in the next version of Gradle. Please use org.gradle.api.Task, java.lang.String, "
                     + "org.gradle.api.Buildable, org.gradle.tasks.TaskDependency or a Closure to declare your task dependencies.", path.getClass().getName()));
         }
         return getByPath(path.toString());
+    }
+
+    private boolean isNoString(Object path) {
+        return !(path instanceof String) && !(path instanceof GString);
     }
 
     public Task getByPath(String path) throws UnknownTaskException {
