@@ -45,7 +45,8 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
     public DynamicObjectHelper(AbstractDynamicObject delegateObject, Convention convention) {
         this.delegateObject = delegateObject;
         additionalProperties = new MapBackedDynamicObject(delegateObject);
-        setConvention(convention);
+        this.convention = convention;
+        updateDelegates();
     }
 
     private void updateDelegates() {
@@ -90,11 +91,6 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
 
     public Convention getConvention() {
         return convention;
-    }
-
-    public void setConvention(Convention convention) {
-        this.convention = convention;
-        updateDelegates();
     }
 
     public void addObject(DynamicObject object, Location location) {
