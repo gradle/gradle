@@ -17,8 +17,8 @@ package org.gradle.launcher.daemon.context
 
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.TemporaryFolder
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 class DaemonCompatibilitySpecSpec extends Specification {
@@ -60,8 +60,8 @@ class DaemonCompatibilitySpecSpec extends Specification {
     }
 
     def "contexts with different java homes are incompatible"() {
-        client { javaHome = tmp.newFolder("a") }
-        server { javaHome = tmp.newFolder("b") }
+        client { javaHome = tmp.createDir("a") }
+        server { javaHome = tmp.createDir("b") }
 
         expect:
         !compatible
