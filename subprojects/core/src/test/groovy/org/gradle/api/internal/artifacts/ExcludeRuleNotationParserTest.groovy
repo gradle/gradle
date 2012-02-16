@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts
+package org.gradle.api.internal.artifacts
 
-import org.gradle.api.internal.artifacts.DefaultExcludeRule
-import spock.lang.Specification
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.util.WrapUtil
+import spock.lang.Specification
 
-class ExcludeRuleNotationParserTest extends Specification{
+class ExcludeRuleNotationParserTest extends Specification {
     def parser = new ExcludeRuleNotationParser<DefaultExcludeRule>();
 
     def "with group"() {
         when:
-        ExcludeRule d = parser.parseNotation([group:'aGroup']);
+        ExcludeRule d = parser.parseNotation([group: 'aGroup']);
         then:
         d != null;
         d instanceof DefaultExcludeRule
@@ -36,7 +36,7 @@ class ExcludeRuleNotationParserTest extends Specification{
 
     def "with module"() {
         when:
-        ExcludeRule d = parser.parseNotation([module:'aModule']);
+        ExcludeRule d = parser.parseNotation([module: 'aModule']);
         then:
         d != null;
         d instanceof DefaultExcludeRule
@@ -63,15 +63,14 @@ class ExcludeRuleNotationParserTest extends Specification{
 
     def "checkValidExcludeRuleMap is true if group or module is defined"() {
         expect:
-            parser.checkValidExcludeRuleMap(WrapUtil.toMap(ExcludeRule.GROUP_KEY, "aGroup"));
-            parser.checkValidExcludeRuleMap(WrapUtil.toMap(ExcludeRule.MODULE_KEY, "aModule"));
+        parser.checkValidExcludeRuleMap(WrapUtil.toMap(ExcludeRule.GROUP_KEY, "aGroup"));
+        parser.checkValidExcludeRuleMap(WrapUtil.toMap(ExcludeRule.MODULE_KEY, "aModule"));
 
-        when: 
-            parser.checkValidExcludeRuleMap(WrapUtil.toMap("unknownKey", "someValue"))
+        when:
+        parser.checkValidExcludeRuleMap(WrapUtil.toMap("unknownKey", "someValue"))
         then:
-            thrown(InvalidUserDataException)
+        thrown(InvalidUserDataException)
     }
-
 
 
 }

@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts;
+package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
-public class ExcludeRuleNotationParser<T extends ExcludeRule> extends MapNotationParser<T>{
+/**
+ * @author Rene Groeschke
+ */
+public class ExcludeRuleNotationParser<T extends ExcludeRule> extends MapNotationParser<T> {
 
     @Override
     public void describe(Collection<String> candidateFormats) {
@@ -45,7 +48,7 @@ public class ExcludeRuleNotationParser<T extends ExcludeRule> extends MapNotatio
         return (T) new DefaultExcludeRule(group, module); //TODO maybe move this into an instantiator
     }
 
-    void checkValidExcludeRuleMap(Map<String,Object> ruleMap) throws InvalidUserDataException {
+    void checkValidExcludeRuleMap(Map<String, Object> ruleMap) throws InvalidUserDataException {
         final Object module = ruleMap.get(ExcludeRule.MODULE_KEY);
         final Object group = ruleMap.get(ExcludeRule.GROUP_KEY);
         if((group==null || group.toString().equals("")) && (module==null || module.toString().equals(""))){

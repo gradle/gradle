@@ -17,11 +17,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExcludeRuleContainer;
-import org.gradle.api.artifacts.ExcludeRuleNotationParser;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;

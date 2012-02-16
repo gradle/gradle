@@ -55,7 +55,9 @@ public class DefaultExcludeRule implements ExcludeRule {
 
     public void setGroup(String groupValue) {
         this.group = groupValue;
-        if(groupValue!=null) this.excludeArgs.put(GROUP_KEY, groupValue);
+        if(groupValue!=null){
+            this.excludeArgs.put(GROUP_KEY, groupValue);
+        }
 
     }
 
@@ -65,7 +67,9 @@ public class DefaultExcludeRule implements ExcludeRule {
 
     public void setModule(String moduleValue) {
         this.module = moduleValue;
-        if(moduleValue!=null) this.excludeArgs.put(MODULE_KEY, module);
+        if(moduleValue!=null){
+            this.excludeArgs.put(MODULE_KEY, module);
+        }
     }
 
     public Map<String, String> getExcludeArgs() {
