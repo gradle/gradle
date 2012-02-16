@@ -17,6 +17,7 @@ package org.gradle.api.internal;
 
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.DynamicExtension;
+import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 
 import java.util.ArrayList;
@@ -36,19 +37,31 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
     private DynamicExtension dynamicExtension;
     private DynamicObject dynamicExtensionDynamicObject;
 
+    /**
+     * This variant will internally create a convention that is not fully featured, so should be avoided.
+     *
+     * Use one of the other variants wherever possible.
+     *
+     * @param delegateObject The delegate
+     * @see org.gradle.api.internal.plugins.DefaultConvention#DefaultConvention()
+     */
     public DynamicObjectHelper(Object delegateObject) {
-        this(new BeanDynamicObject(delegateObject), null);
+        this(new BeanDynamicObject(delegateObject), new DefaultConvention());
     }
 
-    public DynamicObjectHelper(Object delegateObject, Convention convention) {
-        this(new BeanDynamicObject(delegateObject), convention);
+    public DynamicObjectHelper(Object delegateObject, Instantiator instantiator) {
+        this(new BeanDynamicObject(delegateObject), new DefaultConvention(instantiator));
+    }
+
+    public DynamicObjectHelper(AbstractDynamicObject delegateObject, Instantiator instantiator) {
+        this(delegateObject, new DefaultConvention(instantiator));
     }
 
     public DynamicObjectHelper(AbstractDynamicObject delegateObject, Convention convention) {
         this.delegateObject = delegateObject;
+        this.convention = convention;
         this.dynamicExtension = new DefaultDynamicExtension();
         this.dynamicExtensionDynamicObject = new AddOnDemandDynamicExtensionDynamicObjectAdapter(dynamicExtension);
-        this.convention = convention;
         updateDelegates();
     }
 

@@ -21,7 +21,6 @@ import groovy.lang.MissingPropertyException;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
@@ -112,9 +111,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         assert name != null;
         path = project.absoluteProjectPath(name);
         state = new TaskStateInternal(toString());
-        dynamicObjectHelper = new DynamicObjectHelper(this, new DefaultConvention(project.getServices().get(Instantiator.class)));
         dependencies = new DefaultTaskDependency(project.getTasks());
         services = project.getServices().createFor(this);
+        dynamicObjectHelper = new DynamicObjectHelper(this, getServices().get(Instantiator.class));
         outputs = services.get(TaskOutputsInternal.class);
         inputs = services.get(TaskInputs.class);
         executer = services.get(TaskExecuter.class);

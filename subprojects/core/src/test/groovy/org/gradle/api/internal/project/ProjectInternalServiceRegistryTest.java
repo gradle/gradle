@@ -32,17 +32,15 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.internal.Factory;
-import org.gradle.internal.nativeplatform.FileSystem;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.internal.Factory;
+import org.gradle.internal.nativeplatform.FileSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -103,12 +101,6 @@ public class ProjectInternalServiceRegistryTest {
     public void createsARegistryForATask() {
         ServiceRegistryFactory taskRegistry = registry.createFor(context.mock(TaskInternal.class));
         assertThat(taskRegistry, instanceOf(TaskInternalServiceRegistry.class));
-    }
-
-    @Test
-    public void providesAConvention() {
-        assertThat(registry.get(Convention.class), instanceOf(DefaultConvention.class));
-        assertThat(registry.get(Convention.class), sameInstance(registry.get(Convention.class)));
     }
 
     @Test

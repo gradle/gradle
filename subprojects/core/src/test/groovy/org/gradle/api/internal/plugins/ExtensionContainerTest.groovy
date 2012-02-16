@@ -18,18 +18,16 @@ package org.gradle.api.internal.plugins;
 
 
 import org.gradle.api.UnknownDomainObjectException
-import spock.lang.Specification
+import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.DirectInstantiator
+import spock.lang.Specification
 
 /**
  * @author: Szczepan Faber, created at: 6/24/11
  */
 public class ExtensionContainerTest extends Specification {
 
-    def container = new DefaultConvention(new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator()))
+    def container = new DefaultConvention(ThreadGlobalInstantiator.getOrCreate())
     def extension = new FooExtension()
     def barExtension = new BarExtension()
 

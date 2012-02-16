@@ -24,6 +24,7 @@ import org.junit.Test
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.*
 import org.gradle.api.internal.ThreadGlobalInstantiator
+import org.gradle.api.internal.Instantiator
 
 /**
  * @author Hans Dockter
@@ -34,8 +35,10 @@ class DefaultConventionTest {
     TestPluginConvention1 convention1
     TestPluginConvention2 convention2
 
+    Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
+
     @Before public void setUp() {
-        convention = new DefaultConvention()
+        convention = new DefaultConvention(instantiator)
         convention1 = new TestPluginConvention1()
         convention2 = new TestPluginConvention2()
         convention.plugins.plugin1 = convention1
@@ -116,7 +119,7 @@ class DefaultConventionTest {
 
     @Test public void addsPropertyAndConfigureMethodForEachExtension() {
         //when
-        convention = new DefaultConvention()
+        convention = new DefaultConvention(instantiator)
         def ext = new FooExtension()
         convention.add("foo", ext)
 
@@ -127,7 +130,7 @@ class DefaultConventionTest {
     }
 
     @Test public void extensionsTakePrecendenceOverPluginConventions() {
-        convention = new DefaultConvention()
+        convention = new DefaultConvention(instantiator)
         convention.plugins.foo = new FooPluginExtension()
         convention.add("foo", new FooExtension())
 
@@ -139,7 +142,7 @@ class DefaultConventionTest {
     }
 
     @Test void canAddDecoratedExtensions() {
-        convention = new DefaultConvention(ThreadGlobalInstantiator.getOrCreate())
+        convention = new DefaultConvention(instantiator)
         FooExtension extension = convention.addDecorated("foo", FooExtension)
         assert extension.is(convention.getByName("foo"))
     }

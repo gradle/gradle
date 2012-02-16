@@ -702,7 +702,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     public static class MixInDynamicObject extends DynamicObjectHelper {
 
         public MixInDynamicObject(Object delegateObject, DynamicObject dynamicObject) {
-            super(wrap(delegateObject, dynamicObject), new DefaultConvention(ThreadGlobalInstantiator.getOrCreate()));
+            super(wrap(delegateObject, dynamicObject), ThreadGlobalInstantiator.getOrCreate());
         }
 
         private static AbstractDynamicObject wrap(Object delegateObject, DynamicObject dynamicObject) {

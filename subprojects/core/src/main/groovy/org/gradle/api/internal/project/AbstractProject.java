@@ -188,7 +188,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         projectRegistry = services.get(IProjectRegistry.class);
         loggingManager = services.get(LoggingManagerInternal.class);
 
-        dynamicObjectHelper = new DynamicObjectHelper(this, services.get(Convention.class));
+        dynamicObjectHelper = new DynamicObjectHelper(this, services.get(Instantiator.class));
         if (parent != null) {
             dynamicObjectHelper.setParent(parent.getInheritedScope());
         }

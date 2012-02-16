@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.project
 
-// redundant import to make project compile in IDEA (otherwise stub compilation fails)
-
-
 import java.awt.Point
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
@@ -34,17 +31,17 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
-import org.gradle.api.internal.plugins.DefaultConvention
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.Directory
 import org.gradle.configuration.ProjectEvaluator
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.Factory
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.StandardOutputCapture
 import org.gradle.util.HelperUtil
@@ -55,12 +52,10 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.internal.Factory
 import org.gradle.api.*
 import org.gradle.api.internal.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.internal.service.ServiceRegistry
 
 /**
  * @author Hans Dockter
@@ -103,7 +98,6 @@ class DefaultProjectTest {
     ScriptHandler scriptHandlerMock = context.mock(ScriptHandler)
     DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider)
     Gradle build = context.mock(GradleInternal)
-    Convention convention = new DefaultConvention();
     FileOperations fileOperationsMock = context.mock(FileOperations)
     ProcessOperations processOperationsMock = context.mock(ProcessOperations)
     LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class)
@@ -138,7 +132,6 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ConfigurationContainerInternal); will(returnValue(configurationContainerMock))
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
             allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(dependencyHandlerMock))
-            allowing(serviceRegistryMock).get(Convention); will(returnValue(convention))
             allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))
             allowing(serviceRegistryMock).getFactory(AntBuilder); will(returnValue(antBuilderFactoryMock))
             allowing(serviceRegistryMock).get(PluginContainer); will(returnValue(pluginContainerMock))

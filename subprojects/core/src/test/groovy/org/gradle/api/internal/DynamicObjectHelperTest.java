@@ -17,7 +17,6 @@ package org.gradle.api.internal;
 
 import groovy.lang.*;
 import groovy.lang.MissingMethodException;
-import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.plugins.Convention;
 import org.gradle.testfixtures.ProjectBuilder;
@@ -759,7 +758,7 @@ public class DynamicObjectHelperTest {
         private Convention convention;
 
         public Bean() {
-            helper = new DynamicObjectHelper(this, new DefaultConvention());
+            helper = new DynamicObjectHelper(this, ThreadGlobalInstantiator.getOrCreate());
         }
 
         @Override

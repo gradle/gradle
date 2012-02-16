@@ -20,7 +20,6 @@ import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -647,7 +646,7 @@ public abstract class AbstractClassGeneratorTest {
     }
 
     public static class DynamicObjectAwareBean extends Bean implements DynamicObjectAware {
-        Convention conv = new DefaultConvention();
+        Convention conv = new DynamicObjectHelper(this, ThreadGlobalInstantiator.getOrCreate()).getConvention();
 
         public Convention getConvention() {
             return conv;
