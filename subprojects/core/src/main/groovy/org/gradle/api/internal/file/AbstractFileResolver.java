@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.internal.nativeplatform.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -217,7 +218,10 @@ public abstract class AbstractFileResolver implements FileResolver {
                 throw new UncheckedIOException(e);
             }
         }
-
+        if (!(path instanceof String)) {
+            DeprecationLogger.nagUserWith(String.format("Converting class %s to URI using toString() Method. "
+                  + " This has been deprecated and will be removed in the next version of Gradle. Please use java.io.File, java.lang.String, java.net.URL, or java.net.URI instead.", path.getClass().getName()));
+        }
         return new File(str);
     }
 
