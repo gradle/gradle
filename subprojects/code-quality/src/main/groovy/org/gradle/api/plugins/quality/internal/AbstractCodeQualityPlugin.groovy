@@ -16,22 +16,19 @@
 package org.gradle.api.plugins.quality.internal
 
 import org.gradle.api.Plugin
-import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.plugins.quality.CodeQualityExtension
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.tasks.SourceSet
 
 abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
     protected ProjectInternal project
     protected CodeQualityExtension extension
-    protected Instantiator instantiator
 
     final void apply(ProjectInternal project) {
         this.project = project
-        instantiator = project.services.get(Instantiator)
 
         beforeApply()
         project.plugins.apply(ReportingBasePlugin)

@@ -46,8 +46,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     @Override
     protected CodeQualityExtension createExtension() {
-        extension = instantiator.newInstance(PmdExtension, project)
-        project.extensions.pmd = extension
+        extension = project.extensions.addDecorated("pmd", PmdExtension, project)
         extension.with {
             toolVersion = "4.3"
             ruleSets = ["basic"]
