@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import spock.lang.Specification
+import org.gradle.testfixtures.ProjectBuilder
 
 /**
  * Contract test for dynamic extension implementations.
@@ -99,6 +100,81 @@ abstract class DynamicExtensionTest<T extends DynamicExtension> extends Specific
         then:
         extension.foo == "baz"
         extension.get("foo") == "baz"
+    }
+
+    def "can call closure properties like methods"() {
+        given:
+        extension.add("m0") { -> "m0" }
+        extension.add("m1") { it }
+        extension.add("m2") { String a1, String a2 -> "$a1 $a2" }
+        
+        expect:
+        extension.m0() == "m0"
+        extension.m1("foo") == "foo"
+        extension.m2("foo", "bar") == "foo bar"
+
+        when:
+        extension.m0(1)
+
+        then:
+        thrown(MissingMethodException)
+
+        and:
+        extension.m1() == null
+
+        when:
+        extension.m1(1, 2)
+
+        then:
+        thrown(MissingMethodException)
+
+        when:
+        extension.m2("a")
+
+        then:
+        thrown(MissingMethodException)
+        
+        when:
+        extension.m2(1, "a")
+        
+        then:
+        thrown(MissingMethodException)
+    }
+    
+    def "can resolve from owning context when in extension closure"() {
+        given:
+        Project project = ProjectBuilder.builder().build()
+                
+        project.configure(project) {
+            extensions.add("dynamic", extension)
+            version = "1.0"            
+            dynamic {
+                add "version", version // should resolve to project.version
+            }    
+        }
+        
+        expect:
+        project.dynamic.version == project.version
+    }
+
+    def "can resolve method from owning context when in extension closure"() {
+        given:
+        Project project = ProjectBuilder.builder().build()
+
+        project.task("custom").extensions.add("dynamic", extension)
+
+        project.custom {
+            dynamic {
+                doLast { // should resolve to task.doLast
+
+                }
+            }
+            
+            
+        }
+
+        expect:
+        notThrown(Exception)
     }
 
 }

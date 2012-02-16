@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.DynamicExtension;
@@ -60,6 +61,16 @@ public class DefaultDynamicExtension extends GroovyObjectSupport implements Dyna
             set(name, newValue);
         } catch (UnknownPropertyException e) {
             throw new MissingPropertyException(e.getMessage());
+        }
+    }
+    
+    public Object methodMissing(String name, Object args) {
+        Object item = storage.get(name);
+        if (item != null && item instanceof Closure) {
+            Closure closure = (Closure)item;
+            return closure.call((Object[])args);
+        } else {
+            throw new groovy.lang.MissingMethodException(name, getClass(), (Object[])args);
         }
     }
 
