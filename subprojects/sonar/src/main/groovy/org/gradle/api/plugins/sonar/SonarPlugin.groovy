@@ -58,8 +58,7 @@ class SonarPlugin implements Plugin<ProjectInternal> {
     }
 
     private SonarRootModel configureSonarRootModel(Project project) {
-        def model = instantiator.newInstance(SonarRootModel)
-        project.extensions.sonar = model
+        def model = project.extensions.addDecorated("sonar", SonarRootModel)
         model.conventionMapping.with {
             bootstrapDir = { new File(project.buildDir, "sonar") }
             gradleVersion = { GradleVersion.current().version }
@@ -89,10 +88,9 @@ class SonarPlugin implements Plugin<ProjectInternal> {
 
     private void configureSubprojects(Project parentProject, SonarModel parentModel) {
         for (childProject in parentProject.childProjects.values()) {
-            def childModel = instantiator.newInstance(SonarProjectModel)
+            def childModel = childProject.extensions.addDecorated("sonar", SonarProjectModel)
             parentModel.childModels << childModel
 
-            childProject.extensions.sonar = childModel
             childModel.project = configureSonarProject(childProject)
 
             configureSubprojects(childProject, childModel)

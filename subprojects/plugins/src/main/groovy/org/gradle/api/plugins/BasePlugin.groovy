@@ -174,8 +174,7 @@ class BasePlugin implements Plugin<Project> {
         configurations.add(Dependency.DEFAULT_CONFIGURATION).
                 setDescription("Configuration for default artifacts.");
 
-        def defaultArtifacts = new DefaultArtifactPublicationSet(archivesConfiguration.artifacts)
-        project.extensions.defaultArtifacts = defaultArtifacts
+        def defaultArtifacts = project.extensions.addDecorated("defaultArtifacts", DefaultArtifactPublicationSet, archivesConfiguration.artifacts)
 
         configurations.all {
             artifacts.all { artifact ->

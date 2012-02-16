@@ -23,7 +23,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.apply(plugin: "binaries")
         project.apply(plugin: "gpp-compiler")
-        project.extensions.cpp = new CppExtension(project)
+        project.extensions.addDecorated("cpp", CppExtension, project)
 
         // Defaults for all cpp source sets
         project.cpp.sourceSets.all { sourceSet ->

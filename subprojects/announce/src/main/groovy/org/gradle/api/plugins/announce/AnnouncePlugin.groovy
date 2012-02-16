@@ -26,7 +26,7 @@ import org.gradle.api.Project
  */
 class AnnouncePlugin implements Plugin<Project> {
     void apply(Project project) {
-        project.extensions.announce = new AnnouncePluginExtension(project)
+        project.extensions.addDecorated("announce", AnnouncePluginExtension, project)
     }
 }
 
