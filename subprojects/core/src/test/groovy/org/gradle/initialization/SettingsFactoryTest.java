@@ -55,7 +55,10 @@ public class SettingsFactoryTest {
 
         assertSame(gradle, settings.getGradle());
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
-        assertEquals(expectedGradleProperties, settings.getAdditionalProperties());
+        for (Map.Entry<String, String> entry : expectedGradleProperties.entrySet()) {
+            assertEquals(entry.getValue(), settings.getDynamicObjectHelper().getProperty(entry.getKey()));
+        }
+
         assertSame(expectedSettingsDir, settings.getSettingsDir());
         assertSame(expectedScriptSource, settings.getSettingsScript());
         assertSame(expectedStartParameter, settings.getStartParameter());

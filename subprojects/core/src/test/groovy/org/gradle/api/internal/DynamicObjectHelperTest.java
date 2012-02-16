@@ -274,7 +274,7 @@ public class DynamicObjectHelperTest {
     public void classPropertyTakesPrecedenceOverAdditionalProperty() {
         Bean bean = new Bean();
         bean.setReadWriteProperty("value");
-        bean.helper.getAdditionalProperties().put("readWriteProperty", "additional");
+        bean.helper.getDynamicExtension().add("readWriteProperty", "additional");
 
         assertThat(bean.getProperty("readWriteProperty"), equalTo((Object) "value"));
 
@@ -282,7 +282,7 @@ public class DynamicObjectHelperTest {
 
         assertThat(bean.getProperty("readWriteProperty"), equalTo((Object) "new value"));
         assertThat(bean.getReadWriteProperty(), equalTo((Object) "new value"));
-        assertThat(bean.helper.getAdditionalProperties().get("readWriteProperty"), equalTo((Object) "additional"));
+        assertThat(bean.helper.getDynamicExtension().get("readWriteProperty"), equalTo((Object) "additional"));
     }
 
     @Test
@@ -299,7 +299,7 @@ public class DynamicObjectHelperTest {
         bean.setProperty("conventionProperty", "new value");
 
         assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "new value"));
-        assertThat(bean.helper.getAdditionalProperties().get("conventionProperty"), equalTo((Object) "new value"));
+        assertThat(bean.helper.getDynamicExtension().get("conventionProperty"), equalTo((Object) "new value"));
         assertThat(conventionBean.getConventionProperty(), nullValue());
     }
 

@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.DynamicExtension;
 import org.gradle.api.plugins.Convention;
 
 import java.util.ArrayList;
@@ -32,7 +33,8 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
     private Convention convention;
     private DynamicObject beforeConvention;
     private DynamicObject afterConvention;
-    private MapBackedDynamicObject additionalProperties;
+    private DynamicExtension dynamicExtension;
+    private DynamicObject dynamicExtensionDynamicObject;
 
     public DynamicObjectHelper(Object delegateObject) {
         this(new BeanDynamicObject(delegateObject), null);
@@ -44,7 +46,8 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
 
     public DynamicObjectHelper(AbstractDynamicObject delegateObject, Convention convention) {
         this.delegateObject = delegateObject;
-        additionalProperties = new MapBackedDynamicObject(delegateObject);
+        this.dynamicExtension = new DefaultDynamicExtension();
+        this.dynamicExtensionDynamicObject = new AddOnDemandDynamicExtensionDynamicObjectAdapter(dynamicExtension);
         this.convention = convention;
         updateDelegates();
     }
@@ -52,7 +55,7 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
     private void updateDelegates() {
         List<DynamicObject> delegates = new ArrayList<DynamicObject>();
         delegates.add(delegateObject);
-        delegates.add(additionalProperties);
+        delegates.add(dynamicExtensionDynamicObject);
         if (beforeConvention != null) {
             delegates.add(beforeConvention);
         }
@@ -68,7 +71,7 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
         setObjects(delegates.toArray(new DynamicObject[delegates.size()]));
 
         delegates.remove(parent);
-        delegates.add(additionalProperties);
+        delegates.add(dynamicExtensionDynamicObject);
         setObjectsForUpdate(delegates.toArray(new DynamicObject[delegates.size()]));
     }
 
@@ -76,10 +79,16 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
         return delegateObject.getDisplayName();
     }
 
-    public Map<String, Object> getAdditionalProperties() {
-        return additionalProperties.getProperties();
+    public DynamicExtension getDynamicExtension() {
+        return dynamicExtension;
     }
-
+    
+    public void addProperties(Map<String, ?> properties) {
+        for (Map.Entry<String, ?> entry : properties.entrySet()) {
+            dynamicExtension.add(entry.getKey(), entry.getValue());
+        }
+    }
+    
     public DynamicObject getParent() {
         return parent;
     }
@@ -125,7 +134,8 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
 
         helper.parent = parent;
         helper.convention = convention;
-        helper.additionalProperties = additionalProperties;
+        helper.dynamicExtension = dynamicExtension;
+        helper.dynamicExtensionDynamicObject = dynamicExtensionDynamicObject;
         if (beforeConvention != null) {
             helper.beforeConvention = beforeConvention;
         }

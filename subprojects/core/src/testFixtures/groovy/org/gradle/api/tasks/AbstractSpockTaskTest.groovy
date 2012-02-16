@@ -79,7 +79,6 @@ public abstract class AbstractSpockTaskTest extends Specification {
         getTask().getDescription() == null
         project.is( getTask().getProject())
         getTask().getStandardOutputCapture() != null
-        new HashMap() ==  getTask().getAdditionalProperties()
         getTask().getInputs() != null
         getTask().getOutputs() != null
         getTask().getOnlyIf() != null

@@ -780,13 +780,6 @@ def scriptMethod(Closure closure) {
         assertSame(properties['someTask'], testTask)
     }
 
-    @Test void testAdditionalProperty() {
-        String expectedPropertyName = 'somename'
-        String expectedPropertyValue = 'somevalue'
-        project.additionalProperties[expectedPropertyName] = expectedPropertyValue
-        assertEquals(project."$expectedPropertyName", expectedPropertyValue)
-    }
-
     @Test void testAdditionalPropertiesAreInheritable() {
         project.somename = 'somevalue'
         assertTrue(project.inheritedScope.hasProperty('somename'))

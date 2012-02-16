@@ -187,8 +187,8 @@ public class BaseSettings implements SettingsInternal {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
     }
 
-    public Map<String, Object> getAdditionalProperties() {
-        return dynamicObjectHelper.getAdditionalProperties();
+    public void addDynamicProperties(Map<String, ?> properties) {
+        dynamicObjectHelper.addProperties(properties);
     }
 
     protected DynamicObjectHelper getDynamicObjectHelper() {

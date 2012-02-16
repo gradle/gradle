@@ -16,28 +16,21 @@
 
 package org.gradle.api.internal;
 
+import groovy.lang.MissingPropertyException;
 import org.gradle.api.DynamicExtension;
 
-import java.util.Map;
+public class AddOnDemandDynamicExtensionDynamicObjectAdapter extends DynamicExtensionDynamicObjectAdapter {
 
-public class DynamicExtensionDynamicObjectAdapter extends BeanDynamicObject {
-
-    private final DynamicExtension extension;
-
-    public DynamicExtensionDynamicObjectAdapter(DynamicExtension extension) {
+    public AddOnDemandDynamicExtensionDynamicObjectAdapter(DynamicExtension extension) {
         super(extension);
-        this.extension = extension;
     }
 
-    public boolean hasProperty(String name) {
-        return super.hasProperty(name) || extension.has(name);
-    }
-
-    public Map<String, ?> getProperties() {
-        return extension.getProperties();
-    }
-
-    protected DynamicExtension getExtension() {
-        return extension;
+    @Override
+    public void setProperty(String name, Object value) throws MissingPropertyException {
+        if (hasProperty(name)) {
+            super.setProperty(name, value);
+        } else {
+            getExtension().add(name, value);
+        }
     }
 }

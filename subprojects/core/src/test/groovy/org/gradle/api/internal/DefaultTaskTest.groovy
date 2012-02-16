@@ -195,18 +195,6 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test
-    void getAdditonalProperties() {
-        defaultTask.additionalProperties.customProp = testCustomPropValue
-        assertSame(testCustomPropValue, defaultTask."customProp")
-    }
-
-    @Test
-    void setAdditonalProperties() {
-        defaultTask."customProp" = testCustomPropValue
-        assertSame(testCustomPropValue, defaultTask.additionalProperties.customProp)
-    }
-
-    @Test
     void getAndSetConventionProperties() {
         TestConvention convention = new TestConvention()
         defaultTask.convention.plugins.test = convention
@@ -220,13 +208,6 @@ class DefaultTaskTest extends AbstractTaskTest {
     void canCallConventionMethods() {
         defaultTask.convention.plugins.test = new TestConvention()
         assertEquals(defaultTask.conventionMethod('a', 'b').toString(), "a.b")
-    }
-
-    @Test
-    void getProperty() {
-        defaultTask.additionalProperties.customProp = testCustomPropValue
-        assertSame(testCustomPropValue, defaultTask.property("customProp"))
-        assertSame(AbstractTaskTest.TEST_TASK_NAME, defaultTask.property("name"))
     }
 
     @Test(expected = MissingPropertyException)

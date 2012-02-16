@@ -39,7 +39,8 @@ public class SettingsFactory {
                                            Map<String, String> gradleProperties, StartParameter startParameter,
                                            URLClassLoader classloader) {
         DefaultSettings settings = new DefaultSettings(gradle, projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter);
-        settings.getAdditionalProperties().putAll(gradleProperties);
+
+        settings.addDynamicProperties(gradleProperties);
         return settings;
     }
 }

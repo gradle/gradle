@@ -57,7 +57,6 @@ class DefaultScriptTest {
         script.run();
         assertEquals("scriptMethod", script.scriptMethod())
         assertEquals(testProject.path + "mySuffix", script.scriptProperty)
-        assertEquals(testProject.path + "mySuffix", testProject.additionalProperties["scriptProperty"])
     }
 
     private CompilerConfiguration createBaseCompilerConfiguration() {

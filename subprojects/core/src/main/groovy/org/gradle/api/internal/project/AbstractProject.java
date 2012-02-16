@@ -326,9 +326,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return dependsOnProjects;
     }
 
-    public Map<String, Object> getAdditionalProperties() {
-        return dynamicObjectHelper.getAdditionalProperties();
-    }
+
 
     public ProjectStateInternal getState() {
         return state;

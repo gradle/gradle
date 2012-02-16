@@ -23,7 +23,6 @@ import org.gradle.api.*;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -42,6 +41,7 @@ import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.internal.Factory;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
@@ -50,7 +50,6 @@ import org.gradle.util.DeprecationLogger;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -314,10 +313,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public StandardOutputCapture getStandardOutputCapture() {
         return loggingManager;
-    }
-
-    public Map<String, Object> getAdditionalProperties() {
-        return dynamicObjectHelper.getAdditionalProperties();
     }
 
     public DynamicObjectHelper getDynamicObjectHelper() {

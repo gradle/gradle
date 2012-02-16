@@ -80,7 +80,7 @@ public interface DynamicExtension {
      *
      * @return All of the registered properties and their current values as a map.
      */
-    Map<String, ?> getProperties();
+    Map<String, Object> getProperties();
 
     /**
      * The exception that will be thrown when an attempt is made to read or write a property that is not set.

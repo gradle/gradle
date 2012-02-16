@@ -41,7 +41,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import spock.lang.Issue;
 
-import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.util.Matchers.dependsOn;
@@ -94,7 +93,6 @@ public abstract class AbstractTaskTest {
         assertNull(getTask().getDescription());
         assertSame(project, getTask().getProject());
         assertNotNull(getTask().getStandardOutputCapture());
-        assertEquals(new HashMap(), getTask().getAdditionalProperties());
         assertNotNull(getTask().getInputs());
         assertNotNull(getTask().getOutputs());
         assertNotNull(getTask().getOnlyIf());
