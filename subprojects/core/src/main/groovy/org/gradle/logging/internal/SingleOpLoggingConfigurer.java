@@ -19,6 +19,8 @@ package org.gradle.logging.internal;
 import org.gradle.api.internal.Operation;
 import org.gradle.api.internal.concurrent.Synchronizer;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 /**
  * by Szczepan Faber, created at: 1/23/12
@@ -28,6 +30,7 @@ public class SingleOpLoggingConfigurer implements LoggingConfigurer {
     private final Synchronizer sync = new Synchronizer();
     private boolean configured;
     final LoggingConfigurer delegate;
+    private final static Logger LOGGER = Logging.getLogger(SingleOpLoggingConfigurer.class);
 
     public SingleOpLoggingConfigurer(LoggingConfigurer delegate) {
         this.delegate = delegate;
@@ -37,6 +40,7 @@ public class SingleOpLoggingConfigurer implements LoggingConfigurer {
         if (configured) {
             return;
         }
+        LOGGER.debug("Single-op logging configuration; configurer id: {}, log level: {}", System.identityHashCode(this), logLevel);
         sync.synchronize(new Operation() {
             public void execute() {
                 if (configured) {

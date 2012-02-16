@@ -27,6 +27,7 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.logging.internal.LogEvent;
@@ -47,6 +48,7 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer {
     private final Appender appender;
     private LogLevel currentLevel;
     private final PrintStream defaultStdOut;
+    private final static Logger LOGGER = Logging.getLogger(Slf4jLoggingConfigurer.class);
 
     public Slf4jLoggingConfigurer(OutputEventListener outputListener) {
         defaultStdOut = System.out;
@@ -54,6 +56,7 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer {
     }
 
     public void configure(LogLevel logLevel) {
+        LOGGER.debug("Configuring slf4j log level with: {}, current level: {}", logLevel, currentLevel);
         if (currentLevel == logLevel) {
             return;
         }
@@ -91,6 +94,7 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer {
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         ch.qos.logback.classic.Logger rootLogger;
         if (currentLevel == null) {
+            LOGGER.debug("Resetting global slf4j logger context; context id: {}, configurer: {}", System.identityHashCode(lc), this);
             lc.reset();
             appender.setContext(lc);
             rootLogger = lc.getLogger("ROOT");
