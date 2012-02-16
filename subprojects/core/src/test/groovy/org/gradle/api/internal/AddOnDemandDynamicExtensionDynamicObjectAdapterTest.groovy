@@ -21,8 +21,10 @@ import spock.lang.Specification
 
 public class AddOnDemandDynamicExtensionDynamicObjectAdapterTest extends Specification {
 
+    String delegate = "foo"
     DynamicExtension extension = new DefaultDynamicExtension()
-    AddOnDemandDynamicExtensionDynamicObjectAdapter adapter = new AddOnDemandDynamicExtensionDynamicObjectAdapter(extension)
+
+    AddOnDemandDynamicExtensionDynamicObjectAdapter adapter = new AddOnDemandDynamicExtensionDynamicObjectAdapter(delegate, extension)
 
     def "set property will add on demand"() {
         expect:

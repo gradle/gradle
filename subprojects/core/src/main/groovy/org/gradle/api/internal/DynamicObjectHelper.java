@@ -26,6 +26,8 @@ import java.util.Map;
 
 public class DynamicObjectHelper extends CompositeDynamicObject {
 
+    public static final String ADHOC_EXTENSION_NAME = "ext";
+
     public enum Location {
         BeforeConvention, AfterConvention
     }
@@ -64,7 +66,10 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
         this.dynamicDelegate = dynamicDelegate;
         this.convention = convention;
         this.dynamicExtension = new DefaultDynamicExtension();
-        this.dynamicExtensionDynamicObject = new AddOnDemandDynamicExtensionDynamicObjectAdapter(dynamicExtension);
+        this.dynamicExtensionDynamicObject = new AddOnDemandDynamicExtensionDynamicObjectAdapter(delegate, dynamicExtension);
+
+        // Expose the dynamic storage as an extension on the delegate
+        getConvention().add(ADHOC_EXTENSION_NAME, dynamicExtension);
 
         updateDelegates();
     }

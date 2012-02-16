@@ -749,6 +749,7 @@ public class DynamicObjectHelperTest {
             assertThat(e.getMessage(), startsWith("No signature of method: org.gradle.api.internal.DynamicGroovyBean.xxx() is applicable for argument types: (java.lang.Integer, java.lang.Integer, java.lang.Integer) values: [1, 2, 3]\nPossible solutions:"));
         }
     }
+
     public static class Bean implements DynamicObject {
         private String readWriteProperty;
         private String readOnlyProperty;

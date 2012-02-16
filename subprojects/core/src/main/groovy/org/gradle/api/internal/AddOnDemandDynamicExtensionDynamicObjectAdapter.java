@@ -18,11 +18,15 @@ package org.gradle.api.internal;
 
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.DynamicExtension;
+import org.gradle.util.DeprecationLogger;
 
 public class AddOnDemandDynamicExtensionDynamicObjectAdapter extends DynamicExtensionDynamicObjectAdapter {
 
-    public AddOnDemandDynamicExtensionDynamicObjectAdapter(DynamicExtension extension) {
+    Object delegate;
+
+    public AddOnDemandDynamicExtensionDynamicObjectAdapter(Object delegate, DynamicExtension extension) {
         super(extension);
+        this.delegate = delegate;
     }
 
     @Override
@@ -30,6 +34,17 @@ public class AddOnDemandDynamicExtensionDynamicObjectAdapter extends DynamicExte
         if (hasProperty(name)) {
             super.setProperty(name, value);
         } else {
+            /*
+            DeprecationLogger.nagUserWith(
+                    String.format(
+                            "Adding dynamic properties by assignment has been deprecated. "
+                                    + "An attempt was made to create a dynamic property named '%s' on the object '%s' with the value '%s'. "
+                                    + "You should set the property on the target's 'ext' object. "
+                                    + "e.g. <target>.ext.<property> = <value>",
+                            name, delegate, value)
+            );
+            */
+
             getExtension().add(name, value);
         }
     }

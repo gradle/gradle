@@ -403,4 +403,27 @@ assert 'overridden value' == global
 
         executer.inDirectory(testDir).withTasks("testTask").run();
     }
+    
+    @Test void canAddNewPropertiesViaTheAdhocNamespace() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file("build.gradle") << """
+            ext {
+                add "p1", 1
+            }
+            assert p1 == 1
+            p2 = 2
+            assert ext.p2 = 2
+            
+            task run << {
+                ext {
+                    add "p1", 1
+                }
+                assert p1 == 1
+                p2 = 2
+                assert ext.p2 = 2            
+            }        
+        """
+        
+        executer.withTasks("run")
+    }
 }
