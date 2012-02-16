@@ -40,23 +40,11 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         compiler instanceof AntJavaCompiler
     }
 
-    def "decorates with NormalizingJavaCompiler if useAnt=false and JDK is not 1.7"() {
+    def "decorates with NormalizingJavaCompiler if useAnt=false"() {
         when:
         JavaCompiler compiler = factory.create(compileOptionsMock)
 
         then:
-        1 * jvmMock.isJava7() >> false
         compiler instanceof NormalizingJavaCompiler
-    }
-
-    def "decorates with NormalizingJavaCompiler and Jdk7CompliantJavaCompiler if useAnt=false and JDK is 1.7"() {
-        when:
-        JavaCompiler compiler = factory.create(compileOptionsMock)
-
-        then:
-        1 * compileOptionsMock.isUseAnt() >> false
-        1 * jvmMock.isJava7() >> true
-        compiler instanceof Jdk7CompliantJavaCompiler
-        compiler.compilerDelegate instanceof NormalizingJavaCompiler
     }
 }

@@ -43,12 +43,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         if (options.isUseAnt()) {
             return new AntJavaCompiler(antBuilderFactory);
         }
-        JavaCompiler normalizingJavaCompiler = new NormalizingJavaCompiler(createTargetCompiler(options));
-        if (jvmInstance.isJava7()) {
-            return new Jdk7CompliantJavaCompiler(normalizingJavaCompiler);
-        } else {
-            return normalizingJavaCompiler;
-        }
+        return new NormalizingJavaCompiler(createTargetCompiler(options));
     }
 
     private JavaCompiler createTargetCompiler(CompileOptions options) {
