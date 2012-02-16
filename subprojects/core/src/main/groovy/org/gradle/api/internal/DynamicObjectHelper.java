@@ -25,11 +25,13 @@ import java.util.List;
 import java.util.Map;
 
 public class DynamicObjectHelper extends CompositeDynamicObject {
+
     public enum Location {
         BeforeConvention, AfterConvention
     }
 
-    private final AbstractDynamicObject delegateObject;
+    private final Object delegate;
+    private final AbstractDynamicObject dynamicDelegate;
     private DynamicObject parent;
     private Convention convention;
     private DynamicObject beforeConvention;
@@ -42,32 +44,34 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
      *
      * Use one of the other variants wherever possible.
      *
-     * @param delegateObject The delegate
+     * @param delegate The delegate
      * @see org.gradle.api.internal.plugins.DefaultConvention#DefaultConvention()
      */
-    public DynamicObjectHelper(Object delegateObject) {
-        this(new BeanDynamicObject(delegateObject), new DefaultConvention());
+    public DynamicObjectHelper(Object delegate) {
+        this(delegate, new BeanDynamicObject(delegate), new DefaultConvention());
     }
 
-    public DynamicObjectHelper(Object delegateObject, Instantiator instantiator) {
-        this(new BeanDynamicObject(delegateObject), new DefaultConvention(instantiator));
+    public DynamicObjectHelper(Object delegate, Instantiator instantiator) {
+        this(delegate, new BeanDynamicObject(delegate), new DefaultConvention(instantiator));
     }
 
-    public DynamicObjectHelper(AbstractDynamicObject delegateObject, Instantiator instantiator) {
-        this(delegateObject, new DefaultConvention(instantiator));
+    public DynamicObjectHelper(Object delegate, AbstractDynamicObject dynamicDelegate, Instantiator instantiator) {
+        this(delegate, dynamicDelegate, new DefaultConvention(instantiator));
     }
 
-    public DynamicObjectHelper(AbstractDynamicObject delegateObject, Convention convention) {
-        this.delegateObject = delegateObject;
+    public DynamicObjectHelper(Object delegate, AbstractDynamicObject dynamicDelegate, Convention convention) {
+        this.delegate = delegate;
+        this.dynamicDelegate = dynamicDelegate;
         this.convention = convention;
         this.dynamicExtension = new DefaultDynamicExtension();
         this.dynamicExtensionDynamicObject = new AddOnDemandDynamicExtensionDynamicObjectAdapter(dynamicExtension);
+
         updateDelegates();
     }
 
     private void updateDelegates() {
         List<DynamicObject> delegates = new ArrayList<DynamicObject>();
-        delegates.add(delegateObject);
+        delegates.add(dynamicDelegate);
         delegates.add(dynamicExtensionDynamicObject);
         if (beforeConvention != null) {
             delegates.add(beforeConvention);
@@ -89,19 +93,19 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
     }
 
     protected String getDisplayName() {
-        return delegateObject.getDisplayName();
+        return dynamicDelegate.getDisplayName();
     }
 
     public DynamicExtension getDynamicExtension() {
         return dynamicExtension;
     }
-    
+
     public void addProperties(Map<String, ?> properties) {
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
             dynamicExtension.add(entry.getKey(), entry.getValue());
         }
     }
-    
+
     public DynamicObject getParent() {
         return parent;
     }
@@ -139,7 +143,7 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
         AbstractDynamicObject emptyBean = new AbstractDynamicObject() {
             @Override
             protected String getDisplayName() {
-                return delegateObject.getDisplayName();
+                return dynamicDelegate.getDisplayName();
             }
         };
 
@@ -159,7 +163,7 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
     private class InheritedDynamicObject implements DynamicObject {
         public void setProperty(String name, Object value) {
             throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
-                    delegateObject.getDisplayName()));
+                    dynamicDelegate.getDisplayName()));
         }
 
         public boolean hasProperty(String name) {
@@ -182,7 +186,7 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
             return snapshotInheritable().invokeMethod(name, arguments);
         }
     }
-    
+
     public static DynamicObject asDynamicObject(Object object) {
         if (object instanceof DynamicObject) {
             return (DynamicObject)object;
