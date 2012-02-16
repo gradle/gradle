@@ -15,8 +15,11 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.util.DeprecationLogger;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -27,11 +30,46 @@ import java.util.Map;
 public class DefaultExcludeRule implements ExcludeRule {
     private Map<String, String> excludeArgs;
 
+    private String group;
+    private String module;
+
     public DefaultExcludeRule(Map<String, String> excludeArgs) {
+        DeprecationLogger.nagUserOfReplacedMethod("DefaultExcludeRule(Map<String, String>)", "DefaultExcludeRule(String,String)");
         this.excludeArgs = excludeArgs;
+        this.group = excludeArgs.get(GROUP_KEY);
+        this.module = excludeArgs.get(MODULE_KEY);
+    }
+
+    public DefaultExcludeRule(String group, String module) {
+        if (group == null && module==null) {
+            throw new InvalidUserDataException("Name or Module must not be null!");
+        }
+        this.excludeArgs = new HashMap<String, String>();
+        setGroup(group);
+        setModule(module);
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String groupValue) {
+        this.group = groupValue;
+        if(groupValue!=null) this.excludeArgs.put(GROUP_KEY, groupValue);
+
+    }
+
+    public String getModule() {
+        return module;
+    }
+
+    public void setModule(String moduleValue) {
+        this.module = moduleValue;
+        if(moduleValue!=null) this.excludeArgs.put(MODULE_KEY, module);
     }
 
     public Map<String, String> getExcludeArgs() {
+        DeprecationLogger.nagUserWith("The getExcludeArgs method has been deprecated and will be removed in the next version of Gradle. Please use the getGroup() method or the getModule() method instead.");
         return excludeArgs;
     }
 

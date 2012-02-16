@@ -27,6 +27,9 @@ public interface ExcludeRule {
     String GROUP_KEY = "group";
     String MODULE_KEY = "module";
 
+    String getGroup();
+
+    String getModule();
     /**
      * Returns the arguments of an exclude rule. The possible keys for the map are:
      *
