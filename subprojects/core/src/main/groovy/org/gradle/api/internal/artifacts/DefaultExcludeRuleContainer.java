@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExcludeRuleContainer;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -37,7 +38,15 @@ public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
     }
 
     public void add(Map<String, String> args) {
-        addedRules.add(new DefaultExcludeRule(args));
+        if(isValidExcludeRule(args)){
+            addedRules.add(new DefaultExcludeRule(args));
+        }else{
+            DeprecationLogger.nagUserWith(String.format("Detected invalid Exclusion Rule %s. Exclude rule does not specify 'module' nor 'group' and will be ignored.", args));
+        }
+    }
+
+    boolean isValidExcludeRule(Map<String, String> excludeMap) {
+        return excludeMap.containsKey(ExcludeRule.GROUP_KEY) || excludeMap.containsKey(ExcludeRule.MODULE_KEY);
     }
 
     public Set<ExcludeRule> getRules() {

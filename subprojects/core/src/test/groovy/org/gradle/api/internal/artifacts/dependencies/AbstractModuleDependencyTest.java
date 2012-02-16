@@ -63,8 +63,8 @@ abstract public class AbstractModuleDependencyTest {
 
     @Test
     public void exclude() {
-        Map<String, String> excludeArgs1 = WrapUtil.toMap("key", "value");
-        Map<String, String> excludeArgs2 = WrapUtil.toMap("key2", "value2");
+        Map<String, String> excludeArgs1 = WrapUtil.toMap("group", "value");
+        Map<String, String> excludeArgs2 = WrapUtil.toMap("module", "value2");
 
         getDependency().exclude(excludeArgs1);
         getDependency().exclude(excludeArgs2);
