@@ -18,7 +18,6 @@ package org.gradle.api.internal;
 
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.DynamicExtension;
-import org.gradle.util.DeprecationLogger;
 
 public class AddOnDemandDynamicExtensionDynamicObjectAdapter extends DynamicExtensionDynamicObjectAdapter {
 
