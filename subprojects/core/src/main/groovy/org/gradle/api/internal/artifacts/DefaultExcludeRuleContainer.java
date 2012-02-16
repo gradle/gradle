@@ -17,6 +17,10 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExcludeRuleContainer;
+import org.gradle.api.artifacts.ExcludeRuleNotationParser;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.notations.NotationParserBuilder;
+import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.HashSet;
@@ -29,6 +33,8 @@ import java.util.Set;
  */
 public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
     private Set<ExcludeRule> addedRules = new LinkedHashSet<ExcludeRule>();
+    private NotationParser<ExcludeRule> notationParser = new ExcludeRuleNotationParser<ExcludeRule>();
+    //TODO has usage of NotationParserBuilder here any advantage?
 
     public DefaultExcludeRuleContainer() {
     }
@@ -38,15 +44,7 @@ public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
     }
 
     public void add(Map<String, String> args) {
-        if(isValidExcludeRule(args)){
-            addedRules.add(new DefaultExcludeRule(args));
-        }else{
-            DeprecationLogger.nagUserWith(String.format("Detected invalid Exclusion Rule %s. Exclude rule does not specify 'module' nor 'group' and will be ignored.", args));
-        }
-    }
-
-    boolean isValidExcludeRule(Map<String, String> excludeMap) {
-        return excludeMap.containsKey(ExcludeRule.GROUP_KEY) || excludeMap.containsKey(ExcludeRule.MODULE_KEY);
+        addedRules.add(notationParser.parseNotation(args));
     }
 
     public Set<ExcludeRule> getRules() {

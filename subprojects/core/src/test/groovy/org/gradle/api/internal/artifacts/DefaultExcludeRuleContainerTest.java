@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.util.WrapUtil;
 import org.junit.Test;
@@ -56,33 +57,13 @@ public class DefaultExcludeRuleContainerTest {
         assertExcludeRuleContainerHasCorrectExcludeRules(excludeRuleContainer.getRules(), excludeRuleArgs1, excludeRuleArgs2);
     }
 
-    @Test
-    public void testAddIgnoresInvalidExcludeDefinition() {
+    @Test(expected = InvalidUserDataException.class)
+    public void testInvalidExcludeDefinitionThrowsInvalidUserDataException() {
         DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
         Map<String, String> excludeRuleArgs1 = WrapUtil.toMap("group", "value1");
         Map<String, String> excludeRuleArgs2 = WrapUtil.toMap("invalidkey2", "value2");
         excludeRuleContainer.add(excludeRuleArgs1);
         excludeRuleContainer.add(excludeRuleArgs2);
-        assertThat(excludeRuleContainer.getRules().size(), equalTo(1));
-        assertExcludeRuleContainerHasCorrectExcludeRules(excludeRuleContainer.getRules(), excludeRuleArgs1);
-    }
-
-    @Test
-    public void testIsValidExcludeRuleChecksForExistingGroupOrModuleEntry() {
-        DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
-        Map<String, String> excludeRuleArgs1 = WrapUtil.toMap("group", "value1");
-        Map<String, String> excludeRuleArgs2 = WrapUtil.toMap("module", "value1");
-        Map<String, String> excludeRuleArgs3 = WrapUtil.toMap("invalidkey2", "value2");
-
-        Map<String, String> combinedExcludeRuleArgs = new HashMap<String, String>();
-        combinedExcludeRuleArgs.putAll(excludeRuleArgs1);
-        combinedExcludeRuleArgs.putAll(excludeRuleArgs2);
-        combinedExcludeRuleArgs.putAll(excludeRuleArgs3);
-
-        assertTrue(excludeRuleContainer.isValidExcludeRule(excludeRuleArgs1));
-        assertTrue(excludeRuleContainer.isValidExcludeRule(excludeRuleArgs2));
-        assertFalse(excludeRuleContainer.isValidExcludeRule(excludeRuleArgs3));
-        assertTrue(excludeRuleContainer.isValidExcludeRule(combinedExcludeRuleArgs));
     }
 
     private void assertExcludeRuleContainerHasCorrectExcludeRules(Set<ExcludeRule> excludeRules, Map... excludeRuleArgs) {

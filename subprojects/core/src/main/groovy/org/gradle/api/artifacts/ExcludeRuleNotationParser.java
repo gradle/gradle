@@ -24,9 +24,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
-/**
- * Created by IntelliJ IDEA. User: Rene Date: 16.02.12 Time: 20:30 To change this template use File | Settings | File Templates.
- */
 public class ExcludeRuleNotationParser<T extends ExcludeRule> extends MapNotationParser<T>{
 
     @Override
@@ -54,8 +51,8 @@ public class ExcludeRuleNotationParser<T extends ExcludeRule> extends MapNotatio
         if((group==null || group.toString().equals("")) && (module==null || module.toString().equals(""))){
             throw new InvalidUserDataException(
                     "Invalid format: '" + ruleMap + "'. Group or Module must not be empty or null. Correct example: "
-                    + "group:org.gradle, module:gradle-core");
+                    + "group:'org.gradle', module:'gradle-core'");
         }
-        //should we get stricter here to refuse any other map key than
+        //TODO Should we get stricter here to refuse any other map keys?
     }
 }
