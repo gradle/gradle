@@ -66,7 +66,6 @@ class UserGuideSamplesRunner extends Runner {
     }
 
     private boolean shouldInclude(SampleRun run) {
-        println run.subDir
         dirFilter ? run.subDir ==~ dirFilter : true
     }
 
