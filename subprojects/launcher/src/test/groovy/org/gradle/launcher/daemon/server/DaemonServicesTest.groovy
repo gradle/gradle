@@ -19,10 +19,14 @@ import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.LoggingServiceRegistry
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 class DaemonServicesTest extends Specification {
-    final DaemonServices services = new DaemonServices(new File("daemon-base"), 100, "uid",
+
+    @Rule def tmp = new TemporaryFolder()
+    final DaemonServices services = new DaemonServices(tmp.newFolder(), 100, "uid",
             LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal))
 
     def "makes a DaemonDir available"() {
