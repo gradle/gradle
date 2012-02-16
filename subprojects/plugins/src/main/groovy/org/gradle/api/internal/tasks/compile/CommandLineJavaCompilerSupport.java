@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.slf4j.Logger;
@@ -35,11 +36,11 @@ public abstract class CommandLineJavaCompilerSupport extends JavaCompilerSupport
     
     protected List<String> generateCommandLineOptions() {
         List<String> options = new ArrayList<String>();
-        if (sourceCompatibility != null) {
+        if (sourceCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(sourceCompatibility))) {
             options.add("-source");
             options.add(sourceCompatibility);
         }
-        if (targetCompatibility != null) {
+        if (targetCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(targetCompatibility))) {
             options.add("-target");
             options.add(targetCompatibility);
         }

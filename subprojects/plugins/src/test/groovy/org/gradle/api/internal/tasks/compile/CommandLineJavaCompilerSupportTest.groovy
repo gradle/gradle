@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.compile
 
 import spock.lang.Specification
 import org.gradle.api.tasks.WorkResult
+import org.gradle.api.JavaVersion
 
 class CommandLineJavaCompilerSupportTest extends Specification {
     def compiler = new CommandLineJavaCompilerSupport() {
@@ -28,18 +29,32 @@ class CommandLineJavaCompilerSupportTest extends Specification {
         compiler.generateCommandLineOptions() == []
     }
 
-    def "generates -source option"() {
-        compiler.sourceCompatibility = "1.5"
+    def "generates no -source option when current Jvm Version is used"() {
+        compiler.sourceCompatibility = JavaVersion.current().toString();
 
         expect:
-        compiler.generateCommandLineOptions() == ["-source", "1.5"]
+        compiler.generateCommandLineOptions() == []
     }
 
-    def "generates -target option"() {
-        compiler.targetCompatibility = "1.5"
+    def "generates -source option when compatibility differs current Jvm version"() {
+        compiler.sourceCompatibility = "1.4"
 
         expect:
-        compiler.generateCommandLineOptions() == ["-target", "1.5"]
+        compiler.generateCommandLineOptions() == ["-source", "1.4"]
+    }
+
+    def "generates no -target option when current Jvm Version is used"() {
+        compiler.targetCompatibility = JavaVersion.current().toString();
+
+        expect:
+        compiler.generateCommandLineOptions() == []
+    }
+
+    def "generates -target option when compatibility differs current Jvm version"() {
+        compiler.targetCompatibility = "1.4"
+
+        expect:
+        compiler.generateCommandLineOptions() == ["-target", "1.4"]
     }
 
     def "generates -d option"() {
