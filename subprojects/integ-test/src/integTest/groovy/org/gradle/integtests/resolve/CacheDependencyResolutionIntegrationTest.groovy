@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,47 +27,6 @@ public class CacheDependencyResolutionIntegrationTest extends AbstractIntegratio
 
     def "setup"() {
         requireOwnUserHomeDir()
-    }
-
-    public void "cache handles manual deletion of cached artifacts"() {
-        server.start()
-
-        given:
-        def repo = new IvyRepository(file('ivy-repo'))
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
-
-        def cacheDir = distribution.userHomeDir.file('caches').toURI()
-
-        and:
-        buildFile << """
-repositories {
-    ivy { url "http://localhost:${server.port}/repo" }
-}
-configurations { compile }
-dependencies { compile 'group:projectA:1.2' }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-}
-task deleteCacheFiles(type: Delete) {
-    delete fileTree(dir: '${cacheDir}', includes: ['**/projectA/**'])
-}
-"""
-
-        and:
-        server.allowGet("/repo", repo.rootDir)
-
-        and:
-        succeeds('listJars')
-        succeeds('deleteCacheFiles')
-        
-        when:
-        server.resetExpectations()
-        server.expectGet('/repo/group/projectA/1.2/ivy-1.2.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.2/projectA-1.2.jar', module.jarFile)
-
-        then:
-        succeeds('listJars')
     }
 
     public void "cache entries are segregated between different repositories"() {
