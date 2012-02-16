@@ -19,6 +19,7 @@ package org.gradle.api.artifacts
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import spock.lang.Specification
 import org.gradle.api.InvalidUserDataException
+import org.gradle.util.WrapUtil
 
 class ExcludeRuleNotationParserTest extends Specification{
     def parser = new ExcludeRuleNotationParser<DefaultExcludeRule>();
@@ -59,5 +60,18 @@ class ExcludeRuleNotationParserTest extends Specification{
         then:
         thrown(InvalidUserDataException)
     }
+
+    def "checkValidExcludeRuleMap is true if group or module is defined"() {
+        expect:
+            parser.checkValidExcludeRuleMap(WrapUtil.toMap(ExcludeRule.GROUP_KEY, "aGroup"));
+            parser.checkValidExcludeRuleMap(WrapUtil.toMap(ExcludeRule.MODULE_KEY, "aModule"));
+
+        when: 
+            parser.checkValidExcludeRuleMap(WrapUtil.toMap("unknownKey", "someValue"))
+        then:
+            thrown(InvalidUserDataException)
+    }
+
+
 
 }

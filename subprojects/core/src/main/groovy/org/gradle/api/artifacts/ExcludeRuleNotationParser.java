@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 
@@ -40,8 +41,21 @@ public class ExcludeRuleNotationParser<T extends ExcludeRule> extends MapNotatio
 
     @Override
     protected T parseMap(Map<String, Object> values) {
+        checkValidExcludeRuleMap(values);
+
         String group = get(values, ExcludeRule.GROUP_KEY);
         String module = get(values, ExcludeRule.MODULE_KEY);
         return (T) new DefaultExcludeRule(group, module); //TODO maybe move this into an instantiator
+    }
+
+    void checkValidExcludeRuleMap(Map<String,Object> ruleMap) throws InvalidUserDataException {
+        final Object module = ruleMap.get(ExcludeRule.MODULE_KEY);
+        final Object group = ruleMap.get(ExcludeRule.GROUP_KEY);
+        if((group==null || group.toString().equals("")) && (module==null || module.toString().equals(""))){
+            throw new InvalidUserDataException(
+                    "Invalid format: '" + ruleMap + "'. Group or Module must not be empty or null. Correct example: "
+                    + "group:org.gradle, module:gradle-core");
+        }
+        //should we get stricter here to refuse any other map key than
     }
 }
