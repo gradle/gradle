@@ -22,7 +22,7 @@ import org.gradle.testfixtures.ProjectBuilder
 /**
  * Contract test for dynamic extension implementations.
  *
- * @param <T> The concrete implementaion type
+ * @param <T> The concrete implementation type
  */
 abstract class DynamicExtensionTest<T extends DynamicExtension> extends Specification {
     
@@ -141,6 +141,42 @@ abstract class DynamicExtensionTest<T extends DynamicExtension> extends Specific
         thrown(MissingMethodException)
     }
     
+    def "can get properties as a detached map"() {
+        given:
+        extension.add("p1", 1)
+        extension.add("p2", 2)
+        extension.add("p3", 3)
+        
+        and:
+        def props = extension.properties.sort()
+        
+        expect:
+        props == [p1: 1, p2: 2, p3: 3]
+        
+        when:
+        props.p1 = 10
+        
+        then:
+        extension.p1 == old(extension.p1)
+    }
+    
+    def "can detect if has a property"() {
+        given:
+        extension.add("foo", "bar")
+        
+        expect:
+        extension.has("foo")
+        
+        and:
+        !extension.has("other")
+        
+        when:
+        extension.set("foo", null)
+        
+        then:
+        extension.has("foo")
+    }
+    
     def "can resolve from owning context when in extension closure"() {
         given:
         Project project = ProjectBuilder.builder().build()
@@ -169,8 +205,6 @@ abstract class DynamicExtensionTest<T extends DynamicExtension> extends Specific
 
                 }
             }
-            
-            
         }
 
         expect:

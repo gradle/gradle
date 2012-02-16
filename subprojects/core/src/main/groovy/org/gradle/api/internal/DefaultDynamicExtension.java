@@ -32,6 +32,10 @@ public class DefaultDynamicExtension extends GroovyObjectSupport implements Dyna
         storage.put(name, value);
     }
 
+    public boolean has(String name) {
+        return storage.containsKey(name);
+    }
+
     public Object get(String name) {
         if (storage.containsKey(name)) {
             return storage.get(name);    
@@ -49,6 +53,10 @@ public class DefaultDynamicExtension extends GroovyObjectSupport implements Dyna
     }
 
     public Object getProperty(String name) {
+        if (name.equals("properties")) {
+            return getProperties();
+        }
+
         try {
             return get(name);
         } catch (UnknownPropertyException e) {
@@ -63,7 +71,11 @@ public class DefaultDynamicExtension extends GroovyObjectSupport implements Dyna
             throw new MissingPropertyException(e.getMessage());
         }
     }
-    
+
+    public Map<String, Object> getProperties() {
+        return new HashMap<String, Object>(storage);
+    }
+
     public Object methodMissing(String name, Object args) {
         Object item = storage.get(name);
         if (item != null && item instanceof Closure) {

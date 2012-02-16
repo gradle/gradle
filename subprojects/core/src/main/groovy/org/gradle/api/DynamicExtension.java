@@ -16,6 +16,8 @@
 
 package org.gradle.api;
 
+import java.util.Map;
+
 /**
  * An object that allows the registration of new properties for dynamic storage.
  *
@@ -45,6 +47,14 @@ public interface DynamicExtension {
     void add(String name, Object value);
 
     /**
+     * Returns whether or not the extension has a property registered via the given name.
+     *
+     * @param name The name of the property to check for
+     * @return {@code true} if a property has been registered with this name, otherwise {@code false}.
+     */
+    boolean has(String name);
+
+    /**
      * Returns the value for the registered property with the given name.
      *
      * @param name The name of the property to get the value of
@@ -61,6 +71,16 @@ public interface DynamicExtension {
      * @throws UnknownPropertyException if there is no property registered with the given name
      */
     void set(String name, Object value) throws UnknownPropertyException;
+
+    /**
+     * Returns all of the registered properties and their current values as a map.
+     *
+     * The returned map is detached from the extension. That is, any changes made to the map do not
+     * change the extension from which it originated.
+     *
+     * @return All of the registered properties and their current values as a map.
+     */
+    Map<String, ?> getProperties();
 
     /**
      * The exception that will be thrown when an attempt is made to read or write a property that is not set.
