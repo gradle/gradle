@@ -67,6 +67,7 @@ class ProtocolStackTest extends ConcurrentSpecification {
         stack?.stop()
     }
 
+    // TODO:DAZ Add some trace logging - this test fails sporadically with timeout
     @Timeout(5)
     def "top protocol can dispatch incoming message during start"() {
         Protocol<String> protocol = Mock()
