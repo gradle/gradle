@@ -210,5 +210,18 @@ abstract class DynamicExtensionTest<T extends DynamicExtension> extends Specific
         expect:
         notThrown(Exception)
     }
+    
+    def "cannot assign to properties"() {
+        when:
+        extension.properties = [:]
+        
+        then:
+        thrown(MissingPropertyException)
+    }
+    
+    def "does not have properties property"() {
+        expect:
+        !extension.has("properties")
+    }
 
 }

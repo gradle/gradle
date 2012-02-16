@@ -87,4 +87,16 @@ public class DynamicExtensionDynamicObjectAdapterTest extends Specification {
         then:
         thrown(groovy.lang.MissingMethodException)
     }
+
+    static class NamedDynamicExtension extends DefaultDynamicExtension {
+        String name
+    }
+
+    def "has property 'properties'"() {
+        expect:
+        adapter.hasProperty("properties")
+
+        and:
+        new DynamicExtensionDynamicObjectAdapter(new NamedDynamicExtension()).hasProperty("name")
+    }
 }

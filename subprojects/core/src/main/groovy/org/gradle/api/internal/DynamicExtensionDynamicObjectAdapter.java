@@ -30,7 +30,7 @@ public class DynamicExtensionDynamicObjectAdapter extends BeanDynamicObject {
     }
 
     public boolean hasProperty(String name) {
-        return extension.has(name);
+        return super.hasProperty(name) || extension.has(name);
     }
 
     public Map<String, ?> getProperties() {
