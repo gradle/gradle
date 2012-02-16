@@ -24,7 +24,7 @@ package org.gradle.api;
  * or write a property that has not been “registered” with {@link #add(String, Object)} will produce an exception.
  *
  * Dynamic extension objects support Groovy property syntax. That is, once a property has been registered it
- * can be read via {@code extension.«name»} and set via {@code extension.«name» = "value"}. <b></b>Wherever possible,
+ * can be read via {@code extension.«name»} and set via {@code extension.«name» = "value"}. <b>Wherever possible,
  * the Groovy property syntax should be preferred over the {@link #get(String)} and {@link #set(String, Object)} methods.</b>
  *
  * The exception that is thrown is different depending on whether the Groovy syntax is used or not. If Groovy property
