@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
-import groovy.lang.GString;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
 import org.gradle.api.UncheckedIOException;
@@ -219,15 +218,11 @@ public abstract class AbstractFileResolver implements FileResolver {
                 throw new UncheckedIOException(e);
             }
         }
-        if (isNoString(path)) {
+        if (!(path instanceof CharSequence)) {
             DeprecationLogger.nagUserWith(String.format("Converting class %s to URI using toString() Method. "
                   + " This has been deprecated and will be removed in the next version of Gradle. Please use java.io.File, java.lang.String, java.net.URL, or java.net.URI instead.", path.getClass().getName()));
         }
         return new File(str);
-    }
-
-    private boolean isNoString(Object path) {
-        return !(path instanceof String) && !(path instanceof GString);
     }
 
     private String uriDecode(String path) {
