@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.plugins;
 
-import org.gradle.api.DynamicExtension;
+import org.gradle.api.internal.BeanDynamicObject;
+import org.gradle.api.plugins.DynamicExtension;
 
 import java.util.Map;
 

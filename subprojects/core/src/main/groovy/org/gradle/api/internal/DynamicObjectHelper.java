@@ -16,7 +16,9 @@
 package org.gradle.api.internal;
 
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.DynamicExtension;
+import org.gradle.api.internal.plugins.AddOnDemandDynamicExtensionDynamicObjectAdapter;
+import org.gradle.api.internal.plugins.DefaultDynamicExtension;
+import org.gradle.api.plugins.DynamicExtension;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 

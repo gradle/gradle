@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.api.internal.plugins
 
+import org.gradle.api.plugins.DynamicExtension
 import spock.lang.Specification
-import org.gradle.api.DynamicExtension
 
 public class DynamicExtensionDynamicObjectAdapterTest extends Specification {
 

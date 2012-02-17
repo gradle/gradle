@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api
+package org.gradle.api.plugins
 
-import spock.lang.Specification
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Specification
 
 /**
  * Contract test for dynamic extension implementations.

@@ -14,26 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.api.internal.plugins
 
-import org.gradle.api.DynamicExtension
-import spock.lang.Specification
+import org.gradle.api.plugins.DynamicExtensionTest
 
-public class AddOnDemandDynamicExtensionDynamicObjectAdapterTest extends Specification {
+public class DefaultDynamicExtensionTest extends DynamicExtensionTest<DefaultDynamicExtension> {
 
-    String delegate = "foo"
-    DynamicExtension extension = new DefaultDynamicExtension()
-
-    AddOnDemandDynamicExtensionDynamicObjectAdapter adapter = new AddOnDemandDynamicExtensionDynamicObjectAdapter(delegate, extension)
-
-    def "set property will add on demand"() {
-        expect:
-        !adapter.hasProperty("foo")
-
-        when:
-        adapter.setProperty("foo", "bar")
-
-        then:
-        adapter.getProperty("foo")
+    DefaultDynamicExtension createExtension() {
+        new DefaultDynamicExtension()
     }
+
 }

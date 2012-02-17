@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.api.plugins;
+
+import org.gradle.api.InvalidUserDataException;
 
 import java.util.Map;
 

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.plugins;
 
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.DynamicExtension;
+import org.gradle.api.plugins.DynamicExtension;
 
 public class AddOnDemandDynamicExtensionDynamicObjectAdapter extends DynamicExtensionDynamicObjectAdapter {
 

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.plugins;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.DynamicExtension;
+import org.gradle.api.plugins.DynamicExtension;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultDynamicExtension extends GroovyObjectSupport implements DynamicExtension{
+public class DefaultDynamicExtension extends GroovyObjectSupport implements DynamicExtension {
 
     Map<String, Object> storage = new HashMap<String, Object>();
     
