@@ -43,9 +43,11 @@ public abstract class AbstractFileResolver implements FileResolver {
     private static final Pattern URI_SCHEME = Pattern.compile("[a-zA-Z][a-zA-Z0-9+-\\.]*:.+");
     private static final Pattern ENCODED_URI = Pattern.compile("%([0-9a-fA-F]{2})");
     private final FileSystem fileSystem;
+    private FileNotationParser fileNotationParser;
 
     protected AbstractFileResolver(FileSystem fileSystem) {
         this.fileSystem = fileSystem;
+        this.fileNotationParser = new FileNotationParser(fileSystem);
     }
 
     public FileResolver withBaseDir(Object path) {
@@ -164,11 +166,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         if (object == null) {
             return null;
         }
-        Object converted = convertToFileOrUri(object);
-        if (converted instanceof File) {
-            return (File) converted;
-        }
-        throw new InvalidUserDataException(String.format("Cannot convert URL '%s' to a file.", converted));
+        return fileNotationParser.parseNotation(object);
     }
 
     private Object convertToFileOrUri(Object path) {

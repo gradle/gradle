@@ -30,6 +30,7 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.internal.nativeplatform.FileSystems
+import org.gradle.api.internal.notations.api.UnsupportedNotationException
 
 /**
  * @author Hans Dockter
@@ -214,8 +215,8 @@ class BaseDirFileResolverTest {
         try {
             baseDirConverter.resolve("http://www.gradle.org")
             fail()
-        } catch (InvalidUserDataException e) {
-            assertThat(e.message, equalTo('Cannot convert URL \'http://www.gradle.org\' to a file.'))
+        } catch (UnsupportedNotationException e) {
+            assertThat(e.notation, equalTo('Cannot convert URL \'http://www.gradle.org\' to a file.'))
         }
     }
 
