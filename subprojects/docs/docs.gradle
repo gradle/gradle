@@ -278,7 +278,11 @@ task groovydoc(type: Groovydoc, dependsOn: configureGroovyDoc) {
         if (it.hasTask(groovydoc)) {
             def systemCharset = java.nio.charset.Charset.defaultCharset().name()
             if (systemCharset != "UTF-8") {
-                throw new InvalidUserDataException("Cannot run $groovydoc.name task unless system charset is UTF-8 (it's $systemCharset, set -Dfile.encoding=UTF-8) in GRADLE_OPTS")
+                if (isReleaseBuild()) {
+                    throw new InvalidUserDataException("Cannot run $groovydoc.name task unless system charset is UTF-8 (it's $systemCharset, set -Dfile.encoding=UTF-8) in GRADLE_OPTS")
+                } else {
+                    logger.warn("Groovydoc will be generated in this build, but the default character encoding is '$systemCharset'. It should be 'UTF-8'. This is ok for a non release build.")
+                }
             }
         }
     }
