@@ -98,7 +98,7 @@ public abstract class GradleConnector {
     public abstract GradleConnector forProjectDirectory(File projectDir);
 
     /**
-     * Specifies the user's Gradle home directory to use. Defaults to {@code ~/.gradle}
+     * Specifies the user's Gradle home directory to use. Defaults to {@code ~/.gradle}.
      *
      * @param gradleUserHomeDir The user's Gradle home directory to use.
      * @return this
