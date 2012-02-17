@@ -33,8 +33,8 @@ public class DefaultExcludeRule implements ExcludeRule {
     private String group;
     private String module;
 
+    //TODO should we deprecate this?
     public DefaultExcludeRule(Map<String, String> excludeArgs) {
-        DeprecationLogger.nagUserOfReplacedMethod("DefaultExcludeRule(Map<String, String>)", "DefaultExcludeRule(String,String)");
         this.excludeArgs = excludeArgs;
         this.group = excludeArgs.get(GROUP_KEY);
         this.module = excludeArgs.get(MODULE_KEY);
