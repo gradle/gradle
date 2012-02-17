@@ -32,7 +32,7 @@ public class DaemonJavaCompiler extends JavaCompilerSupport {
     }
 
     public WorkResult execute() {
-        configure(delegate);
+        delegate.setSpec(spec);
         CompileOptions compileOptions = spec.getCompileOptions();
         DaemonForkOptions forkOptions = new DaemonForkOptions(compileOptions.getForkOptions());
         CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project, forkOptions);

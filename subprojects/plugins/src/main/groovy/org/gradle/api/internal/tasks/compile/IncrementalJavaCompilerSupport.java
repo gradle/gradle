@@ -38,7 +38,7 @@ public abstract class IncrementalJavaCompilerSupport<T extends JavaCompiler> ext
         cleaner.setCompileOptions(compiler.getCompileOptions());
         cleaner.execute();
 
-        configure(compiler);
+        compiler.setSpec(spec);
         return compiler.execute();
     }
 

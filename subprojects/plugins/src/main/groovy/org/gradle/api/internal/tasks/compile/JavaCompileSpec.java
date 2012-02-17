@@ -20,24 +20,14 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
-import java.io.Serializable;
 
-public class JavaCompileSpec implements Serializable {
+public class JavaCompileSpec extends JvmCompileSpec {
     private String sourceCompatibility;
     private String targetCompatibility;
     private File destinationDir;
-    private Iterable<File> classpath;
     private FileCollection source;
     private File dependencyCacheDir;
     private CompileOptions compileOptions = new CompileOptions();
-
-    public Iterable<File> getClasspath() {
-        return classpath;
-    }
-
-    public void setClasspath(Iterable<File> classpath) {
-        this.classpath = classpath;
-    }
 
     public CompileOptions getCompileOptions() {
         return compileOptions;

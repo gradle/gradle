@@ -42,7 +42,7 @@ public class NormalizingJavaCompiler extends JavaCompilerSupport {
                 throw new InvalidUserDataException(String.format("Cannot compile non-Java source file '%s'.", file));
             }
         }
-        configure(compiler);
+        compiler.setSpec(spec);
         return compiler.execute();
     }
 }

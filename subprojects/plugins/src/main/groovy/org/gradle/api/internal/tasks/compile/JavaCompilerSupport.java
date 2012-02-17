@@ -26,7 +26,15 @@ import java.io.Serializable;
  * all required state in protected fields.
  */
 public abstract class JavaCompilerSupport implements JavaCompiler, Serializable {
-    protected final JavaCompileSpec spec = new JavaCompileSpec();
+    protected JavaCompileSpec spec = new JavaCompileSpec();
+
+    public JavaCompileSpec getSpec() {
+        return spec;
+    }
+
+    public void setSpec(JavaCompileSpec spec) {
+        this.spec = spec;
+    }
 
     public void setSourceCompatibility(String sourceCompatibility) {
         spec.setSourceCompatibility(sourceCompatibility);
@@ -58,16 +66,6 @@ public abstract class JavaCompilerSupport implements JavaCompiler, Serializable 
     
     public void setDependencyCacheDir(File dependencyCacheDir) {
         spec.setDependencyCacheDir(dependencyCacheDir);
-    }
-    
-    public void configure(JavaCompiler other) {
-        other.setSource(spec.getSource());
-        other.setDestinationDir(spec.getDestinationDir());
-        other.setClasspath(spec.getClasspath());
-        other.setSourceCompatibility(spec.getSourceCompatibility());
-        other.setTargetCompatibility(spec.getTargetCompatibility());
-        other.setDependencyCacheDir(spec.getDependencyCacheDir());
-        other.setCompileOptions(spec.getCompileOptions());
     }
 
     protected void listFilesIfRequested() {

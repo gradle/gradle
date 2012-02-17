@@ -48,20 +48,4 @@ class JavaCompilerSupportTest extends Specification {
         compiler.spec.targetCompatibility == "1.6"
         compiler.spec.dependencyCacheDir.name == "cache"
     }
-    
-    def "can configure another compiler"() {
-        def other = Mock(JavaCompiler)
-        
-        when:
-        compiler.configure(other)
-        
-        then:
-        1 * other.setSource(_)
-        1 * other.setDestinationDir(_)
-        1 * other.setClasspath(_)
-        1 * other.setCompileOptions(_)
-        1 * other.setSourceCompatibility(_)
-        1 * other.setTargetCompatibility(_)
-        1 * other.setDependencyCacheDir(_)
-    }
 }
