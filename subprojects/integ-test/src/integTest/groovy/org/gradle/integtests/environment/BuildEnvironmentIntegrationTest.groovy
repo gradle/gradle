@@ -102,7 +102,7 @@ assert classesDir.directory
     }
 
     @Test
-    void "specified java home should be used to run build"() {
+    void "java home from environment should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.bestAlternative
         if (alternateJavaHome == null) {
             return
@@ -116,6 +116,25 @@ assert classesDir.directory
         assert out.contains("javaHome=" + Jvm.current().javaHome.canonicalPath)
 
         out = executer.withJavaHome(alternateJavaHome).run().output
+        assert out.contains("javaHome=" + alternateJavaHome.canonicalPath)
+    }
+
+    @Test
+    void "java home from gradle.properties should be used to run build"() {
+        def alternateJavaHome = AvailableJavaHomes.bestAlternative
+        if (alternateJavaHome == null) {
+            return
+        }
+
+        file('build.gradle') << """
+            println "javaHome=" + org.gradle.util.Jvm.current().javaHome.canonicalPath
+        """
+        file('gradle.properties') << """
+            org.gradle.java.home=${alternateJavaHome.canonicalPath}
+        """
+
+        // Need the forking executer for this to work. Embedded executer will not fork a new process if jvm doesn't match.
+        def out = executer.withForkingExecuter().run().output
         assert out.contains("javaHome=" + alternateJavaHome.canonicalPath)
     }
 }

@@ -42,6 +42,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -129,40 +130,83 @@ public class CommandLineActionFactory {
 
         final StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
-        Map<String, String> mergedSystemProperties = startParameter.getMergedSystemProperties();
-        DaemonParameters daemonParameters = new DaemonParameters();
-        daemonParameters.configureFromBuildDir(startParameter.getCurrentDir(), startParameter.isSearchUpwards());
-        daemonParameters.configureFromGradleUserHome(startParameter.getGradleUserHomeDir());
-        daemonParameters.configureFromSystemProperties(mergedSystemProperties);
+        DaemonParameters daemonParameters = constructDaemonParameters(startParameter);
         if (commandLine.hasOption(FOREGROUND)) {
             return new ActionAdapter(new ForegroundDaemonMain(daemonParameters));
         }
 
         DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, System.in);
-        DaemonClientFactory clientFactory = clientServices.get(DaemonClientFactory.class);
 
+        if (commandLine.hasOption(STOP)) {
+            return stopAllDaemons(clientServices);
+        }
+        if (useDaemon(commandLine, daemonParameters)) {
+            return runBuildWithDaemon(commandLine, daemonParameters, clientServices);
+        }
+        if (canUseCurrentProcess(daemonParameters)) {
+            return runBuildInProcess(loggingServices, startParameter);
+        }
+        return runBuildInSingleUseDaemon(commandLine, daemonParameters, clientServices);
+    }
+
+    private DaemonParameters constructDaemonParameters(StartParameter startParameter) {
+        Map<String, String> mergedSystemProperties = startParameter.getMergedSystemProperties();
+        DaemonParameters daemonParameters = new DaemonParameters();
+        daemonParameters.configureFromBuildDir(startParameter.getCurrentDir(), startParameter.isSearchUpwards());
+        daemonParameters.configureFromGradleUserHome(startParameter.getGradleUserHomeDir());
+        daemonParameters.configureFromSystemProperties(mergedSystemProperties);
+        return daemonParameters;
+    }
+
+    private boolean useDaemon(ParsedCommandLine commandLine, DaemonParameters daemonParameters) {
         boolean useDaemon = daemonParameters.isEnabled();
         useDaemon = useDaemon || commandLine.hasOption(DAEMON);
         useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
-        long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
+        return useDaemon;
+    }
 
-        if (commandLine.hasOption(STOP)) {
-            DaemonClient stopClient = clientFactory.create(Specs.<DaemonContext>satisfyAll());
-            return new ActionAdapter(new StopDaemonAction(stopClient));
-        }
-        if (useDaemon) {
-            // Create a client that will match based on the daemon startup parameters.
-            DaemonCompatibilitySpec compatibilitySpec = new DaemonCompatibilitySpec(clientServices.get(DaemonContext.class));
-            DaemonClient client = clientFactory.create(compatibilitySpec);
-            return new ActionAdapter(
-                    new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData(), startTime, daemonParameters.getEffectiveSystemProperties(), System.getenv()));
-        }
+    private Action<ExecutionListener> stopAllDaemons(DaemonClientServices clientServices) {
+        DaemonClientFactory clientFactory = clientServices.get(DaemonClientFactory.class);
+        DaemonClient stopClient = clientFactory.create(Specs.<DaemonContext>satisfyAll());
+        return new ActionAdapter(new StopDaemonAction(stopClient));
+    }
 
-        // TODO:DAZ Compare current environment with this environment. If no match, then run build using 'private' daemon
-        // Same DaemonBuildAction as above
-        // Client is created with no-match-DaemonCompatibilitySpec, so it will always create a new Daemon
+    private Action<ExecutionListener> runBuildWithDaemon(ParsedCommandLine commandLine, DaemonParameters daemonParameters, DaemonClientServices clientServices) {
+        // Create a client that will match based on the daemon startup parameters.
+        DaemonClientFactory clientFactory = clientServices.get(DaemonClientFactory.class);
+        DaemonCompatibilitySpec compatibilitySpec = new DaemonCompatibilitySpec(clientServices.get(DaemonContext.class));
+        DaemonClient client = clientFactory.create(compatibilitySpec);
+        return new ActionAdapter(
+                new DaemonBuildAction(client, commandLine, getWorkingDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
+    }
 
-        return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData(), startTime));
+    private Action<ExecutionListener> runBuildInProcess(ServiceRegistry loggingServices, StartParameter startParameter) {
+        return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData(), getBuildStartTime()));
+    }
+
+    private Action<ExecutionListener> runBuildInSingleUseDaemon(ParsedCommandLine commandLine, DaemonParameters daemonParameters, DaemonClientServices clientServices) {
+        // Create a client that will not match any existing daemons, so it will always startup a new one
+        DaemonClientFactory clientFactory = clientServices.get(DaemonClientFactory.class);
+        DaemonClient client = clientFactory.create(Specs.<DaemonContext>satisfyNone());
+        return new ActionAdapter(
+                new DaemonBuildAction(client, commandLine, getWorkingDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
+        // TODO:DAZ Need to stop the spawned daemon process
+        // TODO:DAZ Need to display message informing users that we forked the process, and they would be better off switching to the daemon
+    }
+
+    private boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
+        // TODO:DAZ Match on jvm args as well as java home.
+        // DaemonParameters isn't quite right for this, since the daemon parameters include default jvm args, which aren't part of the "required" build parameters.
+        return Jvm.current().getJavaHome().equals(requiredBuildParameters.getEffectiveJavaHome());
+        // TODO:DAZ Reuse DaemonCompatibilitySpec here (make it more general purpose)
+    }
+
+    private long getBuildStartTime() {
+        return ManagementFactory.getRuntimeMXBean().getStartTime();
+    }
+
+    private File getWorkingDir() {
+        return new File(System.getProperty("user.dir"));
     }
 
     private static void showUsage(PrintStream out, CommandLineParser parser) {
