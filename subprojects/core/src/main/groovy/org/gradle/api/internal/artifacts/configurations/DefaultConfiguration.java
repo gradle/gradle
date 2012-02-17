@@ -422,7 +422,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         for (Configuration excludeRuleSource : excludeRuleSources) {
             for (ExcludeRule excludeRule : excludeRuleSource.getExcludeRules()) {
-                copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
+                copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getGroup(), excludeRule.getModule()));
             }
         }
 

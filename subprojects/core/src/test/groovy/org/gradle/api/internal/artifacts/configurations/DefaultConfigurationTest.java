@@ -766,8 +766,8 @@ public class DefaultConfigurationTest {
         configuration.setVisible(false);
         configuration.setTransitive(false);
         configuration.setDescription("descript");
-        configuration.exclude(toMap("org", "value"));
-        configuration.exclude(toMap("org2", "value2"));
+        configuration.exclude(toMap("group", "value"));
+        configuration.exclude(toMap("group", "value2"));
         configuration.addArtifact(HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1"));
         configuration.addArtifact(HelperUtil.createPublishArtifact("name2", "ext2", "type2", "classifier2"));
         configuration.addDependency(HelperUtil.createDependency("group1", "name1", "version1"));

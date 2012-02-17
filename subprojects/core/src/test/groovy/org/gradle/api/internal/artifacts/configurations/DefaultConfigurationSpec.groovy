@@ -284,6 +284,6 @@ class DefaultConfigurationSpec extends Specification {
         
         then:
         copied.excludeRules.size() == 2
-        copied.excludeRules*.excludeArgs.sort { it.group } == [p1Exclude, p2Exclude]
+        copied.excludeRules.collect{[group: it.group, module: it.module]}.sort { it.group } == [p1Exclude, p2Exclude]
     }
 }

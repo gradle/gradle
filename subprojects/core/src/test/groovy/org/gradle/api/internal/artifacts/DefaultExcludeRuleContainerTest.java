@@ -20,9 +20,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.util.WrapUtil;
 import org.junit.Test;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -66,14 +64,20 @@ public class DefaultExcludeRuleContainerTest {
     }
 
     private void assertExcludeRuleContainerHasCorrectExcludeRules(Set<ExcludeRule> excludeRules, Map... excludeRuleArgs) {
-        Set<Map> foundRules = new HashSet<Map>();
+        List<Map> foundRules = new ArrayList<Map>();
         for (ExcludeRule excludeRule : excludeRules) {
             for (Map excludeRuleArg : excludeRuleArgs) {
-                if (excludeRule.getExcludeArgs().equals(excludeRuleArg)) {
+                if (matchingExcludeRule(excludeRule, excludeRuleArg)) {
                     foundRules.add(excludeRuleArg);
                     continue;
                 }
             }
         }
+        assertThat(Arrays.asList(excludeRuleArgs), equalTo(foundRules));
+    }
+
+    private boolean matchingExcludeRule(ExcludeRule excludeRule, Map excludeRuleArg) {
+        final DefaultExcludeRule expectedExcludeRule = new DefaultExcludeRule((String) excludeRuleArg.get(ExcludeRule.GROUP_KEY), (String) excludeRuleArg.get(ExcludeRule.MODULE_KEY));
+        return excludeRule.equals(expectedExcludeRule);
     }
 }
