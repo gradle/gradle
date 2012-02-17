@@ -18,6 +18,7 @@ package org.gradle.launcher.cli;
 import org.gradle.BuildExceptionReporter;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.specs.Specs;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
@@ -29,8 +30,11 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
+import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.client.DaemonParameters;
+import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.exec.ExceptionReportingAction;
 import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingConfiguration;
@@ -135,7 +139,7 @@ public class CommandLineActionFactory {
         }
 
         DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, System.in);
-        DaemonClient client = clientServices.get(DaemonClient.class);
+        DaemonClientFactory clientFactory = clientServices.get(DaemonClientFactory.class);
 
         boolean useDaemon = daemonParameters.isEnabled();
         useDaemon = useDaemon || commandLine.hasOption(DAEMON);
@@ -143,10 +147,13 @@ public class CommandLineActionFactory {
         long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
 
         if (commandLine.hasOption(STOP)) {
-            // TODO:DAZ This should use a different client that matches any Daemon. Then we can use Stop to mean "Stop any daemon this client can connect to".
-            return new ActionAdapter(new StopDaemonAction(client));
+            DaemonClient stopClient = clientFactory.create(Specs.<DaemonContext>satisfyAll());
+            return new ActionAdapter(new StopDaemonAction(stopClient));
         }
         if (useDaemon) {
+            // Create a client that will match based on the daemon startup parameters.
+            DaemonCompatibilitySpec compatibilitySpec = new DaemonCompatibilitySpec(clientServices.get(DaemonContext.class));
+            DaemonClient client = clientFactory.create(compatibilitySpec);
             return new ActionAdapter(
                     new DaemonBuildAction(client, commandLine, new File(System.getProperty("user.dir")), clientMetaData(), startTime, daemonParameters.getEffectiveSystemProperties(), System.getenv()));
         }

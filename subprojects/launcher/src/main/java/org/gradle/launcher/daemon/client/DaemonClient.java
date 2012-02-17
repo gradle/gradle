@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -74,8 +73,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
      * Stops all daemons, if any is running.
      */
     public void stop() {
-        Spec<DaemonContext> stoppableDaemonSpec = Specs.satisfyAll();
-        DaemonConnection connection = connector.maybeConnect(stoppableDaemonSpec);
+        DaemonConnection connection = connector.maybeConnect(compatibilitySpec);
         if (connection == null) {
             LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);
             return;
@@ -86,7 +84,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         while (connection != null) {
             new StopDispatcher().dispatch(clientMetaData, connection.getConnection());
             LOGGER.lifecycle("Gradle daemon stopped.");
-            connection = connector.maybeConnect(stoppableDaemonSpec);
+            connection = connector.maybeConnect(compatibilitySpec);
         }
     }
 

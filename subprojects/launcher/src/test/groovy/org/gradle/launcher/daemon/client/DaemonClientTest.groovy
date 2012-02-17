@@ -16,15 +16,18 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.GradleLauncherAction
 import org.gradle.launcher.daemon.context.DaemonContext
+import org.gradle.launcher.daemon.protocol.Build
+import org.gradle.launcher.daemon.protocol.BuildStarted
+import org.gradle.launcher.daemon.protocol.CommandFailure
+import org.gradle.launcher.daemon.protocol.Stop
+import org.gradle.launcher.daemon.protocol.Success
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
 import spock.lang.Specification
-import org.gradle.launcher.daemon.protocol.*
 
 class DaemonClientTest extends Specification {
     final DaemonConnector connector = Mock()
@@ -44,7 +47,7 @@ class DaemonClientTest extends Specification {
         client.stop()
 
         then:
-        2 * connector.maybeConnect(Specs.satisfyAll()) >>> [daemonConnection, null]
+        2 * connector.maybeConnect(compatibilitySpec) >>> [daemonConnection, null]
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new Success(null)
         1 * connection.stop()
@@ -52,23 +55,23 @@ class DaemonClientTest extends Specification {
         0 * _
     }
 
-    def "stops all daemons"() {
-        when:
-        client.stop()
-
-        then:
-        3 * connector.maybeConnect(Specs.satisfyAll()) >>> [daemonConnection, daemonConnection, null]
-        2 * connection.dispatch({it instanceof Stop})
-        2 * connection.receive() >> new Success(null)
-    }
-
     def stopsTheDaemonWhenNotRunning() {
         when:
         client.stop()
 
         then:
-        1 * connector.maybeConnect(Specs.satisfyAll()) >> null
+        1 * connector.maybeConnect(compatibilitySpec) >> null
         0 * _
+    }
+
+    def "stops all compatible daemons"() {
+        when:
+        client.stop()
+
+        then:
+        3 * connector.maybeConnect(compatibilitySpec) >>> [daemonConnection, daemonConnection, null]
+        2 * connection.dispatch({it instanceof Stop})
+        2 * connection.receive() >> new Success(null)
     }
 
     def executesAction() {

@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.context;
 import com.google.common.collect.Lists;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.launcher.daemon.client.DaemonParameters;
 import org.gradle.util.Jvm;
 
 import java.io.File;
@@ -91,6 +92,11 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
 
     public void setDaemonOpts(List<String> daemonOpts) {
         this.daemonOpts = daemonOpts;
+    }
+
+    public void useDaemonParameters(DaemonParameters daemonParameters) {
+        setJavaHome(daemonParameters.getEffectiveJavaHome());
+        setDaemonOpts(daemonParameters.getEffectiveJvmArgs());
     }
 
     /**

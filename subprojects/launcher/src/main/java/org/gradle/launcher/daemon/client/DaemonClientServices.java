@@ -48,8 +48,7 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
 
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
         builder.setDaemonRegistryDir(registryServices.get(DaemonDir.class).getBaseDir());
-        builder.setDaemonOpts(daemonParameters.getEffectiveJvmArgs());
-        builder.setJavaHome(daemonParameters.getEffectiveJavaHome());
+        builder.useDaemonParameters(daemonParameters);
     }
 
     public DaemonParameters getDaemonParameters() {

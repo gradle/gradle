@@ -103,6 +103,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
                 throw UncheckedException.asUncheckedException(e);
             }
             // Look for 'our' daemon among the busy daemons - daemons start in busy state so that nobody else will grab them.
+            // TODO:DAZ We should verify the connection using the original daemon constraint
             connection = findConnection(daemonRegistry.getBusy(), sameUidConstraint);
             if (connection != null) {
                 return connection;
