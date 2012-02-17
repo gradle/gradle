@@ -457,6 +457,13 @@ def wrapperUpdateTask = { name, label ->
             println "updating wrapper to $label version: $version.version (downloadUrl: $version.downloadUrl)"
             distributionUrl version.downloadUrl
         }
+        doLast {
+            def jvmOpts = "-Xmx1024m -XX:MaxPermSize=256m -Dfile.encoding=UTF-8"
+            inputs.property("jvmOpts", jvmOpts)
+            def optsEnvVar = "DEFAULT_JVM_OPTS"
+            scriptFile.write scriptFile.text.replace("$optsEnvVar=\"\"", "$optsEnvVar=\"$jvmOpts\"")
+            batchScript.write batchScript.text.replace("set $optsEnvVar=", "set $optsEnvVar=$jvmOpts")
+        }
     }
 }
 
