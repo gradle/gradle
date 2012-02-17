@@ -123,14 +123,15 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
         private def createTestClassLoader() {
             def toolingApiClassPath = []
-            toolingApiClassPath += toolingApi.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-tooling-api.*\.jar/ }
-            toolingApiClassPath += toolingApi.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-core.*\.jar/ }
-            toolingApiClassPath += toolingApi.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-base-services.*\.jar/ }
-            toolingApiClassPath += toolingApi.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-wrapper.*\.jar/ }
-            toolingApiClassPath += toolingApi.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /slf4j-api.*\.jar/ }
+            def libFiles = toolingApi.gradleHomeDir.file('lib').listFiles()
+            toolingApiClassPath += libFiles.findAll { it.name =~ /gradle-tooling-api.*\.jar/ }
+            toolingApiClassPath += libFiles.findAll { it.name =~ /gradle-core.*\.jar/ }
+            toolingApiClassPath += libFiles.findAll { it.name =~ /gradle-base-services.*\.jar/ }
+            toolingApiClassPath += libFiles.findAll { it.name =~ /gradle-wrapper.*\.jar/ }
+            toolingApiClassPath += libFiles.findAll { it.name =~ /slf4j-api.*\.jar/ }
 
             // Add in an slf4j provider
-            toolingApiClassPath += toolingApi.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /logback.*\.jar/ }
+            toolingApiClassPath += libFiles.findAll { it.name =~ /logback.*\.jar/ }
 
             def classLoaderFactory = new DefaultClassLoaderFactory()
             def toolingApiClassLoader = classLoaderFactory.createIsolatedClassLoader(toolingApiClassPath.collect { it.toURI().toURL() })
