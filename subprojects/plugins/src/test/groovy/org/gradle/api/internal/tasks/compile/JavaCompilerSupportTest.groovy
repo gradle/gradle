@@ -40,13 +40,13 @@ class JavaCompilerSupportTest extends Specification {
         }
         
         then:
-        compiler.source.singleFile.name == "Person.java"
-        compiler.destinationDir.name == "out"
-        compiler.classpath[0].name == "lib.jar"
+        compiler.spec.source.singleFile.name == "Person.java"
+        compiler.spec.destinationDir.name == "out"
+        compiler.spec.classpath[0].name == "lib.jar"
         compiler.compileOptions.encoding == "utf-8"
-        compiler.sourceCompatibility == "1.5"
-        compiler.targetCompatibility == "1.6"
-        compiler.dependencyCacheDir.name == "cache"
+        compiler.spec.sourceCompatibility == "1.5"
+        compiler.spec.targetCompatibility == "1.6"
+        compiler.spec.dependencyCacheDir.name == "cache"
     }
     
     def "can configure another compiler"() {

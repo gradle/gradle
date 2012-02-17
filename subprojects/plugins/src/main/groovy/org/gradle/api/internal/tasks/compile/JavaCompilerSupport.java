@@ -26,62 +26,56 @@ import java.io.Serializable;
  * all required state in protected fields.
  */
 public abstract class JavaCompilerSupport implements JavaCompiler, Serializable {
-    protected String sourceCompatibility;
-    protected String targetCompatibility;
-    protected File destinationDir;
-    protected Iterable<File> classpath;
-    protected FileCollection source;
-    protected File dependencyCacheDir;
-    protected CompileOptions compileOptions = new CompileOptions();
+    protected final JavaCompileSpec spec = new JavaCompileSpec();
 
     public void setSourceCompatibility(String sourceCompatibility) {
-        this.sourceCompatibility = sourceCompatibility;
+        spec.setSourceCompatibility(sourceCompatibility);
     }
 
     public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
+        spec.setTargetCompatibility(targetCompatibility);
     }
 
     public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
+        spec.setDestinationDir(destinationDir);
     }
 
     public void setClasspath(Iterable<File> classpath) {
-        this.classpath = classpath;
+        spec.setClasspath(classpath);
     }
 
     public void setSource(FileCollection source) {
-        this.source = source;
+        spec.setSource(source);
     }
 
     public CompileOptions getCompileOptions() {
-        return compileOptions;
+        return spec.getCompileOptions();
     }
 
     public void setCompileOptions(CompileOptions compileOptions) {
-        this.compileOptions = compileOptions;
+        spec.setCompileOptions(compileOptions);
     }
     
     public void setDependencyCacheDir(File dependencyCacheDir) {
-        this.dependencyCacheDir = dependencyCacheDir;
+        spec.setDependencyCacheDir(dependencyCacheDir);
     }
     
     public void configure(JavaCompiler other) {
-        other.setSource(source);
-        other.setDestinationDir(destinationDir);
-        other.setClasspath(classpath);
-        other.setSourceCompatibility(sourceCompatibility);
-        other.setTargetCompatibility(targetCompatibility);
-        other.setDependencyCacheDir(dependencyCacheDir);
-        other.setCompileOptions(compileOptions);
+        other.setSource(spec.getSource());
+        other.setDestinationDir(spec.getDestinationDir());
+        other.setClasspath(spec.getClasspath());
+        other.setSourceCompatibility(spec.getSourceCompatibility());
+        other.setTargetCompatibility(spec.getTargetCompatibility());
+        other.setDependencyCacheDir(spec.getDependencyCacheDir());
+        other.setCompileOptions(spec.getCompileOptions());
     }
 
     protected void listFilesIfRequested() {
-        if (!compileOptions.isListFiles()) { return; }
+        if (!spec.getCompileOptions().isListFiles()) { return; }
         
         StringBuilder builder = new StringBuilder();
         builder.append("Source files to be compiled:");
-        for (File file : source) {
+        for (File file : spec.getSource()) {
             builder.append('\n');
             builder.append(file);
         }

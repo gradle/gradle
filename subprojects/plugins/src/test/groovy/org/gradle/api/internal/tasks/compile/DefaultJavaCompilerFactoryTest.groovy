@@ -18,8 +18,6 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.Factory
-import org.gradle.util.Jvm
-
 import spock.lang.Specification
 
 class DefaultJavaCompilerFactoryTest extends Specification {
@@ -27,15 +25,13 @@ class DefaultJavaCompilerFactoryTest extends Specification {
     ProjectInternal projectInternal = Mock()
     Factory factoryMock = Mock()
     JavaCompilerFactory jcFactory = Mock()
-    Jvm jvmMock = Mock()
-    DefaultJavaCompilerFactory factory = new DefaultJavaCompilerFactory(projectInternal, factoryMock, jcFactory, jvmMock)
+    DefaultJavaCompilerFactory factory = new DefaultJavaCompilerFactory(projectInternal, factoryMock, jcFactory)
 
     def "does not decorate Ant compiler"() {
         when:
         JavaCompiler compiler = factory.create(compileOptionsMock)
 
         then:
-        0 * jvmMock.isJava7()
         1 * compileOptionsMock.isUseAnt() >> true
         compiler instanceof AntJavaCompiler
     }

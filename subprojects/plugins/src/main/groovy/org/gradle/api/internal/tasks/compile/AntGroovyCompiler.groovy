@@ -56,11 +56,11 @@ class AntGroovyCompiler extends JavaCompilerSupport implements GroovyJavaJointCo
         
         ant.withGroovy(antBuilderClasspath).execute {
             taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
-            def task = groovyc([includeAntRuntime: false, destdir: destinationDir, classpath: ((classpath as List) + antBuilderClasspath).join(File.pathSeparator)]
+            def task = groovyc([includeAntRuntime: false, destdir: spec.destinationDir, classpath: ((spec.classpath as List) + antBuilderClasspath).join(File.pathSeparator)]
                     + groovyCompileOptions.optionMap()) {
                 source.addToAntBuilder(delegate, 'src', FileCollection.AntType.MatchingTask)
-                javac([source: sourceCompatibility, target: targetCompatibility] + filterNonGroovycOptions(compileOptions)) {
-                    compileOptions.compilerArgs.each {value ->
+                javac([source: spec.sourceCompatibility, target: spec.targetCompatibility] + filterNonGroovycOptions(spec.compileOptions)) {
+                    spec.compileOptions.compilerArgs.each {value ->
                         compilerarg(value: value)
                     }
                 }

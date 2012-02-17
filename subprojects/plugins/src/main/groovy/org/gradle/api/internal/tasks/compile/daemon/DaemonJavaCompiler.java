@@ -19,6 +19,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.UncheckedException;
 
 public class DaemonJavaCompiler extends JavaCompilerSupport {
@@ -32,7 +33,8 @@ public class DaemonJavaCompiler extends JavaCompilerSupport {
 
     public WorkResult execute() {
         configure(delegate);
-        DaemonForkOptions forkOptions = new DaemonForkOptions(getCompileOptions().getForkOptions());
+        CompileOptions compileOptions = spec.getCompileOptions();
+        DaemonForkOptions forkOptions = new DaemonForkOptions(compileOptions.getForkOptions());
         CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project, forkOptions);
         CompileResult result = daemon.execute(delegate);
         if (result.isSuccess() || !compileOptions.isFailOnError()) {

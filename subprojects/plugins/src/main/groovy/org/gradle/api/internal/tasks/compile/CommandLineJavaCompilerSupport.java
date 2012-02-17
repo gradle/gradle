@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,18 +37,22 @@ public abstract class CommandLineJavaCompilerSupport extends JavaCompilerSupport
     
     protected List<String> generateCommandLineOptions() {
         List<String> options = new ArrayList<String>();
+        String sourceCompatibility = spec.getSourceCompatibility();
         if (sourceCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(sourceCompatibility))) {
             options.add("-source");
             options.add(sourceCompatibility);
         }
+        String targetCompatibility = spec.getTargetCompatibility();
         if (targetCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(targetCompatibility))) {
             options.add("-target");
             options.add(targetCompatibility);
         }
+        File destinationDir = spec.getDestinationDir();
         if (destinationDir != null) {
             options.add("-d");
             options.add(destinationDir.getPath());
         }
+        CompileOptions compileOptions = spec.getCompileOptions();
         if (compileOptions.isVerbose()) {
             options.add("-verbose");
         }
@@ -72,6 +77,7 @@ public abstract class CommandLineJavaCompilerSupport extends JavaCompilerSupport
             options.add("-extdirs");
             options.add(compileOptions.getExtensionDirs());
         }
+        Iterable<File> classpath = spec.getClasspath();
         if (classpath != null && classpath.iterator().hasNext()) {
             options.add("-classpath");
             options.add(toFileCollection(classpath).getAsPath());

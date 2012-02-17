@@ -40,21 +40,21 @@ class AntJavaCompiler extends JavaCompilerSupport {
     WorkResult execute() {
         def ant = antBuilderFactory.create()
 
-        createAntClassPath(ant, classpath)
+        createAntClassPath(ant, spec.classpath)
         Map otherArgs = [
                 includeAntRuntime: false,
-                destdir: destinationDir,
+                destdir: spec.destinationDir,
                 classpathref: CLASSPATH_ID,
                 sourcepath: '',
-                target: targetCompatibility,
-                source: sourceCompatibility
+                target: spec.targetCompatibility,
+                source: spec.sourceCompatibility
         ]
 
-        Map options = otherArgs + compileOptions.optionMap()
+        Map options = otherArgs + spec.compileOptions.optionMap()
         LOGGER.debug("Running Ant javac with the following options {}", options)
         def task = ant.javac(options) {
             source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
-            compileOptions.compilerArgs.each {value ->
+            spec.compileOptions.compilerArgs.each {value ->
                 compilerarg(value: value)
             }
         }

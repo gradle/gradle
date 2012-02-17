@@ -19,6 +19,7 @@ import org.gradle.api.internal.tasks.compile.CommandLineJavaCompilerSupport;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +38,9 @@ public class Jdk6JavaCompiler extends CommandLineJavaCompilerSupport {
 
         List<String> options = generateCommandLineOptions();
         javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        CompileOptions compileOptions = spec.getCompileOptions();
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
-        Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(source);
+        Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(spec.getSource());
         javax.tools.JavaCompiler.CompilationTask task = compiler.getTask(null, null, null, options, null, compilationUnits);
 
         boolean success = task.call();

@@ -31,12 +31,12 @@ public class SunJavaCompiler extends CommandLineJavaCompilerSupport {
         listFilesIfRequested();
 
         List<String> options = generateCommandLineOptions();
-        for (File file : source) {
+        for (File file : spec.getSource()) {
             options.add(file.getPath());
         }
 
         int exitCode = Main.compile(options.toArray(new String[options.size()]));
-        if (exitCode != 0 && compileOptions.isFailOnError()) {
+        if (exitCode != 0 && spec.getCompileOptions().isFailOnError()) {
             throw new CompilationFailedException();
         }
 

@@ -27,7 +27,7 @@ class ForkingJavaCompilerFactoryTest extends Specification {
     def inProcessCompiler = Mock(JavaCompiler)
     def inProcessCompilerFactory = Mock(JavaCompilerFactory)
     def jvm = Mock(Jvm)
-    def factory = new DefaultJavaCompilerFactory(Mock(ProjectInternal), Mock(Factory), inProcessCompilerFactory, jvm)
+    def factory = new DefaultJavaCompilerFactory(Mock(ProjectInternal), Mock(Factory), inProcessCompilerFactory)
     def options = new CompileOptions()
     
     def setup() {

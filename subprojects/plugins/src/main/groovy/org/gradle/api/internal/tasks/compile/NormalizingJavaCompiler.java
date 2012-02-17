@@ -34,10 +34,10 @@ public class NormalizingJavaCompiler extends JavaCompilerSupport {
 
     public WorkResult execute() {
         // Scan the source and classpath and remember the results
-        source = new SimpleFileCollection(source.getFiles());
-        classpath = new SimpleFileCollection(Lists.newArrayList(classpath));
+        spec.setSource(new SimpleFileCollection(spec.getSource().getFiles()));
+        spec.setClasspath(new SimpleFileCollection(Lists.newArrayList(spec.getClasspath())));
 
-        for (File file : source) {
+        for (File file : spec.getSource()) {
             if (!file.getName().endsWith(".java")) {
                 throw new InvalidUserDataException(String.format("Cannot compile non-Java source file '%s'.", file));
             }

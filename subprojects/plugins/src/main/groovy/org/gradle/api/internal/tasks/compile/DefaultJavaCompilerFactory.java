@@ -20,23 +20,16 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
-import org.gradle.util.Jvm;
 
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final ProjectInternal project;
     private final Factory<AntBuilder> antBuilderFactory;
     private final JavaCompilerFactory inProcessCompilerFactory;
-    private Jvm jvmInstance;
 
-    public DefaultJavaCompilerFactory(ProjectInternal project, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory) {
-        this(project, antBuilderFactory, inProcessCompilerFactory, Jvm.current());
-    }
-
-    DefaultJavaCompilerFactory(ProjectInternal project, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory, Jvm jvm){
+    public DefaultJavaCompilerFactory(ProjectInternal project, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory){
         this.project = project;
         this.antBuilderFactory = antBuilderFactory;
         this.inProcessCompilerFactory = inProcessCompilerFactory;
-        this.jvmInstance = jvm;
     }
 
     public JavaCompiler create(CompileOptions options) {
