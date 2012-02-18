@@ -15,5 +15,12 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-public interface GroovyJavaJointCompiler extends GroovyCompiler<JavaCompileSpec>, JavaCompiler {
+import org.gradle.api.tasks.compile.GroovyCompileOptions;
+
+import java.io.File;
+
+public interface GroovyJavaJointCompiler extends Compiler<GroovyJavaJointCompileSpec> {
+    GroovyCompileOptions getGroovyCompileOptions();
+
+    void setGroovyClasspath(Iterable<File> classpath);
 }

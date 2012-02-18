@@ -19,8 +19,8 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompiler;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -36,9 +36,10 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
-import static org.junit.Assert.*;
+import static org.gradle.util.Matchers.hasSameItems;
+import static org.gradle.util.WrapUtil.toList;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Hans Dockter
@@ -50,7 +51,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
     private GroovyCompile testObj;
 
     GroovyJavaJointCompiler groovyCompilerMock;
-    JavaCompileSpec specMock;
+    GroovyJavaJointCompileSpec specMock;
 
     JUnit4Mockery context = new JUnit4GroovyMockery();
 
@@ -63,7 +64,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
         super.setUp();
         testObj = createTask(GroovyCompile.class);
         groovyCompilerMock = context.mock(GroovyJavaJointCompiler.class);
-        specMock = context.mock(JavaCompileSpec.class);
+        specMock = context.mock(GroovyJavaJointCompileSpec.class);
         testObj.setCompiler(groovyCompilerMock);
 
         GFileUtils.touch(new File(srcDir, "incl/file.groovy"));

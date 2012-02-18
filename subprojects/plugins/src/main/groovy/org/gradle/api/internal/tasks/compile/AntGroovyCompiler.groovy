@@ -33,13 +33,12 @@ import org.gradle.api.tasks.compile.CompileOptions
  *
  * @author Hans Dockter
  */
-class AntGroovyCompiler extends JavaCompilerSupport implements GroovyJavaJointCompiler {
+class AntGroovyCompiler implements GroovyJavaJointCompiler {
     private static Logger logger = LoggerFactory.getLogger(AntGroovyCompiler)
 
     private final IsolatedAntBuilder ant
     private final ClassPathRegistry classPathRegistry
-    GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions()
-    Iterable<File> groovyClasspath
+    GroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec()
 
     List nonGroovycJavacOptions = ['verbose', 'deprecation', 'includeJavaRuntime', 'includeAntRuntime', 'optimize', 'fork', 'failonerror', 'listfiles', 'nowarn', 'depend']
 
@@ -48,16 +47,24 @@ class AntGroovyCompiler extends JavaCompilerSupport implements GroovyJavaJointCo
         this.classPathRegistry = classPathRegistry;
     }
 
+    void setGroovyClasspath(Iterable<File> classpath) {
+        spec.groovyClasspath = classpath
+    }
+
+    GroovyCompileOptions getGroovyCompileOptions() {
+        return spec.groovyCompileOptions
+    }
+
     public WorkResult execute() {
         int numFilesCompiled;
 
         // Add in commons-cli, as the Groovy POM does not (for some versions of Groovy)
-        Collection antBuilderClasspath = (groovyClasspath as List) + classPathRegistry.getClassPathFiles("COMMONS_CLI")
+        Collection antBuilderClasspath = (spec.groovyClasspath as List) + classPathRegistry.getClassPathFiles("COMMONS_CLI")
         
         ant.withGroovy(antBuilderClasspath).execute {
             taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
             def task = groovyc([includeAntRuntime: false, destdir: spec.destinationDir, classpath: ((spec.classpath as List) + antBuilderClasspath).join(File.pathSeparator)]
-                    + groovyCompileOptions.optionMap()) {
+                    + spec.groovyCompileOptions.optionMap()) {
                 source.addToAntBuilder(delegate, 'src', FileCollection.AntType.MatchingTask)
                 javac([source: spec.sourceCompatibility, target: spec.targetCompatibility] + filterNonGroovycOptions(spec.compileOptions)) {
                     spec.compileOptions.compilerArgs.each {value ->

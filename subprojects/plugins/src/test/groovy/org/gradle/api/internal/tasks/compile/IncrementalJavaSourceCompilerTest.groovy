@@ -21,8 +21,14 @@ import org.gradle.api.file.FileCollection
 
 class IncrementalJavaSourceCompilerTest extends Specification {
     private final JavaCompiler target = Mock()
+    private final JavaCompileSpec spec = Mock()
     private final StaleClassCleaner cleaner = Mock()
-    private final IncrementalJavaCompilerSupport compiler = new IncrementalJavaCompilerSupport(target) {
+    private final IncrementalJavaCompilerSupport<JavaCompileSpec> compiler = new IncrementalJavaCompilerSupport<JavaCompileSpec>() {
+        @Override
+        protected Compiler<JavaCompileSpec> getCompiler() {
+            return target
+        }
+
         protected StaleClassCleaner createCleaner() {
             return cleaner
         }
@@ -32,17 +38,24 @@ class IncrementalJavaSourceCompilerTest extends Specification {
         WorkResult result = Mock()
         File destDir = new File('dest')
         FileCollection source = Mock()
-        compiler.spec.destinationDir = destDir
-        compiler.spec.source = source
+        _ * target.spec >> spec
+        _ * spec.destinationDir >> destDir
+        _ * spec.source >> source
 
         when:
         def r = compiler.execute()
 
         then:
         r == result
+
+        and:
         1 * cleaner.setDestinationDir(destDir)
         1 * cleaner.setSource(source)
+
+        and:
         1 * cleaner.execute()
+
+        and:
         1 * target.execute() >> result
     }
 }

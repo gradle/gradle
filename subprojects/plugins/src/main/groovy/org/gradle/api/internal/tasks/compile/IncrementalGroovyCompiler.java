@@ -20,20 +20,26 @@ import org.gradle.api.tasks.compile.GroovyCompileOptions;
 
 import java.io.File;
 
-public class IncrementalGroovyCompiler extends IncrementalJavaCompilerSupport<GroovyJavaJointCompiler> implements GroovyJavaJointCompiler {
+public class IncrementalGroovyCompiler extends IncrementalJavaCompilerSupport<GroovyJavaJointCompileSpec> implements GroovyJavaJointCompiler {
+    private final GroovyJavaJointCompiler compiler;
     private final TaskOutputsInternal taskOutputs;
 
     public IncrementalGroovyCompiler(GroovyJavaJointCompiler compiler, TaskOutputsInternal taskOutputs) {
-        super(compiler);
+        this.compiler = compiler;
         this.taskOutputs = taskOutputs;
     }
 
     public GroovyCompileOptions getGroovyCompileOptions() {
-        return getCompiler().getGroovyCompileOptions();
+        return compiler.getGroovyCompileOptions();
     }
 
     public void setGroovyClasspath(Iterable<File> classpath) {
-        getCompiler().setGroovyClasspath(classpath);
+        compiler.setGroovyClasspath(classpath);
+    }
+
+    @Override
+    protected Compiler<GroovyJavaJointCompileSpec> getCompiler() {
+        return compiler;
     }
 
     @Override

@@ -16,28 +16,32 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.tasks.compile.IncrementalJavaCompilerSupport;
-import org.gradle.api.internal.tasks.compile.SimpleStaleClassCleaner;
-import org.gradle.api.internal.tasks.compile.StaleClassCleaner;
+import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 
 import java.io.File;
 
-public class IncrementalScalaCompiler extends IncrementalJavaCompilerSupport<ScalaJavaJointCompiler>
+public class IncrementalScalaCompiler extends IncrementalJavaCompilerSupport<JavaCompileSpec>
         implements ScalaJavaJointCompiler {
+    private final ScalaJavaJointCompiler compiler;
     private final TaskOutputsInternal taskOutputs;
 
     public IncrementalScalaCompiler(ScalaJavaJointCompiler compiler, TaskOutputsInternal taskOutputs) {
-        super(compiler);
+        this.compiler = compiler;
         this.taskOutputs = taskOutputs;
     }
 
+    @Override
+    protected org.gradle.api.internal.tasks.compile.Compiler<JavaCompileSpec> getCompiler() {
+        return compiler;
+    }
+
     public ScalaCompileOptions getScalaCompileOptions() {
-        return getCompiler().getScalaCompileOptions();
+        return compiler.getScalaCompileOptions();
     }
 
     public void setScalaClasspath(Iterable<File> classpath) {
-        getCompiler().setScalaClasspath(classpath);
+        compiler.setScalaClasspath(classpath);
     }
 
     @Override
