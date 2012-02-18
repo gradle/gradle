@@ -14,8 +14,6 @@ dependencies {
     integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 
-useTestFixtures(sourceSet: 'integTest', project: ':native')
-
 integTestTasks.all {
     dependsOn ':publishLocalArchives', ':binZip', ':allZip', ':srcZip', ':docs:userguideDocbook'
 
