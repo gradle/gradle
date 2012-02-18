@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.tasks.compile
 
-import spock.lang.Specification
-import org.gradle.api.tasks.WorkResult
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.api.tasks.WorkResult
+import spock.lang.Specification
 
 class JavaCompilerSupportTest extends Specification {
     def compiler = new JavaCompilerSupport() {

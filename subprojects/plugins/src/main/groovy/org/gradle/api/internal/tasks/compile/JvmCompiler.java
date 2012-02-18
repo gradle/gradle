@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import java.io.File;
 
-public interface JvmCompiler extends Compiler {
+public interface JvmCompiler<T extends JvmCompileSpec> extends Compiler<T> {
 
     void setClasspath(Iterable<File> classpath);
 

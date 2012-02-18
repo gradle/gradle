@@ -20,7 +20,11 @@ import org.gradle.api.tasks.WorkResult;
 
 import java.io.File;
 
-public interface Compiler {
+public interface Compiler<T extends CompileSpec> {
+    T getSpec();
+
+    void setSpec(T t);
+
     void setSource(FileCollection source);
 
     void setDestinationDir(File destinationDir);

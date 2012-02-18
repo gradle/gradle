@@ -15,5 +15,5 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-public interface GroovyJavaJointCompiler extends GroovyCompiler, JavaCompiler {
+public interface GroovyJavaJointCompiler extends GroovyCompiler<JavaCompileSpec>, JavaCompiler {
 }
