@@ -60,7 +60,7 @@ class CommandLineJavaCompilerSupportTest extends Specification {
 
     def "generates -d option"() {
         def file = new File("/project/build")
-        compiler.destinationDir = file
+        spec.destinationDir = file
 
         expect:
         compiler.generateCommandLineOptions() == ["-d", file.path]

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.file.FileCollection;
-
 import java.io.File;
 import java.io.Serializable;
 
@@ -33,14 +31,6 @@ public abstract class JavaCompilerSupport implements JavaCompiler, Serializable 
 
     public void setSpec(JavaCompileSpec spec) {
         this.spec = spec;
-    }
-
-    public void setDestinationDir(File destinationDir) {
-        spec.setDestinationDir(destinationDir);
-    }
-
-    public void setSource(FileCollection source) {
-        spec.setSource(source);
     }
 
     protected void listFilesIfRequested() {

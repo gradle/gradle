@@ -28,4 +28,5 @@ public class JvmLanguageCompileSpec extends CompileSpec {
     public void setClasspath(Iterable<File> classpath) {
         this.classpath = classpath;
     }
+
 }

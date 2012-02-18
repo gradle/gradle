@@ -51,8 +51,8 @@ public class DefaultScalaJavaJointCompiler extends JavaCompilerSupport implement
         patternSet.include("**/*.java");
         FileTree javaSource = getSpec().getSource().getAsFileTree().matching(patternSet);
         if (!javaSource.isEmpty()) {
+            spec.setSource(javaSource);
             javaCompiler.setSpec(spec);
-            javaCompiler.setSource(javaSource);
             javaCompiler.execute();
         }
 
@@ -64,8 +64,8 @@ public class DefaultScalaJavaJointCompiler extends JavaCompilerSupport implement
     }
     
     private void configureScalaCompiler() {
-        scalaCompiler.setSource(spec.getSource());
-        scalaCompiler.setDestinationDir(spec.getDestinationDir());
+        scalaCompiler.getSpec().setSource(spec.getSource());
+        scalaCompiler.getSpec().setDestinationDir(spec.getDestinationDir());
         scalaCompiler.getSpec().setClasspath(spec.getClasspath());
     }
 }

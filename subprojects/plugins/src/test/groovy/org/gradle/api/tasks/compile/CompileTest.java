@@ -69,9 +69,9 @@ public class CompileTest extends AbstractCompileTest {
         context.checking(new Expectations() {{
             WorkResult result = context.mock(WorkResult.class);
 
-            one(compilerMock).setSource(with(hasSameItems(compile.getSource())));
+            one(specMock).setSource(with(hasSameItems(compile.getSource())));
             one(specMock).setClasspath(compile.getClasspath());
-            one(compilerMock).setDestinationDir(compile.getDestinationDir());
+            one(specMock).setDestinationDir(compile.getDestinationDir());
             one(specMock).setDependencyCacheDir(compile.getDependencyCacheDir());
             one(specMock).setSourceCompatibility(compile.getSourceCompatibility());
             one(specMock).setTargetCompatibility(compile.getTargetCompatibility());

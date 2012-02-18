@@ -47,8 +47,8 @@ public class Compile extends AbstractCompile {
 
     @TaskAction
     protected void compile() {
-        javaCompiler.setSource(getSource());
-        javaCompiler.setDestinationDir(getDestinationDir());
+        javaCompiler.getSpec().setSource(getSource());
+        javaCompiler.getSpec().setDestinationDir(getDestinationDir());
         javaCompiler.getSpec().setClasspath(getClasspath());
         javaCompiler.getSpec().setDependencyCacheDir(getDependencyCacheDir());
         javaCompiler.getSpec().setSourceCompatibility(getSourceCompatibility());

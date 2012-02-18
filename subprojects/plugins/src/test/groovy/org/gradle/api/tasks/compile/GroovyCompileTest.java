@@ -83,8 +83,8 @@ public class GroovyCompileTest extends AbstractCompileTest {
         context.checking(new Expectations(){{
             WorkResult result = context.mock(WorkResult.class);
 
-            one(groovyCompilerMock).setSource(with(hasSameItems(testObj.getSource())));
-            one(groovyCompilerMock).setDestinationDir(testObj.getDestinationDir());
+            one(specMock).setSource(with(hasSameItems(testObj.getSource())));
+            one(specMock).setDestinationDir(testObj.getDestinationDir());
             one(specMock).setClasspath(testObj.getClasspath());
             one(specMock).setSourceCompatibility(testObj.getSourceCompatibility());
             one(specMock).setTargetCompatibility(testObj.getTargetCompatibility());

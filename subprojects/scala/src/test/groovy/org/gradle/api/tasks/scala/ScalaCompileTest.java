@@ -72,8 +72,8 @@ public class ScalaCompileTest extends AbstractCompileTest {
     public void testExecuteDoingWork() {
         setUpMocksAndAttributes(scalaCompile);
         context.checking(new Expectations() {{
-            one(scalaCompiler).setSource(with(hasSameItems(scalaCompile.getSource())));
-            one(scalaCompiler).setDestinationDir(scalaCompile.getDestinationDir());
+            one(specMock).setSource(with(hasSameItems(scalaCompile.getSource())));
+            one(specMock).setDestinationDir(scalaCompile.getDestinationDir());
             one(specMock).setClasspath(scalaCompile.getClasspath());
             one(scalaCompiler).setScalaClasspath(scalaCompile.getScalaClasspath());
             one(specMock).setSourceCompatibility(scalaCompile.getSourceCompatibility());

@@ -36,7 +36,7 @@ class DefaultScalaJavaJointCompilerTest extends Specification {
 
     def executesScalaCompilerThenJavaCompiler() {
         given:
-        compiler.source = source
+        compiler.spec.source = source
 
         when:
         def result = compiler.execute()
@@ -47,12 +47,12 @@ class DefaultScalaJavaJointCompilerTest extends Specification {
         1 * source.getAsFileTree() >> sourceTree
         1 * sourceTree.matching(!null) >> javaSource
         javaSource.isEmpty() >> false
-        (1.._) * javaCompiler.setSource(!null)
+        1 * javaCompiler.setSpec({it.source == javaSource})
         1 * javaCompiler.execute()
     }
 
     def doesNotInvokeJavaCompilerWhenNoJavaSource() {
-        compiler.source = source
+        compiler.spec.source = source
 
         when:
         def result = compiler.execute()

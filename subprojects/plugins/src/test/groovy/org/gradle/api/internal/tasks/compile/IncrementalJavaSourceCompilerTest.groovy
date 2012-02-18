@@ -32,8 +32,8 @@ class IncrementalJavaSourceCompilerTest extends Specification {
         WorkResult result = Mock()
         File destDir = new File('dest')
         FileCollection source = Mock()
-        compiler.destinationDir = destDir
-        compiler.source = source
+        compiler.spec.destinationDir = destDir
+        compiler.spec.source = source
 
         when:
         def r = compiler.execute()

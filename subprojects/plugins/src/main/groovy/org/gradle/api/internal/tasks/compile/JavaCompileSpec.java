@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
@@ -24,17 +23,11 @@ import java.io.File;
 public class JavaCompileSpec extends JvmLanguageCompileSpec {
     private String sourceCompatibility;
     private String targetCompatibility;
-    private File destinationDir;
-    private FileCollection source;
     private File dependencyCacheDir;
-    private CompileOptions compileOptions = new CompileOptions();
+    private final CompileOptions compileOptions = new CompileOptions();
 
     public CompileOptions getCompileOptions() {
         return compileOptions;
-    }
-
-    public void setCompileOptions(CompileOptions compileOptions) {
-        this.compileOptions = compileOptions;
     }
 
     public File getDependencyCacheDir() {
@@ -43,22 +36,6 @@ public class JavaCompileSpec extends JvmLanguageCompileSpec {
 
     public void setDependencyCacheDir(File dependencyCacheDir) {
         this.dependencyCacheDir = dependencyCacheDir;
-    }
-
-    public File getDestinationDir() {
-        return destinationDir;
-    }
-
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
-    }
-
-    public FileCollection getSource() {
-        return source;
-    }
-
-    public void setSource(FileCollection source) {
-        this.source = source;
     }
 
     public String getSourceCompatibility() {
