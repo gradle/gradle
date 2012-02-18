@@ -31,7 +31,6 @@ public abstract class IncrementalJavaCompilerSupport<T extends JavaCompileSpec> 
         cleaner.execute();
 
         Compiler<? super T> compiler = getCompiler();
-        compiler.setSpec(getSpec());
         return compiler.execute();
     }
 

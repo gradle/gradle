@@ -22,11 +22,11 @@ import org.gradle.api.internal.tasks.compile.SimpleStaleClassCleaner;
 import org.gradle.api.internal.tasks.compile.StaleClassCleaner;
 
 public class IncrementalScalaCompiler extends IncrementalJavaCompilerSupport<ScalaJavaJointCompileSpec>
-        implements ScalaJavaJointCompiler {
-    private final ScalaJavaJointCompiler compiler;
+        implements Compiler<ScalaJavaJointCompileSpec> {
+    private final Compiler<ScalaJavaJointCompileSpec> compiler;
     private final TaskOutputsInternal taskOutputs;
 
-    public IncrementalScalaCompiler(ScalaJavaJointCompiler compiler, TaskOutputsInternal taskOutputs) {
+    public IncrementalScalaCompiler(Compiler<ScalaJavaJointCompileSpec> compiler, TaskOutputsInternal taskOutputs) {
         this.compiler = compiler;
         this.taskOutputs = taskOutputs;
     }

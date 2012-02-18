@@ -34,8 +34,8 @@ import java.io.File;
  */
 public class Compile extends AbstractCompile {
     private JavaCompiler javaCompiler;
-
     private File dependencyCacheDir;
+    private final JavaCompileSpec spec = new DefaultJavaCompileSpec();
 
     public Compile() {
         Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
@@ -47,12 +47,13 @@ public class Compile extends AbstractCompile {
 
     @TaskAction
     protected void compile() {
-        javaCompiler.getSpec().setSource(getSource());
-        javaCompiler.getSpec().setDestinationDir(getDestinationDir());
-        javaCompiler.getSpec().setClasspath(getClasspath());
-        javaCompiler.getSpec().setDependencyCacheDir(getDependencyCacheDir());
-        javaCompiler.getSpec().setSourceCompatibility(getSourceCompatibility());
-        javaCompiler.getSpec().setTargetCompatibility(getTargetCompatibility());
+        spec.setSource(getSource());
+        spec.setDestinationDir(getDestinationDir());
+        spec.setClasspath(getClasspath());
+        spec.setDependencyCacheDir(getDependencyCacheDir());
+        spec.setSourceCompatibility(getSourceCompatibility());
+        spec.setTargetCompatibility(getTargetCompatibility());
+        javaCompiler.setSpec(spec);
         WorkResult result = javaCompiler.execute();
         setDidWork(result.getDidWork());
     }
@@ -73,7 +74,7 @@ public class Compile extends AbstractCompile {
      */
     @Nested
     public CompileOptions getOptions() {
-        return javaCompiler.getSpec().getCompileOptions();
+        return spec.getCompileOptions();
     }
 
     public JavaCompiler getJavaCompiler() {

@@ -23,7 +23,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
-public class DefaultScalaJavaJointCompiler implements ScalaJavaJointCompiler {
+public class DefaultScalaJavaJointCompiler implements Compiler<ScalaJavaJointCompileSpec> {
     private final Compiler<ScalaCompileSpec> scalaCompiler;
     private final Compiler<JavaCompileSpec> javaCompiler;
     private ScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();
@@ -47,7 +47,7 @@ public class DefaultScalaJavaJointCompiler implements ScalaJavaJointCompiler {
 
         PatternFilterable patternSet = new PatternSet();
         patternSet.include("**/*.java");
-        FileTree javaSource = getSpec().getSource().getAsFileTree().matching(patternSet);
+        FileTree javaSource = spec.getSource().getAsFileTree().matching(patternSet);
         if (!javaSource.isEmpty()) {
             spec.setSource(javaSource);
             javaCompiler.setSpec(spec);

@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.hamcrest.core.IsNull;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.junit.Before;
@@ -30,8 +31,8 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 
-import static org.gradle.util.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Hans Dockter
@@ -41,7 +42,6 @@ public class CompileTest extends AbstractCompileTest {
     private Compile compile;
 
     private JavaCompiler compilerMock;
-    private JavaCompileSpec specMock;
 
     private Mockery context = new JUnit4GroovyMockery();
 
@@ -49,15 +49,9 @@ public class CompileTest extends AbstractCompileTest {
         super.setUp();
         compile = createTask(Compile.class);
         compilerMock = context.mock(JavaCompiler.class);
-        specMock = context.mock(JavaCompileSpec.class);
         compile.setJavaCompiler(compilerMock);
 
         GFileUtils.touch(new File(srcDir, "incl/file.java"));
-        
-        context.checking(new Expectations(){{
-            allowing(compilerMock).getSpec();
-            will(returnValue(specMock));
-        }});
     }
            
     public ConventionTask getTask() {
@@ -69,12 +63,7 @@ public class CompileTest extends AbstractCompileTest {
         context.checking(new Expectations() {{
             WorkResult result = context.mock(WorkResult.class);
 
-            one(specMock).setSource(with(hasSameItems(compile.getSource())));
-            one(specMock).setClasspath(compile.getClasspath());
-            one(specMock).setDestinationDir(compile.getDestinationDir());
-            one(specMock).setDependencyCacheDir(compile.getDependencyCacheDir());
-            one(specMock).setSourceCompatibility(compile.getSourceCompatibility());
-            one(specMock).setTargetCompatibility(compile.getTargetCompatibility());
+            one(compilerMock).setSpec(with(IsNull.<JavaCompileSpec>notNullValue()));
             one(compilerMock).execute();
             will(returnValue(result));
             allowing(result).getDidWork();

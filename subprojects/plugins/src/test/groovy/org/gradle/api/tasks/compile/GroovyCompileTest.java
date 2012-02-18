@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.hamcrest.core.IsNull;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Assert;
@@ -36,7 +37,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import static org.gradle.util.Matchers.hasSameItems;
 import static org.gradle.util.WrapUtil.toList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -51,7 +51,6 @@ public class GroovyCompileTest extends AbstractCompileTest {
     private GroovyCompile testObj;
 
     Compiler<GroovyJavaJointCompileSpec> groovyCompilerMock;
-    GroovyJavaJointCompileSpec specMock;
 
     JUnit4Mockery context = new JUnit4GroovyMockery();
 
@@ -64,15 +63,9 @@ public class GroovyCompileTest extends AbstractCompileTest {
         super.setUp();
         testObj = createTask(GroovyCompile.class);
         groovyCompilerMock = context.mock(Compiler.class);
-        specMock = context.mock(GroovyJavaJointCompileSpec.class);
         testObj.setCompiler(groovyCompilerMock);
 
         GFileUtils.touch(new File(srcDir, "incl/file.groovy"));
-
-        context.checking(new Expectations() {{
-            allowing(groovyCompilerMock).getSpec();
-            will(returnValue(specMock));
-        }});
     }
 
     public ConventionTask getTask() {
@@ -84,12 +77,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
         context.checking(new Expectations(){{
             WorkResult result = context.mock(WorkResult.class);
 
-            one(specMock).setSource(with(hasSameItems(testObj.getSource())));
-            one(specMock).setDestinationDir(testObj.getDestinationDir());
-            one(specMock).setClasspath(testObj.getClasspath());
-            one(specMock).setSourceCompatibility(testObj.getSourceCompatibility());
-            one(specMock).setTargetCompatibility(testObj.getTargetCompatibility());
-            one(specMock).setGroovyClasspath(TEST_GROOVY_CLASSPATH);
+            one(groovyCompilerMock).setSpec(with(IsNull.<GroovyJavaJointCompileSpec>notNullValue()));
             one(groovyCompilerMock).execute();
             will(returnValue(result));
             allowing(result).getDidWork();

@@ -17,12 +17,13 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompiler;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.hamcrest.core.IsNull;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
@@ -30,14 +31,11 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static org.gradle.util.Matchers.hasSameItems;
-
 public class ScalaCompileTest extends AbstractCompileTest {
 
     private ScalaCompile scalaCompile;
 
-    private ScalaJavaJointCompiler scalaCompiler;
-    private ScalaJavaJointCompileSpec specMock;
+    private Compiler<ScalaJavaJointCompileSpec> scalaCompiler;
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     @Override
@@ -55,29 +53,18 @@ public class ScalaCompileTest extends AbstractCompileTest {
     public void setUp() {
         super.setUp();
         scalaCompile = createTask(ScalaCompile.class);
-        scalaCompiler = context.mock(ScalaJavaJointCompiler.class);
-        specMock = context.mock(ScalaJavaJointCompileSpec.class);
+        scalaCompiler = context.mock(Compiler.class);
         scalaCompile.setCompiler(scalaCompiler);
 
         GFileUtils.touch(new File(srcDir, "incl/file.scala"));
         GFileUtils.touch(new File(srcDir, "incl/file.java"));
-
-        context.checking(new Expectations(){{
-            allowing(scalaCompiler).getSpec();
-            will(returnValue(specMock));
-        }});
     }
 
     @Test
     public void testExecuteDoingWork() {
         setUpMocksAndAttributes(scalaCompile);
         context.checking(new Expectations() {{
-            one(specMock).setSource(with(hasSameItems(scalaCompile.getSource())));
-            one(specMock).setDestinationDir(scalaCompile.getDestinationDir());
-            one(specMock).setClasspath(scalaCompile.getClasspath());
-            one(specMock).setScalaClasspath(scalaCompile.getScalaClasspath());
-            one(specMock).setSourceCompatibility(scalaCompile.getSourceCompatibility());
-            one(specMock).setTargetCompatibility(scalaCompile.getTargetCompatibility());
+            one(scalaCompiler).setSpec(with(IsNull.<ScalaJavaJointCompileSpec>notNullValue()));
             one(scalaCompiler).execute();
         }});
 
