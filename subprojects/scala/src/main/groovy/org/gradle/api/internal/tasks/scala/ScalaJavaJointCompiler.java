@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.tasks.scala;
 
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
 
-public interface ScalaJavaJointCompiler extends ScalaCompiler, JavaCompiler {
+public interface ScalaJavaJointCompiler extends ScalaCompiler<JavaCompileSpec>, JavaCompiler {
 }
