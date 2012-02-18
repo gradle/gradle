@@ -38,6 +38,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.launcher.cli.CommandLineActionFactory.*
+import org.gradle.internal.os.OperatingSystem
 
 class CommandLineActionFactoryTest extends Specification {
     @Rule
@@ -241,7 +242,7 @@ class CommandLineActionFactoryTest extends Specification {
     def executesBuildWithSingleUseDaemonIfJavaHomeIsNotCurrent() {
         when:
         def javaHome = tmpDir.createDir("javahome")
-        javaHome.createFile("bin/java")
+        javaHome.createFile(OperatingSystem.current().getExecutableName("bin/java"))
 
         System.properties['org.gradle.java.home'] = javaHome.canonicalPath
         def action = factory.convert([])
