@@ -20,37 +20,18 @@ import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
 
-public class JavaCompileSpec extends JvmLanguageCompileSpec {
-    private String sourceCompatibility;
-    private String targetCompatibility;
-    private File dependencyCacheDir;
-    private final CompileOptions compileOptions = new CompileOptions();
+public interface JavaCompileSpec extends JvmLanguageCompileSpec {
+    CompileOptions getCompileOptions();
 
-    public CompileOptions getCompileOptions() {
-        return compileOptions;
-    }
+    File getDependencyCacheDir();
 
-    public File getDependencyCacheDir() {
-        return dependencyCacheDir;
-    }
+    void setDependencyCacheDir(File dependencyCacheDir);
 
-    public void setDependencyCacheDir(File dependencyCacheDir) {
-        this.dependencyCacheDir = dependencyCacheDir;
-    }
+    String getSourceCompatibility();
 
-    public String getSourceCompatibility() {
-        return sourceCompatibility;
-    }
+    void setSourceCompatibility(String sourceCompatibility);
 
-    public void setSourceCompatibility(String sourceCompatibility) {
-        this.sourceCompatibility = sourceCompatibility;
-    }
+    String getTargetCompatibility();
 
-    public String getTargetCompatibility() {
-        return targetCompatibility;
-    }
-
-    public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
-    }
+    void setTargetCompatibility(String targetCompatibility);
 }

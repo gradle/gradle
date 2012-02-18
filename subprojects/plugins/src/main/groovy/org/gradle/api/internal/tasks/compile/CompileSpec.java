@@ -19,25 +19,13 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.file.FileCollection;
 
 import java.io.File;
-import java.io.Serializable;
 
-public class CompileSpec implements Serializable {
-    private File destinationDir;
-    private FileCollection source;
+public interface CompileSpec {
+    File getDestinationDir();
 
-    public File getDestinationDir() {
-        return destinationDir;
-    }
+    void setDestinationDir(File destinationDir);
 
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
-    }
+    FileCollection getSource();
 
-    public FileCollection getSource() {
-        return source;
-    }
-
-    public void setSource(FileCollection source) {
-        this.source = source;
-    }
+    void setSource(FileCollection source);
 }

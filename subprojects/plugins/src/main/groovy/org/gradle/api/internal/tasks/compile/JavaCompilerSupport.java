@@ -23,7 +23,7 @@ import java.io.Serializable;
  * all required state in protected fields.
  */
 public abstract class JavaCompilerSupport implements JavaCompiler, Serializable {
-    protected JavaCompileSpec spec = new JavaCompileSpec();
+    protected JavaCompileSpec spec = new DefaultJavaCompileSpec();
 
     public JavaCompileSpec getSpec() {
         return spec;

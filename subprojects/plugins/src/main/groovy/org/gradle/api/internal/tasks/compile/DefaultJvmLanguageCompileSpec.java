@@ -18,8 +18,15 @@ package org.gradle.api.internal.tasks.compile;
 
 import java.io.File;
 
-public interface JvmLanguageCompileSpec extends CompileSpec {
-    Iterable<File> getClasspath();
+public class DefaultJvmLanguageCompileSpec extends DefaultCompileSpec implements JvmLanguageCompileSpec {
+    private Iterable<File> classpath;
 
-    void setClasspath(Iterable<File> classpath);
+    public Iterable<File> getClasspath() {
+        return classpath;
+    }
+
+    public void setClasspath(Iterable<File> classpath) {
+        this.classpath = classpath;
+    }
+
 }

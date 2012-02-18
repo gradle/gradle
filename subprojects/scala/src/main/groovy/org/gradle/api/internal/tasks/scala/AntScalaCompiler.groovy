@@ -23,6 +23,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec
+import org.gradle.api.internal.tasks.compile.DefaultJvmLanguageCompileSpec
 
 class AntScalaCompiler implements ScalaCompiler<JvmLanguageCompileSpec> {
     private static Logger logger = LoggerFactory.getLogger(AntScalaCompiler)
@@ -32,7 +33,7 @@ class AntScalaCompiler implements ScalaCompiler<JvmLanguageCompileSpec> {
     private final Iterable<File> extensionDirs
     Iterable<File> scalaClasspath
     ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()
-    JvmLanguageCompileSpec spec = new JvmLanguageCompileSpec()
+    JvmLanguageCompileSpec spec = new DefaultJvmLanguageCompileSpec()
     
     def AntScalaCompiler(IsolatedAntBuilder antBuilder) {
         this.antBuilder = antBuilder

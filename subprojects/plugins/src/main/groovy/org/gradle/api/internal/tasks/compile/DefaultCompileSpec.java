@@ -16,10 +16,28 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.file.FileCollection;
+
 import java.io.File;
+import java.io.Serializable;
 
-public interface JvmLanguageCompileSpec extends CompileSpec {
-    Iterable<File> getClasspath();
+public class DefaultCompileSpec implements CompileSpec, Serializable {
+    private File destinationDir;
+    private FileCollection source;
 
-    void setClasspath(Iterable<File> classpath);
+    public File getDestinationDir() {
+        return destinationDir;
+    }
+
+    public void setDestinationDir(File destinationDir) {
+        this.destinationDir = destinationDir;
+    }
+
+    public FileCollection getSource() {
+        return source;
+    }
+
+    public void setSource(FileCollection source) {
+        this.source = source;
+    }
 }
