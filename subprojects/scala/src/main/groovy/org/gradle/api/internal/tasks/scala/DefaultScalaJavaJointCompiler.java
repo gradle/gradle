@@ -16,35 +16,33 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
-import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
-import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
-import java.io.File;
+public class DefaultScalaJavaJointCompiler implements ScalaJavaJointCompiler {
+    private final Compiler<ScalaCompileSpec> scalaCompiler;
+    private final Compiler<JavaCompileSpec> javaCompiler;
+    private ScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();
 
-public class DefaultScalaJavaJointCompiler extends JavaCompilerSupport implements ScalaJavaJointCompiler {
-    private final ScalaCompiler<? extends JvmLanguageCompileSpec> scalaCompiler;
-    private final JavaCompiler javaCompiler;
-
-    public DefaultScalaJavaJointCompiler(ScalaCompiler<? extends JvmLanguageCompileSpec> scalaCompiler, JavaCompiler javaCompiler) {
+    public DefaultScalaJavaJointCompiler(Compiler<ScalaCompileSpec> scalaCompiler, JavaCompiler javaCompiler) {
         this.scalaCompiler = scalaCompiler;
         this.javaCompiler = javaCompiler;
     }
 
-    public ScalaCompileOptions getScalaCompileOptions() {
-        return scalaCompiler.getScalaCompileOptions();
+    public ScalaJavaJointCompileSpec getSpec() {
+        return spec;
     }
 
-    public void setScalaClasspath(Iterable<File> classpath) {
-        scalaCompiler.setScalaClasspath(classpath);
+    public void setSpec(ScalaJavaJointCompileSpec spec) {
+        this.spec = spec;
     }
 
     public WorkResult execute() {
-        configureScalaCompiler();
+        scalaCompiler.setSpec(spec);
         scalaCompiler.execute();
 
         PatternFilterable patternSet = new PatternSet();
@@ -62,10 +60,5 @@ public class DefaultScalaJavaJointCompiler extends JavaCompilerSupport implement
             }
         };
     }
-    
-    private void configureScalaCompiler() {
-        scalaCompiler.getSpec().setSource(spec.getSource());
-        scalaCompiler.getSpec().setDestinationDir(spec.getDestinationDir());
-        scalaCompiler.getSpec().setClasspath(spec.getClasspath());
-    }
+
 }

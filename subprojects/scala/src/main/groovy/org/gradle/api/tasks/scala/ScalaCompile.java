@@ -21,7 +21,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
-import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
 import org.gradle.api.internal.tasks.scala.*;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
@@ -37,7 +36,7 @@ public class ScalaCompile extends AbstractCompile {
     private ScalaJavaJointCompiler compiler;
 
     public ScalaCompile() {
-        ScalaCompiler<JvmLanguageCompileSpec> scalaCompiler = new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
+        ScalaCompiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
         JavaCompiler javaCompiler = new AntJavaCompiler(getServices().getFactory(AntBuilder.class));
         compiler = new IncrementalScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler), getOutputs());
     }
@@ -67,7 +66,7 @@ public class ScalaCompile extends AbstractCompile {
      */
     @Nested
     public ScalaCompileOptions getScalaCompileOptions() {
-        return compiler.getScalaCompileOptions();
+        return compiler.getSpec().getScalaCompileOptions();
     }
 
     /**
@@ -84,7 +83,7 @@ public class ScalaCompile extends AbstractCompile {
         compiler.getSpec().setSource(source);
         compiler.getSpec().setDestinationDir(getDestinationDir());
         compiler.getSpec().setClasspath(getClasspath());
-        compiler.setScalaClasspath(getScalaClasspath());
+        compiler.getSpec().setScalaClasspath(getScalaClasspath());
         compiler.getSpec().setSourceCompatibility(getSourceCompatibility());
         compiler.getSpec().setTargetCompatibility(getTargetCompatibility());
         compiler.execute();

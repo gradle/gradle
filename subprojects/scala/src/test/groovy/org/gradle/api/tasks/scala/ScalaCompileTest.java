@@ -17,7 +17,7 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompiler;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
@@ -30,14 +30,14 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.hasSameItems;
 
 public class ScalaCompileTest extends AbstractCompileTest {
 
     private ScalaCompile scalaCompile;
 
     private ScalaJavaJointCompiler scalaCompiler;
-    private JavaCompileSpec specMock;
+    private ScalaJavaJointCompileSpec specMock;
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     @Override
@@ -56,7 +56,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
         super.setUp();
         scalaCompile = createTask(ScalaCompile.class);
         scalaCompiler = context.mock(ScalaJavaJointCompiler.class);
-        specMock = context.mock(JavaCompileSpec.class);
+        specMock = context.mock(ScalaJavaJointCompileSpec.class);
         scalaCompile.setCompiler(scalaCompiler);
 
         GFileUtils.touch(new File(srcDir, "incl/file.scala"));
@@ -75,7 +75,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
             one(specMock).setSource(with(hasSameItems(scalaCompile.getSource())));
             one(specMock).setDestinationDir(scalaCompile.getDestinationDir());
             one(specMock).setClasspath(scalaCompile.getClasspath());
-            one(scalaCompiler).setScalaClasspath(scalaCompile.getScalaClasspath());
+            one(specMock).setScalaClasspath(scalaCompile.getScalaClasspath());
             one(specMock).setSourceCompatibility(scalaCompile.getSourceCompatibility());
             one(specMock).setTargetCompatibility(scalaCompile.getTargetCompatibility());
             one(scalaCompiler).execute();

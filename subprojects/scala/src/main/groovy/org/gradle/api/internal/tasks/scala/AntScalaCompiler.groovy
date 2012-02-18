@@ -22,18 +22,13 @@ import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec
-import org.gradle.api.internal.tasks.compile.DefaultJvmLanguageCompileSpec
-
-class AntScalaCompiler implements ScalaCompiler<JvmLanguageCompileSpec> {
+class AntScalaCompiler implements ScalaCompiler<ScalaCompileSpec> {
     private static Logger logger = LoggerFactory.getLogger(AntScalaCompiler)
 
     private final IsolatedAntBuilder antBuilder
     private final Iterable<File> bootclasspathFiles
     private final Iterable<File> extensionDirs
-    Iterable<File> scalaClasspath
-    ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()
-    JvmLanguageCompileSpec spec = new DefaultJvmLanguageCompileSpec()
+    ScalaCompileSpec spec = new DefaultScalaCompileSpec()
     
     def AntScalaCompiler(IsolatedAntBuilder antBuilder) {
         this.antBuilder = antBuilder
@@ -47,13 +42,18 @@ class AntScalaCompiler implements ScalaCompiler<JvmLanguageCompileSpec> {
         this.extensionDirs = extensionDirs
     }
 
+    ScalaCompileOptions getScalaCompileOptions() {
+        return spec.scalaCompileOptions
+    }
+
     WorkResult execute() {
         File destinationDir = spec.destinationDir
+        ScalaCompileOptions scalaCompileOptions = spec.scalaCompileOptions
         Map options = ['destDir': destinationDir] + scalaCompileOptions.optionMap()
         String taskName = scalaCompileOptions.useCompileDaemon ? 'fsc' : 'scalac'
         Iterable<File> classpath = spec.classpath
 
-        antBuilder.withClasspath(scalaClasspath).execute { ant ->
+        antBuilder.withClasspath(spec.scalaClasspath).execute { ant ->
             taskdef(resource: 'scala/tools/ant/antlib.xml')
 
             "${taskName}"(options) {
