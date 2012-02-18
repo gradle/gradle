@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.scala;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
-import org.gradle.api.internal.tasks.compile.JvmCompileSpec;
+import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -27,10 +27,10 @@ import org.gradle.api.tasks.util.PatternSet;
 import java.io.File;
 
 public class DefaultScalaJavaJointCompiler extends JavaCompilerSupport implements ScalaJavaJointCompiler {
-    private final ScalaCompiler<? extends JvmCompileSpec> scalaCompiler;
+    private final ScalaCompiler<? extends JvmLanguageCompileSpec> scalaCompiler;
     private final JavaCompiler javaCompiler;
 
-    public DefaultScalaJavaJointCompiler(ScalaCompiler<? extends JvmCompileSpec> scalaCompiler, JavaCompiler javaCompiler) {
+    public DefaultScalaJavaJointCompiler(ScalaCompiler<? extends JvmLanguageCompileSpec> scalaCompiler, JavaCompiler javaCompiler) {
         this.scalaCompiler = scalaCompiler;
         this.javaCompiler = javaCompiler;
     }

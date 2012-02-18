@@ -21,7 +21,7 @@ import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
 
-public class JavaCompileSpec extends JvmCompileSpec {
+public class JavaCompileSpec extends JvmLanguageCompileSpec {
     private String sourceCompatibility;
     private String targetCompatibility;
     private File destinationDir;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.tasks.compile;
 
 import java.io.File;
 
-public class JvmCompileSpec extends CompileSpec {
-    private Iterable<File> classpath;
+public interface JvmLanguageCompiler<T extends JvmLanguageCompileSpec> extends Compiler<T> {
 
-    public Iterable<File> getClasspath() {
-        return classpath;
-    }
+    void setClasspath(Iterable<File> classpath);
 
-    public void setClasspath(Iterable<File> classpath) {
-        this.classpath = classpath;
-    }
 }

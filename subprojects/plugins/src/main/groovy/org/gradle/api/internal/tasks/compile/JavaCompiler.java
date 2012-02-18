@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-public interface JavaCompiler extends JvmCompiler<JavaCompileSpec> {
+public interface JavaCompiler extends JvmLanguageCompiler<JavaCompileSpec> {
     JavaCompileSpec getSpec();
 
     void setSpec(JavaCompileSpec spec);
