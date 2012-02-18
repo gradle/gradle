@@ -1,5 +1,3 @@
-import org.gradle.internal.nativeplatform.OperatingSystem
-
 apply from: "$rootDir/gradle/classycle.gradle"
 
 dependencies {
@@ -38,14 +36,6 @@ integTestTasks.all {
 }
 
 daemonIntegTest {
-    exclude "**/org/gradle/integtests/tooling/**", //tooling integ tests use daemon anyway, don't rerun
-            "**/CrossVersionCompatibilityIntegrationTest.class", //ignored just in case to avoid old daemon implementation
-            "**/DistributionIntegrationTest.class" //fragile - heavily depends on external repos and does not contribute too much to the daemon suite anyway
-}
-
-integTest {
-    if (OperatingSystem.current().isWindows()) {
-        //Temporary hack to investigate windows build issues
-        exclude "**/org/gradle/integtests/tooling/**"
-    }
+    exclude "**/CrossVersionCompatibilityIntegrationTest.class" //ignored just in case to avoid old daemon implementation
+    exclude "**/DistributionIntegrationTest.class" //fragile - heavily depends on external repos and does not contribute too much to the daemon suite anyway
 }
