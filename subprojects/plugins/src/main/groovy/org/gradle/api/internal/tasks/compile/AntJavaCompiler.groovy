@@ -53,7 +53,7 @@ class AntJavaCompiler extends JavaCompilerSupport {
         Map options = otherArgs + spec.compileOptions.optionMap()
         LOGGER.debug("Running Ant javac with the following options {}", options)
         def task = ant.javac(options) {
-            source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
+            spec.source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
             spec.compileOptions.compilerArgs.each {value ->
                 compilerarg(value: value)
             }

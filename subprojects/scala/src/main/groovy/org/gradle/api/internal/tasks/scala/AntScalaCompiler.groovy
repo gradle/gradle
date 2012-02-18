@@ -47,7 +47,7 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
         ScalaCompileOptions scalaCompileOptions = spec.scalaCompileOptions
         Map options = ['destDir': destinationDir] + scalaCompileOptions.optionMap()
         String taskName = scalaCompileOptions.useCompileDaemon ? 'fsc' : 'scalac'
-        Iterable<File> classpath = spec.classpath
+        Iterable<File> compileClasspath = spec.classpath
 
         antBuilder.withClasspath(spec.scalaClasspath).execute { ant ->
             taskdef(resource: 'scala/tools/ant/antlib.xml')
@@ -61,7 +61,7 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
                     extdirs(location: dir)
                 }
                 classpath(location: destinationDir)
-                classpath.each {file ->
+                compileClasspath.each {file ->
                     classpath(location: file)
                 }
             }
