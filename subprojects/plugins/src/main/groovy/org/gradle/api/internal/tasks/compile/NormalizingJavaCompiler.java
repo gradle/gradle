@@ -32,7 +32,7 @@ public class NormalizingJavaCompiler extends JavaCompilerSupport {
         this.compiler = compiler;
     }
 
-    public WorkResult execute() {
+    public WorkResult execute(JavaCompileSpec spec) {
         // Scan the source and classpath and remember the results
         spec.setSource(new SimpleFileCollection(spec.getSource().getFiles()));
         spec.setClasspath(new SimpleFileCollection(Lists.newArrayList(spec.getClasspath())));
@@ -42,7 +42,6 @@ public class NormalizingJavaCompiler extends JavaCompilerSupport {
                 throw new InvalidUserDataException(String.format("Cannot compile non-Java source file '%s'.", file));
             }
         }
-        compiler.setSpec(spec);
-        return compiler.execute();
+        return compiler.execute(spec);
     }
 }

@@ -19,7 +19,7 @@ import spock.lang.Specification
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.file.FileCollection
 
-class IncrementalJavaSourceCompilerTest extends Specification {
+class IncrementalJavaCompilerTest extends Specification {
     private final JavaCompiler target = Mock()
     private final JavaCompileSpec spec = Mock()
     private final StaleClassCleaner cleaner = Mock()
@@ -38,12 +38,11 @@ class IncrementalJavaSourceCompilerTest extends Specification {
         WorkResult result = Mock()
         File destDir = new File('dest')
         FileCollection source = Mock()
-        _ * target.spec >> spec
         _ * spec.destinationDir >> destDir
         _ * spec.source >> source
 
         when:
-        def r = compiler.execute()
+        def r = compiler.execute(spec)
 
         then:
         r == result
@@ -56,6 +55,6 @@ class IncrementalJavaSourceCompilerTest extends Specification {
         1 * cleaner.execute()
 
         and:
-        1 * target.execute() >> result
+        1 * target.execute(spec) >> result
     }
 }

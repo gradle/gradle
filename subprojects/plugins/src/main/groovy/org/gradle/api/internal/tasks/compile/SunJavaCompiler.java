@@ -26,11 +26,11 @@ import java.util.List;
 public class SunJavaCompiler extends CommandLineJavaCompilerSupport {
     private static final Logger LOGGER = LoggerFactory.getLogger(SunJavaCompiler.class);
 
-    public WorkResult execute() {
+    public WorkResult execute(JavaCompileSpec spec) {
         LOGGER.info("Compiling using Sun Java Compiler API.");
-        listFilesIfRequested();
+        listFilesIfRequested(spec);
 
-        List<String> options = generateCommandLineOptions();
+        List<String> options = generateCommandLineOptions(spec);
         for (File file : spec.getSource()) {
             options.add(file.getPath());
         }

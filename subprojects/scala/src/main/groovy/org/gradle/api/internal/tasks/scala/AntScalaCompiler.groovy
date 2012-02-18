@@ -29,8 +29,7 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
     private final IsolatedAntBuilder antBuilder
     private final Iterable<File> bootclasspathFiles
     private final Iterable<File> extensionDirs
-    ScalaCompileSpec spec = new DefaultScalaCompileSpec()
-    
+
     def AntScalaCompiler(IsolatedAntBuilder antBuilder) {
         this.antBuilder = antBuilder
         this.bootclasspathFiles = []
@@ -43,11 +42,7 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
         this.extensionDirs = extensionDirs
     }
 
-    ScalaCompileOptions getScalaCompileOptions() {
-        return spec.scalaCompileOptions
-    }
-
-    WorkResult execute() {
+    WorkResult execute(ScalaCompileSpec spec) {
         File destinationDir = spec.destinationDir
         ScalaCompileOptions scalaCompileOptions = spec.scalaCompileOptions
         Map options = ['destDir': destinationDir] + scalaCompileOptions.optionMap()

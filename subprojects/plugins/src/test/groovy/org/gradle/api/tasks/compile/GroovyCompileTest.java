@@ -77,8 +77,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
         context.checking(new Expectations(){{
             WorkResult result = context.mock(WorkResult.class);
 
-            one(groovyCompilerMock).setSpec(with(IsNull.<GroovyJavaJointCompileSpec>notNullValue()));
-            one(groovyCompilerMock).execute();
+            one(groovyCompilerMock).execute(with(IsNull.<GroovyJavaJointCompileSpec>notNullValue()));
             will(returnValue(result));
             allowing(result).getDidWork();
             will(returnValue(numFilesCompiled > 0));

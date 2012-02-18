@@ -64,8 +64,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
     public void testExecuteDoingWork() {
         setUpMocksAndAttributes(scalaCompile);
         context.checking(new Expectations() {{
-            one(scalaCompiler).setSpec(with(IsNull.<ScalaJavaJointCompileSpec>notNullValue()));
-            one(scalaCompiler).execute();
+            one(scalaCompiler).execute(with(IsNull.<ScalaJavaJointCompileSpec>notNullValue()));
         }});
 
         scalaCompile.compile();

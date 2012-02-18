@@ -35,7 +35,7 @@ import java.util.List;
 public abstract class CommandLineJavaCompilerSupport extends JavaCompilerSupport {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompilerSupport.class);
     
-    protected List<String> generateCommandLineOptions() {
+    protected List<String> generateCommandLineOptions(JavaCompileSpec spec) {
         List<String> options = new ArrayList<String>();
         String sourceCompatibility = spec.getSourceCompatibility();
         if (sourceCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(sourceCompatibility))) {

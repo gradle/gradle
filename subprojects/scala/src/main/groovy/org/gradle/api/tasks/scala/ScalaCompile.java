@@ -87,7 +87,6 @@ public class ScalaCompile extends AbstractCompile {
         spec.setScalaClasspath(getScalaClasspath());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
-        compiler.setSpec(spec);
-        compiler.execute();
+        compiler.execute(spec);
     }
 }

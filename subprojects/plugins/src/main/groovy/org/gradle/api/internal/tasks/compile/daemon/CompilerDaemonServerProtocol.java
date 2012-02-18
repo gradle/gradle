@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Stoppable;
 
@@ -22,5 +23,5 @@ import org.gradle.internal.Stoppable;
  * Server part of the compiler daemon protocol. Used to submit compilation jobs.
  */
 public interface CompilerDaemonServerProtocol extends Stoppable {
-    void execute(Compiler compiler);
+    <T extends CompileSpec> void execute(Compiler<T> compiler, T spec);
 }

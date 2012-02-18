@@ -24,9 +24,8 @@ public class DelegatingJavaCompiler extends JavaCompilerSupport {
         this.compilerFactory = compilerFactory;
     }
 
-    public WorkResult execute() {
+    public WorkResult execute(JavaCompileSpec spec) {
         JavaCompiler delegate = compilerFactory.create(spec.getCompileOptions());
-        delegate.setSpec(spec);
-        return delegate.execute();
+        return delegate.execute(spec);
     }
 }

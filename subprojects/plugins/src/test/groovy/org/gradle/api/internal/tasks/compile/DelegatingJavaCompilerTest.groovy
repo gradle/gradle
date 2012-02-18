@@ -17,17 +17,17 @@ package org.gradle.api.internal.tasks.compile
 
 import spock.lang.Specification
 
-class SwitchableJavaCompilerTest extends Specification {
+class DelegatingJavaCompilerTest extends Specification {
     def "configures and executes the chosen compiler"() {
         JavaCompiler chosen = Mock()
+        JavaCompileSpec spec = Mock()
 
         def switchable = new DelegatingJavaCompiler({ chosen } as JavaCompilerFactory)
         
         when:
-        switchable.execute()
+        switchable.execute(spec)
         
         then:
-        1 * chosen.setSpec(_)
-        1 * chosen.execute()
+        1 * chosen.execute(spec)
     }
 }

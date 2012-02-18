@@ -37,7 +37,7 @@ class AntJavaCompiler extends JavaCompilerSupport {
         this.antBuilderFactory = antBuilderFactory
     }
 
-    WorkResult execute() {
+    WorkResult execute(JavaCompileSpec spec) {
         def ant = antBuilderFactory.create()
 
         createAntClassPath(ant, spec.classpath)

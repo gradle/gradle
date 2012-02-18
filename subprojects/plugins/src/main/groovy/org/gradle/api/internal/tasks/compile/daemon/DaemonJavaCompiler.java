@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
 import org.gradle.api.tasks.WorkResult;
@@ -31,12 +32,11 @@ public class DaemonJavaCompiler extends JavaCompilerSupport {
         this.delegate = delegate;
     }
 
-    public WorkResult execute() {
-        delegate.setSpec(spec);
+    public WorkResult execute(JavaCompileSpec spec) {
         CompileOptions compileOptions = spec.getCompileOptions();
         DaemonForkOptions forkOptions = new DaemonForkOptions(compileOptions.getForkOptions());
         CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project, forkOptions);
-        CompileResult result = daemon.execute(delegate);
+        CompileResult result = daemon.execute(delegate, spec);
         if (result.isSuccess() || !compileOptions.isFailOnError()) {
             return result;
         }

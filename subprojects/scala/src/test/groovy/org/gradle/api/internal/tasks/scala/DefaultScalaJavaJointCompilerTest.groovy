@@ -29,38 +29,35 @@ class DefaultScalaJavaJointCompilerTest extends Specification {
     private final FileCollection source = Mock()
     private final FileTree sourceTree = Mock()
     private final FileTree javaSource = Mock()
+    private final ScalaJavaJointCompileSpec spec = Mock()
     private final DefaultScalaJavaJointCompiler compiler = new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler)
-
-    def setup() {
-        _ * scalaCompiler.spec >> scalaSpec
-    }
 
     def executesScalaCompilerThenJavaCompiler() {
         given:
-        compiler.spec.source = source
+        _ * spec.source >> source
 
         when:
-        def result = compiler.execute()
+        def result = compiler.execute(spec)
 
         then:
         result.didWork
-        1 * scalaCompiler.execute()
+        1 * scalaCompiler.execute(spec)
         1 * source.getAsFileTree() >> sourceTree
         1 * sourceTree.matching(!null) >> javaSource
         javaSource.isEmpty() >> false
-        1 * javaCompiler.setSpec({it.source == javaSource})
-        1 * javaCompiler.execute()
+        1 * spec.setSource(javaSource)
+        1 * javaCompiler.execute(spec)
     }
 
     def doesNotInvokeJavaCompilerWhenNoJavaSource() {
-        compiler.spec.source = source
+        _ * spec.source >> source
 
         when:
-        def result = compiler.execute()
+        def result = compiler.execute(spec)
 
         then:
         result.didWork
-        1 * scalaCompiler.execute()
+        1 * scalaCompiler.execute(spec)
         1 * source.getAsFileTree() >> sourceTree
         1 * sourceTree.matching(!null) >> javaSource
         _ * javaSource.isEmpty() >> true

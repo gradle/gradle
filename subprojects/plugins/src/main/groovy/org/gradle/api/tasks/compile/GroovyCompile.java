@@ -56,8 +56,7 @@ public class GroovyCompile extends AbstractCompile {
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setGroovyClasspath(taskClasspath);
-        compiler.setSpec(spec);
-        WorkResult result = compiler.execute();
+        WorkResult result = compiler.execute(spec);
         setDidWork(result.getDidWork());
     }
 

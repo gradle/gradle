@@ -21,25 +21,23 @@ import org.gradle.api.tasks.WorkResult;
  * A dumb incremental compiler. Deletes stale classes before invoking the actual compiler
  */
 public abstract class IncrementalJavaCompilerSupport<T extends JavaCompileSpec> implements Compiler<T> {
-    public WorkResult execute() {
+    private T spec;
+
+    public WorkResult execute(T spec) {
+        this.spec = spec;
         StaleClassCleaner cleaner = createCleaner();
 
-        T spec = getSpec();
         cleaner.setDestinationDir(spec.getDestinationDir());
-        cleaner.setSource(getSpec().getSource());
-        cleaner.setCompileOptions(getSpec().getCompileOptions());
+        cleaner.setSource(spec.getSource());
+        cleaner.setCompileOptions(spec.getCompileOptions());
         cleaner.execute();
 
         Compiler<? super T> compiler = getCompiler();
-        return compiler.execute();
+        return compiler.execute(spec);
     }
 
     public T getSpec() {
-        return getCompiler().getSpec();
-    }
-
-    public void setSpec(T t) {
-        getCompiler().setSpec(t);
+        return spec;
     }
 
     protected abstract Compiler<T> getCompiler();

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.UncheckedException;
 
@@ -31,8 +32,8 @@ public class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClien
         this.server = server;
     }
 
-    public CompileResult execute(Compiler compiler) {
-        server.execute(compiler);
+    public <T extends CompileSpec> CompileResult execute(Compiler<T> compiler, T spec) {
+        server.execute(compiler, spec);
         try {
             return compileResults.take();
         } catch (InterruptedException e) {

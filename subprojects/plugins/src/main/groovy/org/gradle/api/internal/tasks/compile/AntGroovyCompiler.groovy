@@ -36,7 +36,6 @@ class AntGroovyCompiler implements org.gradle.api.internal.tasks.compile.Compile
 
     private final IsolatedAntBuilder ant
     private final ClassPathRegistry classPathRegistry
-    GroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec()
 
     List nonGroovycJavacOptions = ['verbose', 'deprecation', 'includeJavaRuntime', 'includeAntRuntime', 'optimize', 'fork', 'failonerror', 'listfiles', 'nowarn', 'depend']
 
@@ -45,7 +44,7 @@ class AntGroovyCompiler implements org.gradle.api.internal.tasks.compile.Compile
         this.classPathRegistry = classPathRegistry;
     }
 
-    public WorkResult execute() {
+    WorkResult execute(GroovyJavaJointCompileSpec spec) {
         int numFilesCompiled;
 
         // Add in commons-cli, as the Groovy POM does not (for some versions of Groovy)
@@ -55,7 +54,7 @@ class AntGroovyCompiler implements org.gradle.api.internal.tasks.compile.Compile
             taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
             def task = groovyc([includeAntRuntime: false, destdir: spec.destinationDir, classpath: ((spec.classpath as List) + antBuilderClasspath).join(File.pathSeparator)]
                     + spec.groovyCompileOptions.optionMap()) {
-                source.addToAntBuilder(delegate, 'src', FileCollection.AntType.MatchingTask)
+                spec.source.addToAntBuilder(delegate, 'src', FileCollection.AntType.MatchingTask)
                 javac([source: spec.sourceCompatibility, target: spec.targetCompatibility] + filterNonGroovycOptions(spec.compileOptions)) {
                     spec.compileOptions.compilerArgs.each {value ->
                         compilerarg(value: value)

@@ -23,17 +23,7 @@ import java.io.Serializable;
  * all required state in protected fields.
  */
 public abstract class JavaCompilerSupport implements JavaCompiler, Serializable {
-    protected JavaCompileSpec spec = new DefaultJavaCompileSpec();
-
-    public JavaCompileSpec getSpec() {
-        return spec;
-    }
-
-    public void setSpec(JavaCompileSpec spec) {
-        this.spec = spec;
-    }
-
-    protected void listFilesIfRequested() {
+    protected void listFilesIfRequested(JavaCompileSpec spec) {
         if (!spec.getCompileOptions().isListFiles()) { return; }
         
         StringBuilder builder = new StringBuilder();

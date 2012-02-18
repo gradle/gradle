@@ -22,36 +22,41 @@ import org.gradle.api.InvalidUserDataException
 
 class NormalizingJavaCompilerTest extends Specification {
     final JavaCompiler target = Mock()
+    final JavaCompileSpec spec = Mock()
     final NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
 
-    def "delegates to target compiler"() {
+    def "delegates to target compiler after resolving source and classpath"() {
         WorkResult workResult = Mock()
-        compiler.spec.source = files(new File("source.java"))
-        compiler.spec.classpath = files()
+        _ * spec.source >> files(new File("source.java"))
+        _ * spec.classpath >> files()
 
         when:
-        def result = compiler.execute()
+        def result = compiler.execute(spec)
 
         then:
         result == workResult
 
         and:
-        1 * target.execute() >> workResult
+        1 * spec.setSource(!null)
+        1 * spec.setClasspath(!null)
+
+        and:
+        1 * target.execute(spec) >> workResult
     }
 
     def "fails when a non-Java source file provided"() {
-        compiler.spec.source = files(new File("source.txt"))
-        compiler.spec.classpath = files()
+        _ * spec.source >> files(new File("source.txt"))
+        _ * spec.classpath >> files()
 
         when:
-        compiler.execute()
+        compiler.execute(spec)
 
         then:
         InvalidUserDataException e = thrown()
         e.message == 'Cannot compile non-Java source file \'source.txt\'.'
 
         and:
-        0 * target.execute()
+        0 * target._
     }
 
     def files(File... files) {

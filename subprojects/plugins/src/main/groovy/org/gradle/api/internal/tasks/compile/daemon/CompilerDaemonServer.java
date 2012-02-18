@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -45,10 +46,10 @@ public class CompilerDaemonServer implements Action<WorkerProcessContext>, Compi
 
     }
 
-    public void execute(Compiler compiler) {
+    public <T extends CompileSpec> void execute(Compiler<T> compiler, T spec) {
         try {
             LOGGER.info("Executing {}.", compiler);
-            WorkResult result = compiler.execute();
+            WorkResult result = compiler.execute(spec);
             LOGGER.info("Successfully executed {}.", compiler);
             client.executed(new CompileResult(result.getDidWork(), null));
         } catch (Throwable t) {

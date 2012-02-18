@@ -63,8 +63,7 @@ public class CompileTest extends AbstractCompileTest {
         context.checking(new Expectations() {{
             WorkResult result = context.mock(WorkResult.class);
 
-            one(compilerMock).setSpec(with(IsNull.<JavaCompileSpec>notNullValue()));
-            one(compilerMock).execute();
+            one(compilerMock).execute(with(IsNull.<JavaCompileSpec>notNullValue()));
             will(returnValue(result));
             allowing(result).getDidWork();
             will(returnValue(numFilesCompiled > 0));

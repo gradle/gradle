@@ -53,8 +53,7 @@ public class Compile extends AbstractCompile {
         spec.setDependencyCacheDir(getDependencyCacheDir());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
-        javaCompiler.setSpec(spec);
-        WorkResult result = javaCompiler.execute();
+        WorkResult result = javaCompiler.execute(spec);
         setDidWork(result.getDidWork());
     }
 

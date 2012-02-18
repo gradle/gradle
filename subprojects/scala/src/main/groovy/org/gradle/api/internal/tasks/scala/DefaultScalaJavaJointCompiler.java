@@ -26,32 +26,21 @@ import org.gradle.api.tasks.util.PatternSet;
 public class DefaultScalaJavaJointCompiler implements Compiler<ScalaJavaJointCompileSpec> {
     private final Compiler<ScalaCompileSpec> scalaCompiler;
     private final Compiler<JavaCompileSpec> javaCompiler;
-    private ScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();
 
     public DefaultScalaJavaJointCompiler(Compiler<ScalaCompileSpec> scalaCompiler, JavaCompiler javaCompiler) {
         this.scalaCompiler = scalaCompiler;
         this.javaCompiler = javaCompiler;
     }
 
-    public ScalaJavaJointCompileSpec getSpec() {
-        return spec;
-    }
-
-    public void setSpec(ScalaJavaJointCompileSpec spec) {
-        this.spec = spec;
-    }
-
-    public WorkResult execute() {
-        scalaCompiler.setSpec(spec);
-        scalaCompiler.execute();
+    public WorkResult execute(ScalaJavaJointCompileSpec spec) {
+        scalaCompiler.execute(spec);
 
         PatternFilterable patternSet = new PatternSet();
         patternSet.include("**/*.java");
         FileTree javaSource = spec.getSource().getAsFileTree().matching(patternSet);
         if (!javaSource.isEmpty()) {
             spec.setSource(javaSource);
-            javaCompiler.setSpec(spec);
-            javaCompiler.execute();
+            javaCompiler.execute(spec);
         }
 
         return new WorkResult() {
