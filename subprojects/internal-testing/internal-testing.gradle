@@ -22,6 +22,8 @@ apply from: "$rootDir/gradle/classycle.gradle"
 dependencies {
     groovy libraries.groovy
 
+    compile project(":baseServices")
+    compile project(":native")
     compile libraries.commons_lang
     compile libraries.commons_io
     compile libraries.ant

@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.m4
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
-import org.gradle.util.GradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 

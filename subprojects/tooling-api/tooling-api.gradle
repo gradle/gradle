@@ -4,7 +4,21 @@ dependencies {
     publishCompile project(':core')
     publishCompile project(':baseServices')
     publishCompile project(':wrapper')
+
+    // lots of integTest errors otherwise
+    integTestRuntime project(':ide')
 }
 
 useTestFixtures()
+
+// is some of this unnecessary, or should it be moved into gradle/integTest ?
+integTest {
+    dependsOn ':publishLocalArchives', ':binZip'
+    doFirst {
+        systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
+        systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
+    }
+}
+
+
 
