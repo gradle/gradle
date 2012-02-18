@@ -53,7 +53,7 @@ public class GroovyCompile extends AbstractCompile {
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
         compiler.setSource(getSource());
         compiler.setDestinationDir(getDestinationDir());
-        compiler.setClasspath(getClasspath());
+        compiler.getSpec().setClasspath(getClasspath());
         compiler.getSpec().setSourceCompatibility(getSourceCompatibility());
         compiler.getSpec().setTargetCompatibility(getTargetCompatibility());
         compiler.setGroovyClasspath(taskClasspath);

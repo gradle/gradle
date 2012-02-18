@@ -49,7 +49,7 @@ public class Compile extends AbstractCompile {
     protected void compile() {
         javaCompiler.setSource(getSource());
         javaCompiler.setDestinationDir(getDestinationDir());
-        javaCompiler.setClasspath(getClasspath());
+        javaCompiler.getSpec().setClasspath(getClasspath());
         javaCompiler.getSpec().setDependencyCacheDir(getDependencyCacheDir());
         javaCompiler.getSpec().setSourceCompatibility(getSourceCompatibility());
         javaCompiler.getSpec().setTargetCompatibility(getTargetCompatibility());

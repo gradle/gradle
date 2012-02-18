@@ -27,7 +27,7 @@ class NormalizingJavaCompilerTest extends Specification {
     def "delegates to target compiler"() {
         WorkResult workResult = Mock()
         compiler.source = files(new File("source.java"))
-        compiler.classpath = files()
+        compiler.spec.classpath = files()
 
         when:
         def result = compiler.execute()
@@ -41,7 +41,7 @@ class NormalizingJavaCompilerTest extends Specification {
 
     def "fails when a non-Java source file provided"() {
         compiler.source = files(new File("source.txt"))
-        compiler.classpath = files()
+        compiler.spec.classpath = files()
 
         when:
         compiler.execute()

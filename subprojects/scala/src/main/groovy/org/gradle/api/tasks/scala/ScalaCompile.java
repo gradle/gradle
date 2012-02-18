@@ -83,7 +83,7 @@ public class ScalaCompile extends AbstractCompile {
         FileTree source = getSource();
         compiler.setSource(source);
         compiler.setDestinationDir(getDestinationDir());
-        compiler.setClasspath(getClasspath());
+        compiler.getSpec().setClasspath(getClasspath());
         compiler.setScalaClasspath(getScalaClasspath());
         compiler.getSpec().setSourceCompatibility(getSourceCompatibility());
         compiler.getSpec().setTargetCompatibility(getTargetCompatibility());

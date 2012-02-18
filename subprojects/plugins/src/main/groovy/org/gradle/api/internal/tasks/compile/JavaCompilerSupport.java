@@ -39,10 +39,6 @@ public abstract class JavaCompilerSupport implements JavaCompiler, Serializable 
         spec.setDestinationDir(destinationDir);
     }
 
-    public void setClasspath(Iterable<File> classpath) {
-        spec.setClasspath(classpath);
-    }
-
     public void setSource(FileCollection source) {
         spec.setSource(source);
     }

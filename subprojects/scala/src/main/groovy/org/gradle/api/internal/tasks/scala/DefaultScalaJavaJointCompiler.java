@@ -66,6 +66,6 @@ public class DefaultScalaJavaJointCompiler extends JavaCompilerSupport implement
     private void configureScalaCompiler() {
         scalaCompiler.setSource(spec.getSource());
         scalaCompiler.setDestinationDir(spec.getDestinationDir());
-        scalaCompiler.setClasspath(spec.getClasspath());
+        scalaCompiler.getSpec().setClasspath(spec.getClasspath());
     }
 }

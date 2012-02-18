@@ -149,7 +149,7 @@ class CommandLineJavaCompilerSupportTest extends Specification {
     def "generates -classpath option"() {
         def file1 = new File("/lib/lib1.jar")
         def file2 = new File("/lib/lib2.jar")
-        compiler.classpath = [file1, file2]
+        spec.classpath = [file1, file2]
 
         expect:
         compiler.generateCommandLineOptions() == ["-classpath", "$file1$File.pathSeparator$file2"]

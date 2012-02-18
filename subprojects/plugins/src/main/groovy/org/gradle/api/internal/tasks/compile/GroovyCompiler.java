@@ -19,7 +19,7 @@ import org.gradle.api.tasks.compile.GroovyCompileOptions;
 
 import java.io.File;
 
-public interface GroovyCompiler<T extends JvmLanguageCompileSpec> extends JvmLanguageCompiler<T> {
+public interface GroovyCompiler<T extends JvmLanguageCompileSpec> extends Compiler<T> {
     GroovyCompileOptions getGroovyCompileOptions();
 
     void setGroovyClasspath(Iterable<File> classpath);

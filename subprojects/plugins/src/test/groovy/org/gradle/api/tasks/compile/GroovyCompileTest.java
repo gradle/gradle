@@ -85,7 +85,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
 
             one(groovyCompilerMock).setSource(with(hasSameItems(testObj.getSource())));
             one(groovyCompilerMock).setDestinationDir(testObj.getDestinationDir());
-            one(groovyCompilerMock).setClasspath(testObj.getClasspath());
+            one(specMock).setClasspath(testObj.getClasspath());
             one(specMock).setSourceCompatibility(testObj.getSourceCompatibility());
             one(specMock).setTargetCompatibility(testObj.getTargetCompatibility());
             one(groovyCompilerMock).setGroovyClasspath(TEST_GROOVY_CLASSPATH);

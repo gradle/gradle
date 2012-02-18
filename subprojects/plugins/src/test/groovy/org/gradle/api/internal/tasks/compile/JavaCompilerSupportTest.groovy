@@ -31,12 +31,10 @@ class JavaCompilerSupportTest extends Specification {
         compiler.with {
             source = new SimpleFileCollection(new File("Person.java"))
             destinationDir = new File("out")
-            classpath = [new File("lib.jar")]
         }
         
         then:
         compiler.spec.source.singleFile.name == "Person.java"
         compiler.spec.destinationDir.name == "out"
-        compiler.spec.classpath[0].name == "lib.jar"
     }
 }

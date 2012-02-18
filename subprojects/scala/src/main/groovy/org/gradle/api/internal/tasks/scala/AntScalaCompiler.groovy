@@ -32,10 +32,9 @@ class AntScalaCompiler implements ScalaCompiler<JvmLanguageCompileSpec> {
     private final Iterable<File> extensionDirs
     FileCollection source
     File destinationDir
-    Iterable<File> classpath
     Iterable<File> scalaClasspath
     ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()
-    JvmLanguageCompileSpec spec
+    JvmLanguageCompileSpec spec = new JvmLanguageCompileSpec()
     
     def AntScalaCompiler(IsolatedAntBuilder antBuilder) {
         this.antBuilder = antBuilder
@@ -52,6 +51,7 @@ class AntScalaCompiler implements ScalaCompiler<JvmLanguageCompileSpec> {
     WorkResult execute() {
         Map options = ['destDir': destinationDir] + scalaCompileOptions.optionMap()
         String taskName = scalaCompileOptions.useCompileDaemon ? 'fsc' : 'scalac'
+        Iterable<File> classpath = spec.classpath
 
         antBuilder.withClasspath(scalaClasspath).execute { ant ->
             taskdef(resource: 'scala/tools/ant/antlib.xml')

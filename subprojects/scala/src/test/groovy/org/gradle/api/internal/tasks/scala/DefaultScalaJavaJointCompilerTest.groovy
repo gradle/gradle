@@ -19,16 +19,23 @@ import spock.lang.Specification
 import org.gradle.api.internal.tasks.compile.JavaCompiler
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec
 
 class DefaultScalaJavaJointCompilerTest extends Specification {
     private final ScalaCompiler scalaCompiler = Mock()
+    private final JvmLanguageCompileSpec scalaSpec = Mock()
     private final JavaCompiler javaCompiler = Mock()
     private final FileCollection source = Mock()
     private final FileTree sourceTree = Mock()
     private final FileTree javaSource = Mock()
     private final DefaultScalaJavaJointCompiler compiler = new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler)
 
+    def setup() {
+        _ * scalaCompiler.spec >> scalaSpec
+    }
+
     def executesScalaCompilerThenJavaCompiler() {
+        given:
         compiler.source = source
 
         when:

@@ -16,12 +16,12 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
-import org.gradle.api.internal.tasks.compile.JvmLanguageCompiler;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
+import org.gradle.api.internal.tasks.compile.Compiler;
 
 import java.io.File;
 
-public interface ScalaCompiler<T extends JvmLanguageCompileSpec> extends JvmLanguageCompiler<T> {
+public interface ScalaCompiler<T extends JvmLanguageCompileSpec> extends Compiler<T> {
 
     ScalaCompileOptions getScalaCompileOptions();
 
