@@ -23,6 +23,7 @@ class CommandLineJavaCompilerSupportTest extends Specification {
     def compiler = new CommandLineJavaCompilerSupport() {
         WorkResult execute() { null }
     }
+    def spec = compiler.spec
 
     def "generates no options unless configured"() {
         expect:
@@ -30,28 +31,28 @@ class CommandLineJavaCompilerSupportTest extends Specification {
     }
 
     def "generates no -source option when current Jvm Version is used"() {
-        compiler.sourceCompatibility = JavaVersion.current().toString();
+        spec.sourceCompatibility = JavaVersion.current().toString();
 
         expect:
         compiler.generateCommandLineOptions() == []
     }
 
     def "generates -source option when compatibility differs current Jvm version"() {
-        compiler.sourceCompatibility = "1.4"
+        spec.sourceCompatibility = "1.4"
 
         expect:
         compiler.generateCommandLineOptions() == ["-source", "1.4"]
     }
 
     def "generates no -target option when current Jvm Version is used"() {
-        compiler.targetCompatibility = JavaVersion.current().toString();
+        compiler.spec.targetCompatibility = JavaVersion.current().toString();
 
         expect:
         compiler.generateCommandLineOptions() == []
     }
 
     def "generates -target option when compatibility differs current Jvm version"() {
-        compiler.targetCompatibility = "1.4"
+        compiler.spec.targetCompatibility = "1.4"
 
         expect:
         compiler.generateCommandLineOptions() == ["-target", "1.4"]
@@ -67,13 +68,13 @@ class CommandLineJavaCompilerSupportTest extends Specification {
 
     def "generates -verbose option"() {
         when:
-        compiler.compileOptions.verbose = true
+        spec.compileOptions.verbose = true
 
         then:
         compiler.generateCommandLineOptions() == ["-verbose"]
 
         when:
-        compiler.compileOptions.verbose = false
+        spec.compileOptions.verbose = false
 
         then:
         compiler.generateCommandLineOptions() == []
@@ -81,13 +82,13 @@ class CommandLineJavaCompilerSupportTest extends Specification {
 
     def "generates -deprecation option"() {
         when:
-        compiler.compileOptions.deprecation = true
+        spec.compileOptions.deprecation = true
 
         then:
         compiler.generateCommandLineOptions() == ["-deprecation"]
 
         when:
-        compiler.compileOptions.deprecation = false
+        spec.compileOptions.deprecation = false
 
         then:
         compiler.generateCommandLineOptions() == []
@@ -95,13 +96,13 @@ class CommandLineJavaCompilerSupportTest extends Specification {
 
     def "generates -nowarn option"() {
         when:
-        compiler.compileOptions.warnings = true
+        spec.compileOptions.warnings = true
 
         then:
         compiler.generateCommandLineOptions() == []
 
         when:
-        compiler.compileOptions.warnings = false
+        spec.compileOptions.warnings = false
 
         then:
         compiler.generateCommandLineOptions() == ["-nowarn"]
@@ -109,13 +110,13 @@ class CommandLineJavaCompilerSupportTest extends Specification {
 
     def "generates -g:none option"() {
         when:
-        compiler.compileOptions.debug = true
+        spec.compileOptions.debug = true
 
         then:
         compiler.generateCommandLineOptions() == []
 
         when:
-        compiler.compileOptions.debug = false
+        spec.compileOptions.debug = false
 
         then:
         compiler.generateCommandLineOptions() == ["-g:none"]
@@ -123,7 +124,7 @@ class CommandLineJavaCompilerSupportTest extends Specification {
 
     def "generates -encoding option"() {
         when:
-        compiler.compileOptions.encoding = "some-encoding"
+        spec.compileOptions.encoding = "some-encoding"
 
         then:
         compiler.generateCommandLineOptions() == ["-encoding", "some-encoding"]
@@ -131,7 +132,7 @@ class CommandLineJavaCompilerSupportTest extends Specification {
 
     def "generates -bootclasspath option"() {
         when:
-        compiler.compileOptions.bootClasspath = "/lib/lib1.jar:/lib/lib2.jar"
+        spec.compileOptions.bootClasspath = "/lib/lib1.jar:/lib/lib2.jar"
 
         then:
         compiler.generateCommandLineOptions() == ["-bootclasspath", "/lib/lib1.jar:/lib/lib2.jar"]
@@ -139,7 +140,7 @@ class CommandLineJavaCompilerSupportTest extends Specification {
 
     def "generates -extdirs option"() {
         when:
-        compiler.compileOptions.extensionDirs = "/dir1:/dir2"
+        spec.compileOptions.extensionDirs = "/dir1:/dir2"
 
         then:
         compiler.generateCommandLineOptions() == ["-extdirs", "/dir1:/dir2"]
@@ -155,7 +156,7 @@ class CommandLineJavaCompilerSupportTest extends Specification {
     }
 
     def "adds custom compiler args"() {
-        compiler.compileOptions.compilerArgs = ["-a", "value-a", "-b", "value-b"]
+        spec.compileOptions.compilerArgs = ["-a", "value-a", "-b", "value-b"]
 
         expect:
         compiler.generateCommandLineOptions() == ["-a", "value-a", "-b", "value-b"]

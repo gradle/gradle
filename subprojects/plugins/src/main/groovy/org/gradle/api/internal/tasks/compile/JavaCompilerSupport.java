@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
 import java.io.Serializable;
@@ -36,14 +35,6 @@ public abstract class JavaCompilerSupport implements JavaCompiler, Serializable 
         this.spec = spec;
     }
 
-    public void setSourceCompatibility(String sourceCompatibility) {
-        spec.setSourceCompatibility(sourceCompatibility);
-    }
-
-    public void setTargetCompatibility(String targetCompatibility) {
-        spec.setTargetCompatibility(targetCompatibility);
-    }
-
     public void setDestinationDir(File destinationDir) {
         spec.setDestinationDir(destinationDir);
     }
@@ -54,18 +45,6 @@ public abstract class JavaCompilerSupport implements JavaCompiler, Serializable 
 
     public void setSource(FileCollection source) {
         spec.setSource(source);
-    }
-
-    public CompileOptions getCompileOptions() {
-        return spec.getCompileOptions();
-    }
-
-    public void setCompileOptions(CompileOptions compileOptions) {
-        spec.setCompileOptions(compileOptions);
-    }
-    
-    public void setDependencyCacheDir(File dependencyCacheDir) {
-        spec.setDependencyCacheDir(dependencyCacheDir);
     }
 
     protected void listFilesIfRequested() {

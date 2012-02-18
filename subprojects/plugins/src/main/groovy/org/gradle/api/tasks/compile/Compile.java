@@ -50,9 +50,9 @@ public class Compile extends AbstractCompile {
         javaCompiler.setSource(getSource());
         javaCompiler.setDestinationDir(getDestinationDir());
         javaCompiler.setClasspath(getClasspath());
-        javaCompiler.setDependencyCacheDir(getDependencyCacheDir());
-        javaCompiler.setSourceCompatibility(getSourceCompatibility());
-        javaCompiler.setTargetCompatibility(getTargetCompatibility());
+        javaCompiler.getSpec().setDependencyCacheDir(getDependencyCacheDir());
+        javaCompiler.getSpec().setSourceCompatibility(getSourceCompatibility());
+        javaCompiler.getSpec().setTargetCompatibility(getTargetCompatibility());
         WorkResult result = javaCompiler.execute();
         setDidWork(result.getDidWork());
     }
@@ -73,7 +73,7 @@ public class Compile extends AbstractCompile {
      */
     @Nested
     public CompileOptions getOptions() {
-        return javaCompiler.getCompileOptions();
+        return javaCompiler.getSpec().getCompileOptions();
     }
 
     public JavaCompiler getJavaCompiler() {

@@ -17,6 +17,7 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompiler;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
@@ -36,6 +37,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
     private ScalaCompile scalaCompile;
 
     private ScalaJavaJointCompiler scalaCompiler;
+    private JavaCompileSpec specMock;
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     @Override
@@ -54,10 +56,16 @@ public class ScalaCompileTest extends AbstractCompileTest {
         super.setUp();
         scalaCompile = createTask(ScalaCompile.class);
         scalaCompiler = context.mock(ScalaJavaJointCompiler.class);
+        specMock = context.mock(JavaCompileSpec.class);
         scalaCompile.setCompiler(scalaCompiler);
 
         GFileUtils.touch(new File(srcDir, "incl/file.scala"));
         GFileUtils.touch(new File(srcDir, "incl/file.java"));
+
+        context.checking(new Expectations(){{
+            allowing(scalaCompiler).getSpec();
+            will(returnValue(specMock));
+        }});
     }
 
     @Test
@@ -68,8 +76,8 @@ public class ScalaCompileTest extends AbstractCompileTest {
             one(scalaCompiler).setDestinationDir(scalaCompile.getDestinationDir());
             one(scalaCompiler).setClasspath(scalaCompile.getClasspath());
             one(scalaCompiler).setScalaClasspath(scalaCompile.getScalaClasspath());
-            one(scalaCompiler).setSourceCompatibility(scalaCompile.getSourceCompatibility());
-            one(scalaCompiler).setTargetCompatibility(scalaCompile.getTargetCompatibility());
+            one(specMock).setSourceCompatibility(scalaCompile.getSourceCompatibility());
+            one(specMock).setTargetCompatibility(scalaCompile.getTargetCompatibility());
             one(scalaCompiler).execute();
         }});
 

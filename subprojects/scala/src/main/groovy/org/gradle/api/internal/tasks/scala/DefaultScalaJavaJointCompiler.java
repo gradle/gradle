@@ -48,9 +48,9 @@ public class DefaultScalaJavaJointCompiler extends JavaCompilerSupport implement
 
         PatternFilterable patternSet = new PatternSet();
         patternSet.include("**/*.java");
-        FileTree javaSource = source.getAsFileTree().matching(patternSet);
+        FileTree javaSource = getSpec().getSource().getAsFileTree().matching(patternSet);
         if (!javaSource.isEmpty()) {
-            configure(javaCompiler);
+            javaCompiler.setSpec(spec);
             javaCompiler.setSource(javaSource);
             javaCompiler.execute();
         }
@@ -63,8 +63,8 @@ public class DefaultScalaJavaJointCompiler extends JavaCompilerSupport implement
     }
     
     private void configureScalaCompiler() {
-        scalaCompiler.setSource(source);
-        scalaCompiler.setDestinationDir(destinationDir);
-        scalaCompiler.setClasspath(classpath);    
+        scalaCompiler.setSource(spec.getSource());
+        scalaCompiler.setDestinationDir(spec.getDestinationDir());
+        scalaCompiler.setClasspath(spec.getClasspath());
     }
 }

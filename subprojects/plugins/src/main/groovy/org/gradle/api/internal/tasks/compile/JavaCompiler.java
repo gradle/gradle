@@ -15,22 +15,8 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.tasks.compile.CompileOptions;
-
-import java.io.File;
-
 public interface JavaCompiler extends JvmCompiler {
     JavaCompileSpec getSpec();
 
     void setSpec(JavaCompileSpec spec);
-
-    CompileOptions getCompileOptions();
-
-    void setCompileOptions(CompileOptions compileOptions);
-
-    void setSourceCompatibility(String sourceCompatibility);
-
-    void setTargetCompatibility(String targetCompatibility);
-
-    void setDependencyCacheDir(File dependencyCacheDir);
 }

@@ -33,19 +33,11 @@ class JavaCompilerSupportTest extends Specification {
             source = new SimpleFileCollection(new File("Person.java"))
             destinationDir = new File("out")
             classpath = [new File("lib.jar")]
-            compileOptions = new CompileOptions().with() { encoding = 'utf-8'; it }
-            sourceCompatibility = "1.5"
-            targetCompatibility = "1.6"
-            dependencyCacheDir = new File("cache")
         }
         
         then:
         compiler.spec.source.singleFile.name == "Person.java"
         compiler.spec.destinationDir.name == "out"
         compiler.spec.classpath[0].name == "lib.jar"
-        compiler.compileOptions.encoding == "utf-8"
-        compiler.spec.sourceCompatibility == "1.5"
-        compiler.spec.targetCompatibility == "1.6"
-        compiler.spec.dependencyCacheDir.name == "cache"
     }
 }

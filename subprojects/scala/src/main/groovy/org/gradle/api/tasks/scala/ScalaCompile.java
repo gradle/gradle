@@ -74,7 +74,7 @@ public class ScalaCompile extends AbstractCompile {
      */
     @Nested
     public CompileOptions getOptions() {
-        return compiler.getCompileOptions();
+        return compiler.getSpec().getCompileOptions();
     }
 
     @Override
@@ -84,8 +84,8 @@ public class ScalaCompile extends AbstractCompile {
         compiler.setDestinationDir(getDestinationDir());
         compiler.setClasspath(getClasspath());
         compiler.setScalaClasspath(getScalaClasspath());
-        compiler.setSourceCompatibility(getSourceCompatibility());
-        compiler.setTargetCompatibility(getTargetCompatibility());
+        compiler.getSpec().setSourceCompatibility(getSourceCompatibility());
+        compiler.getSpec().setTargetCompatibility(getTargetCompatibility());
         compiler.execute();
     }
 }

@@ -54,8 +54,8 @@ public class GroovyCompile extends AbstractCompile {
         compiler.setSource(getSource());
         compiler.setDestinationDir(getDestinationDir());
         compiler.setClasspath(getClasspath());
-        compiler.setSourceCompatibility(getSourceCompatibility());
-        compiler.setTargetCompatibility(getTargetCompatibility());
+        compiler.getSpec().setSourceCompatibility(getSourceCompatibility());
+        compiler.getSpec().setTargetCompatibility(getTargetCompatibility());
         compiler.setGroovyClasspath(taskClasspath);
         WorkResult result = compiler.execute();
         setDidWork(result.getDidWork());
@@ -85,7 +85,7 @@ public class GroovyCompile extends AbstractCompile {
      */
     @Nested
     public CompileOptions getOptions() {
-        return compiler.getCompileOptions();
+        return compiler.getSpec().getCompileOptions();
     }
 
     /**

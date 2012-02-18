@@ -35,7 +35,7 @@ public abstract class IncrementalJavaCompilerSupport<T extends JavaCompiler> ext
         StaleClassCleaner cleaner = createCleaner();
         cleaner.setDestinationDir(spec.getDestinationDir());
         cleaner.setSource(spec.getSource());
-        cleaner.setCompileOptions(compiler.getCompileOptions());
+        cleaner.setCompileOptions(spec.getCompileOptions());
         cleaner.execute();
 
         compiler.setSpec(spec);

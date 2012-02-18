@@ -20,8 +20,10 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompiler;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Assert;
@@ -48,8 +50,9 @@ public class GroovyCompileTest extends AbstractCompileTest {
     private GroovyCompile testObj;
 
     GroovyJavaJointCompiler groovyCompilerMock;
+    JavaCompileSpec specMock;
 
-    JUnit4Mockery context = new JUnit4Mockery();
+    JUnit4Mockery context = new JUnit4GroovyMockery();
 
     public AbstractCompile getCompile() {
         return testObj;
@@ -60,9 +63,15 @@ public class GroovyCompileTest extends AbstractCompileTest {
         super.setUp();
         testObj = createTask(GroovyCompile.class);
         groovyCompilerMock = context.mock(GroovyJavaJointCompiler.class);
+        specMock = context.mock(JavaCompileSpec.class);
         testObj.setCompiler(groovyCompilerMock);
 
         GFileUtils.touch(new File(srcDir, "incl/file.groovy"));
+
+        context.checking(new Expectations() {{
+            allowing(groovyCompilerMock).getSpec();
+            will(returnValue(specMock));
+        }});
     }
 
     public ConventionTask getTask() {
@@ -77,8 +86,8 @@ public class GroovyCompileTest extends AbstractCompileTest {
             one(groovyCompilerMock).setSource(with(hasSameItems(testObj.getSource())));
             one(groovyCompilerMock).setDestinationDir(testObj.getDestinationDir());
             one(groovyCompilerMock).setClasspath(testObj.getClasspath());
-            one(groovyCompilerMock).setSourceCompatibility(testObj.getSourceCompatibility());
-            one(groovyCompilerMock).setTargetCompatibility(testObj.getTargetCompatibility());
+            one(specMock).setSourceCompatibility(testObj.getSourceCompatibility());
+            one(specMock).setTargetCompatibility(testObj.getTargetCompatibility());
             one(groovyCompilerMock).setGroovyClasspath(TEST_GROOVY_CLASSPATH);
             one(groovyCompilerMock).execute();
             will(returnValue(result));
