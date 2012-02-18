@@ -19,11 +19,17 @@ import spock.lang.Specification
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.file.FileCollection
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.tasks.compile.CompileOptions
 
 class NormalizingJavaCompilerTest extends Specification {
     final JavaCompiler target = Mock()
+    final CompileOptions options = Mock()
     final JavaCompileSpec spec = Mock()
     final NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
+
+    def setup() {
+        _ * spec.compileOptions >> options
+    }
 
     def "delegates to target compiler after resolving source and classpath"() {
         WorkResult workResult = Mock()
@@ -57,6 +63,54 @@ class NormalizingJavaCompilerTest extends Specification {
 
         and:
         0 * target._
+    }
+
+    def "propagates compile failure when failOnError is true"() {
+        CompilationFailedException failure = new CompilationFailedException()
+        _ * spec.source >> files(new File("source.java"))
+        _ * spec.classpath >> files()
+        _ * options.failOnError >> true
+
+        when:
+        compiler.execute(spec)
+        
+        then:
+        CompilationFailedException e = thrown()
+        e == failure
+        
+        and:
+        1 * target.execute(spec) >> { throw failure }
+    }
+
+    def "ignores compile failure when failOnError is false"() {
+        CompilationFailedException failure = new CompilationFailedException()
+        _ * spec.source >> files(new File("source.java"))
+        _ * spec.classpath >> files()
+
+        when:
+        def result = compiler.execute(spec)
+
+        then:
+        !result.didWork
+
+        and:
+        1 * target.execute(spec) >> { throw failure }
+    }
+
+    def "propagates other failure"() {
+        RuntimeException failure = new RuntimeException()
+        _ * spec.source >> files(new File("source.java"))
+        _ * spec.classpath >> files()
+
+        when:
+        compiler.execute(spec)
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+
+        and:
+        1 * target.execute(spec) >> { throw failure }
     }
 
     def files(File... files) {

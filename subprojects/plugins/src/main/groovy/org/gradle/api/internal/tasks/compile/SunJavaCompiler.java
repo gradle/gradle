@@ -21,14 +21,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 
-public class SunJavaCompiler extends CommandLineJavaCompilerSupport {
+public class SunJavaCompiler extends CommandLineJavaCompilerSupport implements Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(SunJavaCompiler.class);
 
     public WorkResult execute(JavaCompileSpec spec) {
         LOGGER.info("Compiling using Sun Java Compiler API.");
-        listFilesIfRequested(spec);
 
         List<String> options = generateCommandLineOptions(spec);
         for (File file : spec.getSource()) {
@@ -36,7 +36,7 @@ public class SunJavaCompiler extends CommandLineJavaCompilerSupport {
         }
 
         int exitCode = Main.compile(options.toArray(new String[options.size()]));
-        if (exitCode != 0 && spec.getCompileOptions().isFailOnError()) {
+        if (exitCode != 0) {
             throw new CompilationFailedException();
         }
 

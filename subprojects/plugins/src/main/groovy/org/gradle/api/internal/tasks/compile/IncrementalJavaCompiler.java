@@ -36,8 +36,7 @@ public class IncrementalJavaCompiler extends IncrementalJavaCompilerSupport<Java
         return compiler;
     }
 
-    protected StaleClassCleaner createCleaner() {
-        JavaCompileSpec spec = getSpec();
+    protected StaleClassCleaner createCleaner(JavaCompileSpec spec) {
         if (spec.getCompileOptions().isUseDepend()) {
             AntDependsStaleClassCleaner cleaner = new AntDependsStaleClassCleaner(antBuilderFactory);
             cleaner.setDependencyCacheDir(spec.getDependencyCacheDir());

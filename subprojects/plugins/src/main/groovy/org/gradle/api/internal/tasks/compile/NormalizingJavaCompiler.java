@@ -19,13 +19,16 @@ import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.WorkResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 /**
- * A {@link JavaCompiler} which does some normalization of the compile configuration before delegating to some other compiler.
+ * A {@link JavaCompiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
  */
-public class NormalizingJavaCompiler extends JavaCompilerSupport {
+public class NormalizingJavaCompiler implements JavaCompiler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NormalizingJavaCompiler.class);
     private final JavaCompiler delegate;
 
     public NormalizingJavaCompiler(JavaCompiler delegate) {
@@ -42,6 +45,29 @@ public class NormalizingJavaCompiler extends JavaCompilerSupport {
                 throw new InvalidUserDataException(String.format("Cannot compile non-Java source file '%s'.", file));
             }
         }
-        return delegate.execute(spec);
+
+        listFilesIfRequested(spec);
+
+        try {
+            return delegate.execute(spec);
+        } catch (CompilationFailedException e) {
+            if (spec.getCompileOptions().isFailOnError()) {
+                throw e;
+            }
+            LOGGER.debug("Ignoring compilation failure.");
+            return new SimpleWorkResult(false);
+        }
+    }
+
+    private void listFilesIfRequested(JavaCompileSpec spec) {
+        if (!spec.getCompileOptions().isListFiles()) { return; }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("Source files to be compiled:");
+        for (File file : spec.getSource()) {
+            builder.append('\n');
+            builder.append(file);
+        }
+        System.out.println(builder.toString());
     }
 }

@@ -37,7 +37,7 @@ public class IncrementalScalaCompiler extends IncrementalJavaCompilerSupport<Sca
     }
 
     @Override
-    protected StaleClassCleaner createCleaner() {
+    protected StaleClassCleaner createCleaner(ScalaJavaJointCompileSpec spec) {
         return new SimpleStaleClassCleaner(taskOutputs);
     }
 }

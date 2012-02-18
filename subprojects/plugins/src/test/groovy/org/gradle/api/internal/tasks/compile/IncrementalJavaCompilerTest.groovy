@@ -29,7 +29,7 @@ class IncrementalJavaCompilerTest extends Specification {
             return target
         }
 
-        protected StaleClassCleaner createCleaner() {
+        protected StaleClassCleaner createCleaner(JavaCompileSpec spec) {
             return cleaner
         }
     }

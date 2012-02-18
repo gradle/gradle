@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory
 /**
  * @author Hans Dockter
  */
-class AntJavaCompiler extends JavaCompilerSupport {
+class AntJavaCompiler implements JavaCompiler {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntJavaCompiler)
     private static final String CLASSPATH_ID = 'compile.classpath'
 

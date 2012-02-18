@@ -27,15 +27,15 @@ import org.slf4j.LoggerFactory;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.List;
 
-public class Jdk6JavaCompiler extends CommandLineJavaCompilerSupport {
+public class Jdk6JavaCompiler extends CommandLineJavaCompilerSupport implements Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Jdk6JavaCompiler.class);
 
     public WorkResult execute(JavaCompileSpec spec) {
         LOGGER.info("Compiling using JDK 6 Java Compiler API.");
-        listFilesIfRequested(spec);
 
         List<String> options = generateCommandLineOptions(spec);
         javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -45,7 +45,7 @@ public class Jdk6JavaCompiler extends CommandLineJavaCompilerSupport {
         javax.tools.JavaCompiler.CompilationTask task = compiler.getTask(null, null, null, options, null, compilationUnits);
 
         boolean success = task.call();
-        if (!success && compileOptions.isFailOnError()) {
+        if (!success) {
             throw new CompilationFailedException();
         }
         return new SimpleWorkResult(true);

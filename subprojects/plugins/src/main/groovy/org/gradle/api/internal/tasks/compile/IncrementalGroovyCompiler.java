@@ -32,7 +32,7 @@ public class IncrementalGroovyCompiler extends IncrementalJavaCompilerSupport<Gr
     }
 
     @Override
-    protected StaleClassCleaner createCleaner() {
+    protected StaleClassCleaner createCleaner(GroovyJavaJointCompileSpec spec) {
         return new SimpleStaleClassCleaner(taskOutputs);
     }
 }
