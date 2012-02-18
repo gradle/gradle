@@ -19,8 +19,8 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -50,7 +50,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
 
     private GroovyCompile testObj;
 
-    GroovyJavaJointCompiler groovyCompilerMock;
+    Compiler<GroovyJavaJointCompileSpec> groovyCompilerMock;
     GroovyJavaJointCompileSpec specMock;
 
     JUnit4Mockery context = new JUnit4GroovyMockery();
@@ -63,7 +63,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
     public void setUp() {
         super.setUp();
         testObj = createTask(GroovyCompile.class);
-        groovyCompilerMock = context.mock(GroovyJavaJointCompiler.class);
+        groovyCompilerMock = context.mock(Compiler.class);
         specMock = context.mock(GroovyJavaJointCompileSpec.class);
         testObj.setCompiler(groovyCompilerMock);
 
@@ -89,7 +89,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
             one(specMock).setClasspath(testObj.getClasspath());
             one(specMock).setSourceCompatibility(testObj.getSourceCompatibility());
             one(specMock).setTargetCompatibility(testObj.getTargetCompatibility());
-            one(groovyCompilerMock).setGroovyClasspath(TEST_GROOVY_CLASSPATH);
+            one(specMock).setGroovyClasspath(TEST_GROOVY_CLASSPATH);
             one(groovyCompilerMock).execute();
             will(returnValue(result));
             allowing(result).getDidWork();

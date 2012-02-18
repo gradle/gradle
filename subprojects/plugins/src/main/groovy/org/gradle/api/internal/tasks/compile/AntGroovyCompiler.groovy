@@ -17,14 +17,12 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.project.IsolatedAntBuilder
+import org.gradle.api.tasks.WorkResult
+import org.gradle.api.tasks.compile.CompileOptions
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.internal.ClassPathRegistry
-
-import org.gradle.api.tasks.WorkResult
-import org.gradle.api.tasks.compile.GroovyCompileOptions
-import org.gradle.api.tasks.compile.CompileOptions
 
 /**
  * Please note: includeAntRuntime=false is ignored if groovyc is used in non fork mode. In this case the runtime classpath is
@@ -33,7 +31,7 @@ import org.gradle.api.tasks.compile.CompileOptions
  *
  * @author Hans Dockter
  */
-class AntGroovyCompiler implements GroovyJavaJointCompiler {
+class AntGroovyCompiler implements org.gradle.api.internal.tasks.compile.Compiler<GroovyJavaJointCompileSpec> {
     private static Logger logger = LoggerFactory.getLogger(AntGroovyCompiler)
 
     private final IsolatedAntBuilder ant
@@ -45,14 +43,6 @@ class AntGroovyCompiler implements GroovyJavaJointCompiler {
     def AntGroovyCompiler(IsolatedAntBuilder ant, ClassPathRegistry classPathRegistry) {
         this.ant = ant;
         this.classPathRegistry = classPathRegistry;
-    }
-
-    void setGroovyClasspath(Iterable<File> classpath) {
-        spec.groovyClasspath = classpath
-    }
-
-    GroovyCompileOptions getGroovyCompileOptions() {
-        return spec.groovyCompileOptions
     }
 
     public WorkResult execute() {

@@ -21,7 +21,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.compile.AntGroovyCompiler;
-import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompiler;
+import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.IncrementalGroovyCompiler;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
@@ -38,7 +39,7 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class GroovyCompile extends AbstractCompile {
-    private GroovyJavaJointCompiler compiler;
+    private Compiler<GroovyJavaJointCompileSpec> compiler;
 
     private FileCollection groovyClasspath;
 
@@ -56,7 +57,7 @@ public class GroovyCompile extends AbstractCompile {
         compiler.getSpec().setClasspath(getClasspath());
         compiler.getSpec().setSourceCompatibility(getSourceCompatibility());
         compiler.getSpec().setTargetCompatibility(getTargetCompatibility());
-        compiler.setGroovyClasspath(taskClasspath);
+        compiler.getSpec().setGroovyClasspath(taskClasspath);
         WorkResult result = compiler.execute();
         setDidWork(result.getDidWork());
     }
@@ -75,7 +76,7 @@ public class GroovyCompile extends AbstractCompile {
      */
     @Nested
     public GroovyCompileOptions getGroovyOptions() {
-        return compiler.getGroovyCompileOptions();
+        return compiler.getSpec().getGroovyCompileOptions();
     }
 
     /**
@@ -107,11 +108,11 @@ public class GroovyCompile extends AbstractCompile {
         this.groovyClasspath = groovyClasspath;
     }
 
-    public GroovyJavaJointCompiler getCompiler() {
+    public Compiler<GroovyJavaJointCompileSpec> getCompiler() {
         return compiler;
     }
 
-    public void setCompiler(GroovyJavaJointCompiler compiler) {
+    public void setCompiler(Compiler<GroovyJavaJointCompileSpec> compiler) {
         this.compiler = compiler;
     }
 }
