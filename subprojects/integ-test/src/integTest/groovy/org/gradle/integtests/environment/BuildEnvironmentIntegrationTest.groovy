@@ -126,15 +126,16 @@ assert classesDir.directory
             return
         }
 
+        // TODO:DAZ Add this as a utility method somewhere
+        String windowsSafeJavaHome = alternateJavaHome.canonicalPath.replaceAll("\\\\", "\\\\\\\\")
+        file('gradle.properties') << "org.gradle.java.home=$windowsSafeJavaHome"
+
         file('build.gradle') << """
-            println "javaHome=" + org.gradle.util.Jvm.current().javaHome.canonicalPath
-        """
-        file('gradle.properties') << """
-            org.gradle.java.home=${alternateJavaHome.canonicalPath}
+            println "javaHome=" + org.gradle.util.Jvm.current().javaHome.absolutePath
         """
 
         // Need the forking executer for this to work. Embedded executer will not fork a new process if jvm doesn't match.
         def out = executer.withForkingExecuter().run().output
-        assert out.contains("javaHome=" + alternateJavaHome.canonicalPath)
+        assert out.contains("javaHome=" + alternateJavaHome.absolutePath)
     }
 }
