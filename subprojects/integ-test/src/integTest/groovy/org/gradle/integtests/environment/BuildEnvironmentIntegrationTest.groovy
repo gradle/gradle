@@ -24,6 +24,7 @@ import org.gradle.internal.nativeplatform.FileSystems
 
 import org.junit.Test
 import spock.lang.Issue
+import org.gradle.util.TextUtil
 
 /**
  * @author: Szczepan Faber, created at: 8/11/11
@@ -126,9 +127,7 @@ assert classesDir.directory
             return
         }
 
-        // TODO:DAZ Add this as a utility method somewhere
-        String windowsSafeJavaHome = alternateJavaHome.canonicalPath.replaceAll("\\\\", "\\\\\\\\")
-        file('gradle.properties') << "org.gradle.java.home=$windowsSafeJavaHome"
+        file('gradle.properties') << "org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}"
 
         file('build.gradle') << """
             println "javaHome=" + org.gradle.util.Jvm.current().javaHome.absolutePath
