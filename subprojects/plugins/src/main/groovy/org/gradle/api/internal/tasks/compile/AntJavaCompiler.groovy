@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.WorkResult
-
 import org.gradle.internal.Factory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -27,7 +26,7 @@ import org.slf4j.LoggerFactory
 /**
  * @author Hans Dockter
  */
-class AntJavaCompiler implements JavaCompiler {
+class AntJavaCompiler implements org.gradle.api.internal.tasks.compile.Compiler<JavaCompileSpec> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntJavaCompiler)
     private static final String CLASSPATH_ID = 'compile.classpath'
 

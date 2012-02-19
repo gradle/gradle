@@ -32,15 +32,15 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         this.inProcessCompilerFactory = inProcessCompilerFactory;
     }
 
-    public JavaCompiler create(CompileOptions options) {
+    public Compiler<JavaCompileSpec> create(CompileOptions options) {
         if (options.isUseAnt()) {
             return new AntJavaCompiler(antBuilderFactory);
         }
         return new NormalizingJavaCompiler(createTargetCompiler(options));
     }
 
-    private JavaCompiler createTargetCompiler(CompileOptions options) {
-        JavaCompiler target = inProcessCompilerFactory.create(options);
+    private Compiler<JavaCompileSpec> createTargetCompiler(CompileOptions options) {
+        Compiler<JavaCompileSpec> target = inProcessCompilerFactory.create(options);
         if (options.isFork()) {
             target = new DaemonJavaCompiler(project, target);
         }

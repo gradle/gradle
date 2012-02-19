@@ -17,8 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.JavaCompiler;
+import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -33,6 +32,7 @@ import java.io.File;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import org.gradle.api.internal.tasks.compile.Compiler;
 
 /**
  * @author Hans Dockter
@@ -41,14 +41,14 @@ import static org.junit.Assert.assertTrue;
 public class CompileTest extends AbstractCompileTest {
     private Compile compile;
 
-    private JavaCompiler compilerMock;
+    private Compiler<JavaCompileSpec> compilerMock;
 
     private Mockery context = new JUnit4GroovyMockery();
 
     @Before public void setUp()  {
         super.setUp();
         compile = createTask(Compile.class);
-        compilerMock = context.mock(JavaCompiler.class);
+        compilerMock = context.mock(Compiler.class);
         compile.setJavaCompiler(compilerMock);
 
         GFileUtils.touch(new File(srcDir, "incl/file.java"));

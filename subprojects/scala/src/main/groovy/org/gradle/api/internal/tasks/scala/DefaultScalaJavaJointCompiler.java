@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.scala;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -27,7 +26,7 @@ public class DefaultScalaJavaJointCompiler implements Compiler<ScalaJavaJointCom
     private final Compiler<ScalaCompileSpec> scalaCompiler;
     private final Compiler<JavaCompileSpec> javaCompiler;
 
-    public DefaultScalaJavaJointCompiler(Compiler<ScalaCompileSpec> scalaCompiler, JavaCompiler javaCompiler) {
+    public DefaultScalaJavaJointCompiler(Compiler<ScalaCompileSpec> scalaCompiler, Compiler<JavaCompileSpec> javaCompiler) {
         this.scalaCompiler = scalaCompiler;
         this.javaCompiler = javaCompiler;
     }

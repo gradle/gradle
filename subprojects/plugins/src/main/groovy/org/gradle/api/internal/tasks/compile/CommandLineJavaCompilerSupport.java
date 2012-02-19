@@ -29,10 +29,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Convenience base class for implementing <tt>JavaCompiler</tt>s
- * that need to generate command-line options.
+ * Convenience base class for implementing Java {@link Compiler}s that need to generate command-line options.
  */
-public abstract class CommandLineJavaCompilerSupport implements JavaCompiler {
+public abstract class CommandLineJavaCompilerSupport implements Compiler<JavaCompileSpec> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompilerSupport.class);
     
     protected List<String> generateCommandLineOptions(JavaCompileSpec spec) {

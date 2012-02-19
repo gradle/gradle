@@ -21,5 +21,5 @@ import org.gradle.api.tasks.compile.CompileOptions;
  * Creates Java compilers based on the provided compile options.
  */
 public interface JavaCompilerFactory {
-    JavaCompiler create(CompileOptions options);
+    Compiler<JavaCompileSpec> create(CompileOptions options);
 }

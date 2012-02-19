@@ -25,13 +25,13 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 /**
- * A {@link JavaCompiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
+ * A Java {@link Compiler} which does some normalization of the compile configuration and behaviour before delegating to some other compiler.
  */
-public class NormalizingJavaCompiler implements JavaCompiler {
+public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
     private static final Logger LOGGER = LoggerFactory.getLogger(NormalizingJavaCompiler.class);
-    private final JavaCompiler delegate;
+    private final Compiler<JavaCompileSpec> delegate;
 
-    public NormalizingJavaCompiler(JavaCompiler delegate) {
+    public NormalizingJavaCompiler(Compiler<JavaCompileSpec> delegate) {
         this.delegate = delegate;
     }
 

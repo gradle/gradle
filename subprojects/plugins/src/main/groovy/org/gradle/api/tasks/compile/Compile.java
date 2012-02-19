@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.*;
+import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.Factory;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
@@ -33,7 +34,7 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class Compile extends AbstractCompile {
-    private JavaCompiler javaCompiler;
+    private Compiler<JavaCompileSpec> javaCompiler;
     private File dependencyCacheDir;
     private final JavaCompileSpec spec = new DefaultJavaCompileSpec();
 
@@ -41,7 +42,7 @@ public class Compile extends AbstractCompile {
         Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
         JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
         JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory((ProjectInternal) getProject(), antBuilderFactory, inProcessCompilerFactory);
-        JavaCompiler delegatingCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
+        Compiler<JavaCompileSpec> delegatingCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
         javaCompiler = new IncrementalJavaCompiler(delegatingCompiler, antBuilderFactory, getOutputs());
     }
 
@@ -76,11 +77,11 @@ public class Compile extends AbstractCompile {
         return spec.getCompileOptions();
     }
 
-    public JavaCompiler getJavaCompiler() {
+    public Compiler<JavaCompileSpec> getJavaCompiler() {
         return javaCompiler;
     }
 
-    public void setJavaCompiler(JavaCompiler javaCompiler) {
+    public void setJavaCompiler(Compiler<JavaCompileSpec> javaCompiler) {
         this.javaCompiler = javaCompiler;
     }
 }

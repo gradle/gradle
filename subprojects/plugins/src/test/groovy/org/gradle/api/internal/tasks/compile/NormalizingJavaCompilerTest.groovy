@@ -22,7 +22,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.compile.CompileOptions
 
 class NormalizingJavaCompilerTest extends Specification {
-    final JavaCompiler target = Mock()
+    final Compiler<JavaCompileSpec> target = Mock()
     final CompileOptions options = Mock()
     final JavaCompileSpec spec = Mock()
     final NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
