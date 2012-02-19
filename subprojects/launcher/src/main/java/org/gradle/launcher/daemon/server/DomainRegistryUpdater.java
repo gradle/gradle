@@ -67,12 +67,12 @@ class DomainRegistryUpdater {
     }
 
     public void onStop() {
-        LOGGER.info("Removing our presence to clients, eg. removing this address from the registry: " + connectorAddress);
+        LOGGER.debug("Removing our presence to clients, eg. removing this address from the registry: " + connectorAddress);
         try {
             daemonRegistry.remove(connectorAddress);
         } catch (DaemonRegistry.EmptyRegistryException e) {
             LOGGER.warn("Cannot remove daemon from the registry because the registry is empty.");
         }
-        LOGGER.info("Address removed from registry.");
+        LOGGER.debug("Address removed from registry.");
     }
 }

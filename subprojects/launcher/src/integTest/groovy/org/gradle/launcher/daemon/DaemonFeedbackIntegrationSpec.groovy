@@ -32,6 +32,37 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
         stopDaemonsNow()
     }
 
+    def "daemon keeps logging to the file even if the build is started"() {
+        given:
+        def baseDir = distribution.file("daemonBaseDir").createDir()
+        executer.withDaemonBaseDir(baseDir)
+        distribution.file("build.gradle") << """
+task sleep << {
+    println 'taking a nap...'
+    Thread.sleep(10000)
+    println 'finished the nap...'
+}
+"""
+
+        when:
+        def sleeper = executer.withArguments('-i').withTasks('sleep').start()
+
+        then:
+        poll {
+            assert readLog(baseDir).contains("taking a nap...")
+        }
+
+        when:
+        executer.withDaemonBaseDir(baseDir).withArguments("--stop").run()
+
+        then:
+        sleeper.waitForFailure()
+
+        def log = readLog(baseDir)
+        assert log.contains(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP)
+        assert log.contains(DaemonMessages.DAEMON_FINISHED_GRACEFULLY)
+    }
+
     @Timeout(10)
     @IgnoreIf({OperatingSystem.current().isWindows()})
     def "promptly shows decent message when daemon cannot be started"() {
@@ -201,5 +232,9 @@ class DaemonFeedbackIntegrationSpec extends DaemonIntegrationSpec {
         assert logs.size() == 1
 
         logs[0].text
+    }
+
+    File firstLog(baseDir) {
+        getLogs(baseDir)[0]
     }
 }

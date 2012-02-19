@@ -109,7 +109,7 @@ public class Daemon implements Runnable, Stoppable {
                         public void run() {
                             try {
                                 command = (Command) connection.receive();
-                                LOGGER.info("Daemon (pid: {}) received command: {}", daemonContext.getPid(), command);
+                                LOGGER.info("Daemon (pid: {}) received command: {}.", daemonContext.getPid(), command);
                             } catch (Throwable e) {
                                 String message = String.format("Unable to receive command from connection: '%s'", connection);
                                 LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
@@ -163,7 +163,7 @@ public class Daemon implements Runnable, Stoppable {
 
             Runnable onStopRequested = new Runnable() {
                 public void run() {
-                    LOGGER.info("Stop requested. Daemon is removing its presence from the registry...");
+                    LOGGER.info(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP);
                     registryUpdater.onStop();
                 }
             };

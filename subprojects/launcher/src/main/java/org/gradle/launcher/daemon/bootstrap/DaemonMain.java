@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.client.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonGreeter;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.DaemonStoppedException;
@@ -93,17 +94,17 @@ public class DaemonMain extends EntryPoint {
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
-                LOGGER.info("Daemon[pid = {}] finishing", daemonContext.getPid());
+                LOGGER.info("Daemon[pid = {}] process has finished.", daemonContext.getPid());
             }
         });
 
         Daemon daemon = startDaemon(daemonServices);
         try {
             daemon.awaitIdleTimeout(idleTimeoutMs);
-            LOGGER.info("Daemon hit idle timeout (" + idleTimeoutMs + "ms), stopping");
+            LOGGER.info("Daemon hit idle timeout (" + idleTimeoutMs + "ms), stopping...");
             daemon.stop();
         } catch (DaemonStoppedException e) {
-            LOGGER.info("Daemon stopping due to stop request");
+            LOGGER.debug("Daemon stopping due to the stop request");
             listener.onFailure(e);
         }
     }
@@ -117,7 +118,15 @@ public class DaemonMain extends EntryPoint {
         } catch (Exception e) {
             throw new RuntimeException("Unable to create daemon log file", e);
         }
-        PrintStream log = result;
+        final PrintStream log = result;
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                //just in case we have a bug related to logging,
+                //printing some exit info directly to file:
+                log.println(DaemonMessages.DAEMON_FINISHED_GRACEFULLY);
+            }
+        });
 
         //close all streams and redirect IO
         redirectOutputsAndInput(log);
