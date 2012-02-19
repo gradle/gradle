@@ -48,7 +48,7 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         expect:
         def compiler = factory.create(options)
         compiler instanceof NormalizingJavaCompiler
-        compiler.compiler.is(inProcessCompiler)
+        compiler.delegate.is(inProcessCompiler)
     }
 
     def "creates daemon compiler when fork=true"() {
@@ -58,6 +58,6 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         expect:
         def compiler = factory.create(options)
         compiler instanceof NormalizingJavaCompiler
-        compiler.compiler instanceof DaemonJavaCompiler
+        compiler.delegate instanceof DaemonJavaCompiler
     }
 }
