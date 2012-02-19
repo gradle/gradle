@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.tasks.compile.CompileOptions;
 
 /**
- * Strategy used by SwitchableJavaCompiler to choose the actual compiler.
+ * Creates Java compilers based on the provided compile options.
  */
 public interface JavaCompilerFactory {
     JavaCompiler create(CompileOptions options);
