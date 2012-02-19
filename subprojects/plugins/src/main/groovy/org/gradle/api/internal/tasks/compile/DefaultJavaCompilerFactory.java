@@ -40,9 +40,10 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     }
 
     private JavaCompiler createTargetCompiler(CompileOptions options) {
+        JavaCompiler target = inProcessCompilerFactory.create(options);
         if (options.isFork()) {
-            return new DaemonJavaCompiler(project, inProcessCompilerFactory.create(options));
+            target = new DaemonJavaCompiler(project, target);
         }
-        return inProcessCompilerFactory.create(options);
+        return target;
     }
 }

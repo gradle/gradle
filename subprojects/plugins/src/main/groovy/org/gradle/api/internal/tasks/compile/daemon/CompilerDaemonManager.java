@@ -64,6 +64,7 @@ public class CompilerDaemonManager {
         client.stop();
         client = null;
         process.waitForStop();
+        process = null;
         LOGGER.info("Gradle compiler daemon stopped.");
     }
     
