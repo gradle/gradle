@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler
 import org.gradle.util.Jvm
 
-class ForkingJavaCompilerFactoryTest extends Specification {
+class DefaultJavaCompilerFactoryTest2 extends Specification {
     def inProcessCompiler = Mock(JavaCompiler)
     def inProcessCompilerFactory = Mock(JavaCompilerFactory)
     def jvm = Mock(Jvm)
@@ -52,7 +52,7 @@ class ForkingJavaCompilerFactoryTest extends Specification {
         expect:
         def compiler = factory.create(options)
         compiler instanceof NormalizingJavaCompiler
-        compiler.compiler.is(inProcessCompiler)
+        compiler.delegate.is(inProcessCompiler)
     }
 
     def "creates daemon compiler when fork=true"() {
@@ -62,6 +62,6 @@ class ForkingJavaCompilerFactoryTest extends Specification {
         expect:
         def compiler = factory.create(options)
         compiler instanceof NormalizingJavaCompiler
-        compiler.compiler instanceof DaemonJavaCompiler
+        compiler.delegate instanceof DaemonJavaCompiler
     }
 }

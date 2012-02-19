@@ -40,8 +40,8 @@ public class Compile extends AbstractCompile {
     public Compile() {
         Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
         JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
-        JavaCompilerFactory forkingCompilerFactory = new DefaultJavaCompilerFactory((ProjectInternal) getProject(), antBuilderFactory, inProcessCompilerFactory);
-        JavaCompiler delegatingCompiler = new DelegatingJavaCompiler(forkingCompilerFactory);
+        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory((ProjectInternal) getProject(), antBuilderFactory, inProcessCompilerFactory);
+        JavaCompiler delegatingCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
         javaCompiler = new IncrementalJavaCompiler(delegatingCompiler, antBuilderFactory, getOutputs());
     }
 

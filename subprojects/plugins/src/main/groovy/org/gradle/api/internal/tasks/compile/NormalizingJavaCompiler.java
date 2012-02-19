@@ -26,10 +26,10 @@ import java.io.File;
  * A {@link JavaCompiler} which does some normalization of the compile configuration before delegating to some other compiler.
  */
 public class NormalizingJavaCompiler extends JavaCompilerSupport {
-    private final JavaCompiler compiler;
+    private final JavaCompiler delegate;
 
-    public NormalizingJavaCompiler(JavaCompiler compiler) {
-        this.compiler = compiler;
+    public NormalizingJavaCompiler(JavaCompiler delegate) {
+        this.delegate = delegate;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
@@ -42,6 +42,6 @@ public class NormalizingJavaCompiler extends JavaCompilerSupport {
                 throw new InvalidUserDataException(String.format("Cannot compile non-Java source file '%s'.", file));
             }
         }
-        return compiler.execute(spec);
+        return delegate.execute(spec);
     }
 }
