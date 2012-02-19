@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
+import org.gradle.internal.nativeplatform.FileSystems
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TemporaryFolder
@@ -29,8 +30,6 @@ import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.internal.nativeplatform.FileSystems
-import org.gradle.api.internal.notations.api.UnsupportedNotationException
 
 /**
  * @author Hans Dockter
@@ -215,8 +214,8 @@ class BaseDirFileResolverTest {
         try {
             baseDirConverter.resolve("http://www.gradle.org")
             fail()
-        } catch (UnsupportedNotationException e) {
-            assertThat(e.notation, equalTo('Cannot convert URL \'http://www.gradle.org\' to a file.'))
+        } catch (InvalidUserDataException e) {
+            assertThat(e.message, equalTo('Cannot convert URL \'http://www.gradle.org\' to a file.'))
         }
     }
 

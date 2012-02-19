@@ -25,29 +25,23 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.internal.nativeplatform.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class AbstractFileResolver implements FileResolver {
-    private static final Pattern URI_SCHEME = Pattern.compile("[a-zA-Z][a-zA-Z0-9+-\\.]*:.+");
-    private static final Pattern ENCODED_URI = Pattern.compile("%([0-9a-fA-F]{2})");
     private final FileSystem fileSystem;
-    private FileNotationParser fileNotationParser;
+    private FileOrUriNotationParser fileNotationParser;
 
     protected AbstractFileResolver(FileSystem fileSystem) {
         this.fileSystem = fileSystem;
-        this.fileNotationParser = new FileNotationParser(fileSystem);
+        this.fileNotationParser = new FileOrUriNotationParser(fileSystem);
     }
 
     public FileResolver withBaseDir(Object path) {
@@ -154,7 +148,7 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     protected URI convertObjectToURI(Object path) {
         Object object = unpack(path);
-        Object converted = convertToFileOrUri(object);
+        Object converted = fileNotationParser.parseNotation(object);
         if (converted instanceof File) {
             return resolve(converted).toURI();
         }
@@ -166,72 +160,12 @@ public abstract class AbstractFileResolver implements FileResolver {
         if (object == null) {
             return null;
         }
-        return fileNotationParser.parseNotation(object);
-    }
+        Object converted = fileNotationParser.parseNotation(object);
+        if (converted instanceof File) {
+            return (File) converted;
+        }
+        throw new InvalidUserDataException(String.format("Cannot convert URL '%s' to a file.", converted));
 
-    private Object convertToFileOrUri(Object path) {
-        if (path instanceof File) {
-            return path;
-        }
-
-        if (path instanceof URL) {
-            try {
-                path = ((URL) path).toURI();
-            } catch (URISyntaxException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
-
-        if (path instanceof URI) {
-            URI uri = (URI) path;
-            if (uri.getScheme().equals("file")) {
-                return new File(uri.getPath());
-            }
-            return uri;
-        }
-
-        String str = path.toString();
-        if (str.startsWith("file:")) {
-            return new File(uriDecode(str.substring(5)));
-        }
-
-        for (File file : File.listRoots()) {
-            String rootPath = file.getAbsolutePath();
-            String normalisedStr = str;
-            if (!fileSystem.isCaseSensitive()) {
-                rootPath = rootPath.toLowerCase();
-                normalisedStr = normalisedStr.toLowerCase();
-            }
-            if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar,
-                    '/'))) {
-                return new File(str);
-            }
-        }
-
-        // Check if string starts with a URI scheme
-        if (URI_SCHEME.matcher(str).matches()) {
-            try {
-                return new URI(str);
-            } catch (URISyntaxException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
-        if (!(path instanceof CharSequence)) {
-            DeprecationLogger.nagUserWith(String.format("Converting class %s to URI using toString() Method. "
-                  + " This has been deprecated and will be removed in the next version of Gradle. Please use java.io.File, java.lang.String, java.net.URL, or java.net.URI instead.", path.getClass().getName()));
-        }
-        return new File(str);
-    }
-
-    private String uriDecode(String path) {
-        StringBuffer builder = new StringBuffer();
-        Matcher matcher = ENCODED_URI.matcher(path);
-        while (matcher.find()) {
-            String val = matcher.group(1);
-            matcher.appendReplacement(builder, String.valueOf((char) (Integer.parseInt(val, 16))));
-        }
-        matcher.appendTail(builder);
-        return builder.toString();
     }
 
     private Object unpack(Object path) {

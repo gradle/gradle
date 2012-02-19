@@ -23,6 +23,7 @@ import org.gradle.internal.nativeplatform.FileSystem;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
+import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -30,13 +31,13 @@ import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class FileNotationParser<T extends File> implements NotationParser<T> {
+public class FileOrUriNotationParser<T extends Serializable> implements NotationParser<T> {
 
     private static final Pattern URI_SCHEME = Pattern.compile("[a-zA-Z][a-zA-Z0-9+-\\.]*:.+");
     private static final Pattern ENCODED_URI = Pattern.compile("%([0-9a-fA-F]{2})");
     private final FileSystem fileSystem;
 
-    public FileNotationParser(FileSystem fileSystem) {
+    public FileOrUriNotationParser(FileSystem fileSystem) {
         this.fileSystem = fileSystem;
     }
 
@@ -59,8 +60,9 @@ public class FileNotationParser<T extends File> implements NotationParser<T> {
             URI uri = (URI) notation;
             if (uri.getScheme().equals("file")) {
                 return (T) new File(uri.getPath());
+            }else{
+                return (T) uri;
             }
-            throw new UnsupportedNotationException(String.format("Unable to convert URI %s to a file", uri.toString()));
         }
         if (notation instanceof CharSequence) {
             String notationString = notation.toString();
@@ -69,7 +71,11 @@ public class FileNotationParser<T extends File> implements NotationParser<T> {
             }
             // Check if string starts with a URI scheme
             if (URI_SCHEME.matcher(notationString).matches()) {
-                throw new UnsupportedNotationException(String.format("Cannot convert URL '%s' to a file.", notationString));
+                try {
+                    return (T) new URI(notationString);
+                } catch (URISyntaxException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
             for (File file : File.listRoots()) {
                 String rootPath = file.getAbsolutePath();
@@ -83,11 +89,11 @@ public class FileNotationParser<T extends File> implements NotationParser<T> {
                     return (T) new File(notationString);
                 }
             }
-        }else{
-            DeprecationLogger.nagUserWith(String.format("Converting class %s to URI using toString() Method. "
-                                    + " This has been deprecated and will be removed in the next version of Gradle. Please use java.io.File, java.lang.String, java.net.URL, or java.net.URI instead.", notation.getClass().getName()));
+        } else {
+            DeprecationLogger.nagUserWith(String.format("Converting class %s to File using toString() Method. "
+                    + " This has been deprecated and will be removed in the next version of Gradle. Please use java.io.File, java.lang.String, java.net.URL, or java.net.URI instead.", notation.getClass().getName()));
         }
-        return (T)new File(notation.toString());
+        return (T) new File(notation.toString());
     }
 
     private String uriDecode(String path) {

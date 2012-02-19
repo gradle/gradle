@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.file
 
-import org.gradle.api.internal.notations.api.UnsupportedNotationException
 import org.gradle.internal.nativeplatform.FileSystems
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 
-class FileNotationParserTest extends Specification {
+class FileOrUriNotationParserTest extends Specification {
 
     @Rule public TemporaryFolder folder = new TemporaryFolder();
 
-    final FileNotationParser<File> parser = new FileNotationParser<File>(FileSystems.default)
+    final FileOrUriNotationParser<Serializable> parser = new FileOrUriNotationParser<Serializable>(FileSystems.default)
 
     def "with File returns this File"() {
         setup:
@@ -78,24 +77,23 @@ class FileNotationParserTest extends Specification {
         object.toURL() == testFileURL
     }
 
-    def "with unsupported URI UnsupportedNotationException is thrown"() {
+    def "with non File URI URI instance is returned"() {
         setup:
         def unsupportedURI = URI.create("http://gradle.org")
         when:
-        parser.parseNotation(unsupportedURI)
+        def parsed = parser.parseNotation(unsupportedURI)
         then:
-        thrown(UnsupportedNotationException)
+        parsed instanceof URI
     }
 
-    def "with unsupported URI String UnsupportedNotationException is thrown"() {
-            setup:
-            def unsupportedURIString = "http://gradle.org"
-            when:
-            parser.parseNotation(unsupportedURIString)
-            then:
-            thrown(UnsupportedNotationException)
-
-        }
+    def "with non File URI String URI is returned"() {
+        setup:
+        def unsupportedURIString = "http://gradle.org"
+        when:
+        def parsed = parser.parseNotation(unsupportedURIString)
+        then:
+        parsed instanceof URI
+    }
 
 //    @Issue("GRADLE-2072")
 //    def "parsing unknown types causes UnsupportedNotationException"() {
