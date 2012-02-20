@@ -60,7 +60,7 @@ public class FileOrUriNotationParser<T extends Serializable> implements Notation
             URI uri = (URI) notation;
             if (uri.getScheme().equals("file")) {
                 return (T) new File(uri.getPath());
-            }else{
+            } else {
                 return (T) uri;
             }
         }
@@ -68,14 +68,6 @@ public class FileOrUriNotationParser<T extends Serializable> implements Notation
             String notationString = notation.toString();
             if (notationString.startsWith("file:")) {
                 return (T) new File(uriDecode(notationString.substring(5)));
-            }
-            // Check if string starts with a URI scheme
-            if (URI_SCHEME.matcher(notationString).matches()) {
-                try {
-                    return (T) new URI(notationString);
-                } catch (URISyntaxException e) {
-                    throw new UncheckedIOException(e);
-                }
             }
             for (File file : File.listRoots()) {
                 String rootPath = file.getAbsolutePath();
@@ -89,6 +81,15 @@ public class FileOrUriNotationParser<T extends Serializable> implements Notation
                     return (T) new File(notationString);
                 }
             }
+            // Check if string starts with a URI scheme
+            if (URI_SCHEME.matcher(notationString).matches()) {
+                try {
+                    return (T) new URI(notationString);
+                } catch (URISyntaxException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+
         } else {
             DeprecationLogger.nagUserWith(String.format("Converting class %s to File using toString() Method. "
                     + " This has been deprecated and will be removed in the next version of Gradle. Please use java.io.File, java.lang.String, java.net.URL, or java.net.URI instead.", notation.getClass().getName()));
