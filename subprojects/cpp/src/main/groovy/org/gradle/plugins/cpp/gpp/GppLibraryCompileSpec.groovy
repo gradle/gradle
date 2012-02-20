@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.binaries.model;
 
-import org.gradle.api.file.SourceDirectorySet;
+package org.gradle.plugins.cpp.gpp
 
-/**
- * A library
- */
-public interface Library extends Binary {
-    LibraryCompileSpec getSpec();
+import org.gradle.plugins.binaries.model.LibraryCompileSpec
+import org.gradle.plugins.binaries.model.Binary
 
-    SourceDirectorySet getHeaders();
+class GppLibraryCompileSpec extends GppCompileSpec implements LibraryCompileSpec {
+    String installPath
+
+    GppLibraryCompileSpec(Binary binary) {
+        super(binary)
+    }
 }

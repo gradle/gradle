@@ -18,6 +18,7 @@ package org.gradle.plugins.cpp.gpp;
 import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.Compiler;
 import org.gradle.plugins.binaries.model.CompileSpecFactory;
+import org.gradle.plugins.binaries.model.Library;
 
 /**
  * Compiler adapter for gpp
@@ -33,6 +34,9 @@ public class Gpp implements Compiler<GppCompileSpec> {
     public CompileSpecFactory<GppCompileSpec> getSpecFactory() {
         return new CompileSpecFactory<GppCompileSpec>() {
             public GppCompileSpec create(Binary binary) {
+                if (binary instanceof Library) {
+                    return new GppLibraryCompileSpec(binary);
+                }
                 return new GppCompileSpec(binary);
             }
         };

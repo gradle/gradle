@@ -17,11 +17,12 @@ package org.gradle.plugins.cpp.gpp
 
 import org.gradle.api.Project
 import org.gradle.api.Plugin
+import org.gradle.plugins.binaries.BinariesPlugin
 
 class GppCompilerPlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.apply(plugin: "binaries")
+        project.plugins.apply(BinariesPlugin)
         project.compilers << new Gpp()
     }
 

@@ -26,6 +26,7 @@ public interface Binary extends Named {
 
     CompileSpec getSpec();
 
+    @Deprecated
     Project getProject();
     
     DomainObjectSet<SourceSet> getSourceSets();

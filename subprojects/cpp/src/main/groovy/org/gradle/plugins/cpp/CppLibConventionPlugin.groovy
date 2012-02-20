@@ -26,7 +26,7 @@ import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 class CppLibConventionPlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.apply(plugin: "cpp")
+        project.plugins.apply(CppPlugin)
 
         project.with {
             cpp {

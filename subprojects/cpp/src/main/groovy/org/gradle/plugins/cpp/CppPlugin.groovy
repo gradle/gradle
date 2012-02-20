@@ -17,12 +17,14 @@ package org.gradle.plugins.cpp
 
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.plugins.binaries.BinariesPlugin
+import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
 
 class CppPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
-        project.apply(plugin: "binaries")
-        project.apply(plugin: "gpp-compiler")
+        project.plugins.apply(BinariesPlugin)
+        project.plugins.apply(GppCompilerPlugin)
         project.extensions.addDecorated("cpp", CppExtension, project)
 
         // Defaults for all cpp source sets

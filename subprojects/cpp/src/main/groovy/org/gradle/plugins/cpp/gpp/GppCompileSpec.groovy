@@ -155,7 +155,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler {
         setting { it.args "-shared" }
         setting { it.args "-fPIC" }
 
-        extension = "so" // problem: this will be different on differnt platforms, need a way to “inject” this?
+        extension = "so" // problem: this will be different on different platforms, need a way to “inject” this?
     }
 
     void compile() {

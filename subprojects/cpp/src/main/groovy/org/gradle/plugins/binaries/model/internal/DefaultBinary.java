@@ -15,20 +15,15 @@
  */
 package org.gradle.plugins.binaries.model.internal;
 
+import groovy.lang.Closure;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.CompileSpec;
 import org.gradle.plugins.binaries.model.CompilerRegistry;
 import org.gradle.plugins.binaries.model.SourceSet;
-
-import org.gradle.api.Project;
-import org.gradle.api.DomainObjectSet;
-
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.DefaultDomainObjectSet;
-
 import org.gradle.util.ConfigureUtil;
-
-import groovy.lang.Closure;
 
 public class DefaultBinary implements Binary {
 
@@ -51,7 +46,7 @@ public class DefaultBinary implements Binary {
         return name;
     }
 
-    public Project getProject() {
+    public ProjectInternal getProject() {
         return project;
     }
 
