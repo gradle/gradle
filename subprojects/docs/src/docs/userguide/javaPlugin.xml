@@ -1071,8 +1071,7 @@
     <section id='sec:compile'>
         <title>CompileJava</title>
         <para>The Java plugin adds a <apilink class="org.gradle.api.tasks.compile.Compile"/> instance for each
-            source set in the project. The compile task delegates to Ant's javac task to do the compile. You can set most
-            of the properties of the Ant javac task.
+            source set in the project. Some of the most common configuration options are shown below.
         </para>
         <table>
             <title>Java plugin - Compile properties</title>
@@ -1105,6 +1104,17 @@
                 <td><literal><replaceable>sourceSet</replaceable>.output.classesDir</literal></td>
             </tr>
         </table>
+        
+        <para>The compile task delegates to Ant's javac task. Setting <literal>options.useAnt</literal> to <literal>false</literal>
+            activates Gradle's direct compiler integration, bypassing the Ant task. In a future Gradle release, this will become the default.
+        </para>
+        
+        <para>By default, the Java compiler runs in the Gradle process. Setting <literal>options.fork</literal> to <literal>true</literal>
+            causes compilation to occur in a separate process. In the case of the Ant javac task, this means that a new process will be
+            forked for each compile task, which can slow down compilation. Conversely, Gradle's direct compiler integration (see above) will
+            reuse the same compiler process as much as possible. In both cases, all fork options specified
+            with <literal>options.forkOptions</literal> will be honored.
+        </para>
     </section>
 
     <section id='sec:java_test'>
