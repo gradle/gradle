@@ -121,7 +121,7 @@ assert classesDir.directory
     }
 
     @Test
-    void "java home from gradle.properties should be used to run build"() {
+    void "java home from gradle properties should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.bestAlternative
         if (alternateJavaHome == null) {
             return
