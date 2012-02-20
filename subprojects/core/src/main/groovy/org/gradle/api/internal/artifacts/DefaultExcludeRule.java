@@ -28,25 +28,15 @@ import java.util.Map;
  *         DefaultExcludeRule is a value object
  */
 public class DefaultExcludeRule implements ExcludeRule {
-    private Map<String, String> excludeArgs;
-
     private String group;
     private String module;
-
-    //TODO should we deprecate this?
-    public DefaultExcludeRule(Map<String, String> excludeArgs) {
-        this.excludeArgs = excludeArgs;
-        this.group = excludeArgs.get(GROUP_KEY);
-        this.module = excludeArgs.get(MODULE_KEY);
-    }
 
     public DefaultExcludeRule(String group, String module) {
         if (group == null && module==null) {
             throw new InvalidUserDataException("Name or Module must not be null!");
         }
-        this.excludeArgs = new HashMap<String, String>();
-        setGroup(group);
-        setModule(module);
+        this.group = group;
+        this.module = module;
     }
 
     public String getGroup() {
@@ -55,10 +45,6 @@ public class DefaultExcludeRule implements ExcludeRule {
 
     public void setGroup(String groupValue) {
         this.group = groupValue;
-        if(groupValue!=null){
-            this.excludeArgs.put(GROUP_KEY, groupValue);
-        }
-
     }
 
     public String getModule() {
@@ -67,14 +53,14 @@ public class DefaultExcludeRule implements ExcludeRule {
 
     public void setModule(String moduleValue) {
         this.module = moduleValue;
-        if(moduleValue!=null){
-            this.excludeArgs.put(MODULE_KEY, module);
-        }
     }
 
     public Map<String, String> getExcludeArgs() {
         DeprecationLogger.nagUserWith("The getExcludeArgs method has been deprecated and will be removed in the next version of Gradle. Please use the getGroup() method or the getModule() method instead.");
-        return excludeArgs;
+        Map excludeArgsAsMap = new HashMap();
+        excludeArgsAsMap.put(ExcludeRule.GROUP_KEY, group);
+        excludeArgsAsMap.put(ExcludeRule.MODULE_KEY, module);
+        return excludeArgsAsMap;
     }
 
     @Override
@@ -88,15 +74,19 @@ public class DefaultExcludeRule implements ExcludeRule {
 
         DefaultExcludeRule that = (DefaultExcludeRule) o;
 
-        if (excludeArgs != null ? !excludeArgs.equals(that.excludeArgs) : that.excludeArgs != null) {
+        if (group != null ? !group.equals(that.group) : that.group != null) {
             return false;
         }
-
+        if (module != null ? !module.equals(that.module) : that.module != null) {
+            return false;
+        }
         return true;
     }
 
     @Override
     public int hashCode() {
-        return excludeArgs != null ? excludeArgs.hashCode() : 0;
+        int result = group != null ? group.hashCode() : 0;
+        result = 31 * result + (module != null ? module.hashCode() : 0);
+        return result;
     }
 }

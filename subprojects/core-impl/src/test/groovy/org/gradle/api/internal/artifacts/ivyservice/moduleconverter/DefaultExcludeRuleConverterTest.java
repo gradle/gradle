@@ -17,14 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.Assert.assertThat;
 
@@ -36,18 +32,17 @@ public class DefaultExcludeRuleConverterTest {
     @Test
     public void testCreateExcludeRule() {
         String configurationName = "someConf";
-        Map<String, String> excludeRuleArgs = new HashMap<String, String>();
-        excludeRuleArgs.put(ExcludeRule.GROUP_KEY, "someOrg");
-        excludeRuleArgs.put(ExcludeRule.MODULE_KEY, "someModule");
+        final String someOrg = "someOrg";
+        final String someModule = "someModule";
         org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRule =
-                new DefaultExcludeRuleConverter().createExcludeRule(configurationName, new DefaultExcludeRule(excludeRuleArgs));
+                new DefaultExcludeRuleConverter().createExcludeRule(configurationName, new DefaultExcludeRule(someOrg, someModule));
         assertThat(ivyExcludeRule.getId().getModuleId().getOrganisation(),
-                Matchers.equalTo(excludeRuleArgs.get(ExcludeRule.GROUP_KEY)));
+                Matchers.equalTo(someOrg));
         assertThat(ivyExcludeRule.getId().getName(),
                 Matchers.equalTo(PatternMatcher.ANY_EXPRESSION));
         assertThat(ivyExcludeRule.getId().getExt(),
                 Matchers.equalTo(PatternMatcher.ANY_EXPRESSION));
-        assertThat(ivyExcludeRule.getId().getType(), 
+        assertThat(ivyExcludeRule.getId().getType(),
                 Matchers.equalTo(PatternMatcher.ANY_EXPRESSION));
         assertThat((ExactPatternMatcher) ivyExcludeRule.getMatcher(),
                 Matchers.equalTo(ExactPatternMatcher.INSTANCE));

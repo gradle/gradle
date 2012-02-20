@@ -16,14 +16,9 @@
 package org.gradle.api.publication.maven.internal.ant;
 
 import org.apache.maven.model.Exclusion;
-import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
-import org.gradle.util.WrapUtil;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -44,10 +39,7 @@ public class DefaultExcludeRuleConverterTest {
     
     @Test
     public void convertableRule() {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(ExcludeRule.GROUP_KEY, TEST_ORG);
-        params.put(ExcludeRule.MODULE_KEY, TEST_MODULE);
-        DefaultExcludeRule excludeRule = new DefaultExcludeRule(params);
+        DefaultExcludeRule excludeRule = new DefaultExcludeRule(TEST_ORG, TEST_MODULE);
         Exclusion mavenExclude = excludeRuleConverter.convert(excludeRule);
         assertEquals(TEST_ORG, mavenExclude.getGroupId());
         assertEquals(TEST_MODULE, mavenExclude.getArtifactId());
@@ -55,8 +47,8 @@ public class DefaultExcludeRuleConverterTest {
     
     @Test
     public void unconvertableRules() {
-        checkForNull(new DefaultExcludeRule(WrapUtil.toMap(ExcludeRule.GROUP_KEY, TEST_ORG)));
-        checkForNull(new DefaultExcludeRule(WrapUtil.toMap(ExcludeRule.MODULE_KEY, TEST_MODULE)));
+        checkForNull(new DefaultExcludeRule(TEST_ORG, null));
+        checkForNull(new DefaultExcludeRule(null, TEST_MODULE));
     }
 
     private void checkForNull(DefaultExcludeRule excludeRule) {

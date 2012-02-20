@@ -37,7 +37,7 @@ public class DefaultExcludeRuleContainerTest {
     @Test
     public void testInitWithRules() {
         Set<ExcludeRule> sourceExcludeRules = new HashSet<ExcludeRule>();
-        sourceExcludeRules.add(new DefaultExcludeRule(WrapUtil.toMap("group", "value")));
+        sourceExcludeRules.add(new DefaultExcludeRule("aGroup", null));
         DefaultExcludeRuleContainer defaultExcludeRuleContainer = new DefaultExcludeRuleContainer(sourceExcludeRules);
         assertThat(defaultExcludeRuleContainer.getRules(), equalTo(sourceExcludeRules));
         assertThat(defaultExcludeRuleContainer.getRules(), not(sameInstance(sourceExcludeRules)));

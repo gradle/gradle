@@ -234,7 +234,7 @@ public class DefaultPomDependenciesConverterTest {
     @Test
     public void convertWithConvertableConfigurationExcludes() {
         final Configuration someConfigurationStub = createNamedConfigurationStubWithDependencies("someConfiguration", 
-                WrapUtil.<ExcludeRule>toSet(new DefaultExcludeRule(toMap(ExcludeRule.GROUP_KEY, "value"))), dependency1);
+                WrapUtil.<ExcludeRule>toSet(new DefaultExcludeRule("value", null)), dependency1);
         final Exclusion mavenExclude = new Exclusion();
         mavenExclude.setGroupId("a");
         mavenExclude.setArtifactId("b");

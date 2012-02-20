@@ -365,7 +365,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
         throwExceptionIfNotInUnresolvedState();
-        excludeRules.add(new DefaultExcludeRule(excludeRuleArgs));
+        excludeRules.add(new DefaultExcludeRule(excludeRuleArgs.get(ExcludeRule.GROUP_KEY), excludeRuleArgs.get(ExcludeRule.MODULE_KEY)));
         return this;
     }
 

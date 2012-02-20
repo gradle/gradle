@@ -110,17 +110,17 @@ public class DefaultConfigurationTest {
 
     @Test
     public void exclude() {
-        Map<String, String> excludeArgs1 = toMap("org", "value");
-        Map<String, String> excludeArgs2 = toMap("org2", "value2");
+        Map<String, String> excludeArgs1 = toMap("group", "aGroup");
+        Map<String, String> excludeArgs2 = toMap("module", "aModule");
         assertThat(configuration.exclude(excludeArgs1), sameInstance(configuration));
         configuration.exclude(excludeArgs2);
         assertThat(configuration.getExcludeRules(), equalTo(WrapUtil.<ExcludeRule>toSet(
-                new DefaultExcludeRule(excludeArgs1), new DefaultExcludeRule(excludeArgs2))));
+                new DefaultExcludeRule("aGroup", null), new DefaultExcludeRule(null, "aModule"))));
     }
 
     @Test
     public void setExclude() {
-        Set<ExcludeRule> excludeRules = WrapUtil.<ExcludeRule>toSet(new DefaultExcludeRule(toMap("org", "value")));
+        Set<ExcludeRule> excludeRules = WrapUtil.<ExcludeRule>toSet(new DefaultExcludeRule("groupValue", null));
         configuration.setExcludeRules(excludeRules);
         assertThat(configuration.getExcludeRules(), equalTo(excludeRules));
     }
