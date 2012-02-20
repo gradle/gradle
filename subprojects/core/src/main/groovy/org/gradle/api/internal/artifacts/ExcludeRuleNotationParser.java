@@ -35,7 +35,7 @@ public class ExcludeRuleNotationParser<T extends ExcludeRule> extends MapNotatio
 
     @Override
     protected T parseMap(Map<String, Object> values) {
-        checkValidExcludeRuleMap(values);       //TODO move this kind of checks up to mapNotationParser to allow "either/or" required properties
+        checkValidExcludeRuleMap(values);       //TODO maybe move this kind of checks up to mapNotationParser to allow "either/or" required properties
         ExcludeRule excluderule = new DefaultExcludeRule();
         return (T) excluderule;
     }
@@ -48,6 +48,5 @@ public class ExcludeRuleNotationParser<T extends ExcludeRule> extends MapNotatio
                     "Invalid format: '" + ruleMap + "'. Group or Module must not be empty or null. Correct example: "
                             + "group:'org.gradle', module:'gradle-core'");
         }
-        //TODO Should we get stricter here to refuse any other map keys?
     }
 }
