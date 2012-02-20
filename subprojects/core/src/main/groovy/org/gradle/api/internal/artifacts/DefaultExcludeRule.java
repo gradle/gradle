@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.util.DeprecationLogger;
 
@@ -31,10 +30,10 @@ public class DefaultExcludeRule implements ExcludeRule {
     private String group;
     private String module;
 
+    public DefaultExcludeRule(){
+    }
+
     public DefaultExcludeRule(String group, String module) {
-        if (group == null && module==null) {
-            throw new InvalidUserDataException("Name or Module must not be null!");
-        }
         this.group = group;
         this.module = module;
     }

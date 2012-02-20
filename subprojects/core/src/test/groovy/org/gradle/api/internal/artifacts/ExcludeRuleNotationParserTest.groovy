@@ -61,6 +61,13 @@ class ExcludeRuleNotationParserTest extends Specification {
         thrown(InvalidUserDataException)
     }
 
+    def "throw exception with a valid group but invalid second key"() {
+        when:
+        parser.parseNotation([group: 'aGroup', invalidKey1:"invalidValue"]);
+        then:
+        thrown(MissingPropertyException)
+    }
+
     def "checkValidExcludeRuleMap is true if group or module is defined"() {
         expect:
         parser.checkValidExcludeRuleMap(WrapUtil.toMap(ExcludeRule.GROUP_KEY, "aGroup"));
@@ -71,6 +78,4 @@ class ExcludeRuleNotationParserTest extends Specification {
         then:
         thrown(InvalidUserDataException)
     }
-
-
 }
