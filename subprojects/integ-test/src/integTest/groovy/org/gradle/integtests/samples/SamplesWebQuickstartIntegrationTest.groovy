@@ -17,6 +17,7 @@
 package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.TestFile
@@ -52,7 +53,7 @@ class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Timeout(120)
-    @IgnoreIf({OperatingSystem.current().windows})
+    @IgnoreIf({OperatingSystem.current().windows || GradleDistributionExecuter.getSystemPropertyExecuter() == GradleDistributionExecuter.Executer.daemon})
     def "can execute servlet"() {
         def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
 
