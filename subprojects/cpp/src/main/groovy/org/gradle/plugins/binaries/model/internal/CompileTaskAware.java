@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.plugins.binaries.model.internal;
 
-public interface CompileSpec {
+import org.gradle.plugins.binaries.tasks.Compile;
+
+public interface CompileTaskAware {
+    void configure(Compile compileTask);
 }

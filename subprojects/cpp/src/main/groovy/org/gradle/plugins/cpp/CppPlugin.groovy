@@ -19,6 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.plugins.binaries.BinariesPlugin
 import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
+import org.gradle.plugins.binaries.tasks.Compile
 
 class CppPlugin implements Plugin<ProjectInternal> {
 
@@ -31,6 +32,18 @@ class CppPlugin implements Plugin<ProjectInternal> {
         project.cpp.sourceSets.all { sourceSet ->
             sourceSet.source.srcDir "src/${sourceSet.name}/cpp"
             sourceSet.exportedHeaders.srcDir "src/${sourceSet.name}/headers"
+        }
+
+        // Defaults for all executables
+        project.executables.all { executable ->
+            def task = project.task("compile${name.capitalize()}", type: Compile)
+            executable.spec.configure(task)
+        }
+
+        // Defaults for all libraries
+        project.libraries.all { library ->
+            def task = project.task("compile${name.capitalize()}", type: Compile)
+            library.spec.configure(task)
         }
     }
 

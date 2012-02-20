@@ -21,16 +21,17 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.plugins.binaries.model.Binary
 import org.gradle.plugins.binaries.model.CompileSpec
 import org.gradle.plugins.binaries.model.Library
+import org.gradle.plugins.binaries.model.internal.CompileTaskAware
 import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.plugins.cpp.CppSourceSet
 import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler
-import org.gradle.process.internal.DefaultExecAction
+import org.gradle.plugins.cpp.gpp.internal.GppCompiler
+import org.gradle.plugins.cpp.internal.CppCompileSpec
 
-class GppCompileSpec implements CompileSpec, StandardCppCompiler {
-
+class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAware, CppCompileSpec {
     Binary binary
 
-    final Compile task
+    Compile task
     List<Closure> settings = []
 
     String outputFileName
@@ -39,12 +40,11 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler {
 
     GppCompileSpec(Binary binary) {
         this.binary = binary
-        this.task = project.task("compile${name.capitalize()}", type: Compile) { spec = this }
-
-        init()
     }
 
-    protected init() {
+    void configure(Compile task) {
+        this.task = task
+        task.spec = this
         setting {
             def outputFile = getOutputFile()
             if (outputFile) {
@@ -63,7 +63,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler {
         binary.name
     }
 
-    protected ProjectInternal getProject() {
+    ProjectInternal getProject() {
         binary.project
     }
 
@@ -159,24 +159,6 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler {
     }
 
     void compile() {
-        def workDir = getWorkDir()
-
-        ensureDirsExist(workDir, getOutputFile().parentFile)
-
-        def compiler = new DefaultExecAction(project.fileResolver)
-        compiler.executable "g++"
-        compiler.workingDir workDir
-
-        // Apply all of the settings
-        settings.each { it(compiler) }
-
-        compiler.execute()
-    }
-
-    private ensureDirsExist(File... dirs) {
-        for (dir in dirs) {
-            // todo: not a nice error message
-            assert (dir.exists() && dir.directory) || dir.mkdirs()
-        }
+        new GppCompiler().execute(this)
     }
 }

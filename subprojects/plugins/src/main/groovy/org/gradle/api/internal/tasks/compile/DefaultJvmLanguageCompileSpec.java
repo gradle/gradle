@@ -16,10 +16,30 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.file.FileCollection;
+
 import java.io.File;
 
-public class DefaultJvmLanguageCompileSpec extends DefaultCompileSpec implements JvmLanguageCompileSpec {
+public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec {
     private Iterable<File> classpath;
+    private File destinationDir;
+    private FileCollection source;
+
+    public File getDestinationDir() {
+        return destinationDir;
+    }
+
+    public void setDestinationDir(File destinationDir) {
+        this.destinationDir = destinationDir;
+    }
+
+    public FileCollection getSource() {
+        return source;
+    }
+
+    public void setSource(FileCollection source) {
+        this.source = source;
+    }
 
     public Iterable<File> getClasspath() {
         return classpath;

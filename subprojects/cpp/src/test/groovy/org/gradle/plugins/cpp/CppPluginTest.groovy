@@ -20,6 +20,7 @@ import spock.lang.Specification
 import org.gradle.util.HelperUtil
 import org.gradle.plugins.cpp.gpp.GppCompileSpec
 import org.gradle.plugins.cpp.gpp.GppLibraryCompileSpec
+import org.gradle.plugins.binaries.tasks.Compile
 
 class CppPluginTest extends Specification {
     final def project = HelperUtil.createRootProject()
@@ -37,6 +38,21 @@ class CppPluginTest extends Specification {
         project.executables.test.spec instanceof GppCompileSpec
     }
 
+    def "creates tasks for each executable"() {
+        given:
+        project.plugins.apply(CppPlugin)
+
+        when:
+        project.executables {
+            test
+        }
+
+        then:
+        def task = project.tasks['compileTest']
+        task instanceof Compile
+        task.spec == project.executables.test.spec
+    }
+
     def "creates domain objects for library"() {
         given:
         project.plugins.apply(CppPlugin)
@@ -49,5 +65,20 @@ class CppPluginTest extends Specification {
         then:
         def lib = project.libraries.test
         lib.spec instanceof GppLibraryCompileSpec
+    }
+
+    def "creates tasks for each library"() {
+        given:
+        project.plugins.apply(CppPlugin)
+
+        when:
+        project.libraries {
+            test
+        }
+
+        then:
+        def task = project.tasks['compileTest']
+        task instanceof Compile
+        task.spec == project.libraries.test.spec
     }
 }

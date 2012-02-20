@@ -29,16 +29,14 @@ public class DefaultBinary implements Binary {
 
     private final String name;
     private final ProjectInternal project;
-    private final CompilerRegistry compilers;
     private final CompileSpec spec;
     private final DomainObjectSet<SourceSet> sourceSets;
-    
 
     public DefaultBinary(String name, ProjectInternal project) {
         this.name = name;
         this.project = project;
-        this.compilers = project.getExtensions().getByType(CompilerRegistry.class);
         this.sourceSets = new DefaultDomainObjectSet<SourceSet>(SourceSet.class);
+        CompilerRegistry compilers = project.getExtensions().getByType(CompilerRegistry.class);
         this.spec = compilers.getDefaultCompiler().getSpecFactory().create(this);
     }
 

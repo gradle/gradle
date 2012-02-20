@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.plugins.cpp.internal;
 
-public interface CompileSpec {
+import org.gradle.api.internal.tasks.compile.CompileSpec;
+import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler;
+
+public interface CppCompileSpec extends StandardCppCompiler, CompileSpec {
 }
