@@ -60,7 +60,7 @@ task sleep << {
 
         def log = readLog(baseDir)
         assert log.contains(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP)
-        assert log.contains(DaemonMessages.DAEMON_FINISHED_GRACEFULLY)
+        assert log.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)
     }
 
     @Timeout(10)

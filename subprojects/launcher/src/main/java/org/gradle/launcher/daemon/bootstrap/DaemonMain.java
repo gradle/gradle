@@ -124,7 +124,7 @@ public class DaemonMain extends EntryPoint {
             public void run() {
                 //just in case we have a bug related to logging,
                 //printing some exit info directly to file:
-                log.println(DaemonMessages.DAEMON_FINISHED_GRACEFULLY);
+                log.println(DaemonMessages.DAEMON_VM_SHUTTING_DOWN);
             }
         });
 
