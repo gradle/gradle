@@ -47,7 +47,7 @@ class FileOrUriNotationParserTest extends Specification {
         testFile.getAbsolutePath() == object.getAbsolutePath()
     }
 
-    def "with file:// URI"() {
+    def "with file URI"() {
         setup:
         def testFileURI = folder.createFile("test1").toURI()
         when:
@@ -57,7 +57,7 @@ class FileOrUriNotationParserTest extends Specification {
         object.toURI() == testFileURI
     }
 
-    def "with file:// URI as CharSequence"() {
+    def "with URI as CharSequence"() {
         setup:
         def uriString = folder.createFile("test1").toURI().toString()
         when:
@@ -67,7 +67,7 @@ class FileOrUriNotationParserTest extends Specification {
         object.toURI().toString() == uriString
     }
 
-    def "with file:// URL"() {
+    def "with URL"() {
         setup:
         def testFileURL = folder.createFile("test1").toURL()
         when:
