@@ -19,8 +19,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.nativeplatform.jna.WindowsProcessStarter;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.logging.DaemonGreeter;
 import org.gradle.launcher.daemon.registry.DaemonDir;
@@ -73,6 +73,10 @@ public class DefaultDaemonStarter implements DaemonStarter {
         daemonArgs.add(daemonDir.getBaseDir().getAbsolutePath());
         daemonArgs.add(String.valueOf(daemonParameters.getIdleTimeout()));
         daemonArgs.add(daemonParameters.getUid());
+
+        //all remaining arguments are daemon startup jvm opts.
+        //we need to pass them as *program* arguments to avoid problems with getInputArguments().
+        daemonArgs.addAll(daemonOpts);
 
         startProcess(daemonArgs, daemonDir.getVersionedDir());
 

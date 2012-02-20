@@ -201,4 +201,7 @@ public class DaemonParameters {
         }
     }
 
+    public JvmOptions getJvmOptions() {
+        return jvmOptions;
+    }
 }

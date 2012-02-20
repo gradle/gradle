@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
@@ -33,12 +32,8 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.process.internal.JvmOptions;
-import org.gradle.util.Jvm;
 
 import java.io.File;
-import java.lang.management.ManagementFactory;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,16 +44,19 @@ public class DaemonServices extends DefaultServiceRegistry {
     private final File daemonBaseDir;
     private final Integer idleTimeoutMs;
     private final String daemonUid;
+    private final JvmOptions startupJvmOptions;
     private final ServiceRegistry loggingServices;
     private final LoggingManagerInternal loggingManager;
     private final static Logger LOGGER = Logging.getLogger(DaemonServices.class);
 
-    public DaemonServices(File daemonBaseDir, Integer idleTimeoutMs, String daemonUid, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager) {
+    public DaemonServices(File daemonBaseDir, Integer idleTimeoutMs, String daemonUid, ServiceRegistry loggingServices, 
+                          LoggingManagerInternal loggingManager, JvmOptions startupJvmOptions) {
         this.daemonBaseDir = daemonBaseDir;
         this.idleTimeoutMs = idleTimeoutMs;
         this.loggingServices = loggingServices;
         this.loggingManager = loggingManager;
         this.daemonUid = daemonUid;
+        this.startupJvmOptions = startupJvmOptions;
 
         add(new NativeServices());
         add(new DaemonRegistryServices(daemonBaseDir));
@@ -74,22 +72,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         builder.setIdleTimeout(idleTimeoutMs);
         builder.setUid(daemonUid);
 
-        JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
-        List<String> inputArguments = new ArrayList<String>(ManagementFactory.getRuntimeMXBean().getInputArguments());
-        LOGGER.debug("Jvm input args are: {}", inputArguments);
-        if (Jvm.current().isIbmJvm()) {
-            // Filter out the implicit jvm args that the ibm jvm adds
-            Iterator<String> iter = inputArguments.iterator();
-            while (iter.hasNext()) {
-                String arg = iter.next();
-                if (!arg.startsWith("-") || arg.startsWith("-Xjcl") || arg.equals("-Xdump")) {
-                    iter.remove();
-                }
-            }
-        }
-
-        jvmOptions.setAllJvmArgs(inputArguments);
-        List<String> opts = jvmOptions.getAllImmutableJvmArgs();
+        List<String> opts = startupJvmOptions.getAllImmutableJvmArgs();
         LOGGER.debug("Creating daemon context with opts: {}", opts);
         
         builder.setDaemonOpts(opts);

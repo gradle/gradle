@@ -31,8 +31,11 @@ import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
+import org.gradle.process.internal.JvmOptions;
 
 import java.io.*;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * The entry point for a daemon process.
@@ -49,9 +52,11 @@ public class DaemonMain extends EntryPoint {
     private final File daemonBaseDir;
     private final int idleTimeoutMs;
 
+    protected JvmOptions startupJvmOptions;
+
     public static void main(String[] args) {
-        if (args.length != 4) {
-            invalidArgs("Following arguments are required: <gradle-version> <daemon-dir> <timeout-millis> <daemonUid>");
+        if (args.length < 4) {
+            invalidArgs("Following arguments are required: <gradle-version> <daemon-dir> <timeout-millis> <daemonUid> <optional daemon jvm opts>");
         }
         File daemonBaseDir = new File(args[1]);
 
@@ -64,10 +69,20 @@ public class DaemonMain extends EntryPoint {
 
         String daemonUid = args[3];
 
+        //TODO SF tidy up this parameters frenzy
         DaemonParameters parameters = new DaemonParameters(daemonUid);
         parameters.setBaseDir(daemonBaseDir);
         parameters.setIdleTimeout(idleTimeoutMs);
 
+        List<String> startupArgs = new LinkedList<String>();
+        for (int i = 4; i < args.length; i++) {
+            startupArgs.add(args[i]);
+        }
+        if (!startupArgs.isEmpty()) {
+            LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupArgs);
+            parameters.setJvmArgs(startupArgs);
+        }
+        
         new DaemonMain(parameters).run();
     }
 
@@ -81,12 +96,14 @@ public class DaemonMain extends EntryPoint {
         this.daemonUid = parameters.getUid();
         this.daemonBaseDir = parameters.getBaseDir();
         this.idleTimeoutMs = parameters.getIdleTimeout();
+        this.startupJvmOptions = parameters.getJvmOptions();
     }
 
     protected void doAction(ExecutionListener listener) {
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newChildProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.getFactory(LoggingManagerInternal.class).create();
-        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, daemonUid, loggingRegistry, loggingManager);
+        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, daemonUid,
+                loggingRegistry, loggingManager, startupJvmOptions);
         File daemonLog = daemonServices.getDaemonLogFile();
         final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
 

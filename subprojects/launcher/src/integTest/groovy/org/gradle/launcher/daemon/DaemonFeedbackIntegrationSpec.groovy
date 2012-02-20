@@ -48,7 +48,7 @@ task sleep << {
         def sleeper = executer.withArguments('-i').withTasks('sleep').start()
 
         then:
-        poll {
+        poll(15) {
             assert readLog(baseDir).contains("taking a nap...")
         }
 
@@ -232,6 +232,10 @@ task sleep << {
         assert logs.size() == 1
 
         logs[0].text
+    }
+    
+    void printAllLogs(baseDir) {
+        getLogs(baseDir).each { println "\n---- ${it.name} ----\n${it.text}\n--------\n" }
     }
 
     File firstLog(baseDir) {
