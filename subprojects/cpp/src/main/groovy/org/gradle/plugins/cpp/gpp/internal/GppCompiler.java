@@ -17,6 +17,7 @@
 package org.gradle.plugins.cpp.gpp.internal;
 
 import groovy.lang.Closure;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
@@ -27,12 +28,18 @@ import org.gradle.process.internal.ExecAction;
 import java.io.File;
 
 public class GppCompiler implements Compiler<GppCompileSpec> {
+    private final FileResolver fileResolver;
+
+    public GppCompiler(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
+    }
+
     public WorkResult execute(GppCompileSpec spec) {
         File workDir = spec.getWorkDir();
 
         ensureDirsExist(workDir, spec.getOutputFile().getParentFile());
 
-        ExecAction compiler = new DefaultExecAction(spec.getProject().getFileResolver());
+        ExecAction compiler = new DefaultExecAction(fileResolver);
         compiler.executable("g++");
         compiler.workingDir(workDir);
 

@@ -72,6 +72,15 @@ class OperatingSystemTest extends Specification {
         os.getExecutableName("a") == "a.exe"
     }
 
+    def "windows transforms shared library names"() {
+        def os = new OperatingSystem.Windows()
+
+        expect:
+        os.getSharedLibraryName("a.dll") == "a.dll"
+        os.getSharedLibraryName("a.DLL") == "a.DLL"
+        os.getSharedLibraryName("a") == "a.dll"
+    }
+
     def "windows searches for executable in path"() {
         def exe = tmpDir.createFile("bin/a.exe")
         tmpDir.createFile("bin2/a.exe")
@@ -157,6 +166,18 @@ class OperatingSystemTest extends Specification {
         os.getExecutableName("a") == "a"
     }
 
+    def "UNIX transforms shared library names"() {
+        def os = new OperatingSystem.Unix()
+
+        expect:
+        os.getSharedLibraryName("a.so") == "a.so"
+        os.getSharedLibraryName("liba.so") == "liba.so"
+        os.getSharedLibraryName("a") == "liba.so"
+        os.getSharedLibraryName("lib1") == "liblib1.so"
+        os.getSharedLibraryName("path/liba.so") == "path/liba.so"
+        os.getSharedLibraryName("path/a") == "path/liba.so"
+    }
+
     def "UNIX searches for executable in path"() {
         def exe = tmpDir.createFile("bin/a")
         tmpDir.createFile("bin2/a")
@@ -211,4 +232,17 @@ class OperatingSystemTest extends Specification {
         expect:
         osx.nativePrefix == 'darwin'
     }
+
+    def "os x transforms shared library names"() {
+        def os = new OperatingSystem.MacOs()
+
+        expect:
+        os.getSharedLibraryName("a.dylib") == "a.dylib"
+        os.getSharedLibraryName("liba.dylib") == "liba.dylib"
+        os.getSharedLibraryName("a") == "liba.dylib"
+        os.getSharedLibraryName("lib1") == "liblib1.dylib"
+        os.getSharedLibraryName("path/liba.dylib") == "path/liba.dylib"
+        os.getSharedLibraryName("path/a") == "path/liba.dylib"
+    }
+
 }

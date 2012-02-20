@@ -15,10 +15,12 @@
  */
 package org.gradle.plugins.cpp.gpp;
 
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.Compiler;
 import org.gradle.plugins.binaries.model.CompileSpecFactory;
 import org.gradle.plugins.binaries.model.Library;
+import org.gradle.plugins.cpp.gpp.internal.GppCompiler;
 
 /**
  * Compiler adapter for gpp
@@ -26,6 +28,13 @@ import org.gradle.plugins.binaries.model.Library;
 public class Gpp implements Compiler<GppCompileSpec> {
 
     public static final String NAME = "gpp";
+    private final GppCompiler compiler;
+    private final ProjectInternal project;
+
+    public Gpp(ProjectInternal project) {
+        this.project = project;
+        compiler = new GppCompiler(project.getFileResolver());
+    }
 
     public String getName() {
         return NAME;
@@ -35,9 +44,9 @@ public class Gpp implements Compiler<GppCompileSpec> {
         return new CompileSpecFactory<GppCompileSpec>() {
             public GppCompileSpec create(Binary binary) {
                 if (binary instanceof Library) {
-                    return new GppLibraryCompileSpec(binary);
+                    return new GppLibraryCompileSpec(binary, compiler, project);
                 }
-                return new GppCompileSpec(binary);
+                return new GppCompileSpec(binary, compiler, project);
             }
         };
     }

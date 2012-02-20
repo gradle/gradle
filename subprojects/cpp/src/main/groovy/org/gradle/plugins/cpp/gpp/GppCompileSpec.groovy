@@ -18,6 +18,8 @@ package org.gradle.plugins.cpp.gpp
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.binaries.model.Binary
 import org.gradle.plugins.binaries.model.CompileSpec
 import org.gradle.plugins.binaries.model.Library
@@ -25,8 +27,8 @@ import org.gradle.plugins.binaries.model.internal.CompileTaskAware
 import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.plugins.cpp.CppSourceSet
 import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler
-import org.gradle.plugins.cpp.gpp.internal.GppCompiler
 import org.gradle.plugins.cpp.internal.CppCompileSpec
+import org.gradle.util.DeprecationLogger
 
 class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAware, CppCompileSpec {
     Binary binary
@@ -37,14 +39,19 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
     String outputFileName
     String baseName
     String extension
+    private final Compiler<? super GppCompileSpec> compiler
+    private final ProjectInternal project
 
-    GppCompileSpec(Binary binary) {
+    GppCompileSpec(Binary binary, Compiler<? super GppCompileSpec> compiler, ProjectInternal project) {
         this.binary = binary
+        this.compiler = compiler
+        this.project = project
     }
 
     void configure(Compile task) {
         this.task = task
         task.spec = this
+        task.compiler = compiler
         setting {
             def outputFile = getOutputFile()
             if (outputFile) {
@@ -63,10 +70,6 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
         binary.name
     }
 
-    ProjectInternal getProject() {
-        binary.project
-    }
-
     File getWorkDir() {
         project.file "$project.buildDir/compileWork/$name"
     }
@@ -77,10 +80,16 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
 
     String getOutputFileName() {
         if (outputFileName) {
-            outputFileName
+            return outputFileName
+        } else if (extension) {
+            return "${getBaseName()}.${extension}"
         } else {
-            extension ? "${getBaseName()}.${extension}" : getBaseName()
+            return getDefaultOutputFileName()
         }
+    }
+
+    protected String getDefaultOutputFileName() {
+        return OperatingSystem.current().getExecutableName(getBaseName())
     }
 
     String getBaseName() {
@@ -159,6 +168,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
     }
 
     void compile() {
-        new GppCompiler().execute(this)
+        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileSpec.compile()")
+        compiler.execute(this)
     }
 }

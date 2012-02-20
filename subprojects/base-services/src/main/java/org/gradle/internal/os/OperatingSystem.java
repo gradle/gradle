@@ -79,6 +79,8 @@ public abstract class OperatingSystem {
 
     public abstract String getExecutableName(String executablePath);
 
+    public abstract String getSharedLibraryName(String libraryName);
+
     public File findInPath(String name) {
         String exeName = getExecutableName(name);
         if (exeName.contains(File.separator)) {
@@ -126,10 +128,12 @@ public abstract class OperatingSystem {
 
         @Override
         public String getExecutableName(String executablePath) {
-            if (executablePath.toLowerCase().endsWith(".exe")) {
-                return executablePath;
-            }
-            return executablePath + ".exe";
+            return withSuffix(executablePath, ".exe");
+        }
+
+        @Override
+        public String getSharedLibraryName(String libraryPath) {
+            return withSuffix(libraryPath, ".dll");
         }
 
         @Override
@@ -139,6 +143,13 @@ public abstract class OperatingSystem {
                 arch = "x86";
             }
             return "win32-" + arch;
+        }
+
+        private String withSuffix(String executablePath, String extension) {
+            if (executablePath.toLowerCase().endsWith(extension)) {
+                return executablePath;
+            }
+            return executablePath + extension;
         }
     }
 
@@ -151,6 +162,24 @@ public abstract class OperatingSystem {
         @Override
         public String getExecutableName(String executablePath) {
             return executablePath;
+        }
+
+        @Override
+        public String getSharedLibraryName(String libraryName) {
+            String suffix = getSharedLibSuffix();
+            if (libraryName.endsWith(suffix)) {
+                return libraryName;
+            }
+            int pos = libraryName.lastIndexOf('/');
+            if (pos >= 0) {
+                return libraryName.substring(0, pos + 1) + "lib" + libraryName.substring(pos + 1) + suffix;
+            } else {
+                return "lib" + libraryName + suffix;
+            }
+        }
+
+        protected String getSharedLibSuffix() {
+            return ".so";
         }
 
         @Override
@@ -194,6 +223,11 @@ public abstract class OperatingSystem {
         public boolean isMacOsX() {
             return true;
 
+        }
+
+        @Override
+        protected String getSharedLibSuffix() {
+            return ".dylib";
         }
 
         @Override

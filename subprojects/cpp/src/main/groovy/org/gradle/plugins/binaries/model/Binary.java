@@ -26,6 +26,11 @@ public interface Binary extends Named {
 
     CompileSpec getSpec();
 
+    /**
+     * Returns the project that this binary is built by.
+     *
+     * @deprecated No replacement
+     */
     @Deprecated
     Project getProject();
     

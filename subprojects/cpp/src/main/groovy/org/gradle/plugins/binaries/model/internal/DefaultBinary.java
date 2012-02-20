@@ -24,6 +24,7 @@ import org.gradle.plugins.binaries.model.CompileSpec;
 import org.gradle.plugins.binaries.model.CompilerRegistry;
 import org.gradle.plugins.binaries.model.SourceSet;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 
 public class DefaultBinary implements Binary {
 
@@ -45,6 +46,7 @@ public class DefaultBinary implements Binary {
     }
 
     public ProjectInternal getProject() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Binary.getProject()");
         return project;
     }
 

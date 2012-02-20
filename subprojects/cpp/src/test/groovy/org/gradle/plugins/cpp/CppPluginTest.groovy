@@ -21,11 +21,14 @@ import org.gradle.util.HelperUtil
 import org.gradle.plugins.cpp.gpp.GppCompileSpec
 import org.gradle.plugins.cpp.gpp.GppLibraryCompileSpec
 import org.gradle.plugins.binaries.tasks.Compile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class CppPluginTest extends Specification {
     final def project = HelperUtil.createRootProject()
 
-    def "creates domain objects for executable"() {
+    @Requires(TestPrecondition.UNIX)
+    def "creates domain objects for executable on unix"() {
         given:
         project.plugins.apply(CppPlugin)
 
@@ -35,7 +38,25 @@ class CppPluginTest extends Specification {
         }
 
         then:
-        project.executables.test.spec instanceof GppCompileSpec
+        def executable = project.executables.test
+        executable.spec instanceof GppCompileSpec
+        executable.spec.outputFile == project.file("build/binaries/test")
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "creates domain objects for executable on windows"() {
+        given:
+        project.plugins.apply(CppPlugin)
+
+        when:
+        project.executables {
+            test
+        }
+
+        then:
+        def executable = project.executables.test
+        executable.spec instanceof GppCompileSpec
+        executable.spec.outputFile == project.file("build/binaries/test.exe")
     }
 
     def "creates tasks for each executable"() {
@@ -53,7 +74,8 @@ class CppPluginTest extends Specification {
         task.spec == project.executables.test.spec
     }
 
-    def "creates domain objects for library"() {
+    @Requires(TestPrecondition.MAC_OS_X)
+    def "creates domain objects for library on os x"() {
         given:
         project.plugins.apply(CppPlugin)
 
@@ -65,6 +87,39 @@ class CppPluginTest extends Specification {
         then:
         def lib = project.libraries.test
         lib.spec instanceof GppLibraryCompileSpec
+        lib.spec.outputFile == project.file("build/binaries/libtest.dylib")
+    }
+
+    @Requires(TestPrecondition.LINUX)
+    def "creates domain objects for library on linux"() {
+        given:
+        project.plugins.apply(CppPlugin)
+
+        when:
+        project.libraries {
+            test
+        }
+
+        then:
+        def lib = project.libraries.test
+        lib.spec instanceof GppLibraryCompileSpec
+        lib.spec.outputFile == project.file("build/binaries/libtest.so")
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "creates domain objects for library on windows"() {
+        given:
+        project.plugins.apply(CppPlugin)
+
+        when:
+        project.libraries {
+            test
+        }
+
+        then:
+        def lib = project.libraries.test
+        lib.spec instanceof GppLibraryCompileSpec
+        lib.spec.outputFile == project.file("build/binaries/test.dll")
     }
 
     def "creates tasks for each library"() {

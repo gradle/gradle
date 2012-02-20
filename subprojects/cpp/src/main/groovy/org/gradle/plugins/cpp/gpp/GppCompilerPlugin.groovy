@@ -15,15 +15,15 @@
  */
 package org.gradle.plugins.cpp.gpp
 
-import org.gradle.api.Project
 import org.gradle.api.Plugin
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.plugins.binaries.BinariesPlugin
 
-class GppCompilerPlugin implements Plugin<Project> {
+class GppCompilerPlugin implements Plugin<ProjectInternal> {
 
-    void apply(Project project) {
+    void apply(ProjectInternal project) {
         project.plugins.apply(BinariesPlugin)
-        project.compilers << new Gpp()
+        project.compilers << new Gpp(project)
     }
 
 }

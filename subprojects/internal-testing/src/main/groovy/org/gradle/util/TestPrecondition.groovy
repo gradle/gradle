@@ -61,6 +61,9 @@ enum TestPrecondition {
     LINUX({
         OperatingSystem.current().linux
     }),
+    UNIX({
+        OperatingSystem.current().unix
+    }),
     UNKNOWN_OS({
         OperatingSystem.current().name == "unknown operating system"
     }),
