@@ -16,28 +16,25 @@
 
 package org.gradle.integtests.environment
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Jvm
 import org.gradle.internal.nativeplatform.FileSystems
 
-import org.junit.Test
 import spock.lang.Issue
 import org.gradle.util.TextUtil
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 /**
  * @author: Szczepan Faber, created at: 8/11/11
  */
-class BuildEnvironmentIntegrationTest extends AbstractIntegrationTest {
-
-    @Test
-    public void "canonicalizes working directory"() {
+class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
+    def "canonicalizes working directory"() {
         distribution.testFile("java/multiproject").createDir()
         def projectDir = distribution.testFile("java/quickstart")
-        projectDir.file('build.gradle') << """
-assert file('.') == new File(new URI('${projectDir.toURI()}'))
-"""
+        projectDir.file('build.gradle') << "assert file('.') == new File(new URI('${projectDir.toURI()}'))"
+
+        when:
         File relativeDir = new File(distribution.testDir, 'java/multiproject/../quickstart')
         executer.inDirectory(relativeDir).run()
 
@@ -49,24 +46,29 @@ assert file('.') == new File(new URI('${projectDir.toURI()}'))
             File shortDir = new File(distribution.testDir, 'java/QUICKS~1')
             executer.inDirectory(shortDir).run()
         }
+
+        then:
+        noExceptionThrown()
     }
 
     @Issue("GRADLE-1762")
-    @Test
-    void "build uses environment variables from where the build was launched"() {
-        file('build.gradle') << """
-println System.getenv('foo')
-"""
+    def "build uses environment variables from where the build was launched"() {
+        file('build.gradle') << "println System.getenv('foo')"
 
+        when:
         def out = executer.withEnvironmentVars(foo: "gradle rocks!").run().output
-        assert out.contains("gradle rocks!")
 
+        then:
+        out.contains("gradle rocks!")
+
+        when:
         out = executer.withEnvironmentVars(foo: "and will be even better").run().output
-        assert out.contains("and will be even better")
+
+        then:
+        out.contains("and will be even better")
     }
 
-    @Test
-    public void "build is executed with working directory set to where the build was launched from"() {
+    def "build is executed with working directory set to where the build was launched from"() {
         def project1 = distribution.testFile("project1")
         def project2 = distribution.testFile("project2")
 
@@ -90,38 +92,46 @@ assert classesDir.mkdirs()
 assert classesDir.directory
 """
 
+        when:
         executer.inDirectory(project1).run()
         executer.inDirectory(project2).run()
+
+        then:
+        noExceptionThrown()
     }
 
-    @Test
-    void "system properties should be made available to build"() {
-        file('build.gradle') << """
-    assert System.properties['foo'] == 'bar'
-"""
+    def "system properties should be made available to build"() {
+        file('build.gradle') << "assert System.properties['foo'] == 'bar'"
+
+        when:
         executer.withArguments("-Dfoo=bar").run()
+
+        then:
+        noExceptionThrown()
     }
 
-    @Test
-    void "java home from environment should be used to run build"() {
+    def "java home from environment should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.bestAlternative
         if (alternateJavaHome == null) {
             return
         }
 
-        file('build.gradle') << """
-            println "javaHome=" + org.gradle.util.Jvm.current().javaHome.canonicalPath
-        """
+        file('build.gradle') << "println 'javaHome=' + org.gradle.util.Jvm.current().javaHome.canonicalPath"
 
+        when:
         def out = executer.run().output
-        assert out.contains("javaHome=" + Jvm.current().javaHome.canonicalPath)
 
+        then:
+        out.contains("javaHome=" + Jvm.current().javaHome.canonicalPath)
+
+        when:
         out = executer.withJavaHome(alternateJavaHome).run().output
-        assert out.contains("javaHome=" + alternateJavaHome.canonicalPath)
+
+        then:
+        out.contains("javaHome=" + alternateJavaHome.canonicalPath)
     }
 
-    @Test
-    void "java home from gradle properties should be used to run build"() {
+    def "java home from gradle properties should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.bestAlternative
         if (alternateJavaHome == null) {
             return
@@ -129,12 +139,13 @@ assert classesDir.directory
 
         file('gradle.properties') << "org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}"
 
-        file('build.gradle') << """
-            println "javaHome=" + org.gradle.util.Jvm.current().javaHome.absolutePath
-        """
+        file('build.gradle') << "println 'javaHome=' + org.gradle.util.Jvm.current().javaHome.absolutePath"
 
+        when:
         // Need the forking executer for this to work. Embedded executer will not fork a new process if jvm doesn't match.
         def out = executer.withForkingExecuter().run().output
-        assert out.contains("javaHome=" + alternateJavaHome.absolutePath)
+
+        then:
+        out.contains("javaHome=" + alternateJavaHome.absolutePath)
     }
 }
