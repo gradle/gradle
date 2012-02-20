@@ -49,6 +49,11 @@ class JvmOptionsTest extends Specification {
         parse("  -Dfoo=\" hey man! \"  " ).getSystemProperties().get("foo") == " hey man! "
     }
 
+    def "understands quoted jvm options"() {
+        expect:
+        parse('  -XX:HeapDumpPath="/tmp/with space" ').jvmArgs.contains('-XX:HeapDumpPath="/tmp/with space"')
+    }
+
     def "can parse file encoding property"() {
         expect:
         parse("-Dfile.encoding=UTF-8 -Dfoo.encoding=blah -Dfile.encoding=UTF-16").defaultCharacterEncoding == "UTF-16"

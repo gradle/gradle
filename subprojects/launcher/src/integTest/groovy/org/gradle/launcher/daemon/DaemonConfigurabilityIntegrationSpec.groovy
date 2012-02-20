@@ -39,7 +39,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         """
     }
 
-    def "honours jvm args that contain a space in gradle.properties"() {
+    def "honours jvm sys property that contain a space in gradle.properties"() {
         given:
         distribution.file("gradle.properties") << 'org.gradle.jvmargs=-Dsome-prop="i have space"'
 
@@ -47,6 +47,17 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         buildSucceeds """
 assert System.getProperty('some-prop').toString() == 'i have space'
         """
+    }
+
+    def "honours jvm option that contain a space in gradle.properties"() {
+        given:
+        distribution.file("gradle.properties") << 'org.gradle.jvmargs=-XX:HeapDumpPath="/tmp/with space"'
+
+        expect:
+        buildSucceeds """
+def inputArgs = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments()
+assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
+"""
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
