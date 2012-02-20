@@ -658,7 +658,7 @@
                     <literal>'1.5'</literal> or <literal>1.5</literal>.
                 </td>
                 <td>
-                    <literal>1.5</literal>
+                    <literal>Value of the current used JVM</literal>
                 </td>
                 <td>Java version compatibility to use when compiling Java source.</td>
             </tr>
