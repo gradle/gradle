@@ -1,6 +1,7 @@
 <releases>
-  <next version="1.0-milestone-8a"/>
+  <next version="1.0-milestone-9"/>
   <current version="${version}" build-time="${buildTime}" type="${releaseType}"/>
+  <release version="1.0-milestone-8a" build-time="20120220185357+0100"/>
   <release version="1.0-milestone-8" build-time="20120214022451+0100"/>
   <release version="1.0-milestone-7" build-time="20120105102443+0000"/>
   <release version="1.0-milestone-6" build-time="20111117065412+0100"/>
