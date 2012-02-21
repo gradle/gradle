@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.client
+package org.gradle.launcher.daemon.configuration
 
 import org.gradle.StartParameter
 import org.gradle.api.GradleException

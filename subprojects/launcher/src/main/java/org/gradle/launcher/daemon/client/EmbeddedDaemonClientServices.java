@@ -19,6 +19,7 @@ import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonDir;

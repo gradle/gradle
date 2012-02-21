@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client
 
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
 import org.gradle.logging.LoggingServiceRegistry

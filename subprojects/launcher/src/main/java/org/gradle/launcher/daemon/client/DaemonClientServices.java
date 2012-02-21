@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;

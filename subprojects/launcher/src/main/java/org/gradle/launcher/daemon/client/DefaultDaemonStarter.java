@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.nativeplatform.jna.WindowsProcessStarter;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.logging.DaemonGreeter;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.util.GUtil;

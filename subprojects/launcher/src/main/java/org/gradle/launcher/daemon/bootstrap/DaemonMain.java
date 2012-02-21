@@ -19,7 +19,8 @@ import com.google.common.io.Files;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.client.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
+import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonGreeter;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
@@ -31,7 +32,6 @@ import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
-import org.gradle.process.internal.JvmOptions;
 
 import java.io.*;
 import java.util.LinkedList;
@@ -52,11 +52,11 @@ public class DaemonMain extends EntryPoint {
     private final File daemonBaseDir;
     private final int idleTimeoutMs;
 
-    protected JvmOptions startupJvmOptions;
+    private final List<String> startupJvmOptions = new LinkedList<String>();
 
     public static void main(String[] args) {
         if (args.length < 4) {
-            invalidArgs("Following arguments are required: <gradle-version> <daemon-dir> <timeout-millis> <daemonUid> <optional daemon jvm opts>");
+            invalidArgs("Following arguments are required: <gradle-version> <daemon-dir> <timeout-millis> <daemonUid> <optional startup jvm opts>");
         }
         File daemonBaseDir = new File(args[1]);
 
@@ -69,21 +69,23 @@ public class DaemonMain extends EntryPoint {
 
         String daemonUid = args[3];
 
-        //TODO SF tidy up this parameters frenzy
-        DaemonParameters parameters = new DaemonParameters(daemonUid);
-        parameters.setBaseDir(daemonBaseDir);
-        parameters.setIdleTimeout(idleTimeoutMs);
+        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs);
+        DaemonMain daemonMain = new DaemonMain(parameters);
 
-        List<String> startupArgs = new LinkedList<String>();
+        List<String> startupOpts = new LinkedList<String>();
         for (int i = 4; i < args.length; i++) {
-            startupArgs.add(args[i]);
+            startupOpts.add(args[i]);
         }
-        if (!startupArgs.isEmpty()) {
-            LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupArgs);
-            parameters.setJvmArgs(startupArgs);
+        if (!startupOpts.isEmpty()) {
+            LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
+            daemonMain.addStartupJvmOptions(startupOpts);
         }
-        
-        new DaemonMain(parameters).run();
+
+        daemonMain.run();
+    }
+
+    protected void addStartupJvmOptions(List<String> startupJvmOptions) {
+        this.startupJvmOptions.addAll(startupJvmOptions);
     }
 
     private static void invalidArgs(String message) {
@@ -92,11 +94,10 @@ public class DaemonMain extends EntryPoint {
         System.exit(1);
     }
 
-    public DaemonMain(DaemonParameters parameters) {
-        this.daemonUid = parameters.getUid();
-        this.daemonBaseDir = parameters.getBaseDir();
-        this.idleTimeoutMs = parameters.getIdleTimeout();
-        this.startupJvmOptions = parameters.getJvmOptions();
+    public DaemonMain(DaemonServerConfiguration configuration) {
+        this.daemonUid = configuration.getUid();
+        this.daemonBaseDir = configuration.getBaseDir();
+        this.idleTimeoutMs = configuration.getIdleTimeout();
     }
 
     protected void doAction(ExecutionListener listener) {

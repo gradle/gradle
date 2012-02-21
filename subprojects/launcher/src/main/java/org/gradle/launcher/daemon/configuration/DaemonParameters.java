@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.client;
+package org.gradle.launcher.daemon.configuration;
 
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
@@ -36,7 +36,7 @@ import java.util.*;
 import static java.util.Arrays.asList;
 import static org.gradle.util.GFileUtils.canonicalise;
 
-public class DaemonParameters {
+public class DaemonParameters implements DaemonServerConfiguration {
     public static final String IDLE_TIMEOUT_SYS_PROPERTY = "org.gradle.daemon.idletimeout";
     public static final String BASE_DIR_SYS_PROPERTY = "org.gradle.daemon.registry.base";
     public static final String JVM_ARGS_SYS_PROPERTY = "org.gradle.jvmargs";
@@ -199,9 +199,5 @@ public class DaemonParameters {
                 throw new GradleException(String.format("Java home supplied via '%s' seems to be invalid: %s", JAVA_HOME_SYS_PROPERTY, propertyValue));
             }
         }
-    }
-
-    public JvmOptions getJvmOptions() {
-        return jvmOptions;
     }
 }

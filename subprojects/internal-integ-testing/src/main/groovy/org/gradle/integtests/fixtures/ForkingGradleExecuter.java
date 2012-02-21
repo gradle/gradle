@@ -21,7 +21,7 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.launcher.daemon.client.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.process.internal.ExecHandleBuilder;

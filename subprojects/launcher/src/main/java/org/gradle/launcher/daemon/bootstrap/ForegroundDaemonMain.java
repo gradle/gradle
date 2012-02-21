@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.bootstrap;
 
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.launcher.daemon.client.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
@@ -30,16 +30,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ForegroundDaemonMain extends DaemonMain {
-    public ForegroundDaemonMain(DaemonParameters parameters) {
-        super(parameters);
 
-        //TODO SF tidy this up
+    public ForegroundDaemonMain(DaemonServerConfiguration configuration) {
+        super(configuration);
+
+        List<String> opts = inferDaemonJvmOptions();
+        addStartupJvmOptions(opts);
+    }
+
+    private List<String> inferDaemonJvmOptions() {
+        //foregound daemon cannot be 'told' what's his startup options as the client sits in the same process
+        //so we will infer the jvm opts from the inputArguments()
         JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
         List<String> inputArguments = new ArrayList<String>(ManagementFactory.getRuntimeMXBean().getInputArguments());
         jvmOptions.setAllJvmArgs(inputArguments);
-
-        //Simplification, we will be interested only in managed jvm args
-        this.startupJvmOptions.setAllJvmArgs(jvmOptions.getMangedJvmArgs());
+        //Simplification, we will make the foreground daemon interested only in managed jvm args
+        return jvmOptions.getMangedJvmArgs();
     }
 
     @Override
