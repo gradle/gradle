@@ -17,18 +17,21 @@ package org.gradle.plugins.binaries.model.internal;
 
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.Instantiator;
+import org.gradle.plugins.binaries.model.*;
 import org.gradle.plugins.binaries.model.Compiler;
-import org.gradle.plugins.binaries.model.CompilerRegistry;
 
-public class DefaultCompilerRegistry extends DefaultNamedDomainObjectSet<Compiler> implements CompilerRegistry {
+public class DefaultCompilerRegistry extends DefaultNamedDomainObjectSet<Compiler> implements CompilerRegistry, CompileSpecFactory<CompileSpec> {
 
     public DefaultCompilerRegistry(Instantiator instantiator) {
         super(Compiler.class, instantiator);
     }
 
-    public Compiler<?> getDefaultCompiler() {
+    public Compiler getDefaultCompiler() {
         // lame impl, unsure how this will work in reality
         return iterator().next();
     }
 
+    public CompileSpec create(Binary binary) {
+        return ((CompilerAdapter) getDefaultCompiler()).getSpecFactory().create(binary);
+    }
 }

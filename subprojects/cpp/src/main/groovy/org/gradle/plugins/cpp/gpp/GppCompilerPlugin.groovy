@@ -18,12 +18,17 @@ package org.gradle.plugins.cpp.gpp
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.plugins.binaries.BinariesPlugin
+import org.gradle.plugins.binaries.model.CompilerRegistry
+import org.gradle.plugins.cpp.gpp.internal.GppCompilerAdapter
 
+/**
+ * A {@link Plugin} which makes the <a href="http://gcc.gnu.org/">GNU G++ compiler</a> available for compiling C/C++ code.
+ */
 class GppCompilerPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
         project.plugins.apply(BinariesPlugin)
-        project.compilers << new Gpp(project)
+        project.extensions.getByType(CompilerRegistry).add(new GppCompilerAdapter(project))
     }
 
 }

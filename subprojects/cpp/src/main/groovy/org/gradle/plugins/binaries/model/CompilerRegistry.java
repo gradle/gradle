@@ -23,8 +23,8 @@ import org.gradle.api.NamedDomainObjectSet;
 public interface CompilerRegistry extends NamedDomainObjectSet<Compiler> {
 
     /**
-     * Somehow picks what the default compiler to use is
+     * Somehow picks what the default compiler to use is.
      */
-    Compiler<?> getDefaultCompiler();
+    Compiler getDefaultCompiler();
 
 }

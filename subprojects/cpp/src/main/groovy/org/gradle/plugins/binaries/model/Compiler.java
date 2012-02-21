@@ -19,14 +19,6 @@ import org.gradle.api.Named;
 
 /**
  * A kind of compiler
- * 
- * @param <T> The kind of CompileSpec this compiler exposes
  */
-public interface Compiler<T extends CompileSpec> extends Named {
-
-    /**
-     * Returns a factory for creating compile specs that will compile with this compiler
-     */
-    CompileSpecFactory<T> getSpecFactory();
-
+public interface Compiler extends Named {
 }

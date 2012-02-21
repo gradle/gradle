@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.gpp;
+package org.gradle.plugins.cpp.gpp.internal;
 
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.binaries.model.Binary;
-import org.gradle.plugins.binaries.model.Compiler;
-import org.gradle.plugins.binaries.model.CompileSpecFactory;
+import org.gradle.plugins.binaries.model.internal.CompileSpecFactory;
 import org.gradle.plugins.binaries.model.Library;
-import org.gradle.plugins.cpp.gpp.internal.GppCompiler;
+import org.gradle.plugins.binaries.model.internal.CompilerAdapter;
+import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.gradle.plugins.cpp.gpp.GppLibraryCompileSpec;
 
 /**
- * Compiler adapter for gpp
+ * Compiler adapter for g++
  */
-public class Gpp implements Compiler<GppCompileSpec> {
+public class GppCompilerAdapter implements CompilerAdapter<GppCompileSpec> {
 
     public static final String NAME = "gpp";
     private final GppCompiler compiler;
     private final ProjectInternal project;
 
-    public Gpp(ProjectInternal project) {
+    public GppCompilerAdapter(ProjectInternal project) {
         this.project = project;
         compiler = new GppCompiler(project.getFileResolver());
     }

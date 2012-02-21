@@ -21,7 +21,6 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.CompileSpec;
-import org.gradle.plugins.binaries.model.CompilerRegistry;
 import org.gradle.plugins.binaries.model.SourceSet;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -33,12 +32,11 @@ public class DefaultBinary implements Binary {
     private final CompileSpec spec;
     private final DomainObjectSet<SourceSet> sourceSets;
 
-    public DefaultBinary(String name, ProjectInternal project) {
+    public DefaultBinary(String name, ProjectInternal project, CompileSpecFactory<?> specFactory) {
         this.name = name;
         this.project = project;
         this.sourceSets = new DefaultDomainObjectSet<SourceSet>(SourceSet.class);
-        CompilerRegistry compilers = project.getExtensions().getByType(CompilerRegistry.class);
-        this.spec = compilers.getDefaultCompiler().getSpecFactory().create(this);
+        this.spec = specFactory.create(this);
     }
 
     public String getName() {

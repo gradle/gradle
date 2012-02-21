@@ -17,7 +17,7 @@ package org.gradle.plugins.cpp
 
 import static org.gradle.util.TextUtil.escapeString
 
-class CppHelloWorldExecutableIntegrationSpec extends AbstractBinariesIntegrationSpec {
+class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
 
     static final HELLO_WORLD = "Hello, World!"
 
@@ -43,8 +43,32 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractBinariesIntegration
 
         then:
         def executable = executable("build/binaries/test")
-        executable.exists()
+        executable.isFile()
         executable.exec().out == HELLO_WORLD
+    }
+
+    def "build simple cpp library"() {
+        given:
+        buildFile << """
+            apply plugin: "cpp-lib"
+        """
+        settingsFile << "rootProject.name = 'test'"
+
+        and:
+        file("src", "main", "cpp", "helloworld.cpp") << """
+            #include <iostream>
+
+            int main () {
+              std::cout << "${escapeString(HELLO_WORLD)}";
+              return 0;
+            }
+        """
+
+        when:
+        run "compileMain"
+
+        then:
+        sharedLibrary("build/binaries/test").isFile()
     }
 
     def "build fails when compilation fails"() {
@@ -150,7 +174,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractBinariesIntegration
         run "compileMain"
 
         then:
-        sharedLibrary("build/binaries/hello").exists()
+        sharedLibrary("build/binaries/hello").isFile()
         executable("build/binaries/test").exec().out == HELLO_WORLD
     }
 }

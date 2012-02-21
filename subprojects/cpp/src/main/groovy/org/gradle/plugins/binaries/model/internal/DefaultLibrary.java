@@ -31,8 +31,8 @@ import java.util.List;
 public class DefaultLibrary extends DefaultBinary implements Library {
     private final DefaultSourceDirectorySet headers;
 
-    public DefaultLibrary(String name, ProjectInternal project) {
-        super(name, project);
+    public DefaultLibrary(String name, ProjectInternal project, CompileSpecFactory<?> specFactory) {
+        super(name, project, specFactory);
         this.headers = new DefaultSourceDirectorySet("headers", String.format("Exported headers for native library '%s'", name), project.getFileResolver());
 
         initExportedHeaderTracking();

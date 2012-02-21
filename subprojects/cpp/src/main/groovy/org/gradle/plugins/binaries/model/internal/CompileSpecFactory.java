@@ -15,12 +15,19 @@
  */
 package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.plugins.binaries.model.Executable;
+import org.gradle.plugins.binaries.model.Binary;
+import org.gradle.plugins.binaries.model.CompileSpec;
 
-import org.gradle.api.internal.project.ProjectInternal;
+/**
+ * Producer of compile specs
+ * 
+ * @param <T> The type of compile spec produced
+ */
+public interface CompileSpecFactory<T extends CompileSpec> {
 
-public class DefaultExecutable extends DefaultBinary implements Executable {
-    public DefaultExecutable(String name, ProjectInternal project, CompileSpecFactory<?> specFactory) {
-        super(name, project, specFactory);
-    }
+    /**
+     * Create a new spec to compile this binary
+     */
+    T create(Binary binary);
+
 }
