@@ -35,9 +35,9 @@ dependencies {
     userGuideTask module('xhtmlrenderer:xhtmlrenderer:R8rc1') {
         dependency 'itext:itext:2.0.8@jar'
     }
-    userGuideTask 'net.sf.xslthl:xslthl:2.0.2@jar'
+    userGuideTask 'xslthl:xslthl:2.0.1@jar'
 
-    userGuideStyleSheets 'net.sf.docbook:docbook-xsl:1.76.1:resources@zip'
+    userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
 }
 
 srcDocsDir = file('src/docs')
