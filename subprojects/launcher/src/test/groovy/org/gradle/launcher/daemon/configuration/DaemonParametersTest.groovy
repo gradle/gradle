@@ -209,5 +209,11 @@ class DaemonParametersTest extends Specification {
         ex.message.contains 'foobar'
     }
 
-    //TODO SF add coverage and fix bug for the 'empty' system properties, e.g. '-Dfoo'
+    def "supports 'empty' system properties"() {
+        when:
+        parameters.configureFrom([(DaemonParameters.JVM_ARGS_SYS_PROPERTY) : "-Dfoo= -Dbar"])
+
+        then:
+        parameters.getSystemProperties() == [foo: '', bar: '']
+    }
 }

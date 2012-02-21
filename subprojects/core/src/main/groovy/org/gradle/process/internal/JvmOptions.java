@@ -148,7 +148,7 @@ public class JvmOptions {
             }
             matcher = NO_ARG_SYS_PROP_PATTERN.matcher(argStr);
             if (matcher.matches()) {
-                systemProperties.put(matcher.group(1), null);
+                systemProperties.put(matcher.group(1), "");
                 continue;
             }
             matcher = MIN_HEAP_PATTERN.matcher(argStr);

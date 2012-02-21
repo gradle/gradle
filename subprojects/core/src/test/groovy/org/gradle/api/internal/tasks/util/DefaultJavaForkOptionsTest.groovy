@@ -17,8 +17,7 @@
 
 package org.gradle.api.internal.tasks.util
 
-import static org.hamcrest.Matchers.*
-
+import java.nio.charset.Charset
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.IdentityFileResolver
@@ -27,13 +26,13 @@ import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.Jvm
 import org.jmock.integration.junit4.JMock
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.gradle.util.Matchers.isEmpty
 import static org.gradle.util.Matchers.isEmptyMap
+import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.junit.Before
-import java.nio.charset.Charset
 
 @RunWith(JMock.class)
 public class DefaultJavaForkOptionsTest {
@@ -100,7 +99,7 @@ public class DefaultJavaForkOptionsTest {
         options.systemProperties(key: 12)
         options.jvmArgs('-Dkey=new value', '-Dkey2')
 
-        assertThat(options.systemProperties, equalTo(key: 'new value', key2: null))
+        assertThat(options.systemProperties, equalTo(key: 'new value', key2: ''))
 
         options.allJvmArgs = []
 

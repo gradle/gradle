@@ -49,6 +49,11 @@ class JvmOptionsTest extends Specification {
         parse("  -Dfoo=\" hey man! \"  " ).getSystemProperties().get("foo") == " hey man! "
     }
 
+    def "understands 'empty' system properties"() {
+        expect:
+        parse("-Dfoo= -Dbar" ).getSystemProperties() == [foo: '', bar: '']
+    }
+
     def "understands quoted jvm options"() {
         expect:
         parse('  -XX:HeapDumpPath="/tmp/with space" ').jvmArgs.contains('-XX:HeapDumpPath="/tmp/with space"')
