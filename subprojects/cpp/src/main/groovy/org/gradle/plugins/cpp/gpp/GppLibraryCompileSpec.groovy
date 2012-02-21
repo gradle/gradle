@@ -27,7 +27,6 @@ class GppLibraryCompileSpec extends GppCompileSpec implements LibraryCompileSpec
 
     GppLibraryCompileSpec(Binary binary, Compiler<? super GppCompileSpec> compiler, ProjectInternal project) {
         super(binary, compiler, project)
-        sharedLibrary()
     }
 
     @Override

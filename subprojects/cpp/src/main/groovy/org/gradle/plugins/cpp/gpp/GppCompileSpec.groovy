@@ -29,6 +29,7 @@ import org.gradle.plugins.cpp.CppSourceSet
 import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler
 import org.gradle.plugins.cpp.internal.CppCompileSpec
 import org.gradle.util.DeprecationLogger
+import org.gradle.api.file.ConfigurableFileCollection
 
 class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAware, CppCompileSpec {
     Binary binary
@@ -41,23 +42,19 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
     String extension
     private final Compiler<? super GppCompileSpec> compiler
     private final ProjectInternal project
+    private final ConfigurableFileCollection libs
 
     GppCompileSpec(Binary binary, Compiler<? super GppCompileSpec> compiler, ProjectInternal project) {
         this.binary = binary
         this.compiler = compiler
         this.project = project
+        libs = project.files()
     }
 
     void configure(Compile task) {
         this.task = task
         task.spec = this
         task.compiler = compiler
-        setting {
-            def outputFile = getOutputFile()
-            if (outputFile) {
-                it.args "-o", outputFile.absolutePath
-            }
-        }
 
         task.onlyIf { !task.inputs.files.empty }
         task.outputs.file { getOutputFile() }
@@ -72,6 +69,10 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
 
     File getWorkDir() {
         project.file "$project.buildDir/compileWork/$name"
+    }
+
+    Iterable<File> getLibs() {
+        return libs
     }
 
     /**
@@ -168,7 +169,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
 
     void libs(Iterable<Library> libs) {
         task.dependsOn { libs*.spec*.task }
-        source(project.files { libs*.spec*.outputFile })
+        this.libs.from({ libs*.spec*.outputFile })
         includes(project.files { libs*.headers*.srcDirs })
     }
 
@@ -178,11 +179,18 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
         }
     }
 
+    /**
+     * @deprecated No replacement
+     */
+    @Deprecated
     void sharedLibrary() {
-        setting { it.args "-shared" }
-        setting { it.args "-fPIC" }
+        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileSpec.sharedLibrary()")
     }
 
+    /**
+     * @deprecated No replacement
+     */
+    @Deprecated
     void compile() {
         DeprecationLogger.nagUserOfDiscontinuedMethod("CompileSpec.compile()")
         compiler.execute(this)

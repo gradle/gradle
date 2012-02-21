@@ -32,6 +32,6 @@ import org.gradle.plugins.cpp.msvcpp.internal.VisualCppCompilerAdapter
 class MicrosoftVisualCppPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(BinariesPlugin)
-        project.extensions.getByType(CompilerRegistry).add(new VisualCppCompilerAdapter())
+        project.extensions.getByType(CompilerRegistry).add(new VisualCppCompilerAdapter(project))
     }
 }

@@ -16,47 +16,37 @@
 
 package org.gradle.plugins.cpp.gpp.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
-import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.plugins.binaries.model.LibraryCompileSpec;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
-import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 
-public class GppCompiler implements Compiler<GppCompileSpec> {
+public class GppCompiler extends CommandLineCppCompiler {
     static final String EXECUTABLE = "g++";
-    private final FileResolver fileResolver;
 
     public GppCompiler(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
+        super(fileResolver);
     }
 
-    public WorkResult execute(GppCompileSpec spec) {
-        File workDir = spec.getWorkDir();
+    @Override
+    protected String getExecutable() {
+        return EXECUTABLE;
+    }
 
-        ensureDirsExist(workDir, spec.getOutputFile().getParentFile());
-
-        ExecAction compiler = new DefaultExecAction(fileResolver);
-        compiler.executable(EXECUTABLE);
-        compiler.workingDir(workDir);
-
-        // Apply all of the settings
-        for (Closure closure : spec.getSettings()) {
-            closure.call(compiler);
+    @Override
+    protected void configure(ExecAction compiler, GppCompileSpec spec) {
+        compiler.args("-o", spec.getOutputFile());
+        if (spec instanceof LibraryCompileSpec) {
+            compiler.args("-shared");
+            if (!OperatingSystem.current().isWindows()) {
+                compiler.args("-fPIC");
+            }
         }
-
-        compiler.execute();
-        return new SimpleWorkResult(true);
-    }
-
-    private void ensureDirsExist(File... dirs) {
-        for (File dir : dirs) {
-            dir.mkdirs();
+        for (File file : spec.getLibs()) {
+            compiler.args(file.getAbsolutePath());
         }
     }
-
 }

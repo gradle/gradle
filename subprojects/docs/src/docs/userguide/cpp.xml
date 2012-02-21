@@ -19,7 +19,7 @@
 
     <note>
         <para>
-            The Gradle C++ support is experimental and in very early stages of development so should not be considered stable.
+            The Gradle C++ support is in very early stages of development. Please be aware that the DSL may change in later Gradle versions.
         </para>
     </note>
 
@@ -29,8 +29,27 @@
         found in the JVM development space to C++ developers.
     </para>
     <para>
-        Currently, support is restricted to building with the <literal>g++</literal> (i.e. the C++ focussed frontend to <ulink url="http://gcc.gnu.org/">GCC</ulink>)
-        compiler/linker. Furthermore, there is no direct support for creating multiple variants of the same binary (e.g. 32 bit vs. 64 bit) and there is no direct
+        The following platforms are supported:
+    </para>
+    <table>
+        <thread>
+            <tr><td>Operating System</td><td>Compiler</td><td>Notes</td></tr>
+        </thread>
+        <tr>
+            <td>Linux</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>??</td>
+        </tr>
+        <tr>
+            <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Tested with XCode 4.2.1 on OS X 10.7</td>
+        </tr>
+        <tr>
+            <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Tested with Windows 7 and Visual C++ 2010</td>
+        </tr>
+        <tr>
+            <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Tested with Windows 7 and MinGW 4.6.2. Note: G++ support is currently broken under cygwin</td>
+        </tr>
+    </table>
+    <para>
+        Currently, there is no direct support for creating multiple variants of the same binary (e.g. 32 bit vs. 64 bit) and there is no direct
         support for cross platform source configuration (à la <ulink url="http://www.gnu.org/s/autoconf/">autoconf</ulink>) at this time. Support for different
         compiler chains, managing multiple variants and cross platform source configuration will be added over time, making Gradle a fully capable build tool for C++
         (and other “native” language) projects.

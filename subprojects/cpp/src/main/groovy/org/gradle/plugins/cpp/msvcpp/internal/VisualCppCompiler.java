@@ -16,14 +16,36 @@
 
 package org.gradle.plugins.cpp.msvcpp.internal;
 
-import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.plugins.binaries.model.LibraryCompileSpec;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
+import org.gradle.plugins.cpp.gpp.internal.CommandLineCppCompiler;
+import org.gradle.process.internal.ExecAction;
 
-class VisualCppCompiler implements Compiler<GppCompileSpec> {
+import java.io.File;
+
+class VisualCppCompiler extends CommandLineCppCompiler {
     static final String EXECUTABLE = "cl.exe";
 
-    public WorkResult execute(GppCompileSpec spec) {
-        throw new UnsupportedOperationException();
+    VisualCppCompiler(FileResolver fileResolver) {
+        super(fileResolver);
+    }
+
+    @Override
+    protected String getExecutable() {
+        return EXECUTABLE;
+    }
+
+    @Override
+    protected void configure(ExecAction compiler, GppCompileSpec spec) {
+        compiler.args("/nologo");
+        compiler.args("/Fe" + spec.getOutputFile().getAbsolutePath());
+        if (spec instanceof LibraryCompileSpec) {
+            compiler.args("/LD");
+        }
+        compiler.args("/link");
+        for (File file : spec.getLibs()) {
+            compiler.args(file.getAbsolutePath().replaceFirst("\\.dll$", ".lib"));
+        }
     }
 }

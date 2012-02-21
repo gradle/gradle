@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.cpp.msvcpp.internal;
 
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.Binary;
@@ -23,6 +24,12 @@ import org.gradle.plugins.binaries.model.internal.CompilerAdapter;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
 
 public class VisualCppCompilerAdapter implements CompilerAdapter<GppCompileSpec> {
+    private final VisualCppCompiler compiler;
+
+    public VisualCppCompilerAdapter(ProjectInternal project) {
+        compiler = new VisualCppCompiler(project.getFileResolver());
+    }
+
     public String getName() {
         return "visualCpp";
     }
@@ -33,7 +40,6 @@ public class VisualCppCompilerAdapter implements CompilerAdapter<GppCompileSpec>
     }
 
     public Compiler<GppCompileSpec> createCompiler(Binary binary) {
-        return new VisualCppCompiler();
+        return compiler;
     }
-
 }
