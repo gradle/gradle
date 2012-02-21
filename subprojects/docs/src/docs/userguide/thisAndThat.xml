@@ -105,7 +105,7 @@
 
     <section id="sec:gradle_configuration_properties">
         <title>Configuring gradle via gradle.properties</title>
-        <para>The idea is that certain settings like jvm memory settings, java home, deamon on/off
+        <para>The idea is that certain settings like jvm memory settings, java home, daemon on/off
             are best useful if they can versioned with the project in your VCS so that
             the entire team can work with consistent environment.
             You can place those settings in the <filename>gradle.properties</filename>.
