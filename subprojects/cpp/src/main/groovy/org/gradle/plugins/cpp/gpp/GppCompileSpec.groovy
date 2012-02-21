@@ -74,6 +74,24 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
         project.file "$project.buildDir/compileWork/$name"
     }
 
+    /**
+     * @deprecated No replacement
+     */
+    @Deprecated
+    String getExtension() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.getExtension()")
+        return extension
+    }
+
+    /**
+     * @deprecated No replacement
+     */
+    @Deprecated
+    void setExtension(String extension) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.setExtension()")
+        this.extension = extension
+    }
+
     File getOutputFile() {
         project.file "$project.buildDir/binaries/${getOutputFileName()}"
     }
@@ -114,7 +132,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
     void includes(SourceDirectorySet dirs) {
         task.inputs.files dirs
         setting {
-            it.args(*dirs.srcDirs.collect { "-I${it.absolutePath}" })
+            it.args(* dirs.srcDirs.collect { "-I${it.absolutePath}" })
         }
     }
 
@@ -122,21 +140,21 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
     void includes(FileCollection includeRoots) {
         task.inputs.files includeRoots
         setting {
-            it.args(*includeRoots.collect { "-I${it.absolutePath}" })
+            it.args(* includeRoots.collect { "-I${it.absolutePath}" })
         }
     }
 
     void includes(Iterable<File> includeRoots) {
         includeRoots.each { task.inputs.dir(it) }
         setting {
-            it.args(*includeRoots.collect { "-I${it.absolutePath}" })
+            it.args(* includeRoots.collect { "-I${it.absolutePath}" })
         }
     }
 
     void source(Iterable<File> files) {
         task.inputs.files files
         setting {
-            it.args(*files*.absolutePath)
+            it.args(* files*.absolutePath)
         }
     }
 
@@ -144,7 +162,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
     void source(FileCollection files) {
         task.inputs.source files
         setting {
-            it.args(*files*.absolutePath)
+            it.args(* files*.absolutePath)
         }
     }
 
@@ -163,8 +181,6 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
     void sharedLibrary() {
         setting { it.args "-shared" }
         setting { it.args "-fPIC" }
-
-        extension = "so" // problem: this will be different on different platforms, need a way to “inject” this?
     }
 
     void compile() {

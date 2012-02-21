@@ -15,11 +15,9 @@
  */
 package org.gradle.plugins.cpp
 
-import org.gradle.integtests.fixtures.*
-
 import static org.gradle.util.TextUtil.escapeString
 
-class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
+class CppHelloWorldExecutableIntegrationSpec extends AbstractBinariesIntegrationSpec {
 
     static final HELLO_WORLD = "Hello, World!"
 
@@ -43,7 +41,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         run "compileMain"
 
         then:
-        def executable = file("build/binaries/main")
+        def executable = executable("build/binaries/main")
         executable.exists()
         executable.exec().out == HELLO_WORLD
     }
@@ -97,7 +95,7 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractIntegrationSpec {
         run "compileMain"
 
         then:
-        file("build/binaries/main").exec().out == HELLO_WORLD
+        sharedLibrary("build/binaries/hello").exists()
+        executable("build/binaries/main").exec().out == HELLO_WORLD
     }
-
 }
