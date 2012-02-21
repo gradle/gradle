@@ -21,8 +21,9 @@ import spock.lang.Specification
 
 public class DynamicExtensionDynamicObjectAdapterTest extends Specification {
 
+    Object delegate = new Object()
     DynamicExtension extension = new DefaultDynamicExtension()
-    DynamicExtensionDynamicObjectAdapter adapter =  new DynamicExtensionDynamicObjectAdapter(extension)
+    DynamicExtensionDynamicObjectAdapter adapter =  new DynamicExtensionDynamicObjectAdapter(delegate, extension)
 
     def "can get and set properties"() {
         given:
@@ -91,6 +92,6 @@ public class DynamicExtensionDynamicObjectAdapterTest extends Specification {
         adapter.hasProperty("properties")
 
         and:
-        new DynamicExtensionDynamicObjectAdapter(new NamedDynamicExtension()).hasProperty("name")
+        new DynamicExtensionDynamicObjectAdapter(delegate, new NamedDynamicExtension()).hasProperty("name")
     }
 }

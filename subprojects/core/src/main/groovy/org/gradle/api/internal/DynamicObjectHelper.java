@@ -16,11 +16,11 @@
 package org.gradle.api.internal;
 
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.internal.plugins.AddOnDemandDynamicExtensionDynamicObjectAdapter;
-import org.gradle.api.internal.plugins.DefaultDynamicExtension;
-import org.gradle.api.plugins.DynamicExtension;
 import org.gradle.api.internal.plugins.DefaultConvention;
+import org.gradle.api.internal.plugins.DefaultDynamicExtension;
+import org.gradle.api.internal.plugins.DynamicExtensionDynamicObjectAdapter;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.DynamicExtension;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +68,7 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
         this.dynamicDelegate = dynamicDelegate;
         this.convention = convention;
         this.dynamicExtension = new DefaultDynamicExtension();
-        this.dynamicExtensionDynamicObject = new AddOnDemandDynamicExtensionDynamicObjectAdapter(delegate, dynamicExtension);
+        this.dynamicExtensionDynamicObject = new DynamicExtensionDynamicObjectAdapter(delegate, dynamicExtension);
 
         // Expose the dynamic storage as an extension on the delegate
         getConvention().add(ADHOC_EXTENSION_NAME, dynamicExtension);
