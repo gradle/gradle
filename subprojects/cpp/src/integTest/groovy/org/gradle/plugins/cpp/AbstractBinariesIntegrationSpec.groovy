@@ -19,7 +19,9 @@ package org.gradle.plugins.cpp
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.TestFile
+import spock.lang.IgnoreIf
 
+@IgnoreIf({ !OperatingSystem.current().findInPath("g++") && !OperatingSystem.current().findInPath("cl.exe")})
 class AbstractBinariesIntegrationSpec extends AbstractIntegrationSpec {
     def TestFile executable(Object path) {
         return file(OperatingSystem.current().getExecutableName(path.toString()))
