@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.os.OperatingSystem
 import spock.lang.IgnoreIf
 
 /**
@@ -50,6 +51,9 @@ assert System.getProperty('some-prop').toString() == 'i have space'
         """
     }
 
+    //TODO SF this test does not work on windows because the process does not start properly
+    //Revisit when we tackle the JNA process input feature Adam is working on.
+    @IgnoreIf({OperatingSystem.current().windows})
     def "honours jvm option that contain a space in gradle.properties"() {
         given:
         distribution.file("gradle.properties") << 'org.gradle.jvmargs=-XX:HeapDumpPath="/tmp/with space" -Dsome-prop="and some more stress..."'
