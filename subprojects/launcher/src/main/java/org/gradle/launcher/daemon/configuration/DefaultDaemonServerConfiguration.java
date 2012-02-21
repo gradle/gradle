@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.configuration;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * by Szczepan Faber, created at: 2/21/12
@@ -26,11 +27,13 @@ public class DefaultDaemonServerConfiguration implements DaemonServerConfigurati
     private final String daemonUid;
     private final File daemonBaseDir;
     private final int idleTimeoutMs;
+    private final List<String> jvmOptions;
 
-    public DefaultDaemonServerConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs) {
+    public DefaultDaemonServerConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, List<String> jvmOptions) {
         this.daemonUid = daemonUid;
         this.daemonBaseDir = daemonBaseDir;
         this.idleTimeoutMs = idleTimeoutMs;
+        this.jvmOptions = jvmOptions;
     }
 
     public File getBaseDir() {
@@ -43,5 +46,9 @@ public class DefaultDaemonServerConfiguration implements DaemonServerConfigurati
 
     public String getUid() {
         return daemonUid;
+    }
+
+    public List<String> getJvmOptions() {
+        return jvmOptions;
     }
 }

@@ -36,7 +36,7 @@ import java.util.*;
 import static java.util.Arrays.asList;
 import static org.gradle.util.GFileUtils.canonicalise;
 
-public class DaemonParameters implements DaemonServerConfiguration {
+public class DaemonParameters {
     public static final String IDLE_TIMEOUT_SYS_PROPERTY = "org.gradle.daemon.idletimeout";
     public static final String BASE_DIR_SYS_PROPERTY = "org.gradle.daemon.registry.base";
     public static final String JVM_ARGS_SYS_PROPERTY = "org.gradle.jvmargs";

@@ -48,11 +48,7 @@ public class DaemonMain extends EntryPoint {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonMain.class);
 
-    private final String daemonUid;
-    private final File daemonBaseDir;
-    private final int idleTimeoutMs;
-
-    private final List<String> startupJvmOptions = new LinkedList<String>();
+    private final DaemonServerConfiguration configuration;
 
     public static void main(String[] args) {
         if (args.length < 4) {
@@ -69,23 +65,17 @@ public class DaemonMain extends EntryPoint {
 
         String daemonUid = args[3];
 
-        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs);
-        DaemonMain daemonMain = new DaemonMain(parameters);
-
         List<String> startupOpts = new LinkedList<String>();
         for (int i = 4; i < args.length; i++) {
             startupOpts.add(args[i]);
         }
-        if (!startupOpts.isEmpty()) {
-            LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
-            daemonMain.addStartupJvmOptions(startupOpts);
-        }
+        LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
+
+        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(
+                daemonUid, daemonBaseDir, idleTimeoutMs, startupOpts);
+        DaemonMain daemonMain = new DaemonMain(parameters);
 
         daemonMain.run();
-    }
-
-    protected void addStartupJvmOptions(List<String> startupJvmOptions) {
-        this.startupJvmOptions.addAll(startupJvmOptions);
     }
 
     private static void invalidArgs(String message) {
@@ -95,16 +85,13 @@ public class DaemonMain extends EntryPoint {
     }
 
     public DaemonMain(DaemonServerConfiguration configuration) {
-        this.daemonUid = configuration.getUid();
-        this.daemonBaseDir = configuration.getBaseDir();
-        this.idleTimeoutMs = configuration.getIdleTimeout();
+        this.configuration = configuration;
     }
 
     protected void doAction(ExecutionListener listener) {
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newChildProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.getFactory(LoggingManagerInternal.class).create();
-        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, daemonUid,
-                loggingRegistry, loggingManager, startupJvmOptions);
+        DaemonServices daemonServices = new DaemonServices(configuration, loggingRegistry, loggingManager);
         File daemonLog = daemonServices.getDaemonLogFile();
         final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
 
@@ -118,8 +105,8 @@ public class DaemonMain extends EntryPoint {
 
         Daemon daemon = startDaemon(daemonServices);
         try {
-            daemon.awaitIdleTimeout(idleTimeoutMs);
-            LOGGER.info("Daemon hit idle timeout (" + idleTimeoutMs + "ms), stopping...");
+            daemon.awaitIdleTimeout(configuration.getIdleTimeout());
+            LOGGER.info("Daemon hit idle timeout (" + configuration.getIdleTimeout() + "ms), stopping...");
             daemon.stop();
         } catch (DaemonStoppedException e) {
             LOGGER.debug("Daemon stopping due to the stop request");

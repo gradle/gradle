@@ -33,6 +33,7 @@ import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.exec.ExceptionReportingAction;
@@ -132,7 +133,9 @@ public class CommandLineActionFactory {
         startParameterConverter.convert(commandLine, startParameter);
         DaemonParameters daemonParameters = constructDaemonParameters(startParameter);
         if (commandLine.hasOption(FOREGROUND)) {
-            return new ActionAdapter(new ForegroundDaemonMain(daemonParameters));
+            ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
+                    daemonParameters.getUid(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout());
+            return new ActionAdapter(new ForegroundDaemonMain(conf));
         }
 
         DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, System.in);
