@@ -109,7 +109,7 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
 
     public void addProperties(Map<String, ?> properties) {
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
-            dynamicExtension.add(entry.getKey(), entry.getValue());
+            dynamicExtension.set(entry.getKey(), entry.getValue());
         }
     }
 

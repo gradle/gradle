@@ -19,6 +19,7 @@ package org.gradle.api.internal.plugins;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingPropertyException;
+import groovy.lang.ReadOnlyPropertyException;
 import org.gradle.api.plugins.DynamicExtension;
 
 import java.util.HashMap;
@@ -27,10 +28,6 @@ import java.util.Map;
 public class DefaultDynamicExtension extends GroovyObjectSupport implements DynamicExtension {
 
     Map<String, Object> storage = new HashMap<String, Object>();
-    
-    public void add(String name, Object value) {
-        storage.put(name, value);
-    }
 
     public boolean has(String name) {
         return storage.containsKey(name);
@@ -40,16 +37,12 @@ public class DefaultDynamicExtension extends GroovyObjectSupport implements Dyna
         if (storage.containsKey(name)) {
             return storage.get(name);    
         } else {
-            throw new UnknownPropertyException(this, name, true);
+            throw new UnknownPropertyException(this, name);
         }
     }
 
     public void set(String name, Object value) {
-        if (storage.containsKey(name)) {
-            storage.put(name, value);
-        } else {
-            throw new UnknownPropertyException(this, name, false);
-        }
+        storage.put(name, value);
     }
 
     public Object getProperty(String name) {
@@ -65,11 +58,10 @@ public class DefaultDynamicExtension extends GroovyObjectSupport implements Dyna
     }
 
     public void setProperty(String name, Object newValue) {
-        try {
-            set(name, newValue);
-        } catch (UnknownPropertyException e) {
-            throw new MissingPropertyException(e.getMessage());
+        if (name.equals("properties")) {
+            throw new ReadOnlyPropertyException("name", DynamicExtension.class);
         }
+        set(name, newValue);
     }
 
     public Map<String, Object> getProperties() {

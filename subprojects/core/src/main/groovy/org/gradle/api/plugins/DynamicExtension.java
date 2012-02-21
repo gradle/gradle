@@ -21,32 +21,19 @@ import org.gradle.api.InvalidUserDataException;
 import java.util.Map;
 
 /**
- * An object that allows the registration of new properties for dynamic storage.
+ * Dynamic, ad-hoc, storage for Gradle domain objects.
  *
- * Dynamic extensions are intended to be used with {@link org.gradle.api.plugins.ExtensionAware} objects
- * as a lightweight mechanism for adding ad-hoc state. They act like maps, except that any attempt to read
- * or write a property that has not been “registered” with {@link #add(String, Object)} will produce an exception.
+ * Dynamic extensions are a lightweight mechanism for adding ad-hoc state to existing domain objects. They act like maps,
+ * allowing the storage of arbitrary key/value pairs..
  *
- * Dynamic extension objects support Groovy property syntax. That is, once a property has been registered it
- * can be read via {@code extension.«name»} and set via {@code extension.«name» = "value"}. <b>Wherever possible,
- * the Groovy property syntax should be preferred over the {@link #get(String)} and {@link #set(String, Object)} methods.</b>
+ * Dynamic extension objects support Groovy property syntax. That is, a property can be read via {@code extension.«name»} and set via {@code extension.«name» = "value"}.
+ * <b>Wherever possible, the Groovy property syntax should be preferred over the {@link #get(String)} and {@link #set(String, Object)} methods.</b>
  *
- * The exception that is thrown is different depending on whether the Groovy syntax is used or not. If Groovy property
- * syntax is used, the Groovy {@link groovy.lang.MissingPropertyException} will be thrown.
- * When the {@link #get(String)} or {@link #set(String, Object)} methods are used, an {@link UnknownPropertyException} will
- * be thrown.
+ * The exception that is thrown when an attempt is made to get the value of a property that does not exist is different depending on whether the
+ * Groovy syntax is used or not. If Groovy property syntax is used, the Groovy {@link groovy.lang.MissingPropertyException} will be thrown.
+ * When the {@link #get(String)} method is used, an {@link UnknownPropertyException} will be thrown.
  */
 public interface DynamicExtension {
-
-    /**
-     * Registers a new property with the given name and initial value.
-     * 
-     * If the property has already been registered, this is equivalent to calling {@link #set(String, Object)}.
-     *
-     * @param name The name of the property to add
-     * @param value The initial value for the property
-     */
-    void add(String name, Object value);
 
     /**
      * Returns whether or not the extension has a property registered via the given name.
@@ -68,11 +55,10 @@ public interface DynamicExtension {
     /**
      * Updates the value for the registered property with the given name to the given value.
      *
-     * @param name The name of the property to update the value of
+     * @param name The name of the property to update the value of or create
      * @param value The value to set for the property
-     * @throws UnknownPropertyException if there is no property registered with the given name
      */
-    void set(String name, Object value) throws UnknownPropertyException;
+    void set(String name, Object value);
 
     /**
      * Returns all of the registered properties and their current values as a map.
@@ -85,11 +71,11 @@ public interface DynamicExtension {
     Map<String, Object> getProperties();
 
     /**
-     * The exception that will be thrown when an attempt is made to read or write a property that is not set.
+     * The exception that will be thrown when an attempt is made to read a property that is not set.
      */
     public static class UnknownPropertyException extends InvalidUserDataException {
-        public UnknownPropertyException(DynamicExtension extension, String propertyName, boolean isRead) {
-            super(String.format("cannot %s property '%s' on dynamic extension '%s' as it has not been added", isRead ? "get" : "set", propertyName, extension));
+        public UnknownPropertyException(DynamicExtension extension, String propertyName) {
+            super(String.format("cannot get property '%s' on dynamic extension '%s' as it does not exist", propertyName, extension));
         }
     }
 

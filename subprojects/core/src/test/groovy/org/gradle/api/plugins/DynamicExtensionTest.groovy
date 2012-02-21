@@ -36,12 +36,6 @@ abstract class DynamicExtensionTest<T extends DynamicExtension> extends Specific
     abstract T createExtension()
 
     def "can register properties"() {
-        given:
-        extension.add("foo", "bar")
-
-        expect:
-        extension.get("foo") == "bar"
-
         when:
         extension.set("foo", "baz")
 
@@ -55,17 +49,11 @@ abstract class DynamicExtensionTest<T extends DynamicExtension> extends Specific
 
         then:
         thrown(DynamicExtension.UnknownPropertyException)
-
-        when:
-        extension.set("foo", "bar")
-
-        then:
-        thrown(DynamicExtension.UnknownPropertyException)
     }
 
     def "can read/write properties using groovy notation"() {
         given:
-        extension.add("foo", null)
+        extension.foo = null
 
         expect:
         extension.foo == null
@@ -88,26 +76,14 @@ abstract class DynamicExtensionTest<T extends DynamicExtension> extends Specific
         extension.foo = "bar"
 
         then:
-        thrown(MissingPropertyException)
-    }
-
-    def "adding an already added property is like setting"() {
-        when:
-        extension.add("foo", "bar")
-
-        and:
-        extension.add("foo", "baz")
-
-        then:
-        extension.foo == "baz"
-        extension.get("foo") == "baz"
+        extension.foo == "bar"
     }
 
     def "can call closure properties like methods"() {
         given:
-        extension.add("m0") { -> "m0" }
-        extension.add("m1") { it }
-        extension.add("m2") { String a1, String a2 -> "$a1 $a2" }
+        extension.m0 = { -> "m0" }
+        extension.m1 = { it }
+        extension.m2 = { String a1, String a2 -> "$a1 $a2" }
         
         expect:
         extension.m0() == "m0"
@@ -144,9 +120,9 @@ abstract class DynamicExtensionTest<T extends DynamicExtension> extends Specific
     
     def "can get properties as a detached map"() {
         given:
-        extension.add("p1", 1)
-        extension.add("p2", 2)
-        extension.add("p3", 3)
+        extension.p1 = 1
+        extension.p2 = 2
+        extension.p3 = 3
         
         and:
         def props = extension.properties.sort()
@@ -163,7 +139,7 @@ abstract class DynamicExtensionTest<T extends DynamicExtension> extends Specific
     
     def "can detect if has a property"() {
         given:
-        extension.add("foo", "bar")
+        extension.foo = "bar"
         
         expect:
         extension.has("foo")
@@ -172,7 +148,7 @@ abstract class DynamicExtensionTest<T extends DynamicExtension> extends Specific
         !extension.has("other")
         
         when:
-        extension.set("foo", null)
+        extension.foo = null
         
         then:
         extension.has("foo")
@@ -186,7 +162,7 @@ abstract class DynamicExtensionTest<T extends DynamicExtension> extends Specific
             extensions.add("dynamic", extension)
             version = "1.0"            
             dynamic {
-                add "version", version // should resolve to project.version
+                version = version // should resolve to project.version
             }    
         }
         

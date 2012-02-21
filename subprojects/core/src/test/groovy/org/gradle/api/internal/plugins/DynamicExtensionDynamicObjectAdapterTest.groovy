@@ -26,7 +26,7 @@ public class DynamicExtensionDynamicObjectAdapterTest extends Specification {
 
     def "can get and set properties"() {
         given:
-        extension.add("foo", "bar")
+        extension.set("foo", "bar")
 
         expect:
         adapter.getProperty("foo") == "bar"
@@ -47,9 +47,9 @@ public class DynamicExtensionDynamicObjectAdapterTest extends Specification {
 
     def "can get properties map"() {
         given:
-        extension.add("p1", 1)
-        extension.add("p2", 2)
-        extension.add("p3", 3)
+        extension.set("p1", 1)
+        extension.set("p2", 2)
+        extension.set("p3", 3)
 
         expect:
         extension.properties == adapter.properties
@@ -57,7 +57,7 @@ public class DynamicExtensionDynamicObjectAdapterTest extends Specification {
 
     def "has no methods"() {
         given:
-        extension.add("foo") { }
+        extension.set("foo") { }
 
         expect:
         !adapter.hasMethod("foo", "anything")
@@ -70,12 +70,6 @@ public class DynamicExtensionDynamicObjectAdapterTest extends Specification {
         when:
         adapter.getProperty("foo")
         
-        then:
-        thrown(MissingPropertyException)
-
-        when:
-        adapter.setProperty("foo", "bar")
-
         then:
         thrown(MissingPropertyException)
     }

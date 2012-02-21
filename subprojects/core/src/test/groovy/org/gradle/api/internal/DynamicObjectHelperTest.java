@@ -273,7 +273,7 @@ public class DynamicObjectHelperTest {
     public void classPropertyTakesPrecedenceOverAdditionalProperty() {
         Bean bean = new Bean();
         bean.setReadWriteProperty("value");
-        bean.helper.getDynamicExtension().add("readWriteProperty", "additional");
+        bean.helper.getDynamicExtension().set("readWriteProperty", "additional");
 
         assertThat(bean.getProperty("readWriteProperty"), equalTo((Object) "value"));
 

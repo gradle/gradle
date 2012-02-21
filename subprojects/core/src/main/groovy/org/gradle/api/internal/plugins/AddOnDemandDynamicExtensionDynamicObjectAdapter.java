@@ -44,7 +44,7 @@ public class AddOnDemandDynamicExtensionDynamicObjectAdapter extends DynamicExte
             );
             */
 
-            getExtension().add(name, value);
+            getExtension().set(name, value);
         }
     }
 }
