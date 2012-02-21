@@ -18,15 +18,21 @@ package org.gradle.plugins.cpp
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.plugins.binaries.BinariesPlugin
-import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
+import org.gradle.plugins.binaries.model.internal.DefaultCompilerRegistry
 import org.gradle.plugins.binaries.tasks.Compile
+import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
+import org.gradle.plugins.cpp.gpp.internal.GppCompileSpecFactory
+import org.gradle.plugins.cpp.msvcpp.MicrosoftVisualCppPlugin
 
 class CppPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
         project.plugins.apply(BinariesPlugin)
         project.plugins.apply(GppCompilerPlugin)
+        project.plugins.apply(MicrosoftVisualCppPlugin)
         project.extensions.addDecorated("cpp", CppExtension, project)
+
+        project.extensions.getByType(DefaultCompilerRegistry).specFactory = new GppCompileSpecFactory(project)
 
         // Defaults for all cpp source sets
         project.cpp.sourceSets.all { sourceSet ->

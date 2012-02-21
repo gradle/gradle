@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,35 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.cpp.gpp.internal;
 
-import org.gradle.api.internal.project.ProjectInternal;
+package org.gradle.plugins.cpp.msvcpp.internal;
+
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.internal.CompilerAdapter;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
 
-/**
- * Compiler adapter for g++
- */
-public class GppCompilerAdapter implements CompilerAdapter<GppCompileSpec> {
-    public static final String NAME = "gpp";
-    private final GppCompiler compiler;
-
-    public GppCompilerAdapter(ProjectInternal project) {
-        compiler = new GppCompiler(project.getFileResolver());
-    }
-
+public class VisualCppCompilerAdapter implements CompilerAdapter<GppCompileSpec> {
     public String getName() {
-        return NAME;
+        return "visualCpp";
     }
 
     public boolean isAvailable() {
-        return OperatingSystem.current().findInPath(GppCompiler.EXECUTABLE) != null;
+        OperatingSystem operatingSystem = OperatingSystem.current();
+        return operatingSystem.isWindows() && operatingSystem.findInPath(VisualCppCompiler.EXECUTABLE) != null;
     }
 
     public Compiler<GppCompileSpec> createCompiler(Binary binary) {
-        return compiler;
+        return new VisualCppCompiler();
     }
+
 }

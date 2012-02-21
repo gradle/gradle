@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.internal;
+package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
-import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler;
+import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.plugins.binaries.model.Binary;
 
-public interface CppCompileSpec extends StandardCppCompiler, BinaryCompileSpec {
+/**
+ * This is ugly. Currently, the CompileSpec impls need access to a Compiler, so we need use this interface to provide one at construction time.
+ */
+public interface BinaryCompileSpecFactory {
+    BinaryCompileSpec create(Binary binary, Compiler<?> compiler);
 }

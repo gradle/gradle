@@ -16,12 +16,17 @@
 
 package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.plugins.binaries.model.CompileSpec;
+import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.Compiler;
 
-public interface CompilerAdapter<T extends CompileSpec> extends Compiler {
+public interface CompilerAdapter<T extends BinaryCompileSpec> extends Compiler {
     /**
-     * Returns a factory for creating compile specs that will compile with this compiler
+     * Creates a compiler which can compile the given binary. Should only be called if {@link #isAvailable()} has returned true.
      */
-    CompileSpecFactory<T> getSpecFactory();
+    org.gradle.api.internal.tasks.compile.Compiler<T> createCompiler(Binary binary);
+
+    /**
+     * Returns true if this compiler is available.
+     */
+    boolean isAvailable();
 }

@@ -28,6 +28,7 @@ import org.gradle.process.internal.ExecAction;
 import java.io.File;
 
 public class GppCompiler implements Compiler<GppCompileSpec> {
+    static final String EXECUTABLE = "g++";
     private final FileResolver fileResolver;
 
     public GppCompiler(FileResolver fileResolver) {
@@ -40,7 +41,7 @@ public class GppCompiler implements Compiler<GppCompileSpec> {
         ensureDirsExist(workDir, spec.getOutputFile().getParentFile());
 
         ExecAction compiler = new DefaultExecAction(fileResolver);
-        compiler.executable("g++");
+        compiler.executable(EXECUTABLE);
         compiler.workingDir(workDir);
 
         // Apply all of the settings

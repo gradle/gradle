@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.internal;
+package org.gradle.plugins.binaries.model.internal;
 
-import org.gradle.plugins.binaries.model.internal.BinaryCompileSpec;
-import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler;
+import org.gradle.api.internal.tasks.compile.CompileSpec;
 
-public interface CppCompileSpec extends StandardCppCompiler, BinaryCompileSpec {
+public interface BinaryCompileSpec extends org.gradle.plugins.binaries.model.CompileSpec, CompileSpec {
 }

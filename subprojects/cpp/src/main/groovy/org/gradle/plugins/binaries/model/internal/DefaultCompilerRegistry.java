@@ -17,21 +17,39 @@ package org.gradle.plugins.binaries.model.internal;
 
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.Instantiator;
-import org.gradle.plugins.binaries.model.*;
+import org.gradle.api.tasks.WorkResult;
+import org.gradle.plugins.binaries.model.Binary;
+import org.gradle.plugins.binaries.model.CompileSpec;
 import org.gradle.plugins.binaries.model.Compiler;
+import org.gradle.plugins.binaries.model.CompilerRegistry;
 
 public class DefaultCompilerRegistry extends DefaultNamedDomainObjectSet<Compiler> implements CompilerRegistry, CompileSpecFactory<CompileSpec> {
+    private BinaryCompileSpecFactory specFactory;
 
     public DefaultCompilerRegistry(Instantiator instantiator) {
         super(Compiler.class, instantiator);
     }
 
-    public Compiler getDefaultCompiler() {
-        // lame impl, unsure how this will work in reality
-        return iterator().next();
+    public void setSpecFactory(BinaryCompileSpecFactory specFactory) {
+        this.specFactory = specFactory;
     }
 
-    public CompileSpec create(Binary binary) {
-        return ((CompilerAdapter) getDefaultCompiler()).getSpecFactory().create(binary);
+    public CompilerAdapter<BinaryCompileSpec> getDefaultCompiler() {
+        for (Compiler compiler : this) {
+            CompilerAdapter<BinaryCompileSpec> adapter = (CompilerAdapter<BinaryCompileSpec>) compiler;
+            if (adapter.isAvailable()) {
+                return adapter;
+            }
+        }
+        throw new IllegalStateException("No compiler is available.");
+    }
+
+    public CompileSpec create(final Binary binary) {
+        org.gradle.api.internal.tasks.compile.Compiler<BinaryCompileSpec> lazyCompiler = new org.gradle.api.internal.tasks.compile.Compiler<BinaryCompileSpec>() {
+            public WorkResult execute(BinaryCompileSpec spec) {
+                return getDefaultCompiler().createCompiler(binary).execute(spec);
+            }
+        };
+        return specFactory.create(binary, lazyCompiler);
     }
 }

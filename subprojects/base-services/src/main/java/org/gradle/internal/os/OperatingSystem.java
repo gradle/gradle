@@ -81,6 +81,9 @@ public abstract class OperatingSystem {
 
     public abstract String getSharedLibraryName(String libraryName);
 
+    /**
+     * Locates the given executable in the system path. Returns null if not found.
+     */
     public File findInPath(String name) {
         String exeName = getExecutableName(name);
         if (exeName.contains(File.separator)) {
