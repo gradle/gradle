@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logging
 public class PerformanceResults {
 
     int accuracyMs
+    String displayName
 
     private final static LOGGER = Logging.getLogger(PerformanceTestRunner.class)
 
@@ -50,9 +51,9 @@ public class PerformanceResults {
         long averagePrevious = previous.collect { it.executionTime }.sum() / previous.size()
         long averageCurrent  = current.collect { it.executionTime }.sum() / current.size()
 
-        LOGGER.info("Asserting on build times. The stats are:\n"
-            + "  previous: $previous\n"
-            + "  current : $current")
+        LOGGER.info("\n---------------\nBuild duration stats. $displayName:\n"
+            + " -previous: $previous\n"
+            + " -current : $current\n---------------\n")
 
         if (averageCurrent > averagePrevious) {
             LOGGER.warn("Before applying any statistical tuning, the current release average build time is slower than the previous.")

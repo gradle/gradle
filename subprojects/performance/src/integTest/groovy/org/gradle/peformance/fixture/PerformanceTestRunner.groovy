@@ -35,7 +35,7 @@ public class PerformanceTestRunner {
     def results
 
     PerformanceResults run() {
-        results = new PerformanceResults(accuracyMs: accuracyMs)
+        results = new PerformanceResults(accuracyMs: accuracyMs, displayName: "Results for test project '$testProject'")
         LOGGER.lifecycle("Running performance tests for test project '{}', no. # runs: {}", testProject, runs)
         warmUpRuns.times {
             LOGGER.info("Executing warm-up run #${it+1}")
