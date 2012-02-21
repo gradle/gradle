@@ -22,12 +22,33 @@ import java.util.Map;
 
 /**
  * Dynamic, ad-hoc, storage for Gradle domain objects.
- *
+ * <p>
  * Dynamic extensions are a lightweight mechanism for adding ad-hoc state to existing domain objects. They act like maps,
- * allowing the storage of arbitrary key/value pairs..
- *
+ * allowing the storage of arbitrary key/value pairs. All {@link ExtensionAware} Gradle domain objects automatically have an extension
+ * named “{@code ext}” of this type. All properties added to the dynamic extension become available via the owning object once set.
+ * <p>
  * Dynamic extension objects support Groovy property syntax. That is, a property can be read via {@code extension.«name»} and set via {@code extension.«name» = "value"}.
  * <b>Wherever possible, the Groovy property syntax should be preferred over the {@link #get(String)} and {@link #set(String, Object)} methods.</b>
+ *
+ * <pre autoTested="">
+ * project.ext {
+ *   myprop = "a"
+ * }
+ * assert project.myprop == "a"
+ * assert project.ext.myprop == "a"
+ *
+ * project.myprop = "b"
+ * assert project.myprop == "b"
+ * assert project.ext.myprop == "b"
+ * </pre>
+ *
+ * You can also use the Groovy accessor syntax to get and set properties on a dynamic extension.
+ *
+ * <pre autoTested="">
+ * project.ext["otherProp"] = "a"
+ * assert project.otherProp == "a"
+ * assert project.ext["otherProp"] == "a"
+ * </pre>
  *
  * The exception that is thrown when an attempt is made to get the value of a property that does not exist is different depending on whether the
  * Groovy syntax is used or not. If Groovy property syntax is used, the Groovy {@link groovy.lang.MissingPropertyException} will be thrown.
@@ -46,6 +67,19 @@ public interface DynamicExtension {
     /**
      * Returns the value for the registered property with the given name.
      *
+     * When using a dynamic extension from Groovy, you can also get properties via Groovy's property syntax.
+     * All of the following lines of code are equivalent.
+     *
+     * <pre>
+     * dynamicExtension.get("foo")
+     * dynamicExtension.foo
+     * dynamicExtension["foo"]
+     * </pre>
+     *
+     * When using the first form, an {@link UnknownPropertyException} exception will be thrown if the
+     * extension does not have a property called “{@code foo}”. When using the second forms (i.e. Groovy notation),
+     * Groovy's {@link groovy.lang.MissingPropertyException} will be thrown instead.
+     *
      * @param name The name of the property to get the value of
      * @return The value for the property with the given name.
      * @throws UnknownPropertyException if there is no property registered with the given name
@@ -53,7 +87,16 @@ public interface DynamicExtension {
     Object get(String name) throws UnknownPropertyException;
 
     /**
-     * Updates the value for the registered property with the given name to the given value.
+     * Updates the value for, or creates, the registered property with the given name to the given value.
+     *
+     * When using a dynamic extension from Groovy, you can also set properties via Groovy's property syntax.
+     * All of the following lines of code are equivalent.
+     *
+     * <pre>
+     * dynamicExtension.set("foo", "bar")
+     * dynamicExtension.foo = "bar"
+     * dynamicExtension["foo"] = "bar"
+     * </pre>
      *
      * @param name The name of the property to update the value of or create
      * @param value The value to set for the property
