@@ -45,10 +45,12 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private Integer fileMode;
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
+    private PathNotationParser<String> pathNotationParser;
 
     private CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec) {
         this.parentSpec = parentSpec;
         this.resolver = resolver;
+        this.pathNotationParser = new PathNotationParser<String>();
         sourcePaths = new LinkedHashSet<Object>();
         childSpecs = new ArrayList<ReadableCopySpec>();
         patternSet = new PatternSet();
@@ -161,16 +163,7 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     }
 
     private String resolveToPath(Object destDir) {
-        Object value = destDir;
-        while (true) {
-            if (value instanceof Closure) {
-                Closure closure = (Closure) value;
-                value = closure.call();
-            } else {
-                break;
-            }
-        }
-        return value.toString();
+        return pathNotationParser.parseNotation(destDir);
     }
 
     public PatternSet getPatternSet() {
