@@ -64,6 +64,11 @@ class JvmOptionsTest extends Specification {
         parse("-Xms1G -Dfile.encoding=UTF-8 -Dfoo.encoding=blah -Dfile.encoding=UTF-16").allJvmArgs == ["-Dfoo.encoding=blah", "-Xms1G", "-Dfile.encoding=UTF-16"]
     }
 
+    def "provides managed jvm args"() {
+        expect:
+        parse("-Xms1G -XX:-PrintClassHistogram -Dfile.encoding=UTF-8 -Dfoo.encoding=blah").mangedJvmArgs == ["-Xms1G", "-Dfile.encoding=UTF-8"]
+    }
+
     private JvmOptions createOpts() {
         return new JvmOptions(new IdentityFileResolver())
     }

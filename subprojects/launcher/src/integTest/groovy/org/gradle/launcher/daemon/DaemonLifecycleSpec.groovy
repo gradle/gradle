@@ -215,7 +215,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
-    def "existing idle daemons are used"() {
+    def "existing foreground idle daemons are used"() {
         given:
         //idle timeout is high enough to catch the subtle problem of the
         // 1st daemon timeouting and hence preventing us to verify if we connect to an existing daemon.
@@ -224,6 +224,33 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         when:
         startForegroundDaemon()
 
+        then:
+        idle()
+
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+    }
+
+    def "existing idle background daemons are used"() {
+        given:
+        //idle timeout is high enough to catch the subtle problem of the
+        // 1st daemon timeouting and hence preventing us to verify if we connect to an existing daemon.
+        daemonIdleTimeout = 15
+        
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+        
+        when:
+        completeBuild()
+        
         then:
         idle()
 
