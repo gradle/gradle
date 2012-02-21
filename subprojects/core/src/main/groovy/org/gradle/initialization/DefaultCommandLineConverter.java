@@ -44,7 +44,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String TASKS = "t";
     private static final String PROPERTIES = "r";
     private static final String DEPENDENCIES = "n";
-    private static final String PROJECT_PROP = "P";
     public static final String GRADLE_USER_HOME = "g";
     private static final String EMBEDDED_SCRIPT = "e";
     private static final String CACHE = "C";
@@ -84,8 +83,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
         parser.option(CONTINUE).hasDescription("Continues task execution after a task failure.").experimental();
-        parser.option(OFFLINE).hasDescription("The build should operate without accessing network resources.").experimental();
-        parser.option(REFRESH).hasArguments().hasDescription("Refresh the state of resources of the type(s) specified. Currently only 'dependencies' is supported.").experimental();
+        parser.option(OFFLINE).hasDescription("The build should operate without accessing network resources.");
+        parser.option(REFRESH).hasArguments().hasDescription("Refresh the state of resources of the type(s) specified. Currently only 'dependencies' is supported.");
     }
 
     @Override
