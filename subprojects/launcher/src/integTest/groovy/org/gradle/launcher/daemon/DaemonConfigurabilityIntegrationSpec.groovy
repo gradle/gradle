@@ -39,6 +39,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         """
     }
 
+    //TODO SF add coverage for reconnecting to those daemons.
     def "honours jvm sys property that contain a space in gradle.properties"() {
         given:
         distribution.file("gradle.properties") << 'org.gradle.jvmargs=-Dsome-prop="i have space"'
@@ -51,7 +52,7 @@ assert System.getProperty('some-prop').toString() == 'i have space'
 
     def "honours jvm option that contain a space in gradle.properties"() {
         given:
-        distribution.file("gradle.properties") << 'org.gradle.jvmargs=-XX:HeapDumpPath="/tmp/with space"'
+        distribution.file("gradle.properties") << 'org.gradle.jvmargs=-XX:HeapDumpPath="/tmp/with space" -Dsome-prop="and some more stress..."'
 
         expect:
         buildSucceeds """
