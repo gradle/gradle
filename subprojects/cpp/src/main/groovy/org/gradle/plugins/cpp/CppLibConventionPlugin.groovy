@@ -37,10 +37,7 @@ class CppLibConventionPlugin implements Plugin<Project> {
             libraries {
                 main {
                     sourceSets << project.cpp.sourceSets.main
-                    spec {
-                        // Do we default to shared?
-                        sharedLibrary()
-                    }
+                    spec.baseName = project.name
                 }
             }
 

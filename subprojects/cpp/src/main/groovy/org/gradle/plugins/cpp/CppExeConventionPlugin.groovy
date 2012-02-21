@@ -34,6 +34,7 @@ class CppExeConventionPlugin implements Plugin<Project> {
             }
             executables {
                 main {
+                    spec.baseName = project.name
                     sourceSets << project.cpp.sourceSets.main
                 }
             }

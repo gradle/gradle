@@ -23,9 +23,79 @@ import org.gradle.plugins.cpp.gpp.GppLibraryCompileSpec
 import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.api.NamedDomainObjectContainer
 
 class CppPluginTest extends Specification {
     final def project = HelperUtil.createRootProject()
+
+    def "extensions are available"() {
+        given:
+        project.plugins.apply(CppPlugin)
+
+        expect:
+        project.cpp instanceof CppExtension
+        project.executables instanceof NamedDomainObjectContainer
+        project.libraries instanceof NamedDomainObjectContainer
+    }
+
+    def "can create some cpp source sets"() {
+        given:
+        project.plugins.apply(CppPlugin)
+
+        when:
+        project.cpp {
+            sourceSets {
+                s1 {}
+                s2 {}
+            }
+        }
+
+        then:
+        def sourceSets = project.cpp.sourceSets
+        sourceSets.size() == 2
+        sourceSets*.name == ["s1", "s2"]
+        sourceSets.s1 instanceof CppSourceSet
+    }
+
+    def "configure source sets"() {
+        given:
+        project.plugins.apply(CppPlugin)
+
+        when:
+        project.cpp {
+            sourceSets {
+                ss1 {
+                    source {
+                        srcDirs "d1", "d2"
+                    }
+                    exportedHeaders {
+                        srcDirs "h1", "h2"
+                    }
+                }
+                ss2 {
+                    source {
+                        srcDirs "d3"
+                    }
+                    exportedHeaders {
+                        srcDirs "h3"
+                    }
+                }
+            }
+        }
+
+        then:
+        def sourceSets = project.cpp.sourceSets
+        def ss1 = sourceSets.ss1
+        def ss2 = sourceSets.ss2
+
+        // cpp dir automatically added by convention
+        ss1.source.srcDirs*.name == ["cpp", "d1", "d2"]
+        ss2.source.srcDirs*.name == ["cpp", "d3"]
+
+        // headers dir automatically added by convention
+        ss1.exportedHeaders.srcDirs*.name == ["headers", "h1", "h2"]
+        ss2.exportedHeaders.srcDirs*.name == ["headers", "h3"]
+    }
 
     @Requires(TestPrecondition.UNIX)
     def "creates domain objects for executable on unix"() {

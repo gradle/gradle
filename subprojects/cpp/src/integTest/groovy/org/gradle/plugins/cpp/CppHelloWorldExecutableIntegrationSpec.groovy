@@ -21,11 +21,12 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractBinariesIntegration
 
     static final HELLO_WORLD = "Hello, World!"
 
-    def "build and execute simple hello world cpp program"() {
+    def "build and execute simple cpp program"() {
         given:
         buildFile << """
             apply plugin: "cpp-exe"
         """
+        settingsFile << "rootProject.name = 'test'"
 
         and:
         file("src", "main", "cpp", "helloworld.cpp") << """
@@ -41,12 +42,68 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractBinariesIntegration
         run "compileMain"
 
         then:
-        def executable = executable("build/binaries/main")
+        def executable = executable("build/binaries/test")
         executable.exists()
         executable.exec().out == HELLO_WORLD
     }
 
-    def "build and execute simple hello world cpp program using header"() {
+    def "build fails when compilation fails"() {
+        given:
+        buildFile << """
+            apply plugin: "cpp-exe"
+        """
+        settingsFile << "rootProject.name = 'test'"
+
+        and:
+        file("src", "main", "cpp", "helloworld.cpp") << """
+            #include <iostream>
+
+            'broken
+        """
+
+        expect:
+        fails "compileMain"
+    }
+
+    def "build and execute program from multiple source files"() {
+        given:
+        buildFile << """
+            apply plugin: "cpp-exe"
+        """
+        settingsFile << "rootProject.name = 'test'"
+
+        and:
+        file("src", "main", "cpp", "hello.cpp") << """
+            #include <iostream>
+
+            void hello () {
+              std::cout << "${escapeString(HELLO_WORLD)}";
+            }
+        """
+
+        and:
+        file("src", "main", "headers", "hello.h") << """
+            void hello();
+        """
+
+        and:
+        file("src", "main", "cpp", "main.cpp") << """
+            #include "hello.h"
+
+            int main () {
+              hello();
+              return 0;
+            }
+        """
+
+        when:
+        run "compileMain"
+
+        then:
+        executable("build/binaries/test").exec().out == HELLO_WORLD
+    }
+
+    def "build and execute program with shared library"() {
         given:
         buildFile << """
             apply plugin: "cpp-exe"
@@ -54,18 +111,16 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractBinariesIntegration
             cpp {
                 sourceSets {
                     hello {}
-                    main {
-                        libs << libraries.create('hello') {
-                            sourceSets << hello
-
-                            spec {
-                                sharedLibrary()
-                            }
-                        }
-                    }
                 }
             }
+            libraries {
+                hello {
+                    sourceSets << cpp.sourceSets.hello
+                }
+            }
+            cpp.sourceSets.main.libs << libraries.hello
         """
+        settingsFile << "rootProject.name = 'test'"
 
         and:
         file("src", "hello", "cpp", "hello.cpp") << """
@@ -96,6 +151,6 @@ class CppHelloWorldExecutableIntegrationSpec extends AbstractBinariesIntegration
 
         then:
         sharedLibrary("build/binaries/hello").exists()
-        executable("build/binaries/main").exec().out == HELLO_WORLD
+        executable("build/binaries/test").exec().out == HELLO_WORLD
     }
 }

@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.*
 
 import org.junit.*
 
-class CppSamplesSpec extends AbstractBinariesIntegrationSpec {
+class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
 
     @Rule public final Sample exewithlib = new Sample('cpp/exewithlib')
     @Rule public final Sample dependencies = new Sample('cpp/dependencies')
@@ -36,7 +36,8 @@ class CppSamplesSpec extends AbstractBinariesIntegrationSpec {
         ":exe:compileMain" in executedTasks
 
         and:
-        executable("cpp/exewithlib/exe/build/binaries/main").exec().out == "Hello, World!\n"
+        sharedLibrary("cpp/exewithlib/lib/build/binaries/lib").isFile()
+        executable("cpp/exewithlib/exe/build/binaries/exe").exec().out == "Hello, World!\n"
     }
     
     def "dependencies"() {
@@ -51,7 +52,8 @@ class CppSamplesSpec extends AbstractBinariesIntegrationSpec {
         ":exe:compileMain" in nonSkippedTasks
         
         and:
-        executable("cpp/dependencies/exe/build/binaries/main").exec().out == "Hello, World!\n"
+        sharedLibrary("cpp/dependencies/lib/build/binaries/lib").isFile()
+        executable("cpp/dependencies/exe/build/binaries/exe").exec().out == "Hello, World!\n"
         file("cpp/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
     }
     
@@ -66,7 +68,7 @@ class CppSamplesSpec extends AbstractBinariesIntegrationSpec {
         ":compileMain" in nonSkippedTasks
         
         and:
-        executable("cpp/exe/build/binaries/main").exec().out == "Hello, World!\n"
+        executable("cpp/exe/build/binaries/exe").exec().out == "Hello, World!\n"
     }
     
 }
