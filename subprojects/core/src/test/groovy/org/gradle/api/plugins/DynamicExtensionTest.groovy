@@ -188,6 +188,20 @@ abstract class DynamicExtensionTest<T extends DynamicExtension> extends Specific
         notThrown(Exception)
     }
     
+    def "can use [] notation to get and set"() {
+        when:
+        extension["foo"]
+        
+        then:
+        thrown(MissingPropertyException)
+
+        when:
+        extension["foo"] = "bar"
+
+        then:
+        extension["foo"] == "bar"
+    }
+
     def "cannot assign to properties"() {
         when:
         extension.properties = [:]
