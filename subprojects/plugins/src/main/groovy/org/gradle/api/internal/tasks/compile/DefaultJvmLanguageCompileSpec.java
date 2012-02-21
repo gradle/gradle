@@ -19,8 +19,9 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.file.FileCollection;
 
 import java.io.File;
+import java.io.Serializable;
 
-public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec {
+public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Serializable {
     private Iterable<File> classpath;
     private File destinationDir;
     private FileCollection source;
