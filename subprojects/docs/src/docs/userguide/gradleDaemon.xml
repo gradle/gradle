@@ -82,10 +82,10 @@
             <itemizedlist>
                 <listitem>If the daemon process is currently busy running some job, a brand new daemon process will be started.</listitem>
                 <listitem>We fork a separate daemon process per java home. So even if there is some idle daemon waiting
-                    for build requests but you happen to run build with a different java home then a brand new deamon will be forked.</listitem>
+                    for build requests but you happen to run build with a different java home then a brand new daemon will be forked.</listitem>
                 <listitem>At the moment daemon is coupled with particular version of gradle.
                     This means that even if some daemon is idle but you are running the build
-                    with a different version of Gradle, a new deamon will be started.
+                    with a different version of Gradle, a new daemon will be started.
                     This also have a consequence for the <literal>--stop</literal> command line instruction:
                     You can only stop daemons that were started with the gradle version you use when running <literal>--stop</literal>.
                 </listitem>
