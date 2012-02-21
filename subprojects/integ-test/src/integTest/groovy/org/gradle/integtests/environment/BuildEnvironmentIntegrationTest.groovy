@@ -20,10 +20,10 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Jvm
 import org.gradle.internal.nativeplatform.FileSystems
-
-import spock.lang.Issue
 import org.gradle.util.TextUtil
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import spock.lang.Issue
 
 /**
  * @author: Szczepan Faber, created at: 8/11/11
@@ -35,7 +35,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         projectDir.file('build.gradle') << "assert file('.') == new File(new URI('${projectDir.toURI()}'))"
 
         when:
-        File relativeDir = new File(distribution.testDir, 'java/multiproject/../quickstart')
+        def relativeDir = new File(distribution.testDir, 'java/multiproject/../quickstart')
         executer.inDirectory(relativeDir).run()
 
         if (!FileSystems.default.caseSensitive) {
