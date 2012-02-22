@@ -17,9 +17,9 @@ package org.gradle.api.internal;
 
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.plugins.DefaultConvention;
-import org.gradle.api.internal.plugins.DynamicExtensionDynamicObjectAdapter;
+import org.gradle.api.internal.plugins.DynamicPropertiesDynamicObjectAdapter;
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.DynamicExtension;
+import org.gradle.api.plugins.DynamicPropertiesExtension;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +70,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         this.delegate = delegate;
         this.dynamicDelegate = dynamicDelegate;
         this.convention = convention;
-        this.dynamicExtensionDynamicObject = new DynamicExtensionDynamicObjectAdapter(delegate, convention.getDynamicExtension());
+        this.dynamicExtensionDynamicObject = new DynamicPropertiesDynamicObjectAdapter(delegate, convention.getDynamicProperties());
 
         updateDelegates();
     }
@@ -102,13 +102,13 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         return dynamicDelegate.getDisplayName();
     }
 
-    public DynamicExtension getDynamicExtension() {
-        return convention.getDynamicExtension();
+    public DynamicPropertiesExtension getDynamicProperties() {
+        return convention.getDynamicProperties();
     }
 
     public void addProperties(Map<String, ?> properties) {
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
-            getDynamicExtension().set(entry.getKey(), entry.getValue());
+            getDynamicProperties().set(entry.getKey(), entry.getValue());
         }
     }
 

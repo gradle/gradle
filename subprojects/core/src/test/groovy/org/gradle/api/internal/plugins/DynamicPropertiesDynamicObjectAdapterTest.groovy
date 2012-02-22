@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.plugins.DynamicExtension
+import org.gradle.api.plugins.DynamicPropertiesExtension
 import spock.lang.Specification
 
-public class DynamicExtensionDynamicObjectAdapterTest extends Specification {
+public class DynamicPropertiesDynamicObjectAdapterTest extends Specification {
 
     Object delegate = new Object()
-    DynamicExtension extension = new DefaultDynamicExtension()
-    DynamicExtensionDynamicObjectAdapter adapter =  new DynamicExtensionDynamicObjectAdapter(delegate, extension)
+    DynamicPropertiesExtension extension = new DefaultDynamicPropertiesExtension()
+    DynamicPropertiesDynamicObjectAdapter adapter =  new DynamicPropertiesDynamicObjectAdapter(delegate, extension)
 
     def "can get and set properties"() {
         given:
@@ -83,7 +83,7 @@ public class DynamicExtensionDynamicObjectAdapterTest extends Specification {
         thrown(groovy.lang.MissingMethodException)
     }
 
-    static class NamedDynamicExtension extends DefaultDynamicExtension {
+    static class NamedDynamicPropertiesExtension extends DefaultDynamicPropertiesExtension {
         String name
     }
 
@@ -92,6 +92,6 @@ public class DynamicExtensionDynamicObjectAdapterTest extends Specification {
         adapter.hasProperty("properties")
 
         and:
-        new DynamicExtensionDynamicObjectAdapter(delegate, new NamedDynamicExtension()).hasProperty("name")
+        new DynamicPropertiesDynamicObjectAdapter(delegate, new NamedDynamicPropertiesExtension()).hasProperty("name")
     }
 }

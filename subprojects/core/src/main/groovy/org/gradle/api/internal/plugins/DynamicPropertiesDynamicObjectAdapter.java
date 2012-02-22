@@ -18,19 +18,19 @@ package org.gradle.api.internal.plugins;
 
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.BeanDynamicObject;
-import org.gradle.api.plugins.DynamicExtension;
+import org.gradle.api.plugins.DynamicPropertiesExtension;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.Map;
 
-public class DynamicExtensionDynamicObjectAdapter extends BeanDynamicObject {
+public class DynamicPropertiesDynamicObjectAdapter extends BeanDynamicObject {
 
     public static final boolean WARN_ON_PROPERTY_CREATION = false;
 
-    private final DynamicExtension extension;
+    private final DynamicPropertiesExtension extension;
     private final Object delegate;
 
-    public DynamicExtensionDynamicObjectAdapter(Object delegate, DynamicExtension extension) {
+    public DynamicPropertiesDynamicObjectAdapter(Object delegate, DynamicPropertiesExtension extension) {
         super(extension);
         this.delegate = delegate;
         this.extension = extension;

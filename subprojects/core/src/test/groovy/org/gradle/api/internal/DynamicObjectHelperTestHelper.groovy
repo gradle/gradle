@@ -33,7 +33,7 @@ public class DynamicObjectHelperTestHelper {
         bean.doSetReadOnlyProperty('value')
         assertEquals(bean.readOnlyProperty, 'value')
 
-        bean.extensibleDynamicObject.dynamicExtension.set('additional', 'value')
+        bean.extensibleDynamicObject.dynamicProperties.set('additional', 'value')
         assertEquals(bean.additional, 'value')
 
         bean.setProperty 'another', 'value'

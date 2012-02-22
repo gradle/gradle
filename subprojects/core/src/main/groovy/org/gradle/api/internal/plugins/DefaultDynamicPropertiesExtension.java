@@ -20,12 +20,12 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.ReadOnlyPropertyException;
-import org.gradle.api.plugins.DynamicExtension;
+import org.gradle.api.plugins.DynamicPropertiesExtension;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultDynamicExtension extends GroovyObjectSupport implements DynamicExtension {
+public class DefaultDynamicPropertiesExtension extends GroovyObjectSupport implements DynamicPropertiesExtension {
 
     Map<String, Object> storage = new HashMap<String, Object>();
 
@@ -59,7 +59,7 @@ public class DefaultDynamicExtension extends GroovyObjectSupport implements Dyna
 
     public void setProperty(String name, Object newValue) {
         if (name.equals("properties")) {
-            throw new ReadOnlyPropertyException("name", DynamicExtension.class);
+            throw new ReadOnlyPropertyException("name", DynamicPropertiesExtension.class);
         }
         set(name, newValue);
     }

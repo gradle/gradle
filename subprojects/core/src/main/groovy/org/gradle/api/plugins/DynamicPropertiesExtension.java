@@ -54,7 +54,7 @@ import java.util.Map;
  * Groovy syntax is used or not. If Groovy property syntax is used, the Groovy {@link groovy.lang.MissingPropertyException} will be thrown.
  * When the {@link #get(String)} method is used, an {@link UnknownPropertyException} will be thrown.
  */
-public interface DynamicExtension {
+public interface DynamicPropertiesExtension {
 
     /**
      * The name of this extension in all {@link ExtensionContainer ExtensnionContainers}, {@value}.
@@ -122,7 +122,7 @@ public interface DynamicExtension {
      * The exception that will be thrown when an attempt is made to read a property that is not set.
      */
     public static class UnknownPropertyException extends InvalidUserDataException {
-        public UnknownPropertyException(DynamicExtension extension, String propertyName) {
+        public UnknownPropertyException(DynamicPropertiesExtension extension, String propertyName) {
             super(String.format("cannot get property '%s' on dynamic extension '%s' as it does not exist", propertyName, extension));
         }
     }

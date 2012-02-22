@@ -273,7 +273,7 @@ public class ExtensibleDynamicObjectTest {
     public void classPropertyTakesPrecedenceOverAdditionalProperty() {
         Bean bean = new Bean();
         bean.setReadWriteProperty("value");
-        bean.extensibleDynamicObject.getDynamicExtension().set("readWriteProperty", "additional");
+        bean.extensibleDynamicObject.getDynamicProperties().set("readWriteProperty", "additional");
 
         assertThat(bean.getProperty("readWriteProperty"), equalTo((Object) "value"));
 
@@ -281,7 +281,7 @@ public class ExtensibleDynamicObjectTest {
 
         assertThat(bean.getProperty("readWriteProperty"), equalTo((Object) "new value"));
         assertThat(bean.getReadWriteProperty(), equalTo((Object) "new value"));
-        assertThat(bean.extensibleDynamicObject.getDynamicExtension().get("readWriteProperty"), equalTo((Object) "additional"));
+        assertThat(bean.extensibleDynamicObject.getDynamicProperties().get("readWriteProperty"), equalTo((Object) "additional"));
     }
 
     @Test
@@ -298,7 +298,7 @@ public class ExtensibleDynamicObjectTest {
         bean.setProperty("conventionProperty", "new value");
 
         assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "new value"));
-        assertThat(bean.extensibleDynamicObject.getDynamicExtension().get("conventionProperty"), equalTo((Object) "new value"));
+        assertThat(bean.extensibleDynamicObject.getDynamicProperties().get("conventionProperty"), equalTo((Object) "new value"));
         assertThat(conventionBean.getConventionProperty(), nullValue());
     }
 
