@@ -75,7 +75,7 @@ class PmdPluginTest extends Specification {
         assert task instanceof Pmd
         task.with {
             assert description == "Run PMD analysis for ${sourceSet.name} classes"
-            defaultSource == sourceSet.allJava
+            source as List == sourceSet.allJava as List
             assert pmdClasspath == project.configurations.pmd
             assert ruleSets == ["basic"]
             assert ruleSetFiles.empty
@@ -90,7 +90,7 @@ class PmdPluginTest extends Specification {
 
         expect:
         task.description == null
-        task.defaultSource == null
+        task.source.empty
         task.pmdClasspath == project.configurations.pmd
         task.ruleSets == ["basic"]
         task.ruleSetFiles.empty
@@ -140,7 +140,7 @@ class PmdPluginTest extends Specification {
         assert task instanceof Pmd
         task.with {
             assert description == "Run PMD analysis for ${sourceSet.name} classes"
-            defaultSource == sourceSet.allJava
+            source as List == sourceSet.allJava as List
             assert pmdClasspath == project.configurations.pmd
             assert ruleSets == ["braces", "unusedcode"]
             assert ruleSetFiles.files == project.files("my-ruleset.xml").files
@@ -161,7 +161,7 @@ class PmdPluginTest extends Specification {
 
         expect:
         task.description == null
-        task.defaultSource == null
+        task.source.empty
         task.pmdClasspath == project.configurations.pmd
         task.ruleSets == ["braces", "unusedcode"]
         task.ruleSetFiles.files == project.files("my-ruleset.xml").files

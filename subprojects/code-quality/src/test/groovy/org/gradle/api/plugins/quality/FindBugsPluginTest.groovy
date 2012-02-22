@@ -73,7 +73,7 @@ class FindBugsPluginTest extends Specification {
         assert task instanceof FindBugs
         task.with {
             assert description == "Run FindBugs analysis for ${sourceSet.name} classes"
-            assert defaultSource == sourceSet.allJava
+            assert source as List == sourceSet.allJava as List
             assert findbugsClasspath == project.configurations.findbugs
             assert classes.empty // no classes to analyze
             assert reports.xml.destination == project.file("build/reports/findbugs/${sourceSet.name}.xml")
@@ -86,7 +86,7 @@ class FindBugsPluginTest extends Specification {
 
         expect:
         task.description == null
-        task.defaultSource == null
+        task.source.empty
         task.classes == null
         task.classpath == null
         task.findbugsClasspath == project.configurations.findbugs
@@ -134,7 +134,7 @@ class FindBugsPluginTest extends Specification {
         assert task instanceof FindBugs
         task.with {
             assert description == "Run FindBugs analysis for ${sourceSet.name} classes"
-            assert defaultSource == sourceSet.allJava
+            assert source as List == sourceSet.allJava as List
             assert findbugsClasspath == project.configurations.findbugs
             assert reports.xml.destination == project.file("findbugs-reports/${sourceSet.name}.xml")
             assert ignoreFailures == true
@@ -150,7 +150,7 @@ class FindBugsPluginTest extends Specification {
 
         expect:
         task.description == null
-        task.defaultSource == null
+        task.source.empty
         task.classes == null
         task.classpath == null
         task.findbugsClasspath == project.configurations.findbugs
