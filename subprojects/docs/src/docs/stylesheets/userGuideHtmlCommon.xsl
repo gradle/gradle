@@ -19,7 +19,7 @@
     <xsl:import href="highlighting/common.xsl"/>
     <xsl:import href="html/highlight.xsl"/>
 
-    <xsl:output method="xml"
+    <xsl:output method="html"
                 encoding="UTF-8"
                 indent="no"/>
 
