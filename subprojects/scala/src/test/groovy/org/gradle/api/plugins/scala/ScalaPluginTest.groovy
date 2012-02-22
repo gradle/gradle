@@ -86,7 +86,7 @@ public class ScalaPluginTest {
         assertThat(task, instanceOf(ScalaDoc.class))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.scala))
+        assertThat(task.source as List, equalTo(project.sourceSets.main.scala as List))
         assertThat(task.classpath, Matchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }

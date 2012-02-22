@@ -36,7 +36,7 @@ public class ScalaPlugin implements Plugin<Project> {
     private void configureScaladoc(final Project project) {
         project.getTasks().withType(ScalaDoc.class) {ScalaDoc scalaDoc ->
             scalaDoc.conventionMapping.classpath = { project.sourceSets.main.output + project.sourceSets.main.compileClasspath }
-            scalaDoc.conventionMapping.defaultSource = { project.sourceSets.main.scala }
+            scalaDoc.source = project.sourceSets.main.scala
         }
         ScalaDoc scalaDoc = project.tasks.add(SCALA_DOC_TASK_NAME, ScalaDoc.class)
         scalaDoc.description = "Generates scaladoc for the main source code.";

@@ -28,6 +28,7 @@ import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import static org.gradle.util.Matchers.isEmpty
 
 public class ScalaBasePluginTest {
 
@@ -80,7 +81,7 @@ public class ScalaBasePluginTest {
         scalaPlugin.apply(project)
 
         def task = project.createTask('otherCompile', type: ScalaCompile)
-        assertThat(task.defaultSource, nullValue())
+        assertThat(task.source, isEmpty())
         assertThat(task.scalaClasspath, equalTo(project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]))
         assertThat(task, dependsOn())
     }
