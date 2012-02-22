@@ -60,7 +60,4 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
         return conventionMapping;
     }
 
-    public void setConventionMapping(ConventionMapping mapping) {
-        this.conventionMapping = mapping;
-    }
 }

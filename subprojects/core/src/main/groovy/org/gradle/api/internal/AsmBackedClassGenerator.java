@@ -288,18 +288,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     visitor.visitInsn(Opcodes.ARETURN);
                 }
             });
-
-            // GENERATE public void setConventionMapping(ConventionMapping m) { mapping = m; }
-
-            addSetter(IConventionAware.class.getDeclaredMethod("setConventionMapping", ConventionMapping.class),
-                    new MethodCodeBody() {
-                        public void add(MethodVisitor visitor) {
-                            visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                            visitor.visitVarInsn(Opcodes.ALOAD, 1);
-                            visitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), "mapping",
-                                    mappingFieldSignature);
-                        }
-                    });
         }
 
         public void mixInGroovyObject() throws Exception {

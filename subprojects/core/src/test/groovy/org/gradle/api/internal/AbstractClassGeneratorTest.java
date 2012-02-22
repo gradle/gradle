@@ -58,8 +58,6 @@ public abstract class AbstractClassGeneratorTest {
         assertThat(conventionAware.getConventionMapping(), instanceOf(ConventionAwareHelper.class));
         conventionAware.getConventionMapping().map("prop", TEST_CLOSURE);
         ConventionMapping mapping = new ConventionAwareBean();
-        conventionAware.setConventionMapping(mapping);
-        assertThat(conventionAware.getConventionMapping(), sameInstance(mapping));
     }
 
     @Test
