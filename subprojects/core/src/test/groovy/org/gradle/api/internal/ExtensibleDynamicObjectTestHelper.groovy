@@ -18,7 +18,7 @@ package org.gradle.api.internal
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
 
-public class DynamicObjectHelperTestHelper {
+public class ExtensibleDynamicObjectTestHelper {
     public static void assertCanGetAllProperties (ExtensibleDynamicObjectTest.Bean bean) {
         bean.readWriteProperty = 'readWrite'
         bean.setProperty('additional', 'additional')

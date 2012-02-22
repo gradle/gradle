@@ -138,12 +138,12 @@ public class ExtensibleDynamicObjectTest {
 
     @Test
     public void canGetButNotSetPropertiesOnJavaObjectFromGroovy() {
-        DynamicObjectHelperTestHelper.assertCanGetProperties(new Bean());
+        ExtensibleDynamicObjectTestHelper.assertCanGetProperties(new Bean());
     }
     
     @Test
     public void canGetAndSetPropertiesOnGroovyObjectFromGroovy() {
-        DynamicObjectHelperTestHelper.assertCanGetAndSetProperties(new GroovyBean());
+        ExtensibleDynamicObjectTestHelper.assertCanGetAndSetProperties(new GroovyBean());
     }
 
     @Test
@@ -167,7 +167,7 @@ public class ExtensibleDynamicObjectTest {
 
     @Test
     public void canGetAndSetPropertiesOnJavaSubClassOfGroovyObjectFromGroovy() {
-        DynamicObjectHelperTestHelper.assertCanGetAndSetProperties(new DynamicBean());
+        ExtensibleDynamicObjectTestHelper.assertCanGetAndSetProperties(new DynamicBean());
     }
 
     @Test
@@ -351,9 +351,9 @@ public class ExtensibleDynamicObjectTest {
 
     @Test
     public void canGetAllPropertiesFromGroovy() {
-        DynamicObjectHelperTestHelper.assertCanGetAllProperties(new Bean());
-        DynamicObjectHelperTestHelper.assertCanGetAllProperties(new GroovyBean());
-        DynamicObjectHelperTestHelper.assertCanGetAllProperties(new DynamicBean());
+        ExtensibleDynamicObjectTestHelper.assertCanGetAllProperties(new Bean());
+        ExtensibleDynamicObjectTestHelper.assertCanGetAllProperties(new GroovyBean());
+        ExtensibleDynamicObjectTestHelper.assertCanGetAllProperties(new DynamicBean());
     }
 
     @Test
@@ -451,7 +451,7 @@ public class ExtensibleDynamicObjectTest {
         Bean bean = new Bean();
         Convention convention = bean.extensibleDynamicObject.getConvention();
         convention.getPlugins().put("bean", new ConventionBean());
-        DynamicObjectHelperTestHelper.assertCanCallMethods(bean);
+        ExtensibleDynamicObjectTestHelper.assertCanCallMethods(bean);
     }
 
     @Test
@@ -459,7 +459,7 @@ public class ExtensibleDynamicObjectTest {
         GroovyBean bean = new GroovyBean();
         Convention convention = bean.extensibleDynamicObject.getConvention();
         convention.getPlugins().put("bean", new ConventionBean());
-        DynamicObjectHelperTestHelper.assertCanCallMethods(bean);
+        ExtensibleDynamicObjectTestHelper.assertCanCallMethods(bean);
     }
 
     @Test
@@ -467,7 +467,7 @@ public class ExtensibleDynamicObjectTest {
         DynamicBean bean = new DynamicBean();
         Convention convention = bean.extensibleDynamicObject.getConvention();
         convention.getPlugins().put("bean", new ConventionBean());
-        DynamicObjectHelperTestHelper.assertCanCallMethods(bean);
+        ExtensibleDynamicObjectTestHelper.assertCanCallMethods(bean);
     }
 
     @Test
