@@ -1,5 +1,3 @@
-import org.gradle.internal.nativeplatform.OperatingSystem
-
 dependencies {
     groovy libraries.groovy
 
@@ -16,11 +14,6 @@ useTestFixtures()
 // is some of this unnecessary, or should it be moved into gradle/integTest ?
 integTest {
     dependsOn ':publishLocalArchives', ':binZip'
-
-    if (OperatingSystem.current().isWindows()) {
-        //Temporary hack to investigate windows build issues
-        exclude "**/org/gradle/integtests/tooling/**"
-    }
 
     doFirst {
         systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath

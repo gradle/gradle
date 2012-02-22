@@ -56,6 +56,11 @@ public interface BasicGradleDistribution {
     boolean isDaemonSupported();
 
     /**
+     * Returns true if the configuring daemon idle timeout feature is supported by this distribution.
+     */
+    boolean isDaemonIdleTimeoutConfigurable();
+
+    /**
      *
      * Returns true if the tooling API is supported by this distribution.
      */

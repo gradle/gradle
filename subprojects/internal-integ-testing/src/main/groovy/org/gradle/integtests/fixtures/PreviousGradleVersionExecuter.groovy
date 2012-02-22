@@ -23,10 +23,10 @@ import org.gradle.cache.internal.DefaultCacheFactory
 import org.gradle.cache.internal.DefaultFileLockManager
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider
 import org.gradle.cache.internal.FileLockManager.LockMode
-import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Jvm
@@ -103,6 +103,10 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
             // Daemon is ok for anything >= 0.9
             return version >= GradleVersion.version('0.9')
         }
+    }
+
+    boolean isDaemonIdleTimeoutConfigurable() {
+        return version > GradleVersion.version('1.0-milestone-6')
     }
 
     boolean isOpenApiSupported() {

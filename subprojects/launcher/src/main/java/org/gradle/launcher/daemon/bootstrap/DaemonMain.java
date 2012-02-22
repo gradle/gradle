@@ -51,6 +51,7 @@ public class DaemonMain extends EntryPoint {
     private final DaemonServerConfiguration configuration;
 
     public static void main(String[] args) {
+        //The first argument is not really used but it is very useful in diagnosing, i.e. running 'jps -m'
         if (args.length < 4) {
             invalidArgs("Following arguments are required: <gradle-version> <daemon-dir> <timeout-millis> <daemonUid> <optional startup jvm opts>");
         }

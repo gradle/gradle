@@ -75,6 +75,10 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
         return true;
     }
 
+    public boolean isDaemonIdleTimeoutConfigurable() {
+        return true;
+    }
+
     public boolean isOpenApiSupported() {
         return true;
     }
