@@ -66,7 +66,7 @@ public class ForwardClientInput implements DaemonCommandAction {
                 if (command instanceof ForwardInput) {
                     try {
                         ForwardInput forwardedInput = (ForwardInput)command;
-                        LOGGER.info("Putting forwarded input '{}' on daemon's stdin.", new String(forwardedInput.getBytes()).replace("\n", "\\n"));
+                        LOGGER.debug("Putting forwarded input '{}' on daemon's stdin.", new String(forwardedInput.getBytes()).replace("\n", "\\n"));
                         inputSource.write(forwardedInput.getBytes());
 
                     } catch (Exception e) {
