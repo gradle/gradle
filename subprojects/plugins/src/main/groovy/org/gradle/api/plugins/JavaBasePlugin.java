@@ -114,11 +114,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 Copy processResources = project.getTasks().add(sourceSet.getProcessResourcesTaskName(), ProcessResources.class);
                 processResources.setDescription(String.format("Processes the %s.", sourceSet.getResources()));
                 ConventionMapping conventionMapping = processResources.getConventionMapping();
-                conventionMapping.map("defaultSource", new Callable<Object>() {
-                    public Object call() throws Exception {
-                        return sourceSet.getResources();
-                    }
-                });
+                processResources.from(sourceSet.getResources());
                 conventionMapping.map("destinationDir", new Callable<Object>() {
                     public Object call() throws Exception {
                         return sourceSet.getOutput().getResourcesDir();
