@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 import groovy.lang.Closure;
+import org.gradle.util.DeprecationLogger;
 
 /**
  * A {@code SourceTask} performs some operation on source files.
@@ -45,16 +46,19 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     @InputFiles
     @SkipWhenEmpty
     public FileTree getSource() {
-        FileTree src = this.source.isEmpty() ? getDefaultSource() : getProject().files(new ArrayList<Object>(this.source)).getAsFileTree();
-        return src == null ? getProject().files().getAsFileTree() : src.matching(patternSet);
+        FileTree src = getProject().files(new ArrayList<Object>(this.source)).getAsFileTree();
+        return src.isEmpty() ? getProject().files().getAsFileTree() : src.matching(patternSet);
     }
 
     /**
      * Returns the default source for this task, if any.
      *
      * @return The source. May return null.
+     * @deprecated Use getSource() instead.
      */
+    @Deprecated
     protected FileTree getDefaultSource() {
+        DeprecationLogger.nagUserOfReplacedMethod("SourceTask.getDefaultSource()", "getSource()");
         return null;
     }
 
