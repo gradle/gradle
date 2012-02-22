@@ -136,10 +136,6 @@ public class ConventionAwareHelper implements ConventionMapping {
         return convention;
     }
 
-    public void setConvention(Convention convention) {
-        this.convention = convention;
-    }
-
     public IConventionAware getSource() {
         return source;
     }

@@ -315,7 +315,8 @@ public abstract class AbstractClassGeneratorTest {
         Bean bean = generator.generate(Bean.class).newInstance();
         IConventionAware conventionAware = (IConventionAware) bean;
         DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
-        assertThat(dynamicObjectAware.getConvention(), sameInstance(conventionAware.getConventionMapping().getConvention()));
+        ConventionAwareHelper conventionMapping = (ConventionAwareHelper) conventionAware.getConventionMapping();
+        assertThat(dynamicObjectAware.getConvention(), sameInstance(conventionMapping.getConvention()));
     }
 
     @Test

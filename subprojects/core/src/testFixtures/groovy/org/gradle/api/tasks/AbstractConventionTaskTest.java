@@ -35,7 +35,8 @@ public abstract class AbstractConventionTaskTest extends AbstractTaskTest {
     public void testConventionAwareness() {
         ConventionTask task = getTask();
         assertThat(task.getConventionMapping(), instanceOf(ConventionAwareHelper.class));
-        assertThat(task.getConventionMapping().getConvention(), sameInstance(getProject().getConvention()));
+        ConventionAwareHelper conventionMapping = (ConventionAwareHelper) task.getConventionMapping();
+        assertThat(conventionMapping.getConvention(), sameInstance(getProject().getConvention()));
     }
 }
 
