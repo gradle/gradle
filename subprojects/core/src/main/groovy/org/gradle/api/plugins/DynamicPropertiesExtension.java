@@ -23,12 +23,25 @@ import java.util.Map;
 /**
  * Dynamic, ad-hoc, storage for Gradle domain objects.
  * <p>
- * Dynamic extensions are a lightweight mechanism for adding ad-hoc state to existing domain objects. They act like maps,
- * allowing the storage of arbitrary key/value pairs. All {@link ExtensionAware} Gradle domain objects automatically have an extension
- * named {@value #EXTENSION_NAME} of this type. All properties added to the dynamic extension become available via the owning object once set.
+ * Dynamic properties extensions allow new properties to be added to existing domain objects. They act like maps,
+ * allowing the storage of arbitrary key/value pairs. All {@link ExtensionAware} Gradle domain objects intrinsically have an extension
+ * named “{@value #EXTENSION_NAME}” of this type. 
  * <p>
- * Dynamic extension objects support Groovy property syntax. That is, a property can be read via {@code extension.«name»} and set via {@code extension.«name» = "value"}.
- * <b>Wherever possible, the Groovy property syntax should be preferred over the {@link #get(String)} and {@link #set(String, Object)} methods.</b>
+ * An important feature of dynamic properties extensions is that all of its properties are exposed for reading and writing via the {@link ExtensionAware}
+ * object that owns the extensions.
+ *
+ * <pre autoTested="">
+ * project.ext.set("myProp", "myValue")
+ * assert project.myProp == "myValue"
+ *
+ * project.myProp = "anotherValue"
+ * assert project.myProp == "anotherValue"
+ * assert project.ext.get("myProp") == "anotherValue"
+ * </pre>
+ *
+ * Dynamic properties extension objects support Groovy property syntax. That is, a property can be read via {@code extension.«name»} and set via
+ * {@code extension.«name» = "value"}. <b>Wherever possible, the Groovy property syntax should be preferred over the
+ * {@link #get(String)} and {@link #set(String, Object)} methods.</b>
  *
  * <pre autoTested="">
  * project.ext {
@@ -64,6 +77,16 @@ public interface DynamicPropertiesExtension {
     /**
      * Returns whether or not the extension has a property registered via the given name.
      *
+     * <pre autoTested="">
+     * assert project.ext.has("foo") == false
+     * assert project.hasProperty("foo") == false
+     *
+     * project.ext.foo = "bar"
+     *
+     * assert project.ext.has("foo")
+     * assert project.hasProperty("foo")
+     * </pre>
+     *
      * @param name The name of the property to check for
      * @return {@code true} if a property has been registered with this name, otherwise {@code false}.
      */
@@ -75,10 +98,15 @@ public interface DynamicPropertiesExtension {
      * When using a dynamic extension from Groovy, you can also get properties via Groovy's property syntax.
      * All of the following lines of code are equivalent.
      *
-     * <pre>
-     * dynamicExtension.get("foo")
-     * dynamicExtension.foo
-     * dynamicExtension["foo"]
+     * <pre autoTested="">
+     * project.ext { foo = "bar" }
+     *
+     * assert project.ext.get("foo") == "bar"
+     * assert project.ext.foo == "bar"
+     * assert project.ext["foo"] == "bar"
+     *
+     * assert project.foo == "bar"
+     * assert project["foo"] == "bar"
      * </pre>
      *
      * When using the first form, an {@link UnknownPropertyException} exception will be thrown if the
@@ -97,10 +125,14 @@ public interface DynamicPropertiesExtension {
      * When using a dynamic extension from Groovy, you can also set properties via Groovy's property syntax.
      * All of the following lines of code are equivalent.
      *
-     * <pre>
-     * dynamicExtension.set("foo", "bar")
-     * dynamicExtension.foo = "bar"
-     * dynamicExtension["foo"] = "bar"
+     * <pre autoTested="">
+     * project.ext.set("foo", "bar")
+     * project.ext.foo = "bar"
+     * project.ext["foo"] = "bar"
+     *
+     * // Once the property has been created via the extension, it can be changed by the owner.
+     * project.foo = "bar"
+     * project["foo"] = "bar"
      * </pre>
      *
      * @param name The name of the property to update the value of or create
@@ -113,6 +145,20 @@ public interface DynamicPropertiesExtension {
      *
      * The returned map is detached from the extension. That is, any changes made to the map do not
      * change the extension from which it originated.
+     *
+     * <pre autoTested="true">
+     * project.version = "1.0"
+     *
+     * assert project.hasProperty("version")
+     * assert project.ext.properties.containsKey("version") == false
+     *
+     * project.ext.foo = "bar"
+     *
+     * assert project.ext.properties.containsKey("foo")
+     * assert project.ext.properties.foo == project.ext.foo
+     *
+     * assert project.ext.properties.every { key, value -> project.properties[key] == value }
+     * </pre>
      *
      * @return All of the registered properties and their current values as a map.
      */
