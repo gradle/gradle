@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.FilterReader;
 import java.util.Map;
@@ -49,8 +50,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             }
         }
     }
-    
+
+    /**
+     * Returns the default source for this task.
+     * @deprecated Use getSource() instead.
+     */
+    @Deprecated
     public FileCollection getDefaultSource() {
+        DeprecationLogger.nagUserOfReplacedMethod("AbstractCopyTask.getDefaultSource()", "getSource()");
         return null;
     }
 
