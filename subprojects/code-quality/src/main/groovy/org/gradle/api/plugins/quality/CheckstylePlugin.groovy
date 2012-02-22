@@ -72,8 +72,6 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
             description = "Run Checkstyle analysis for ${sourceSet.name} classes"
             classpath = sourceSet.output
         }
-        task.conventionMapping.with {
-            defaultSource = { sourceSet.allJava }
-        }
+        task.setSource(sourceSet.allJava)
     }
 }

@@ -75,7 +75,6 @@ class CheckstylePluginTest extends Specification {
         assert task instanceof Checkstyle
         task.with {
             assert description == "Run Checkstyle analysis for ${sourceSet.name} classes"
-            assert defaultSource == sourceSet.allJava
             assert checkstyleClasspath == project.configurations["checkstyle"]
             assert classpath == sourceSet.output
             assert configFile == project.file("config/checkstyle/checkstyle.xml")
@@ -90,7 +89,7 @@ class CheckstylePluginTest extends Specification {
 
         expect:
         task.description == null
-        task.defaultSource == null
+        task.source.isEmpty()
         task.checkstyleClasspath == project.configurations.checkstyle
         task.configFile == project.file("config/checkstyle/checkstyle.xml")
         task.configProperties == [:]
@@ -139,7 +138,7 @@ class CheckstylePluginTest extends Specification {
         assert task instanceof Checkstyle
         task.with {
             assert description == "Run Checkstyle analysis for ${sourceSet.name} classes"
-            assert defaultSource == sourceSet.allJava
+            assert source as List == sourceSet.allJava as List
             assert checkstyleClasspath == project.configurations["checkstyle"]
             assert configFile == project.file("checkstyle-config")
             assert configProperties == [foo: "foo"]
@@ -159,7 +158,7 @@ class CheckstylePluginTest extends Specification {
 
         expect:
         task.description == null
-        task.defaultSource == null
+        task.source.isEmpty()
         task.checkstyleClasspath == project.configurations.checkstyle
         task.configFile == project.file("checkstyle-config")
         task.configProperties == [foo: "foo"]
