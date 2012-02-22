@@ -64,7 +64,7 @@ public class ScalaBasePluginTest {
         assertThat(task.description, equalTo('Compiles the custom Scala source.'))
         assertThat(task.classpath, equalTo(project.sourceSets.custom.compileClasspath))
         assertThat(task.scalaClasspath, equalTo(project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.custom.scala))
+        assertThat(task.source as List, equalTo(project.sourceSets.custom.scala as List))
         assertThat(task, dependsOn('compileCustomJava'))
     }
     
