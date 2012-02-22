@@ -21,11 +21,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.TestFile
 import spock.lang.IgnoreIf
 
-@IgnoreIf({
-    System.out.println "Found g++ at: ${OperatingSystem.current().findInPath("g++")}"
-    System.out.println "Found cl.exe at: ${OperatingSystem.current().findInPath("cl.exe")}"
-    return !OperatingSystem.current().findInPath("g++") && !OperatingSystem.current().windows
-})
+@IgnoreIf({!OperatingSystem.current().findInPath("g++") || OperatingSystem.current().windows})
 abstract class AbstractBinariesIntegrationSpec extends AbstractIntegrationSpec {
     def TestFile executable(Object path) {
         return file(OperatingSystem.current().getExecutableName(path.toString()))
