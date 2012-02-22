@@ -17,6 +17,7 @@ package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Project
@@ -28,8 +29,13 @@ import spock.lang.Specification
 class ToolingApiIntegrationTest extends Specification {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     final ToolingApi toolingApi = new ToolingApi(dist)
-    final BasicGradleDistribution otherVersion = dist.previousVersion('1.0-milestone-6')
+    final BasicGradleDistribution otherVersion = new ReleasedVersions(dist).last
     TestFile projectDir = dist.testDir
+
+    def "ensure the previous version supports short-lived daemons"() {
+        expect:
+        otherVersion.daemonIdleTimeoutConfigurable
+    }
 
     def "tooling api uses to the current version of gradle when none has been specified"() {
         projectDir.file('build.gradle') << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
