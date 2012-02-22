@@ -20,6 +20,11 @@ import groovy.lang.MissingPropertyException;
 
 import java.util.Map;
 
+/**
+ * An object that can be worked with in a dynamic fashion.
+ *
+ * Does not necessarily mean that the object exhibits any dynamic behaviour (e.g. responds to method calls dynamically).
+ */
 public interface DynamicObject {
     boolean hasProperty(String name);
 

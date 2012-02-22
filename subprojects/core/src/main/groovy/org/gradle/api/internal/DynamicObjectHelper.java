@@ -26,6 +26,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A {@link DynamicObject} implementation that provides extensibility.
+ *
+ * This is the dynamic object implementation that “enhanced” objects expose.
+ *
+ * @see AsmBackedClassGenerator.MixInDynamicObject
+ */
 public class DynamicObjectHelper extends CompositeDynamicObject {
 
     public static final String ADHOC_EXTENSION_NAME = "ext";
