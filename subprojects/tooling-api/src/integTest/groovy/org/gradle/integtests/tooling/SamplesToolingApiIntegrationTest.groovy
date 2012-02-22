@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.tooling
 
-import org.gradle.integtests.fixtures.IntegrationTestHint
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.integtests.fixtures.*
@@ -81,7 +80,10 @@ class SamplesToolingApiIntegrationTest extends Specification {
 
     private ExecutionResult run(dir) {
         try {
-            return new GradleDistributionExecuter(distribution).inDirectory(dir).withTasks('run').run()
+            return new GradleDistributionExecuter(distribution).inDirectory(dir)
+                    .withArguments("-PautomationSystemProperty=org.gradle.daemon.idletimeout=60000")
+                    .withTasks('run')
+                    .run()
         } catch (Exception e) {
             throw new IntegrationTestHint(e);
         }
