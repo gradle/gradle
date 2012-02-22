@@ -40,6 +40,6 @@ public class ForegroundDaemonConfiguration extends DefaultDaemonServerConfigurat
         List<String> inputArguments = new ArrayList<String>(ManagementFactory.getRuntimeMXBean().getInputArguments());
         jvmOptions.setAllJvmArgs(inputArguments);
         //Simplification, we will make the foreground daemon interested only in managed jvm args
-        return jvmOptions.getMangedJvmArgs();
+        return jvmOptions.getManagedJvmArgs();
     }
 }

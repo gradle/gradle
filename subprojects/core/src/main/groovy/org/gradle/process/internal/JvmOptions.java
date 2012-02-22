@@ -75,7 +75,7 @@ public class JvmOptions {
     public List<String> getAllImmutableJvmArgs() {
         List<String> args = new ArrayList<String>();
         args.addAll(getJvmArgs());
-        args.addAll(getMangedJvmArgs());
+        args.addAll(getManagedJvmArgs());
         return args;
     }
 
@@ -83,7 +83,7 @@ public class JvmOptions {
      * @return the list of jvm args we manage explicitly, for example, max heaps size or file encoding.
      *          The result is a subset of options returned by {@link #getAllImmutableJvmArgs()}
      */
-    public List<String> getMangedJvmArgs() {
+    public List<String> getManagedJvmArgs() {
         List<String> args = new ArrayList<String>();
         if (minHeapSize != null) {
             args.add(String.format("-Xms%s", minHeapSize));
