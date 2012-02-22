@@ -144,14 +144,10 @@ public class JavaBasePlugin implements Plugin<Project> {
         ConventionMapping conventionMapping;
         compile.setDescription(String.format("Compiles the %s.", sourceSet.getJava()));
         conventionMapping = compile.getConventionMapping();
+        compile.setSource(sourceSet.getJava());
         conventionMapping.map("classpath", new Callable<Object>() {
             public Object call() throws Exception {
                 return sourceSet.getCompileClasspath();
-            }
-        });
-        conventionMapping.map("defaultSource", new Callable<Object>() {
-            public Object call() throws Exception {
-                return sourceSet.getJava();
             }
         });
         conventionMapping.map("destinationDir", new Callable<Object>() {

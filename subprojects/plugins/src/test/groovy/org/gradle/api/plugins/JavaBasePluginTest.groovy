@@ -74,7 +74,6 @@ class JavaBasePluginTest extends Specification {
         compileJava.description == 'Compiles the custom Java source.'
         compileJava instanceof Compile
         Matchers.dependsOn().matches(compileJava)
-        compileJava.defaultSource == project.sourceSets.custom.java
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
         compileJava.destinationDir == project.sourceSets.custom.output.classesDir
 

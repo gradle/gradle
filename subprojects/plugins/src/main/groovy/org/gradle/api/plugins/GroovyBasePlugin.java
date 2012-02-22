@@ -86,11 +86,7 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
                 javaBasePlugin.configureForSourceSet(sourceSet, compile);
                 compile.dependsOn(sourceSet.getCompileJavaTaskName());
                 compile.setDescription(String.format("Compiles the %s Groovy source.", sourceSet.getName()));
-                compile.conventionMapping("defaultSource", new Callable<Object>() {
-                    public Object call() throws Exception {
-                        return groovySourceSet.getGroovy();
-                    }
-                });
+                compile.setSource(groovySourceSet.getGroovy());
 
                 project.getTasks().getByName(sourceSet.getClassesTaskName()).dependsOn(compileTaskName);
             }

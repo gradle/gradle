@@ -68,7 +68,6 @@ class GroovyBasePluginTest {
         def task = project.tasks['compileCustomGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.description, equalTo('Compiles the custom Groovy source.'))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.custom.groovy))
         assertThat(task, dependsOn('compileCustomJava'))
     }
 
