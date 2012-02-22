@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
 
 import java.util.Map;
 
@@ -68,9 +69,11 @@ import java.util.Map;
  *
  * Examples of advanced dependency declaration including:
  * <ul>
- * <li>forcing certain dependency version in case of the conflict</li>
- * <li>excluding certain dependencies by name, group or both</li>
- * <li>avoiding transitive dependencies for certain dependency</li>
+ * <li>Forcing certain dependency version in case of the conflict.</li>
+ * <li>Excluding certain dependencies by name, group or both.
+ *      More details about per-dependency exclusions can be found in
+ *      docs for {@link ModuleDependency#exclude(java.util.Map)}.</li>
+ * <li>Avoiding transitive dependencies for certain dependency.</li>
  * </ul>
  *
  * <pre autoTested=''>
@@ -92,10 +95,10 @@ import java.util.Map;
  * }
  * </pre>
  *
- * More examples of advanced configuration, useful when dependency module has multiple artifacts
+ * More examples of advanced configuration, useful when dependency module has multiple artifacts:
  * <ul>
- *   <li>declaring dependency to a specific configuration of the module</li>
- *   <li>explicit specification of the artifact. See also {@link org.gradle.api.artifacts.ModuleDependency#artifact(groovy.lang.Closure)}</li>
+ *   <li>Declaring dependency to a specific configuration of the module.</li>
+ *   <li>Explicit specification of the artifact. See also {@link org.gradle.api.artifacts.ModuleDependency#artifact(groovy.lang.Closure)}.</li>
  * </ul>
  *
  * <pre autoTested=''>

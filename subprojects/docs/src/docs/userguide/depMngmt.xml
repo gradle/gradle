@@ -440,6 +440,38 @@
                 Have also a look at the API documentation of <apilink class="org.gradle.api.artifacts.Dependency"/> and
                 <apilink class="org.gradle.api.artifacts.Configuration"/>.
             </para>
+            <para>
+                Not every transitive dependency can be excluded - some transitive dependencies might be essential
+                for correct runtime behavior of the application. Generally, one can exclude transitive
+                dependencies that are either not required by runtime or that are guaranteed to be available
+                on the target environment/platform.
+            </para>
+            <para>
+                Should you exclude per-dependency or per-configuration?
+                It turns out that in majority of cases you want to use the per-configuration exclusion.
+                Here are the some exemplary reasons why one might want to exclude a transitive dependency.
+                Bear in mind that for some of those use cases there are better solutions than exclusions!
+                <itemizedlist>
+                    <listitem>The dependency is undesired due to licensing reasons.</listitem>
+                    <listitem>The dependency is not available in any of remote repositories.</listitem>
+                    <listitem>The dependency is not needed for runtime.</listitem>
+                    <listitem>The dependency has a version that conflicts with a desired version.
+                        For that use case please refer to <xref linkend='sub:version_conflicts'/>
+                        and the documentation on <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
+                        for a potentially better solution to the problem.
+                    </listitem>
+                </itemizedlist>
+                Basically, in most of the cases excluding the transitive dependency should be done per configuration.
+                This way the dependency declaration is more explicit. It is also more accurate because a per-dependency
+                exclude rule does not guarantee the given transitive dependency does not show up in the configuration.
+                For example, some other dependency, which does not have any exclude rules, might pull in
+                that unwanted transitive dependency.
+            </para>
+            <para>
+                Other examples of the dependency exclusions can be found in the reference for
+                <apilink class='org.gradle.api.artifacts.ModuleDependency'/> or
+                <apilink class='org.gradle.api.artifacts.dsl.DependencyHandler'/>.
+            </para>
         </section>
         <section>
             <title>Optional attributes</title>
