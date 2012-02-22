@@ -19,6 +19,7 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.internal.ThreadGlobalInstantiator
+import org.gradle.api.plugins.DynamicExtension
 import org.gradle.api.plugins.ExtensionAware
 import spock.lang.Specification
 
@@ -38,6 +39,11 @@ public class ExtensionContainerTest extends Specification {
     class BarExtension {}
     class SomeExtension {}
 
+    def "has dynamic extension"() {
+        expect:
+        container.getByName(DynamicExtension.EXTENSION_NAME) == container.dynamicExtension
+    }
+    
     def "extension can be accessed and configured"() {
         when:
         container.add("foo", extension)
@@ -127,7 +133,7 @@ public class ExtensionContainerTest extends Specification {
 
         then:
         def ex = thrown(UnknownDomainObjectException)
-        ex.message == "Extension with name 'i don't exist' does not exist. Currently registered extension names: [foo]"
+        ex.message == "Extension with name 'i don't exist' does not exist. Currently registered extension names: [${DynamicExtension.EXTENSION_NAME}, foo]"
     }
 
     def "throws when unknown extension wanted by type"() {
@@ -138,7 +144,7 @@ public class ExtensionContainerTest extends Specification {
 
         then:
         def ex = thrown(UnknownDomainObjectException)
-        ex.message == "Extension of type 'SomeExtension' does not exist. Currently registered extension types: [FooExtension]"
+        ex.message == "Extension of type 'SomeExtension' does not exist. Currently registered extension types: [${DefaultDynamicExtension.simpleName}, FooExtension]"
     }
 
     def "types can be retrieved by interface and super types"() {

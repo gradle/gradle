@@ -17,7 +17,6 @@ package org.gradle.api.internal;
 
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.plugins.DefaultConvention;
-import org.gradle.api.internal.plugins.DefaultDynamicExtension;
 import org.gradle.api.internal.plugins.DynamicExtensionDynamicObjectAdapter;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.DynamicExtension;
@@ -35,8 +34,6 @@ import java.util.Map;
  */
 public class ExtensibleDynamicObject extends CompositeDynamicObject implements HasConvention {
 
-    public static final String ADHOC_EXTENSION_NAME = "ext";
-
     public enum Location {
         BeforeConvention, AfterConvention
     }
@@ -47,7 +44,6 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     private Convention convention;
     private DynamicObject beforeConvention;
     private DynamicObject afterConvention;
-    private DynamicExtension dynamicExtension;
     private DynamicObject dynamicExtensionDynamicObject;
 
     /**
@@ -74,11 +70,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         this.delegate = delegate;
         this.dynamicDelegate = dynamicDelegate;
         this.convention = convention;
-        this.dynamicExtension = new DefaultDynamicExtension();
-        this.dynamicExtensionDynamicObject = new DynamicExtensionDynamicObjectAdapter(delegate, dynamicExtension);
-
-        // Expose the dynamic storage as an extension on the delegate
-        getConvention().add(ADHOC_EXTENSION_NAME, dynamicExtension);
+        this.dynamicExtensionDynamicObject = new DynamicExtensionDynamicObjectAdapter(delegate, convention.getDynamicExtension());
 
         updateDelegates();
     }
@@ -111,12 +103,12 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     }
 
     public DynamicExtension getDynamicExtension() {
-        return dynamicExtension;
+        return convention.getDynamicExtension();
     }
 
     public void addProperties(Map<String, ?> properties) {
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
-            dynamicExtension.set(entry.getKey(), entry.getValue());
+            getDynamicExtension().set(entry.getKey(), entry.getValue());
         }
     }
 
@@ -165,7 +157,6 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
 
         extensibleDynamicObject.parent = parent;
         extensibleDynamicObject.convention = convention;
-        extensibleDynamicObject.dynamicExtension = dynamicExtension;
         extensibleDynamicObject.dynamicExtensionDynamicObject = dynamicExtensionDynamicObject;
         if (beforeConvention != null) {
             extensibleDynamicObject.beforeConvention = beforeConvention;

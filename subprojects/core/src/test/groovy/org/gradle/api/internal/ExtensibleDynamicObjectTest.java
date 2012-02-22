@@ -117,11 +117,11 @@ public class ExtensibleDynamicObjectTest {
         GroovyBean bean = new GroovyBean();
         bean.setGroovyProperty("value");
 
-        assertThat(bean.getProperty("groovyProperty"), equalTo((Object) "value"));
+        assertThat(((Bean)bean).getProperty("groovyProperty"), equalTo((Object) "value"));
 
         bean.setProperty("groovyProperty", "new value");
 
-        assertThat(bean.getProperty("groovyProperty"), equalTo((Object) "new value"));
+        assertThat(((Bean)bean).getProperty("groovyProperty"), equalTo((Object) "new value"));
         assertThat(bean.getGroovyProperty(), equalTo((Object) "new value"));
     }
 
@@ -129,11 +129,11 @@ public class ExtensibleDynamicObjectTest {
     public void canGetAndSetGroovyDynamicProperty() {
         GroovyBean bean = new GroovyBean();
 
-        assertThat(bean.getProperty("dynamicGroovyProperty"), equalTo(null));
+        assertThat(((Bean)bean).getProperty("dynamicGroovyProperty"), equalTo(null));
 
         bean.setProperty("dynamicGroovyProperty", "new value");
 
-        assertThat(bean.getProperty("dynamicGroovyProperty"), equalTo((Object) "new value"));
+        assertThat(((Bean)bean).getProperty("dynamicGroovyProperty"), equalTo((Object) "new value"));
     }
 
     @Test

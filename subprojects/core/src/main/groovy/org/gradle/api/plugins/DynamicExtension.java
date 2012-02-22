@@ -25,7 +25,7 @@ import java.util.Map;
  * <p>
  * Dynamic extensions are a lightweight mechanism for adding ad-hoc state to existing domain objects. They act like maps,
  * allowing the storage of arbitrary key/value pairs. All {@link ExtensionAware} Gradle domain objects automatically have an extension
- * named “{@code ext}” of this type. All properties added to the dynamic extension become available via the owning object once set.
+ * named {@value #EXTENSION_NAME} of this type. All properties added to the dynamic extension become available via the owning object once set.
  * <p>
  * Dynamic extension objects support Groovy property syntax. That is, a property can be read via {@code extension.«name»} and set via {@code extension.«name» = "value"}.
  * <b>Wherever possible, the Groovy property syntax should be preferred over the {@link #get(String)} and {@link #set(String, Object)} methods.</b>
@@ -55,6 +55,11 @@ import java.util.Map;
  * When the {@link #get(String)} method is used, an {@link UnknownPropertyException} will be thrown.
  */
 public interface DynamicExtension {
+
+    /**
+     * The name of this extension in all {@link ExtensionContainer ExtensnionContainers}, {@value}.
+     */
+    public static final String EXTENSION_NAME = "ext";
 
     /**
      * Returns whether or not the extension has a property registered via the given name.

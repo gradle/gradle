@@ -91,4 +91,13 @@ public interface ExtensionContainer {
      * @return extension or null
      */
     Object findByName(String name);
+
+    /**
+     * The dynamic extension in this extension container.
+     *
+     * This extension is always present in the container, with the name {@value DynamicExtension#EXTENSION_NAME}.
+     *
+     * @return The dynamic extension in this extension container.
+     */
+    DynamicExtension getDynamicExtension();
 }

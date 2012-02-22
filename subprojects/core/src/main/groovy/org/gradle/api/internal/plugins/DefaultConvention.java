@@ -19,8 +19,11 @@ package org.gradle.api.internal.plugins;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.*;
+import org.gradle.api.internal.BeanDynamicObject;
+import org.gradle.api.internal.DynamicObject;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.DynamicExtension;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.*;
@@ -33,6 +36,7 @@ public class DefaultConvention implements Convention {
     private final Map<String, Object> plugins = new LinkedHashMap<String, Object>();
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
+    private final DynamicExtension dynamicExtension = new DefaultDynamicExtension();
     private final Instantiator instantiator;
 
     /**
@@ -44,11 +48,12 @@ public class DefaultConvention implements Convention {
      * @see #DefaultConvention(org.gradle.api.internal.Instantiator)
      */
     public DefaultConvention() {
-        this.instantiator = null;
+        this(null);
     }
 
     public DefaultConvention(Instantiator instantiator) {
         this.instantiator = instantiator;
+        add(DynamicExtension.EXTENSION_NAME, dynamicExtension);
     }
 
     public Map<String, Object> getPlugins() {
@@ -109,6 +114,10 @@ public class DefaultConvention implements Convention {
         T instance = getInstantiator().newInstance(type, constructionArguments);
         add(name, instance);
         return instance;
+    }
+
+    public DynamicExtension getDynamicExtension() {
+        return dynamicExtension;
     }
 
     public <T> T getByType(Class<T> type) {
