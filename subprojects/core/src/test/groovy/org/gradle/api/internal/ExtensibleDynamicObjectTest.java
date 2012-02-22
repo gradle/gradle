@@ -707,12 +707,12 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void canGetObjectAsDynamicObject() {
         Bean bean = new Bean();
-        assertThat(ExtensibleDynamicObject.asDynamicObject(bean), sameInstance((DynamicObject) bean));
+        assertThat(DynamicObjectUtil.asDynamicObject(bean), sameInstance((DynamicObject) bean));
 
         AbstractProject project = (AbstractProject)ProjectBuilder.builder().build();
-        assertThat(ExtensibleDynamicObject.asDynamicObject(project), sameInstance(project.getAsDynamicObject()));
+        assertThat(DynamicObjectUtil.asDynamicObject(project), sameInstance(project.getAsDynamicObject()));
 
-        assertThat(ExtensibleDynamicObject.asDynamicObject(new Object()), instanceOf(DynamicObject.class));
+        assertThat(DynamicObjectUtil.asDynamicObject(new Object()), instanceOf(DynamicObject.class));
     }
 
     @Test

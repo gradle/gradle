@@ -192,15 +192,5 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         }
     }
 
-    public static DynamicObject asDynamicObject(Object object) {
-        if (object instanceof DynamicObject) {
-            return (DynamicObject)object;
-        } else if (object instanceof DynamicObjectAware) {
-            return ((DynamicObjectAware) object).getAsDynamicObject();
-        } else {
-            return new BeanDynamicObject(object);
-        }
-    }
-    
 }
 
