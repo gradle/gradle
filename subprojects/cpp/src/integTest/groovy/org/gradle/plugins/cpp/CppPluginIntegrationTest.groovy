@@ -16,7 +16,10 @@
 package org.gradle.plugins.cpp
 
 import static org.gradle.util.TextUtil.escapeString
+import spock.lang.IgnoreIf
+import org.gradle.internal.os.OperatingSystem
 
+@IgnoreIf({!OperatingSystem.current().findInPath("g++") && !OperatingSystem.current().findInPath("cl.exe")})
 class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
 
     static final HELLO_WORLD = "Hello, World!"
