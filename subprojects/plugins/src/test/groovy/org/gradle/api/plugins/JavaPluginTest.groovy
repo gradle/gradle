@@ -145,7 +145,8 @@ class JavaPluginTest {
         assertThat(task, dependsOn())
         assertThat(task.classpath, sameInstance(project.sourceSets.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.sourceSets.main.output.classesDir))
-
+        assertThat(task.source as List, equalTo(project.sourceSets.main.java as List))
+        
         task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
         assertThat(task, dependsOn(JavaPlugin.PROCESS_RESOURCES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME))
@@ -161,6 +162,7 @@ class JavaPluginTest {
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.classpath, sameInstance(project.sourceSets.test.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.sourceSets.test.output.classesDir))
+        assertThat(task.source as List, equalTo(project.sourceSets.test.java as List))
 
         task = project.tasks[JavaPlugin.TEST_CLASSES_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))

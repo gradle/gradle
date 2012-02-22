@@ -76,7 +76,7 @@ class JavaBasePluginTest extends Specification {
         Matchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
         compileJava.destinationDir == project.sourceSets.custom.output.classesDir
-
+        compileJava.source as List == project.sourceSets.custom.java as List
         def classes = project.tasks['customClasses']
         classes.description == 'Assembles the custom classes.'
         classes instanceof DefaultTask
