@@ -44,22 +44,24 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
     @Override
     protected List<Permutation> createExecutions() {
+        ToolingApiDistributionResolver resolver = new ToolingApiDistributionResolver().withDefaultRepository()
+
         List<Permutation> permutations = []
-        permutations << new Permutation(current, current)
+        permutations << new Permutation(resolver.resolve(current.version), current)
         previous.each {
             if (it.toolingApiSupported) {
-                permutations << new Permutation(current, it)
-                permutations << new Permutation(it, current)
+                permutations << new Permutation(resolver.resolve(current.version), it)
+                permutations << new Permutation(resolver.resolve(it.version), current)
             }
         }
         return permutations
     }
 
     private class Permutation extends AbstractCompatibilityTestRunner.Execution {
-        final BasicGradleDistribution toolingApi
+        final ToolingApiDistribution toolingApi
         final BasicGradleDistribution gradle
 
-        Permutation(BasicGradleDistribution toolingApi, BasicGradleDistribution gradle) {
+        Permutation(ToolingApiDistribution toolingApi, BasicGradleDistribution gradle) {
             this.toolingApi = toolingApi
             this.gradle = gradle
         }
@@ -69,7 +71,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             return "${displayName(toolingApi)} -> ${displayName(gradle)}"
         }
 
-        private String displayName(BasicGradleDistribution dist) {
+        private String displayName(dist) {
             if (dist.version == GradleVersion.current().version) {
                 return "current"
             }
@@ -129,20 +131,8 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             return classLoader
         }
 
-        private def createTestClassLoader() {
-            def toolingApiClassPath = []
-            def libFiles = toolingApi.gradleHomeDir.file('lib').listFiles()
-            toolingApiClassPath += libFiles.findAll { it.name =~ /gradle-tooling-api.*\.jar/ }
-            toolingApiClassPath += libFiles.findAll { it.name =~ /gradle-core.*\.jar/ }
-            toolingApiClassPath += libFiles.findAll { it.name =~ /gradle-base-services.*\.jar/ }
-            toolingApiClassPath += libFiles.findAll { it.name =~ /gradle-wrapper.*\.jar/ }
-            toolingApiClassPath += libFiles.findAll { it.name =~ /slf4j-api.*\.jar/ }
-
-            // Add in an slf4j provider
-            toolingApiClassPath += libFiles.findAll { it.name =~ /logback.*\.jar/ }
-
+        private ClassLoader createTestClassLoader() {
             def classLoaderFactory = new DefaultClassLoaderFactory()
-            def toolingApiClassLoader = classLoaderFactory.createIsolatedClassLoader(toolingApiClassPath.collect { it.toURI().toURL() })
 
             def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(getClass().classLoader)
             sharedClassLoader.allowPackage('org.junit')
@@ -157,7 +147,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowPackage('org.gradle.integtests.fixtures')
             sharedClassLoader.allowPackage('org.gradle.tests.fixtures')
 
-            def parentClassLoader = new MultiParentClassLoader(toolingApiClassLoader, sharedClassLoader)
+            def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
 
             def testClassPath = []
             testClassPath << ClasspathUtil.getClasspathForClass(target)
