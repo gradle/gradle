@@ -24,13 +24,13 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
-import org.gradle.api.publication.maven.internal.MavenFactory;
-import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publication.maven.internal.DefaultDeployerFactory;
+import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
 import org.gradle.api.publication.maven.internal.DefaultMavenRepositoryHandlerConvention;
+import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.tasks.Upload;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.DeprecationLogger;
@@ -72,7 +72,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                 RepositoryHandler repositories = upload.getRepositories();
                 DefaultRepositoryHandler handler = (DefaultRepositoryHandler) repositories;
                 DefaultMavenRepositoryHandlerConvention repositoryConvention = new DefaultMavenRepositoryHandlerConvention(handler, deployerFactory);
-                ((DynamicObjectAware) repositories).getConvention().getPlugins().put("maven", repositoryConvention);
+                new DslObject(repositories).getConvention().getPlugins().put("maven", repositoryConvention);
             }
         });
         PluginContainer plugins = project.getPlugins();
@@ -128,7 +128,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         Upload installUpload = project.getTasks().add(INSTALL_TASK_NAME, Upload.class);
         Configuration configuration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
         installUpload.setConfiguration(configuration);
-        MavenRepositoryHandlerConvention repositories = ((DynamicObjectAware) installUpload.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
+        MavenRepositoryHandlerConvention repositories = new DslObject(installUpload.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
         repositories.mavenInstaller();
         installUpload.setDescription("Does a maven install of the archives artifacts into the local .m2 cache.");
     }

@@ -33,7 +33,7 @@ import java.util.Map;
  *
  * @see AsmBackedClassGenerator.MixInDynamicObject
  */
-public class DynamicObjectHelper extends CompositeDynamicObject {
+public class DynamicObjectHelper extends CompositeDynamicObject implements HasConvention {
 
     public static final String ADHOC_EXTENSION_NAME = "ext";
 
@@ -210,5 +210,6 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
             return new BeanDynamicObject(object);
         }
     }
+    
 }
 

@@ -23,7 +23,9 @@ import java.util.Map;
 /**
  * An object that can be worked with in a dynamic fashion.
  *
- * Does not necessarily mean that the object exhibits any dynamic behaviour (e.g. responds to method calls dynamically).
+ * The semantics of each method is completely up to the implementation. For example, {@link BeanDynamicObject}
+ * provides a dynamic view of the functionality of an object and does not provide any decoration or extra functionality.
+ * The {@link DynamicObjectHelper} implementation on the other hand does provide extra functionality.
  */
 public interface DynamicObject {
     boolean hasProperty(String name);

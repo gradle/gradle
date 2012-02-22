@@ -46,6 +46,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private MethodCodeBody initMetaClass;
         private final Type conventionAwareType = Type.getType(IConventionAware.class);
         private final Type dynamicObjectAwareType = Type.getType(DynamicObjectAware.class);
+        private final Type extensionAwareType = Type.getType(ExtensionAware.class);
+        private final Type hasConventionType = Type.getType(HasConvention.class);
         private final Type dynamicObjectType = Type.getType(DynamicObject.class);
         private final Type conventionMappingType = Type.getType(ConventionMapping.class);
         private final Type groovyObjectType = Type.getType(GroovyObject.class);
@@ -70,7 +72,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
             if (isDynamicAware) {
                 interfaceTypes.add(dynamicObjectAwareType.getInternalName());
-                interfaceTypes.add(Type.getType(ExtensionAware.class).getInternalName());
+                interfaceTypes.add(extensionAwareType.getInternalName());
+                interfaceTypes.add(hasConventionType.getInternalName());
                 interfaceTypes.add(groovyObjectType.getInternalName());
             }
 
@@ -161,7 +164,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE public Convention getConvention() { return dynamicObjectHelper.getConvention(); }
 
-            addGetter(DynamicObjectAware.class.getDeclaredMethod("getConvention"), new MethodCodeBody() {
+            addGetter(HasConvention.class.getDeclaredMethod("getConvention"), new MethodCodeBody() {
                 public void add(MethodVisitor visitor) throws Exception {
 
                     // GENERATE dynamicObjectHelper.getConvention()
@@ -180,7 +183,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE public ExtensionContainer getExtensions() { return getConvention(); }
 
-            addGetter(DynamicObjectAware.class.getDeclaredMethod("getExtensions"), new MethodCodeBody() {
+            addGetter(ExtensionAware.class.getDeclaredMethod("getExtensions"), new MethodCodeBody() {
                 public void add(MethodVisitor visitor) throws Exception {
 
                     // GENERATE getConvention()

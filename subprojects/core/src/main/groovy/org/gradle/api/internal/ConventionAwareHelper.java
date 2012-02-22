@@ -34,7 +34,7 @@ import java.util.concurrent.Callable;
 /**
  * @author Hans Dockter
  */
-public class ConventionAwareHelper implements ConventionMapping {
+public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     private Convention convention;
 
     private IConventionAware source;

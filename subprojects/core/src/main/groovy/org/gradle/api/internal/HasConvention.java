@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal;
 
-/**
- * An object that can present a dynamic view of itself.
- *
- * The exposed dynamic object <i>may</i> provide functionality over and above what the type implementing
- * this interface can do. For example, the {@link DynamicObject} may provide the ability to register new
- * properties or implement methods that this object does not provide in a concrete way.
- */
-public interface DynamicObjectAware {
+import org.gradle.api.plugins.Convention;
 
-    /**
-     * Returns a {@link DynamicObject} for this object.
-     *
-     * @return The dynamic object.
-     */
-    DynamicObject getAsDynamicObject();
+/**
+ * Demarcates objects that expose a convention.
+ *
+ * Convention objects aren't going to be around forever, so this is a temporary interface.
+ */
+public interface HasConvention {
+
+    Convention getConvention();
+
 }

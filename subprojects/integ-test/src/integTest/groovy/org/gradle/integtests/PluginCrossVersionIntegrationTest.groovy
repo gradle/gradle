@@ -38,12 +38,21 @@ import org.gradle.api.tasks.TaskAction
 class SomePlugin implements Plugin<Project> {
     void apply(Project p) {
         p.tasks.add('do-stuff', CustomTask)
+        p.tasks.add('customConventionTask', CustomConventionTask)
+        p.tasks.add('customSourceTask', CustomSourceTask)
     }
 }
 
 class CustomTask extends DefaultTask {
     @TaskAction void go() { }
 }
+
+// ConventionTask leaks a lot of internal API so test for compatibility
+class CustomConventionTask extends ConventionTask {}
+
+// Same reason here, but less direct
+class CustomSourceTask extends SourceTask {}
+
 """
 
         buildFile << """

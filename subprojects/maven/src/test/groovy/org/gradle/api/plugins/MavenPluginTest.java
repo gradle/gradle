@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.tasks.Upload;
 import org.gradle.util.HelperUtil;
@@ -114,11 +114,11 @@ public class MavenPluginTest {
         mavenPlugin.apply(project);
 
         Upload task = project.getTasks().withType(Upload.class).getByName(MavenPlugin.INSTALL_TASK_NAME);
-        MavenRepositoryHandlerConvention convention = ((DynamicObjectAware) task.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
+        MavenRepositoryHandlerConvention convention = new DslObject(task.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
         assertThat(convention, notNullValue());
 
         task = project.getTasks().add("customUpload", Upload.class);
-        convention = ((DynamicObjectAware) task.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
+        convention = new DslObject(task.getRepositories()).getConvention().getPlugin(MavenRepositoryHandlerConvention.class);
         assertThat(convention, notNullValue());
     }
 
