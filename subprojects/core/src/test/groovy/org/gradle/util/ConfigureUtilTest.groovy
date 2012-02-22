@@ -15,6 +15,7 @@
  */
 package org.gradle.util
 
+import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.util.ConfigureUtil.IncompleteInputException
 import org.junit.Test
 import static org.hamcrest.Matchers.equalTo
@@ -109,6 +110,13 @@ class ConfigureUtilTest {
         def c = new TestConfigurable()
         ConfigureUtil.configure({ a = 1 }, c)
         assert c.props.a == 1
+    }
+    
+    @Test
+    void configureByMapTriesMethodForExtensibleObjects() {
+        Bean bean = ThreadGlobalInstantiator.getOrCreate().newInstance(Bean)
+        ConfigureUtil.configureByMap(bean, method:  "foo")
+        assert bean.prop == "foo"
     }
     
 }

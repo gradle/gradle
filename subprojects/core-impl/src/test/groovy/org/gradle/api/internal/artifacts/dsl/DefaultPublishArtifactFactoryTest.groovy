@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import spock.lang.FailsWith
 import spock.lang.Specification
 
 /**
@@ -77,7 +76,6 @@ public class DefaultPublishArtifactFactoryTest extends Specification {
         publishArtifact.file == file
     }
 
-    @FailsWith(AssertionError)
     def createArtifactFromFileInMap() {
         Task task = Mock()
         def file = new File("some.zip")
