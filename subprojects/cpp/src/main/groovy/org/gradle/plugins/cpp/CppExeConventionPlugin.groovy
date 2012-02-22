@@ -48,7 +48,7 @@ class CppExeConventionPlugin implements Plugin<Project> {
 
                 // needs to be more general and not peer into the spec
                 executables.main.spec.outputFile,
-                executables.main.spec.task
+                executables.main
             )
 
             extensions.getByType(DefaultArtifactPublicationSet).addCandidate(exeArtifact)

@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.CompileSpec;
 import org.gradle.plugins.binaries.model.SourceSet;
@@ -26,13 +27,12 @@ import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
 public class DefaultBinary implements Binary {
-
     private final String name;
     private final ProjectInternal project;
-    private final CompileSpec spec;
+    private final BinaryCompileSpec spec;
     private final DomainObjectSet<SourceSet> sourceSets;
 
-    public DefaultBinary(String name, ProjectInternal project, CompileSpecFactory<?> specFactory) {
+    public DefaultBinary(String name, ProjectInternal project, CompileSpecFactory specFactory) {
         this.name = name;
         this.project = project;
         this.sourceSets = new DefaultDomainObjectSet<SourceSet>(SourceSet.class);
@@ -41,6 +41,10 @@ public class DefaultBinary implements Binary {
 
     public String getName() {
         return name;
+    }
+
+    public TaskDependency getBuildDependencies() {
+        return spec.getBuildDependencies();
     }
 
     public ProjectInternal getProject() {

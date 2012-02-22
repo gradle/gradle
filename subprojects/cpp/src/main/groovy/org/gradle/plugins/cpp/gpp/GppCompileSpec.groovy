@@ -30,6 +30,9 @@ import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler
 import org.gradle.plugins.cpp.internal.CppCompileSpec
 import org.gradle.util.DeprecationLogger
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.internal.tasks.DefaultTaskDependency
 
 class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAware, CppCompileSpec {
     Binary binary
@@ -67,12 +70,25 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
         binary.name
     }
 
+    TaskDependency getBuildDependencies() {
+        return new DefaultTaskDependency().add(task)
+    }
+
     File getWorkDir() {
         project.file "$project.buildDir/compileWork/$name"
     }
 
     Iterable<File> getLibs() {
         return libs
+    }
+
+    /**
+     * @deprecated No replacement
+     */
+    @Deprecated
+    Task getTask() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.getTask()")
+        return task
     }
 
     /**
@@ -168,7 +184,7 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
     }
 
     void libs(Iterable<Library> libs) {
-        task.dependsOn { libs*.spec*.task }
+        task.dependsOn libs
         this.libs.from({ libs*.spec*.outputFile })
         includes(project.files { libs*.headers*.srcDirs })
     }

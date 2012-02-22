@@ -24,6 +24,8 @@ import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.tasks.Sync
+import org.gradle.util.Matchers
 
 class CppPluginTest extends Specification {
     final def project = HelperUtil.createRootProject()
@@ -139,9 +141,14 @@ class CppPluginTest extends Specification {
         }
 
         then:
-        def task = project.tasks['compileTest']
-        task instanceof Compile
-        task.spec == project.executables.test.spec
+        def compile = project.tasks['compileTest']
+        compile instanceof Compile
+        compile.spec == project.executables.test.spec
+
+        def install = project.tasks['installTest']
+        install instanceof Sync
+        install.destinationDir == project.file('build/install/test')
+        install Matchers.dependsOn("compileTest")
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
@@ -202,8 +209,8 @@ class CppPluginTest extends Specification {
         }
 
         then:
-        def task = project.tasks['compileTest']
-        task instanceof Compile
-        task.spec == project.libraries.test.spec
+        def compile = project.tasks['compileTest']
+        compile instanceof Compile
+        compile.spec == project.libraries.test.spec
     }
 }

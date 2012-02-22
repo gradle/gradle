@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,14 @@
 package org.gradle.plugins.binaries.model.internal;
 
 import org.gradle.plugins.binaries.model.Binary;
-import org.gradle.plugins.binaries.model.CompileSpec;
 
 /**
  * Producer of compile specs
- * 
- * @param <T> The type of compile spec produced
  */
-public interface CompileSpecFactory<T extends CompileSpec> {
+public interface CompileSpecFactory {
 
     /**
      * Create a new spec to compile this binary
      */
-    T create(Binary binary);
-
+    BinaryCompileSpec create(Binary binary);
 }

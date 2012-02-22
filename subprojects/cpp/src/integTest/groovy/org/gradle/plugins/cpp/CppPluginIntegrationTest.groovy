@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,6 +89,22 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         fails "compileMain"
     }
 
+    def "build fails when link fails"() {
+        given:
+        buildFile << """
+            apply plugin: "cpp-exe"
+        """
+        settingsFile << "rootProject.name = 'test'"
+
+        and:
+        file("src", "main", "cpp", "helloworld.cpp") << """
+            int thing() { }
+        """
+
+        expect:
+        fails "compileMain"
+    }
+
     def "build and execute program from multiple source files"() {
         given:
         buildFile << """
@@ -127,7 +143,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         executable("build/binaries/test").exec().out == HELLO_WORLD
     }
 
-    def "build and execute program with shared library"() {
+    def "build, install and execute program with shared library"() {
         given:
         buildFile << """
             apply plugin: "cpp-exe"
@@ -171,10 +187,14 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         """
 
         when:
-        run "compileMain"
+        run "installMain"
 
         then:
         sharedLibrary("build/binaries/hello").isFile()
-        executable("build/binaries/test").exec().out == HELLO_WORLD
+        executable("build/binaries/test").isFile()
+
+        sharedLibrary("build/install/main/hello").isFile()
+        executable("build/install/main/test").isFile()
+        executable("build/install/main/test").exec().out == HELLO_WORLD
     }
 }

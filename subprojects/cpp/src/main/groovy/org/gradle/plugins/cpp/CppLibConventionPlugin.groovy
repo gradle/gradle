@@ -50,7 +50,7 @@ class CppLibConventionPlugin implements Plugin<Project> {
 
                 // needs to be more general and not peer into the spec
                 libraries.main.spec.outputFile,
-                libraries.main.spec.task
+                libraries.main
             )
 
             task("assembleHeaders", type: Zip) {

@@ -23,6 +23,11 @@ import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
 import org.gradle.plugins.cpp.gpp.internal.GppCompileSpecFactory
 import org.gradle.plugins.cpp.msvcpp.MicrosoftVisualCppPlugin
+import org.gradle.plugins.binaries.model.Binary
+import org.gradle.util.GUtil
+import org.gradle.api.tasks.Sync
+import org.gradle.api.plugins.BasePlugin
+import org.gradle.plugins.binaries.model.Executable
 
 class CppPlugin implements Plugin<ProjectInternal> {
 
@@ -42,15 +47,35 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
         // Defaults for all executables
         project.executables.all { executable ->
-            def task = project.task("compile${name.capitalize()}", type: Compile)
-            executable.spec.configure(task)
+            configureExecutable(project, executable)
         }
 
         // Defaults for all libraries
         project.libraries.all { library ->
-            def task = project.task("compile${name.capitalize()}", type: Compile)
-            library.spec.configure(task)
+            configureBinary(project, library)
         }
     }
 
+    def configureExecutable(ProjectInternal project, Executable executable) {
+        configureBinary(project, executable)
+
+        def baseName = GUtil.toCamelCase(executable.name).capitalize()
+        project.task("install${baseName}", type: Sync) {
+            description = "Installs a development image of $executable"
+            into { project.file("${project.buildDir}/install/$executable.name") }
+            dependsOn executable
+            from { executable.spec.outputFile }
+            from { executable.sourceSets*.libs*.spec*.outputFile }
+        }
+    }
+
+    def configureBinary(ProjectInternal project, Binary binary) {
+        def baseName = GUtil.toCamelCase(binary.name).capitalize()
+
+        def task = project.task("compile${baseName}", type: Compile) {
+            description = "Compiles and links $binary"
+            group = BasePlugin.BUILD_GROUP
+        }
+        binary.spec.configure(task)
+    }
 }
