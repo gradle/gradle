@@ -21,12 +21,12 @@ package org.gradle.plugins.binaries.model;
  */
 public interface LibraryCompileSpec extends CompileSpec {
     /**
-     * <p>Returns the <i>install path</i> for the library. This is the location where this library will be installed on the target
+     * <p>Returns the <i>install name</i> for the library. This is the location where this library will be installed on the target
      * system, and where clients of this library should look for the library.
      *
      * <p>On Linux systems, this corresponds to the <i>soname</i> for the library.</p>
      */
-    String getInstallPath();
+    String getInstallName();
 
-    void setInstallPath(String path);
+    void setInstallName(String path);
 }

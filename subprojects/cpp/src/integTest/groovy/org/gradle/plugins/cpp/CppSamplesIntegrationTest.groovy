@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,14 +33,15 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         sample exewithlib
 
         when:
-        run "build"
+        run "installMain"
 
         then:
         ":exe:compileMain" in executedTasks
 
         and:
         sharedLibrary("cpp/exewithlib/lib/build/binaries/lib").isFile()
-        executable("cpp/exewithlib/exe/build/binaries/exe").exec().out == "Hello, World!\n"
+        executable("cpp/exewithlib/exe/build/binaries/exe").isFile()
+        executable("cpp/exewithlib/exe/build/install/main/exe").exec().out == "Hello, World!\n"
     }
     
     def "dependencies"() {
@@ -48,7 +49,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         sample dependencies
         
         when:
-        run ":lib:uploadArchives", ":exe:compileMain", ":exe:uploadArchives"
+        run ":lib:uploadArchives", ":exe:uploadArchives"
         
         then:
         ":exe:mainExtractHeaders" in nonSkippedTasks
@@ -56,7 +57,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         
         and:
         sharedLibrary("cpp/dependencies/lib/build/binaries/lib").isFile()
-        executable("cpp/dependencies/exe/build/binaries/exe").exec().out == "Hello, World!\n"
+        executable("cpp/dependencies/exe/build/binaries/exe").isFile()
         file("cpp/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
     }
     
@@ -65,13 +66,14 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         sample exe
         
         when:
-        run "compileMain"
+        run "installMain"
         
         then:
         ":compileMain" in nonSkippedTasks
         
         and:
         executable("cpp/exe/build/binaries/exe").exec().out == "Hello, World!\n"
+        executable("cpp/exe/build/install/main/exe").exec().out == "Hello, World!\n"
     }
     
 }

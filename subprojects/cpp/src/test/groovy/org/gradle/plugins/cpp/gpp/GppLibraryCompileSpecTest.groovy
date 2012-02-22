@@ -16,25 +16,22 @@
 
 package org.gradle.plugins.cpp.gpp
 
-import org.gradle.plugins.binaries.model.LibraryCompileSpec
-import org.gradle.plugins.binaries.model.Binary
-import org.gradle.api.internal.tasks.compile.Compiler
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.plugins.binaries.model.internal.CompileSpecFactory
+import org.gradle.plugins.binaries.model.internal.DefaultLibrary
+import org.gradle.util.HelperUtil
+import spock.lang.Specification
 
-class GppLibraryCompileSpec extends GppCompileSpec implements LibraryCompileSpec {
-    String installName
+class GppLibraryCompileSpecTest extends Specification {
+    final ProjectInternal project = HelperUtil.createRootProject()
 
-    GppLibraryCompileSpec(Binary binary, Compiler<? super GppCompileSpec> compiler, ProjectInternal project) {
-        super(binary, compiler, project)
-    }
+    def "has default installPath"() {
+        given:
+        def library = new DefaultLibrary("binary", project, Mock(CompileSpecFactory))
+        def spec = new GppLibraryCompileSpec(library, Mock(Compiler), project)
 
-    @Override
-    protected String getDefaultOutputFileName() {
-        return OperatingSystem.current().getSharedLibraryName(getBaseName())
-    }
-
-    String getInstallName() {
-        return installName ?: getOutputFileName()
+        expect:
+        spec.installName == spec.outputFileName
     }
 }

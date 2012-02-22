@@ -40,9 +40,15 @@ public class GppCompiler extends CommandLineCppCompiler {
     protected void configure(ExecAction compiler, GppCompileSpec spec) {
         compiler.args("-o", spec.getOutputFile());
         if (spec instanceof LibraryCompileSpec) {
+            LibraryCompileSpec librarySpec = (LibraryCompileSpec) spec;
             compiler.args("-shared");
             if (!OperatingSystem.current().isWindows()) {
                 compiler.args("-fPIC");
+                if (OperatingSystem.current().isMacOsX()) {
+                    compiler.args("-Wl,-install_name," + librarySpec.getInstallName());
+                } else {
+                    compiler.args("-Wl,-soname," + librarySpec.getInstallName());
+                }
             }
         }
         for (File file : spec.getLibs()) {

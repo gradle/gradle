@@ -166,7 +166,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         settingsFile << "rootProject.name = 'test'"
 
         and:
-        file("src", "hello", "cpp", "hello.cpp") << """
+        file("src/hello/cpp/hello.cpp") << """
             #include <iostream>
 
             void hello () {
@@ -175,16 +175,20 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         """
 
         and:
-        file("src", "hello", "headers", "hello.h") << """
+        file("src/hello/headers/hello.h") << """
             void hello();
         """
 
         and:
-        file("src", "main", "cpp", "main.cpp") << """
+        file("src/main/cpp/main.cpp") << """
+            #include <iostream>
             #include "hello.h"
 
-            int main () {
+            int main (int argc, char** argv) {
               hello();
+              for ( int i = 1; i < argc; i++ ) {
+                std::cout << "[" << argv[i] << "]";
+              }
               return 0;
             }
         """
@@ -196,8 +200,14 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         sharedLibrary("build/binaries/hello").isFile()
         executable("build/binaries/test").isFile()
 
-        sharedLibrary("build/install/main/hello").isFile()
-        executable("build/install/main/test").isFile()
+        executable("build/install/main/test").exec().out == HELLO_WORLD
+        executable("build/install/main/test").exec("a", "1 2 3").out.contains("[a][1 2 3]")
+
+        // Ensure installed binary is not dependent on the libraries in their original locations
+        when:
+        file("build/binaries").deleteDir()
+
+        then:
         executable("build/install/main/test").exec().out == HELLO_WORLD
     }
 }

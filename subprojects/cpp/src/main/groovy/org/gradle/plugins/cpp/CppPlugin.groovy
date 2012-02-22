@@ -28,6 +28,7 @@ import org.gradle.util.GUtil
 import org.gradle.api.tasks.Sync
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.plugins.binaries.model.Executable
+import org.gradle.internal.os.OperatingSystem
 
 class CppPlugin implements Plugin<ProjectInternal> {
 
@@ -64,8 +65,26 @@ class CppPlugin implements Plugin<ProjectInternal> {
             description = "Installs a development image of $executable"
             into { project.file("${project.buildDir}/install/$executable.name") }
             dependsOn executable
-            from { executable.spec.outputFile }
-            from { executable.sourceSets*.libs*.spec*.outputFile }
+            if (OperatingSystem.current().windows) {
+                from { executable.spec.outputFile }
+                from { executable.sourceSets*.libs*.spec*.outputFile }
+            } else {
+                into("lib") {
+                    from { executable.spec.outputFile }
+                    from { executable.sourceSets*.libs*.spec*.outputFile }
+                }
+                doLast {
+                    def script = new File(destinationDir, executable.spec.outputFile.name)
+                    script.text = """
+#/bin/sh
+APP_BASE_NAME=`dirname "\$0"`
+export DYLD_LIBRARY_PATH=\$APP_BASE_NAME/lib
+export LD_LIBRARY_PATH=\$APP_BASE_NAME/lib
+exec \$APP_BASE_NAME/lib/${executable.spec.outputFile.name} \"\$@\"
+                    """
+                    ant.chmod(perm: 'u+x', file: script)
+                }
+            }
         }
     }
 
