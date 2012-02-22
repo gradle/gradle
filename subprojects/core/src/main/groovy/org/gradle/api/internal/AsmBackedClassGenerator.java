@@ -116,11 +116,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void mixInDynamicAware() throws Exception {
-            final Type helperType = Type.getType(MixInDynamicObject.class);
+            final Type helperType = Type.getType(MixInExtensibleDynamicObject.class);
 
-            // GENERATE private MixInDynamicObject dynamicObjectHelper = new MixInDynamicObject(this, super.getAsDynamicObject())
+            // GENERATE private MixInExtensibleDynamicObject dynamicObjectHelper = new MixInExtensibleDynamicObject(this, super.getAsDynamicObject())
 
-            final String fieldSignature = "L" + MixInDynamicObject.class.getName().replaceAll("\\.", "/") + ";";
+            final String fieldSignature = "L" + MixInExtensibleDynamicObject.class.getName().replaceAll("\\.", "/") + ";";
             visitor.visitField(Opcodes.ACC_PRIVATE, "dynamicObjectHelper", fieldSignature, null, null);
             initDynamicObjectHelper = new MethodCodeBody() {
                 public void add(MethodVisitor visitor) throws Exception {
@@ -128,11 +128,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                             Type.getType(Object.class), dynamicObjectType
                     });
 
-                    // GENERATE dynamicObjectHelper = new MixInDynamicObject(this, super.getAsDynamicObject())
+                    // GENERATE dynamicObjectHelper = new MixInExtensibleDynamicObject(this, super.getAsDynamicObject())
 
                     visitor.visitVarInsn(Opcodes.ALOAD, 0);
 
-                    // GENERATE new DynamicObjectHelper(this, super.getAsDynamicObject())
+                    // GENERATE new MixInExtensibleDynamicObject(this, super.getAsDynamicObject())
                     visitor.visitTypeInsn(Opcodes.NEW, helperType.getInternalName());
                     visitor.visitInsn(Opcodes.DUP);
 
@@ -172,7 +172,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     visitor.visitVarInsn(Opcodes.ALOAD, 0);
                     visitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), "dynamicObjectHelper",
                             fieldSignature);
-                    String getterDescriptor = Type.getMethodDescriptor(DynamicObjectHelper.class.getDeclaredMethod(
+                    String getterDescriptor = Type.getMethodDescriptor(ExtensibleDynamicObject.class.getDeclaredMethod(
                             "getConvention"));
                     visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, helperType.getInternalName(), "getConvention",
                             getterDescriptor);
@@ -189,7 +189,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     // GENERATE getConvention()
 
                     visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    String getterDescriptor = Type.getMethodDescriptor(DynamicObjectHelper.class.getDeclaredMethod(
+                    String getterDescriptor = Type.getMethodDescriptor(ExtensibleDynamicObject.class.getDeclaredMethod(
                             "getConvention"));
                     visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getConvention",
                             getterDescriptor);
@@ -690,9 +690,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         void add(MethodVisitor visitor) throws Exception;
     }
 
-    public static class MixInDynamicObject extends DynamicObjectHelper {
+    public static class MixInExtensibleDynamicObject extends ExtensibleDynamicObject {
 
-        public MixInDynamicObject(Object delegateObject, DynamicObject dynamicObject) {
+        public MixInExtensibleDynamicObject(Object delegateObject, DynamicObject dynamicObject) {
             super(delegateObject, wrap(delegateObject, dynamicObject), ThreadGlobalInstantiator.getOrCreate());
         }
 

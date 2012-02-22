@@ -140,7 +140,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private LoggingManagerInternal loggingManager;
 
-    private DynamicObjectHelper dynamicObjectHelper;
+    private ExtensibleDynamicObject extensibleDynamicObject;
 
     private String description;
 
@@ -188,11 +188,11 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         projectRegistry = services.get(IProjectRegistry.class);
         loggingManager = services.get(LoggingManagerInternal.class);
 
-        dynamicObjectHelper = new DynamicObjectHelper(this, services.get(Instantiator.class));
+        extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {
-            dynamicObjectHelper.setParent(parent.getInheritedScope());
+            extensibleDynamicObject.setParent(parent.getInheritedScope());
         }
-        dynamicObjectHelper.addObject(taskContainer.getTasksAsDynamicObject(), DynamicObjectHelper.Location.AfterConvention);
+        extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
     }
@@ -241,8 +241,8 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public void setScript(Script buildScript) {
-        dynamicObjectHelper.addObject(new BeanDynamicObject(buildScript).withNoProperties(),
-                DynamicObjectHelper.Location.BeforeConvention);
+        extensibleDynamicObject.addObject(new BeanDynamicObject(buildScript).withNoProperties(),
+                ExtensibleDynamicObject.Location.BeforeConvention);
     }
 
     public ScriptSource getBuildScriptSource() {
@@ -262,11 +262,11 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public DynamicObject getAsDynamicObject() {
-        return dynamicObjectHelper;
+        return extensibleDynamicObject;
     }
 
     public DynamicObject getInheritedScope() {
-        return dynamicObjectHelper.getInheritable();
+        return extensibleDynamicObject.getInheritable();
     }
 
     public String getName() {
@@ -374,7 +374,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public Convention getConvention() {
-        return dynamicObjectHelper.getConvention();
+        return extensibleDynamicObject.getConvention();
     }
 
     public String getPath() {
@@ -798,21 +798,21 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public Object property(String propertyName) throws MissingPropertyException {
-        return dynamicObjectHelper.getProperty(propertyName);
+        return extensibleDynamicObject.getProperty(propertyName);
     }
 
     public void setProperty(String name, Object value) {
-        dynamicObjectHelper.setProperty(name, value);
+        extensibleDynamicObject.setProperty(name, value);
     }
 
     public boolean hasProperty(String propertyName) {
-        return dynamicObjectHelper.hasProperty(propertyName);
+        return extensibleDynamicObject.hasProperty(propertyName);
     }
 
     public Map<String, ?> getProperties() {
         return DeprecationLogger.whileDisabled(new Factory<Map<String, ?>>() {
             public Map<String, ?> create() {
-                return dynamicObjectHelper.getProperties();
+                return extensibleDynamicObject.getProperties();
             }
         });
     }

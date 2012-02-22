@@ -25,7 +25,7 @@ import java.util.Map;
  *
  * The semantics of each method is completely up to the implementation. For example, {@link BeanDynamicObject}
  * provides a dynamic view of the functionality of an object and does not provide any decoration or extra functionality.
- * The {@link DynamicObjectHelper} implementation on the other hand does provide extra functionality.
+ * The {@link ExtensibleDynamicObject} implementation on the other hand does provide extra functionality.
  */
 public interface DynamicObject {
     boolean hasProperty(String name);

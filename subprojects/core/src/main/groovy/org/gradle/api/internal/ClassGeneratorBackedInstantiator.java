@@ -28,7 +28,7 @@ public class ClassGeneratorBackedInstantiator implements Instantiator {
         // During the construction of the object, it will look for this global instantiator.
         // This is to support ExtensionContainer.add(String, Class, Object...) which facilitates
         // making extensions ExtensionAware themselves.
-        // See: AsmBackedClassGenerator.MixInDynamicObject#getInstantiator()
+        // See: AsmBackedClassGenerator.MixInExtensibleDynamicObject#getInstantiator()
         ThreadGlobalInstantiator.set(this);
         try {
             return instantiator.newInstance(classGenerator.generate(type), parameters);    

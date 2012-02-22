@@ -28,7 +28,7 @@ import java.util.Map;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-public class DynamicObjectHelperTest {
+public class ExtensibleDynamicObjectTest {
     @Test
     public void hasPropertiesDefinedByClass() {
         Bean bean = new Bean();
@@ -173,7 +173,7 @@ public class DynamicObjectHelperTest {
     @Test
     public void hasPropertyDefinedByConventionObject() {
         Bean bean = new Bean();
-        Convention convention = bean.helper.getConvention();
+        Convention convention = bean.extensibleDynamicObject.getConvention();
 
         assertFalse(bean.hasProperty("conventionProperty"));
         assertFalse(bean.hasProperty("conventionProperty"));
@@ -185,7 +185,7 @@ public class DynamicObjectHelperTest {
     @Test
     public void canGetAndSetPropertyDefinedByConventionObject() {
         Bean bean = new Bean();
-        Convention convention = bean.helper.getConvention();
+        Convention convention = bean.extensibleDynamicObject.getConvention();
         ConventionBean conventionBean = new ConventionBean();
         convention.getPlugins().put("test", conventionBean);
 
@@ -260,7 +260,7 @@ public class DynamicObjectHelperTest {
         otherObject.setProperty("otherObject", "value");
 
         Bean bean = new Bean();
-        bean.helper.addObject(otherObject, DynamicObjectHelper.Location.BeforeConvention);
+        bean.extensibleDynamicObject.addObject(otherObject, ExtensibleDynamicObject.Location.BeforeConvention);
 
         assertTrue(bean.hasProperty("otherObject"));
         assertThat(bean.getProperty("otherObject"), equalTo((Object) "value"));
@@ -273,7 +273,7 @@ public class DynamicObjectHelperTest {
     public void classPropertyTakesPrecedenceOverAdditionalProperty() {
         Bean bean = new Bean();
         bean.setReadWriteProperty("value");
-        bean.helper.getDynamicExtension().set("readWriteProperty", "additional");
+        bean.extensibleDynamicObject.getDynamicExtension().set("readWriteProperty", "additional");
 
         assertThat(bean.getProperty("readWriteProperty"), equalTo((Object) "value"));
 
@@ -281,7 +281,7 @@ public class DynamicObjectHelperTest {
 
         assertThat(bean.getProperty("readWriteProperty"), equalTo((Object) "new value"));
         assertThat(bean.getReadWriteProperty(), equalTo((Object) "new value"));
-        assertThat(bean.helper.getDynamicExtension().get("readWriteProperty"), equalTo((Object) "additional"));
+        assertThat(bean.extensibleDynamicObject.getDynamicExtension().get("readWriteProperty"), equalTo((Object) "additional"));
     }
 
     @Test
@@ -289,7 +289,7 @@ public class DynamicObjectHelperTest {
         Bean bean = new Bean();
         bean.setProperty("conventionProperty", "value");
 
-        Convention convention = bean.helper.getConvention();
+        Convention convention = bean.extensibleDynamicObject.getConvention();
         ConventionBean conventionBean = new ConventionBean();
         convention.getPlugins().put("test", conventionBean);
 
@@ -298,7 +298,7 @@ public class DynamicObjectHelperTest {
         bean.setProperty("conventionProperty", "new value");
 
         assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "new value"));
-        assertThat(bean.helper.getDynamicExtension().get("conventionProperty"), equalTo((Object) "new value"));
+        assertThat(bean.extensibleDynamicObject.getDynamicExtension().get("conventionProperty"), equalTo((Object) "new value"));
         assertThat(conventionBean.getConventionProperty(), nullValue());
     }
 
@@ -310,7 +310,7 @@ public class DynamicObjectHelperTest {
         Bean bean = new Bean();
         bean.setParent(parent);
 
-        Convention convention = bean.helper.getConvention();
+        Convention convention = bean.extensibleDynamicObject.getConvention();
         ConventionBean conventionBean = new ConventionBean();
         conventionBean.setConventionProperty("value");
         convention.getPlugins().put("test", conventionBean);
@@ -324,7 +324,7 @@ public class DynamicObjectHelperTest {
         parent.setProperty("parentProperty", "parentProperty");
         parent.setReadWriteProperty("ignore me");
         parent.doSetReadOnlyProperty("ignore me");
-        Convention parentConvention = parent.helper.getConvention();
+        Convention parentConvention = parent.extensibleDynamicObject.getConvention();
         parentConvention.getPlugins().put("parent", new ConventionBean());
 
         GroovyBean bean = new GroovyBean();
@@ -332,7 +332,7 @@ public class DynamicObjectHelperTest {
         bean.setReadWriteProperty("readWriteProperty");
         bean.doSetReadOnlyProperty("readOnlyProperty");
         bean.setGroovyProperty("groovyProperty");
-        Convention convention = bean.helper.getConvention();
+        Convention convention = bean.extensibleDynamicObject.getConvention();
         ConventionBean conventionBean = new ConventionBean();
         conventionBean.setConventionProperty("conventionProperty");
         convention.getPlugins().put("bean", conventionBean);
@@ -411,7 +411,7 @@ public class DynamicObjectHelperTest {
     public void canInvokeMethodDefinedByScriptObject() {
         Bean bean = new Bean();
         Script script = HelperUtil.createScript("def scriptMethod(a, b) { \"script:$a.$b\" } ");
-        bean.helper.addObject(new BeanDynamicObject(script), DynamicObjectHelper.Location.BeforeConvention);
+        bean.extensibleDynamicObject.addObject(new BeanDynamicObject(script), ExtensibleDynamicObject.Location.BeforeConvention);
 
         assertTrue(bean.hasMethod("scriptMethod", "a", "b"));
         assertThat(bean.invokeMethod("scriptMethod", "a", "b").toString(), equalTo((Object) "script:a.b"));
@@ -420,7 +420,7 @@ public class DynamicObjectHelperTest {
     @Test
     public void canInvokeMethodDefinedByConvention() {
         Bean bean = new Bean();
-        Convention convention = bean.helper.getConvention();
+        Convention convention = bean.extensibleDynamicObject.getConvention();
 
         assertFalse(bean.hasMethod("conventionMethod", "a", "b"));
 
@@ -449,7 +449,7 @@ public class DynamicObjectHelperTest {
     @Test
     public void canInvokeMethodsOnJavaObjectFromGroovy() {
         Bean bean = new Bean();
-        Convention convention = bean.helper.getConvention();
+        Convention convention = bean.extensibleDynamicObject.getConvention();
         convention.getPlugins().put("bean", new ConventionBean());
         DynamicObjectHelperTestHelper.assertCanCallMethods(bean);
     }
@@ -457,7 +457,7 @@ public class DynamicObjectHelperTest {
     @Test
     public void canInvokeMethodsOnGroovyObjectFromGroovy() {
         GroovyBean bean = new GroovyBean();
-        Convention convention = bean.helper.getConvention();
+        Convention convention = bean.extensibleDynamicObject.getConvention();
         convention.getPlugins().put("bean", new ConventionBean());
         DynamicObjectHelperTestHelper.assertCanCallMethods(bean);
     }
@@ -465,7 +465,7 @@ public class DynamicObjectHelperTest {
     @Test
     public void canInvokeMethodsOnJavaSubClassOfGroovyObjectFromGroovy() {
         DynamicBean bean = new DynamicBean();
-        Convention convention = bean.helper.getConvention();
+        Convention convention = bean.extensibleDynamicObject.getConvention();
         convention.getPlugins().put("bean", new ConventionBean());
         DynamicObjectHelperTestHelper.assertCanCallMethods(bean);
     }
@@ -567,7 +567,7 @@ public class DynamicObjectHelperTest {
         Bean other = new Bean();
         other.setProperty("other", "value");
         Bean bean = new Bean();
-        bean.helper.addObject(other, DynamicObjectHelper.Location.BeforeConvention);
+        bean.extensibleDynamicObject.addObject(other, ExtensibleDynamicObject.Location.BeforeConvention);
 
         DynamicObject inherited = bean.getInheritable();
         assertTrue(inherited.hasProperty("other"));
@@ -584,7 +584,7 @@ public class DynamicObjectHelperTest {
         DynamicObject inherited = bean.getInheritable();
         assertFalse(inherited.hasProperty("other"));
 
-        bean.helper.addObject(other, DynamicObjectHelper.Location.BeforeConvention);
+        bean.extensibleDynamicObject.addObject(other, ExtensibleDynamicObject.Location.BeforeConvention);
 
         assertTrue(inherited.hasProperty("other"));
         assertThat(inherited.getProperty("other"), equalTo((Object) "value"));
@@ -593,7 +593,7 @@ public class DynamicObjectHelperTest {
     @Test
     public void conventionPropertiesAreInherited() {
         Bean bean = new Bean();
-        Convention convention = bean.helper.getConvention();
+        Convention convention = bean.extensibleDynamicObject.getConvention();
         ConventionBean conventionBean = new ConventionBean();
         conventionBean.setConventionProperty("value");
         convention.getPlugins().put("convention", conventionBean);
@@ -611,7 +611,7 @@ public class DynamicObjectHelperTest {
         DynamicObject inherited = bean.getInheritable();
         assertFalse(inherited.hasProperty("conventionProperty"));
 
-        Convention convention = bean.helper.getConvention();
+        Convention convention = bean.extensibleDynamicObject.getConvention();
         ConventionBean conventionBean = new ConventionBean();
         conventionBean.setConventionProperty("value");
         convention.getPlugins().put("convention", conventionBean);
@@ -660,7 +660,7 @@ public class DynamicObjectHelperTest {
     @Test
     public void conventionMethodsAreInherited() {
         Bean bean = new Bean();
-        Convention convention = bean.helper.getConvention();
+        Convention convention = bean.extensibleDynamicObject.getConvention();
         convention.getPlugins().put("convention", new ConventionBean());
 
         DynamicObject inherited = bean.getInheritable();
@@ -671,11 +671,11 @@ public class DynamicObjectHelperTest {
     @Test
     public void additionalObjectMethodsAreInherited() {
         Bean other = new Bean();
-        Convention convention = other.helper.getConvention();
+        Convention convention = other.extensibleDynamicObject.getConvention();
         convention.getPlugins().put("convention", new ConventionBean());
 
         Bean bean = new Bean();
-        bean.helper.addObject(other, DynamicObjectHelper.Location.BeforeConvention);
+        bean.extensibleDynamicObject.addObject(other, ExtensibleDynamicObject.Location.BeforeConvention);
 
         DynamicObject inherited = bean.getInheritable();
         assertTrue(inherited.hasMethod("conventionMethod", "a", "b"));
@@ -685,7 +685,7 @@ public class DynamicObjectHelperTest {
     @Test
     public void parentMethodsAreInherited() {
         Bean parent = new Bean();
-        Convention convention = parent.helper.getConvention();
+        Convention convention = parent.extensibleDynamicObject.getConvention();
         convention.getPlugins().put("convention", new ConventionBean());
         Bean bean = new Bean();
         bean.setParent(parent);
@@ -707,12 +707,12 @@ public class DynamicObjectHelperTest {
     @Test
     public void canGetObjectAsDynamicObject() {
         Bean bean = new Bean();
-        assertThat(DynamicObjectHelper.asDynamicObject(bean), sameInstance((DynamicObject) bean));
+        assertThat(ExtensibleDynamicObject.asDynamicObject(bean), sameInstance((DynamicObject) bean));
 
         AbstractProject project = (AbstractProject)ProjectBuilder.builder().build();
-        assertThat(DynamicObjectHelper.asDynamicObject(project), sameInstance(project.getAsDynamicObject()));
+        assertThat(ExtensibleDynamicObject.asDynamicObject(project), sameInstance(project.getAsDynamicObject()));
 
-        assertThat(DynamicObjectHelper.asDynamicObject(new Object()), instanceOf(DynamicObject.class));
+        assertThat(ExtensibleDynamicObject.asDynamicObject(new Object()), instanceOf(DynamicObject.class));
     }
 
     @Test
@@ -755,11 +755,11 @@ public class DynamicObjectHelperTest {
         private String readOnlyProperty;
         private String writeOnlyProperty;
         private Integer differentTypesProperty;
-        final DynamicObjectHelper helper;
+        final ExtensibleDynamicObject extensibleDynamicObject;
         private Convention convention;
 
         public Bean() {
-            helper = new DynamicObjectHelper(this, ThreadGlobalInstantiator.getOrCreate());
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, ThreadGlobalInstantiator.getOrCreate());
         }
 
         @Override
@@ -768,7 +768,7 @@ public class DynamicObjectHelperTest {
         }
 
         public void setParent(DynamicObject parent) {
-            helper.setParent(parent);
+            extensibleDynamicObject.setParent(parent);
         }
 
         public String getReadOnlyProperty() {
@@ -808,31 +808,31 @@ public class DynamicObjectHelperTest {
         }
         
         public Object getProperty(String name) {
-            return helper.getProperty(name);
+            return extensibleDynamicObject.getProperty(name);
         }
 
         public boolean hasProperty(String name) {
-            return helper.hasProperty(name);
+            return extensibleDynamicObject.hasProperty(name);
         }
 
         public void setProperty(String name, Object value) {
-            helper.setProperty(name, value);
+            extensibleDynamicObject.setProperty(name, value);
         }
 
         public Map<String, Object> getProperties() {
-            return helper.getProperties();
+            return extensibleDynamicObject.getProperties();
         }
 
         public boolean hasMethod(String name, Object... arguments) {
-            return helper.hasMethod(name, arguments);
+            return extensibleDynamicObject.hasMethod(name, arguments);
         }
 
         public Object invokeMethod(String name, Object... arguments) {
-            return helper.invokeMethod(name, arguments);
+            return extensibleDynamicObject.invokeMethod(name, arguments);
         }
 
         public Object methodMissing(String name, Object params) {
-            return helper.invokeMethod(name, (Object[]) params);
+            return extensibleDynamicObject.invokeMethod(name, (Object[]) params);
         }
 
         public Object propertyMissing(String name) {
@@ -840,7 +840,7 @@ public class DynamicObjectHelperTest {
         }
 
         public DynamicObject getInheritable() {
-            return helper.getInheritable();
+            return extensibleDynamicObject.getInheritable();
         }
     }
 

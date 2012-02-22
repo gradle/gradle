@@ -638,7 +638,7 @@ public abstract class AbstractClassGeneratorTest {
     }
 
     public static class DynamicObjectAwareBean extends Bean implements DynamicObjectAware {
-        Convention conv = new DynamicObjectHelper(this, ThreadGlobalInstantiator.getOrCreate()).getConvention();
+        Convention conv = new ExtensibleDynamicObject(this, ThreadGlobalInstantiator.getOrCreate()).getConvention();
 
         public Convention getConvention() {
             return conv;

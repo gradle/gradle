@@ -70,7 +70,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private DefaultTaskDependency dependencies;
 
-    private DynamicObjectHelper dynamicObjectHelper;
+    private ExtensibleDynamicObject extensibleDynamicObject;
 
     private String description;
 
@@ -113,7 +113,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         state = new TaskStateInternal(toString());
         dependencies = new DefaultTaskDependency(project.getTasks());
         services = project.getServices().createFor(this);
-        dynamicObjectHelper = new DynamicObjectHelper(this, getServices().get(Instantiator.class));
+        extensibleDynamicObject = new ExtensibleDynamicObject(this, getServices().get(Instantiator.class));
         outputs = services.get(TaskOutputsInternal.class);
         inputs = services.get(TaskInputs.class);
         executer = services.get(TaskExecuter.class);
@@ -314,24 +314,24 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return loggingManager;
     }
 
-    public DynamicObjectHelper getDynamicObjectHelper() {
-        return dynamicObjectHelper;
+    public ExtensibleDynamicObject getExtensibleDynamicObject() {
+        return extensibleDynamicObject;
     }
 
     public Object property(String propertyName) throws MissingPropertyException {
-        return dynamicObjectHelper.getProperty(propertyName);
+        return extensibleDynamicObject.getProperty(propertyName);
     }
 
     public boolean hasProperty(String propertyName) {
-        return dynamicObjectHelper.hasProperty(propertyName);
+        return extensibleDynamicObject.hasProperty(propertyName);
     }
 
     public void setProperty(String name, Object value) {
-        dynamicObjectHelper.setProperty(name, value);
+        extensibleDynamicObject.setProperty(name, value);
     }
 
     public Convention getConvention() {
-        return dynamicObjectHelper.getConvention();
+        return extensibleDynamicObject.getConvention();
     }
 
     public ExtensionContainer getExtensions() {
@@ -339,7 +339,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public DynamicObject getAsDynamicObject() {
-        return dynamicObjectHelper;
+        return extensibleDynamicObject;
     }
 
     public String getDescription() {

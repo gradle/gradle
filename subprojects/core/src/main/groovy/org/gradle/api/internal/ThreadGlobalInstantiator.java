@@ -19,7 +19,7 @@ package org.gradle.api.internal;
 import java.util.Stack;
 
 /**
- * @see AsmBackedClassGenerator.MixInDynamicObject#MixInDynamicObject(Object, DynamicObject)
+ * @see org.gradle.api.internal.AsmBackedClassGenerator.MixInExtensibleDynamicObject#MixInExtensibleDynamicObject(Object, DynamicObject)
  * @see ClassGeneratorBackedInstantiator#newInstance(Class, Object...)
  */
 public abstract class ThreadGlobalInstantiator {

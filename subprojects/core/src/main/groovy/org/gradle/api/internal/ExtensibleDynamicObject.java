@@ -31,9 +31,9 @@ import java.util.Map;
  *
  * This is the dynamic object implementation that “enhanced” objects expose.
  *
- * @see AsmBackedClassGenerator.MixInDynamicObject
+ * @see org.gradle.api.internal.AsmBackedClassGenerator.MixInExtensibleDynamicObject
  */
-public class DynamicObjectHelper extends CompositeDynamicObject implements HasConvention {
+public class ExtensibleDynamicObject extends CompositeDynamicObject implements HasConvention {
 
     public static final String ADHOC_EXTENSION_NAME = "ext";
 
@@ -58,19 +58,19 @@ public class DynamicObjectHelper extends CompositeDynamicObject implements HasCo
      * @param delegate The delegate
      * @see org.gradle.api.internal.plugins.DefaultConvention#DefaultConvention()
      */
-    public DynamicObjectHelper(Object delegate) {
+    public ExtensibleDynamicObject(Object delegate) {
         this(delegate, new BeanDynamicObject(delegate), new DefaultConvention());
     }
 
-    public DynamicObjectHelper(Object delegate, Instantiator instantiator) {
+    public ExtensibleDynamicObject(Object delegate, Instantiator instantiator) {
         this(delegate, new BeanDynamicObject(delegate), new DefaultConvention(instantiator));
     }
 
-    public DynamicObjectHelper(Object delegate, AbstractDynamicObject dynamicDelegate, Instantiator instantiator) {
+    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, Instantiator instantiator) {
         this(delegate, dynamicDelegate, new DefaultConvention(instantiator));
     }
 
-    public DynamicObjectHelper(Object delegate, AbstractDynamicObject dynamicDelegate, Convention convention) {
+    public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, Convention convention) {
         this.delegate = delegate;
         this.dynamicDelegate = dynamicDelegate;
         this.convention = convention;
@@ -153,7 +153,7 @@ public class DynamicObjectHelper extends CompositeDynamicObject implements HasCo
         return new InheritedDynamicObject();
     }
 
-    private DynamicObjectHelper snapshotInheritable() {
+    private ExtensibleDynamicObject snapshotInheritable() {
         AbstractDynamicObject emptyBean = new AbstractDynamicObject() {
             @Override
             protected String getDisplayName() {
@@ -161,17 +161,17 @@ public class DynamicObjectHelper extends CompositeDynamicObject implements HasCo
             }
         };
 
-        DynamicObjectHelper helper = new DynamicObjectHelper(emptyBean);
+        ExtensibleDynamicObject extensibleDynamicObject = new ExtensibleDynamicObject(emptyBean);
 
-        helper.parent = parent;
-        helper.convention = convention;
-        helper.dynamicExtension = dynamicExtension;
-        helper.dynamicExtensionDynamicObject = dynamicExtensionDynamicObject;
+        extensibleDynamicObject.parent = parent;
+        extensibleDynamicObject.convention = convention;
+        extensibleDynamicObject.dynamicExtension = dynamicExtension;
+        extensibleDynamicObject.dynamicExtensionDynamicObject = dynamicExtensionDynamicObject;
         if (beforeConvention != null) {
-            helper.beforeConvention = beforeConvention;
+            extensibleDynamicObject.beforeConvention = beforeConvention;
         }
-        helper.updateDelegates();
-        return helper;
+        extensibleDynamicObject.updateDelegates();
+        return extensibleDynamicObject;
     }
 
     private class InheritedDynamicObject implements DynamicObject {

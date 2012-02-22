@@ -40,8 +40,8 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         this(owner, delegate, NOOP_ACTION);
     }
     public ConfigureDelegate(Object owner, Object delegate, Action<String> onMissing) {
-        this.owner = DynamicObjectHelper.asDynamicObject(owner);
-        this.delegate = DynamicObjectHelper.asDynamicObject(delegate);
+        this.owner = ExtensibleDynamicObject.asDynamicObject(owner);
+        this.delegate = ExtensibleDynamicObject.asDynamicObject(delegate);
         this.onMissing = onMissing;
     }
 

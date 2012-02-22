@@ -19,28 +19,28 @@ import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
 
 public class DynamicObjectHelperTestHelper {
-    public static void assertCanGetAllProperties (DynamicObjectHelperTest.Bean bean) {
+    public static void assertCanGetAllProperties (ExtensibleDynamicObjectTest.Bean bean) {
         bean.readWriteProperty = 'readWrite'
         bean.setProperty('additional', 'additional')
         assertEquals(bean.getProperties().readWriteProperty, 'readWrite')
         assertEquals(bean.getProperties().additional, 'additional')
     }
 
-    public static void assertCanGetProperties (DynamicObjectHelperTest.Bean bean) {
+    public static void assertCanGetProperties (ExtensibleDynamicObjectTest.Bean bean) {
         bean.readWriteProperty = 'value'
         assertEquals(bean.readWriteProperty, 'value')
 
         bean.doSetReadOnlyProperty('value')
         assertEquals(bean.readOnlyProperty, 'value')
 
-        bean.helper.dynamicExtension.set('additional', 'value')
+        bean.extensibleDynamicObject.dynamicExtension.set('additional', 'value')
         assertEquals(bean.additional, 'value')
 
         bean.setProperty 'another', 'value'
         assertEquals(bean.another, 'value')
     }
     
-    public static void assertCanGetAndSetProperties (DynamicObjectHelperTest.Bean bean) {
+    public static void assertCanGetAndSetProperties (ExtensibleDynamicObjectTest.Bean bean) {
         bean.readWriteProperty = 'value'
         assertEquals(bean.readWriteProperty, 'value')
 
@@ -54,14 +54,14 @@ public class DynamicObjectHelperTestHelper {
         assertEquals(bean.another, 'value')
     }
 
-    public static void assertCanCallMethods (DynamicObjectHelperTest.Bean bean) {
+    public static void assertCanCallMethods (ExtensibleDynamicObjectTest.Bean bean) {
         assertEquals(bean.javaMethod('a', 'b'), 'java:a.b')
         assertTrue(bean.hasMethod('conventionMethod', 'a', 'b'))
         assertEquals(bean.conventionMethod('a', 'b'), 'convention:a.b')
     }
 }
 
-public class DynamicBean extends DynamicObjectHelperTest.Bean {
+public class DynamicBean extends ExtensibleDynamicObjectTest.Bean {
     def propertyMissing(String name) {
         super.getProperty(name)
     }
