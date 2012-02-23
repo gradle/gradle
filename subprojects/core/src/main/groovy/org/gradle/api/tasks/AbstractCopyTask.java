@@ -43,12 +43,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     }
 
     protected void configureRootSpec() {
-        if (!getCopyAction().hasSource()) {
-            Object srcDirs = getDefaultSource();
-            if (srcDirs != null) {
-                from(srcDirs);
-            }
-        }
     }
 
     /**
@@ -67,7 +61,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @InputFiles @SkipWhenEmpty @Optional
     public FileCollection getSource() {
-        return getCopyAction().hasSource() ? getCopyAction().getAllSource() : getDefaultSource();
+        return getCopyAction().getAllSource();
     }
     
     protected abstract CopyActionImpl getCopyAction();
