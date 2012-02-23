@@ -5,10 +5,10 @@ apply plugin: 'java'
 apply plugin: 'application'
 
 if (!hasProperty('toolingApiVersion')) {
-    toolingApiVersion = gradle.gradleVersion
+    ext.toolingApiVersion = gradle.gradleVersion
 }
 if (!hasProperty('toolingApiRepo')) {
-    toolingApiRepo = 'http://repo.gradle.org/gradle/libs-releases-local'
+    ext.toolingApiRepo = 'http://repo.gradle.org/gradle/libs-releases-local'
 }
 
 repositories {
