@@ -66,6 +66,16 @@ import java.util.Map;
  * The exception that is thrown when an attempt is made to get the value of a property that does not exist is different depending on whether the
  * Groovy syntax is used or not. If Groovy property syntax is used, the Groovy {@link groovy.lang.MissingPropertyException} will be thrown.
  * When the {@link #get(String)} method is used, an {@link UnknownPropertyException} will be thrown.
+ *
+ * <b>This mechanism replaces the ability to create new properties on domain objects directly.</b> In versions of Gradle prior to {@code 1.0-milestone-9},
+ * new properties could be added to objects by assignment:
+ *
+ * <pre>
+ * project.myProp = "myValue"
+ * </pre>
+ *
+ * This functionality has been <b>deprecated</b> (a deprecation warning message will be issued when this is attempted). Future versions of Gradle will
+ * remove this functionality completely, resulting in an exception being thrown.
  */
 public interface DynamicPropertiesExtension {
 

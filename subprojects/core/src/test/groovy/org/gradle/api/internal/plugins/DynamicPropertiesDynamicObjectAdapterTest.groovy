@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins
 
+import org.gradle.api.internal.BeanDynamicObject
 import org.gradle.api.plugins.DynamicPropertiesExtension
 import spock.lang.Specification
 
@@ -23,7 +24,7 @@ public class DynamicPropertiesDynamicObjectAdapterTest extends Specification {
 
     Object delegate = new Object()
     DynamicPropertiesExtension extension = new DefaultDynamicPropertiesExtension()
-    DynamicPropertiesDynamicObjectAdapter adapter =  new DynamicPropertiesDynamicObjectAdapter(delegate, extension)
+    DynamicPropertiesDynamicObjectAdapter adapter =  new DynamicPropertiesDynamicObjectAdapter(delegate, new BeanDynamicObject(delegate), extension)
 
     def "can get and set properties"() {
         given:
@@ -92,6 +93,6 @@ public class DynamicPropertiesDynamicObjectAdapterTest extends Specification {
         adapter.hasProperty("properties")
 
         and:
-        new DynamicPropertiesDynamicObjectAdapter(delegate, new NamedDynamicPropertiesExtension()).hasProperty("name")
+        new DynamicPropertiesDynamicObjectAdapter(delegate, new BeanDynamicObject(delegate), new NamedDynamicPropertiesExtension()).hasProperty("name")
     }
 }

@@ -1,7 +1,7 @@
 // START SNIPPET declare-inputs-and-outputs
 task transform {
-    srcFile = file('mountains.xml')
-    destDir = new File(buildDir, 'generated')
+    ext.srcFile = file('mountains.xml')
+    ext.destDir = new File(buildDir, 'generated')
     inputs.file srcFile
     outputs.dir destDir
 // END SNIPPET declare-inputs-and-outputs

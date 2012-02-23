@@ -4,7 +4,7 @@ group = 'group'
 version = 1.0
 
 task signature {
-    destFile = file("$buildDir/signature.sig")
+    ext.destFile = file("$buildDir/signature.sig")
     doLast {
         destFile.text = 'signature'
     }

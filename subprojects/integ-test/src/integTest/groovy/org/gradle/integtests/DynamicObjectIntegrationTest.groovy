@@ -30,16 +30,17 @@ class DynamicObjectIntegrationTest {
         TestFile testDir = dist.getTestDir();
         testDir.file("settings.gradle").writelns("include 'child'");
         testDir.file("build.gradle").writelns(
-                "rootProperty = 'root'",
-                "sharedProperty = 'ignore me'",
+                "ext.rootProperty = 'root'",
+                "ext.sharedProperty = 'ignore me'",
+                "ext.property = 'value'",
                 "convention.plugins.test = new ConventionBean()",
                 "task rootTask",
                 "task testTask",
                 "class ConventionBean { def getConventionProperty() { 'convention' } }"
         );
         testDir.file("child/build.gradle").writelns(
-                "childProperty = 'child'",
-                "sharedProperty = 'shared'",
+                "ext.childProperty = 'child'",
+                "ext.sharedProperty = 'shared'",
                 "task testTask << {",
                 "  new Reporter().checkProperties(project)",
                 "}",
@@ -60,6 +61,7 @@ class DynamicObjectIntegrationTest {
                 "    assert 'child' == object.childProperty",
                 "    assert 'shared' == object.sharedProperty",
                 "    assert 'convention' == object.conventionProperty",
+                "    assert 'value' == object.property",
                 "    assert ':child:testTask' == object.testTask.path",
                 "    try { object.rootTask; fail() } catch (MissingPropertyException e) { }",
                 "  }",
@@ -172,35 +174,35 @@ assert 'overridden value' == global
             class GroovyTask extends DefaultTask { }
 
             task defaultTask {
-                custom = 'value'
+                ext.custom = 'value'
             }
             task javaTask(type: Copy) {
-                custom = 'value'
+                ext.custom = 'value'
             }
             task groovyTask(type: GroovyTask) {
-                custom = 'value'
+                ext.custom = 'value'
             }
             configurations {
                 test {
-                    custom = 'value'
+                    ext.custom = 'value'
                 }
             }
             dependencies {
                 test('::name:') {
-                    custom = 'value';
+                    ext.custom = 'value';
                 }
                 test(module('::other')) {
-                    custom = 'value';
+                    ext.custom = 'value';
                 }
                 test(project(':')) {
-                    custom = 'value';
+                    ext.custom = 'value';
                 }
                 test(files('src')) {
-                    custom = 'value';
+                    ext.custom = 'value';
                 }
             }
             repositories {
-                custom = 'repository'
+                ext.custom = 'repository'
             }
             defaultTask.custom = 'another value'
             javaTask.custom = 'another value'
@@ -392,7 +394,7 @@ assert 'overridden value' == global
         testDir.file("settings.gradle").writelns("include 'child'");
         testDir.file("build.gradle").writelns(
                 "subprojects {",
-                "  injectedMethod = { project.name }",
+                "  ext.injectedMethod = { project.name }",
                 "}"
         );
         testDir.file("child/build.gradle").writelns(

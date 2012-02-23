@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.BeanDynamicObject;
+import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.plugins.DynamicPropertiesExtension;
 import org.gradle.util.DeprecationLogger;
 
@@ -25,14 +26,14 @@ import java.util.Map;
 
 public class DynamicPropertiesDynamicObjectAdapter extends BeanDynamicObject {
 
-    public static final boolean WARN_ON_PROPERTY_CREATION = false;
-
     private final DynamicPropertiesExtension extension;
     private final Object delegate;
+    private final DynamicObject dynamicOwner;
 
-    public DynamicPropertiesDynamicObjectAdapter(Object delegate, DynamicPropertiesExtension extension) {
+    public DynamicPropertiesDynamicObjectAdapter(Object delegate, DynamicObject dynamicOwner, DynamicPropertiesExtension extension) {
         super(extension);
         this.delegate = delegate;
+        this.dynamicOwner = dynamicOwner;
         this.extension = extension;
     }
 
@@ -46,14 +47,15 @@ public class DynamicPropertiesDynamicObjectAdapter extends BeanDynamicObject {
 
     @Override
     public void setProperty(String name, Object value) throws MissingPropertyException {
-        if (!hasProperty(name) && WARN_ON_PROPERTY_CREATION) {
+        if (!dynamicOwner.hasProperty(name)) {
+
             DeprecationLogger.nagUserWith(
                     String.format(
                             "Adding dynamic properties by assignment has been deprecated. "
-                                    + "An attempt was made to create a dynamic property named '%s' on the object '%s' with the value '%s'. "
+                                    + "An attempt was made to create a dynamic property named '%s' on the object '%s' (class: %s) with the value '%s'. "
                                     + "You should set the property on the target's 'ext' object. "
-                                    + "e.g. <target>.ext.<property> = <value>",
-                            name, delegate, value)
+                                    + "e.g. <target>.ext.<property> = <value> (see '%s' in the Gradle DSL reference for more information)",
+                            name, delegate, delegate.getClass().getSimpleName(), value, DynamicPropertiesExtension.class.getSimpleName())
             );
         }
 

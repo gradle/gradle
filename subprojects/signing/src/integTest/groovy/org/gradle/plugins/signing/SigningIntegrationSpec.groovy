@@ -15,10 +15,10 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.*
-
-import static org.gradle.util.TextUtil.*
-import org.junit.*
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TestResources
+import org.junit.Rule
+import static org.gradle.util.TextUtil.escapeString
 
 abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     
@@ -54,7 +54,7 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
             properties
         }
         
-        String addAsPropertiesScript(addTo = "project", name = null) {
+        String addAsPropertiesScript(addTo = "project.ext", name = null) {
             asProperties(name).collect { k, v ->
                 "${addTo}.setProperty('${escapeString(k)}', '${escapeString(v)}')"
             }.join(";")

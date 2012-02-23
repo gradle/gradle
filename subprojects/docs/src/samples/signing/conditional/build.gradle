@@ -6,7 +6,7 @@ group = 'gradle'
 
 // START SNIPPET conditional-signing
 version = '1.0-SNAPSHOT'
-isReleaseVersion = !version.endsWith("SNAPSHOT")
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 signing {
     required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }

@@ -27,7 +27,7 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
             import org.gradle.api.reporting.*
             import org.gradle.api.reporting.internal.*
             
-            value = "bar"
+            ext.value = "bar"
 
             class TestTaskReportContainer extends TaskReportContainer<Report> {
                 TestTaskReportContainer(Task task) {

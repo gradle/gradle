@@ -21,7 +21,7 @@ import org.gradle.util.TestFile;
 import org.junit.Test;
 import spock.lang.Issue;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.startsWith;
 
 public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -56,8 +56,8 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
     public void executesAllTasksInASingleBuildAndEachTaskAtMostOnce() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
-                "gradle.taskGraph.whenReady { assert !project.hasProperty('graphReady'); graphReady = true }",
-                "task a << { task -> project.executedA = task }",
+                "gradle.taskGraph.whenReady { assert !project.hasProperty('graphReady'); ext.graphReady = true }",
+                "task a << { task -> project.ext.executedA = task }",
                 "task b << { ",
                 "    assert a == project.executedA",
                 "    assert gradle.taskGraph.hasTask(':a')",

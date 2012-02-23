@@ -17,15 +17,16 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.ArtifactBuilder
 import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.util.TestFile
-import org.junit.Test
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.junit.Rule
+import org.junit.Test
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
+import static org.junit.Assert.assertThat
 
 public class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Rule
@@ -63,7 +64,7 @@ try {
 }
 
 task doStuff
-someProp = 'value'
+ext.someProp = 'value'
 """
         testFile('build.gradle') << '''
 apply { from 'external.gradle' }
@@ -91,7 +92,7 @@ assert buildscript.classLoader == getClass().classLoader.parent
 assert buildscript.classLoader == Thread.currentThread().contextClassLoader
 assert project.gradle.scriptClassLoader == buildscript.classLoader.parent
 assert project.buildscript.classLoader != buildscript.classLoader
-someProp = 'value'
+ext.someProp = 'value'
 '''
         testFile('build.gradle') << '''
 task doStuff
@@ -165,7 +166,7 @@ class ListenerImpl extends BuildAdapter {
     @Test
     public void cachesScriptClassForAGivenScript() {
         testFile('settings.gradle') << 'include \'a\', \'b\''
-        testFile('external.gradle') << 'appliedScript = this'
+        testFile('external.gradle') << 'ext.appliedScript = this'
         testFile('build.gradle') << '''
 allprojects {
    apply from: "$rootDir/external.gradle"

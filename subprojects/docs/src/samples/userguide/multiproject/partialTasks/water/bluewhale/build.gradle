@@ -1,4 +1,4 @@
-arctic = true
+ext.arctic = true
 hello << { println "- I'm the largest animal that has ever lived on this planet." }
 
 task distanceToIceberg << {

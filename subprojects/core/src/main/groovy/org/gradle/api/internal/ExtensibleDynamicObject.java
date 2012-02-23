@@ -70,7 +70,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         this.delegate = delegate;
         this.dynamicDelegate = dynamicDelegate;
         this.convention = convention;
-        this.dynamicExtensionDynamicObject = new DynamicPropertiesDynamicObjectAdapter(delegate, convention.getDynamicProperties());
+        this.dynamicExtensionDynamicObject = new DynamicPropertiesDynamicObjectAdapter(delegate, this, convention.getDynamicProperties());
 
         updateDelegates();
     }
