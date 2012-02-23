@@ -39,7 +39,7 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
     @Override
     protected CodeQualityExtension createExtension() {
-        extension = project.extensions.addDecorated("codenarc", CodeNarcExtension)
+        extension = project.extensions.create("codenarc", CodeNarcExtension)
         extension.with {
             toolVersion = "0.16.1"
             configFile = project.rootProject.file("config/codenarc/codenarc.xml")

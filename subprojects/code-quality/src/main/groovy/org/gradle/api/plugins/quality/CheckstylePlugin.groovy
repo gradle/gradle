@@ -33,7 +33,7 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
     @Override
     protected CodeQualityExtension createExtension() {
-        extension = project.extensions.addDecorated("checkstyle", CheckstyleExtension)
+        extension = project.extensions.create("checkstyle", CheckstyleExtension)
 
         extension.with {
             toolVersion = "5.5"

@@ -51,7 +51,7 @@ class EclipsePlugin extends IdePlugin {
         lifecycleTask.description = 'Generates all Eclipse files.'
         cleanTask.description = 'Cleans all Eclipse files.'
 
-        model = project.extensions.addDecorated("eclipse", EclipseModel)
+        model = project.extensions.create("eclipse", EclipseModel)
 
         configureEclipseProject(project)
         configureEclipseClasspath(project)

@@ -29,7 +29,7 @@ import org.gradle.api.publication.maven.internal.modelbuilder.MavenPublicationBu
 class PublicationPlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        def newPublications = project.extensions.addDecorated("publications", Publications)
+        def newPublications = project.extensions.create("publications", Publications)
 
         project.plugins.withType(MavenPlugin) {
             newPublications.maven = new MavenPublicationBuilder().build(project)

@@ -99,18 +99,18 @@ public class DefaultConvention implements Convention {
 
     public void add(String name, Object extension) {
         if (extension instanceof Class) {
-            addDecorated(name, (Class<?>) extension);
+            create(name, (Class<?>) extension);
         } else {
             extensionsStorage.add(name, extension);
         }
     }
 
     public void add(String name, Class<?> type, Object... constructionArguments) {
-        DeprecationLogger.nagUserOfReplacedMethod("extensions.add(String, Class, Object...)", "extensions.addDecorated(String, Class, Object...)");
-        addDecorated(name, type, constructionArguments);
+        DeprecationLogger.nagUserOfReplacedMethod("extensions.add(String, Class, Object...)", "extensions.create(String, Class, Object...)");
+        create(name, type, constructionArguments);
     }
 
-    public <T> T addDecorated(String name, Class<T> type, Object... constructionArguments) {
+    public <T> T create(String name, Class<T> type, Object... constructionArguments) {
         T instance = getInstantiator().newInstance(type, constructionArguments);
         add(name, instance);
         return instance;

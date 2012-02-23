@@ -17,17 +17,17 @@ package org.gradle.plugins.cpp
 
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.tasks.Sync
 import org.gradle.plugins.binaries.BinariesPlugin
+import org.gradle.plugins.binaries.model.Binary
+import org.gradle.plugins.binaries.model.Executable
 import org.gradle.plugins.binaries.model.internal.DefaultCompilerRegistry
 import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.plugins.cpp.gpp.GppCompilerPlugin
 import org.gradle.plugins.cpp.gpp.internal.GppCompileSpecFactory
 import org.gradle.plugins.cpp.msvcpp.MicrosoftVisualCppPlugin
-import org.gradle.plugins.binaries.model.Binary
 import org.gradle.util.GUtil
-import org.gradle.api.tasks.Sync
-import org.gradle.api.plugins.BasePlugin
-import org.gradle.plugins.binaries.model.Executable
 
 class CppPlugin implements Plugin<ProjectInternal> {
 
@@ -35,7 +35,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(BinariesPlugin)
         project.plugins.apply(GppCompilerPlugin)
         project.plugins.apply(MicrosoftVisualCppPlugin)
-        project.extensions.addDecorated("cpp", CppExtension, project)
+        project.extensions.create("cpp", CppExtension, project)
 
         project.extensions.getByType(DefaultCompilerRegistry).specFactory = new GppCompileSpecFactory(project)
 

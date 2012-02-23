@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.plugins
 
+import org.gradle.api.internal.Instantiator
+import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.TestPluginConvention1
 import org.gradle.api.plugins.TestPluginConvention2
@@ -23,8 +25,6 @@ import org.junit.Before
 import org.junit.Test
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.*
-import org.gradle.api.internal.ThreadGlobalInstantiator
-import org.gradle.api.internal.Instantiator
 
 /**
  * @author Hans Dockter
@@ -141,9 +141,9 @@ class DefaultConventionTest {
         }
     }
 
-    @Test void canAddDecoratedExtensions() {
+    @Test void canCreateExtensions() {
         convention = new DefaultConvention(instantiator)
-        FooExtension extension = convention.addDecorated("foo", FooExtension)
+        FooExtension extension = convention.create("foo", FooExtension)
         assert extension.is(convention.getByName("foo"))
     }
 

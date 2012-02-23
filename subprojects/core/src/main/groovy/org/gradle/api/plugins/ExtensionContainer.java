@@ -34,12 +34,12 @@ public interface ExtensionContainer {
     void add(String name, Object extension);
 
     /**
-     * Deprecated. Use {@link #addDecorated(String, Class, Object...)}
+     * Deprecated. Use {@link #create}
      *
      * @param name The name for the extension
      * @param type The type of the extension
      * @param constructionArguments The arguments to be used to construct the extension instance
-     * @deprecated use {@link #addDecorated(String, Class, Object...)}
+     * @deprecated use {@link #create}
      */
     @Deprecated
     void add(String name, Class<?> type, Object... constructionArguments);
@@ -56,7 +56,7 @@ public interface ExtensionContainer {
      * @param constructionArguments The arguments to be used to construct the extension instance
      * @return The created instance
      */
-    <T> T addDecorated(String name, Class<T> type, Object... constructionArguments);
+    <T> T create(String name, Class<T> type, Object... constructionArguments);
 
     /**
      * Looks for the extension of a given type (useful to avoid casting). If none found it will throw an exception.
