@@ -26,13 +26,15 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.project.GlobalServicesRegistry
 import org.gradle.integtests.fixtures.GradleDistribution
 
+import java.util.concurrent.TimeUnit
+
 class ToolingApiDistributionResolver {
     private final DependencyResolutionServices resolutionServices
     private final Map<String, ToolingApiDistribution> distributions = [:]
-
+    private final GradleDistribution currentGradleDistribution = new GradleDistribution()
     ToolingApiDistributionResolver() {
         resolutionServices = createResolutionServices()
-        resolutionServices.resolveRepositoryHandler.maven { url new GradleDistribution().libsRepo.toURI().toURL() }
+        resolutionServices.resolveRepositoryHandler.maven { url currentGradleDistribution.libsRepo.toURI().toURL() }
     }
 
     ToolingApiDistributionResolver withRepository(String repositoryUrl) {
@@ -44,13 +46,21 @@ class ToolingApiDistributionResolver {
         withRepository("http://repo.gradle.org/gradle/repo")
     }
 
-    ToolingApiDistribution resolve(String version) {
-        if (!distributions[version]) {
-            Dependency toolingApiDep = resolutionServices.dependencyHandler.create("org.gradle:gradle-tooling-api:$version")
-            Configuration toolingApiConfig = resolutionServices.configurationContainer.detachedConfiguration(toolingApiDep)
-            distributions[version] = new ToolingApiDistribution(version, toolingApiConfig)
+    ToolingApiDistribution resolve(String toolingApiVersion) {
+        if (!distributions[toolingApiVersion]) {
+            if (useToolingApiFromTestClasspath(toolingApiVersion)) {
+                distributions[toolingApiVersion] = new ToolingApiDistribution(toolingApiVersion, null)
+            } else {
+                Dependency toolingApiDep = resolutionServices.dependencyHandler.create("org.gradle:gradle-tooling-api:$toolingApiVersion")
+                Configuration toolingApiConfig = resolutionServices.configurationContainer.detachedConfiguration(toolingApiDep)
+                distributions[toolingApiVersion] = new ToolingApiDistribution(toolingApiVersion, toolingApiConfig)
+            }
         }
-        distributions[version]
+        distributions[toolingApiVersion]
+    }
+
+    private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {
+        toolingApiVersion == currentGradleDistribution.version && System.getProperty("org.gradle.integtest.toolingApiFromTestClasspath", "true") == "true"
     }
 
     private DependencyResolutionServices createResolutionServices() {

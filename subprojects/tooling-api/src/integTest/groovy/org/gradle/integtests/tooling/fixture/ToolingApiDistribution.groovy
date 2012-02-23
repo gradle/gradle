@@ -18,12 +18,13 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.util.DefaultClassLoaderFactory
 import org.gradle.api.file.FileCollection
+import org.gradle.api.Nullable
 
 class ToolingApiDistribution {
     private final String version
     private final FileCollection classpath
 
-    ToolingApiDistribution(String version, FileCollection classpath) {
+    ToolingApiDistribution(String version, @Nullable FileCollection classpath) {
         this.version = version
         this.classpath = classpath
     }
@@ -33,11 +34,17 @@ class ToolingApiDistribution {
     }
     
     FileCollection getClasspath() {
-
+        classpath
     }
     
     ClassLoader getClassLoader() {
+        if (classpath == null) return getClass().classLoader
+
         def classLoaderFactory = new DefaultClassLoaderFactory()
         classLoaderFactory.createIsolatedClassLoader(classpath.collect { it.toURI().toURL() })
+    }
+    
+    String toString() {
+        "Tooling API $version"
     }
 }

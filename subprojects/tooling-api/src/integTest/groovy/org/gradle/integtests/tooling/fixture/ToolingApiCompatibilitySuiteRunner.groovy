@@ -120,9 +120,6 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         }
 
         private ClassLoader getTestClassLoader() {
-            if (toolingApi.version == GradleVersion.current().version) {
-                return getClass().classLoader
-            }
             def classLoader = TEST_CLASS_LOADERS.get(toolingApi.version)
             if (!classLoader) {
                 classLoader = createTestClassLoader()
