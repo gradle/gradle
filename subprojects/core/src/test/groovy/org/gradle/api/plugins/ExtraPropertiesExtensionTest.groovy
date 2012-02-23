@@ -25,7 +25,7 @@ import spock.lang.Specification
  *
  * @param <T> The concrete implementation type
  */
-abstract class DynamicPropertiesExtensionTest<T extends DynamicPropertiesExtension> extends Specification {
+abstract class ExtraPropertiesExtensionTest<T extends ExtraPropertiesExtension> extends Specification {
     
     T extension
 
@@ -48,7 +48,7 @@ abstract class DynamicPropertiesExtensionTest<T extends DynamicPropertiesExtensi
         extension.get("foo")
 
         then:
-        thrown(DynamicPropertiesExtension.UnknownPropertyException)
+        thrown(ExtraPropertiesExtension.UnknownPropertyException)
     }
 
     def "can read/write properties using groovy notation"() {

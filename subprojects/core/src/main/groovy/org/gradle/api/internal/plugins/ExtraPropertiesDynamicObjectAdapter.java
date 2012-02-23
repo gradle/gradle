@@ -19,18 +19,18 @@ package org.gradle.api.internal.plugins;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.DynamicObject;
-import org.gradle.api.plugins.DynamicPropertiesExtension;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.Map;
 
-public class DynamicPropertiesDynamicObjectAdapter extends BeanDynamicObject {
+public class ExtraPropertiesDynamicObjectAdapter extends BeanDynamicObject {
 
-    private final DynamicPropertiesExtension extension;
+    private final ExtraPropertiesExtension extension;
     private final Object delegate;
     private final DynamicObject dynamicOwner;
 
-    public DynamicPropertiesDynamicObjectAdapter(Object delegate, DynamicObject dynamicOwner, DynamicPropertiesExtension extension) {
+    public ExtraPropertiesDynamicObjectAdapter(Object delegate, DynamicObject dynamicOwner, ExtraPropertiesExtension extension) {
         super(extension);
         this.delegate = delegate;
         this.dynamicOwner = dynamicOwner;
@@ -55,7 +55,7 @@ public class DynamicPropertiesDynamicObjectAdapter extends BeanDynamicObject {
                                     + "An attempt was made to create a dynamic property named '%s' on the object '%s' (class: %s) with the value '%s'. "
                                     + "You should set the property on the target's 'ext' object. "
                                     + "e.g. <target>.ext.<property> = <value> (see '%s' in the Gradle DSL reference for more information)",
-                            name, delegate, delegate.getClass().getSimpleName(), value, DynamicPropertiesExtension.class.getSimpleName())
+                            name, delegate, delegate.getClass().getSimpleName(), value, ExtraPropertiesExtension.class.getSimpleName())
             );
         }
 

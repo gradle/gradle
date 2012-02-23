@@ -17,9 +17,9 @@ package org.gradle.api.internal;
 
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.plugins.DefaultConvention;
-import org.gradle.api.internal.plugins.DynamicPropertiesDynamicObjectAdapter;
+import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.DynamicPropertiesExtension;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     private Convention convention;
     private DynamicObject beforeConvention;
     private DynamicObject afterConvention;
-    private DynamicObject dynamicExtensionDynamicObject;
+    private DynamicObject extraPropertiesDynamicObject;
 
     /**
      * This variant will internally create a convention that is not fully featured, so should be avoided.
@@ -70,7 +70,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         this.delegate = delegate;
         this.dynamicDelegate = dynamicDelegate;
         this.convention = convention;
-        this.dynamicExtensionDynamicObject = new DynamicPropertiesDynamicObjectAdapter(delegate, this, convention.getDynamicProperties());
+        this.extraPropertiesDynamicObject = new ExtraPropertiesDynamicObjectAdapter(delegate, this, convention.getExtraProperties());
 
         updateDelegates();
     }
@@ -78,7 +78,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     private void updateDelegates() {
         List<DynamicObject> delegates = new ArrayList<DynamicObject>();
         delegates.add(dynamicDelegate);
-        delegates.add(dynamicExtensionDynamicObject);
+        delegates.add(extraPropertiesDynamicObject);
         if (beforeConvention != null) {
             delegates.add(beforeConvention);
         }
@@ -94,7 +94,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         setObjects(delegates.toArray(new DynamicObject[delegates.size()]));
 
         delegates.remove(parent);
-        delegates.add(dynamicExtensionDynamicObject);
+        delegates.add(extraPropertiesDynamicObject);
         setObjectsForUpdate(delegates.toArray(new DynamicObject[delegates.size()]));
     }
 
@@ -102,8 +102,8 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         return dynamicDelegate.getDisplayName();
     }
 
-    public DynamicPropertiesExtension getDynamicProperties() {
-        return convention.getDynamicProperties();
+    public ExtraPropertiesExtension getDynamicProperties() {
+        return convention.getExtraProperties();
     }
 
     public void addProperties(Map<String, ?> properties) {
@@ -157,7 +157,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
 
         extensibleDynamicObject.parent = parent;
         extensibleDynamicObject.convention = convention;
-        extensibleDynamicObject.dynamicExtensionDynamicObject = dynamicExtensionDynamicObject;
+        extensibleDynamicObject.extraPropertiesDynamicObject = extraPropertiesDynamicObject;
         if (beforeConvention != null) {
             extensibleDynamicObject.beforeConvention = beforeConvention;
         }

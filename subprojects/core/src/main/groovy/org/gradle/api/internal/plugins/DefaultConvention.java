@@ -23,7 +23,7 @@ import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.DynamicPropertiesExtension;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.*;
@@ -36,7 +36,7 @@ public class DefaultConvention implements Convention {
     private final Map<String, Object> plugins = new LinkedHashMap<String, Object>();
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
-    private final DynamicPropertiesExtension dynamicProperties = new DefaultDynamicPropertiesExtension();
+    private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
     private final Instantiator instantiator;
 
     /**
@@ -53,7 +53,7 @@ public class DefaultConvention implements Convention {
 
     public DefaultConvention(Instantiator instantiator) {
         this.instantiator = instantiator;
-        add(DynamicPropertiesExtension.EXTENSION_NAME, dynamicProperties);
+        add(ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 
     public Map<String, Object> getPlugins() {
@@ -116,8 +116,8 @@ public class DefaultConvention implements Convention {
         return instance;
     }
 
-    public DynamicPropertiesExtension getDynamicProperties() {
-        return dynamicProperties;
+    public ExtraPropertiesExtension getExtraProperties() {
+        return extraProperties;
     }
 
     public <T> T getByType(Class<T> type) {

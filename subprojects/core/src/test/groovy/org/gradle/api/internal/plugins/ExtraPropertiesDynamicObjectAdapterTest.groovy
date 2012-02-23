@@ -17,14 +17,14 @@
 package org.gradle.api.internal.plugins
 
 import org.gradle.api.internal.BeanDynamicObject
-import org.gradle.api.plugins.DynamicPropertiesExtension
+import org.gradle.api.plugins.ExtraPropertiesExtension
 import spock.lang.Specification
 
-public class DynamicPropertiesDynamicObjectAdapterTest extends Specification {
+public class ExtraPropertiesDynamicObjectAdapterTest extends Specification {
 
     Object delegate = new Object()
-    DynamicPropertiesExtension extension = new DefaultDynamicPropertiesExtension()
-    DynamicPropertiesDynamicObjectAdapter adapter =  new DynamicPropertiesDynamicObjectAdapter(delegate, new BeanDynamicObject(delegate), extension)
+    ExtraPropertiesExtension extension = new DefaultExtraPropertiesExtension()
+    ExtraPropertiesDynamicObjectAdapter adapter =  new ExtraPropertiesDynamicObjectAdapter(delegate, new BeanDynamicObject(delegate), extension)
 
     def "can get and set properties"() {
         given:
@@ -84,7 +84,7 @@ public class DynamicPropertiesDynamicObjectAdapterTest extends Specification {
         thrown(groovy.lang.MissingMethodException)
     }
 
-    static class NamedDynamicPropertiesExtension extends DefaultDynamicPropertiesExtension {
+    static class NamedExtraPropertiesExtension extends DefaultExtraPropertiesExtension {
         String name
     }
 
@@ -93,6 +93,6 @@ public class DynamicPropertiesDynamicObjectAdapterTest extends Specification {
         adapter.hasProperty("properties")
 
         and:
-        new DynamicPropertiesDynamicObjectAdapter(delegate, new BeanDynamicObject(delegate), new NamedDynamicPropertiesExtension()).hasProperty("name")
+        new ExtraPropertiesDynamicObjectAdapter(delegate, new BeanDynamicObject(delegate), new NamedExtraPropertiesExtension()).hasProperty("name")
     }
 }

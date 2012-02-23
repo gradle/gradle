@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.plugins.DynamicPropertiesExtensionTest
+import org.gradle.api.plugins.ExtraPropertiesExtensionTest
 
-public class DefaultDynamicExtensionTest extends DynamicPropertiesExtensionTest<DefaultDynamicPropertiesExtension> {
+public class DefaultExtraPropertiesExtensionTest extends ExtraPropertiesExtensionTest<DefaultExtraPropertiesExtension> {
 
-    DefaultDynamicPropertiesExtension createExtension() {
-        new DefaultDynamicPropertiesExtension()
+    DefaultExtraPropertiesExtension createExtension() {
+        new DefaultExtraPropertiesExtension()
     }
 
 }

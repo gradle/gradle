@@ -93,11 +93,11 @@ public interface ExtensionContainer {
     Object findByName(String name);
 
     /**
-     * The dynamic properties extension in this extension container.
+     * The extra properties extension in this extension container.
      *
-     * This extension is always present in the container, with the name {@value DynamicPropertiesExtension#EXTENSION_NAME}.
+     * This extension is always present in the container, with the name {@value ExtraPropertiesExtension#EXTENSION_NAME}.
      *
-     * @return The dynamic properties extension in this extension container.
+     * @return The extra properties extension in this extension container.
      */
-    DynamicPropertiesExtension getDynamicProperties();
+    ExtraPropertiesExtension getExtraProperties();
 }

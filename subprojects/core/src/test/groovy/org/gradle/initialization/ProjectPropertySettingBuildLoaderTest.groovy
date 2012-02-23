@@ -19,8 +19,8 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.plugins.DynamicPropertiesExtension
 import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.util.GUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
@@ -38,9 +38,9 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
     final File childProjectDir = tmpDir.createDir('child')
     final ProjectPropertySettingBuildLoader loader = new ProjectPropertySettingBuildLoader(propertiesLoader, target)
     final ExtensionContainer rootExtension = Mock()
-    final DynamicPropertiesExtension rootProperties = Mock()
+    final ExtraPropertiesExtension rootProperties = Mock()
     final ExtensionContainer childExtension = Mock()
-    final DynamicPropertiesExtension childProperties = Mock()
+    final ExtraPropertiesExtension childProperties = Mock()
 
     def setup() {
         _ * gradle.rootProject >> rootProject
@@ -50,8 +50,8 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         _ * childProject.projectDir >> childProjectDir
         _ * rootProject.extensions >> rootExtension
         _ * childProject.extensions >> childExtension
-        _ * rootExtension.dynamicProperties >> rootProperties
-        _ * childExtension.dynamicProperties >> childProperties
+        _ * rootExtension.extraProperties >> rootProperties
+        _ * childExtension.extraProperties >> childProperties
     }
 
     def "delegates to build loader"() {

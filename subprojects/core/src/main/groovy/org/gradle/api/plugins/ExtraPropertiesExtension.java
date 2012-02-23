@@ -21,14 +21,14 @@ import org.gradle.api.InvalidUserDataException;
 import java.util.Map;
 
 /**
- * Dynamic, ad-hoc, storage for Gradle domain objects.
+ * Additional, ad-hoc, properties for Gradle domain objects.
  * <p>
- * Dynamic properties extensions allow new properties to be added to existing domain objects. They act like maps,
+ * Extra properties extensions allow new properties to be added to existing domain objects. They act like maps,
  * allowing the storage of arbitrary key/value pairs. All {@link ExtensionAware} Gradle domain objects intrinsically have an extension
  * named “{@value #EXTENSION_NAME}” of this type. 
  * <p>
- * An important feature of dynamic properties extensions is that all of its properties are exposed for reading and writing via the {@link ExtensionAware}
- * object that owns the extensions.
+ * An important feature of extra properties extensions is that all of its properties are exposed for reading and writing via the {@link ExtensionAware}
+ * object that owns the extension.
  *
  * <pre autoTested="">
  * project.ext.set("myProp", "myValue")
@@ -39,7 +39,7 @@ import java.util.Map;
  * assert project.ext.get("myProp") == "anotherValue"
  * </pre>
  *
- * Dynamic properties extension objects support Groovy property syntax. That is, a property can be read via {@code extension.«name»} and set via
+ * Extra properties extension objects support Groovy property syntax. That is, a property can be read via {@code extension.«name»} and set via
  * {@code extension.«name» = "value"}. <b>Wherever possible, the Groovy property syntax should be preferred over the
  * {@link #get(String)} and {@link #set(String, Object)} methods.</b>
  *
@@ -55,7 +55,7 @@ import java.util.Map;
  * assert project.ext.myprop == "b"
  * </pre>
  *
- * You can also use the Groovy accessor syntax to get and set properties on a dynamic extension.
+ * You can also use the Groovy accessor syntax to get and set properties on an extra properties extension.
  *
  * <pre autoTested="">
  * project.ext["otherProp"] = "a"
@@ -77,7 +77,7 @@ import java.util.Map;
  * This functionality has been <b>deprecated</b> (a deprecation warning message will be issued when this is attempted). Future versions of Gradle will
  * remove this functionality completely, resulting in an exception being thrown.
  */
-public interface DynamicPropertiesExtension {
+public interface ExtraPropertiesExtension {
 
     /**
      * The name of this extension in all {@link ExtensionContainer ExtensnionContainers}, {@value}.
@@ -105,7 +105,7 @@ public interface DynamicPropertiesExtension {
     /**
      * Returns the value for the registered property with the given name.
      *
-     * When using a dynamic extension from Groovy, you can also get properties via Groovy's property syntax.
+     * When using an extra properties extension from Groovy, you can also get properties via Groovy's property syntax.
      * All of the following lines of code are equivalent.
      *
      * <pre autoTested="">
@@ -132,7 +132,7 @@ public interface DynamicPropertiesExtension {
     /**
      * Updates the value for, or creates, the registered property with the given name to the given value.
      *
-     * When using a dynamic extension from Groovy, you can also set properties via Groovy's property syntax.
+     * When using an extra properties extension from Groovy, you can also set properties via Groovy's property syntax.
      * All of the following lines of code are equivalent.
      *
      * <pre autoTested="">
@@ -178,8 +178,8 @@ public interface DynamicPropertiesExtension {
      * The exception that will be thrown when an attempt is made to read a property that is not set.
      */
     public static class UnknownPropertyException extends InvalidUserDataException {
-        public UnknownPropertyException(DynamicPropertiesExtension extension, String propertyName) {
-            super(String.format("cannot get property '%s' on dynamic extension '%s' as it does not exist", propertyName, extension));
+        public UnknownPropertyException(ExtraPropertiesExtension extension, String propertyName) {
+            super(String.format("cannot get property '%s' on extra properties extension as it does not exist", propertyName, extension));
         }
     }
 

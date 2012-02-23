@@ -157,7 +157,7 @@
                 <td>org.gradle.api.dsl.ConventionProperty</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.DynamicPropertiesExtension</td>
+                <td>org.gradle.api.plugins.ExtraPropertiesExtension</td>
             </tr>
         </table>
     </section>

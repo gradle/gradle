@@ -20,7 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.plugins.DynamicPropertiesExtension;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,12 +69,12 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         }
         
         Map<String, String> mergedProperties = propertiesLoader.mergeProperties(new HashMap(projectProperties));
-        DynamicPropertiesExtension dynamicProperties = new DslObject(project).getExtensions().getDynamicProperties();
+        ExtraPropertiesExtension extraProperties = new DslObject(project).getExtensions().getExtraProperties();
         for (Map.Entry<String, String> entry: mergedProperties.entrySet()) {
             if (project.hasProperty(entry.getKey())) {
                 project.setProperty(entry.getKey(), entry.getValue());    
             } else {
-                dynamicProperties.set(entry.getKey(), entry.getValue());
+                extraProperties.set(entry.getKey(), entry.getValue());
             }
         }
     }

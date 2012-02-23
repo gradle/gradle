@@ -27,7 +27,7 @@ import org.gradle.api.internal.plugins.DslObject;
 
 public class CustomPlugin implements Plugin<Project> {
     public void apply(Project p) {
-      new DslObject(p).getExtensions().getDynamicProperties().set("prop", "value");
+      new DslObject(p).getExtensions().getExtraProperties().set("prop", "value");
     }
 }
 '''
@@ -55,7 +55,7 @@ import org.gradle.api.internal.plugins.DslObject;
 
 public class CustomPlugin implements Plugin<Project> {
     public void apply(Project p) {
-      new DslObject(p).getExtensions().getDynamicProperties().set("prop", "value");
+      new DslObject(p).getExtensions().getExtraProperties().set("prop", "value");
     }
 }
 '''
