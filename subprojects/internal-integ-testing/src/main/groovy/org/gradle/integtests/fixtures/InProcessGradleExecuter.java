@@ -17,17 +17,20 @@
 package org.gradle.integtests.fixtures;
 
 import junit.framework.AssertionFailedError;
+import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
@@ -40,6 +43,7 @@ import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Jvm;
 import org.hamcrest.Matcher;
 
@@ -165,13 +169,33 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return true;
     }
 
-    private static class BuildListenerImpl implements TaskExecutionGraphListener {
+    private static class BuildListenerImpl implements TaskExecutionGraphListener, BuildListener {
         private final List<String> executedTasks = new ArrayList<String>();
         private final Set<String> skippedTasks = new HashSet<String>();
 
         public void graphPopulated(TaskExecutionGraph graph) {
             List<Task> planned = new ArrayList<Task>(graph.getAllTasks());
             graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
+        }
+
+        public void buildStarted(Gradle gradle) {
+            DeprecationLogger.setLogTrace(true);
+        }
+
+        public void settingsEvaluated(Settings settings) {
+
+        }
+
+        public void projectsLoaded(Gradle gradle) {
+
+        }
+
+        public void projectsEvaluated(Gradle gradle) {
+
+        }
+
+        public void buildFinished(BuildResult result) {
+            DeprecationLogger.setLogTrace(false);
         }
     }
 

@@ -161,6 +161,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         
         result.append(" -Dfile.encoding=");
         result.append(getDefaultCharacterEncoding());
+        result.append(" -Dorg.gradle.deprecation.trace=true");
 
         return result.toString();
     }

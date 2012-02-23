@@ -38,6 +38,13 @@ public class DeprecationLogger {
         }
     };
 
+    private static final ThreadLocal<Boolean> LOG_TRACE = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            return true;
+        }
+    };
+
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
 
     public static void reset() {
@@ -108,7 +115,7 @@ public class DeprecationLogger {
     }
 
     private static boolean isTraceLoggingEnabled() {
-        return Boolean.getBoolean(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
+        return Boolean.getBoolean(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME) || LOG_TRACE.get();
     }
 
     private static void logTraceIfNecessary() {
@@ -124,5 +131,9 @@ public class DeprecationLogger {
 
     private static boolean isEnabled() {
         return ENABLED.get();
+    }
+    
+    public static void setLogTrace(boolean flag) {
+        LOG_TRACE.set(flag);
     }
 }
