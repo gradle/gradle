@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.*
 import org.junit.*
 import spock.lang.IgnoreIf
 import org.gradle.internal.os.OperatingSystem
+import static org.gradle.util.TextUtil.*
 
 @IgnoreIf({!OperatingSystem.current().findInPath("g++") && !OperatingSystem.current().findInPath("cl.exe")})
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
@@ -41,7 +42,7 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         and:
         sharedLibrary("cpp/exewithlib/lib/build/binaries/lib").isFile()
         executable("cpp/exewithlib/exe/build/binaries/exe").isFile()
-        executable("cpp/exewithlib/exe/build/install/main/exe").exec().out == "Hello, World!\n"
+        executable("cpp/exewithlib/exe/build/install/main/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
     }
     
     def "dependencies"() {
@@ -72,8 +73,8 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         ":compileMain" in nonSkippedTasks
         
         and:
-        executable("cpp/exe/build/binaries/exe").exec().out == "Hello, World!\n"
-        executable("cpp/exe/build/install/main/exe").exec().out == "Hello, World!\n"
+        executable("cpp/exe/build/binaries/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
+        executable("cpp/exe/build/install/main/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
     }
     
 }

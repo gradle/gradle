@@ -60,8 +60,13 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         and:
         file("src", "main", "cpp", "helloworld.cpp") << """
             #include <iostream>
+            #ifdef _WIN32
+            #define DLL_FUNC __declspec(dllexport)
+            #else
+            #define DLL_FUNC
+            #endif
 
-            int main () {
+            int DLL_FUNC main () {
               std::cout << "${escapeString(HELLO_WORLD)}";
               return 0;
             }
@@ -101,7 +106,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
 
         and:
         file("src", "main", "cpp", "helloworld.cpp") << """
-            int thing() { }
+            int thing() { return 0; }
         """
 
         expect:
@@ -168,15 +173,20 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         and:
         file("src/hello/cpp/hello.cpp") << """
             #include <iostream>
+            #ifdef _WIN32
+            #define DLL_FUNC __declspec(dllexport)
+            #else
+            #define DLL_FUNC
+            #endif
 
-            void hello () {
-              std::cout << "${escapeString(HELLO_WORLD)}";
+            void DLL_FUNC hello(char* str) {
+              std::cout << str;
             }
         """
 
         and:
         file("src/hello/headers/hello.h") << """
-            void hello();
+            void hello(char* str);
         """
 
         and:
@@ -185,7 +195,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
             #include "hello.h"
 
             int main (int argc, char** argv) {
-              hello();
+              hello("${escapeString(HELLO_WORLD)}");
               for ( int i = 1; i < argc; i++ ) {
                 std::cout << "[" << argv[i] << "]";
               }
