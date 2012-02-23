@@ -717,7 +717,12 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return fileOperations.delete(paths);
     }
 
+    /**
+     * @deprecated Use the {@link #mkdir(Object)} instead.
+     */
+    @Deprecated
     public Directory dir(String path) {
+        DeprecationLogger.nagUserOfReplacedMethod("AbstractProject.dir()", "mkdir()");
         String[] pathElements = path.split("/");
         String name = "";
         Directory dirTask = null;
