@@ -26,42 +26,48 @@ import org.gradle.api.plugins.ExtensionContainer;
  * 
  * This is intended to be used with objects that have been decorated by the class generator.
  * <p>
- * Construction of a DslObject will fail with {@link IllegalArgumentException} if the given object does
- * not meet the requirements of a “DSL Object”. That is, it must:
- * <ul>
- * <li>Implement {@link DynamicObjectAware}</li>
- * <li>Implement {@link ExtensionAware}</li>
- * <li>Implement {@link IConventionAware}</li>
- * <li>Implement {@link HasConvention}</li>
- * </ul>
+ * Accessing each “aspect” of a DSL object may fail (with an {@link IllegalStateException}) if the DSL
+ * object does not have that functionality. For example, calling {@link #getConventionMapping()} will fail
+ * if the backing object does not implement {@link IConventionAware}.
  */
 public class DslObject implements DynamicObjectAware, ExtensionAware, IConventionAware, HasConvention {
 
-    private final DynamicObject dynamicObject;
-    private final ExtensionContainer extensionContainer;
-    private final ConventionMapping conventionMapping;
-    private final Convention convention;
+    private DynamicObject dynamicObject;
+    private ExtensionContainer extensionContainer;
+    private ConventionMapping conventionMapping;
+    private Convention convention;
     
+    private final Object object;
+
     public DslObject(Object object) {
-        this.dynamicObject = toType(object, DynamicObjectAware.class).getAsDynamicObject();
-        this.extensionContainer = toType(object, ExtensionAware.class).getExtensions();
-        this.conventionMapping = toType(object, IConventionAware.class).getConventionMapping();
-        this.convention = toType(object, HasConvention.class).getConvention();
+        this.object = object;
     }
 
     public DynamicObject getAsDynamicObject() {
+        if (dynamicObject == null) {
+            this.dynamicObject = toType(object, DynamicObjectAware.class).getAsDynamicObject();
+        }
         return dynamicObject;
     }
     
     public Convention getConvention() {
+        if (convention == null) {
+            this.convention = toType(object, HasConvention.class).getConvention();
+        }
         return convention;
     }
 
     public ExtensionContainer getExtensions() {
+        if (extensionContainer == null) {
+            this.extensionContainer = toType(object, ExtensionAware.class).getExtensions();
+        }
         return extensionContainer;
     }
 
     public ConventionMapping getConventionMapping() {
+        if (conventionMapping == null) {
+            this.conventionMapping = toType(object, IConventionAware.class).getConventionMapping();
+        }
         return conventionMapping;
     }
 
@@ -69,8 +75,9 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
         if (type.isInstance(delegate)) {
             return type.cast(delegate);
         } else {
-            throw new IllegalArgumentException(
-                    String.format("Cannot create DslObject for '%s' as it does not implement '%s' (it is not a DSL object)", delegate, type.getName())
+            throw new IllegalStateException(
+                    String.format("Cannot create DslObject for '%s' (class: %s) as it does not implement '%s' (it is not a DSL object)",
+                            delegate, delegate.getClass().getSimpleName(), type.getName())
             );
         }
     }

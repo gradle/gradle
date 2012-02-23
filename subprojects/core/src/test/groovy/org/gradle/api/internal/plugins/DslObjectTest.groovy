@@ -21,12 +21,18 @@ import spock.lang.Specification
 
 class DslObjectTest extends Specification {
     
-    def "fails for non dsl object"() {
+    def "fails lazily for non dsl object"() {
         when:
-        new DslObject(new Object())
+        def dsl = new DslObject(new Object())
 
         then:
-        thrown(IllegalArgumentException)
+        notThrown(Exception)
+
+        when:
+        dsl.asDynamicObject
+
+        then:
+        thrown(IllegalStateException)
     }
 
     static class Thing {}
