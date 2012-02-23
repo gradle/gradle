@@ -191,9 +191,17 @@ public class CommandLineActionFactory {
         // Create a client that will not match any existing daemons, so it will always startup a new one
         DaemonClientFactory clientFactory = clientServices.get(DaemonClientFactory.class);
         DaemonClient client = clientFactory.create(Specs.<DaemonContext>satisfyNone());
+        //(SF) this is a workaround until this story is completed. I'm hardcoding setting the idle timeout to be max X mins.
+        //this way we avoid potential runaway daemons that steal resources on linux and break builds on windows.
+        //We might leave that in if we decide it's a good idea for an extra safety net.
+        int maxTimeout = 2 * 60 * 1000;
+        if (daemonParameters.getIdleTimeout() > maxTimeout) {
+            daemonParameters.setIdleTimeout(maxTimeout);
+        }
+        //end of workaround.
         return new ActionAdapter(
                 new DaemonBuildAction(client, commandLine, getWorkingDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
-        // TODO:DAZ Need to stop the spawned daemon process
+        // TODO:DAZ Need to stop the spawned daemon process - (SF) - for now I've added a workaround with short timeout above...
         // TODO:DAZ Need to display message informing users that we forked the process, and they would be better off switching to the daemon
     }
 
