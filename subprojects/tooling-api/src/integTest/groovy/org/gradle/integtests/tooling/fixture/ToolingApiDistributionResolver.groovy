@@ -47,11 +47,11 @@ class ToolingApiDistributionResolver {
     ToolingApiDistribution resolve(String toolingApiVersion) {
         if (!distributions[toolingApiVersion]) {
             if (useToolingApiFromTestClasspath(toolingApiVersion)) {
-                distributions[toolingApiVersion] = new ToolingApiDistribution(toolingApiVersion, null)
+                distributions[toolingApiVersion] = new TestClasspathToolingApiDistribution()
             } else {
                 Dependency toolingApiDep = resolutionServices.dependencyHandler.create("org.gradle:gradle-tooling-api:$toolingApiVersion")
                 Configuration toolingApiConfig = resolutionServices.configurationContainer.detachedConfiguration(toolingApiDep)
-                distributions[toolingApiVersion] = new ToolingApiDistribution(toolingApiVersion, toolingApiConfig)
+                distributions[toolingApiVersion] = new ExternalToolingApiDistribution(toolingApiVersion, toolingApiConfig)
             }
         }
         distributions[toolingApiVersion]
