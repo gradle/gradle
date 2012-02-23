@@ -22,10 +22,6 @@ integTest {
         systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
         systemProperties['org.gradle.integtest.toolingApiFromTestClasspath'] = 'true'
     }
-
-    if (OperatingSystem.current().isWindows()) {
-        enabled = false
-    }
 }
 
 daemonIntegTest {
