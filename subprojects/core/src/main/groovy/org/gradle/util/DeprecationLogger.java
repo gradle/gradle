@@ -27,6 +27,7 @@ import java.util.Set;
 public class DeprecationLogger {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeprecationLogger.class);
     private static final Set<String> PLUGINS = Collections.synchronizedSet(new HashSet<String>());
+    private static final Set<String> TASKS = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> METHODS = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> PROPERTIES = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> NAMED_PARAMETERS = Collections.synchronizedSet(new HashSet<String>());
@@ -59,6 +60,15 @@ public class DeprecationLogger {
             LOGGER.warn(String.format(
                     "The %s plugin has been deprecated and will be removed in the next version of Gradle. Please use the %s plugin instead.",
                     pluginName, replacement));
+            logTraceIfNecessary();
+        }
+    }
+
+    public static void nagUserOfReplacedTask(String taskName, String replacement) {
+        if (isEnabled() && TASKS.add(taskName)) {
+            LOGGER.warn(String.format(
+                    "The %s task has been deprecated and will be removed in the next version of Gradle. Please use the %s instead.",
+                    taskName, replacement));
             logTraceIfNecessary();
         }
     }
