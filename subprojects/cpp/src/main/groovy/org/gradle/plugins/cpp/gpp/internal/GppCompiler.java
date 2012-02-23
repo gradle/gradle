@@ -20,11 +20,11 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.LibraryCompileSpec;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
-import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
+import java.io.PrintWriter;
 
-public class GppCompiler extends CommandLineCppCompiler {
+public class GppCompiler extends OptionFileCommandLineCppCompiler {
     static final String EXECUTABLE = "g++";
 
     public GppCompiler(FileResolver fileResolver) {
@@ -37,22 +37,30 @@ public class GppCompiler extends CommandLineCppCompiler {
     }
 
     @Override
-    protected void configure(ExecAction compiler, GppCompileSpec spec) {
-        compiler.args("-o", spec.getOutputFile());
+    protected void writeOptions(GppCompileSpec spec, PrintWriter writer) {
+        writer.print("-o ");
+        writer.println(spec.getOutputFile().getAbsolutePath().replace("\\", "\\\\"));
         if (spec instanceof LibraryCompileSpec) {
             LibraryCompileSpec librarySpec = (LibraryCompileSpec) spec;
-            compiler.args("-shared");
+            writer.println("-shared");
             if (!OperatingSystem.current().isWindows()) {
-                compiler.args("-fPIC");
+                writer.println("-fPIC");
                 if (OperatingSystem.current().isMacOsX()) {
-                    compiler.args("-Wl,-install_name," + librarySpec.getInstallName());
+                    writer.println("-Wl,-install_name," + librarySpec.getInstallName());
                 } else {
-                    compiler.args("-Wl,-soname," + librarySpec.getInstallName());
+                    writer.println("-Wl,-soname," + librarySpec.getInstallName());
                 }
             }
         }
+        for (File file : spec.getIncludeRoots()) {
+            writer.print("-I ");
+            writer.println(file.getAbsolutePath().replace("\\", "\\\\"));
+        }
+        for (File file : spec.getSource()) {
+            writer.println(file.getAbsolutePath().replace("\\", "\\\\"));
+        }
         for (File file : spec.getLibs()) {
-            compiler.args(file.getAbsolutePath());
+            writer.println(file.getAbsolutePath().replace("\\", "\\\\"));
         }
     }
 }

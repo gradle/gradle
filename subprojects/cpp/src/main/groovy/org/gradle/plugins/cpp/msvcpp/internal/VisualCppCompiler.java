@@ -19,12 +19,12 @@ package org.gradle.plugins.cpp.msvcpp.internal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.plugins.binaries.model.LibraryCompileSpec;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
-import org.gradle.plugins.cpp.gpp.internal.CommandLineCppCompiler;
-import org.gradle.process.internal.ExecAction;
+import org.gradle.plugins.cpp.gpp.internal.OptionFileCommandLineCppCompiler;
 
 import java.io.File;
+import java.io.PrintWriter;
 
-class VisualCppCompiler extends CommandLineCppCompiler {
+class VisualCppCompiler extends OptionFileCommandLineCppCompiler {
     static final String EXECUTABLE = "cl.exe";
 
     VisualCppCompiler(FileResolver fileResolver) {
@@ -37,15 +37,26 @@ class VisualCppCompiler extends CommandLineCppCompiler {
     }
 
     @Override
-    protected void configure(ExecAction compiler, GppCompileSpec spec) {
-        compiler.args("/nologo");
-        compiler.args("/Fe" + spec.getOutputFile().getAbsolutePath());
+    protected void writeOptions(GppCompileSpec spec, PrintWriter writer) {
+        writer.println("/nologo");
+        writer.println("/EHsc");
+        writer.println("/Fe" + spec.getOutputFile().getAbsolutePath());
         if (spec instanceof LibraryCompileSpec) {
-            compiler.args("/LD");
+            writer.println("/LD");
         }
-        compiler.args("/link");
+        for (File file : spec.getIncludeRoots()) {
+            writer.print("/I ");
+            writer.println(file.getAbsolutePath());
+        }
+        for (File file : spec.getSource()) {
+            writer.println(file);
+        }
+        // Link options need to be on one line in the options file
+        writer.print("/link");
         for (File file : spec.getLibs()) {
-            compiler.args(file.getAbsolutePath().replaceFirst("\\.dll$", ".lib"));
+            writer.print(" ");
+            writer.print(file.getAbsolutePath().replaceFirst("\\.dll$", ".lib"));
         }
+        writer.println();
     }
 }
