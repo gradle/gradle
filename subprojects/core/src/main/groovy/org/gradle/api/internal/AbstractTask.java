@@ -314,8 +314,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return loggingManager;
     }
 
-    public ExtensibleDynamicObject getExtensibleDynamicObject() {
-        return extensibleDynamicObject;
+    public DynamicObjectHelper getDynamicObjectHelper() {
+        DeprecationLogger.nagUserOfReplacedMethod("AbstractTask.getDynamicObjectHelper()", "getAsDynamicObject()");
+        return new DynamicObjectHelper(extensibleDynamicObject);
     }
 
     public Object property(String propertyName) throws MissingPropertyException {
