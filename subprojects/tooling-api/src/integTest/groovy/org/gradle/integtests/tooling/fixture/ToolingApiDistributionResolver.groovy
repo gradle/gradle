@@ -26,8 +26,6 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.project.GlobalServicesRegistry
 import org.gradle.integtests.fixtures.GradleDistribution
 
-import java.util.concurrent.TimeUnit
-
 class ToolingApiDistributionResolver {
     private final DependencyResolutionServices resolutionServices
     private final Map<String, ToolingApiDistribution> distributions = [:]

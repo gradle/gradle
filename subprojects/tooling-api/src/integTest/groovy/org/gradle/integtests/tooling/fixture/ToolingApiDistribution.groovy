@@ -38,7 +38,9 @@ class ToolingApiDistribution {
     }
     
     ClassLoader getClassLoader() {
-        if (classpath == null) return getClass().classLoader
+        if (classpath == null) {
+            return getClass().classLoader
+        }
 
         def classLoaderFactory = new DefaultClassLoaderFactory()
         classLoaderFactory.createIsolatedClassLoader(classpath.collect { it.toURI().toURL() })
