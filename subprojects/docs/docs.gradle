@@ -224,10 +224,14 @@ def javaApiUrl = "http://docs.oracle.com/javase/1.5.0/docs/api/"
 def groovyApiUrl = "http://groovy.codehaus.org/gapi/"
 
 task javadoc(type: Javadoc) {
+    stylesheetFile = file("src/docs/css/javadoc.css")
+    inputs.file stylesheetFile
+
     group = 'documentation'
     options.encoding = 'utf-8'
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
+    options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source groovyProjects().collect {project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
     classpath = files(groovyProjects().collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })

@@ -1,0 +1,82 @@
+body {
+    background-color: white;
+    line-height: 150%;
+}
+
+body, td, div {
+    font-family: 'DejaVu Sans', 'Lucida Grande', 'Verdana', sans-serif;
+    font-size: 11pt;
+    color: #444444;
+}
+
+a {
+    color: #444444;
+    text-decoration: none;
+    border-bottom: dotted 1px;
+}
+
+a:visited {
+    color: #444444;
+}
+
+h1, h2, h3, h4, h5 {
+    color: #4A9935;
+    line-height: 150%;
+    font-weight: bold;
+    font-family: 'DejaVu Sans', 'Lucida Grande', helvetica, sans-serif;
+}
+
+code, pre {
+    font-family: 'Lucida Console', 'DejaVu Sans Mono', Courier, monospace;
+}
+
+table, tr, th, td {
+  border: none;
+}
+
+
+.TableHeadingColor th { 
+  background-color: whiteSmoke;
+  border: solid #E7E7E7 1px;
+  color: #5283A1;
+  width: auto;
+  margin-right: -0.8em;
+  padding-right: 0.8em;
+  margin-left: -0.8em;
+  padding-left: 0.8em;
+  padding-top: 0.3em;
+  padding-bottom: 0.3em;
+  font-weight: normal;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  
+}
+
+.TableHeadingColor font {
+  font-size: 120%;
+} 
+
+.TableSubHeadingColor  { background: #FFFFFF;  } /* Light mauve */
+.TableRowColor td { 
+  background: #FFFFFF;  
+  border-bottom: 1px dashed #CCC;
+}
+
+/* Navigation bar fonts and colors */
+.NavBarCell1 {
+  background-color: #EBF4F7;
+  color: #B3B3B3;
+ }
+
+.NavBarCell1Rev {
+  color: #5283A1;
+  background-color: #EBF4F7;
+ }
+
+
+font.FrameHeadingFont { 
+  color: #505050; 
+  font-weight: bold;
+  font-size: 11pt;
+}
