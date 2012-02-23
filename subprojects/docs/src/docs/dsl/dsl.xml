@@ -151,10 +151,10 @@
                 <td>org.gradle.api.artifacts.ResolutionStrategy</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.ExtensionAware</td>
+                <td>org.gradle.api.dsl.ConventionProperty</td>
             </tr>
             <tr>
-                <td>org.gradle.api.dsl.ConventionProperty</td>
+                <td>org.gradle.api.plugins.ExtensionAware</td>
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.ExtraPropertiesExtension</td>
