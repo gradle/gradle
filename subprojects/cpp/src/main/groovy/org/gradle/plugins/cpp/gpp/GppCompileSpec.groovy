@@ -130,6 +130,15 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAwa
         this.extension = extension
     }
 
+    /**
+     * @deprecated No replacement
+     */
+    @Deprecated
+    void setBinary(Binary binary) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.setBinary()")
+        this.binary = binary
+    }
+
     File getOutputFile() {
         project.file "$project.buildDir/binaries/${getOutputFileName()}"
     }

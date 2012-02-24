@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.cpp.gpp.internal;
+package org.gradle.plugins.cpp.compiler.internal;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;

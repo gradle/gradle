@@ -19,6 +19,8 @@ package org.gradle.plugins.cpp.gpp.internal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.binaries.model.LibraryCompileSpec;
+import org.gradle.plugins.cpp.compiler.internal.ArgWriter;
+import org.gradle.plugins.cpp.compiler.internal.OptionFileCommandLineCppCompiler;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
 
 import java.io.File;
@@ -37,30 +39,29 @@ public class GppCompiler extends OptionFileCommandLineCppCompiler {
     }
 
     @Override
-    protected void writeOptions(GppCompileSpec spec, PrintWriter writer) {
-        writer.print("-o ");
-        writer.println(spec.getOutputFile().getAbsolutePath().replace("\\", "\\\\"));
+    protected void writeOptions(GppCompileSpec spec, PrintWriter w) {
+        ArgWriter argWriter = new ArgWriter(w);
+        argWriter.args("-o", spec.getOutputFile().getAbsolutePath());
         if (spec instanceof LibraryCompileSpec) {
             LibraryCompileSpec librarySpec = (LibraryCompileSpec) spec;
-            writer.println("-shared");
+            argWriter.args("-shared");
             if (!OperatingSystem.current().isWindows()) {
-                writer.println("-fPIC");
+                argWriter.args("-fPIC");
                 if (OperatingSystem.current().isMacOsX()) {
-                    writer.println("-Wl,-install_name," + librarySpec.getInstallName());
+                    argWriter.args("-Wl,-install_name," + librarySpec.getInstallName());
                 } else {
-                    writer.println("-Wl,-soname," + librarySpec.getInstallName());
+                    argWriter.args("-Wl,-soname," + librarySpec.getInstallName());
                 }
             }
         }
         for (File file : spec.getIncludeRoots()) {
-            writer.print("-I ");
-            writer.println(file.getAbsolutePath().replace("\\", "\\\\"));
+            argWriter.args("-I", file.getAbsolutePath());
         }
         for (File file : spec.getSource()) {
-            writer.println(file.getAbsolutePath().replace("\\", "\\\\"));
+            argWriter.args(file.getAbsolutePath());
         }
         for (File file : spec.getLibs()) {
-            writer.println(file.getAbsolutePath().replace("\\", "\\\\"));
+            argWriter.args(file.getAbsolutePath());
         }
     }
 }

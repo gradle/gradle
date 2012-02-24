@@ -18,8 +18,8 @@ package org.gradle.plugins.cpp.msvcpp.internal;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.plugins.binaries.model.LibraryCompileSpec;
+import org.gradle.plugins.cpp.compiler.internal.OptionFileCommandLineCppCompiler;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
-import org.gradle.plugins.cpp.gpp.internal.OptionFileCommandLineCppCompiler;
 
 import java.io.File;
 import java.io.PrintWriter;

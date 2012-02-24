@@ -78,9 +78,9 @@ class CppPlugin implements Plugin<ProjectInternal> {
                     script.text = """
 #/bin/sh
 APP_BASE_NAME=`dirname "\$0"`
-export DYLD_LIBRARY_PATH=\$APP_BASE_NAME/lib
-export LD_LIBRARY_PATH=\$APP_BASE_NAME/lib
-exec \$APP_BASE_NAME/lib/${executable.spec.outputFile.name} \"\$@\"
+export DYLD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
+export LD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
+exec "\$APP_BASE_NAME/lib/${executable.spec.outputFile.name}" \"\$@\"
                     """
                     ant.chmod(perm: 'u+x', file: script)
                 }
