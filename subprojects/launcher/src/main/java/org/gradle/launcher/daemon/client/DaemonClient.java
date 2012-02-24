@@ -97,10 +97,11 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
         LOGGER.warn("Note: the Gradle build daemon is an experimental feature.");
         LOGGER.warn("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.");
-        while(true) {
+        Build build = new Build(action, parameters);
+        int saneNumberOfAttempts = 100; //is it sane enough?
+        for(int i=1; i<saneNumberOfAttempts; i++) {
             DaemonConnection daemonConnection = connector.connect(compatibilitySpec);
             Connection<Object> connection = daemonConnection.getConnection();
-            Build build = new Build(action, parameters);
 
             Object firstResult;
             try {
@@ -127,6 +128,8 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                     + "Earlier, %s request was sent to the daemon.", firstResult, build));
             }
         }
+        throw new NoUsableDaemonFoundException("Unable to find a usable idle daemon. I have connected to "
+                + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build + ".");
     }
 
     private Result monitorBuild(Build build, Connection<Object> connection) {

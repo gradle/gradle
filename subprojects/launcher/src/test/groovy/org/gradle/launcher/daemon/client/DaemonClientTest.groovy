@@ -127,4 +127,16 @@ class DaemonClientTest extends Specification {
         //first busy, then null, then build started...
         connection.receive() >>> [Mock(DaemonBusy), null, Mock(BuildStarted), new Success('')]
     }
+
+    def "does not loop forever finding usable daemons"() {
+        given:
+        connector.connect(compatibilitySpec) >> daemonConnection
+        connection.receive() >> Mock(DaemonBusy)
+        
+        when:
+        client.execute(Mock(GradleLauncherAction), Mock(BuildActionParameters))
+
+        then:
+        thrown(NoUsableDaemonFoundException)
+    }
 }
