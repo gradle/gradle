@@ -26,6 +26,7 @@ import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -113,7 +114,7 @@ class M9JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
         File otherJava = Jvm.current().getJavaHome()
 
         dist.file('build.gradle') << "assert System.getProperty('java.home').startsWith('$javaHome')"
-        dist.file('gradle.properties') << "org.gradle.java.home=${otherJava.absolutePath}"
+        dist.file('gradle.properties') << "org.gradle.java.home=${TextUtil.escapeString(otherJava.canonicalPath)}"
 
         when:
         def env = withConnection {

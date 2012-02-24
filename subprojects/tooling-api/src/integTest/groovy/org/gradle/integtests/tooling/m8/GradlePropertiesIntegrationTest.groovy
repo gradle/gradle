@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
 @MinToolingApiVersion('1.0-milestone-8')
@@ -56,7 +57,7 @@ assert System.getProperty('some-prop') == 'some-value'
         
         dist.file('build.gradle') << "assert System.getProperty('java.home').startsWith('$javaHome')"
         
-        dist.file('gradle.properties') << "org.gradle.java.home=$javaHome"
+        dist.file('gradle.properties') << "org.gradle.java.home=${TextUtil.escapeString(javaHome.canonicalPath)}"
 
         when:
         BuildEnvironment env = toolingApi.withConnection { connection ->
