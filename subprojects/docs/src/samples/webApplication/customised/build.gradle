@@ -1,8 +1,11 @@
+apply plugin: 'jetty'
+// START SNIPPET use-plugin
+apply plugin: 'war'
+// END SNIPPET use-plugin
 group = 'gradle'
 version = '1.0'
-apply plugin: 'war'
-apply plugin: 'jetty'
 
+// START SNIPPET customization
 configurations {
    moreLibs
 }
@@ -34,7 +37,7 @@ war {
     classpath configurations.moreLibs // adds a configuration to the WEB-INF/lib dir.
     webXml = file('src/someWeb.xml') // copies a file to WEB-INF/web.xml
 }
-
+// END SNIPPET customization
 stopKey = 'foo'
 stopPort = 9451
 httpPort = 8080
