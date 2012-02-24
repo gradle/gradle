@@ -41,7 +41,7 @@ public class DeprecationLogger {
     private static final ThreadLocal<Boolean> LOG_TRACE = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
-            return true;
+            return false;
         }
     };
 
