@@ -60,8 +60,13 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         and:
         file("src", "main", "cpp", "helloworld.cpp") << """
             #include <iostream>
+            #ifdef _WIN32
+            #define DLL_FUNC __declspec(dllexport)
+            #else
+            #define DLL_FUNC
+            #endif
 
-            int main () {
+            int DLL_FUNC main () {
               std::cout << "${escapeString(HELLO_WORLD)}";
               return 0;
             }
@@ -101,7 +106,7 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
 
         and:
         file("src", "main", "cpp", "helloworld.cpp") << """
-            int thing() { }
+            int thing() { return 0; }
         """
 
         expect:
@@ -166,25 +171,34 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         settingsFile << "rootProject.name = 'test'"
 
         and:
-        file("src", "hello", "cpp", "hello.cpp") << """
+        file("src/hello/cpp/hello.cpp") << """
             #include <iostream>
+            #ifdef _WIN32
+            #define DLL_FUNC __declspec(dllexport)
+            #else
+            #define DLL_FUNC
+            #endif
 
-            void hello () {
-              std::cout << "${escapeString(HELLO_WORLD)}";
+            void DLL_FUNC hello(const char* str) {
+              std::cout << str;
             }
         """
 
         and:
-        file("src", "hello", "headers", "hello.h") << """
-            void hello();
+        file("src/hello/headers/hello.h") << """
+            void hello(const char* str);
         """
 
         and:
-        file("src", "main", "cpp", "main.cpp") << """
+        file("src/main/cpp/main.cpp") << """
+            #include <iostream>
             #include "hello.h"
 
-            int main () {
-              hello();
+            int main (int argc, char** argv) {
+              hello("${escapeString(HELLO_WORLD)}");
+              for ( int i = 1; i < argc; i++ ) {
+                std::cout << "[" << argv[i] << "]";
+              }
               return 0;
             }
         """
@@ -196,8 +210,14 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
         sharedLibrary("build/binaries/hello").isFile()
         executable("build/binaries/test").isFile()
 
-        sharedLibrary("build/install/main/hello").isFile()
-        executable("build/install/main/test").isFile()
+        executable("build/install/main/test").exec().out == HELLO_WORLD
+        executable("build/install/main/test").exec("a", "1 2 3").out.contains("[a][1 2 3]")
+
+        // Ensure installed binary is not dependent on the libraries in their original locations
+        when:
+        file("build/binaries").deleteDir()
+
+        then:
         executable("build/install/main/test").exec().out == HELLO_WORLD
     }
 }

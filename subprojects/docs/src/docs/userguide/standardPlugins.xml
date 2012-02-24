@@ -76,7 +76,7 @@
     </section>
     <section>
         <title>Experimental language plugins</title>
-        <para>These experiemental plugins add support for various languages which can be compiled and executed in the JVM.</para>
+        <para>These experimental plugins add support for various languages:</para>
         <table>
             <title>Language plugins</title>
             <thead>

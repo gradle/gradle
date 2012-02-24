@@ -517,8 +517,8 @@ public class TestFile extends File implements TestFileContext {
         }
     }
     
-    public Map<String, ?> exec() {
-        return new TestFileHelper(this).exec();
+    public Map<String, ?> exec(Object... args) {
+        return new TestFileHelper(this).exec(args);
     }
 
     public class Snapshot {
