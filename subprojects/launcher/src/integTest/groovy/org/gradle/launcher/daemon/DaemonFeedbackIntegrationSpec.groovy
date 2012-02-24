@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.logging.DaemonMessages
-import org.gradle.tests.fixtures.ConcurrentTestUtil
 import spock.lang.IgnoreIf
 import spock.lang.Timeout
 import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
@@ -48,7 +47,7 @@ task sleep << {
         def sleeper = executer.withArguments('-i').withTasks('sleep').start()
 
         then:
-        poll(15) {
+        poll(60) {
             assert readLog(baseDir).contains("taking a nap...")
         }
 
@@ -63,7 +62,7 @@ task sleep << {
         assert log.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)
     }
 
-    @Timeout(10)
+    @Timeout(25)
     @IgnoreIf({OperatingSystem.current().isWindows()})
     def "promptly shows decent message when daemon cannot be started"() {
         when:
@@ -75,7 +74,7 @@ task sleep << {
         ex.message.contains("-Xyz")
     }
 
-    @Timeout(10)
+    @Timeout(25)
     def "promptly shows decent message when awkward java home used"() {
         def dummyJdk = distribution.file("dummyJdk").createDir()
         assert dummyJdk.isDirectory()
@@ -132,7 +131,7 @@ task sleep << {
         def log = readLog(baseDir)
         log.findAll(DaemonMessages.STARTED_EXECUTING_COMMAND).size() == 1
 
-        ConcurrentTestUtil.poll {
+        poll(60) {
             //in theory the client could have received result and complete
             // but the daemon has not yet finished processing hence polling
             def daemonLog = readLog(baseDir)
@@ -193,7 +192,7 @@ task sleep << {
         def daemon = executer.setAllowExtraLogging(false).withDaemonBaseDir(baseDir).withArguments("--foreground").start()
         
         then:
-        poll { assert daemon.standardOutput.contains(DaemonMessages.PROCESS_STARTED) }
+        poll(60) { assert daemon.standardOutput.contains(DaemonMessages.PROCESS_STARTED) }
 
         when:
         def infoBuild = executer.withDaemonBaseDir(baseDir).withArguments("-i", "-Dorg.gradle.jvmargs=-ea").run()
