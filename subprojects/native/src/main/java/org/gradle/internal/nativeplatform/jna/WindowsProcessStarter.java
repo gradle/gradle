@@ -16,11 +16,12 @@
 
 package org.gradle.internal.nativeplatform.jna;
 
+import com.sun.jna.WString;
+
 import java.io.File;
 import java.io.IOException;
 
-import static com.sun.jna.platform.win32.WinBase.*;
-import static org.gradle.internal.nativeplatform.jna.Kernel32.INSTANCE;
+import static org.gradle.internal.nativeplatform.jna.Kernel32.*;
 
 /**
  * Uses the native Windows CreateProcessW() function, instead of Java's Process.
@@ -36,10 +37,10 @@ public class WindowsProcessStarter {
 
     public void start(File dir, String command) throws IOException {
         Kernel32 kernel32 = INSTANCE;
-        STARTUPINFO startupInfo = new STARTUPINFO();
-        PROCESS_INFORMATION.ByReference processInformation = new PROCESS_INFORMATION.ByReference();
-        if (!kernel32.CreateProcess(null, command, null, null, false, new DWORD(DETACHED_PROCESS), null,
-                dir.getAbsolutePath(), startupInfo, processInformation)) {
+        Kernel32.StartupInfo startupInfo = new Kernel32.StartupInfo();
+        Kernel32.ProcessInfo processInformation = new Kernel32.ProcessInfo();
+        if (!kernel32.CreateProcessW(null, new WString(command), null, null, false, DETACHED_PROCESS, null,
+                new WString(dir.getAbsolutePath()), startupInfo, processInformation)) {
             throw new IOException("Could not start process. Errno: " + kernel32.GetLastError());
         }
         kernel32.CloseHandle(processInformation.hProcess);

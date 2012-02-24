@@ -102,8 +102,7 @@ libraries += [
         groovy: 'org.codehaus.groovy:groovy-all:1.8.6@jar',
         jaxen: 'jaxen:jaxen:1.1@jar',
         jcip: "net.jcip:jcip-annotations:1.0",
-        jna: 'net.java.dev.jna:jna:3.4.0@jar',
-        jna_platform: 'net.java.dev.jna:platform:3.4.0@jar',
+        jna: 'net.java.dev.jna:jna:3.2.2@jar',
         junit: 'junit:junit:4.10',
         xmlunit: 'xmlunit:xmlunit:1.3',
 ]
