@@ -51,8 +51,8 @@ class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Timeout(120)
-    @Unroll({"can use $jettyTask for testing"})
-    def "test"() {
+    @Unroll
+    def "can use #jettyTask for testing"() {
         expect:
         jettyLifecycle(jettyTask)
 
@@ -86,14 +86,14 @@ task sayHearthyGoodbye << {
 
         //starting jetty
         sample sample
-        def runJetty = executer.withDeprecationChecksDisabled().withTasks(jettyStartTask, "sayHearthyGoodbye").withArguments("-d").start()
+        def runJetty = executer.withTasks(jettyStartTask, "sayHearthyGoodbye").withArguments("-d").start()
 
         //jetty is started
         available("http://localhost:$httpPort/quickstart")
 
         //running web test then stopping jetty
         sample sample
-        def jettyStop = executer.withDeprecationChecksDisabled().withTasks('runTest', 'jettyStop').withArguments("-d").run()
+        def jettyStop = executer.withTasks('runTest', 'jettyStop').withArguments("-d").run()
 
         //test has completed
         assert jettyStop.output.contains('hello Gradle')
