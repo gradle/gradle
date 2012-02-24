@@ -44,23 +44,23 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
-   @Test
-   public void testSingleSourceWithSpecClosures() {
-       TestFile buildFile = testFile("build.gradle").writelns(
-               "task (copy, type:Copy) {",
-               "   from 'src'",
-               "   into 'dest'",
-               "   include { fte -> !fte.file.name.endsWith('b') }",
-               "   exclude { fte -> fte.file.name == 'bad.file' }",
-               "}"
-       )
-       usingBuildFile(buildFile).withTasks("copy").run()
-       testFile('dest').assertHasDescendants(
-               'root.a',
-               'one/one.a',
-               'two/two.a',
-       )
-   }
+    @Test
+    public void testSingleSourceWithSpecClosures() {
+        TestFile buildFile = testFile("build.gradle").writelns(
+                "task (copy, type:Copy) {",
+                "   from 'src'",
+                "   into 'dest'",
+                "   include { fte -> !fte.file.name.endsWith('b') }",
+                "   exclude { fte -> fte.file.name == 'bad.file' }",
+                "}"
+        )
+        usingBuildFile(buildFile).withTasks("copy").run()
+        testFile('dest').assertHasDescendants(
+                'root.a',
+                'one/one.a',
+                'two/two.a',
+        )
+    }
 
     @Test
     public void testMultipleSourceWithInheritedPatterns() {
@@ -112,7 +112,8 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
-    @Test void testRename() {
+    @Test
+    void testRename() {
         TestFile buildFile = testFile("build.gradle") << '''
             task (copy, type:Copy) {
                from 'src'
@@ -179,6 +180,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
      * two.a starts off with "$one\n${one+1}\n${one+1+1}\n"
      * If these filters are chained in the correct order, you should get 6, 11, and 16
      */
+
     @Test public void copyMultipleFilterTest() {
         TestFile buildFile = testFile('build.gradle').writelns(
                 """task (copy, type:Copy) {
@@ -298,30 +300,63 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
+    @Test public void testCopyFromTask() {
+        TestFile buildFile = testFile("build.gradle").writelns(
+                """
+                    configurations { compile }
+                    dependencies { compile files('a.jar') }
+                    task fileProducer {
+                        outputs.file 'build/out.txt'
+                        doLast {
+                            file('build/out.txt').text = 'some content'
+                        }
+                    }
+                    task dirProducer {
+                        outputs.dir 'build/outdir'
+                        doLast {
+                            file('build/outdir').mkdirs()
+                            file('build/outdir/file1.txt').text = 'some content'
+                            file('build/outdir/sub').mkdirs()
+                            file('build/outdir/sub/file2.txt').text = 'some content'
+                        }
+                    }
+                    task copy(type: Copy) {
+                        from fileProducer, dirProducer
+                        into 'dest'
+                    }"""
+        )
+        usingBuildFile(buildFile).withTasks("copy").run()
+        testFile('dest').assertHasDescendants(
+                'out.txt',
+                'file1.txt',
+                'sub/file2.txt'
+        )
+    }
+
     @Test public void testCopyFromTaskOutputs() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """
-                configurations { compile }
-                dependencies { compile files('a.jar') }
-                task fileProducer {
-                    outputs.file 'build/out.txt'
-                    doLast {
-                        file('build/out.txt').text = 'some content'
-                    }
-                }
-                task dirProducer {
-                    outputs.dir 'build/outdir'
-                    doLast {
-                        file('build/outdir').mkdirs()
-                        file('build/outdir/file1.txt').text = 'some content'
-                        file('build/outdir/sub').mkdirs()
-                        file('build/outdir/sub/file2.txt').text = 'some content'
-                    }
-                }
-                task copy(type: Copy) {
-                    from fileProducer, dirProducer
-                    into 'dest'
-                }"""
+                        configurations { compile }
+                        dependencies { compile files('a.jar') }
+                        task fileProducer {
+                            outputs.file 'build/out.txt'
+                            doLast {
+                                file('build/out.txt').text = 'some content'
+                            }
+                        }
+                        task dirProducer {
+                            outputs.dir 'build/outdir'
+                            doLast {
+                                file('build/outdir').mkdirs()
+                                file('build/outdir/file1.txt').text = 'some content'
+                                file('build/outdir/sub').mkdirs()
+                                file('build/outdir/sub/file2.txt').text = 'some content'
+                            }
+                        }
+                        task copy(type: Copy) {
+                            from fileProducer.outputs, dirProducer.outputs
+                            into 'dest'
+                        }"""
         )
         usingBuildFile(buildFile).withTasks("copy").run()
         testFile('dest').assertHasDescendants(
