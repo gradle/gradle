@@ -108,8 +108,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 connection.dispatch(build);
                 firstResult = connection.receive();
             } catch (Exception e) {
-                //TODO SF find a way to test it.
-                LOGGER.info("Unable to receive the first result from the daemon. Trying a different daemon...", e);
+                LOGGER.info("Exception when attempted to send and receive first result from the daemon. I will try a different daemon... The exception was:", e);
                 continue;
             }
 
