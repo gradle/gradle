@@ -55,7 +55,7 @@ class M9JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
     }
 
     @Issue("GRADLE-1799")
-    @Timeout(5)
+    @Timeout(25)
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "promptly discovers when java is not a valid installation"() {
         def dummyJdk = dist.file("wrong jdk location").createDir()

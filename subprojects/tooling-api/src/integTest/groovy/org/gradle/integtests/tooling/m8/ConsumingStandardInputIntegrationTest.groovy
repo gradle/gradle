@@ -32,7 +32,7 @@ class ConsumingStandardInputIntegrationTest extends ToolingApiSpecification {
         toolingApi.isEmbedded = false
     }
 
-    @Timeout(10)
+    @Timeout(90)
     def "consumes input when building model"() {
         given:
         dist.file('build.gradle')  << """
@@ -49,7 +49,7 @@ description = System.in.text
         model.description == 'Cool project'
     }
 
-    @Timeout(10)
+    @Timeout(90)
     def "works well if the standard input configured with null"() {
         given:
         dist.file('build.gradle')  << """
@@ -66,7 +66,7 @@ description = System.in.text
         model.description == null
     }
 
-    @Timeout(10)
+    @Timeout(90)
     def "does not consume input when not explicitly provided"() {
         given:
         dist.file('build.gradle')  << """
@@ -82,7 +82,7 @@ description = "empty" + System.in.text
         model.description == 'empty'
     }
 
-    @Timeout(10)
+    @Timeout(90)
     def "consumes input when running tasks"() {
         given:
         dist.file('build.gradle') << """

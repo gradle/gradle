@@ -102,7 +102,7 @@ assert System.getProperty('some-prop') == 'BBB'
     }
 
     @Issue("GRADLE-1799")
-    @Timeout(5)
+    @Timeout(25)
     def "promptly discovers when java does not exist"() {
         when:
         withConnection {
@@ -116,7 +116,7 @@ assert System.getProperty('some-prop') == 'BBB'
 
     @Issue("GRADLE-1799")
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @Timeout(5)
+    @Timeout(25)
     def "promptly discovers rubbish jvm arguments"() {
         when:
         def ex = maybeFailWithConnection {
