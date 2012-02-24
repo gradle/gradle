@@ -68,7 +68,6 @@ import org.gradle.util.SystemProperties;
 import org.gradle.util.WrapUtil;
 
 import java.util.List;
-import java.util.Map;
 
 public class DefaultDependencyManagementServices extends DefaultServiceRegistry implements DependencyManagementServices {
 
