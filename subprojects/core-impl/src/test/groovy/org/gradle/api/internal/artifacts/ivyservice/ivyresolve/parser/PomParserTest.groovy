@@ -150,7 +150,7 @@ class PomParserTest extends Specification {
     }
 
     private ModuleDescriptor parsePom() {
-        GradlePomModuleDescriptorParser.getInstance().parseDescriptor(ivySettings, pomFile.toURL(), false)
+        GradlePomModuleDescriptorParser.getInstance().parseDescriptor(ivySettings, pomFile.toURI().toURL(), false)
     }
 
     private void hasArtifact(ModuleDescriptor descriptor, String name, String type, String ext, String classifier = null) {

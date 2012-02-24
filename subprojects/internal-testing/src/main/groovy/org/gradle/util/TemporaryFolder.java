@@ -31,7 +31,8 @@ public class TemporaryFolder implements MethodRule, TestFileContext {
     private static TestFile root;
 
     static {
-        root = new TestFile(new File("build/tmp/tests"));
+        // NOTE: the space in the directory name is intentional
+        root = new TestFile(new File("build/tmp/test files"));
     }
 
     public TestFile getDir() {

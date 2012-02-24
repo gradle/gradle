@@ -69,12 +69,12 @@ class FileOrUriNotationParserTest extends Specification {
 
     def "with URL"() {
         setup:
-        def testFileURL = folder.createFile("test1").toURL()
+        def testFileURL = folder.createFile("test1").toURI().toURL()
         when:
         def object = parser.parseNotation(testFileURL)
         then:
         object instanceof File
-        object.toURL() == testFileURL
+        object.toURI().toURL() == testFileURL
     }
 
     def "with non File URI URI instance is returned"() {

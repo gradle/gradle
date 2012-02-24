@@ -117,18 +117,8 @@ class EclipseClasspathFixture {
             assert entry.attributes[0].attribute[0].@value == jarUrl(file)
         }
 
-        void assertHasJavadoc(String file) {
-            assert entry.attributes
-            assert entry.attributes[0].attribute[0].@name == 'javadoc_location'
-            assert entry.attributes[0].attribute[0].@value == jarUrl(file)
-        }
-
-        String jarUrl(String filePath) {
-            "jar:file:${OperatingSystem.current().windows ? '/' : ''}${filePath.replace(File.separator, '/')}!/"
-        }
-        
-        String jarUrl(File filePath){
-            jarUrl(filePath.absolutePath)
+        private String jarUrl(File filePath){
+            "jar:${filePath.toURI().toURL()}!/"
         }
 
         void assertHasNoJavadoc() {
