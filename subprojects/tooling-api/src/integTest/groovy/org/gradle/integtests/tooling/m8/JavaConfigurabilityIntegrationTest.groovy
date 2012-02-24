@@ -71,7 +71,6 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
 assert System.getProperty('some-prop') == 'BBB'
 """
         dist.file('gradle.properties') << "org.gradle.jvmargs=-Dsome-prop=AAA -Xmx16m"
-        //TODO SF should we combine the different properties?
 
         when:
         def model = withConnection {
