@@ -46,6 +46,7 @@ public class CopyTest extends AbstractTaskTest {
 
     @Test public void executesActionOnExecute() {
         context.checking {
+            one(action).hasSource(); will(returnValue(true))
             one(action).getDestinationDir(); will(returnValue(new File('dest')))
             one(action).execute()
             one(action).getDidWork()
@@ -61,6 +62,7 @@ public class CopyTest extends AbstractTaskTest {
             exactly(2).of(action).getDestinationDir()
             will(returnValue(null))
             one(action).into(new File('convention'))
+            one(action).hasSource(); will(returnValue(true))
         }
 
         copyTask.configureRootSpec()
@@ -72,6 +74,7 @@ public class CopyTest extends AbstractTaskTest {
         context.checking {
             one(action).getDestinationDir()
             will(returnValue(new File('dest')))
+            one(action).hasSource(); will(returnValue(true))
         }
 
         copyTask.configureRootSpec()

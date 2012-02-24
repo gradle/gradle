@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.FilterReader;
@@ -43,6 +44,12 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     }
 
     protected void configureRootSpec() {
+        if (!getCopyAction().hasSource()) {
+            Object srcDirs = getDefaultSource();
+            if (srcDirs != null) {
+                from(srcDirs);
+            }
+        }
     }
 
     /**
@@ -61,7 +68,15 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @InputFiles @SkipWhenEmpty @Optional
     public FileCollection getSource() {
-        return getCopyAction().getAllSource();
+        if(getCopyAction().hasSource()){
+            return getCopyAction().getAllSource();
+        }else{
+            return DeprecationLogger.whileDisabled(new Factory<FileCollection>() {
+                public FileCollection create() {
+                    return getDefaultSource(); //To change body of implemented methods use File | Settings | File Templates.
+                }
+            });
+        }
     }
     
     protected abstract CopyActionImpl getCopyAction();

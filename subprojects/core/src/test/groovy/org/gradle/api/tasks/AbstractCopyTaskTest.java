@@ -49,14 +49,27 @@ public class AbstractCopyTaskTest extends AbstractTaskTest {
     }
 
     @Test
+    public void usesDefaultSourceWhenNoSourceHasBeenSpecified() {
+        context.checking(new Expectations() {{
+            one(task.action).hasSource();
+            will(returnValue(false));
+
+        }});
+        assertThat(task.getSource(), sameInstance(task.defaultSource));
+    }
+
+    @Test
     public void doesNotUseDefaultSourceWhenSourceHasBeenSpecifiedOnSpec() {
         final FileTree source = context.mock(FileTree.class, "source");
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
+            one(task.action).hasSource();
+            will(returnValue(true));
             one(task.action).getAllSource();
             will(returnValue(source));
         }});
         assertThat(task.getSource(), sameInstance((FileCollection) source));
     }
+
 
     @Test
     public void copySpecMethodsDelegateToMainSpecOfCopyAction() {
