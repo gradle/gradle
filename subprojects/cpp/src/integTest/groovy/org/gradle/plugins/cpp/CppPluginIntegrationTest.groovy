@@ -179,14 +179,14 @@ class CppPluginIntegrationTest extends AbstractBinariesIntegrationSpec {
             #define DLL_FUNC
             #endif
 
-            void DLL_FUNC hello(char* str) {
+            void DLL_FUNC hello(const char* str) {
               std::cout << str;
             }
         """
 
         and:
         file("src/hello/headers/hello.h") << """
-            void hello(char* str);
+            void hello(const char* str);
         """
 
         and:
