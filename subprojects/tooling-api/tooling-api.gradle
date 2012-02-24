@@ -25,7 +25,7 @@ integTest {
 }
 
 daemonIntegTest {
-    exclude "**/org/gradle/integtests/tooling/**" //tooling integ tests use daemon anyway, don't rerun
+    enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
 
 
