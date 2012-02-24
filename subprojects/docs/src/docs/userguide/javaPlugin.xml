@@ -657,9 +657,7 @@
                 <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or a Number, eg
                     <literal>'1.5'</literal> or <literal>1.5</literal>.
                 </td>
-                <td>
-                    <literal>Value of the current used JVM</literal>
-                </td>
+                <td>Value of the current used JVM</td>
                 <td>Java version compatibility to use when compiling Java source.</td>
             </tr>
             <tr>
