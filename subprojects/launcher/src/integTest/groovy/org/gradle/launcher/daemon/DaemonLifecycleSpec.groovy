@@ -35,7 +35,12 @@ import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
  */
 class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
-    def daemonIdleTimeout = 5
+    //most of the time, the idle timeout should be high enough to catch the subtle problem of the
+    //daemon timeouting before we send him a build request
+    def daemonIdleTimeout = 15
+    //TODO SF we need to make the timeouts more generous in this spec
+    //however, timeouts must be synced because for some tests it is important that
+    //idle timeout is less than the state timeout and for other tests it's the opposite.
 
     final List<GradleHandle> builds = []
     final List<GradleHandle> foregroundDaemons = []
@@ -199,6 +204,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     def "daemons do some work - sit idle - then timeout and die"() {
+        daemonIdleTimeout = 5 //must be shorter than current state timeout
+
         when:
         startBuild()
 
@@ -216,11 +223,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     def "existing foreground idle daemons are used"() {
-        given:
-        //idle timeout is high enough to catch the subtle problem of the
-        // 1st daemon timeouting and hence preventing us to verify if we connect to an existing daemon.
-        daemonIdleTimeout = 15
-
         when:
         startForegroundDaemon()
 
@@ -236,11 +238,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     def "existing idle background daemons are used"() {
-        given:
-        //idle timeout is high enough to catch the subtle problem of the
-        // 1st daemon timeouting and hence preventing us to verify if we connect to an existing daemon.
-        daemonIdleTimeout = 15
-        
         when:
         startBuild()
         waitForBuildToWait()
@@ -311,8 +308,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     def "sending stop to busy daemons cause them to disappear from the registry and disconnect from the client, and terminates the daemon process"() {
-        daemonIdleTimeout = 15
-
         when:
         startForegroundDaemon()
 
@@ -460,8 +455,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     def "if a daemon exists but is using a file encoding, a new compatible daemon will be created and used"() {
-        daemonIdleTimeout = 15
-
         when:
         startBuild(null, "US-ASCII")
         waitForBuildToWait()
