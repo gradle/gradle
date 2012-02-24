@@ -16,18 +16,18 @@
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 
 import java.io.File;
 
 public class ExternalArtifactCacheBuilder {
     private final CompositeExternalArtifactCache composite = new CompositeExternalArtifactCache();
     private final File rootCachesDirectory;
-    private final LocalMavenCacheLocator localMavenCacheLocator;
+    private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
 
-    public ExternalArtifactCacheBuilder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenCacheLocator localMavenCacheLocator) {
+    public ExternalArtifactCacheBuilder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator) {
         this.rootCachesDirectory = artifactCacheMetaData.getCacheDir().getParentFile();
-        this.localMavenCacheLocator = localMavenCacheLocator;
+        this.localMavenRepositoryLocator = localMavenRepositoryLocator;
     }
 
     public void addCurrent(ArtifactFileStore artifactFileStore) {
@@ -48,9 +48,9 @@ public class ExternalArtifactCacheBuilder {
     }
 
     public void addMavenLocal() {
-        File localMavenCache = localMavenCacheLocator.getLocalMavenCache();
-        if (localMavenCache.exists()) {
-            composite.addExternalArtifactCache(new PatternBasedExternalArtifactCache(localMavenCache, "[organisation-path]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"));
+        File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
+        if (localMavenRepository.exists()) {
+            composite.addExternalArtifactCache(new PatternBasedExternalArtifactCache(localMavenRepository, "[organisation-path]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"));
         }
     }
 

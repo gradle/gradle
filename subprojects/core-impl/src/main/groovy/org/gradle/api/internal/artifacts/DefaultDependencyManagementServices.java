@@ -48,8 +48,9 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDependencyResolver;
-import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenCacheLocator;
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -63,9 +64,11 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.SystemProperties;
 import org.gradle.util.WrapUtil;
 
 import java.util.List;
+import java.util.Map;
 
 public class DefaultDependencyManagementServices extends DefaultServiceRegistry implements DependencyManagementServices {
 
@@ -206,12 +209,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return new DefaultIvyFactory();
     }
 
-    protected LocalMavenCacheLocator createLocalMavenCacheLocator() {
-        return new DefaultLocalMavenCacheLocator();
+    protected LocalMavenRepositoryLocator createLocalMavenRepositoryLocator() {
+        return new DefaultLocalMavenRepositoryLocator(new DefaultMavenFileLocations(), SystemProperties.asMap(), System.getenv());
     }
 
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
-        ExternalArtifactCacheBuilder cacheBuilder = new ExternalArtifactCacheBuilder(get(ArtifactCacheMetaData.class), get(LocalMavenCacheLocator.class));
+        ExternalArtifactCacheBuilder cacheBuilder = new ExternalArtifactCacheBuilder(get(ArtifactCacheMetaData.class), get(LocalMavenRepositoryLocator.class));
         cacheBuilder.addCurrent(get(ArtifactFileStore.class));
         cacheBuilder.addMilestone7();
         cacheBuilder.addMilestone6();
@@ -249,7 +252,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         private DefaultRepositoryHandler createRepositoryHandler() {
             Instantiator instantiator = parent.get(Instantiator.class);
             ResolverFactory resolverFactory = new DefaultResolverFactory(
-                    get(LocalMavenCacheLocator.class),
+                    get(LocalMavenRepositoryLocator.class),
                     fileResolver,
                     instantiator,
                     get(RepositoryTransportFactory.class));

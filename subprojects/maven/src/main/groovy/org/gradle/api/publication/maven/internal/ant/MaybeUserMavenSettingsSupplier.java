@@ -17,7 +17,8 @@
 package org.gradle.api.publication.maven.internal.ant;
 
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
-import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations;
 
 import java.io.File;
 
@@ -26,11 +27,11 @@ import java.io.File;
  */
 public class MaybeUserMavenSettingsSupplier implements MavenSettingsSupplier {
 
-    EmptyMavenSettingsSupplier emptySettingsSupplier = new EmptyMavenSettingsSupplier();
-    MavenSettingsProvider mavenSettingsProvider = new MavenSettingsProvider();
+    MavenSettingsSupplier emptySettingsSupplier = new EmptyMavenSettingsSupplier();
+    MavenFileLocations mavenFileLocations = new DefaultMavenFileLocations();
 
     public void supply(InstallDeployTaskSupport installDeployTaskSupport) {
-        File userSettings = mavenSettingsProvider.getUserSettingsFile();
+        File userSettings = mavenFileLocations.getUserSettingsFile();
         if (userSettings.exists()) {
             installDeployTaskSupport.setSettingsFile(userSettings);
             return;

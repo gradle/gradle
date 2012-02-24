@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.*;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.ResolverFactory;
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenCacheLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
@@ -33,13 +33,13 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultResolverFactory implements ResolverFactory {
-    private final LocalMavenCacheLocator localMavenCacheLocator;
+    private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
     private final FileResolver fileResolver;
     private final Instantiator instantiator;
     private final RepositoryTransportFactory transportFactory;
 
-    public DefaultResolverFactory(LocalMavenCacheLocator localMavenCacheLocator, FileResolver fileResolver, Instantiator instantiator, RepositoryTransportFactory transportFactory) {
-        this.localMavenCacheLocator = localMavenCacheLocator;
+    public DefaultResolverFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, FileResolver fileResolver, Instantiator instantiator, RepositoryTransportFactory transportFactory) {
+        this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
         this.transportFactory = transportFactory;
@@ -76,7 +76,7 @@ public class DefaultResolverFactory implements ResolverFactory {
 
     public MavenArtifactRepository createMavenLocalRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository();
-        mavenRepository.setUrl(localMavenCacheLocator.getLocalMavenCache());
+        mavenRepository.setUrl(localMavenRepositoryLocator.getLocalMavenRepository());
         return mavenRepository;
     }
 

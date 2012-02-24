@@ -17,6 +17,6 @@ package org.gradle.api.internal.artifacts.mvnsettings;
 
 import java.io.File;
 
-public interface LocalMavenCacheLocator {
-    File getLocalMavenCache();
+public interface LocalMavenRepositoryLocator {
+    File getLocalMavenRepository();
 }
