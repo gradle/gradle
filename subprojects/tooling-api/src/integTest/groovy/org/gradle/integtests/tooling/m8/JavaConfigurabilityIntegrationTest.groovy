@@ -24,6 +24,7 @@ import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Timeout
 
@@ -116,6 +117,10 @@ assert System.getProperty('some-prop') == 'BBB'
 
     @Issue("GRADLE-1799")
     @Requires(TestPrecondition.NOT_WINDOWS)
+    //TODO SF at the moment the preconditions do not work in the tooling suite.
+    //it's a problem with classloading and missing classes like OperatingSystem
+    //Ignoring the whole test
+    @Ignore
     @Timeout(25)
     def "promptly discovers rubbish jvm arguments"() {
         when:

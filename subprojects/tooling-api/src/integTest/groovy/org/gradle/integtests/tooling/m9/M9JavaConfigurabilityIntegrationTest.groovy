@@ -25,8 +25,6 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.Jvm
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -56,7 +54,6 @@ class M9JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
 
     @Issue("GRADLE-1799")
     @Timeout(25)
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "promptly discovers when java is not a valid installation"() {
         def dummyJdk = dist.file("wrong jdk location").createDir()
 
