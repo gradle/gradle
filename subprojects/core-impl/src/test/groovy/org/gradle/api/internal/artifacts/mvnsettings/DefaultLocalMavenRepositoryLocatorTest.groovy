@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.mvnsettings
 
 import org.gradle.util.TemporaryFolder
 
-import spock.lang.Specification
 import org.junit.Rule
+import spock.lang.Specification
 
 class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     @Rule TemporaryFolder tmpDir = new TemporaryFolder()
@@ -29,8 +29,8 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     Map systemProperties = ["sys.prop": "sys/prop/value"]
     Map environmentVariables = [ENV_VAR: "env/var/value"]
 
-    File repo1 = new File("/path/to/repo1")
-    File repo2 = new File("path/to/repo2")
+    File repo1 = tmpDir.file("repo1")
+    File repo2 = tmpDir.file("repo2")
 
     def setup() {
         locations = new SimpleMavenFileLocations()
@@ -79,10 +79,10 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     }
 
     def "replaces placeholders for system properties and environment variables"() {
-        writeSettingsFile(locations.userSettingsFile, '/a/b/${sys.prop}/${env.ENV_VAR}')
+        writeSettingsFile(locations.userSettingsFile, tmpDir.file('${sys.prop}/${env.ENV_VAR}'))
 
         expect:
-        locator.localMavenRepository == new File("/a/b/sys/prop/value/env/var/value")
+        locator.localMavenRepository == tmpDir.file("sys/prop/value/env/var/value")
     }
 
     private void writeSettingsFile(File settings, File repo) {
