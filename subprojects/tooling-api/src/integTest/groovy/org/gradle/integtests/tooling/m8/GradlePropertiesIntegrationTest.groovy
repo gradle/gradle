@@ -19,9 +19,9 @@ package org.gradle.integtests.tooling.m8
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
+import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
 @MinToolingApiVersion('1.0-milestone-8')
@@ -54,10 +54,11 @@ assert System.getProperty('some-prop') == 'some-value'
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
     def "tooling api honours java home specified in gradle.properties"() {
         File javaHome = AvailableJavaHomes.bestAlternative
-        
-        dist.file('build.gradle') << "assert System.getProperty('java.home').startsWith('$javaHome')"
-        
-        dist.file('gradle.properties') << "org.gradle.java.home=${TextUtil.escapeString(javaHome.canonicalPath)}"
+        String javaHomePath = TextUtil.escapeString(javaHome.canonicalPath)
+
+        dist.file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"
+
+        dist.file('gradle.properties') << "org.gradle.java.home=$javaHomePath"
 
         when:
         BuildEnvironment env = toolingApi.withConnection { connection ->
