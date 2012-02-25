@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.IgnoreIf
+import org.gradle.util.TextUtil
 
 /**
  * by Szczepan Faber, created at: 1/20/12
@@ -69,10 +70,10 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
     def "honours java home specified in gradle.properties"() {
         given:
         File javaHome = AvailableJavaHomes.bestAlternative
-        String javaPath = javaHome.canonicalPath.replaceAll("\\\\", "\\\\\\\\")
-        distribution.file("gradle.properties") << "org.gradle.java.home=" + javaPath
+        String javaPath = TextUtil.escapeString(javaHome.canonicalPath)
+        distribution.file("gradle.properties") << "org.gradle.java.home=$javaPath"
 
         expect:
-        buildSucceeds "assert System.getProperty('java.home').startsWith('${javaPath}')"
+        buildSucceeds "assert System.getProperty('java.home').startsWith('$javaPath')"
     }
 }

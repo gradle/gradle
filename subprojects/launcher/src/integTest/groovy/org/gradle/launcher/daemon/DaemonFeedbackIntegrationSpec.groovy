@@ -22,6 +22,7 @@ import org.gradle.tests.fixtures.ConcurrentTestUtil
 import spock.lang.IgnoreIf
 import spock.lang.Timeout
 import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
+import org.gradle.util.TextUtil
 
 /**
  * by Szczepan Faber, created at: 1/20/12
@@ -79,14 +80,15 @@ task sleep << {
     def "promptly shows decent message when awkward java home used"() {
         def dummyJdk = distribution.file("dummyJdk").createDir()
         assert dummyJdk.isDirectory()
+        def jdkPath = TextUtil.escapeString(dummyJdk.canonicalPath)
         
         when:
-        executer.withArguments("-Dorg.gradle.java.home=${dummyJdk.absolutePath}").run()
+        executer.withArguments("-Dorg.gradle.java.home=$jdkPath").run()
 
         then:
         def ex = thrown(Exception)
         ex.message.contains('org.gradle.java.home')
-        ex.message.contains(dummyJdk.absolutePath)
+        ex.message.contains(jdkPath)
     }
 
     def "daemon log contains all necessary logging"() {
