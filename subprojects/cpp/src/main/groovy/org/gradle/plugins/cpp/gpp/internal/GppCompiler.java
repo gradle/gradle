@@ -40,7 +40,7 @@ public class GppCompiler extends OptionFileCommandLineCppCompiler {
 
     @Override
     protected void writeOptions(GppCompileSpec spec, PrintWriter w) {
-        ArgWriter argWriter = new ArgWriter(w);
+        ArgWriter argWriter = ArgWriter.unixStyle(w);
         argWriter.args("-o", spec.getOutputFile().getAbsolutePath());
         if (spec instanceof LibraryCompileSpec) {
             LibraryCompileSpec librarySpec = (LibraryCompileSpec) spec;

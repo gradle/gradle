@@ -20,10 +20,21 @@ import java.io.PrintWriter;
 import java.util.regex.Pattern;
 
 public class ArgWriter {
+    private static final Pattern WHITESPACE = Pattern.compile("\\s");
     private final PrintWriter writer;
+    private final boolean backslashEscape;
 
-    public ArgWriter(PrintWriter writer) {
+    private ArgWriter(PrintWriter writer, boolean backslashEscape) {
         this.writer = writer;
+        this.backslashEscape = backslashEscape;
+    }
+
+    public static ArgWriter unixStyle(PrintWriter writer) {
+        return new ArgWriter(writer, true);
+    }
+
+    public static ArgWriter windowsStyle(PrintWriter writer) {
+        return new ArgWriter(writer, false);
     }
 
     /**
@@ -35,11 +46,14 @@ public class ArgWriter {
             if (i > 0) {
                 writer.print(' ');
             }
-            String str = arg.toString().replace("\\", "\\\\").replace("'", "\\'");
-            if (Pattern.compile("\\s").matcher(str).find()) {
-                writer.print('\'');
+            String str = arg.toString();
+            if (backslashEscape) {
+                str = str.replace("\\", "\\\\").replace("\"", "\\\"");
+            }
+            if (WHITESPACE.matcher(str).find()) {
+                writer.print('\"');
                 writer.print(str);
-                writer.print('\'');
+                writer.print('\"');
             } else {
                 writer.print(str);
             }

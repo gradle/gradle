@@ -22,8 +22,8 @@ import static org.gradle.util.TextUtil.*
 class ArgWriterSpec extends Specification {
     final StringWriter writer = new StringWriter()
     final PrintWriter printWriter = new PrintWriter(writer, true)
-    final ArgWriter argWriter = new ArgWriter(printWriter)
-    
+    final ArgWriter argWriter = ArgWriter.unixStyle(printWriter)
+
     def "writes single argument to line"() {
         when:
         argWriter.args("-nologo")
@@ -45,22 +45,32 @@ class ArgWriterSpec extends Specification {
         argWriter.args("ab c", "d e f")
 
         then:
-        writer.toString() == toPlatformLineSeparators("'ab c' 'd e f'\n")
+        writer.toString() == toPlatformLineSeparators('"ab c" "d e f"\n')
     }
 
-    def "escapes single quotes in argument"() {
+    def "escapes double quotes in argument"() {
         when:
-        argWriter.args("'abc'", "a' bc")
+        argWriter.args('"abc"', 'a" bc')
 
         then:
-        writer.toString() == toPlatformLineSeparators("\\'abc\\' 'a\\' bc'\n")
+        writer.toString() == toPlatformLineSeparators('\\"abc\\" "a\\" bc"\n')
     }
 
     def "escapes backslash in argument"() {
         when:
-        argWriter.args("a\\b", "a \\ bc")
+        argWriter.args('a\\b', 'a \\ bc')
 
         then:
-        writer.toString() == toPlatformLineSeparators("a\\\\b 'a \\\\ bc'\n")
+        writer.toString() == toPlatformLineSeparators('a\\\\b "a \\\\ bc"\n')
+    }
+
+    def "does not escape characters in windows style"() {
+        def argWriter = ArgWriter.windowsStyle(printWriter)
+
+        when:
+        argWriter.args('a\\b', 'a "\\" bc')
+
+        then:
+        writer.toString() == toPlatformLineSeparators('a\\b "a "\\" bc"\n')
     }
 }
