@@ -65,7 +65,7 @@
                 <listitem>Utilize a pool of reusable processes available for compilation and testing.
                     For example, both the Groovy and Scala compilers have a large startup cost.
                     The build daemon could maintain a process with Groovy and/or Scala already loaded.</listitem>
-                <listitem>Preemtive execution of certain tasks, for example compilation. Quicker feedback.</listitem>
+                <listitem>Preemptive execution of certain tasks, for example compilation. Quicker feedback.</listitem>
                 <listitem>Fast and accurate bash tab completion.</listitem>
                 <listitem>Periodically garbage collect the Gradle caches.</listitem>
             </itemizedlist>

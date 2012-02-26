@@ -148,7 +148,7 @@
                 <literal>group</literal>, <literal>name</literal> and <literal>version</literal> arguments <emphasis>must</emphasis> be supplied.
             </para>
             <para>
-                For each declared dependency, two actual dependencies are created. One with the classifer “<literal>headers</literal>” and extension
+                For each declared dependency, two actual dependencies are created. One with the classifier “<literal>headers</literal>” and extension
                 “<literal>zip</literal>” which is a zip file of the exported headers, and another with the classifier “<literal>so</literal>” and extension
                 “<literal>so</literal>” which is the compiled library binary to link against (which is supplied as a direct input to the g++ link operation).
             </para>

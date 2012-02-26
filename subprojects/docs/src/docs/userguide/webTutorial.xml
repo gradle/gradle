@@ -21,7 +21,7 @@
     </note>
 
     <para>This chapter introduces some of the Gradle's support for web applications. Gradle provides two plugins for web
-        application developement: the War plugin and the Jetty plugin. The War plugin extends the Java plugin to build a
+        application development: the War plugin and the Jetty plugin. The War plugin extends the Java plugin to build a
         WAR file for your project. The Jetty plugin extends the War plugin to allow you to deploy your web application
         to an embedded Jetty web container.
     </para>
