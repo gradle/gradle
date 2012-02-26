@@ -79,7 +79,7 @@ import java.util.Set;
  *
  * <ul>
  *
- * <li>A {@code String} task path or name. A relative path is interpreted relative to the task's {@link Project}. This
+ * <li>A {@code String}, {@code CharSequence} or {@code groovy.lang.GString} task path or name. A relative path is interpreted relative to the task's {@link Project}. This
  * allows you to refer to tasks in other projects.</li>
  *
  * <li>A {@link Task}.</li>
@@ -97,7 +97,8 @@ import java.util.Set;
  * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
- * <li>An {@code Object}. The object's {@code toString()} method is interpreted as a task path or name.</li>
+ * <li>An {@code Object}. The object's {@code toString()} method is interpreted as a task path or name. The support for custom Objects
+ * has been deprecated and will be removed in the next version of Gradle.</li>
  *
  * </ul>
  *
@@ -209,7 +210,28 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * <p>Adds the given dependencies to this task. See <a href="#dependencies">here</a> for a description of the types
      * of objects which can be used as task dependencies.</p>
      *
-     * @param paths The dependencies to add to this task.
+     * @param paths The dependencies to add to this task. The path can be defined by:
+     * <li>A {@code String}, {@code CharSequence} or {@code groovy.lang.GString} task path or name. A relative path is interpreted relative to the task's {@link Project}. This
+     * allows you to refer to tasks in other projects.</li>
+     *
+     * <li>A {@link Task}.</li>
+     *
+     * <li>A closure. The closure may take a {@code Task} as parameter. It may return any of the types listed here. Its
+     * return value is recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
+     *
+     * <li>A {@link TaskDependency} object.</li>
+     *
+     * <li>A {@link Buildable} object.</li>
+     *
+     * <li>A {@code Iterable}, {@code Collection}, {@code Map} or array. May contain any of the types listed here. The elements of the
+     * iterable/collection/map/array are recursively converted to tasks.</li>
+     *
+     * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
+     * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
+     *
+     * <li>An {@code Object}. The object's {@code toString()} method is interpreted as a task path or name. The support for custom Objects
+     * has been deprecated and will be removed in the next version of Gradle.</li>
+     *
      * @return the task object this method is applied to
      */
     Task dependsOn(Object... paths);
