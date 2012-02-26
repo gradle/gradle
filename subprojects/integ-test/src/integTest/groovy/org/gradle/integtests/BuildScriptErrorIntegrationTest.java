@@ -56,7 +56,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
-                "dependsOn 'child'",
+                "evaluationDependsOn 'child'",
                 "task t");
 
         TestFile childBuildFile = testFile("child/build.gradle");
