@@ -25,6 +25,8 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
+import org.gradle.internal.nativeplatform.jna.LibCBackedTerminalDetector
+
 /**
  * @author: Szczepan Faber, created at: 9/12/11
  */
@@ -38,7 +40,7 @@ public class TerminalDetectorFactoryTest extends Specification {
         def spec = new TerminalDetectorFactory().create(new JnaBootPathConfigurer(temp.dir))
 
         then:
-        spec instanceof PosixBackedTerminalDetector
+        spec instanceof LibCBackedTerminalDetector
     }
 
     @Requires([TestPrecondition.JNA, TestPrecondition.WINDOWS])

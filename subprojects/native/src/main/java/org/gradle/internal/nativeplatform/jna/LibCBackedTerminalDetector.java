@@ -14,23 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.logging.internal;
+package org.gradle.internal.nativeplatform.jna;
 
-import org.gradle.api.specs.Spec;
-import org.jruby.ext.posix.POSIX;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.nativeplatform.TerminalDetector;
 
 import java.io.FileDescriptor;
+import java.lang.reflect.Field;
 
-public class PosixBackedTerminalDetector implements Spec<FileDescriptor> {
-    private final POSIX posix;
+public class LibCBackedTerminalDetector implements TerminalDetector {
+    private final LibC libC;
 
-    public PosixBackedTerminalDetector(POSIX posix) {
-        this.posix = posix;
+    public LibCBackedTerminalDetector(LibC libC) {
+        this.libC = libC;
     }
 
-    public boolean isSatisfiedBy(FileDescriptor element) {
+    public boolean isTerminal(FileDescriptor fileDescriptor) {
+        int osFileDesc;
+        try {
+            Field fdField = FileDescriptor.class.getDeclaredField("fd");
+            fdField.setAccessible(true);
+            osFileDesc = fdField.getInt(fileDescriptor);
+        } catch (Exception e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
+
         // Determine if we're connected to a terminal
-        if (!posix.isatty(element)) {
+        if (libC.isatty(osFileDesc) == 0) {
             return false;
         }
 

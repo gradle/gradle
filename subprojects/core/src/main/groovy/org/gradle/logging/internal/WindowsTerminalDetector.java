@@ -17,14 +17,14 @@
 package org.gradle.logging.internal;
 
 import org.fusesource.jansi.WindowsAnsiOutputStream;
-import org.gradle.api.specs.Spec;
+import org.gradle.internal.nativeplatform.TerminalDetector;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;
 import java.io.IOException;
 
-public class WindowsTerminalDetector implements Spec<FileDescriptor> {
-    public boolean isSatisfiedBy(FileDescriptor element) {
+public class WindowsTerminalDetector implements TerminalDetector {
+    public boolean isTerminal(FileDescriptor fileDescriptor) {
         // Use Jansi's detection mechanism
         try {
             new WindowsAnsiOutputStream(new ByteArrayOutputStream());

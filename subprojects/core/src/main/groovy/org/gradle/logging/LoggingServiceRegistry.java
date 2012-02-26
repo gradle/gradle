@@ -17,10 +17,9 @@
 package org.gradle.logging;
 
 import org.gradle.StartParameter;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.internal.Factory;
+import org.gradle.internal.nativeplatform.TerminalDetector;
 import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
@@ -122,13 +121,17 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected OutputEventRenderer createOutputEventRenderer() {
-        Spec<FileDescriptor> terminalDetector;
+        TerminalDetector terminalDetector;
         if (detectConsole) {
             StartParameter startParameter = new StartParameter();
             JnaBootPathConfigurer jnaConfigurer = new JnaBootPathConfigurer(startParameter.getGradleUserHomeDir());
             terminalDetector = new TerminalDetectorFactory().create(jnaConfigurer);
         } else {
-            terminalDetector = Specs.satisfyNone();
+            terminalDetector = new TerminalDetector() {
+                public boolean isTerminal(FileDescriptor fileDescriptor) {
+                    return false;
+                }
+            };
         }
         return new OutputEventRenderer(terminalDetector).addStandardOutputAndError();
     }

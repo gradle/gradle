@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.nativeplatform.jna;
 
-import com.sun.jna.Library;
+package org.gradle.internal.nativeplatform;
 
-public interface LibC extends Library {
-    //CHECKSTYLE:OFF
-    public int setenv(String name, String value, int overwrite);
-    public int unsetenv(String name);
-    public String getcwd(byte[] out, int size);
-    public int chdir(String dirAbsolutePath);
-    public int errno();
-    public int getpid();
-    public int isatty(int fdes);
-    //CHECKSTYLE:ON
+import java.io.FileDescriptor;
+
+public interface TerminalDetector {
+    boolean isTerminal(FileDescriptor fileDescriptor);
 }

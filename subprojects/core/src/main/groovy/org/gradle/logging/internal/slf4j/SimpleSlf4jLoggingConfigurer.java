@@ -17,7 +17,7 @@
 package org.gradle.logging.internal.slf4j;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.specs.Specs;
+import org.gradle.internal.nativeplatform.TerminalDetector;
 import org.gradle.logging.internal.LoggingConfigurer;
 import org.gradle.logging.internal.OutputEventRenderer;
 
@@ -32,7 +32,11 @@ import java.io.FileDescriptor;
 public class SimpleSlf4jLoggingConfigurer implements LoggingConfigurer {
 
     public void configure(LogLevel logLevel) {
-        OutputEventRenderer renderer = new OutputEventRenderer(Specs.<FileDescriptor>satisfyNone());
+        OutputEventRenderer renderer = new OutputEventRenderer(new TerminalDetector() {
+            public boolean isTerminal(FileDescriptor fileDescriptor) {
+                return false;
+            }
+        });
         renderer.addStandardOutputAndError();
         renderer.configure(logLevel);
         new Slf4jLoggingConfigurer(renderer).configure(logLevel);
