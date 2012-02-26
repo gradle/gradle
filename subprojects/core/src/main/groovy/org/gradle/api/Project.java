@@ -671,6 +671,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @param path The path of the project which this project depends on.
      * @throws UnknownProjectException If no project with the given path exists.
      */
+    @Deprecated
     void dependsOn(String path) throws UnknownProjectException;
 
     /**
@@ -680,6 +681,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @param evaluateDependsOnProject If true, adds an evaluation dependency.
      * @throws UnknownProjectException If no project with the given path exists.
      */
+    @Deprecated
     void dependsOn(String path, boolean evaluateDependsOnProject) throws UnknownProjectException;
 
     /**
@@ -696,6 +698,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      *
      * @return this project.
      */
+    @Deprecated
     Project childrenDependOnMe();
 
     /**

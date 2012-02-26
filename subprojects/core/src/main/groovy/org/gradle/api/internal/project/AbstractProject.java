@@ -568,8 +568,14 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         buildDir = path;
     }
 
-    public void dependsOn(String path) {
-        dependsOn(path, true);
+    public void dependsOn(final String path) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Project.dependsOn(String path)");
+        DeprecationLogger.whileDisabled(new Factory<Void>() {
+            public Void create() {
+                dependsOn(path, true);
+                return null;
+            }
+        });
     }
 
     public void dependsOn(String path, boolean evaluateDependsOnProject) {
@@ -595,9 +601,16 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public Project childrenDependOnMe() {
-        for (Project project : childProjects.values()) {
-            project.dependsOn(getPath(), false);
-        }
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Project.childrenDependOnMe()");
+        DeprecationLogger.whileDisabled(new Factory<Void>() {
+            public Void create() {
+                for (Project project : childProjects.values()) {
+                    project.dependsOn(getPath(), false);
+                }
+                return null;
+            }
+        });
+
         return this;
     }
 
@@ -605,10 +618,15 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return dependsOnChildren(false);
     }
 
-    public Project dependsOnChildren(boolean evaluateDependsOnProject) {
-        for (Project project : childProjects.values()) {
-            dependsOn(project.getPath(), evaluateDependsOnProject);
-        }
+    public Project dependsOnChildren(final boolean evaluateDependsOnProject) {
+        DeprecationLogger.whileDisabled(new Factory<Void>() {
+            public Void create() {
+                for (Project project : childProjects.values()) {
+                    dependsOn(project.getPath(), evaluateDependsOnProject);
+                }
+                return null;
+            }
+        });
         return this;
     }
 
