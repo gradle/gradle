@@ -5,7 +5,7 @@ buildscript {
     logger.info('infoProject2ScriptClassPathOut')
 }
 
-dependsOn(':project1')
+evaluationDependsOn(':project1')
 // stdout capture config injected
 println('infoProject2Out')
 
