@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.logging.internal;
+package org.gradle.internal.nativeplatform;
 
 import org.fusesource.jansi.WindowsAnsiOutputStream;
-import org.gradle.internal.nativeplatform.TerminalDetector;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;

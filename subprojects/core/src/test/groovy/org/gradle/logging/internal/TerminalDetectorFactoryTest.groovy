@@ -26,6 +26,7 @@ import spock.lang.Issue
 import spock.lang.Specification
 
 import org.gradle.internal.nativeplatform.jna.LibCBackedTerminalDetector
+import org.gradle.internal.nativeplatform.WindowsTerminalDetector
 
 /**
  * @author: Szczepan Faber, created at: 9/12/11

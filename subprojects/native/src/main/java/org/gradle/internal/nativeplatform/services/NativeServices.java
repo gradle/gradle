@@ -54,6 +54,9 @@ public class NativeServices extends DefaultServiceRegistry {
     }
 
     protected TerminalDetector createTerminalDetector() {
+        if (get(OperatingSystem.class).isWindows()) {
+            return new WindowsTerminalDetector();
+        }
         return new LibCBackedTerminalDetector(get(LibC.class));
     }
     

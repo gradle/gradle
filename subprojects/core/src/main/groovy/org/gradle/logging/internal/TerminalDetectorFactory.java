@@ -36,9 +36,6 @@ public class TerminalDetectorFactory {
     public TerminalDetector create(JnaBootPathConfigurer jnaBootPathConfigurer) {
         try {
             jnaBootPathConfigurer.configure();
-            if (OperatingSystem.current().isWindows()) {
-                return new WindowsTerminalDetector();
-            }
             return new NativeServices().get(TerminalDetector.class);
         } catch (NativeIntegrationUnavailableException e) {
             LOGGER.info("Unable to initialise the native integration for current platform: " + OperatingSystem.current() + ". Details: " + e.getMessage());
