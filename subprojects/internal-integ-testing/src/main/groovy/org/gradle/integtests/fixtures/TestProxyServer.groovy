@@ -17,11 +17,11 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.util.AvailablePortFinder
 import org.jboss.netty.handler.codec.http.HttpRequest
+import org.junit.rules.ExternalResource
 import org.littleshoot.proxy.DefaultHttpProxyServer
 import org.littleshoot.proxy.HttpProxyServer
 import org.littleshoot.proxy.HttpRequestFilter
 import org.littleshoot.proxy.ProxyAuthorizationHandler
-import org.junit.rules.ExternalResource
 
 /**
  * A Proxy Server used for testing that http proxies are correctly supported.
@@ -56,7 +56,7 @@ class TestProxyServer extends ExternalResource {
     }
 
     void stop() {
-        proxyServer.stop()
+        proxyServer?.stop()
     }
 
     void requireAuthentication(final String expectedUsername, final String expectedPassword) {
