@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory
 import org.junit.rules.ExternalResource
 
 class HttpServer extends ExternalResource {
-    private static Logger LOGGER = LoggerFactory.getLogger(HttpServer.class)
+    private static Logger logger = LoggerFactory.getLogger(HttpServer.class)
 
     private final Server server = new Server(0)
     private final HandlerCollection collection = new HandlerCollection()
@@ -58,7 +58,7 @@ class HttpServer extends ExternalResource {
                     return
                 }
                 failure = new AssertionError("Received unexpected ${request.method} request to ${target}.")
-                LOGGER.error(failure.message)
+                logger.error(failure.message)
                 response.sendError(404, "'$target' does not exist")
             }
         })
