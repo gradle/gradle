@@ -19,22 +19,13 @@ import java.security.Principal
 import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import org.mortbay.jetty.Handler
-import org.mortbay.jetty.HttpHeaders
-import org.mortbay.jetty.HttpStatus
-import org.mortbay.jetty.MimeTypes
-import org.mortbay.jetty.Request
-import org.mortbay.jetty.Server
+import org.junit.rules.ExternalResource
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
-import org.mortbay.jetty.security.BasicAuthenticator
-import org.mortbay.jetty.security.Constraint
-import org.mortbay.jetty.security.ConstraintMapping
-import org.mortbay.jetty.security.SecurityHandler
-import org.mortbay.jetty.security.UserRealm
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.junit.rules.ExternalResource
+import org.mortbay.jetty.*
+import org.mortbay.jetty.security.*
 
 class HttpServer extends ExternalResource {
     private static Logger logger = LoggerFactory.getLogger(HttpServer.class)
@@ -70,7 +61,7 @@ class HttpServer extends ExternalResource {
     }
 
     void stop() {
-        server.stop()
+        server?.stop()
     }
 
     void resetExpectations() {
