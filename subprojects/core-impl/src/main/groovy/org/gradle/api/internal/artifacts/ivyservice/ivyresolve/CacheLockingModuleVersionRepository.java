@@ -39,6 +39,10 @@ public class CacheLockingModuleVersionRepository implements ModuleVersionReposit
         return repository.getId();
     }
 
+    public String getName() {
+        return repository.getName();
+    }
+
     public boolean isLocal() {
         return repository.isLocal();
     }

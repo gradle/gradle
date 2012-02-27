@@ -44,7 +44,11 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
     }
 
     public String getId() {
-        return identifier.getId();
+        return identifier.getUniqueId();
+    }
+
+    public String getName() {
+        return identifier.getName();
     }
 
     @Override

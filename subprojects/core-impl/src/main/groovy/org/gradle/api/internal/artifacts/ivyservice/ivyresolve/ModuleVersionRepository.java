@@ -30,6 +30,8 @@ import java.io.File;
 public interface ModuleVersionRepository {
     String getId();
 
+    String getName();
+
     /**
      * @return null if not found.
      */

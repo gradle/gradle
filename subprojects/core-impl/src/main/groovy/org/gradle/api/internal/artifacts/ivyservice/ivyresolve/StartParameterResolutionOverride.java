@@ -73,20 +73,24 @@ public class StartParameterResolutionOverride {
 
     public ModuleVersionRepository overrideModuleVersionRepository(ModuleVersionRepository original) {
         if (startParameter.isOffline() && !original.isLocal()) {
-            return new OfflineModuleVersionRepository(original.getId());
+            return new OfflineModuleVersionRepository(original);
         }
         return original;
     }
 
     private static class OfflineModuleVersionRepository implements ModuleVersionRepository {
-        private final String id;
+        private final ModuleVersionRepository original;
 
-        public OfflineModuleVersionRepository(String id) {
-            this.id = id;
+        public OfflineModuleVersionRepository(ModuleVersionRepository original) {
+            this.original = original;
         }
 
         public String getId() {
-            return id;
+            return original.getId();
+        }
+
+        public String getName() {
+            return original.getName();
         }
 
         public boolean isLocal() {

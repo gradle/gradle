@@ -52,7 +52,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
         final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor, errors);
         if (latestResolved != null) {
             final ModuleVersionDescriptor downloadedModule = latestResolved.module;
-            LOGGER.debug("Found module {} using repository {}", downloadedModule.getId(), latestResolved.repository);
+            LOGGER.debug("Found module {} using repository {}", downloadedModule.getId(), latestResolved.repository.getName());
             return latestResolved;
         }
         if (!errors.isEmpty()) {
@@ -155,7 +155,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
         }
 
         public ArtifactResolveResult resolve(Artifact artifact) {
-            LOGGER.debug("Attempting to download {} using repository {}", artifact, repository);
+            LOGGER.debug("Attempting to download {} using repository '{}'", artifact, repository.getName());
             File file;
             try {
                 file = repository.download(artifact);

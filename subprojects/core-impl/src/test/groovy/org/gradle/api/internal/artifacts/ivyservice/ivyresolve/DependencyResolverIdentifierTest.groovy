@@ -22,6 +22,15 @@ import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver
 import org.gradle.api.internal.artifacts.repositories.ResourceCollectionResolver
 
 public class DependencyResolverIdentifierTest extends Specification {
+    def "uses dependency resolver name"() {
+        when:
+        DependencyResolver resolver = Mock()
+        resolver.name >> "resolver-name"
+
+        then:
+        new DependencyResolverIdentifier(resolver).name == "resolver-name"
+    }
+
     def "dependency resolvers of unknown type are identified by their name"() {
         given:
         DependencyResolver resolver1 = Mock()
@@ -120,6 +129,6 @@ public class DependencyResolverIdentifierTest extends Specification {
     }
 
     def id(DependencyResolver resolver) {
-        return new DependencyResolverIdentifier(resolver).id
+        return new DependencyResolverIdentifier(resolver).uniqueId
     }
 }
