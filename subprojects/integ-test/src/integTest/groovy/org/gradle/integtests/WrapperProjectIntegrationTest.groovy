@@ -17,11 +17,9 @@
 package org.gradle.integtests
 
 import org.gradle.util.SetSystemProperties
-import org.gradle.integtests.fixtures.*
 import org.junit.Rule
-
 import spock.lang.Issue
-
+import org.gradle.integtests.fixtures.*
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
 
@@ -42,6 +40,8 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private prepareWrapper(String baseUrl) {
+        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
+
         file("build.gradle") << """
     import org.gradle.api.tasks.wrapper.Wrapper
     task wrapper(type: Wrapper) {
