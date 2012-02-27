@@ -41,7 +41,7 @@ import spock.lang.Specification
  */
 class DaemonServerExceptionHandlingTest extends Specification {
 
-    @Rule def temp = new TemporaryFolder()
+    @Rule TemporaryFolder temp = new TemporaryFolder()
     def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), 0, new HashMap(System.properties), [:], temp.dir)
 
     static class DummyLauncherAction implements GradleLauncherAction, Serializable {
