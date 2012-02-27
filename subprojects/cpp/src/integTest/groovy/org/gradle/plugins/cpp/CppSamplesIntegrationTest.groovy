@@ -18,6 +18,8 @@ package org.gradle.plugins.cpp
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
     @Rule public final Sample exewithlib = new Sample('cpp/exewithlib')
@@ -39,7 +41,9 @@ class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
         executable("cpp/exewithlib/exe/build/binaries/exe").isFile()
         executable("cpp/exewithlib/exe/build/install/main/exe").exec().out == toPlatformLineSeparators("Hello, World!\n")
     }
-    
+
+    // Does not work on windows, due to GRADLE-2118
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "dependencies"() {
         given:
         sample dependencies
