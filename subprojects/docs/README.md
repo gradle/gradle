@@ -20,11 +20,15 @@ You can then view the built html in `build/docs/userguide` (open the `userguide.
 
 This is an inline element which adds a link to the API documentation for a particular class or method.
 
-    You can use the <apilink classname='org.gradle.api.Project'> interface to do stuff.
+    You can use the <apilink class='org.gradle.api.Project' /> interface to do stuff.
 
-    Here is a link to a groovy class: <apilink classname='org.gradle.api.task.bundling.Tar'/>
+    Here is a link to a groovy class: <apilink class='org.gradle.api.task.bundling.Tar' />
 
 The link will point to the DSL reference for the specified class, if available. Otherwise, it will point to the javadoc or groovydoc for the class as appropriate.
+
+To link to a method:
+
+    <apilink class='org.gradle.api.Project' method="apply(java.util.Map)" />
 
 #### `<sample>`
 
