@@ -222,7 +222,7 @@
     <section id="build_lifecycle_events">
         <title>Responding to the lifecycle in the build script</title>
 
-        <para>Your build script can receive notifications as the build progresses through its lifecyle. These
+        <para>Your build script can receive notifications as the build progresses through its lifecycle. These
             notifications generally take 2 forms: You can either implement a particular listener interface, or you can
             provide a closure to execute when the notification is fired. The examples below use closures. For details on
             how to use the listener interfaces, refer to the API documentation.
