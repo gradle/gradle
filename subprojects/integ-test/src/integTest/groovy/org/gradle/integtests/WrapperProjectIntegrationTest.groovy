@@ -22,17 +22,16 @@ import spock.lang.Issue
 import org.gradle.integtests.fixtures.*
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
+import org.junit.ClassRule
+import spock.lang.Shared
 
 /**
  * @author Hans Dockter
  */
 class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
-    @Rule
-    public final HttpServer server = new HttpServer()
-    @Rule
-    public final TestProxyServer proxyServer = new TestProxyServer(server)
-    @Rule
-    public SetSystemProperties systemProperties = new SetSystemProperties()
+    @Rule HttpServer server = new HttpServer()
+    @Rule TestProxyServer proxyServer = new TestProxyServer(server)
+    @Rule SetSystemProperties systemProperties = new SetSystemProperties()
 
     void setup() {
         server.start()

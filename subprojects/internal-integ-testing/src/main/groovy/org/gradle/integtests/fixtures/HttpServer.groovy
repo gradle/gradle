@@ -19,9 +19,6 @@ import java.security.Principal
 import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import org.junit.rules.MethodRule
-import org.junit.runners.model.FrameworkMethod
-import org.junit.runners.model.Statement
 import org.mortbay.jetty.Handler
 import org.mortbay.jetty.HttpHeaders
 import org.mortbay.jetty.HttpStatus
@@ -37,15 +34,17 @@ import org.mortbay.jetty.security.SecurityHandler
 import org.mortbay.jetty.security.UserRealm
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.junit.rules.ExternalResource
 
-class HttpServer implements MethodRule {
-    private Logger logger = LoggerFactory.getLogger(HttpServer.class)
+class HttpServer extends ExternalResource {
+    private static Logger LOGGER = LoggerFactory.getLogger(HttpServer.class)
+
     private final Server server = new Server(0)
     private final HandlerCollection collection = new HandlerCollection()
     private Throwable failure
     private TestUserRealm realm
 
-    def HttpServer() {
+    HttpServer() {
         HandlerCollection handlers = new HandlerCollection()
         handlers.addHandler(new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
@@ -59,7 +58,7 @@ class HttpServer implements MethodRule {
                     return
                 }
                 failure = new AssertionError("Received unexpected ${request.method} request to ${target}.")
-                logger.error(failure.message)
+                LOGGER.error(failure.message)
                 response.sendError(404, "'$target' does not exist")
             }
         })
@@ -81,20 +80,9 @@ class HttpServer implements MethodRule {
         collection.setHandlers()
     }
 
-    Statement apply(Statement base, FrameworkMethod method, Object target) {
-        return new Statement() {
-            @Override
-            void evaluate() {
-                try {
-                    base.evaluate()
-                } finally {
-                    stop()
-                }
-                if (failure != null) {
-                    throw failure
-                }
-            }
-        }
+    @Override
+    protected void after() {
+        stop()
     }
 
     /**

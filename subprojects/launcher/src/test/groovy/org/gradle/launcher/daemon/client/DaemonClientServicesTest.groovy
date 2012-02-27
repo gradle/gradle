@@ -24,7 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DaemonClientServicesTest extends Specification {
-    @Rule def tmp = new TemporaryFolder()
+    @Rule TemporaryFolder tmp = new TemporaryFolder()
     final DaemonParameters parameters = new DaemonParameters(baseDir: tmp.testDir)
     final DaemonClientServices services = new DaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), parameters, System.in)
 

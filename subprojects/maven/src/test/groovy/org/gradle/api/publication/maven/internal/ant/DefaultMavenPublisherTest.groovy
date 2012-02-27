@@ -25,15 +25,15 @@ import org.gradle.util.Resources
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
+
 import spock.lang.Specification
 
 /**
  * @author: Szczepan Faber, created at: 5/12/11
  */
 class DefaultMavenPublisherTest extends Specification {
-
-    @Rule def dir = new TemporaryFolder()
-    @Rule def resources = new Resources()
+    @Rule TemporaryFolder dir = new TemporaryFolder()
+    @Rule Resources resources = new Resources()
 
     def publisher = new DefaultMavenPublisher(dir.file("local-repository"), new DefaultTemporaryFileProvider({dir.createDir("tmp")} as FileSource))
     

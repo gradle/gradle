@@ -20,8 +20,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DaemonRegistryServicesTest extends Specification {
-
-    @Rule def tmp = new TemporaryFolder()
+    @Rule TemporaryFolder tmp = new TemporaryFolder()
 
     def registry(baseDir) {
         new DaemonRegistryServices(tmp.createDir(baseDir))

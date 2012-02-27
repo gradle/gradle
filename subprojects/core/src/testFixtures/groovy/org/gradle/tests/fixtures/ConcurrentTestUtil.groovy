@@ -23,11 +23,9 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import org.gradle.messaging.concurrent.ExecutorFactory
 import org.gradle.messaging.concurrent.StoppableExecutor
-import org.junit.rules.TestRule
-import org.junit.runner.Description
-import org.junit.runners.model.Statement
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.junit.rules.ExternalResource
 
 /**
  * <p>A base class for writing specifications which exercise concurrent code.
@@ -44,7 +42,7 @@ import org.slf4j.LoggerFactory
  * <li>An action starts another action asynchronously and waits for the result.</li>
  * </ul>
  */
-class ConcurrentTestUtil implements TestRule {
+class ConcurrentTestUtil extends ExternalResource {
     private static final Logger LOG = LoggerFactory.getLogger(ConcurrentTestUtil.class)
 
     private Lock lock = new ReentrantLock()
@@ -54,22 +52,15 @@ class ConcurrentTestUtil implements TestRule {
     private List<Throwable> failures = []
     private timeout = 5000
 
-    public ConcurrentTestUtil() {}
+    ConcurrentTestUtil() {}
 
-    public ConcurrentTestUtil(int timeout) {
+    ConcurrentTestUtil(int timeout) {
         this.timeout = timeout
     }
 
-    Statement apply(Statement base, Description description) {
-        return new Statement() {
-            void evaluate() {
-                try {
-                    base.evaluate()
-                } finally {
-                    finished()
-                }
-            }
-        }
+    @Override
+    protected void after() {
+        finished()
     }
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout

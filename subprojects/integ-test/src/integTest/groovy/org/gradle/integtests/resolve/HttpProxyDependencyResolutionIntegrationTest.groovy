@@ -19,17 +19,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.util.SetSystemProperties
+import org.gradle.integtests.fixtures.TestProxyServer
 import org.junit.Rule
 
-import org.gradle.integtests.fixtures.TestProxyServer
-
 class HttpProxyDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
-    @Rule
-    public final HttpServer server = new HttpServer()
-    @Rule
-    public final TestProxyServer proxyServer = new TestProxyServer(server)
-    @Rule
-    public SetSystemProperties systemProperties = new SetSystemProperties()
+    @Rule HttpServer server = new HttpServer()
+    @Rule TestProxyServer proxyServer = new TestProxyServer(server)
+    @Rule SetSystemProperties systemProperties = new SetSystemProperties()
 
     def "setup"() {
         requireOwnUserHomeDir()
