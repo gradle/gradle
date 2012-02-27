@@ -13,7 +13,7 @@ task bonjour(type: GreetingTask) {
 
 // START SNIPPET plugin
 class GreetingPlugin implements Plugin<Project> {
-    def void apply(Project project) {
+    void apply(Project project) {
         project.tasks.withType(GreetingTask) { task ->
             task.conventionMapping.greeting = { project.greeting }
         }
