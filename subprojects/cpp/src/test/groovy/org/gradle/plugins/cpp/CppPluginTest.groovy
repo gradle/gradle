@@ -40,6 +40,15 @@ class CppPluginTest extends Specification {
         project.libraries instanceof NamedDomainObjectContainer
     }
 
+    def "compiler adapters are available"() {
+        given:
+        project.plugins.apply(CppPlugin)
+
+        expect:
+        project.compilers.collect { it.name } == ['gpp', 'visualCpp']
+        project.compilers.searchOrder.collect { it.name } == ['visualCpp', 'gpp']
+    }
+
     def "can create some cpp source sets"() {
         given:
         project.plugins.apply(CppPlugin)

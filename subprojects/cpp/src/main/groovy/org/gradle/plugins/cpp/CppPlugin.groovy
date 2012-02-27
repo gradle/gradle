@@ -34,8 +34,8 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
         project.plugins.apply(BinariesPlugin)
-        project.plugins.apply(GppCompilerPlugin)
         project.plugins.apply(MicrosoftVisualCppPlugin)
+        project.plugins.apply(GppCompilerPlugin)
         project.extensions.create("cpp", CppExtension, project)
 
         project.extensions.getByType(DefaultCompilerRegistry).specFactory = new GppCompileSpecFactory(project)

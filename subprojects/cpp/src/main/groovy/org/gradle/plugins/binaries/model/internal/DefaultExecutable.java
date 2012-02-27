@@ -23,4 +23,9 @@ public class DefaultExecutable extends DefaultBinary implements Executable {
     public DefaultExecutable(String name, ProjectInternal project, CompileSpecFactory specFactory) {
         super(name, project, specFactory);
     }
+
+    @Override
+    public String toString() {
+        return String.format("executable %s", getName());
+    }
 }

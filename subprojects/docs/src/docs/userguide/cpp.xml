@@ -104,7 +104,7 @@
             <title>Compiling on Windows</title>
             <para>
                 The Windows C++ support can use either the MinGW <literal>g++</literal> or the Microsoft Visual C++ <literal>cl</literal> tool, either of which must be installed and on the
-                <literal>PATH</literal> for the Gradle process.
+                <literal>PATH</literal> for the Gradle process. Gradle searches first for Microsoft Visual C++, and then MinGW.
             </para>
         </section>
     </section>
