@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class DaemonCompatibilitySpecSpec extends Specification {
 
-    @Rule def tmp = new TemporaryFolder()
+    @Rule TemporaryFolder tmp = new TemporaryFolder()
 
     def clientConfigure = {}
     def serverConfigure = {}
