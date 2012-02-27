@@ -37,6 +37,11 @@ public class GppCompilerAdapter implements CompilerAdapter<GppCompileSpec> {
         return NAME;
     }
 
+    @Override
+    public String toString() {
+        return String.format("GNU G++ (%s)", OperatingSystem.current().getExecutableName(GppCompiler.EXECUTABLE));
+    }
+
     public boolean isAvailable() {
         return OperatingSystem.current().findInPath(GppCompiler.EXECUTABLE) != null;
     }

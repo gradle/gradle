@@ -40,7 +40,7 @@ public class DefaultLibrary extends DefaultBinary implements Library {
 
     @Override
     public String toString() {
-        return String.format("library %s", getName());
+        return String.format("library '%s'", getName());
     }
 
     public LibraryCompileSpec getSpec() {

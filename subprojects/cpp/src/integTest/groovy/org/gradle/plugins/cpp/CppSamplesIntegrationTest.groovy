@@ -15,16 +15,11 @@
  */
 package org.gradle.plugins.cpp
 
-import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.Sample
+import org.junit.Rule
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-import org.junit.*
-import spock.lang.IgnoreIf
-import org.gradle.internal.os.OperatingSystem
-import static org.gradle.util.TextUtil.*
-
-@IgnoreIf({!OperatingSystem.current().findInPath("g++") && !OperatingSystem.current().findInPath("cl.exe")})
 class CppSamplesIntegrationTest extends AbstractBinariesIntegrationSpec {
-
     @Rule public final Sample exewithlib = new Sample('cpp/exewithlib')
     @Rule public final Sample dependencies = new Sample('cpp/dependencies')
     @Rule public final Sample exe = new Sample('cpp/exe')

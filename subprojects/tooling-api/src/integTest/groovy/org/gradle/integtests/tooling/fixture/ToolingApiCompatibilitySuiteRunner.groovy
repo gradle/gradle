@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.*
+import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 
 /**
  * Executes instances of {@link ToolingApiSpecification} against all compatible versions of tooling API consumer
@@ -43,21 +44,19 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
     }
 
     @Override
-    protected List<Permutation> createExecutions() {
+    protected void createExecutions() {
         ToolingApiDistributionResolver resolver = new ToolingApiDistributionResolver().withDefaultRepository()
 
-        List<Permutation> permutations = []
-        permutations << new Permutation(resolver.resolve(current.version), current)
+        add(new Permutation(resolver.resolve(current.version), current))
         previous.each {
             if (it.toolingApiSupported) {
-                permutations << new Permutation(resolver.resolve(current.version), it)
-                permutations << new Permutation(resolver.resolve(it.version), current)
+                add(new Permutation(resolver.resolve(current.version), it))
+                add(new Permutation(resolver.resolve(it.version), current))
             }
         }
-        return permutations
     }
 
-    private class Permutation extends AbstractCompatibilityTestRunner.Execution {
+    private class Permutation extends AbstractMultiTestRunner.Execution {
         final ToolingApiDistribution toolingApi
         final BasicGradleDistribution gradle
 

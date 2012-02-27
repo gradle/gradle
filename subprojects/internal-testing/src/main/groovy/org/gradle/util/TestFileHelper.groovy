@@ -130,7 +130,7 @@ class TestFileHelper {
         def output = process.inputStream.text
         def error = process.errorStream.text
         if (process.waitFor() != 0) {
-            throw new RuntimeException("Could not execute $file: $error")
+            throw new RuntimeException("Could not execute $file. Error: $error, Output: $output")
         }
         return [out: output, error: error]
     }

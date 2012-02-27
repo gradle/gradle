@@ -26,6 +26,6 @@ public class DefaultExecutable extends DefaultBinary implements Executable {
 
     @Override
     public String toString() {
-        return String.format("executable %s", getName());
+        return String.format("executable '%s'", getName());
     }
 }

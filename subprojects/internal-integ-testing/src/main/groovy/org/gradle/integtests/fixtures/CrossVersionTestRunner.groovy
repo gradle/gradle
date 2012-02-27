@@ -28,11 +28,11 @@ class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
     }
 
     @Override
-    protected List<PreviousVersionExecution> createExecutions() {
-        return previous.collect { new PreviousVersionExecution(it) }
+    protected void createExecutions() {
+        previous.each { add(new PreviousVersionExecution(it)) }
     }
 
-    private static class PreviousVersionExecution extends AbstractCompatibilityTestRunner.Execution {
+    private static class PreviousVersionExecution extends AbstractMultiTestRunner.Execution {
         final BasicGradleDistribution previousVersion
 
         PreviousVersionExecution(BasicGradleDistribution previousVersion) {

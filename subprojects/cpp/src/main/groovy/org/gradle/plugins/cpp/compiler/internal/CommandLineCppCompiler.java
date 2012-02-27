@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.cpp.gpp.GppCompileSpec;
 import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
@@ -40,7 +41,7 @@ public abstract class CommandLineCppCompiler implements Compiler<GppCompileSpec>
         ensureDirsExist(workDir, spec.getOutputFile().getParentFile());
 
         ExecAction compiler = new DefaultExecAction(fileResolver);
-        compiler.executable(getExecutable());
+        compiler.executable(OperatingSystem.current().findInPath(getExecutable()));
         compiler.workingDir(workDir);
 
         // Apply all of the settings

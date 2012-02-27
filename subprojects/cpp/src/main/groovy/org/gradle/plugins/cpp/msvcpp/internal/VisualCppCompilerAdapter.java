@@ -34,6 +34,11 @@ public class VisualCppCompilerAdapter implements CompilerAdapter<GppCompileSpec>
         return "visualCpp";
     }
 
+    @Override
+    public String toString() {
+        return String.format("Visual C++ (%s)", OperatingSystem.current().getExecutableName(VisualCppCompiler.EXECUTABLE));
+    }
+
     public boolean isAvailable() {
         OperatingSystem operatingSystem = OperatingSystem.current();
         return operatingSystem.isWindows() && operatingSystem.findInPath(VisualCppCompiler.EXECUTABLE) != null;

@@ -23,11 +23,14 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.plugins.binaries.model.Binary;
 import org.gradle.plugins.binaries.model.Compiler;
 import org.gradle.plugins.binaries.model.CompilerRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultCompilerRegistry extends DefaultNamedDomainObjectSet<Compiler> implements CompilerRegistry, CompileSpecFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCompilerRegistry.class);
     private BinaryCompileSpecFactory specFactory;
     private final List<Compiler> searchOrder = new ArrayList<Compiler>();
 
@@ -80,6 +83,7 @@ public class DefaultCompilerRegistry extends DefaultNamedDomainObjectSet<Compile
             if (compiler == null) {
                 throw new IllegalStateException(String.format("No compiler is available to compile %s. Searched for %s.", binary, Joiner.on(", ").join(searchOrder)));
             }
+            LOGGER.info("Using " + compiler + " to compile " + binary);
             return compiler.createCompiler(binary).execute(spec);
         }
     }
