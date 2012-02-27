@@ -120,7 +120,7 @@ public class BuildExceptionReporter extends BuildAdapter {
 
     public void reportInternalError(FailureDetails details) {
         details.summary.text("Build aborted because of an internal error.");
-        details.details.text("Build aborted because of an unexpected internal error. Please file an issue at: http://www.gradle.org.");
+        details.details.text("Build aborted because of an unexpected internal error. Please file an issue at: http://forums.gradle.org.");
 
         if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
             details.resolution.text("Run with ");
