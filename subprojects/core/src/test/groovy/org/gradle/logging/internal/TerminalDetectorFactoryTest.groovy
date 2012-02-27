@@ -33,7 +33,7 @@ import org.gradle.internal.nativeplatform.WindowsTerminalDetector
  */
 public class TerminalDetectorFactoryTest extends Specification {
     @Rule
-    public def temp = new TemporaryFolder()
+    TemporaryFolder temp = new TemporaryFolder()
 
     @Requires([TestPrecondition.JNA, TestPrecondition.NOT_WINDOWS])
     def "should configure JNA library"() {
