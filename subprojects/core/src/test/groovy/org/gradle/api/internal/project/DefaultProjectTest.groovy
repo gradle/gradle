@@ -330,6 +330,36 @@ class DefaultProjectTest {
         child1.projectEvaluator = mockReader2
         project.evaluate()
         assertTrue mockReader1Called
+        assertTrue mockReader2Finished
+    }
+
+    @Test
+    void testEvaluationDependsOnChildren() {
+        boolean child1MockReaderFinished = false
+        boolean child2MockReaderFinished = false
+        boolean mockReader1Called = false
+        final ProjectEvaluator mockReader1 = [evaluate: {DefaultProject project, state ->
+            project.evaluationDependsOnChildren()
+            assertTrue(child1MockReaderFinished)
+            assertTrue(child2MockReaderFinished)
+            mockReader1Called = true
+            testScript
+        }] as ProjectEvaluator
+        final ProjectEvaluator mockReader2 = [
+                evaluate: {DefaultProject project, state ->
+                    child1MockReaderFinished = true
+                    testScript
+                }] as ProjectEvaluator
+        final ProjectEvaluator mockReader3 = [
+                evaluate: {DefaultProject project, state ->
+                    child2MockReaderFinished = true
+                    testScript
+                }] as ProjectEvaluator
+        project.projectEvaluator = mockReader1
+        child1.projectEvaluator = mockReader2
+        child2.projectEvaluator = mockReader3
+        project.evaluate();
+        assertTrue mockReader1Called
     }
 
     @Test (expected = InvalidUserDataException) void testEvaluationDependsOnWithNullArgument() {

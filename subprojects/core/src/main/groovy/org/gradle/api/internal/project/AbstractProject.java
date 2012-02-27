@@ -588,11 +588,22 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         }
     }
 
+    public void evaluationDependsOnChildren() {
+        for (Project project : childProjects.values()) {
+            DefaultProject defaultProjectToEvaluate = (DefaultProject) project;
+            evaluationDependsOn(defaultProjectToEvaluate);
+        }
+    }
+
     public Project evaluationDependsOn(String path) {
         if (!isTrue(path)) {
             throw new InvalidUserDataException("You must specify a project!");
         }
         DefaultProject projectToEvaluate = (DefaultProject) project(path);
+        return evaluationDependsOn(projectToEvaluate);
+    }
+
+    private Project evaluationDependsOn(DefaultProject projectToEvaluate) {
         if (projectToEvaluate.getState().getExecuting()) {
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
                     projectToEvaluate));

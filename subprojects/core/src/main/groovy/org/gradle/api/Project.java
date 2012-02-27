@@ -68,7 +68,8 @@ import java.util.Set;
  *
  * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
  * present, against the project. The project are evaluated in breadth-wise order, such that a project is evaluated
- * before its child projects. This order can be overridden by adding an evaluation dependency.</li>
+ * before its child projects. This order can be overridden by calling <code>{@link #evaluationDependsOnChildren()}</code> or by adding an
+ * explicit evaluation dependency using <code>{@link #evaluationDependsOn(String path)}</code>.</li>
  *
  * </ul>
  *
@@ -692,6 +693,12 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @throws UnknownProjectException If no project with the given path exists.
      */
     Project evaluationDependsOn(String path) throws UnknownProjectException;
+
+    /**
+     * <p>Declares that this project has an evaluation dependency on each of its child projects.</p>
+     *
+     */
+    void evaluationDependsOnChildren();
 
     /**
      * <p>Declares that all child projects of this project have an execution dependency on this project.</p>
