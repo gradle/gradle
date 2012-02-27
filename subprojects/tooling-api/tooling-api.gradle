@@ -20,7 +20,7 @@ integTest {
     doFirst {
         systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
         systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
-        systemProperties['org.gradle.integtest.toolingApiFromTestClasspath'] = 'true'
+        systemProperties['org.gradle.integtest.toolingApiFromTestClasspath'] = 'false'
     }
 }
 
