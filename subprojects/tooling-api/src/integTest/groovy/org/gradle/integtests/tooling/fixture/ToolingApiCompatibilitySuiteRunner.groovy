@@ -16,10 +16,10 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
+import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.*
-import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 
 /**
  * Executes instances of {@link ToolingApiSpecification} against all compatible versions of tooling API consumer
@@ -142,6 +142,9 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowClass(SetSystemProperties)
             sharedClassLoader.allowPackage('org.gradle.integtests.fixtures')
             sharedClassLoader.allowPackage('org.gradle.tests.fixtures')
+            sharedClassLoader.allowClass(OperatingSystem)
+            sharedClassLoader.allowClass(Requires)
+            sharedClassLoader.allowClass(TestPrecondition)
 
             def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
 
