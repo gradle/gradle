@@ -56,7 +56,7 @@ class BuildExceptionReporterTest extends Specification {
 {failure}FAILURE: {normal}{failure}Build aborted because of an internal error.{normal}
 
 * What went wrong:
-Build aborted because of an unexpected internal error. Please file an issue at: http://www.gradle.org.
+Build aborted because of an unexpected internal error. Please file an issue at: http://forums.gradle.org.
 
 * Try:
 Run with {userinput}--debug{normal} option to get additional debug info.
