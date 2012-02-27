@@ -626,10 +626,16 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public Project dependsOnChildren() {
-        return dependsOnChildren(false);
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Project.dependsOnChildren()");
+        return DeprecationLogger.whileDisabled(new Factory<Project>() {
+            public Project create() {
+               return dependsOnChildren(false);
+            }
+        });
     }
 
     public Project dependsOnChildren(final boolean evaluateDependsOnProject) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Project.dependsOnChildren(boolean)");
         DeprecationLogger.whileDisabled(new Factory<Void>() {
             public Void create() {
                 for (Project project : childProjects.values()) {

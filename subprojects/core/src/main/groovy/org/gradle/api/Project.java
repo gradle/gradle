@@ -69,7 +69,7 @@ import java.util.Set;
  * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
  * present, against the project. The project are evaluated in breadth-wise order, such that a project is evaluated
  * before its child projects. This order can be overridden by calling <code>{@link #evaluationDependsOnChildren()}</code> or by adding an
- * explicit evaluation dependency using <code>{@link #evaluationDependsOn(String path)}</code>.</li>
+ * explicit evaluation dependency using <code>{@link #evaluationDependsOn(String)}</code>.</li>
  *
  * </ul>
  *
@@ -713,6 +713,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      *
      * @return this project.
      */
+    @Deprecated
     Project dependsOnChildren();
 
     /**
@@ -721,6 +722,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @param evaluateDependsOnProject If true, adds an evaluation dependency.
      * @return this project.
      */
+    @Deprecated
     Project dependsOnChildren(boolean evaluateDependsOnProject);
 
     /**
