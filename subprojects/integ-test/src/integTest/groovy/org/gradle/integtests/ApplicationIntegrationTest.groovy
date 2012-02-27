@@ -27,8 +27,8 @@ import static org.hamcrest.Matchers.*
 import org.gradle.internal.os.OperatingSystem
 
 class ApplicationIntegrationTest extends Specification {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleExecuter executer = new GradleDistributionExecuter()
+    @Rule GradleDistribution distribution = new GradleDistribution()
+    @Rule GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     def canUseEnvironmentVariableToPassMultipleOptionsToJvmWhenRunningScript() {
         distribution.testFile('build.gradle') << '''
