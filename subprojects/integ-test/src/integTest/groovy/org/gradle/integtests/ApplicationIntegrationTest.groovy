@@ -17,14 +17,14 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.GradleExecuter
 import org.gradle.integtests.fixtures.ScriptExecuter
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.TestFile
 import org.junit.Rule
+
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.*
-import org.gradle.internal.os.OperatingSystem
 
 class ApplicationIntegrationTest extends Specification {
     @Rule GradleDistribution distribution = new GradleDistribution()

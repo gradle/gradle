@@ -17,13 +17,13 @@
 package org.gradle.integtests
 
 import org.gradle.util.SetSystemProperties
-import org.junit.Rule
-import spock.lang.Issue
 import org.gradle.integtests.fixtures.*
+import org.junit.Rule
+
+import spock.lang.Issue
+
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
-import org.junit.ClassRule
-import spock.lang.Shared
 
 /**
  * @author Hans Dockter
