@@ -27,7 +27,7 @@ import static java.util.Arrays.asList
 
 class DaemonServicesTest extends Specification {
 
-    @Rule def tmp = new TemporaryFolder()
+    @Rule TemporaryFolder tmp = new TemporaryFolder()
     final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDir, 100, asList()),
             LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal))
 
