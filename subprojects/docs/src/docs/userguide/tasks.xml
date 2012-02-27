@@ -91,7 +91,7 @@
         </sample>
         <para>You might know this approach from the Hibernates Criteria Query API or JMock. Of course the API of a task
             has to support this. The <literal>from</literal>, <literal>to</literal> and <literal>include</literal>
-            methods all return an object that may be used to chain to additional configuration methods. Gradle's build-in tasks usually
+            methods all return an object that may be used to chain to additional configuration methods. Gradle's built-in tasks usually
             support this configuration style.
         </para>
         <para>But there is yet another way of configuring a task. It also preserves the context and it is arguably the
