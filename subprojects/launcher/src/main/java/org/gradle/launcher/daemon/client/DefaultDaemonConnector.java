@@ -32,15 +32,12 @@ import java.util.List;
  * Provides the mechanics of connecting to a daemon, starting one via a given runnable if no suitable daemons are already available.
  */
 public class DefaultDaemonConnector implements DaemonConnector {
-
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
     public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
-
     private final DaemonRegistry daemonRegistry;
     private final OutgoingConnector<Object> connector;
     private final DaemonStarter daemonStarter;
-
-    private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+    private long connectTimeout = DefaultDaemonConnector.DEFAULT_CONNECT_TIMEOUT;
 
     public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector<Object> connector, DaemonStarter daemonStarter) {
         this.daemonRegistry = daemonRegistry;
@@ -56,8 +53,21 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return connectTimeout;
     }
 
+    public DaemonRegistry getDaemonRegistry() {
+        return daemonRegistry;
+    }
+
     public DaemonConnection maybeConnect(Spec<? super DaemonContext> constraint) {
         return findConnection(daemonRegistry.getAll(), constraint);
+    }
+
+    public DaemonConnection connect(Spec<? super DaemonContext> constraint) {
+        DaemonConnection connection = findConnection(daemonRegistry.getIdle(), constraint);
+        if (connection != null) {
+            return connection;
+        }
+
+        return createConnection();
     }
 
     private DaemonConnection findConnection(List<DaemonInfo> daemonInfos, Spec<? super DaemonContext> constraint) {
@@ -71,7 +81,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             }
 
             try {
-                return new DaemonConnection(connector.connect(daemonInfo.getAddress()), daemonInfo.getPassword());
+                return connectToDaemon(daemonInfo);
             } catch (ConnectException e) {
                 //this means the daemon died without removing its address from the registry
                 //we can safely remove this address now
@@ -85,16 +95,10 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
-    public DaemonConnection connect(Spec<? super DaemonContext> constraint) {
-        DaemonConnection connection = findConnection(daemonRegistry.getIdle(), constraint);
-        if (connection != null) {
-            return connection;
-        }
-
+    public DaemonConnection createConnection() {
         LOGGER.info("Starting Gradle daemon");
         final String uid = daemonStarter.startDaemon();
         LOGGER.debug("Started Gradle Daemon with UID = {}", uid);
-        Spec<DaemonContext> sameUidConstraint = exactUidConstraint(uid);
         long expiry = System.currentTimeMillis() + connectTimeout;
         do {
             try {
@@ -102,26 +106,34 @@ public class DefaultDaemonConnector implements DaemonConnector {
             } catch (InterruptedException e) {
                 throw UncheckedException.asUncheckedException(e);
             }
-            // Look for 'our' daemon among the busy daemons - a daemon will start in busy state so that nobody else will grab it.
-            // TODO:DAZ We should verify the connection using the original daemon constraint
-            connection = findConnection(daemonRegistry.getBusy(), sameUidConstraint);
-            if (connection != null) {
-                return connection;
+            DaemonConnection daemonConnection = connectToDaemonWithId(uid);
+            if (daemonConnection != null) {
+                return daemonConnection;
             }
         } while (System.currentTimeMillis() < expiry);
 
         throw new GradleException("Timeout waiting to connect to Gradle daemon.");
     }
 
-    private Spec<DaemonContext> exactUidConstraint(final String uid) {
-        return new Spec<DaemonContext>() {
-            public boolean isSatisfiedBy(DaemonContext element) {
-                return element.getUid().equals(uid);
+    private DaemonConnection connectToDaemonWithId(String uid) throws ConnectException {
+        // Look for 'our' daemon among the busy daemons - a daemon will start in busy state so that nobody else will grab it.
+        for (DaemonInfo daemonInfo : daemonRegistry.getBusy()) {
+            if (daemonInfo.getContext().getUid().equals(uid)) {
+                try {
+                    // TODO:DAZ We should verify the connection using the original daemon constraint
+                    return connectToDaemon(daemonInfo);
+                } catch (ConnectException e) {
+                    // this means the daemon died without removing its address from the registry
+                    // since we have never successfully connected we assume the daemon is dead and remove this address now
+                    daemonRegistry.remove(daemonInfo.getAddress());
+                    throw new GradleException("The forked daemon process died before we could connect");
+                }
             }
-        };
+        }
+        return null;
     }
 
-    public DaemonRegistry getDaemonRegistry() {
-        return daemonRegistry;
+    private DaemonConnection connectToDaemon(DaemonInfo daemonInfo) {
+        return new DaemonConnection(daemonInfo.getContext().getUid(), connector.connect(daemonInfo.getAddress()), daemonInfo.getPassword());
     }
 }

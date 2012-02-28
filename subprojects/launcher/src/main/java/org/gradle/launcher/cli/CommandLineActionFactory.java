@@ -18,7 +18,6 @@ package org.gradle.launcher.cli;
 import org.gradle.BuildExceptionReporter;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.specs.Specs;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
@@ -30,13 +29,12 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
-import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
+import org.gradle.launcher.daemon.client.StopDaemonClientServices;
+import org.gradle.launcher.daemon.client.SingleUseDaemonClientServices;
 import org.gradle.launcher.daemon.configuration.CurrentProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
-import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
-import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.exec.ExceptionReportingAction;
 import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingConfiguration;
@@ -138,18 +136,16 @@ public class CommandLineActionFactory {
             return new ActionAdapter(new ForegroundDaemonMain(conf));
         }
 
-        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, System.in);
-
         if (commandLine.hasOption(STOP)) {
-            return stopAllDaemons(clientServices);
+            return stopAllDaemons(daemonParameters, loggingServices);
         }
         if (useDaemon(commandLine, daemonParameters)) {
-            return runBuildWithDaemon(commandLine, daemonParameters, clientServices);
+            return runBuildWithDaemon(commandLine, daemonParameters, loggingServices);
         }
         if (canUseCurrentProcess(daemonParameters)) {
             return runBuildInProcess(loggingServices, startParameter);
         }
-        return runBuildInSingleUseDaemon(commandLine, daemonParameters, clientServices);
+        return runBuildInSingleUseDaemon(commandLine, daemonParameters, loggingServices);
     }
 
     private DaemonParameters constructDaemonParameters(StartParameter startParameter) {
@@ -161,9 +157,9 @@ public class CommandLineActionFactory {
         return daemonParameters;
     }
 
-    private Action<ExecutionListener> stopAllDaemons(DaemonClientServices clientServices) {
-        DaemonClientFactory clientFactory = clientServices.get(DaemonClientFactory.class);
-        DaemonClient stopClient = clientFactory.create(Specs.<DaemonContext>satisfyAll());
+    private Action<ExecutionListener> stopAllDaemons(DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
+        DaemonClientServices clientServices = new StopDaemonClientServices(loggingServices, daemonParameters, System.in);
+        DaemonClient stopClient = clientServices.get(DaemonClient.class);
         return new ActionAdapter(new StopDaemonAction(stopClient));
     }
 
@@ -174,13 +170,11 @@ public class CommandLineActionFactory {
         return useDaemon;
     }
 
-    private Action<ExecutionListener> runBuildWithDaemon(ParsedCommandLine commandLine, DaemonParameters daemonParameters, DaemonClientServices clientServices) {
+    private Action<ExecutionListener> runBuildWithDaemon(ParsedCommandLine commandLine, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
         // Create a client that will match based on the daemon startup parameters.
-        DaemonClientFactory clientFactory = clientServices.get(DaemonClientFactory.class);
-        DaemonCompatibilitySpec compatibilitySpec = new DaemonCompatibilitySpec(clientServices.get(DaemonContext.class));
-        DaemonClient client = clientFactory.create(compatibilitySpec);
-        return new ActionAdapter(
-                new DaemonBuildAction(client, commandLine, getWorkingDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
+        DaemonClientServices clientServices = new DaemonClientServices(loggingServices, daemonParameters, System.in);
+        DaemonClient client = clientServices.get(DaemonClient.class);
+        return daemonBuildAction(commandLine, daemonParameters, client);
     }
 
     private boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
@@ -191,10 +185,7 @@ public class CommandLineActionFactory {
         return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData(), getBuildStartTime()));
     }
 
-    private Action<ExecutionListener> runBuildInSingleUseDaemon(ParsedCommandLine commandLine, DaemonParameters daemonParameters, DaemonClientServices clientServices) {
-        // Create a client that will not match any existing daemons, so it will always startup a new one
-        DaemonClientFactory clientFactory = clientServices.get(DaemonClientFactory.class);
-        DaemonClient client = clientFactory.create(Specs.<DaemonContext>satisfyNone());
+    private Action<ExecutionListener> runBuildInSingleUseDaemon(ParsedCommandLine commandLine, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
         //(SF) this is a workaround until this story is completed. I'm hardcoding setting the idle timeout to be max X mins.
         //this way we avoid potential runaway daemons that steal resources on linux and break builds on windows.
         //We might leave that in if we decide it's a good idea for an extra safety net.
@@ -203,10 +194,17 @@ public class CommandLineActionFactory {
             daemonParameters.setIdleTimeout(maxTimeout);
         }
         //end of workaround.
+
+        // Create a client that will not match any existing daemons, so it will always startup a new one
+        DaemonClientServices clientServices = new SingleUseDaemonClientServices(loggingServices, daemonParameters, System.in);
+        DaemonClient client = clientServices.get(DaemonClient.class);
+        return daemonBuildAction(commandLine, daemonParameters, client);
+        // TODO:DAZ Need to display message informing users that we forked the process, and they would be better off switching to the daemon
+    }
+
+    private Action<ExecutionListener> daemonBuildAction(ParsedCommandLine commandLine, DaemonParameters daemonParameters, DaemonClient client) {
         return new ActionAdapter(
                 new DaemonBuildAction(client, commandLine, getWorkingDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
-        // TODO:DAZ Need to stop the spawned daemon process - (SF) - for now I've added a workaround with short timeout above...
-        // TODO:DAZ Need to display message informing users that we forked the process, and they would be better off switching to the daemon
     }
 
     private long getBuildStartTime() {

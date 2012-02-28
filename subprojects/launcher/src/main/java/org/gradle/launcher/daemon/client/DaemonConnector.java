@@ -36,4 +36,7 @@ public interface DaemonConnector {
      * @return A connection to a matching daemon. Never returns null.
      */
     public DaemonConnection connect(Spec<? super DaemonContext> constraint);
+
+    public DaemonConnection createConnection();
+
 }

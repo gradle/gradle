@@ -13,29 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.logging.internal.OutputEventListener;
 
 import java.io.InputStream;
 
-public class DaemonClientFactory {
-    private final DaemonConnector daemonConnector;
-    private final BuildClientMetaData buildClientMetaData;
-    private final OutputEventListener outputEventListener;
-    private final InputStream buildStandardInput;
-
-    public DaemonClientFactory(DaemonConnector daemonConnector, BuildClientMetaData buildClientMetaData, OutputEventListener outputEventListener, InputStream buildStandardInput) {
-        this.daemonConnector = daemonConnector;
-        this.buildClientMetaData = buildClientMetaData;
-        this.outputEventListener = outputEventListener;
-        this.buildStandardInput = buildStandardInput;
+public class StopDaemonClientServices extends DaemonClientServices {
+    public StopDaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream buildStandardInput) {
+        super(loggingServices, daemonParameters, buildStandardInput);
     }
 
-    public DaemonClient create(Spec<DaemonContext> compatibilitySpec) {
-        return new DaemonClient(daemonConnector, buildClientMetaData, outputEventListener, compatibilitySpec, buildStandardInput);
+    @Override
+    protected DaemonClient createDaemonClient() {
+        Spec<DaemonContext> matchAll = Specs.satisfyAll();
+        return new DaemonClient(get(DaemonConnector.class), get(BuildClientMetaData.class), get(OutputEventListener.class), matchAll, getBuildStandardInput());
     }
 }

@@ -53,13 +53,13 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         return loggingServices;
     }
 
-    protected DaemonClientFactory createDaemonClientFactory() {
-        return new DaemonClientFactory(get(DaemonConnector.class), get(BuildClientMetaData.class), get(OutputEventListener.class), buildStandardInput);
+    protected InputStream getBuildStandardInput() {
+        return buildStandardInput;
     }
 
     protected DaemonClient createDaemonClient() {
         DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(get(DaemonContext.class));
-        return get(DaemonClientFactory.class).create(matchingContextSpec);
+        return new DaemonClient(get(DaemonConnector.class), get(BuildClientMetaData.class), get(OutputEventListener.class), matchingContextSpec, buildStandardInput);
     }
 
     protected DaemonContext createDaemonContext() {

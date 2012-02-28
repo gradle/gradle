@@ -26,15 +26,28 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         // Need forking executer
-        // For some reason '-ea' is always set on the forked process inside Intellij. So I've added it explicitly here.
+        // '-ea' is always set on the forked process. So I've added it explicitly here. // TODO:DAZ Clean this up
         executer.withForkingExecuter().withEnvironmentVars(["JAVA_OPTS": "-ea"])
+        distribution.requireIsolatedDaemons()
     }
 
+    def "should stop single use daemon on build complete"() {
+        requireJvmArg('-Xmx32m')
+
+        file('build.gradle') << "println 'hello world'"
+
+        when:
+        succeeds()
+
+        then:
+        wasForked()
+        and:
+        executer.getDaemonRegistry().all.empty
+    }
+
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
     def "should not fork build if java home from gradle properties matches current process"() {
         def alternateJavaHome = AvailableJavaHomes.bestAlternative
-        if (alternateJavaHome == null) {
-            return
-        }
 
         file('gradle.properties') << "org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}"
 

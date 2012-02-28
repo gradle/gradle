@@ -38,8 +38,8 @@ class DaemonClientServicesTest extends Specification {
         services.get(DaemonConnector.class) instanceof DefaultDaemonConnector
     }
 
-    def "makes a DaemonClientFactory available"() {
+    def "makes a DaemonClient available"() {
         expect:
-        services.get(DaemonClientFactory) != null
+        services.get(DaemonClient) != null
     }
 }

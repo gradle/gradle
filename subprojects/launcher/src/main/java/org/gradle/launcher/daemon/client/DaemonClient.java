@@ -52,8 +52,8 @@ import java.io.InputStream;
  */
 public class DaemonClient implements GradleLauncherActionExecuter<BuildActionParameters> {
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
-    private final DaemonConnector connector;
-    private final BuildClientMetaData clientMetaData;
+    protected final DaemonConnector connector;
+    protected final BuildClientMetaData clientMetaData;
     private final OutputEventListener outputEventListener;
     private final Spec<DaemonContext> compatibilitySpec;
     private final InputStream buildStandardInput;
@@ -132,7 +132,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build + ".");
     }
 
-    private Result monitorBuild(Build build, Connection<Object> connection) {
+    protected Result monitorBuild(Build build, Connection<Object> connection) {
         DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, build.getClientMetaData(), connection);
         try {
             inputForwarder.start();

@@ -22,7 +22,7 @@ import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.initialization.DefaultGradleLauncherFactory
 import org.gradle.initialization.GradleLauncherAction
 import org.gradle.internal.nativeplatform.ProcessEnvironment
-import org.gradle.launcher.daemon.client.DaemonClientFactory
+import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.server.exec.DaemonCommandAction
@@ -52,7 +52,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
 
     def "sends back failure when the daemon cannot receive the first command"() {
         given:
-        def client = new EmbeddedDaemonClientServices().get(DaemonClientFactory).create(null)
+        def client = new EmbeddedDaemonClientServices().get(DaemonClient)
 
         def clz = new GroovyClassLoader().parseClass("class Foo implements Serializable {}")
         def unloadableClass = clz.newInstance()
@@ -96,7 +96,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClientFactory).create(null).execute(new DummyLauncherAction(), parameters)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), parameters)
 
         then:
         def ex = thrown(Throwable)
@@ -112,7 +112,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClientFactory).create(null).execute(new DummyLauncherAction(), parameters)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), parameters)
 
         then:
         def ex = thrown(RuntimeException)
