@@ -22,6 +22,7 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Build;
+import org.gradle.launcher.daemon.protocol.BuildAndStop;
 import org.gradle.launcher.daemon.protocol.BuildStarted;
 import org.gradle.launcher.daemon.protocol.DaemonBusy;
 import org.gradle.launcher.daemon.protocol.Failure;
@@ -42,7 +43,9 @@ public class SingleUseDaemonClient extends DaemonClient {
 
     @Override
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
-        Build build = new Build(action, parameters);
+        LOGGER.warn("Note: in order to honour the org.gradle.jvmargs and/or org.gradle.java.home values specified for this build, it is necessary to fork a new JVM.");
+        LOGGER.warn("In order to avoid the slowdown associated with this extra process, you might want to consider running Gradle with --daemon.");
+        Build build = new BuildAndStop(action, parameters);
 
         DaemonConnection daemonConnection = connector.createConnection();
         Connection<Object> connection = daemonConnection.getConnection();
