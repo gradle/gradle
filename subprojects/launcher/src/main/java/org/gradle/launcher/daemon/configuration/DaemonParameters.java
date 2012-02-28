@@ -47,6 +47,7 @@ public class DaemonParameters {
     private File baseDir = new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon");
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
     private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
+    private boolean usingDefaultJvmArgs = true;
     private boolean enabled;
     private File javaHome;
 
@@ -95,6 +96,10 @@ public class DaemonParameters {
         return jvmOptions.getAllJvmArgs();
     }
 
+    public boolean isUsingDefaultJvmArgs() {
+        return usingDefaultJvmArgs;
+    }
+
     public File getEffectiveJavaHome() {
         if (javaHome == null) {
             return canonicalise(Jvm.current().getJavaHome());
@@ -127,6 +132,7 @@ public class DaemonParameters {
     }
 
     public void setJvmArgs(Iterable<String> jvmArgs) {
+        usingDefaultJvmArgs = false;
         jvmOptions.setAllJvmArgs(jvmArgs);
     }
 

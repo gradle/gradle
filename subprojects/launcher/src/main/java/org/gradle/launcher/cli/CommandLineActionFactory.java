@@ -32,6 +32,7 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
+import org.gradle.launcher.daemon.configuration.CurrentProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
@@ -43,7 +44,6 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -161,17 +161,17 @@ public class CommandLineActionFactory {
         return daemonParameters;
     }
 
+    private Action<ExecutionListener> stopAllDaemons(DaemonClientServices clientServices) {
+        DaemonClientFactory clientFactory = clientServices.get(DaemonClientFactory.class);
+        DaemonClient stopClient = clientFactory.create(Specs.<DaemonContext>satisfyAll());
+        return new ActionAdapter(new StopDaemonAction(stopClient));
+    }
+
     private boolean useDaemon(ParsedCommandLine commandLine, DaemonParameters daemonParameters) {
         boolean useDaemon = daemonParameters.isEnabled();
         useDaemon = useDaemon || commandLine.hasOption(DAEMON);
         useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
         return useDaemon;
-    }
-
-    private Action<ExecutionListener> stopAllDaemons(DaemonClientServices clientServices) {
-        DaemonClientFactory clientFactory = clientServices.get(DaemonClientFactory.class);
-        DaemonClient stopClient = clientFactory.create(Specs.<DaemonContext>satisfyAll());
-        return new ActionAdapter(new StopDaemonAction(stopClient));
     }
 
     private Action<ExecutionListener> runBuildWithDaemon(ParsedCommandLine commandLine, DaemonParameters daemonParameters, DaemonClientServices clientServices) {
@@ -181,6 +181,10 @@ public class CommandLineActionFactory {
         DaemonClient client = clientFactory.create(compatibilitySpec);
         return new ActionAdapter(
                 new DaemonBuildAction(client, commandLine, getWorkingDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
+    }
+
+    private boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
+        return new CurrentProcess().supportsBuildParameters(requiredBuildParameters);
     }
 
     private Action<ExecutionListener> runBuildInProcess(ServiceRegistry loggingServices, StartParameter startParameter) {
@@ -203,13 +207,6 @@ public class CommandLineActionFactory {
                 new DaemonBuildAction(client, commandLine, getWorkingDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv()));
         // TODO:DAZ Need to stop the spawned daemon process - (SF) - for now I've added a workaround with short timeout above...
         // TODO:DAZ Need to display message informing users that we forked the process, and they would be better off switching to the daemon
-    }
-
-    private boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
-        // TODO:DAZ Match on jvm args as well as java home.
-        // DaemonParameters isn't quite right for this, since the daemon parameters include default jvm args, which aren't part of the "required" build parameters.
-        return Jvm.current().getJavaHome().equals(requiredBuildParameters.getEffectiveJavaHome());
-        // TODO:DAZ Reuse DaemonCompatibilitySpec here (make it more general purpose)
     }
 
     private long getBuildStartTime() {

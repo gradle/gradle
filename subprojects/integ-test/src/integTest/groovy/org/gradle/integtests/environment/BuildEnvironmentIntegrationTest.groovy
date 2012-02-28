@@ -16,14 +16,14 @@
 
 package org.gradle.integtests.environment
 
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.util.Jvm
-import org.gradle.internal.nativeplatform.FileSystems
-import org.gradle.util.TextUtil
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.nativeplatform.FileSystems
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.util.Jvm
+import org.gradle.util.TextUtil
 import spock.lang.Issue
+import spock.lang.IgnoreIf
 
 /**
  * @author: Szczepan Faber, created at: 8/11/11
@@ -110,11 +110,9 @@ assert classesDir.directory
         noExceptionThrown()
     }
 
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
     def "java home from environment should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.bestAlternative
-        if (alternateJavaHome == null) {
-            return
-        }
 
         file('build.gradle') << "println 'javaHome=' + org.gradle.util.Jvm.current().javaHome.canonicalPath"
 
@@ -131,11 +129,9 @@ assert classesDir.directory
         out.contains("javaHome=" + alternateJavaHome.canonicalPath)
     }
 
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
     def "java home from gradle properties should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.bestAlternative
-        if (alternateJavaHome == null) {
-            return
-        }
 
         file('gradle.properties') << "org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}"
 
@@ -147,5 +143,20 @@ assert classesDir.directory
 
         then:
         out.contains("javaHome=" + alternateJavaHome.absolutePath)
+    }
+
+    def "jvm args from gradle properties should be used to run build"() {
+        file('gradle.properties') << "org.gradle.jvmargs=-Xmx32m -Dsome-prop=some-value"
+
+        file('build.gradle') << """
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx32m')
+assert System.getProperty('some-prop') == 'some-value'
+"""
+
+        when:
+        executer.withForkingExecuter().run()
+
+        then:
+        noExceptionThrown()
     }
 }

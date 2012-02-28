@@ -16,30 +16,15 @@
 
 package org.gradle.launcher.daemon.configuration;
 
-import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.process.internal.JvmOptions;
-
 import java.io.File;
-import java.lang.management.ManagementFactory;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * by Szczepan Faber, created at: 2/21/12
  */
 public class ForegroundDaemonConfiguration extends DefaultDaemonServerConfiguration {
-
     public ForegroundDaemonConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs) {
-        super(daemonUid, daemonBaseDir, idleTimeoutMs, inferDaemonJvmOptions());
-    }
-
-    private static List<String> inferDaemonJvmOptions() {
-        //foreground daemon cannot be 'told' what's his startup options as the client sits in the same process
-        //so we will infer the jvm opts from the inputArguments()
-        JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
-        List<String> inputArguments = new ArrayList<String>(ManagementFactory.getRuntimeMXBean().getInputArguments());
-        jvmOptions.setAllJvmArgs(inputArguments);
-        //Simplification, we will make the foreground daemon interested only in managed jvm args
-        return jvmOptions.getManagedJvmArgs();
+        // Foreground daemon cannot be 'told' what's his startup options as the client sits in the same process so we will infer the jvm opts from the inputArguments()
+        // Simplification, we will make the foreground daemon interested only in managed jvm args
+        super(daemonUid, daemonBaseDir, idleTimeoutMs, new CurrentProcess().getJvmOptions().getManagedJvmArgs());
     }
 }
