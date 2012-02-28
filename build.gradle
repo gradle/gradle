@@ -50,7 +50,9 @@ libraries = [
     commons_io: dependencies.module(versions.commons_io),
     commons_lang: 'commons-lang:commons-lang:2.6@jar',
     commons_collections: 'commons-collections:commons-collections:3.2.1@jar',
-    ivy: 'org.apache.ivy:ivy:2.2.0@jar',
+    ivy: dependencies.module('org.apache.ivy:ivy:2.2.0'){
+        dependency "com.jcraft:jsch:0.1.46"
+    },
     jcip: "net.jcip:jcip-annotations:1.0@jar",
 ]
 
