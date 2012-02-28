@@ -222,6 +222,12 @@ task uploadDocs(type: S3DistributionFileUpload) {
     directory "online-docs${-> project.version.release ? "" : "-snapshots"}"
 }
 
+task updateSiteDocs {
+    doLast {
+        new URL("http://gradle.org/update-docs/").text
+    }
+}
+
 class PatternTransform extends Sync {
 
     private transformCounter = 0
