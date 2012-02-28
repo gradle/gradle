@@ -18,10 +18,14 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
 
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
+    private final static Logger LOGGER = Logging.getLogger(DefaultJavaCompilerFactory.class);
+
     private final ProjectInternal project;
     private final Factory<AntBuilder> antBuilderFactory;
     private final JavaCompilerFactory inProcessCompilerFactory;
@@ -33,10 +37,27 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     }
 
     public Compiler<JavaCompileSpec> create(CompileOptions options) {
+        fallBackToAntIfNecessary(options);
+
         if (options.isUseAnt()) {
             return new AntJavaCompiler(antBuilderFactory);
         }
         return new NormalizingJavaCompiler(createTargetCompiler(options));
+    }
+
+    private void fallBackToAntIfNecessary(CompileOptions options) {
+        if (options.isUseAnt()) { return; }
+
+        if (options.getCompiler() != null) {
+            LOGGER.warn("Falling back to Ant javac task ('compile.options.useAnt = true') because 'compile.options.compiler' is set.");
+            options.setUseAnt(true);
+            return;
+        }
+
+        if (options.isFork() && options.getForkOptions().getExecutable() != null) {
+            LOGGER.warn("Falling back to Ant javac task ('compile.options.useAnt = true') because 'compile.options.forkOptions.executable' is set.");
+            options.setUseAnt(true);
+        }
     }
 
     private Compiler<JavaCompileSpec> createTargetCompiler(CompileOptions options) {

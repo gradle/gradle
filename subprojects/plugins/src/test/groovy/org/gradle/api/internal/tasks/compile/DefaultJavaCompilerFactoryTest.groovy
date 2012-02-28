@@ -40,6 +40,23 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         
         where: fork << [false, true]
     }
+
+    def "falls back to Ant compiler when options.compiler is set"() {
+        options.useAnt = false
+        options.compiler = "jikes"
+
+        expect:
+        factory.create(options) instanceof AntJavaCompiler
+    }
+
+    def "falls back to Ant compiler when options.forkOptions.executable is set"() {
+        options.useAnt = false
+        options.fork = true
+        options.forkOptions.executable = "/my/javac"
+
+        expect:
+        factory.create(options) instanceof AntJavaCompiler
+    }
     
     def "creates in-process compiler when fork=false"() {
         options.useAnt = false
