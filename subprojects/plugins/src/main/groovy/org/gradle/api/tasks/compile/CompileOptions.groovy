@@ -126,9 +126,9 @@ class CompileOptions extends AbstractOptions {
 
     /**
      * Whether to use the Ant javac task or Gradle's own Java compiler integration.
-     * Defaults to <tt>true</tt>.
+     * Defaults to <tt>false</tt>.
      */
-    boolean useAnt = true
+    boolean useAnt = false
 
     /**
      * Convenience method to set fork options with named parameter syntax.
@@ -180,11 +180,7 @@ class CompileOptions extends AbstractOptions {
     }
 
     Map optionMap() {
-        def map = super.optionMap() + debugOptions.optionMap()
-        if (useAnt) {
-            map.putAll(forkOptions.optionMap())
-        }
-        map
+        super.optionMap() + debugOptions.optionMap() + forkOptions.optionMap()
     }
 }
 

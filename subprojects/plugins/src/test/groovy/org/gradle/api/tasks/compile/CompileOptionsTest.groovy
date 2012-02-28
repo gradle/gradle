@@ -47,7 +47,7 @@ class CompileOptionsTest {
         assertFalse(compileOptions.listFiles)
         assertFalse(compileOptions.verbose)
         assertFalse(compileOptions.fork)
-        assertTrue(compileOptions.useAnt)
+        assertFalse(compileOptions.useAnt)
 
         assertThat(compileOptions.compilerArgs, isEmpty())
         assertNull(compileOptions.encoding)
@@ -63,14 +63,6 @@ class CompileOptionsTest {
         Map optionMap = compileOptions.optionMap()
         assertEquals(optionMap.subMap(TEST_DEBUG_OPTION_MAP.keySet()), TEST_DEBUG_OPTION_MAP)
         assertEquals(optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()), TEST_FORK_OPTION_MAP)
-    }
-
-    @Test public void testForkOptionsAreNotPassedOnToAntIfGradleForkingIsUsed() {
-        compileOptions.useAnt = false
-        Map optionMap = compileOptions.optionMap()
-        TEST_FORK_OPTION_MAP.keySet().each {
-            assert !optionMap.containsKey(it)
-        }
     }
 
     @Test public void testOptionMapWithNullables() {
