@@ -222,7 +222,7 @@ task uploadDocs(type: S3DistributionFileUpload) {
     directory "online-docs${-> project.version.release ? "" : "-snapshots"}"
 }
 
-task updateSiteDocs {
+task pullDocs {
     doLast {
         new URL("http://gradle.org/update-docs/").text
     }
