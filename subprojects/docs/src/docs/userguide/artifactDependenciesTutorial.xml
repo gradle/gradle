@@ -63,7 +63,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="configurations">
         <title>Dependency configurations</title>
         <para>In Gradle dependencies are grouped into <firstterm>configurations</firstterm>. A configuration is simply a named set of dependencies.
             We will refer to them as <firstterm>dependency configurations</firstterm>. You can use them to declare the external dependencies of your project.
