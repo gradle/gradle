@@ -35,12 +35,11 @@ import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
  */
 class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
-    //most of the time, the idle timeout should be high enough to catch the subtle problem of the
-    //daemon timeouting before we send him a build request
-    def daemonIdleTimeout = 15
-    //TODO SF we need to make the timeouts more generous in this spec
-    //however, timeouts must be synced because for some tests it is important that
-    //idle timeout is less than the state timeout and for other tests it's the opposite.
+    int daemonIdleTimeout = 100
+    //normally, state transition timeout must be lower than the daemon timeout
+    //so that the daemon does not timeout in the middle of the state verification
+    //effectively hiding some bugs or making tests fail
+    int stateTransitionTimeout = daemonIdleTimeout/2
 
     final List<GradleHandle> builds = []
     final List<GradleHandle> foregroundDaemons = []
@@ -51,12 +50,14 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     // set this to change the desired default encoding for the build request
     def buildEncoding = null
 
-    @Delegate DaemonEventSequenceBuilder sequenceBuilder = new DaemonEventSequenceBuilder()
+    @Delegate DaemonEventSequenceBuilder sequenceBuilder =
+        new DaemonEventSequenceBuilder(stateTransitionTimeout * 1000)
 
     def setup() {
         //to work around an issue with the daemon having awkward jvm input arguments
         //when GRADLE_OPTS contains -Djava.io.tmpdir with value that has spaces
         //once this problem is fixed we could get rid of this workaround
+        //TODO SF - validate if it is still needed
         distribution.avoidsConfiguringTmpDir()
     }
 
@@ -86,7 +87,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             executer.usingProjectDirectory buildDirWithScript(builds.size(), """
                 task('watch') << {
                     println "waiting for stop file"
-                    long sanityCheck = System.currentTimeMillis() + 20000L
+                    long sanityCheck = System.currentTimeMillis() + 120000L
                     while(!file("stop").exists()) {
                         sleep 100
                         if (file("exit").exists()) {
@@ -204,7 +205,10 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     def "daemons do some work - sit idle - then timeout and die"() {
-        daemonIdleTimeout = 5 //must be shorter than current state timeout
+        //in this particular test we need to make the daemon timeout
+        //shorter than the state transition timeout so that
+        //we can detect the daemon idling out within state verification window
+        daemonIdleTimeout = stateTransitionTimeout/2
 
         when:
         startBuild()

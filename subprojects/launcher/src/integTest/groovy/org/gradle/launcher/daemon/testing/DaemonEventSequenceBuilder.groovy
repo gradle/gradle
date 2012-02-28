@@ -19,8 +19,8 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry
 
 class DaemonEventSequenceBuilder {
 
-    int pollRegistryMs = 100
-    int timeoutBetweenStateChangeMs = 10000
+    int pollRegistryMs = 300
+    final int stateTransitionTimeoutMs
 
     DaemonsState currentState = null
     List<Runnable> actions = []
@@ -29,9 +29,13 @@ class DaemonEventSequenceBuilder {
 
     int numDaemons = 1
 
+    DaemonEventSequenceBuilder(int stateTransitionTimeoutMs) {
+        this.stateTransitionTimeoutMs = stateTransitionTimeoutMs
+    }
+
     DaemonsEventSequence build(DaemonRegistry registry) {
         finishCheckpoint()
-        new DaemonsEventSequence(pollRegistryMs, timeoutBetweenStateChangeMs, registry, *checkpoints)
+        new DaemonsEventSequence(pollRegistryMs, stateTransitionTimeoutMs, registry, *checkpoints)
     }
 
     void run(Closure action) {
