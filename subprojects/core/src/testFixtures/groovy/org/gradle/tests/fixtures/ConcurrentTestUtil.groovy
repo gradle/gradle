@@ -23,9 +23,9 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import org.gradle.messaging.concurrent.ExecutorFactory
 import org.gradle.messaging.concurrent.StoppableExecutor
+import org.junit.rules.ExternalResource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.junit.rules.ExternalResource
 
 /**
  * <p>A base class for writing specifications which exercise concurrent code.
@@ -349,9 +349,15 @@ interface TestParticipant extends LongRunningAction {
 }
 
 abstract class AbstractAction implements LongRunningAction {
+    
+    Date defaultExpiry
+
+    AbstractAction(Date defaultExpiry) {
+        this.defaultExpiry = defaultExpiry
+    }
+    
     void completed() {
-        Date expiry = ConcurrentTestUtil.shortTimeout()
-        completesBefore(expiry)
+        completesBefore(defaultExpiry)
     }
 
     void completesWithin(long maxWaitValue, TimeUnit maxWaitUnits) {
@@ -366,6 +372,7 @@ abstract class AbstractTestParticipant extends AbstractAction implements TestPar
     private final ConcurrentTestUtil owner
 
     AbstractTestParticipant(ConcurrentTestUtil owner) {
+        super(owner.shortTimeout())
         this.owner = owner
     }
 }
