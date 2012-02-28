@@ -24,6 +24,7 @@ import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
+import org.gradle.messaging.remote.internal.SynchronizedDispatch;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
 import org.gradle.util.UUIDGenerator;
@@ -70,7 +71,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
 
             Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
                 public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
-                    handler.handle(connectionConnectEvent.getConnection());
+                    handler.handle(new SynchronizedDispatch<Object>(connectionConnectEvent.getConnection()));
                 }
             };
 
