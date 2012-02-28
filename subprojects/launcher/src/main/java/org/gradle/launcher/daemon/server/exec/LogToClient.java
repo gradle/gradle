@@ -18,28 +18,25 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 
-import java.io.File;
-
 class LogToClient extends BuildCommandOnly {
 
     private static final Logger LOGGER = Logging.getLogger(LogToClient.class);
 
     private final LoggingManagerInternal loggingManager;
-    private final Long daemonPid;
-    private final File daemonLog;
+    private final DaemonDiagnostics diagnostics;
 
-    public LogToClient(LoggingManagerInternal loggingManager, Long daemonPid, File daemonLog) {
+    public LogToClient(LoggingManagerInternal loggingManager, DaemonDiagnostics diagnostics) {
         this.loggingManager = loggingManager;
-        this.daemonPid = daemonPid;
-        this.daemonLog = daemonLog;
+        this.diagnostics = diagnostics;
     }
-        
+
     protected void doBuild(final DaemonCommandExecution execution, Build build) {
         final LogLevel buildLogLevel = build.getStartParameter().getLogLevel();
         OutputEventListener listener = new OutputEventListener() {
@@ -57,7 +54,7 @@ class LogToClient extends BuildCommandOnly {
 
         LOGGER.info(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);
         loggingManager.addOutputEventListener(listener);
-        LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + daemonPid + "). The daemon log file: " + daemonLog);
+        LOGGER.info(DaemonMessages.STARTED_RELAYING_LOGS + diagnostics.getPid() + "). The daemon log file: " + diagnostics.getDaemonLog());
 
         try {
             execution.proceed();

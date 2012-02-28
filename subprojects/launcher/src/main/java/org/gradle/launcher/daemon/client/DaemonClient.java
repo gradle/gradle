@@ -22,6 +22,7 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.*;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -29,6 +30,7 @@ import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.util.GFileUtils;
 
 import java.io.InputStream;
 
@@ -115,7 +117,8 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
             }
 
             if (firstResult instanceof BuildStarted) {
-                return (T) monitorBuild(build, connection).getValue();
+                DaemonDiagnostics diagnostics = ((BuildStarted) firstResult).getDiagnostics();
+                return (T) monitorBuild(build, diagnostics, connection).getValue();
             } else if (firstResult instanceof DaemonBusy) {
                 LOGGER.info("The daemon we connected to was busy. Trying a different daemon...");
             } else if (firstResult instanceof Failure) {
@@ -133,7 +136,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build + ".");
     }
 
-    protected Result monitorBuild(Build build, Connection<Object> connection) {
+    protected Result monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection) {
         DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, build.getClientMetaData(), connection);
         try {
             inputForwarder.start();
@@ -144,10 +147,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 LOGGER.trace("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
 
                 if (object == null) {
-                    throw new DaemonDisappearedException(build, connection);
-                    //we can try sending something to the daemon and try out if he is really dead or use jps
-                    //if he's really dead we should deregister it if it is not already deregistered.
-                    //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
+                    return handleDaemonDisappearance(build, diagnostics);
                 } else if (object instanceof Failure) {
                     // Could potentially distinguish between CommandFailure and DaemonFailure here.
                     throw UncheckedException.throwAsUncheckedException(((Failure) object).getValue());
@@ -163,5 +163,28 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
             inputForwarder.stop();
             connection.stop();
         }
+    }
+
+    private Result handleDaemonDisappearance(Build build, DaemonDiagnostics diagnostics) {
+        //we can try sending something to the daemon and try out if he is really dead or use jps
+        //if he's really dead we should deregister it if it is not already deregistered.
+        //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
+        int daemonLogLines = 20;
+        LOGGER.error("The message received from the daemon indicates that the daemon has disappeared."
+                + "\nDaemon pid: " + diagnostics.getPid()
+                + "\nDaemon log: " + diagnostics.getDaemonLog()
+                + "\nBuild request sent: " + build
+                + "\nAttempting to read last " + daemonLogLines + " lines from the daemon log...");
+
+        try {
+            String tail = GFileUtils.tail(diagnostics.getDaemonLog(), daemonLogLines);
+            LOGGER.error("Last " + daemonLogLines + " lines from " + diagnostics.getDaemonLog().getName() + ":"
+                    + "\n----------\n" + tail + "----------\n");
+        } catch (GFileUtils.TailReadingException e) {
+            LOGGER.error("Unable to read from the daemon log file because of: " + e);
+            LOGGER.debug("Problem reading the daemon log file.", e);
+        }
+
+        throw new DaemonDisappearedException();
     }
 }

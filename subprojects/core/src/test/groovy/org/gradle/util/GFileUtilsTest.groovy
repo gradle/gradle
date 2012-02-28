@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.protocol;
+package org.gradle.util
 
-import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
-
-import java.io.Serializable;
+import org.junit.Rule
+import spock.lang.Specification
 
 /**
- * Returned when the daemon starts a build command, signifying that it has begun processing it.
+ * by Szczepan Faber, created at: 2/28/12
  */
-public class BuildStarted implements Serializable {
+class GFileUtilsTest extends Specification {
+    
+    @Rule TemporaryFolder temp
 
-    private final DaemonDiagnostics diagnostics;
+    def "can read the file's tail"() {
+        def f = temp.file("foo.txt") << """
+one
+two
+three
+"""
+        when:
+        def out = GFileUtils.tail(f, 2)
 
-    public BuildStarted(DaemonDiagnostics diagnostics) {
-        this.diagnostics = diagnostics;
-    }
-
-    public DaemonDiagnostics getDiagnostics() {
-        return diagnostics;
+        then:
+        out == """two
+three
+"""
     }
 }

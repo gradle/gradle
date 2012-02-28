@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.protocol;
+package org.gradle.util.internal
 
-import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
-
-import java.io.Serializable;
+import spock.lang.Specification
 
 /**
- * Returned when the daemon starts a build command, signifying that it has begun processing it.
+ * by Szczepan Faber, created at: 2/28/12
  */
-public class BuildStarted implements Serializable {
+class LimitedDescriptionTest extends Specification {
 
-    private final DaemonDiagnostics diagnostics;
+    def desc = new LimitedDescription(2)
 
-    public BuildStarted(DaemonDiagnostics diagnostics) {
-        this.diagnostics = diagnostics;
+    def "has limited description"() {
+        when:
+        desc.append("0").append("one").append("2").append("three !")
+
+        then:
+        desc.toString() == """2
+three !
+"""
     }
 
-    public DaemonDiagnostics getDiagnostics() {
-        return diagnostics;
+    def "is described even when empty"() {
+        expect:
+        desc.toString().length() != 0
     }
 }

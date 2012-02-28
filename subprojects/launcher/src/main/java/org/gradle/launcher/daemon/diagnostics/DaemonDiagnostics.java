@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.protocol;
+package org.gradle.launcher.daemon.diagnostics;
 
-import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
-
+import java.io.File;
 import java.io.Serializable;
 
 /**
- * Returned when the daemon starts a build command, signifying that it has begun processing it.
+ * Contains some daemon diagnostics information useful for the client.
+ * <p>
+ * by Szczepan Faber, created at: 2/28/12
  */
-public class BuildStarted implements Serializable {
+public class DaemonDiagnostics implements Serializable {
 
-    private final DaemonDiagnostics diagnostics;
+    private final Long pid;
+    private final File daemonLog;
 
-    public BuildStarted(DaemonDiagnostics diagnostics) {
-        this.diagnostics = diagnostics;
+    public DaemonDiagnostics(File daemonLog, Long pid) {
+        this.daemonLog = daemonLog;
+        this.pid = pid;
     }
 
-    public DaemonDiagnostics getDiagnostics() {
-        return diagnostics;
+    public Long getPid() {
+        return pid;
+    }
+
+    public File getDaemonLog() {
+        return daemonLog;
     }
 }

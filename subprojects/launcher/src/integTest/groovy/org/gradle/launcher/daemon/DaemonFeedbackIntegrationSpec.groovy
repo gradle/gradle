@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
@@ -180,6 +181,20 @@ task sleep << {
         log.count('lifecycle me!') == 0
         log.count('warn me!') == 0
         log.count('error me!') == 1
+    }
+
+    def "disappearing daemon makes client log useful information"() {
+        given:
+        def baseDir = distribution.file("daemonBaseDir").createDir()
+        executer.withDaemonBaseDir(baseDir)
+        distribution.file("build.gradle") << "System.exit(0)"
+
+        when:
+        def failure = executer.withArguments("-q").runWithFailure()
+
+        then:
+        failure.error.contains(DaemonDisappearedException.MESSAGE)
+        failure.error.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)
     }
 
     def "foreground daemon log honors log levels for logging"() {
