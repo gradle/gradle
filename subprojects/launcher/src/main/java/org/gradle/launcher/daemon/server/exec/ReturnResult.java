@@ -15,6 +15,8 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.protocol.CommandFailure;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.Success;
@@ -25,6 +27,8 @@ import org.gradle.launcher.daemon.protocol.Success;
  * Likely to be the first thing in the pipeline.
  */
 public class ReturnResult implements DaemonCommandAction {
+
+    private static final Logger LOGGER = Logging.getLogger(ReturnResult.class);
 
     public void execute(DaemonCommandExecution execution) {
         execution.proceed();
@@ -37,6 +41,7 @@ public class ReturnResult implements DaemonCommandAction {
             result = new Success(execution.getResult());
         }
 
+        LOGGER.info("Daemon is dispatching the build result: " + result);
         execution.getConnection().dispatch(result);
     }
 
