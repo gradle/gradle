@@ -29,7 +29,7 @@ gradle.taskGraph.whenReady { graph ->
         accessKey project.gradleS3AccessKey
         secretKey project.gradleS3SecretKey
     }
-}∂
+}
 
 task uploadDistributions(type: S3DistributionFileUpload) {
     bucketName "downloads.gradle.org"
