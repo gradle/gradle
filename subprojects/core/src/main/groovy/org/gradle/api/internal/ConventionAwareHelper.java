@@ -25,7 +25,6 @@ import org.gradle.api.tasks.ConventionValue;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.ReflectionUtil;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -113,23 +112,11 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     }
 
     public <T> T getConventionValue(T actualValue, String propertyName, boolean isExplicitValue) {
-        if (isExplicitValue) {
+        if (isExplicitValue || !conventionMapping.containsKey(propertyName)) {
             return actualValue;
+        } else {
+            return (T) conventionMapping.get(propertyName).getValue(convention, source);
         }
-
-        Object returnValue = actualValue;
-        if (conventionMapping.keySet().contains(propertyName)) {
-            boolean useMapping = true;
-            if (actualValue instanceof Collection && !((Collection<?>) actualValue).isEmpty()) {
-                useMapping = false;
-            } else if (actualValue instanceof Map && !((Map<?, ?>) actualValue).isEmpty()) {
-                useMapping = false;
-            }
-            if (useMapping) {
-                returnValue = conventionMapping.get(propertyName).getValue(convention, source);
-            }
-        }
-        return (T) returnValue;
     }
 
     public Convention getConvention() {

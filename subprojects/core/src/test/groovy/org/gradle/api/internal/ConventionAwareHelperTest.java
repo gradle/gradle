@@ -23,6 +23,7 @@ import org.gradle.util.HelperUtil;
 import org.gradle.util.TestTask;
 import org.junit.Before;
 import org.junit.Test;
+import spock.lang.Issue;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -167,5 +168,25 @@ public class ConventionAwareHelperTest {
             }
         });
         assertThat(conventionAware.getConventionValue(emptyMap(), "map1", false), equalTo((Object) toMap("a", "b")));
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2132")
+    @Test public void usesConventionValueForNonEmptyMap() {
+        conventionAware.map("map1", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return toMap("a", "b");
+            }
+        });
+        assertThat(conventionAware.getConventionValue(toMap("c", "d"), "map1", false), equalTo((Object) toMap("a", "b")));
+    }
+
+    @Issue("http://issues.gradle.org/browse/GRADLE-2132")
+    @Test public void usesConventionValueForNonEmptyCollection() {
+        conventionAware.map("list1", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return toList("a");
+            }
+        });
+        assertThat(conventionAware.getConventionValue(toList("b"), "list1", false), equalTo((Object) toList("a")));
     }
 }
