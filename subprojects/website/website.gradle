@@ -23,59 +23,18 @@ buildscript {
 apply plugin: "base"
 evaluationDependsOn ":docs"
 
-apply from: "${rootDir}/gradle/ssh.gradle"
-
 // fail early if we don't have credentials to connect to the host
 gradle.taskGraph.whenReady { graph ->
-    tasks.withType(SshTask).matching { graph.hasTask(it) }.all {
-        host 'gradle01.managed.contegix.com'
-        userName project.websiteScpUserName
-        password project.websiteScpUserPassword
-    }
     tasks.withType(S3PutTask).matching { graph.hasTask(it) }.all {
         accessKey project.gradleS3AccessKey
         secretKey project.gradleS3SecretKey
     }
-}
+}∂
 
-uploadPath = { "/var/local/gradle-build-uploads/$it" }
-
-// There's a script on the host that will allow running certain commands as sudo, to enable
-// us to run some commands with privs. This script is configured via sudoers to allow shh exec
-// from any user in the wheel group. That is, you must be a member of wheel to upload to the host.
-asSudo = { Object[] args -> (["sudo", uploadPath("asSudo")] + args.toList()) as Object[] }
-
-// only needed for doLast block
-import org.jets3t.service.model.StorageObject
-task uploadDistributions(type: S3PutTask) {
-    // credentials are added in gradle.taskGraph.whenReady above
+task uploadDistributions(type: S3DistributionFileUpload) {
     bucketName "downloads.gradle.org"
     source rootProject.testedDists
-
-    def directory = "distributions${-> project.version.release ? "" : "-snapshots"}"
-    eachObject {
-        if (it.key.endsWith(".zip")) {
-            it.contentType = "application/zip"
-        } else {
-            throw new InvalidUserDataException("Don't know content type for file: $it.key")
-        }
-        it.key = "$directory/$name"
-    }
-    
-    // S3 incorrectly treats “+” incorrectly as a “ ”
-    // https://forums.aws.amazon.com/thread.jspa?threadID=55746
-    // We compensate by also providing files with spaces (for unencoded “+”) and files with “+” (for encoded “+”)
-    doLast {
-        def service = createService()
-        source.each {
-            def key = "$directory/$it.name"
-            if (key.contains("+")) {
-                def copyDestination = key.replace("+", " ")
-                logger.lifecycle "making copy of '$key' to '$copyDestination'"
-                service.copyObject(bucketName, key, bucketName, new StorageObject(copyDestination), false)
-            }
-        }
-    }
+    directory "distributions${-> project.version.release ? "" : "-snapshots"}"
 }
 
 task generateReleasesXml() {
@@ -254,23 +213,13 @@ task docsWithAnalytics(type: PatternTransform) {
 
 task docsWithAnalyticsZip(type: Zip) {
     from docsWithAnalytics
+    baseName "online-docs"
 }
 
-task uploadDocs(type: Scp) {
-    verbose true
-    isDir false
+task uploadDocs(type: S3DistributionFileUpload) {
+    bucketName "downloads.gradle.org"
     source docsWithAnalyticsZip
-    destination = uploadPath("docs/${->project.version.label}.zip")
-
-    doLast {
-        // unpack the zip to the right place and fix the perms
-        ssh asSudo("move-docs", project.version.label)
-
-        if (project.version.release) {
-            // update the “current” symlink in the docs dir
-            ssh asSudo("mark-current-docs", project.version)
-        }
-    }
+    directory "online-docs${-> project.version.release ? "" : "-snapshots"}"
 }
 
 class PatternTransform extends Sync {
@@ -312,6 +261,39 @@ import org.jets3t.service.S3Service
 import org.jets3t.service.impl.rest.httpclient.RestS3Service
 import org.gradle.api.Action
 import org.gradle.listener.ActionBroadcast
+// only needed for doLast block
+import org.jets3t.service.model.StorageObject
+
+class S3DistributionFileUpload extends S3PutTask {
+    @Input directory
+    
+    S3DistributionFileUpload() {
+        bucketName "downloads.gradle.org"
+        eachObject {
+            if (it.key.endsWith(".zip")) {
+                it.contentType = "application/zip"
+            } else {
+                throw new InvalidUserDataException("Don't know content type for file: $it.key")
+            }
+            it.key = "$directory/$name"
+        }
+
+        // S3 incorrectly treats “+” incorrectly as a “ ”
+        // https://forums.aws.amazon.com/thread.jspa?threadID=55746
+        // We compensate by also providing files with spaces (for unencoded “+”) and files with “+” (for encoded “+”)
+        doLast {
+            def service = createService()
+            source.each {
+                def key = "$directory/$it.name"
+                if (key.contains("+")) {
+                    def copyDestination = key.replace("+", " ")
+                    logger.lifecycle "making copy of '$key' to '$copyDestination'"
+                    service.copyObject(bucketName, key, bucketName, new StorageObject(copyDestination), false)
+                }
+            }
+        }
+    }
+}
 
 class S3PutTask extends SourceTask {
     @Input accessKey
