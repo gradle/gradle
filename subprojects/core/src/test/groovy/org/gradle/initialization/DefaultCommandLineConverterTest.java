@@ -31,11 +31,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static org.gradle.util.WrapUtil.*;
@@ -278,12 +274,6 @@ public class DefaultCommandLineConverterTest {
         checkConversion("-x", "excluded", "-x", "excluded2");
     }
 
-    @Test
-    public void withEmbeddedScript() {
-        expectedSearchUpwards = false;
-        checkConversion(true, "-e", expectedEmbeddedScript);
-    }
-
     @Test(expected = CommandLineArgumentException.class)
     public void withEmbeddedScriptAndConflictingNoSearchUpwardsOption() {
         checkConversion("-e", "someScript", "-u", "clean");
@@ -327,37 +317,6 @@ public class DefaultCommandLineConverterTest {
     public void withNoColor() {
         expectedColorOutput = false;
         checkConversion("--no-color");
-    }
-
-    @Test
-    public void withShowTasks() {
-        expectedTaskNames = toList("tasks");
-        checkConversion(false, "-t");
-    }
-
-    @Test
-    public void withShowAllTasks() {
-        expectedTaskNames = toList("tasks", "--all");
-        checkConversion(false, "-t", "--all");
-    }
-
-    @Test
-    public void withShowTasksAndEmbeddedScript() {
-        expectedSearchUpwards = false;
-        expectedTaskNames = toList("tasks");
-        checkConversion(true, "-e", expectedEmbeddedScript, "-t");
-    }
-
-    @Test
-    public void withShowProperties() {
-        expectedTaskNames = toList("properties");
-        checkConversion(false, "-r");
-    }
-
-    @Test
-    public void withShowDependencies() {
-        expectedTaskNames = toList("dependencies");
-        checkConversion(false, "-n");
     }
 
     @Test(expected = CommandLineArgumentException.class)
