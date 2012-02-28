@@ -19,41 +19,38 @@ package org.gradle.integtests.fixtures;
 import com.sshtools.daemon.configuration.PlatformConfiguration;
 import com.sshtools.daemon.platform.NativeAuthenticationProvider;
 import com.sshtools.daemon.platform.PasswordChangeException;
-import com.sshtools.daemon.vfs.VFSMount;
 import com.sshtools.j2ssh.configuration.ConfigurationLoader;
 
 import java.io.File;
 import java.io.IOException;
 
-import static com.sshtools.daemon.configuration.PlatformConfiguration.*;
-
 public class SshDummyAuthenticationProvider extends NativeAuthenticationProvider {
 
-        @Override
-        public String getHomeDirectory(String username) throws IOException {
-            PlatformConfiguration platform = ((PlatformConfiguration) ConfigurationLoader.getConfiguration(PlatformConfiguration.class));
-            String base = platform.getVFSRoot().getPath();
-            File homeDir = new File(base + File.separator + "home" + File.separator + username);
-            return homeDir.getAbsolutePath().replace('\\', '/');
-        }
+    @Override
+    public String getHomeDirectory(String username) throws IOException {
+        PlatformConfiguration platform = (PlatformConfiguration) ConfigurationLoader.getConfiguration(PlatformConfiguration.class);
+        String base = platform.getVFSRoot().getPath();
+        File homeDir = new File(base + File.separator + "home" + File.separator + username);
+        return homeDir.getAbsolutePath().replace('\\', '/');
+    }
 
-        @Override
-        public boolean logonUser(String user, String password) throws PasswordChangeException, IOException {
-            return user != null && user.equals(password);
-        }
+    @Override
+    public boolean logonUser(String user, String password) throws PasswordChangeException, IOException {
+        return user != null && user.equals(password);
+    }
 
-        @Override
-        public boolean logonUser(String s) throws IOException {
-            return s != null;
-        }
+    @Override
+    public boolean logonUser(String s) throws IOException {
+        return s != null;
+    }
 
-        @Override
-        public void logoffUser() throws IOException {
+    @Override
+    public void logoffUser() throws IOException {
 
-        }
+    }
 
-        @Override
-        public boolean changePassword(String s, String s1, String s2) {
-            return false;
-        }
+    @Override
+    public boolean changePassword(String s, String s1, String s2) {
+        return false;
+    }
 }
