@@ -30,7 +30,7 @@ class PerformanceTest extends Specification {
     def current = new GradleDistribution()
     def previous = new ReleasedVersions(current).last
 
-    @Unroll({"Project '$testProject' ran $runs times. Current release is not slower than the previous one."})
+    @Unroll("Project '#testProject' ran #runs times. Current release is not slower than the previous one.")
     def "speed"() {
         expect:
         def result = new PerformanceTestRunner(testProject: testProject, runs: runs, warmUpRuns: 1, accuracyMs: accuracyMs).run()
@@ -42,7 +42,7 @@ class PerformanceTest extends Specification {
         "multi"     | 10   | 1000
     }
 
-    @Unroll({"Project '$testProject' with heap size: $heapSize. Current release does not require more memory than the previous one."})
+    @Unroll("Project '#testProject' with heap size: #heapSize. Current release does not require more memory than the previous one.")
     def "memory"() {
         expect:
         def result = new PerformanceTestRunner(testProject: testProject, runs: 1, gradleOpts: [heapSize]).run()

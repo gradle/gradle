@@ -31,7 +31,7 @@ class CharacterEncodingIntegTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Unroll({"build default encoding matches specified - input = $inputEncoding, expectedEncoding: $expectedEncoding"})
+    @Unroll("build default encoding matches specified - input = #inputEncoding, expectedEncoding: #expectedEncoding")
     def "build default encoding matches specified"(String inputEncoding, String expectedEncoding) {
         given:
         executerEncoding inputEncoding
@@ -58,7 +58,7 @@ class CharacterEncodingIntegTest extends AbstractIntegrationSpec {
         null          | Charset.defaultCharset().name()
     }
 
-    @Unroll({"forked java processes inherit default encoding - input = $inputEncoding, expectedEncoding: $expectedEncoding"})
+    @Unroll("forked java processes inherit default encoding - input = #inputEncoding, expectedEncoding: #expectedEncoding")
     def "forked java processes inherit default encoding"() {
         given:
         executerEncoding inputEncoding

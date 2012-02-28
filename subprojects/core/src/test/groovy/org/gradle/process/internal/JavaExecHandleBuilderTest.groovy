@@ -36,7 +36,7 @@ public class JavaExecHandleBuilderTest extends Specification {
         thrown(UnsupportedOperationException)
     }
 
-    @Unroll({"buildsCommandLineForJavaProcess - input encoding $inputEncoding"})
+    @Unroll("buildsCommandLineForJavaProcess - input encoding #inputEncoding")
     public void buildsCommandLineForJavaProcess() {
         File jar1 = new File("file1.jar").canonicalFile
         File jar2 = new File("file2.jar").canonicalFile
