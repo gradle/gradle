@@ -30,11 +30,14 @@ class IvySFtpResolverIntegrationTest extends AbstractIntegrationSpec {
         requireOwnUserHomeDir()
     }
 
-    public void "can resolve dependencies from an SFTP Ivy repository"() {
+    public void "can resolve and cache dependencies from an SFTP Ivy repository"() {
         given:
         def repo = ivyRepo()
+        
         def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
+        def ivyModule =  module.publish()
+        println ivyModule.ivyFile.absolutePath
+        println ivyModule.jarFile.absolutePath
 
         and:
         buildFile << """
