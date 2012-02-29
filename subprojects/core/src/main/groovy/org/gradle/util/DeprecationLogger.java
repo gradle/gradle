@@ -83,7 +83,7 @@ public class DeprecationLogger {
     }
 
     public static void nagUserOfReplacedProperty(String propertyName, String replacement) {
-        if (isEnabled() && METHODS.add(propertyName)) {
+        if (isEnabled() && PROPERTIES.add(propertyName)) {
             LOGGER.warn(String.format(
                     "The %s property has been deprecated and will be removed in the next version of Gradle. Please use the %s property instead.",
                     propertyName, replacement));
@@ -95,6 +95,14 @@ public class DeprecationLogger {
         if (isEnabled() && METHODS.add(methodName)) {
             LOGGER.warn(String.format("The %s method has been deprecated and will be removed in the next version of Gradle.",
                     methodName));
+            logTraceIfNecessary();
+        }
+    }
+
+    public static void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
+        if (isEnabled() && PROPERTIES.add(propertyName)) {
+            LOGGER.warn(String.format("The %s property has been deprecated and will be removed in the next version of Gradle. %s",
+                    propertyName, advice));
             logTraceIfNecessary();
         }
     }
