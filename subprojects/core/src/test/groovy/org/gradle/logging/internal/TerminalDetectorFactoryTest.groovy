@@ -17,16 +17,16 @@
 package org.gradle.logging.internal;
 
 
+import org.gradle.internal.nativeplatform.NoOpTerminalDetector
+import org.gradle.internal.nativeplatform.WindowsTerminalDetector
 import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer
+import org.gradle.internal.nativeplatform.jna.LibCBackedTerminalDetector
 import org.gradle.util.Requires
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-
-import org.gradle.internal.nativeplatform.jna.LibCBackedTerminalDetector
-import org.gradle.internal.nativeplatform.WindowsTerminalDetector
 
 /**
  * @author: Szczepan Faber, created at: 9/12/11
@@ -60,7 +60,6 @@ public class TerminalDetectorFactoryTest extends Specification {
         def spec = new TerminalDetectorFactory().create(new JnaBootPathConfigurer(temp.dir))
 
         then:
-        !spec.isSatisfiedBy(FileDescriptor.out)
-        !spec.isSatisfiedBy(FileDescriptor.err)
+        spec instanceof NoOpTerminalDetector
     }
 }
