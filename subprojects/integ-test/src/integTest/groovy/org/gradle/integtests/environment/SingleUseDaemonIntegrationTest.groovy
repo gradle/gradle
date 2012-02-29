@@ -45,6 +45,20 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         executer.getDaemonRegistry().all.empty
     }
 
+    def "should stop single use daemon when build fails"() {
+        requireJvmArg('-Xmx32m')
+
+        file('build.gradle') << "throw new RuntimeException('bad')"
+
+        when:
+        fails()
+
+        then:
+        wasForked()
+        and:
+        executer.getDaemonRegistry().all.empty
+    }
+
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
     def "should not fork build if java home from gradle properties matches current process"() {
         def alternateJavaHome = AvailableJavaHomes.bestAlternative
@@ -112,6 +126,6 @@ assert System.getProperty('some-prop') == 'some-value'
     }
 
     private def wasForked() {
-        result.output.contains('daemon')
+        result.output.contains('fork a new JVM')
     }
 }
