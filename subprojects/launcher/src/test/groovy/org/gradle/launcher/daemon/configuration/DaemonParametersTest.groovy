@@ -216,4 +216,34 @@ class DaemonParametersTest extends Specification {
         then:
         parameters.getSystemProperties() == [foo: '', bar: '']
     }
+
+    def "knows if not using default jvm args"() {
+        given:
+        assert parameters.usingDefaultJvmArgs
+
+        when:
+        parameters.setJvmArgs(["-Dfoo= -Dbar"])
+
+        then:
+        !parameters.usingDefaultJvmArgs
+    }
+    
+    def "knows if using default jvm args"() {
+        when:
+        parameters.configureFrom([(DaemonParameters.JAVA_HOME_SYS_PROPERTY) : Jvm.current().getJavaHome()])
+
+        then:
+        parameters.usingDefaultJvmArgs
+    }
+
+    def "knows if not using default jvm args when configured"() {
+        given:
+        assert parameters.usingDefaultJvmArgs
+
+        when:
+        parameters.configureFrom([(DaemonParameters.JVM_ARGS_SYS_PROPERTY) : "-Dfoo= -Dbar"])
+
+        then:
+        !parameters.usingDefaultJvmArgs
+    }
 }
