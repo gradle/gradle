@@ -22,11 +22,7 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.protocol.Build;
-import org.gradle.launcher.daemon.protocol.BuildAndStop;
-import org.gradle.launcher.daemon.protocol.BuildStarted;
-import org.gradle.launcher.daemon.protocol.DaemonBusy;
-import org.gradle.launcher.daemon.protocol.Failure;
+import org.gradle.launcher.daemon.protocol.*;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
@@ -57,7 +53,7 @@ public class SingleUseDaemonClient extends DaemonClient {
         firstResult = connection.receive();
 
         if (firstResult instanceof BuildStarted) {
-            return (T) monitorBuild(build, connection).getValue();
+            return (T) monitorBuild(build, ((BuildStarted) firstResult).getDiagnostics(), connection).getValue();
         } else if (firstResult instanceof Failure) {
             // Could potentially distinguish between CommandFailure and DaemonFailure here.
             throw UncheckedException.throwAsUncheckedException(((Failure) firstResult).getValue());
