@@ -35,8 +35,8 @@ public class JavaCommandLineOptionsBuilder {
 
     private final JavaCompileSpec spec;
 
-    private boolean includeLauncherOptions = false;
-    private boolean includeSourceFiles = false;
+    private boolean includeLauncherOptions;
+    private boolean includeSourceFiles;
     private boolean logGeneratedOptions = true;
 
     private final List<String> options = new ArrayList<String>();
