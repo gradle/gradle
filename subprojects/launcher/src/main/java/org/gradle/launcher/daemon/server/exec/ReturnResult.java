@@ -15,11 +15,9 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.internal.UncheckedException;
-
+import org.gradle.launcher.daemon.protocol.CommandFailure;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.Success;
-import org.gradle.launcher.daemon.protocol.CommandFailure;
 
 /**
  * Handles sending the result of the execution back to the client.
@@ -34,7 +32,7 @@ public class ReturnResult implements DaemonCommandAction {
         Result result;
         Throwable commandException = execution.getException();
         if (commandException != null) {
-            result = new CommandFailure(UncheckedException.asUncheckedException(commandException));
+            result = new CommandFailure(commandException);
         } else {
             result = new Success(execution.getResult());
         }

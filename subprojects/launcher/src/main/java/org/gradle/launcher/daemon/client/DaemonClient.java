@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.*;
@@ -119,7 +120,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 LOGGER.info("The daemon we connected to was busy. Trying a different daemon...");
             } else if (firstResult instanceof Failure) {
                 // Could potentially distinguish between CommandFailure and DaemonFailure here.
-                throw ((Failure) firstResult).getValue();
+                throw UncheckedException.asUncheckedException(((Failure) firstResult).getValue());
             } else if (firstResult == null) {
                 LOGGER.info("The first result from the daemon was empty. Most likely the daemon has died. Trying a different daemon...");
             } else {
@@ -149,7 +150,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                     //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
                 } else if (object instanceof Failure) {
                     // Could potentially distinguish between CommandFailure and DaemonFailure here.
-                    throw ((Failure) object).getValue();
+                    throw UncheckedException.asUncheckedException(((Failure) object).getValue());
                 } else if (object instanceof OutputEvent) {
                     outputEventListener.onOutput((OutputEvent) object);
                 } else if (object instanceof Result) {
