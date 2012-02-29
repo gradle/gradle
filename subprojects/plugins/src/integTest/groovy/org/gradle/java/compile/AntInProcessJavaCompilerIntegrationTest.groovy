@@ -16,9 +16,8 @@
 package org.gradle.java.compile
 
 class AntInProcessJavaCompilerIntegrationTest extends BasicJavaCompilerIntegrationSpec {
-    def buildScript() {
-        super.buildScript()
-        buildFile << '''
+    def compilerConfiguration() {
+        '''
 compileJava.options.with {
     useAnt = true
     fork = false
@@ -26,7 +25,10 @@ compileJava.options.with {
 '''
     }
 
-    @Override
+    def logStatement() {
+        "Compiling with Ant Java compiler"
+    }
+
     def getCompilerErrorOutput() {
         return output
     }

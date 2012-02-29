@@ -13,19 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.java.compile
 
-class InProcessJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
+import org.gradle.util.Jvm
+
+import spock.lang.IgnoreIf
+import org.gradle.util.TextUtil
+
+@IgnoreIf({ !Jvm.current().getExecutable("javac").exists() })
+class CommandLineJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
     def compilerConfiguration() {
-        '''
+        def executable = TextUtil.escapeString(Jvm.current().getExecutable("javac"))
+
+        """
 compileJava.options.with {
     useAnt = false
-    fork = false
+    fork = true
+    forkOptions.executable = "$executable"
 }
-'''
+"""
     }
 
     def logStatement() {
-        "Java Compiler API"
+        "Compiling using Java compiler executable"
     }
 }

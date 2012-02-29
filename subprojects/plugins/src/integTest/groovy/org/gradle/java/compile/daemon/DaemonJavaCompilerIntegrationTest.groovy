@@ -18,13 +18,16 @@ package org.gradle.java.compile.daemon
 import org.gradle.java.compile.JavaCompilerIntegrationSpec
 
 class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
-    def buildScript() {
-        super.buildScript()
-        buildFile << '''
+    def compilerConfiguration() {
+        '''
 compileJava.options.with {
     useAnt = false
     fork = true
 }
 '''
+    }
+
+    def logStatement() {
+        "in compiler daemon"
     }
 }

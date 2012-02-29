@@ -20,12 +20,19 @@ package org.gradle.java.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
+    def setup() {
+        executer.withArguments("-i")
+        buildFile << buildScript()
+        buildFile << compilerConfiguration()
+    }
+
     def compileGoodCode() {
         given:
         goodCode()
 
         expect:
         succeeds("compileJava")
+        output.contains(logStatement())
         !errorOutput
         file("build/classes/main/compile/test/Person.class").exists()
     }
@@ -36,6 +43,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
 
         expect:
         fails("compileJava")
+        output.contains(logStatement())
         compilerErrorOutput.contains("';' expected")
         file("build/classes/main").assertHasDescendants()
     }
@@ -49,6 +57,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
 
         expect:
         succeeds("compileJava")
+        output.contains(logStatement())
         compilerErrorOutput.contains("';' expected")
         file("build/classes/main").assertHasDescendants()
     }
@@ -66,6 +75,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
 
         expect:
         succeeds("run")
+        output.contains(logStatement())
         !errorOutput
         file('encoded.out').getText("utf-8") == "\u03b1\u03b2\u03b3"
     }
@@ -75,7 +85,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
     }
 
     def buildScript() {
-        buildFile << '''
+        '''
 apply plugin: "java"
 
 dependencies {
@@ -84,8 +94,11 @@ dependencies {
 '''
     }
 
+    abstract compilerConfiguration()
+
+    abstract logStatement()
+
     def goodCode() {
-        buildScript()
         file("src/main/java/compile/test/Person.java") << '''
 package compile.test;
 
@@ -137,7 +150,6 @@ class Main {
     }
 
     def badCode() {
-        buildScript()
         file("src/main/java/compile/test/Person.java") << '''
         package compile.fork;
 
