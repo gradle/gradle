@@ -50,7 +50,8 @@ class AntJavaCompiler implements org.gradle.api.internal.tasks.compile.Compiler<
         ]
 
         Map options = otherArgs + spec.compileOptions.optionMap()
-        LOGGER.debug("Running Ant javac with the following options {}", options)
+        LOGGER.info("Compiling with Ant Java compiler.")
+        LOGGER.debug("Ant Java compiler options: {}", options)
         def task = ant.javac(options) {
             spec.source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
             spec.compileOptions.compilerArgs.each {value ->

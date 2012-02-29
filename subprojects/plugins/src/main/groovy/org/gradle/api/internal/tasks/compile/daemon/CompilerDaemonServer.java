@@ -48,12 +48,12 @@ public class CompilerDaemonServer implements Action<WorkerProcessContext>, Compi
 
     public <T extends CompileSpec> void execute(Compiler<T> compiler, T spec) {
         try {
-            LOGGER.info("Executing {}.", compiler);
+            LOGGER.info("Executing {} in compiler daemon.", compiler);
             WorkResult result = compiler.execute(spec);
-            LOGGER.info("Successfully executed {}.", compiler);
+            LOGGER.info("Successfully executed {} in compiler daemon.", compiler);
             client.executed(new CompileResult(result.getDidWork(), null));
         } catch (Throwable t) {
-            LOGGER.info("Exception executing {}: {}.", compiler, t);
+            LOGGER.info("Exception executing {} in compiler daemon: {}.", compiler, t);
             client.executed(new CompileResult(true, t));
         }
     }
