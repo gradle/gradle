@@ -187,7 +187,9 @@ class JavaCommandLineOptionsBuilderTest extends Specification {
     }
 
     def "optionally includes source files"() {
-        spec.source = new SimpleFileCollection(new File("/src/Person.java"), new File("Computer.java"))
+        def file1 = new File("/src/Person.java")
+        def file2 = new File("Computer.java")
+        spec.source = new SimpleFileCollection(file1, file2)
 
         when:
         builder.includeSourceFiles(false)
@@ -199,11 +201,13 @@ class JavaCommandLineOptionsBuilderTest extends Specification {
         builder.includeSourceFiles(true)
 
         then:
-        builder.build() == ["/src/Person.java", "Computer.java"]
+        builder.build() == [file1.path, file2.path]
     }
 
     def "does not include source files by default"() {
-        spec.source = new SimpleFileCollection(new File("/src/Person.java"), new File("Computer.java"))
+        def file1 = new File("/src/Person.java")
+        def file2 = new File("Computer.java")
+        spec.source = new SimpleFileCollection(file1, file2)
 
         expect:
         builder.build() == []
