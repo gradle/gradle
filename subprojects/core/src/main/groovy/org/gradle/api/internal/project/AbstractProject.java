@@ -395,11 +395,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         }
     }
 
-    public String absolutePath(String path) {
-        DeprecationLogger.nagUserOfReplacedMethod("Project.absolutePath()", "Project.absoluteProjectPath()");
-        return absoluteProjectPath(path);
-    }
-
     public String absoluteProjectPath(String path) {
         return this.path.absolutePath(path);
     }

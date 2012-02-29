@@ -489,8 +489,6 @@ class DefaultProjectTest {
         project.defaultTasks("a", null);
     }
 
-
-
     @Test void testCanAccessTaskAsAProjectProperty() {
         assertThat(project.someTask, sameInstance(testTask))
     }
