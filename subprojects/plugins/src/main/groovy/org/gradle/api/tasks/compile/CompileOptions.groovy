@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
+import org.gradle.util.DeprecationLogger
 
 /**
  * @author Hans Dockter
@@ -100,8 +101,15 @@ class CompileOptions extends AbstractOptions {
     /**
      * The compiler to use.
      */
+    @Deprecated
     @Input @Optional
     String compiler = null
+
+    void setCompiler(String compiler) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.compiler", "To use an alternative compiler, " +
+                "set 'CompileOptions.fork' to 'true', and 'CompileOptions.forkOptions.executable' to the path of the compiler executable.");
+        this.compiler = compiler
+    }
 
     @Input
     boolean includeJavaRuntime = false
