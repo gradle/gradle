@@ -16,46 +16,44 @@
 package org.gradle.api.internal.tasks.compile
 
 import spock.lang.Specification
-import org.gradle.api.tasks.WorkResult
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 
-class CommandLineJavaCompilerSupportTest extends Specification {
-    def compiler = new CommandLineJavaCompilerSupport() {
-        WorkResult execute(JavaCompileSpec spec) { null }
-    }
+class JavaCommandLineOptionsBuilderTest extends Specification {
     def spec = new DefaultJavaCompileSpec()
+    def builder = new JavaCommandLineOptionsBuilder(spec)
 
-    def "generates no options unless configured"() {
+    def "generates no options for an unconfigured spec"() {
         expect:
-        compiler.generateCommandLineOptions(spec) == []
+        builder.build() == []
     }
 
     def "generates no -source option when current Jvm Version is used"() {
         spec.sourceCompatibility = JavaVersion.current().toString();
 
         expect:
-        compiler.generateCommandLineOptions(spec) == []
+        builder.build() == []
     }
 
     def "generates -source option when compatibility differs current Jvm version"() {
         spec.sourceCompatibility = "1.4"
 
         expect:
-        compiler.generateCommandLineOptions(spec) == ["-source", "1.4"]
+        builder.build() == ["-source", "1.4"]
     }
 
     def "generates no -target option when current Jvm Version is used"() {
-        compiler.spec.targetCompatibility = JavaVersion.current().toString();
+        spec.targetCompatibility = JavaVersion.current().toString();
 
         expect:
-        compiler.generateCommandLineOptions(spec) == []
+        builder.build() == []
     }
 
     def "generates -target option when compatibility differs current Jvm version"() {
-        compiler.spec.targetCompatibility = "1.4"
+        spec.targetCompatibility = "1.4"
 
         expect:
-        compiler.generateCommandLineOptions(spec) == ["-target", "1.4"]
+        builder.build() == ["-target", "1.4"]
     }
 
     def "generates -d option"() {
@@ -63,7 +61,7 @@ class CommandLineJavaCompilerSupportTest extends Specification {
         spec.destinationDir = file
 
         expect:
-        compiler.generateCommandLineOptions(spec) == ["-d", file.path]
+        builder.build() == ["-d", file.path]
     }
 
     def "generates -verbose option"() {
@@ -71,13 +69,13 @@ class CommandLineJavaCompilerSupportTest extends Specification {
         spec.compileOptions.verbose = true
 
         then:
-        compiler.generateCommandLineOptions(spec) == ["-verbose"]
+        builder.build() == ["-verbose"]
 
         when:
         spec.compileOptions.verbose = false
 
         then:
-        compiler.generateCommandLineOptions(spec) == []
+        builder.build() == []
     }
 
     def "generates -deprecation option"() {
@@ -85,13 +83,13 @@ class CommandLineJavaCompilerSupportTest extends Specification {
         spec.compileOptions.deprecation = true
 
         then:
-        compiler.generateCommandLineOptions(spec) == ["-deprecation"]
+        builder.build() == ["-deprecation"]
 
         when:
         spec.compileOptions.deprecation = false
 
         then:
-        compiler.generateCommandLineOptions(spec) == []
+        builder.build() == []
     }
 
     def "generates -nowarn option"() {
@@ -99,13 +97,13 @@ class CommandLineJavaCompilerSupportTest extends Specification {
         spec.compileOptions.warnings = true
 
         then:
-        compiler.generateCommandLineOptions(spec) == []
+        builder.build() == []
 
         when:
         spec.compileOptions.warnings = false
 
         then:
-        compiler.generateCommandLineOptions(spec) == ["-nowarn"]
+        builder.build() == ["-nowarn"]
     }
 
     def "generates -g:none option"() {
@@ -113,37 +111,34 @@ class CommandLineJavaCompilerSupportTest extends Specification {
         spec.compileOptions.debug = true
 
         then:
-        compiler.generateCommandLineOptions(spec) == []
+        builder.build() == []
 
         when:
         spec.compileOptions.debug = false
 
         then:
-        compiler.generateCommandLineOptions(spec) == ["-g:none"]
+        builder.build() == ["-g:none"]
     }
 
     def "generates -encoding option"() {
-        when:
         spec.compileOptions.encoding = "some-encoding"
 
-        then:
-        compiler.generateCommandLineOptions(spec) == ["-encoding", "some-encoding"]
+        expect:
+        builder.build() == ["-encoding", "some-encoding"]
     }
 
     def "generates -bootclasspath option"() {
-        when:
         spec.compileOptions.bootClasspath = "/lib/lib1.jar:/lib/lib2.jar"
 
-        then:
-        compiler.generateCommandLineOptions(spec) == ["-bootclasspath", "/lib/lib1.jar:/lib/lib2.jar"]
+        expect:
+        builder.build() == ["-bootclasspath", "/lib/lib1.jar:/lib/lib2.jar"]
     }
 
     def "generates -extdirs option"() {
-        when:
         spec.compileOptions.extensionDirs = "/dir1:/dir2"
 
-        then:
-        compiler.generateCommandLineOptions(spec) == ["-extdirs", "/dir1:/dir2"]
+        expect:
+        builder.build() == ["-extdirs", "/dir1:/dir2"]
     }
 
     def "generates -classpath option"() {
@@ -152,13 +147,65 @@ class CommandLineJavaCompilerSupportTest extends Specification {
         spec.classpath = [file1, file2]
 
         expect:
-        compiler.generateCommandLineOptions(spec) == ["-classpath", "$file1$File.pathSeparator$file2"]
+        builder.build() == ["-classpath", "$file1$File.pathSeparator$file2"]
     }
 
     def "adds custom compiler args"() {
         spec.compileOptions.compilerArgs = ["-a", "value-a", "-b", "value-b"]
 
         expect:
-        compiler.generateCommandLineOptions(spec) == ["-a", "value-a", "-b", "value-b"]
+        builder.build() == ["-a", "value-a", "-b", "value-b"]
+    }
+
+    def "optionally includes launcher options"() {
+        spec.compileOptions.forkOptions.with {
+            memoryInitialSize = "64m"
+            memoryMaximumSize = "1g"
+        }
+
+        when:
+        builder.includeLauncherOptions(false)
+
+        then:
+        builder.build() == []
+
+        when:
+        builder.includeLauncherOptions(true)
+
+        then:
+        builder.build() == ["-J-Xms64m", "-J-Xmx1g"]
+    }
+
+    def "does not include launcher options by default"() {
+        spec.compileOptions.forkOptions.with {
+            memoryInitialSize = "64m"
+            memoryMaximumSize = "1g"
+        }
+
+        expect:
+        builder.build() == []
+    }
+
+    def "optionally includes source files"() {
+        spec.source = new SimpleFileCollection(new File("/src/Person.java"), new File("Computer.java"))
+
+        when:
+        builder.includeSourceFiles(false)
+
+        then:
+        builder.build() == []
+
+        when:
+        builder.includeSourceFiles(true)
+
+        then:
+        builder.build() == ["/src/Person.java", "Computer.java"]
+    }
+
+    def "does not include source files by default"() {
+        spec.source = new SimpleFileCollection(new File("/src/Person.java"), new File("Computer.java"))
+
+        expect:
+        builder.build() == []
     }
 }
