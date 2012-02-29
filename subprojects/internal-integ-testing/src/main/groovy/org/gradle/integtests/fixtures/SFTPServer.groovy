@@ -30,11 +30,10 @@ import com.sshtools.j2ssh.configuration.ConfigurationLoader;
 import com.sshtools.j2ssh.connection.ConnectionProtocol;
 import org.xml.sax.SAXException
 import groovy.xml.MarkupBuilder
-import static org.junit.Assert.*
 import org.gradle.util.TestFile
+import com.sshtools.daemon.platform.NativeFileSystemProvider
 
 class SFTPServer extends ExternalResource {
-    final String username;
     final int port;
     final String hostAddress;
 
@@ -43,8 +42,9 @@ class SFTPServer extends ExternalResource {
     private SshServer server;
     private File userHome
 
-    public SFTPServer(String username, int port, String hostAddress) {
-        this.username = username;
+    TestVirtualFileSystem virtualFileSystem;
+
+    public SFTPServer(int port, String hostAddress) {
         this.port = port;
         this.hostAddress = hostAddress;
     }
@@ -87,7 +87,6 @@ class SFTPServer extends ExternalResource {
         createServerConfig();
         createPlatformConfig();
         copyDsaKey();
-        setupHomeDir();
         configureServer();
     }
 
@@ -97,7 +96,7 @@ class SFTPServer extends ExternalResource {
             xml.PlatformConfiguration() {
                 NativeProcessProvider("com.sshtools.daemon.platform.UnsupportedShellProcessProvider")
                 NativeAuthenticationProvider("org.gradle.integtests.fixtures.SshDummyAuthenticationProvider")
-                NativeFileSystemProvider("com.sshtools.daemon.vfs.VirtualFileSystem")
+                NativeFileSystemProvider("org.gradle.integtests.fixtures.TestVirtualFileSystem")
                 VFSRoot(path: baseDir.getRoot());
             }
         }
@@ -117,12 +116,6 @@ class SFTPServer extends ExternalResource {
                 Subsystem(Name: "sftp", Type: "class", Provider: "com.sshtools.daemon.sftp.SftpSubsystemServer")
             }
         }
-    }
-
-    private void setupHomeDir() {
-        File homeBase = baseDir.newFolder("home");
-        userHome = new File(homeBase, username);
-        userHome.mkdirs();
     }
 
     private void configureServer() throws ConfigurationException {
@@ -148,6 +141,7 @@ class SFTPServer extends ExternalResource {
             @Override
             protected void configureServices(ConnectionProtocol connectionProtocol) throws IOException {
                 connectionProtocol.addChannelFactory(SessionChannelFactory.SESSION_CHANNEL, new SessionChannelFactory());
+                virtualFileSystem = (TestVirtualFileSystem)NativeFileSystemProvider.getInstance();
             }
 
             protected boolean isAcceptConnectionFrom(Socket socket) {
@@ -163,11 +157,17 @@ class SFTPServer extends ExternalResource {
     }
 
     boolean hasFile(String filePathToCheck) {
-        new File(userHome, filePathToCheck).exists()
+        new File(baseDir.getRoot(), filePathToCheck).exists()
     }
 
     TestFile file(String expectedPath) {
-        new TestFile(new File(userHome, expectedPath))
+        new TestFile(new File(baseDir.getRoot(), expectedPath))
     }
+
+    public List<String> getFileRequests(){
+        return virtualFileSystem.fileRequests
+    }
+
+
 }
 

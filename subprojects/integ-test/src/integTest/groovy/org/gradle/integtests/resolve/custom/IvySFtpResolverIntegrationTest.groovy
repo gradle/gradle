@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.IvyRepository
 class IvySFtpResolverIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    public final SFTPServer server = new SFTPServer("testuser", 2022, "127.0.0.1")
+    public final SFTPServer server = new SFTPServer(2022, "127.0.0.1")
 
     def "setup"() {
         requireOwnUserHomeDir()
@@ -43,8 +43,8 @@ repositories {
         name = "sftprepo"
         host = "${server.hostAddress}"
         port = ${server.port}
-        user = "${server.username}"
-        userPassword = "${server.username}"
+        user = "simple"
+        userPassword = "simple"
         addIvyPattern "repos/libs/[organization]/[module]/[revision]/ivy-[revision].xml"
         addArtifactPattern "repos/libs/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
     }
@@ -52,17 +52,24 @@ repositories {
 configurations { compile }
 configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 dependencies { compile 'group:projectA:1.2' }
-task retrieve(type: Sync) {
-   from configurations.compile
-   into 'libs'
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
 }
 """
         when:
-        succeeds 'retrieve'
+        succeeds 'listJars'
 
         then:
-        def jarFile = file('libs/projectA-1.2.jar')
-        jarFile.assertIsCopyOf(module.jarFile)
+        server.fileRequests == ["repos/libs/group/projectA/1.2/ivy-1.2.xml",
+                                "repos/libs/group/projectA/1.2/projectA-1.2.jar"
+                               ]
+
+        when:
+        server.fileRequests.clear()
+        succeeds 'listJars'
+
+        then:
+        server.fileRequests.empty
     }
 
     IvyRepository ivyRepo() {

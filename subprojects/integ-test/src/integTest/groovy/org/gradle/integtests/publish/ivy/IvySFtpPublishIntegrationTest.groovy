@@ -23,7 +23,7 @@ import org.junit.Rule
 class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    public final SFTPServer sftpServer = new SFTPServer("testUser", 2022, "127.0.0.1")
+    public final SFTPServer sftpServer = new SFTPServer(2022, "127.0.0.1")
 
     public void "can publish using SFTResolver"() {
         given:
@@ -40,8 +40,8 @@ class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
                     addArtifactPattern "repos/libs/[organisation]/[module]/[artifact]-[revision].[ext]"
                     host = "${sftpServer.hostAddress}"
                     port = ${sftpServer.port}
-                    user = "${sftpServer.username}"
-                    userPassword = "${sftpServer.username}"
+                    user = "user"
+                    userPassword = "user"
                 }
             }
         }
@@ -69,7 +69,7 @@ class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
                     addArtifactPattern "repos/libs/[organisation]/[module]/[artifact]-[revision].[ext]"
                     host = "${sftpServer.hostAddress}"
                     port = ${sftpServer.port}
-                    user = "${sftpServer.username}"
+                    user = "simple"
                     userPassword = "wrongPassword"
                 }
             }

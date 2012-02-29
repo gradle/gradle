@@ -30,7 +30,7 @@ public class SshDummyAuthenticationProvider extends NativeAuthenticationProvider
     public String getHomeDirectory(String username) throws IOException {
         PlatformConfiguration platform = (PlatformConfiguration) ConfigurationLoader.getConfiguration(PlatformConfiguration.class);
         String base = platform.getVFSRoot().getPath();
-        File homeDir = new File(base + File.separator + "home" + File.separator + username);
+        File homeDir = new File(base);
         return homeDir.getAbsolutePath().replace('\\', '/');
     }
 
