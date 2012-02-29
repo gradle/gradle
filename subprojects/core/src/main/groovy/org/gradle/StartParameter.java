@@ -18,14 +18,6 @@ package org.gradle;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.groovy.scripts.UriScriptSource;
-import org.gradle.initialization.BuildFileProjectSpec;
-import org.gradle.initialization.DefaultProjectSpec;
-import org.gradle.initialization.ProjectDirectoryProjectSpec;
-import org.gradle.initialization.ProjectSpec;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
@@ -58,14 +50,14 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private Set<String> excludedTaskNames = new HashSet<String>();
     private boolean buildProjectDependencies = true;
     private File currentDir;
+    private File projectDir;
     private boolean searchUpwards = true;
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     private File gradleUserHomeDir;
     private CacheUsage cacheUsage = CacheUsage.ON;
-    private ScriptSource buildScriptSource;
-    private ScriptSource settingsScriptSource;
-    private ProjectSpec defaultProjectSelector;
+    private File settingsFile;
+    private boolean useEmptySettings;
     private File buildFile;
     private List<File> initScripts = new ArrayList<File>();
     private boolean dryRun;
@@ -117,6 +109,9 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     public StartParameter newInstance() {
         StartParameter startParameter = new StartParameter();
         startParameter.buildFile = buildFile;
+        startParameter.projectDir = projectDir;
+        startParameter.settingsFile = settingsFile;
+        startParameter.useEmptySettings = useEmptySettings;
         startParameter.taskNames = taskNames;
         startParameter.buildProjectDependencies = buildProjectDependencies;
         startParameter.currentDir = currentDir;
@@ -125,10 +120,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.systemPropertiesArgs = systemPropertiesArgs;
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
         startParameter.cacheUsage = cacheUsage;
-        startParameter.buildScriptSource = buildScriptSource;
-        startParameter.settingsScriptSource = settingsScriptSource;
         startParameter.initScripts = new ArrayList<File>(initScripts);
-        startParameter.defaultProjectSelector = defaultProjectSelector;
         startParameter.setLogLevel(getLogLevel());
         startParameter.setColorOutput(isColorOutput());
         startParameter.setShowStacktrace(getShowStacktrace());
@@ -193,83 +185,45 @@ public class StartParameter extends LoggingConfiguration implements Serializable
             setCurrentDir(null);
         } else {
             this.buildFile = GFileUtils.canonicalise(buildFile);
-            currentDir = this.buildFile.getParentFile();
-            defaultProjectSelector = new BuildFileProjectSpec(this.buildFile);
+            setProjectDir(this.buildFile.getParentFile());
         }
     }
 
     /**
-     * <p>Returns the {@link ScriptSource} to use for the build file for this build. Returns null when the default build
-     * file(s) are to be used. This source is used for <em>all</em> projects included in the build.</p>
+     * Specifies that an empty settings script should be used.
      *
-     * @return The build file source, or null to use the defaults.
-     * @deprecated Use {@link #getBuildFile()} instead.
-     */
-    @Deprecated
-    public ScriptSource getBuildScriptSource() {
-        return buildScriptSource;
-    }
-
-    /**
-     * <p>Returns the {@link ScriptSource} to use for the settings script for this build. Returns null when the default
-     * settings script is to be used.</p>
+     * This means that even if a settings file exists in the conventional location,
+     * or has been previously specified by {@link #setSettingsFile(java.io.File)}, it
+     * will not be used.
      *
-     * @return The settings script source, or null to use the default.
-     */
-    @Deprecated
-    public ScriptSource getSettingsScriptSource() {
-        return settingsScriptSource;
-    }
-
-    /**
-     * <p>Sets the {@link ScriptSource} to use for the settings script. Set to null to use the default settings
-     * script.</p>
-     *
-     * @param settingsScriptSource The settings script source.
-     * @deprecated Use {@link #setSettingsFile(java.io.File)} or {@link #useEmptySettingsScript()} instead.
-     */
-    @Deprecated
-    public void setSettingsScriptSource(ScriptSource settingsScriptSource) {
-        this.settingsScriptSource = settingsScriptSource;
-    }
-
-    /**
-     * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file.
-     * </p>
+     * If {@link #setSettingsFile(java.io.File)} is called after this, it will supersede calling this method.
      *
      * @return this
      */
-    public StartParameter useEmptySettingsScript() {
+    public StartParameter useEmptySettings() {
         searchUpwards = false;
-        settingsScriptSource = new StringScriptSource("empty settings file", "");
+        useEmptySettings = true;
+        settingsFile = null;
         return this;
     }
 
     /**
-     * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file. </p>
+     * Deprecated. Use {@link #useEmptySettings()}.
      *
-     * @param buildScriptText The script to use as the build file.
-     * @return this
-     * @deprecated No replacement.
+     * @deprecated use {@link #useEmptySettings()}
      */
     @Deprecated
-    public StartParameter useEmbeddedBuildFile(String buildScriptText) {
-        return setBuildScriptSource(new StringScriptSource("embedded build file", buildScriptText));
+    public StartParameter useEmptySettingsScript() {
+        return useEmptySettings();
     }
 
     /**
-     * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file.
-     * </p>
+     * Returns whether an empty settings script will be used regardless of whether one exists in the default location.
      *
-     * @param buildScript The script to use as the build file.
-     * @return this
-     * @deprecated Use {@link #setBuildFile(java.io.File)} or {@link #useEmbeddedBuildFile(String)} instead.
+     * @return  Whether to use empty settings or not.
      */
-    @Deprecated
-    public StartParameter setBuildScriptSource(ScriptSource buildScript) {
-        buildScriptSource = buildScript;
-        useEmptySettingsScript();
-        return this;
+    public boolean isUseEmptySettings() {
+        return useEmptySettings;
     }
 
     /**
@@ -331,7 +285,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         } else {
             this.currentDir = GFileUtils.canonicalise(new File(System.getProperty("user.dir")));
         }
-        defaultProjectSelector = null;
     }
 
     public boolean isSearchUpwards() {
@@ -391,27 +344,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Returns the project dependencies build instruction.
-     *
-     * @deprecated Use {@link #isBuildProjectDependencies()} instead.
-     */
-    @Deprecated
-    public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
-        return new ProjectDependenciesBuildInstruction(buildProjectDependencies);
-    }
-
-    /**
-     * Sets the project dependencies build instruction.
-     *
-     * @deprecated Use {@link #setBuildProjectDependencies(boolean)} instead.
-     */
-    @Deprecated
-    public void setProjectDependenciesBuildInstruction(
-            ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
-        this.buildProjectDependencies = projectDependenciesBuildInstruction.isRebuild();
-    }
-
-    /**
      * Returns true if project dependencies are to be built, false if they should not be. The default is true.
      */
     public boolean isBuildProjectDependencies() {
@@ -459,12 +391,25 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public void setSettingsFile(File settingsFile) {
         if (settingsFile == null) {
-            settingsScriptSource = null;
+            this.settingsFile = null;
         } else {
-            File canonicalFile = GFileUtils.canonicalise(settingsFile);
-            currentDir = canonicalFile.getParentFile();
-            settingsScriptSource = new UriScriptSource("settings file", canonicalFile);
+            this.useEmptySettings = false;
+            this.settingsFile = GFileUtils.canonicalise(settingsFile);
+            currentDir = this.settingsFile.getParentFile();
         }
+    }
+
+    /**
+     * Returns the explicit settings file to use for the build, or null.
+     *
+     * Will return null if the default settings file is to be used. However, if {@link #isUseEmptySettings()}
+     * returns true, then no settings file at all will be used.
+     *
+     * @see #isUseEmptySettings()
+     * @return The settings file. May be null.
+     */
+    public File getSettingsFile() {
+        return settingsFile;
     }
 
     /**
@@ -498,29 +443,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Returns the selector used to choose the default project of the build. This is the project used as the starting
-     * point for resolving task names, and for determining the default tasks.
-     *
-     * @return The default project. Never returns null.
-     * @deprecated Use {@link #getCurrentDir()} and {@link #getBuildFile()} instead.
-     */
-    @Deprecated
-    public ProjectSpec getDefaultProjectSelector() {
-        return defaultProjectSelector != null ? defaultProjectSelector : new DefaultProjectSpec(currentDir);
-    }
-
-    /**
-     * Sets the selector used to choose the default project of the build.
-     *
-     * @param defaultProjectSelector The selector. Should not be null.
-     * @deprecated
-     */
-    @Deprecated
-    public void setDefaultProjectSelector(ProjectSpec defaultProjectSelector) {
-        this.defaultProjectSelector = defaultProjectSelector;
-    }
-
-    /**
      * Sets the project directory to use to select the default project. Use null to use the default criteria for
      * selecting the default project.
      *
@@ -529,11 +451,23 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     public void setProjectDir(File projectDir) {
         if (projectDir == null) {
             setCurrentDir(null);
+            this.projectDir = null;
         } else {
             File canonicalFile = GFileUtils.canonicalise(projectDir);
             currentDir = canonicalFile;
-            defaultProjectSelector = new ProjectDirectoryProjectSpec(canonicalFile);
+            this.projectDir = canonicalFile;
         }
+    }
+
+    /**
+     * Returns the project dir to use to select the default project.
+     *
+     * Returns null when the build file is not used to select the default project
+     *
+     * @return The project dir. May be null.
+     */
+    public File getProjectDir() {
+        return projectDir;
     }
 
     /**
@@ -605,9 +539,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", systemPropertiesArgs=" + systemPropertiesArgs
                 + ", gradleUserHomeDir=" + gradleUserHomeDir
                 + ", cacheUsage=" + cacheUsage
-                + ", buildScriptSource=" + buildScriptSource
-                + ", settingsScriptSource=" + settingsScriptSource
-                + ", defaultProjectSelector=" + defaultProjectSelector
                 + ", logLevel=" + getLogLevel()
                 + ", showStacktrace=" + getShowStacktrace()
                 + ", buildFile=" + buildFile

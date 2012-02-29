@@ -158,21 +158,7 @@ class BuildLayoutFactoryTest extends Specification {
         currentDir.createFile("settings.gradle")
         def startParameter = new StartParameter()
         startParameter.currentDir = currentDir
-        startParameter.useEmptySettingsScript()
-        def config = new BuildLayoutConfiguration(startParameter)
-
-        expect:
-        def layout = locator.getLayoutFor(config)
-        layout.rootDirectory == currentDir
-        layout.settingsDir == currentDir
-        isEmpty(layout.settingsScriptSource)
-    }
-
-    def "can override build layout by specifying an embedded build script"() {
-        def currentDir = tmpDir.createDir("current")
-        def startParameter = new StartParameter()
-        startParameter.currentDir = currentDir
-        startParameter.useEmbeddedBuildFile 'embedded'
+        startParameter.useEmptySettings()
         def config = new BuildLayoutConfiguration(startParameter)
 
         expect:

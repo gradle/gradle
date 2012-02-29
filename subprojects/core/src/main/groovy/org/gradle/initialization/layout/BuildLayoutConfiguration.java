@@ -16,7 +16,6 @@
 package org.gradle.initialization.layout;
 
 import org.gradle.StartParameter;
-import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
 
@@ -26,12 +25,14 @@ import java.io.File;
 public class BuildLayoutConfiguration {
     private File currentDir;
     private boolean searchUpwards;
-    private final ScriptSource settingsScriptSource;
+    private final File settingsFile;
+    private final boolean useEmptySettings;
 
     public BuildLayoutConfiguration(StartParameter startParameter) {
         currentDir = startParameter.getCurrentDir();
         searchUpwards = startParameter.isSearchUpwards();
-        settingsScriptSource = startParameter.getSettingsScriptSource();
+        settingsFile = startParameter.getSettingsFile();
+        useEmptySettings = startParameter.isUseEmptySettings();
     }
 
     public File getCurrentDir() {
@@ -42,10 +43,11 @@ public class BuildLayoutConfiguration {
         return searchUpwards;
     }
 
-    /**
-     * Returns the settings script to use, or null to use the default settings script.
-     */
-    public ScriptSource getSettingsScript() {
-        return settingsScriptSource;
+    public File getSettingsFile() {
+        return settingsFile;
+    }
+
+    public boolean isUseEmptySettings() {
+        return useEmptySettings;
     }
 }

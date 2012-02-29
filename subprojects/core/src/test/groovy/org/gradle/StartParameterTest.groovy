@@ -16,15 +16,7 @@
 
 package org.gradle
 
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction
 import org.gradle.api.logging.LogLevel
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.groovy.scripts.UriScriptSource
-import org.gradle.initialization.BuildFileProjectSpec
-import org.gradle.initialization.DefaultProjectSpec
-import org.gradle.initialization.ProjectDirectoryProjectSpec
-import org.gradle.initialization.ProjectSpec
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
@@ -47,7 +39,7 @@ class StartParameterTest {
         testObj.settingsFile = 'settingsfile' as File
         testObj.buildFile = 'buildfile' as File
         testObj.taskNames = ['a']
-        testObj.projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(true)
+        testObj.buildProjectDependencies = true
         testObj.currentDir = new File('a')
         testObj.searchUpwards = false
         testObj.projectProperties = [a: 'a']
@@ -70,7 +62,7 @@ class StartParameterTest {
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
 
         assertThat(parameter.buildFile, nullValue())
-        assertThat(parameter.settingsScriptSource, nullValue())
+        assertThat(parameter.settingsFile, nullValue())
 
         assertThat(parameter.logLevel, equalTo(LogLevel.LIFECYCLE))
         assertTrue(parameter.colorOutput)
@@ -78,7 +70,6 @@ class StartParameterTest {
         assertThat(parameter.excludedTaskNames, isEmpty())
         assertThat(parameter.projectProperties, isEmptyMap())
         assertThat(parameter.systemPropertiesArgs, isEmptyMap())
-        assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
         assertFalse(parameter.dryRun)
         assertFalse(parameter.continueOnFailure)
         assertThat(parameter.refreshOptions, equalTo(RefreshOptions.NONE))
@@ -98,7 +89,6 @@ class StartParameterTest {
         parameter.currentDir = dir
 
         assertThat(parameter.currentDir, equalTo(dir.canonicalFile))
-        assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(dir.canonicalFile)))
         assertThat(parameter, isSerializable())
     }
 
@@ -109,7 +99,6 @@ class StartParameterTest {
 
         assertThat(parameter.buildFile, equalTo(file.canonicalFile))
         assertThat(parameter.currentDir, equalTo(file.canonicalFile.parentFile))
-        assertThat(parameter.defaultProjectSelector, reflectionEquals(new BuildFileProjectSpec(file.canonicalFile)))
         assertThat(parameter, isSerializable())
     }
 
@@ -120,7 +109,6 @@ class StartParameterTest {
 
         assertThat(parameter.buildFile, nullValue())
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
-        assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
         assertThat(parameter.initScripts, equalTo(Collections.emptyList()))
         assertThat(parameter, isSerializable())
     }
@@ -131,7 +119,6 @@ class StartParameterTest {
         parameter.projectDir = file
 
         assertThat(parameter.currentDir, equalTo(file.canonicalFile))
-        assertThat(parameter.defaultProjectSelector, reflectionEquals(new ProjectDirectoryProjectSpec(file.canonicalFile)))
         assertThat(parameter, isSerializable())
     }
 
@@ -141,7 +128,6 @@ class StartParameterTest {
         parameter.projectDir = null
 
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
-        assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
         assertThat(parameter, isSerializable())
     }
 
@@ -151,8 +137,7 @@ class StartParameterTest {
         parameter.settingsFile = file
 
         assertThat(parameter.currentDir, equalTo(file.canonicalFile.parentFile))
-        assertThat(parameter.settingsScriptSource, instanceOf(UriScriptSource.class))
-        assertThat(parameter.settingsScriptSource.resource.file, equalTo(file.canonicalFile))
+        assertThat(parameter.settingsFile, equalTo(file.canonicalFile))
         assertThat(parameter, isSerializable())
     }
 
@@ -160,38 +145,14 @@ class StartParameterTest {
         StartParameter parameter = new StartParameter()
         parameter.settingsFile = null
 
-        assertThat(parameter.settingsScriptSource, nullValue())
-        assertThat(parameter, isSerializable())
-    }
-
-    @Test public void testSetSettingsScriptSource() {
-        StartParameter parameter = new StartParameter()
-        parameter.settingsFile = new File('settings file')
-
-        ScriptSource scriptSource = new StringScriptSource("", "")
-
-        parameter.settingsScriptSource = scriptSource
-
-        assertThat(parameter.settingsScriptSource, sameInstance(scriptSource))
-        assertThat(parameter, isSerializable())
-    }
-
-    @Test public void testUseEmbeddedBuildFile() {
-        StartParameter parameter = new StartParameter();
-        parameter.useEmbeddedBuildFile("<content>")
-        assertThat(parameter.buildScriptSource, instanceOf(StringScriptSource.class))
-        assertThat(parameter.buildScriptSource.resource.text, equalTo("<content>"))
-        assertThat(parameter.settingsScriptSource, instanceOf(StringScriptSource.class))
-        assertThat(parameter.settingsScriptSource.resource.text, equalTo(""))
-        assertThat(parameter.searchUpwards, equalTo(false))
+        assertThat(parameter.settingsFile, nullValue())
         assertThat(parameter, isSerializable())
     }
 
     @Test public void testUseEmptySettingsScript() {
         StartParameter parameter = new StartParameter();
-        parameter.useEmptySettingsScript()
-        assertThat(parameter.settingsScriptSource, instanceOf(StringScriptSource.class))
-        assertThat(parameter.settingsScriptSource.resource.text, equalTo(""))
+        parameter.useEmptySettings()
+        assertThat(parameter.settingsFile, nullValue())
         assertThat(parameter.searchUpwards, equalTo(false))
         assertThat(parameter, isSerializable())
     }
@@ -218,7 +179,6 @@ class StartParameterTest {
         parameter.settingsFile = new File("settings file")
         parameter.taskNames = ['task1']
         parameter.excludedTaskNames = ['excluded1']
-        parameter.defaultProjectSelector = [:] as ProjectSpec
         parameter.dryRun = true
         parameter.continueOnFailure = true
         assertThat(parameter, isSerializable())
@@ -237,7 +197,6 @@ class StartParameterTest {
         assertThat(newParameter.taskNames, isEmpty())
         assertThat(newParameter.excludedTaskNames, isEmpty())
         assertThat(newParameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
-        assertThat(newParameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(newParameter.currentDir)))
         assertFalse(newParameter.dryRun)
         assertThat(newParameter, isSerializable())
     }

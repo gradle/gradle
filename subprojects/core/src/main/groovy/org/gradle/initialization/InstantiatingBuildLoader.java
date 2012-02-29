@@ -23,6 +23,8 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 
+import java.io.File;
+
 /**
  * @author Hans Dockter
  */
@@ -43,15 +45,17 @@ public class InstantiatingBuildLoader implements BuildLoader {
     }
 
     private void attachDefaultProject(GradleInternal gradle) {
-        ProjectSpec selector = gradle.getStartParameter().getDefaultProjectSelector();
-        ProjectInternal defaultProject;
+        File explicitProjectDir = gradle.getStartParameter().getProjectDir();
+        File explicitBuildFile = gradle.getStartParameter().getBuildFile();
+        ProjectSpec spec = explicitBuildFile != null
+                ? new BuildFileProjectSpec(explicitBuildFile)
+                : explicitProjectDir == null ? new DefaultProjectSpec(gradle.getStartParameter().getCurrentDir()) : new ProjectDirectoryProjectSpec(explicitProjectDir);
         try {
-            defaultProject = selector.selectProject(gradle.getRootProject().getProjectRegistry());
+            gradle.setDefaultProject(spec.selectProject(gradle.getRootProject().getProjectRegistry()));
         } catch (InvalidUserDataException e) {
             throw new GradleException(String.format("Could not select the default project for this build. %s",
                     e.getMessage()), e);
         }
-        gradle.setDefaultProject(defaultProject);
     }
 
     private void createProjects(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle) {

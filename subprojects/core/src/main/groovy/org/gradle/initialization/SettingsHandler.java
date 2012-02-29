@@ -43,11 +43,18 @@ public class SettingsHandler {
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter);
-        if (!startParameter.getDefaultProjectSelector().containsProject(settings.getProjectRegistry())) {
+
+        File explicitProjectDir = startParameter.getProjectDir();
+        File explicitBuildFile = startParameter.getBuildFile();
+        ProjectSpec spec = explicitBuildFile != null
+                ? new BuildFileProjectSpec(explicitBuildFile)
+                : explicitProjectDir == null ? new DefaultProjectSpec(startParameter.getCurrentDir()) : new ProjectDirectoryProjectSpec(explicitProjectDir);
+
+        if (!spec.containsProject(settings.getProjectRegistry())) {
             // The settings we found did not include the desired default project. Try again with an empty settings file.
 
             StartParameter noSearchParameter = startParameter.newInstance();
-            noSearchParameter.useEmptySettingsScript();
+            noSearchParameter.useEmptySettings();
             settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter);
             if (settings == null) // not using an assert to make sure it is not disabled
             {

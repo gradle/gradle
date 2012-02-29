@@ -29,20 +29,16 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class ProjectFactory implements IProjectFactory {
-    private ScriptSource embeddedScript;
     private final Instantiator instantiator;
 
-    public ProjectFactory(ScriptSource embeddedScript, Instantiator instantiator) {
-        this.embeddedScript = embeddedScript;
+    public ProjectFactory(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
 
     public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle) {
         File buildFile = projectDescriptor.getBuildFile();
         ScriptSource source;
-        if (embeddedScript != null) {
-            source = embeddedScript;
-        } else if (!buildFile.exists()) {
+        if (!buildFile.exists()) {
             source = new StringScriptSource("empty build file", "");
         } else {
             source = new UriScriptSource("build file", buildFile);
