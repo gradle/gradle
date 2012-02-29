@@ -54,10 +54,15 @@ public class NativeServices extends DefaultServiceRegistry {
     }
 
     protected TerminalDetector createTerminalDetector() {
-        if (get(OperatingSystem.class).isWindows()) {
-            return new WindowsTerminalDetector();
+        try {
+            if (get(OperatingSystem.class).isWindows()) {
+                return new WindowsTerminalDetector();
+            }
+            return new LibCBackedTerminalDetector(get(LibC.class));
+        } catch (LinkageError e) {
+            // Thrown when jna cannot initialize the native stuff
+            return new NoOpTerminalDetector();
         }
-        return new LibCBackedTerminalDetector(get(LibC.class));
     }
     
     protected LibC createLibC() {
