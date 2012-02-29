@@ -89,23 +89,14 @@ public class DefaultDaemonStarter implements DaemonStarter {
         try {
             workingDir.mkdirs();
             if (OperatingSystem.current().isWindows()) {
-                StringBuilder commandLine = new StringBuilder();
-                for (String arg : args) {
-                    commandLine.append('"');
-                    commandLine.append(arg);
-                    commandLine.append("\" ");
-                }
-                LOGGER.debug("Windows command line for starting daemon: {}", commandLine);
-                LOGGER.debug("Windows environment variables: {}", System.getenv());
-                new WindowsProcessStarter().start(workingDir, commandLine.toString());
-            } else {
-                Process process = new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();
-                new DaemonGreeter().verifyGreetingReceived(process);
-
-                process.getOutputStream().close();
-                process.getErrorStream().close();
-                process.getInputStream().close();
+                new WindowsProcessStarter().start();
             }
+            Process process = new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();
+            new DaemonGreeter().verifyGreetingReceived(process);
+
+            process.getOutputStream().close();
+            process.getErrorStream().close();
+            process.getInputStream().close();
         } catch (GradleException e) {
             throw e;
         } catch (Exception e) {

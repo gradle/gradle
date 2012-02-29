@@ -16,9 +16,6 @@
 
 package org.gradle.internal.nativeplatform.jna;
 
-import com.sun.jna.WString;
-
-import java.io.File;
 import java.io.IOException;
 
 import static org.gradle.internal.nativeplatform.jna.Kernel32.*;
@@ -35,15 +32,26 @@ import static org.gradle.internal.nativeplatform.jna.Kernel32.*;
  */
 public class WindowsProcessStarter {
 
-    public void start(File dir, String command) throws IOException {
+    public void start() throws IOException {
         Kernel32 kernel32 = INSTANCE;
-        Kernel32.StartupInfo startupInfo = new Kernel32.StartupInfo();
-        Kernel32.ProcessInfo processInformation = new Kernel32.ProcessInfo();
-        if (!kernel32.CreateProcessW(null, new WString(command), null, null, false, DETACHED_PROCESS, null,
-                new WString(dir.getAbsolutePath()), startupInfo, processInformation)) {
-            throw new IOException("Could not start process. Errno: " + kernel32.GetLastError());
+
+        HANDLE stdin = kernel32.GetStdHandle(Kernel32.STD_INPUT_HANDLE);
+        makeUninheritable(kernel32, stdin);
+
+        HANDLE stdout = kernel32.GetStdHandle(Kernel32.STD_OUTPUT_HANDLE);
+        makeUninheritable(kernel32, stdout);
+
+        HANDLE stderr = kernel32.GetStdHandle(Kernel32.STD_ERROR_HANDLE);
+        makeUninheritable(kernel32, stderr);
+    }
+
+    private void makeUninheritable(Kernel32 kernel32, HANDLE handle) throws IOException {
+        if (handle.equals(INVALID_HANDLE_VALUE)) {
+            throw new IOException("Invalid handle. Errno: " + kernel32.GetLastError());
         }
-        kernel32.CloseHandle(processInformation.hProcess);
-        kernel32.CloseHandle(processInformation.hThread);
+        boolean ok = kernel32.SetHandleInformation(handle, HANDLE_FLAG_INHERIT, 0);
+        if (!ok && kernel32.GetLastError() != ERROR_INVALID_PARAMETER) {
+            throw new IOException("Could not set flag on handle. Errno: " + kernel32.GetLastError());
+        }
     }
 }
