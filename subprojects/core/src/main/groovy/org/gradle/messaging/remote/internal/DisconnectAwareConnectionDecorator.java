@@ -86,7 +86,7 @@ public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<
             try {
                 actionSetLatch.await();
             } catch (InterruptedException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
 
             actionLock.lock();
@@ -98,7 +98,7 @@ public class DisconnectAwareConnectionDecorator<T> extends DelegatingConnection<
                     } catch (Exception e) {
                         e.printStackTrace();
                         LOGGER.error("disconnection handler threw exception", e);
-                        throw UncheckedException.asUncheckedException(e);
+                        throw UncheckedException.throwAsUncheckedException(e);
                     }
                     LOGGER.info("completed disconnection handler {}", disconnectAction);
                 }

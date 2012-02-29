@@ -52,7 +52,7 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
         try {
             documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         hostName = getHostname();
     }

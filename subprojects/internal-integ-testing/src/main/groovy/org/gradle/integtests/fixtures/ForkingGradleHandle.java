@@ -45,7 +45,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         try {
             return standardOutput.toString(outputEncoding);
         } catch (UnsupportedEncodingException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -53,7 +53,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         try {
             return errorOutput.toString(outputEncoding);
         } catch (UnsupportedEncodingException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

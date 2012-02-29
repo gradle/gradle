@@ -81,7 +81,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
                 try {
                     return value.call();
                 } catch (Exception e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         });

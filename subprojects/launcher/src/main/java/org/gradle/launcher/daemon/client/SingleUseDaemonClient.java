@@ -60,7 +60,7 @@ public class SingleUseDaemonClient extends DaemonClient {
             return (T) monitorBuild(build, connection).getValue();
         } else if (firstResult instanceof Failure) {
             // Could potentially distinguish between CommandFailure and DaemonFailure here.
-            throw UncheckedException.asUncheckedException(((Failure) firstResult).getValue());
+            throw UncheckedException.throwAsUncheckedException(((Failure) firstResult).getValue());
         } else if (firstResult instanceof DaemonBusy) {
             throw new GradleException("Single use daemon process responded as busy: this should never happen.");
         } else if (firstResult == null) {

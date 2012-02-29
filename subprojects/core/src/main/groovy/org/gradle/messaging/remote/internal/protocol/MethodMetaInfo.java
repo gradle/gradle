@@ -53,7 +53,7 @@ public class MethodMetaInfo extends Message {
             }
             return declaringClass.getMethod(methodName, paramTypes);
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

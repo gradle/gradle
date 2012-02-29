@@ -41,7 +41,7 @@ public class CompilerDaemonServer implements Action<WorkerProcessContext>, Compi
         try {
             stop.await();
         } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
     }

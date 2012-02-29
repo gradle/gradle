@@ -102,7 +102,7 @@ public class ForwardClientInput implements DaemonCommandAction {
                     inputOrConnectionClosedLatch.await();
                 } catch (InterruptedException e) {
                     LOGGER.debug("Interrupted while waiting for client to disconnect.");
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 } finally {
                     inputReceiver.stop();
                     LOGGER.debug("The input receiver has been stopped.");
@@ -119,7 +119,7 @@ public class ForwardClientInput implements DaemonCommandAction {
             });
             replacementStdin.close();
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

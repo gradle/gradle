@@ -120,7 +120,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 LOGGER.info("The daemon we connected to was busy. Trying a different daemon...");
             } else if (firstResult instanceof Failure) {
                 // Could potentially distinguish between CommandFailure and DaemonFailure here.
-                throw UncheckedException.asUncheckedException(((Failure) firstResult).getValue());
+                throw UncheckedException.throwAsUncheckedException(((Failure) firstResult).getValue());
             } else if (firstResult == null) {
                 LOGGER.info("The first result from the daemon was empty. Most likely the daemon has died. Trying a different daemon...");
             } else {
@@ -150,7 +150,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                     //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
                 } else if (object instanceof Failure) {
                     // Could potentially distinguish between CommandFailure and DaemonFailure here.
-                    throw UncheckedException.asUncheckedException(((Failure) object).getValue());
+                    throw UncheckedException.throwAsUncheckedException(((Failure) object).getValue());
                 } else if (object instanceof OutputEvent) {
                     outputEventListener.onOutput((OutputEvent) object);
                 } else if (object instanceof Result) {

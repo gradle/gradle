@@ -51,7 +51,7 @@ public class PathNotationParser<T extends String> implements NotationParser<T> {
                 final Object called = callableNotation.call();
                 return parseNotation(called);
             } catch (Exception e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         DeprecationLogger.nagUserWith(String.format("Converting class %s to path using toString() Method. "

@@ -68,7 +68,7 @@ public class DefaultFileLockManager implements FileLockManager {
             return new DefaultFileLock(canonicalTarget, mode, targetDisplayName, operationDisplayName);
         } catch (Throwable t) {
             lockedFiles.remove(canonicalTarget);
-            throw UncheckedException.asUncheckedException(t);
+            throw UncheckedException.throwAsUncheckedException(t);
         }
     }
 
@@ -151,7 +151,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     }
                 }
             } catch (Throwable t) {
-                throw UncheckedException.asUncheckedException(t);
+                throw UncheckedException.throwAsUncheckedException(t);
             }
         }
 

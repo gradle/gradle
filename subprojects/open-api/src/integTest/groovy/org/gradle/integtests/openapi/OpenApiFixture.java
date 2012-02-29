@@ -61,7 +61,7 @@ public class OpenApiFixture implements MethodRule {
         try {
             singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), dist.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         //make sure we got something
@@ -79,7 +79,7 @@ public class OpenApiFixture implements MethodRule {
         try {
             dualPane = UIFactory.createDualPaneUI(getClass().getClassLoader(), dist.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         //make sure we got something
@@ -120,7 +120,7 @@ public class OpenApiFixture implements MethodRule {
                 }
             });
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

@@ -86,7 +86,7 @@ public class Application implements AlternateUIInteraction {
         try {   //try and make it look like a native app
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         this.doesSupportEditingFiles = determineIfSupportsEditingFiles();

@@ -214,7 +214,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
             throw e;
         } catch (Exception e) {
             fireTransferError(e);
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             progress.setTotalLength(null);
             openResources.remove(resource);
@@ -234,7 +234,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
             throw e;
         } catch (Exception e) {
             fireTransferError(e);
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             progress.setTotalLength(null);
         }

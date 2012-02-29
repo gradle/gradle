@@ -141,7 +141,7 @@ public class DefaultCacheAccess implements CacheAccess {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
             owner = Thread.currentThread();

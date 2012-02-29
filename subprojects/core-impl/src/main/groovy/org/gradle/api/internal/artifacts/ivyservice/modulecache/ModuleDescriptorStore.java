@@ -50,7 +50,7 @@ public class ModuleDescriptorStore {
             URL result = moduleDescriptorFile.toURI().toURL();
             return parser.parseDescriptor(settings, result, false);
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -59,7 +59,7 @@ public class ModuleDescriptorStore {
         try {
             XmlModuleDescriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

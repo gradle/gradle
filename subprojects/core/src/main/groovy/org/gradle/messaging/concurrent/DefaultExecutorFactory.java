@@ -98,7 +98,7 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
                 try {
                     failureHandler.stop();
                 } catch (DispatchException e) {
-                    throw UncheckedException.asUncheckedException(e.getCause());
+                    throw UncheckedException.throwAsUncheckedException(e.getCause());
                 }
             } finally {
                 executors.remove(this);

@@ -104,7 +104,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             try {
                 Thread.sleep(200L);
             } catch (InterruptedException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
             DaemonConnection daemonConnection = connectToDaemonWithId(uid);
             if (daemonConnection != null) {

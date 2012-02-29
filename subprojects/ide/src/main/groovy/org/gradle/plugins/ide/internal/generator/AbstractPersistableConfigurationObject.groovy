@@ -29,7 +29,7 @@ public abstract class AbstractPersistableConfigurationObject implements Persista
                 inputStream.close();
             }
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -46,7 +46,7 @@ public abstract class AbstractPersistableConfigurationObject implements Persista
                 inputStream.close();
             }
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -61,7 +61,7 @@ public abstract class AbstractPersistableConfigurationObject implements Persista
                 outputStream.close();
             }
         } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

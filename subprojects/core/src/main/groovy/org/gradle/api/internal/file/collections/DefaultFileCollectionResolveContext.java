@@ -119,7 +119,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 try {
                     callableResult = callable.call();
                 } catch (Exception e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 if (callableResult != null) {
                     queue.add(0, callableResult);

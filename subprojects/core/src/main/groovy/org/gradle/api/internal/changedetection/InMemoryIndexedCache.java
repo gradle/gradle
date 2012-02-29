@@ -38,7 +38,7 @@ public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> 
             ByteArrayInputStream instr = new ByteArrayInputStream(serialised);
             return (V)new ObjectInputStream(instr).readObject();
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

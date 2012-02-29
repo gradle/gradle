@@ -108,7 +108,7 @@ public class HttpClientConfigurer {
             try {
                 method.addHeader(new BasicScheme().authenticate(repositoryCredentials, method));
             } catch (AuthenticationException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }

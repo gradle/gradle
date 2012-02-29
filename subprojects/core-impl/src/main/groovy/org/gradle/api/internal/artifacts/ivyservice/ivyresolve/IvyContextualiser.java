@@ -43,7 +43,7 @@ public class IvyContextualiser {
                     context.setResolveData(resolveData);
                     return method.invoke(delegate, args);
                 } catch (InvocationTargetException e) {
-                    throw UncheckedException.asUncheckedException(e.getTargetException());
+                    throw UncheckedException.throwAsUncheckedException(e.getTargetException());
                 } finally {
                     IvyContext.popContext();
                 }

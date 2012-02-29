@@ -62,9 +62,9 @@ public class BlockingApplication {
                 }
             });
         } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         } catch (InvocationTargetException e) {
-            throw UncheckedException.asUncheckedException(e.getCause());
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
         }
 
         //the calling thread will now block until the caller is complete.

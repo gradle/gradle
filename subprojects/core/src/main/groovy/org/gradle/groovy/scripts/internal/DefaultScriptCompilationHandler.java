@@ -144,7 +144,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     nameField.setAccessible(true);
                     nameField.set(sourceUnit, source.getDisplayName());
                 } catch (Exception failure) {
-                    throw UncheckedException.asUncheckedException(failure);
+                    throw UncheckedException.throwAsUncheckedException(failure);
                 }
             }
         }

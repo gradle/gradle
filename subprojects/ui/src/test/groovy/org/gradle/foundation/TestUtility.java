@@ -368,7 +368,7 @@ public class TestUtility {
         try {
             completed = complete.await(maximumWaitValue, maximumWaitUnits);
         } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         gradlePluginLord.removeRequestObserver(observer);
@@ -426,7 +426,7 @@ public class TestUtility {
         try {
             timeout = !complete.await(maximumWaitSeconds, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         gradlePluginLord.removeRequestObserver(observer);

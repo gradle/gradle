@@ -115,7 +115,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
             try {
                 snapshot = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(7)).getTime();
             } catch (ParseException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         } else {
             snapshot = null;

@@ -37,7 +37,7 @@ public class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClien
         try {
             return compileResults.take();
         } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -53,7 +53,7 @@ public class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClien
         try {
             compileResults.put(result);
         } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

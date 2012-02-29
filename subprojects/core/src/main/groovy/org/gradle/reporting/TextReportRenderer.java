@@ -38,7 +38,7 @@ public abstract class TextReportRenderer<T> {
                 writer.close();
             }
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

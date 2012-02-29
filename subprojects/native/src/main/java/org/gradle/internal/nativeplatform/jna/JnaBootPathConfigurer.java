@@ -36,7 +36,7 @@ public class JnaBootPathConfigurer {
      * Attempts to find the jna library and copies it to a specified folder.
      * The copy operation happens only once. Sets the jna-related system property.
      *
-     * This hackery is to prevent JNA from creating a shared lib in the tmp dir, as it does not clean things up
+     * This hackery is to prevent JNA from creating a shared lib in the tmp dir, as it does not clean things up.
      *
      * @param storageDir - where to store the jna library
      */

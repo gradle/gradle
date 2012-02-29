@@ -79,7 +79,7 @@ abstract class AbstractRepositoryCacheManager implements RepositoryCacheManager 
             ModuleDescriptorParser parser = parserRegistry.forResource(resource);
             return parser.parseDescriptor(parserSettings, artifactFile.toURI().toURL(), resource, options.isValidate());
         } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

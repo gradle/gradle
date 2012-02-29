@@ -61,7 +61,7 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer {
             doConfigure(logLevel);
         } catch (Throwable e) {
             doFailsafeConfiguration();
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

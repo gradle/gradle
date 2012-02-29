@@ -47,7 +47,7 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
             try {
                 classpath.add(ClasspathUtil.getClasspathForResource(ClassLoader.getSystemClassLoader(), "META-INF/services/javax.xml.parsers.SAXParserFactory").toURI().toURL());
             } catch (MalformedURLException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 

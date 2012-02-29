@@ -48,7 +48,7 @@ public class ImportsReader {
 
                 importsText = imports.toString();
             } catch (IOException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 

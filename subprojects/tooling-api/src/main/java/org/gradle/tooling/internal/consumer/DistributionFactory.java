@@ -88,7 +88,7 @@ public class DistributionFactory {
         try {
             distUri = new URI(new DistributionLocator().getDistributionFor(GradleVersion.version(gradleVersion)));
         } catch (URISyntaxException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         return getDistribution(distUri);
     }

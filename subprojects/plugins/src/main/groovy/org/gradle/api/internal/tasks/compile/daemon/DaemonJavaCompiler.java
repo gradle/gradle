@@ -39,6 +39,6 @@ public class DaemonJavaCompiler implements Compiler<JavaCompileSpec> {
         if (result.isSuccess()) {
             return result;
         }
-        throw UncheckedException.asUncheckedException(result.getException());
+        throw UncheckedException.throwAsUncheckedException(result.getException());
     }
 }

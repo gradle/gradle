@@ -78,7 +78,7 @@ public class CompositeStoppable implements Stoppable {
                 try {
                     closeable.close();
                 } catch (IOException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         };
@@ -103,7 +103,7 @@ public class CompositeStoppable implements Stoppable {
         }
 
         if (failure != null) {
-            throw UncheckedException.asUncheckedException(failure);
+            throw UncheckedException.throwAsUncheckedException(failure);
         }
     }
 }

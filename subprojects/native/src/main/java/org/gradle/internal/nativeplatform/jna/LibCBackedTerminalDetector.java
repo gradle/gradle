@@ -36,7 +36,7 @@ public class LibCBackedTerminalDetector implements TerminalDetector {
             fdField.setAccessible(true);
             osFileDesc = fdField.getInt(fileDescriptor);
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         // Determine if we're connected to a terminal

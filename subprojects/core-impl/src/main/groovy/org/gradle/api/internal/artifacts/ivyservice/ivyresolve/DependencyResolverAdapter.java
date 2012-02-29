@@ -87,7 +87,7 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
             }
             return new DefaultModuleVersionDescriptor(revision.getDescriptor(), isChanging(revision));
         } catch (ParseException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

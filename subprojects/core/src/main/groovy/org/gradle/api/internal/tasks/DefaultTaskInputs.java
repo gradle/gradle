@@ -102,7 +102,7 @@ public class DefaultTaskInputs implements TaskInputs {
                 try {
                     value = callable.call();
                 } catch (Exception e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             } else if (value instanceof Closure) {
                 Closure closure = (Closure) value;

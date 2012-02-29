@@ -225,7 +225,7 @@ public class MultithreadedTestCase {
                     }
                 }
             } catch (InterruptedException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
 
             LOGGER.debug("All test threads complete.");
@@ -517,7 +517,7 @@ public class MultithreadedTestCase {
                 setState(State.Blocking, State.Blocked);
                 waitForState(State.Unblocked, State.Failed);
             } catch (InterruptedException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
@@ -541,12 +541,12 @@ public class MultithreadedTestCase {
                     setState(State.Unblocking, State.Unblocked);
                 } catch (Throwable e) {
                     setState(State.Unblocking, State.Failed);
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 } finally {
                     setBlockingThread(null);
                 }
             } catch (InterruptedException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
@@ -658,7 +658,7 @@ public class MultithreadedTestCase {
                 try {
                     Thread.sleep(200L);
                 } catch (InterruptedException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         }

@@ -39,9 +39,9 @@ public class DirectInstantiator implements Instantiator {
             }
             return type.cast(matches.get(0).newInstance(params));
         } catch (InvocationTargetException e) {
-            throw UncheckedException.asUncheckedException(e.getCause());
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

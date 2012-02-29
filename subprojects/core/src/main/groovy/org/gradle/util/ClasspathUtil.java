@@ -55,7 +55,7 @@ public class ClasspathUtil {
         try {
             location = targetClass.getProtectionDomain().getCodeSource().getLocation().toURI();
         } catch (URISyntaxException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         if (!location.getScheme().equals("file")) {
             throw new GradleException(String.format("Cannot determine classpath for %s from codebase '%s'.", targetClass.getName(), location));
@@ -91,7 +91,7 @@ public class ClasspathUtil {
                 }
             }
         } catch (URISyntaxException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         throw new GradleException(String.format("Cannot determine classpath for resource '%s' from location '%s'.", name, location));
     }

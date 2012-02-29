@@ -48,9 +48,9 @@ class DelegatingBuildModelAction<T> implements GradleLauncherAction<T>, Serializ
         try {
             action = (GradleLauncherAction<T>) classLoaderRegistry.getRootClassLoader().loadClass("org.gradle.tooling.internal.provider.BuildModelAction").getConstructor(Class.class).newInstance(type);
         } catch (InvocationTargetException e) {
-            throw UncheckedException.unwrap(e);
+            throw UncheckedException.unwrapAndRethrow(e);
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }
