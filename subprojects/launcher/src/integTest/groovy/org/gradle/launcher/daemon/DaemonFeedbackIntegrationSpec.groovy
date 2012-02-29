@@ -16,11 +16,8 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.util.TextUtil
-import spock.lang.IgnoreIf
 import spock.lang.Timeout
 import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
 
@@ -65,7 +62,6 @@ task sleep << {
     }
 
     @Timeout(25)
-    @IgnoreIf({OperatingSystem.current().isWindows()})
     def "promptly shows decent message when daemon cannot be started"() {
         when:
         executer.withArguments("-Dorg.gradle.jvmargs=-Xyz").run()

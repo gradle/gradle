@@ -52,8 +52,7 @@ assert System.getProperty('some-prop').toString() == 'i have space'
         """
     }
 
-    //TODO SF this test does not work on windows because the process does not start properly
-    //Revisit when we tackle the JNA process input feature Adam is working on.
+    //TODO SF this can be fixed now as it nicely shows the problem
     @IgnoreIf({OperatingSystem.current().windows})
     def "honours jvm option that contain a space in gradle.properties"() {
         given:
