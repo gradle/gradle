@@ -66,6 +66,7 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec> {
         handle.start();
         ExecResult result = handle.waitForFinish();
         if (result.getExitValue() != 0) {
+            LOGGER.info("Compilation failed with exit code {}", result.getExitValue());
             throw new CompilationFailedException();
         }
     }
