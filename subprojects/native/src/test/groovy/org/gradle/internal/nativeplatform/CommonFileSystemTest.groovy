@@ -44,7 +44,7 @@ class CommonFileSystemTest extends Specification {
 
         then:
         fs.getUnixMode(f) == mode
-        (PosixUtil.current().stat(f.getAbsolutePath()).mode() & 0777) == mode
+        (posix.stat(f.getAbsolutePath()).mode() & 0777) == mode
 
         where:
         mode << [0644, 0600]
@@ -59,7 +59,7 @@ class CommonFileSystemTest extends Specification {
 
         then:
         fs.getUnixMode(d) == mode
-        (PosixUtil.current().stat(d.getAbsolutePath()).mode() & 0777) == mode
+        (posix.stat(d.getAbsolutePath()).mode() & 0777) == mode
 
         where:
         mode << [0755, 0700]
