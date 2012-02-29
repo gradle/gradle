@@ -44,19 +44,21 @@ class JvmOptionsTest extends Specification {
         JvmOptions.fromString(" \"-Dx= a b c \" -Dy=\" x y z \" ") == ["-Dx= a b c ", "-Dy= x y z "]
     }
     
-    def "understands quoted system properties"() {
+    def "understands quoted system properties and jvm opts"() {
         expect:
         parse("  -Dfoo=\" hey man! \"  " ).getSystemProperties().get("foo") == " hey man! "
     }
 
-    def "understands 'empty' system properties"() {
+    def "understands 'empty' system properties and jvm opts"() {
         expect:
-        parse("-Dfoo= -Dbar" ).getSystemProperties() == [foo: '', bar: '']
+        parse("-Dfoo= -Dbar -Dbaz=\"\"" ).getSystemProperties() == [foo: '', bar: '', baz: '']
+        parse("-XXfoo=").allJvmArgs.contains('-XXfoo=')
+        parse("-XXbar=\"\"").allJvmArgs.contains('-XXbar=')
     }
 
     def "understands quoted jvm options"() {
         expect:
-        parse('  -XX:HeapDumpPath="/tmp/with space" ').jvmArgs.contains('-XX:HeapDumpPath="/tmp/with space"')
+        parse('  -XX:HeapDumpPath="/tmp/with space" ').jvmArgs.contains('-XX:HeapDumpPath=/tmp/with space')
     }
 
     def "can parse file encoding property"() {

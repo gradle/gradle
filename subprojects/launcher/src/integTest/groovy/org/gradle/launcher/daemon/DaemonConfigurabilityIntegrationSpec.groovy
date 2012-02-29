@@ -17,7 +17,6 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
@@ -52,8 +51,6 @@ assert System.getProperty('some-prop').toString() == 'i have space'
         """
     }
 
-    //TODO SF this can be fixed now as it nicely shows the problem
-    @IgnoreIf({OperatingSystem.current().windows})
     def "honours jvm option that contain a space in gradle.properties"() {
         given:
         distribution.file("gradle.properties") << 'org.gradle.jvmargs=-XX:HeapDumpPath="/tmp/with space" -Dsome-prop="and some more stress..."'

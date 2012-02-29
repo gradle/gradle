@@ -52,7 +52,7 @@ public class DaemonGreeter {
                 exitValue = process.exitValue();
             } catch (IllegalThreadStateException e) {
                 throw new GradleException(
-                    DaemonMessages.UNABLE_TO_START_DAEMON + " However, it appears the process hasn't exit yet."
+                    DaemonMessages.UNABLE_TO_START_DAEMON + " However, it appears the process hasn't exited yet."
                     + "\n" + processOutput(lines));
             }
             throw new GradleException(DaemonMessages.UNABLE_TO_START_DAEMON + " The exit value was: " + exitValue + "."

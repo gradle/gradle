@@ -29,6 +29,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.apache.commons.lang.StringUtils.removeEnd;
+import static org.apache.commons.lang.StringUtils.removeStart;
+
 public class JvmOptions {
     private static final Pattern SYS_PROP_PATTERN = Pattern.compile("-D(.+?)=(.*)");
     private static final Pattern DEFAULT_ENCODING_PATTERN = Pattern.compile("-Dfile\\Q.\\Eencoding=(.*)");
@@ -306,14 +309,20 @@ public class JvmOptions {
                 .omitEmptyStrings()
                 .split(input));
         
-        //now lets get rid of the property value quotes, e.g "-Dfoo=bar" -> -Dfoo=bar, -Dfoo="bar" -> -Dfoo=bar
+        //now lets get rid of the value quotes, e.g "-Dfoo=bar" -> -Dfoo=bar, -Dfoo="bar" -> -Dfoo=bar, -XXfoo="baz" -> -XXfoo=baz
         List<String> out = new ArrayList<String>();
         for (String s : split) {
-            if ((s.startsWith("-D") || s.startsWith("\"-D")) && s.endsWith("\"")) {
-                out.add(s.replaceFirst("\"", "").substring(0, s.length()-2));
-            } else {
-                out.add(s);
+            if (s.startsWith("\"") && s.endsWith("\"")) {
+                //remove trailing quotes
+                s = removeStart(s, "\"");
+                s = removeEnd(s, "\"");
             }
+            if (s.matches("(?s)[^\"]+=\".*\"(?s)")) {
+                //remove trailing quotes from value
+                s = s.replaceFirst("=\"", "=");
+                s = removeEnd(s, "\"");
+            }
+            out.add(s);
         }
         
         return out;
