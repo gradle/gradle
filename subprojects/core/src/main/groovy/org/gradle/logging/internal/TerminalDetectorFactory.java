@@ -19,12 +19,11 @@ package org.gradle.logging.internal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.nativeplatform.NativeIntegrationUnavailableException;
+import org.gradle.internal.nativeplatform.NoOpTerminalDetector;
 import org.gradle.internal.nativeplatform.TerminalDetector;
 import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
-
-import java.io.FileDescriptor;
 
 /**
  * @author: Szczepan Faber, created at: 9/12/11
@@ -39,11 +38,7 @@ public class TerminalDetectorFactory {
             return new NativeServices().get(TerminalDetector.class);
         } catch (NativeIntegrationUnavailableException e) {
             LOGGER.info("Unable to initialise the native integration for current platform: " + OperatingSystem.current() + ". Details: " + e.getMessage());
-            return new TerminalDetector() {
-                public boolean isTerminal(FileDescriptor fileDescriptor) {
-                    return false;
-                }
-            };
+            return new NoOpTerminalDetector();
         }
     }
 }
