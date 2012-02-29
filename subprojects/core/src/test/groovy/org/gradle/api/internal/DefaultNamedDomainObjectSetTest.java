@@ -128,7 +128,7 @@ public class DefaultNamedDomainObjectSetTest {
         container.add(bean2);
         container.add(bean3);
 
-        assertThat(toList(container.findAll(spec)), equalTo(toList(bean2)));
+        assertThat(toList(container.matching(spec)), equalTo(toList(bean2)));
     }
 
     @Test
@@ -141,7 +141,7 @@ public class DefaultNamedDomainObjectSetTest {
 
         container.add(new Bean("a"));
 
-        assertTrue(container.findAll(spec).isEmpty());
+        assertTrue(container.matching(spec).isEmpty());
     }
 
     @Test

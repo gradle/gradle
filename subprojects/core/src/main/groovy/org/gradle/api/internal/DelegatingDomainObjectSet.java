@@ -52,26 +52,6 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
         backingSet.all(action);
     }
 
-    @Deprecated
-    public void allObjects(Action<? super T> action) {
-        backingSet.allObjects(action);
-    }
-
-    @Deprecated
-    public void allObjects(Closure action) {
-        backingSet.allObjects(action);
-    }
-
-    @Deprecated
-    public Set<T> findAll(Spec<? super T> spec) {
-        return backingSet.findAll(spec);
-    }
-
-    @Deprecated
-    public Set<T> getAll() {
-        return backingSet.getAll();
-    }
-
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
         return backingSet.whenObjectAdded(action);
     }

@@ -24,7 +24,6 @@ import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.*;
 
@@ -97,40 +96,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return filtered(createFilter(type));
     }
 
-    @Deprecated
-    public Set<T> getAll() {
-        DeprecationLogger.nagUserWith("The DomainObjectCollection.getAll() method is deprecated as DomainObjectCollection is now a Collection itself. Simply use the collection.");
-        return findAll(Specs.<T>satisfyAll());
-    }
-
-    @Deprecated
-    public Set<T> findAll(Spec<? super T> spec) {
-        DeprecationLogger.nagUserWith("The DomainObjectCollection.findAll() method is deprecated as DomainObjectCollection is now a Collection itself. Use the matching(Spec) method.");
-
-        Set<T> filtered = new LinkedHashSet<T>(size());
-        for (T t : getStore()) {
-            if (spec.isSatisfiedBy(t)) {
-                filtered.add(t);
-            }
-        }
-
-        return filtered;
-    }
-
     public Iterator<T> iterator() {
         return new IteratorImpl(getStore().iterator());
-    }
-
-    @Deprecated
-    public void allObjects(Action<? super T> action) {
-        DeprecationLogger.nagUserOfReplacedMethod("DomainObjectCollection.allObjects()", "all()");
-        all(action);
-    }
-
-    @Deprecated
-    public void allObjects(Closure action) {
-        DeprecationLogger.nagUserOfReplacedMethod("DomainObjectCollection.allObjects()", "all()");
-        all(action);
     }
 
     public void all(Action<? super T> action) {
