@@ -17,6 +17,6 @@ package org.gradle.api.internal.tasks.compile;
 
 public class CompilationFailedException extends RuntimeException {
     public CompilationFailedException() {
-        super("Compilation failed. See compiler output for more information.");
+        super("Compilation failed; see the compiler error output for details.");
     }
 }
