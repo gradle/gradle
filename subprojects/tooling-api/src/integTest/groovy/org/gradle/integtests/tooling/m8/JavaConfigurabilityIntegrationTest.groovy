@@ -19,11 +19,8 @@ package org.gradle.integtests.tooling.m8
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.Project
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Timeout
 
@@ -112,23 +109,5 @@ assert System.getProperty('some-prop') == 'BBB'
         then:
         def ex = thrown(IllegalArgumentException)
         ex.message.contains("i dont exist")
-    }
-
-    @Issue("GRADLE-1799")
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    //TODO SF this test can be enabled when we fix story with daemon feedback for windows
-    @Timeout(25)
-    def "promptly discovers rubbish jvm arguments"() {
-        when:
-        def ex = maybeFailWithConnection {
-            it.newBuild()
-                    .setJvmArguments("-Xasdf")
-                    .run()
-        }
-
-        then:
-        ex instanceof GradleConnectionException
-        ex.cause.message.contains "-Xasdf"
-        ex.cause.message.contains "Unable to start the daemon"
     }
 }

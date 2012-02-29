@@ -25,7 +25,7 @@ import spock.lang.Timeout
 
 @MinToolingApiVersion('1.0-milestone-9')
 @MinTargetGradleVersion('1.0-milestone-9')
-class FastDaemonFeedbackIntegrationTest extends ToolingApiSpecification {
+class DaemonErrorFeedbackIntegrationTest extends ToolingApiSpecification {
 
     @Issue("GRADLE-1799")
     @Timeout(25)
