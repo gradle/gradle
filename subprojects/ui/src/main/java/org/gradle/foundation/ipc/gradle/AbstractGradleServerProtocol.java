@@ -251,7 +251,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
         CommandLineAssistant commandLineAssistant = new CommandLineAssistant();
 
         //add whatever the user ran
-        String[] individualCommandLineArguments = commandLineAssistant.breakUpCommandLine(commandLine);
+        String[] individualCommandLineArguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         executionCommandLine.addAll(Arrays.asList(individualCommandLineArguments));
 
         File initStriptPath = getInitScriptFile();

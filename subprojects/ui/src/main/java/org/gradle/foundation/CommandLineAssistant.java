@@ -16,8 +16,8 @@
 package org.gradle.foundation;
 
 import org.gradle.logging.internal.LoggingCommandLineConverter;
+import org.gradle.util.internal.ArgumentsSplitter;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -40,35 +40,7 @@ public class CommandLineAssistant {
      * @return a string array of the separate command line arguments.
      */
     public static String[] breakUpCommandLine(String fullCommandLine) {
-        List<String> commandLineArguments = new ArrayList<String>();
-
-        Character currentQuote = null;
-        StringBuilder currentOption = new StringBuilder();
-        boolean hasOption = false;
-
-        for (int index = 0; index < fullCommandLine.length(); index++) {
-            char c = fullCommandLine.charAt(index);
-            if (currentQuote == null && Character.isWhitespace(c)) {
-                if (hasOption) {
-                    commandLineArguments.add(currentOption.toString());
-                    hasOption = false;
-                    currentOption.setLength(0);
-                }
-            } else if (currentQuote == null && (c == '"' || c == '\'')) {
-                currentQuote = c;
-                hasOption = true;
-            } else if (currentQuote != null && c == currentQuote) {
-                currentQuote = null;
-            } else {
-                currentOption.append(c);
-                hasOption = true;
-            }
-        }
-
-        if (hasOption) {
-            commandLineArguments.add(currentOption.toString());
-        }
-
+        List<String> commandLineArguments = ArgumentsSplitter.split(fullCommandLine);
         return commandLineArguments.toArray(new String[commandLineArguments.size()]);
     }
 

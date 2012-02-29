@@ -16,21 +16,17 @@
 
 package org.gradle.process.internal;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.util.internal.ArgumentsSplitter;
 
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.apache.commons.lang.StringUtils.removeEnd;
-import static org.apache.commons.lang.StringUtils.removeStart;
 
 public class JvmOptions {
     private static final Pattern SYS_PROP_PATTERN = Pattern.compile("-D(.+?)=(.*)");
@@ -304,27 +300,6 @@ public class JvmOptions {
     }
 
     public static List<String> fromString(String input) {
-        //split on whitespace but only if it's not inside double quotes
-        List<String> split = Lists.newArrayList(Splitter.onPattern("\\s(?=([^\"]*\"[^\"]*\")*[^\"]*$)")
-                .omitEmptyStrings()
-                .split(input));
-        
-        //now lets get rid of the value quotes, e.g "-Dfoo=bar" -> -Dfoo=bar, -Dfoo="bar" -> -Dfoo=bar, -XXfoo="baz" -> -XXfoo=baz
-        List<String> out = new ArrayList<String>();
-        for (String s : split) {
-            if (s.startsWith("\"") && s.endsWith("\"")) {
-                //remove trailing quotes
-                s = removeStart(s, "\"");
-                s = removeEnd(s, "\"");
-            }
-            if (s.matches("(?s)[^\"]+=\".*\"(?s)")) {
-                //remove trailing quotes from value
-                s = s.replaceFirst("=\"", "=");
-                s = removeEnd(s, "\"");
-            }
-            out.add(s);
-        }
-        
-        return out;
+        return ArgumentsSplitter.split(input);
     }
 }
