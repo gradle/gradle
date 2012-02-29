@@ -41,7 +41,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File javaHome;
     private File buildScript;
     private File projectDir;
-    private String buildScriptText;
     private File settingsFile;
     private InputStream stdin;
     private String defaultCharacterEncoding;
@@ -55,7 +54,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         workingDir = null;
         projectDir = null;
         buildScript = null;
-        buildScriptText = null;
         settingsFile = null;
         quiet = false;
         taskList = false;
@@ -88,9 +86,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (buildScript != null) {
             executer.usingBuildScript(buildScript);
-        }
-        if (buildScriptText != null) {
-            executer.usingBuildScript(buildScriptText);
         }
         if (settingsFile != null) {
             executer.usingSettingsFile(settingsFile);
@@ -131,11 +126,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public File getBuildScript() {
         return buildScript;
-    }
-
-    public GradleExecuter usingBuildScript(String scriptText) {
-        this.buildScriptText = scriptText;
-        return this;
     }
 
     public GradleExecuter usingProjectDirectory(File projectDir) {
@@ -272,10 +262,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (buildScript != null) {
             allArgs.add("--build-file");
             allArgs.add(buildScript.getAbsolutePath());
-        }
-        if (buildScriptText != null) {
-            allArgs.add("--embedded");
-            allArgs.add(buildScriptText);
         }
         if (projectDir != null) {
             allArgs.add("--project-dir");

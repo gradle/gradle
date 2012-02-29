@@ -79,13 +79,6 @@ public interface GradleExecuter {
     GradleExecuter usingBuildScript(File buildScript);
 
     /**
-     * Uses the given build script
-     *
-     * @param scriptText The script text.
-     */
-    GradleExecuter usingBuildScript(String scriptText);
-
-    /**
      * Sets the user home dir. Set to null to use the default user home dir.
      */
     GradleExecuter withUserHomeDir(File userHomeDir);
