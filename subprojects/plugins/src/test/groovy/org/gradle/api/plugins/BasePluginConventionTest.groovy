@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter
@@ -43,7 +43,7 @@ class BasePluginConventionTest {
     }
 
     @Test public void dirsRelativeToBuildDir() {
-        project.buildDirName = 'mybuild'
+        project.buildDir = project.file('mybuild')
         convention.distsDirName = 'mydists'
         assertEquals(project.file('mybuild/mydists'), convention.distsDir)
         convention.libsDirName = 'mylibs'

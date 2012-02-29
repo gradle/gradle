@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project
 
+import groovy.lang.MissingMethodException
 import java.awt.Point
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
@@ -31,6 +32,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
+import org.gradle.api.internal.project.TestConvention
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
@@ -228,7 +230,6 @@ class DefaultProjectTest {
         assertSame(repositoryHandlerMock, project.repositories)
         assert projectRegistry.is(project.projectRegistry)
         assertFalse project.state.executed
-        assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
     }
 
     @Test public void testNullVersionAndStatus() {
@@ -488,45 +489,7 @@ class DefaultProjectTest {
         project.defaultTasks("a", null);
     }
 
-    @Test public void testCreateTaskWithName() {
-        context.checking {
-            one(taskContainerMock).add([name: TEST_TASK_NAME]); will(returnValue(testTask))
-        }
-        assertSame(testTask, project.createTask(TEST_TASK_NAME));
-    }
 
-    @Test public void testCreateTaskWithNameAndArgs() {
-        Map testArgs = [a: 'b']
-        context.checking {
-            one(taskContainerMock).add(testArgs + [name: TEST_TASK_NAME]); will(returnValue(testTask))
-        }
-        assertSame(testTask, project.createTask(testArgs, TEST_TASK_NAME));
-    }
-
-    @Test public void testCreateTaskWithNameAndAction() {
-        Action<Task> testAction = {} as Action
-        context.checking {
-            one(taskContainerMock).add([name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
-        }
-        assertSame(testTask, project.createTask(TEST_TASK_NAME, testAction));
-    }
-
-    @Test public void testCreateTaskWithNameAndClosureAction() {
-        Closure testAction = {}
-        context.checking {
-            one(taskContainerMock).add([name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
-        }
-        assertSame(testTask, project.createTask(TEST_TASK_NAME, testAction));
-    }
-
-    @Test public void testCreateTaskWithNameArgsAndActions() {
-        Map testArgs = [a: 'b']
-        Action<Task> testAction = {} as Action
-        context.checking {
-            one(taskContainerMock).add(testArgs + [name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
-        }
-        assertSame(testTask, project.createTask(testArgs, TEST_TASK_NAME, testAction));
-    }
 
     @Test void testCanAccessTaskAsAProjectProperty() {
         assertThat(project.someTask, sameInstance(testTask))

@@ -135,15 +135,15 @@ class JavaBasePluginTest extends Specification {
         javaBasePlugin.apply(project)
 
         then:
-        def compile = project.createTask('customCompile', type: Compile)
+        def compile = project.task('customCompile', type: Compile)
         compile.sourceCompatibility == project.sourceCompatibility.toString()
 
-        def test = project.createTask('customTest', type: Test.class)
+        def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
         test.testResultsDir == project.testResultsDir
         test.testReportDir == project.testReportDir
 
-        def javadoc = project.createTask('customJavadoc', type: Javadoc)
+        def javadoc = project.task('customJavadoc', type: Javadoc)
         javadoc.destinationDir == project.file("$project.docsDir/javadoc")
         javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
@@ -151,7 +151,7 @@ class JavaBasePluginTest extends Specification {
     void appliesMappingsToCustomJarTasks() {
         when:
         javaBasePlugin.apply(project)
-        def task = project.createTask('customJar', type: Jar)
+        def task = project.task('customJar', type: Jar)
 
         then:
         Matchers.dependsOn().matches(task)

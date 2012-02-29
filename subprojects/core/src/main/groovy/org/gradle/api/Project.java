@@ -227,24 +227,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     void setBuildDir(Object path);
 
     /**
-     * <p>Returns the name of the build directory of this project. It is resolved relative to the project directory of
-     * this project to determine the build directory. The default value is {@value #DEFAULT_BUILD_DIR_NAME}.</p>
-     *
-     * @return The build dir name. Never returns null.
-     */
-    @Deprecated
-    String getBuildDirName();
-
-    /**
-     * <p>Sets the build directory name of this project.</p>
-     *
-     * @param buildDirName The build dir name. Should not be null.
-     * @deprecated Use {@link #setBuildDir(Object)} instead.
-     */
-    @Deprecated
-    void setBuildDirName(String buildDirName);
-
-    /**
      * <p>Returns the build file Gradle will evaluate against this project object. The default is <code> {@value
      * #DEFAULT_BUILD_FILE}</code>. If an embedded script is provided the build file will be null. </p>
      *
@@ -392,28 +374,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     Set<Project> getSubprojects();
 
     /**
-     * <p>Applies a {@link Plugin} to this project.</p>
-     *
-     * @param pluginId The id of the plugin.
-     * @return This project.
-     * @deprecated You should use the {@link #apply(java.util.Map)} or {@link #apply(groovy.lang.Closure)} method
-     *             instead.
-     */
-    @Deprecated
-    Project usePlugin(String pluginId);
-
-    /**
-     * <p>Applies a {@link Plugin} to this project.</p>
-     *
-     * @param pluginClass The class of the plugin.  This class must implement the {@link Plugin} interface.
-     * @return This project.
-     * @deprecated You should use the {@link #apply(java.util.Map)} or {@link #apply(groovy.lang.Closure)} method
-     *             instead.
-     */
-    @Deprecated
-    Project usePlugin(Class<? extends Plugin> pluginClass);
-
-    /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Calling this method is equivalent to
      * calling {@link #task(java.util.Map, String)} with an empty options map.</p>
      *
@@ -501,139 +461,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
     Task task(String name, Closure configureClosure);
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Calling this method is equivalent to
-     * calling {@link #createTask(java.util.Map, String)} with an empty options map.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
-     *
-     * @param name The name of the task to be created
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(String)} instead.
-     */
-    @Deprecated
-    Task createTask(String name) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action is passed to the task's {@link Task#doFirst(Action)} method. Calling this method is equivalent to calling
-     * {@link #createTask(java.util.Map, String, Action)} with an empty options map.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
-     *
-     * @param name The name of the task to be created
-     * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(String name, Action<? super Task> action) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. A map of creation options can be
-     * passed to this method to control how the task is created. The following options are available:</p>
-     *
-     * <table>
-     *
-     * <tr><th>Option</th><th>Description</th><th>Default Value</th></tr>
-     *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_TYPE}</code></td><td>The class of the task to
-     * create.</td><td>{@link org.gradle.api.DefaultTask}</td></tr>
-     *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code></td><td>Replace an existing
-     * task?</td><td><code>false</code></td></tr>
-     *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_DEPENDS_ON}</code></td><td>A task name or set of task names which
-     * this task depends on</td><td><code>[]</code></td></tr>
-     *
-     * </table>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
-     * to true, an exception is thrown.</p>
-     *
-     * @param args The task creation options.
-     * @param name The name of the task to be created
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(Map<String, ?> args, String name) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action is passed to the task's {@link Task#doFirst(Action)} method. A map of creation options can be passed to
-     * this method to control how the task is created. See {@link #createTask(java.util.Map, String)} for the available
-     * options.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
-     * to true, an exception is thrown.</p>
-     *
-     * @param args The task creation options.
-     * @param name The name of the task to be created
-     * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(Map<String, ?> args, String name, Action<? super Task> action) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action closure is passed to the task's {@link Task#doFirst(Closure)} method. Calling this method is equivalent to
-     * calling {@link #createTask(java.util.Map, String, Closure)} with an empty options map.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
-     *
-     * @param name The name of the task to be created
-     * @param action The closure to be passed to the {@link Task#doFirst(Closure)} method of the created task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(String name, Closure action);
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action closure is passed to the task's {@link Task#doFirst(Closure)} method. A map of creation options can be
-     * passed to this method to control how the task is created. See {@link #createTask(java.util.Map, String)} for the
-     * available options.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
-     * to true, an exception is thrown.</p>
-     *
-     * @param args The task creation options.
-     * @param name The name of the task to be created
-     * @param action The closure to be passed to the {@link Task#doFirst(Closure)} method of the created task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(Map<String, ?> args, String name, Closure action);
 
     /**
      * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>

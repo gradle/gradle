@@ -94,7 +94,7 @@ public class ScalaPluginTest {
     @Test public void configuresScalaDocTasksDefinedByTheBuildScript() {
         scalaPlugin.apply(project)
 
-        def task = project.createTask('otherScaladoc', type: ScalaDoc)
+        def task = project.task('otherScaladoc', type: ScalaDoc)
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.classpath, Matchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
     }

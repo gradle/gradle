@@ -24,11 +24,11 @@ import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.util.HelperUtil
 import org.junit.Test
 import static org.gradle.util.Matchers.dependsOn
+import static org.gradle.util.Matchers.isEmpty
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import static org.gradle.util.Matchers.isEmpty
 
 public class ScalaBasePluginTest {
 
@@ -80,7 +80,7 @@ public class ScalaBasePluginTest {
     @Test public void configuresCompileTasksDefinedByTheBuildScript() {
         scalaPlugin.apply(project)
 
-        def task = project.createTask('otherCompile', type: ScalaCompile)
+        def task = project.task('otherCompile', type: ScalaCompile)
         assertThat(task.source, isEmpty())
         assertThat(task.scalaClasspath, equalTo(project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]))
         assertThat(task, dependsOn())
@@ -89,7 +89,7 @@ public class ScalaBasePluginTest {
     @Test public void configuresScalaDocTasksDefinedByTheBuildScript() {
         scalaPlugin.apply(project)
 
-        def task = project.createTask('otherScaladoc', type: ScalaDoc)
+        def task = project.task('otherScaladoc', type: ScalaDoc)
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
         assertThat(task.scalaClasspath, equalTo(project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]))

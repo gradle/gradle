@@ -364,14 +364,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         this.configurationContainer = configurationContainer;
     }
 
-    public String getBuildDirName() {
-        return buildDir.toString();
-    }
 
-    public void setBuildDirName(String buildDirName) {
-        DeprecationLogger.nagUserOfReplacedMethod("Project.setBuildDirName()", "setBuildDir()");
-        this.buildDir = buildDirName;
-    }
 
     public Convention getConvention() {
         return extensibleDynamicObject.getConvention();
@@ -477,18 +470,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return this;
     }
 
-    public Project usePlugin(String pluginId) {
-        warnUsePluginDeprecated();
-        pluginContainer.apply(pluginId);
-        return this;
-    }
-
-    public Project usePlugin(Class<? extends Plugin> pluginClass) {
-        warnUsePluginDeprecated();
-        pluginContainer.apply(pluginClass);
-        return this;
-    }
-
     public TaskContainerInternal getTasks() {
         return taskContainer;
     }
@@ -508,22 +489,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
             }
             this.defaultTasks.add(defaultTask);
         }
-    }
-
-    public Task createTask(String name) {
-        return createTask(new HashMap<String, Object>(), name, (Action) null);
-    }
-
-    public Task createTask(Map<String, ?> args, String name) {
-        return createTask(args, name, (Action) null);
-    }
-
-    public Task createTask(String name, Action<? super Task> action) {
-        return createTask(new HashMap<String, Object>(), name, action);
-    }
-
-    public Task createTask(String name, Closure action) {
-        return createTask(new HashMap<String, Object>(), name, action);
     }
 
     public Task createTask(Map args, String name, Closure action) {

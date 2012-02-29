@@ -79,7 +79,7 @@ class JavaPluginConventionTest {
     }
 
     @Test public void testDynamicDirs() {
-        project.buildDirName = 'mybuild'
+        project.buildDir = project.file('mybuild')
         checkDirs()
     }
 
