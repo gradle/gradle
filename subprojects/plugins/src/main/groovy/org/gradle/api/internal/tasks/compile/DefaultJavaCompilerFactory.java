@@ -49,22 +49,21 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         if (options.isUseAnt()) { return; }
 
         if (options.getCompiler() != null) {
-            LOGGER.warn("Falling back to Ant javac task ('compile.options.useAnt = true') because 'compile.options.compiler' is set.");
-            options.setUseAnt(true);
-            return;
-        }
-
-        if (options.isFork() && options.getForkOptions().getExecutable() != null) {
-            LOGGER.warn("Falling back to Ant javac task ('compile.options.useAnt = true') because 'compile.options.forkOptions.executable' is set.");
+            LOGGER.warn("Falling back to Ant javac task ('CompileOptions.useAnt = true') because 'CompileOptions.compiler' is set.");
             options.setUseAnt(true);
         }
     }
 
     private Compiler<JavaCompileSpec> createTargetCompiler(CompileOptions options) {
-        Compiler<JavaCompileSpec> target = inProcessCompilerFactory.create(options);
-        if (options.isFork()) {
-            target = new DaemonJavaCompiler(project, target);
+        if (options.isFork() && options.getForkOptions().getExecutable() != null) {
+            return new CommandLineJavaCompiler(project.getProjectDir());
         }
-        return target;
+
+        Compiler<JavaCompileSpec> compiler = inProcessCompilerFactory.create(options);
+        if (options.isFork()) {
+            return new DaemonJavaCompiler(project, compiler);
+        }
+
+        return compiler;
     }
 }

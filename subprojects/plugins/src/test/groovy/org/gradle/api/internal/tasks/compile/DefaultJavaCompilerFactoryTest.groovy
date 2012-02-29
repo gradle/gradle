@@ -48,15 +48,6 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         expect:
         factory.create(options) instanceof AntJavaCompiler
     }
-
-    def "falls back to Ant compiler when options.forkOptions.executable is set"() {
-        options.useAnt = false
-        options.fork = true
-        options.forkOptions.executable = "/my/javac"
-
-        expect:
-        factory.create(options) instanceof AntJavaCompiler
-    }
     
     def "creates in-process compiler when fork=false"() {
         options.useAnt = false
@@ -66,6 +57,18 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         def compiler = factory.create(options)
         compiler instanceof NormalizingJavaCompiler
         compiler.delegate.is(inProcessCompiler)
+    }
+
+    def "creates command line compiler when fork=true and forkOptions.executable is set"() {
+        options.useAnt = false
+        options.fork = true
+        options.forkOptions.executable = "/path/to/javac"
+
+        expect:
+        expect:
+        def compiler = factory.create(options)
+        compiler instanceof NormalizingJavaCompiler
+        compiler.delegate instanceof CommandLineJavaCompiler
     }
 
     def "creates daemon compiler when fork=true"() {
