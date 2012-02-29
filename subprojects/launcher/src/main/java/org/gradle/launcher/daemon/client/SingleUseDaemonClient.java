@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.protocol.BuildAndStop;
@@ -59,7 +60,7 @@ public class SingleUseDaemonClient extends DaemonClient {
             return (T) monitorBuild(build, connection).getValue();
         } else if (firstResult instanceof Failure) {
             // Could potentially distinguish between CommandFailure and DaemonFailure here.
-            throw ((Failure) firstResult).getValue();
+            throw UncheckedException.asUncheckedException(((Failure) firstResult).getValue());
         } else if (firstResult instanceof DaemonBusy) {
             throw new GradleException("Single use daemon process responded as busy: this should never happen.");
         } else if (firstResult == null) {
