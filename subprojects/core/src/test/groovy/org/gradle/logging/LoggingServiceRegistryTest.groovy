@@ -16,15 +16,15 @@
 
 package org.gradle.logging
 
+import org.gradle.cli.CommandLineConverter
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.internal.DefaultLoggingManagerFactory
 import org.gradle.logging.internal.DefaultProgressLoggerFactory
 import org.gradle.logging.internal.DefaultStyledTextOutputFactory
-import spock.lang.Specification
-import org.gradle.cli.CommandLineConverter
 import org.gradle.logging.internal.LoggingCommandLineConverter
-import org.junit.Rule
 import org.gradle.util.RedirectStdOutAndErr
-import org.gradle.internal.service.ServiceRegistry
+import org.junit.Rule
+import spock.lang.Specification
 
 class LoggingServiceRegistryTest extends Specification {
     @Rule RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
@@ -70,15 +70,4 @@ class LoggingServiceRegistryTest extends Specification {
         System.err != outputs.stdErrPrintStream
     }
     
-    def canDisableSystemOutAndErrCapture() {
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
-        loggingManager.disableStandardOutputCapture()
-
-        when:
-        loggingManager.start()
-
-        then:
-        System.out == outputs.stdOutPrintStream
-        System.err == outputs.stdErrPrintStream
-    }
 }

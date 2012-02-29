@@ -35,7 +35,6 @@ import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
 import org.gradle.api.internal.project.TestConvention
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.Directory
 import org.gradle.configuration.ProjectEvaluator
@@ -931,22 +930,6 @@ def scriptMethod(Closure closure) {
         projectsToCheck.each {
             assertEquals(propValue, it.testSubProp)
         }
-    }
-
-    @Test
-    void disableStandardOutputCapture() {
-        context.checking {
-            one(loggingManagerMock).disableStandardOutputCapture()
-        }
-        project.disableStandardOutputCapture()
-    }
-
-    @Test
-    void captureStandardOutput() {
-        context.checking {
-            one(loggingManagerMock).captureStandardOutput(LogLevel.DEBUG)
-        }
-        project.captureStandardOutput(LogLevel.DEBUG)
     }
 
     @Test

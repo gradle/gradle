@@ -21,7 +21,6 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.resources.ResourceHandler;
@@ -353,26 +352,6 @@ public interface Script {
      * @return the LoggingManager. Never returns null.
      */
     LoggingManager getLogging();
-
-    /**
-     * Disables redirection of standard output during script execution. By default redirection is enabled.
-     *
-     * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
-     */
-    @Deprecated
-    void disableStandardOutputCapture();
-
-    /**
-     * <p>Starts redirection of standard output during to the logging system during script execution. By default
-     * redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected to the
-     * ERROR level.</p>
-     *
-     * @param level The level standard out should be logged to.
-     * @see #disableStandardOutputCapture()
-     * @deprecated Use the {@link org.gradle.api.logging.LoggingManager} returned by {@link #getLogging()} instead
-     */
-    @Deprecated
-    void captureStandardOutput(LogLevel level);
 
     /**
      * Returns the logger for this script. You can use this in your script to write log messages.

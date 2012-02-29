@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
@@ -292,18 +291,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public Logger getLogger() {
         return buildLogger;
-    }
-
-    public Task disableStandardOutputCapture() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Task.disableStandardOutputCapture()");
-        loggingManager.disableStandardOutputCapture();
-        return this;
-    }
-
-    public Task captureStandardOutput(LogLevel level) {
-        DeprecationLogger.nagUserOfReplacedMethod("Task.captureStandardOutput()", "getLogging().captureStandardOutput()");
-        loggingManager.captureStandardOutput(level);
-        return this;
     }
 
     public LoggingManager getLogging() {

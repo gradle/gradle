@@ -17,8 +17,8 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices;
@@ -83,7 +83,6 @@ public class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
 
     private LoggingManagerInternal createLoggingManager(StringBuilder output, StringBuilder error) {
         LoggingManagerInternal loggingManager = daemonClientServices.getLoggingServices().newInstance(LoggingManagerInternal.class);
-        loggingManager.disableStandardOutputCapture();
         loggingManager.addStandardOutputListener(new StreamBackedStandardOutputListener(output));
         loggingManager.addStandardErrorListener(new StreamBackedStandardOutputListener(error));
         return loggingManager;

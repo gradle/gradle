@@ -28,7 +28,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
@@ -1200,30 +1199,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @return the LoggingManager. Never returns null.
      */
     LoggingManager getLogging();
-
-    /**
-     * Disables redirection of standard output during project evaluation. By default redirection is enabled.
-     *
-     * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
-     */
-    @Deprecated
-    void disableStandardOutputCapture();
-
-    /**
-     * <p>Starts redirection of standard output during to the logging system during project evaluation. By default
-     * redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected to the
-     * ERROR level. Redirection of output at execution time can be configured via the tasks.</p>
-     *
-     * <p>In a multi-project this is a per-project setting.</p>
-     *
-     * @param level The level standard out should be logged to.
-     * @see #disableStandardOutputCapture()
-     * @see Task#captureStandardOutput(org.gradle.api.logging.LogLevel)
-     * @see org.gradle.api.Task#disableStandardOutputCapture()
-     * @deprecated Use the {@link org.gradle.api.logging.LoggingManager} returned by {@link #getLogging()} instead
-     */
-    @Deprecated
-    void captureStandardOutput(LogLevel level);
 
     /**
      * <p>Configures an object via a closure, with the closure's delegate set to the supplied object. This way you don't

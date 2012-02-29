@@ -37,7 +37,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
@@ -785,16 +784,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     public LoggingManager getLogging() {
         return loggingManager;
-    }
-
-    public void disableStandardOutputCapture() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Project.disableStandardOutputCapture()");
-        loggingManager.disableStandardOutputCapture();
-    }
-
-    public void captureStandardOutput(LogLevel level) {
-        DeprecationLogger.nagUserOfReplacedMethod("Project.captureStandardOutput()", "getLogging().captureStandardOutput()");
-        loggingManager.captureStandardOutput(level);
     }
 
     public Object property(String propertyName) throws MissingPropertyException {

@@ -40,14 +40,6 @@ public interface LoggingManager extends LoggingOutput {
     LoggingManager captureStandardError(LogLevel level);
 
     /**
-     * Disables routing System.out and System.err to Gradle's logging system.
-     *
-     * @return this
-     */
-    @Deprecated
-    LoggingManager disableStandardOutputCapture();
-
-    /**
      * Returns true when standard output capture is enabled.
      *
      * @return true when standard output capture is enabled.

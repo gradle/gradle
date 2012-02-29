@@ -19,11 +19,10 @@
 package org.gradle.api.internal.project
 
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
+import org.gradle.api.logging.LoggingManager
 import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.logging.StandardOutputCapture
-import org.gradle.api.logging.LoggingManager
 
 abstract class ProjectScript extends DefaultScript {
 
@@ -41,14 +40,6 @@ abstract class ProjectScript extends DefaultScript {
 
     def void buildscript(Closure configureClosure) {
         scriptTarget.buildscript(configureClosure)
-    }
-
-    def void disableStandardOutputCapture() {
-        scriptTarget.disableStandardOutputCapture()
-    }
-
-    def void captureStandardOutput(LogLevel level) {
-        scriptTarget.captureStandardOutput(level)
     }
 
     def StandardOutputCapture getStandardOutputCapture() {

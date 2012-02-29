@@ -18,7 +18,6 @@ package org.gradle.api;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
@@ -418,28 +417,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @return the LoggingManager. Never returns null.
      */
     LoggingManager getLogging();
-
-    /**
-     * Disables redirection of standard output during task execution. By default redirection is enabled.
-     *
-     * @return this
-     * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
-     */
-    @Deprecated
-    Task disableStandardOutputCapture();
-
-    /**
-     * <p>Enables redirection of standard output during task execution to the logging system. By default redirection is
-     * enabled and the task output is redirected to the QUIET level. System.err is always redirected to the ERROR level.
-     * </p>
-     *
-     * @param level The level standard out should be logged to.
-     * @return this
-     * @see #disableStandardOutputCapture()
-     * @deprecated Use the {@link org.gradle.api.logging.LoggingManager} returned by {@link #getLogging()} instead.
-     */
-    @Deprecated
-    Task captureStandardOutput(LogLevel level);
 
     /**
      * <p>Returns the value of the given property of this task.  This method locates a property as follows:</p>

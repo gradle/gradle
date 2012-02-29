@@ -109,12 +109,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal {
         return this;
     }
 
-    public DefaultLoggingManager disableStandardOutputCapture() {
-        stdOutLoggingSystem.disable();
-        stdErrLoggingSystem.disable();
-        return this;
-    }
-
     public LogLevel getStandardErrorCaptureLevel() {
         return stdErrLoggingSystem.level;
     }
