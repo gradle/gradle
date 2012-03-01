@@ -199,6 +199,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param args The argument to create the repository
      * @return the added repository
      */
+    @SuppressWarnings("JavadocReference")
     DependencyResolver mavenRepo(Map<String, ?> args);
 
     /**
@@ -242,6 +243,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * Returns the directory to write generated poms to.
      * @deprecated Use {@link org.gradle.api.plugins.MavenPluginConvention#getMavenPomDir()} instead.
      */
+    @SuppressWarnings("JavadocReference")
     @Deprecated
     File getMavenPomDir();
 }
