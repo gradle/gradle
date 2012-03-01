@@ -36,8 +36,22 @@ class TextUtilTest extends Specification {
         TextUtil.toPlatformLineSeparators(original) == converted
 
         where:
-        original | converted
+        original                          | converted
         "one\rtwo\nthree\r\nfour\n\rfive" | "one${platformSep}two${platformSep}three${platformSep}four${platformSep}${platformSep}five"
-        "\n\n" | "${platformSep}${platformSep}"
+        "\n\n"                            | "${platformSep}${platformSep}"
+    }
+
+    def containsWhitespace() {
+        expect:
+        TextUtil.containsWhitespace(str) == whitespace
+
+        where:
+        str       | whitespace
+        "abcde"   | false
+        "abc de"  | true
+        " abcde"  | true
+        "abcde "  | true
+        "abc\tde" | true
+        "abc\nde" | true
     }
 }
