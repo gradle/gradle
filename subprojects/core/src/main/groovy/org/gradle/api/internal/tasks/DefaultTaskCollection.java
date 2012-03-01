@@ -28,7 +28,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Set;
 
@@ -74,16 +73,6 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
 
     public void whenTaskAdded(Closure closure) {
         whenObjectAdded(closure);
-    }
-
-    public void allTasks(Action<? super T> action) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskCollection.allTasks()", "all()");
-        all(action);
-    }
-
-    public void allTasks(Closure action) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskCollection.allTasks()", "all()");
-        all(action);
     }
 
     @Override

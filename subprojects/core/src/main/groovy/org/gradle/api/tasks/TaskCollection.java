@@ -16,7 +16,10 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.Task;
+import org.gradle.api.UnknownTaskException;
 import org.gradle.api.specs.Spec;
 
 /**
@@ -57,6 +60,7 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      * @param action The action to be executed
      * @return the supplied action
      */
+    @SuppressWarnings("UnusedDeclaration")
     Action<? super T> whenTaskAdded(Action<? super T> action);
 
     /**
@@ -65,27 +69,8 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      *
      * @param closure The closure to be called
      */
+    @SuppressWarnings("UnusedDeclaration")
     void whenTaskAdded(Closure closure);
-
-    /**
-     * Executes the given action against all tasks in this collection, and any tasks subsequently added to this
-     * collection.
-     *
-     * @param action The action to be executed
-     * @deprecated Use {@link #all(org.gradle.api.Action)} instead.
-     */
-    @Deprecated
-    void allTasks(Action<? super T> action);
-
-    /**
-     * Executes the given closure against all tasks in this collection, and any tasks subsequently added to this
-     * collection.
-     *
-     * @param closure The closure to be called
-     * @deprecated Use {@link #all(groovy.lang.Closure)} instead.
-     */
-    @Deprecated
-    void allTasks(Closure closure);
 
     /**
      * {@inheritDoc}

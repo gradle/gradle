@@ -50,6 +50,7 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
      * @param action The action to be executed
      * @return the supplied action
      */
+    @SuppressWarnings("UnusedDeclaration")
     Action<? super T> whenPluginAdded(Action<? super T> action);
 
     /**
@@ -58,25 +59,7 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
      *
      * @param closure The closure to be called
      */
+    @SuppressWarnings("UnusedDeclaration")
     void whenPluginAdded(Closure closure);
 
-    /**
-     * Executes the given action against all plugins in this collection, and any plugins subsequently added to this
-     * collection.
-     *
-     * @param action The action to be executed
-     * @deprecated Use {@link #all(org.gradle.api.Action)} instead.
-     */
-    @Deprecated
-    void allPlugins(Action<? super T> action);
-
-    /**
-     * Executes the given closure against all plugins in this collection, and any plugins subsequently added to this
-     * collection.
-     *
-     * @param closure The closure to be called
-     * @deprecated Use {@link #all(groovy.lang.Closure)} instead.
-     */
-    @Deprecated
-    void allPlugins(Closure closure);
 }
