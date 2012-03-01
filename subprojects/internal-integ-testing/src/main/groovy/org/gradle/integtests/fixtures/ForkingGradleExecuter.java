@@ -95,9 +95,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                     + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
         }
 
-        CommandBuilder commandBuilder = OperatingSystem.current().isWindows() ? new WindowsCommandBuilder()
-                : new UnixCommandBuilder();
-
         ExecHandleBuilder builder = new ExecHandleBuilder() {
             @Override
             public File getWorkingDir() {
@@ -117,7 +114,9 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.workingDir(getWorkingDir());
         builder.setStandardInput(getStdin());
 
-        commandBuilder.build(builder);
+        ExecHandlerConfigurer configurer = OperatingSystem.current().isWindows() ? new WindowsConfigurer()
+                : new UnixConfigurer();
+        configurer.configure(builder);
 
         builder.args(getAllArgs());
 
@@ -167,12 +166,12 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         return result.toString();
     }
 
-    private interface CommandBuilder {
-        void build(ExecHandleBuilder builder);
+    private interface ExecHandlerConfigurer {
+        void configure(ExecHandleBuilder builder);
     }
 
-    private class WindowsCommandBuilder implements CommandBuilder {
-        public void build(ExecHandleBuilder builder) {
+    private class WindowsConfigurer implements ExecHandlerConfigurer {
+        public void configure(ExecHandleBuilder builder) {
             String cmd;
             if (getExecutable() != null) {
                 cmd = getExecutable().replace('/', File.separatorChar);
@@ -201,8 +200,8 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    private class UnixCommandBuilder implements CommandBuilder {
-        public void build(ExecHandleBuilder builder) {
+    private class UnixConfigurer implements ExecHandlerConfigurer {
+        public void configure(ExecHandleBuilder builder) {
             if (getExecutable() != null) {
                 File exe = new File(getExecutable());
                 if (exe.isAbsolute()) {
