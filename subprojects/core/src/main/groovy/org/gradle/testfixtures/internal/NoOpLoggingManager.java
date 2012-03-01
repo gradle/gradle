@@ -29,10 +29,6 @@ public class NoOpLoggingManager implements LoggingManagerInternal {
         return this;
     }
 
-    public boolean isStandardOutputCaptureEnabled() {
-        return stdoutLevel != null;
-    }
-
     public LogLevel getStandardOutputCaptureLevel() {
         return stdoutLevel;
     }

@@ -43,7 +43,6 @@ public class DefaultLoggingManagerTest {
 
     @Test
     public void defaultValues() {
-        assertTrue(loggingManager.isStandardOutputCaptureEnabled());
         assertEquals(LogLevel.QUIET, loggingManager.getStandardOutputCaptureLevel());
         assertEquals(LogLevel.ERROR, loggingManager.getStandardErrorCaptureLevel());
         assertNull(loggingManager.getLevel());
@@ -52,7 +51,6 @@ public class DefaultLoggingManagerTest {
     @Test
     public void canChangeStdOutCaptureLogLevel() {
         loggingManager.captureStandardOutput(LogLevel.ERROR);
-        assertTrue(loggingManager.isStandardOutputCaptureEnabled());
         assertEquals(LogLevel.ERROR, loggingManager.getStandardOutputCaptureLevel());
     }
 

@@ -40,14 +40,6 @@ public interface LoggingManager extends LoggingOutput {
     LoggingManager captureStandardError(LogLevel level);
 
     /**
-     * Returns true when standard output capture is enabled.
-     *
-     * @return true when standard output capture is enabled.
-     */
-    @Deprecated
-    boolean isStandardOutputCaptureEnabled();
-
-    /**
      * Returns the log level that output written to System.out will be mapped to.
      *
      * @return The log level. Returns null when standard output capture is disabled.
