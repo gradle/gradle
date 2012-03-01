@@ -105,39 +105,4 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      */
     void layout(String layoutName, Closure config);
 
-    /**
-     * Returns the username to use for authentication with this repository, if any.
-     * 
-     * @return the username, may be null.
-     * @deprecated Use {@link #getCredentials()} and {@link PasswordCredentials#getUsername()} instead.
-     */
-    @Deprecated
-    String getUserName();
-
-    /**
-     * Sets the username to use for authentication with this repository, if any.
-     * 
-     * @param username the username, may be null.
-     * @deprecated Use {@link #getCredentials()} and {@link PasswordCredentials#setUsername(String)} instead.
-     */
-    @Deprecated
-    void setUserName(String username);
-
-    /**
-     * Returns the password to use for authentication with this repository, if any.
-     *
-     * @return the password, may be null.
-     * @deprecated Use {@link #getCredentials()} and {@link PasswordCredentials#getPassword()} instead.
-     */
-    @Deprecated
-    String getPassword();
-
-    /**
-     * Sets the password to use for authentication with this repository, if any.
-     *
-     * @param password the password, may be null.
-     * @deprecated Use {@link #getCredentials()} and {@link PasswordCredentials#setPassword(String)} instead.
-     */
-    @Deprecated
-    void setPassword(String password);
 }
