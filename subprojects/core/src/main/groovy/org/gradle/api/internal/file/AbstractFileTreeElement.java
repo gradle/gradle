@@ -24,7 +24,7 @@ import org.gradle.internal.nativeplatform.FileSystem;
 
 import java.io.*;
 
-public abstract class AbstractFileTreeElement implements FileTreeElement {
+public abstract class  AbstractFileTreeElement implements FileTreeElement {
     public abstract String getDisplayName();
 
     @Override
@@ -54,6 +54,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
     }
 
     public boolean copyTo(File target) {
+        validateTimeStamps();
         try {
             target.getParentFile().mkdirs();
             if (isDirectory()) {
@@ -61,11 +62,17 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
             } else {
                 copyFile(target);
             }
-            target.setLastModified(getLastModified());
             FileSystems.getDefault().chmod(target, getMode());
             return true;
         } catch (Exception e) {
             throw new GradleException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
+        }
+    }
+
+    private void validateTimeStamps() {
+        final long lastModified = getLastModified();
+        if(lastModified < 0) {
+            throw new GradleException(String.format("Invalid Timestamp %s for '%s'.", lastModified, getDisplayName()));
         }
     }
 
