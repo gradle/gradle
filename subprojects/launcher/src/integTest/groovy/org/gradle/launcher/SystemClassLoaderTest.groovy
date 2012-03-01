@@ -15,7 +15,10 @@
  */
 package org.gradle.launcher
 
-import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Jvm
+import spock.lang.IgnoreIf
+import static org.gradle.integtests.fixtures.GradleDistributionExecuter.getSystemPropertyExecuter
 
 /**
  * Verifies that Gradle doesn't pollute the system class loader.
@@ -25,17 +28,20 @@ import org.gradle.integtests.fixtures.*
  * When running without the daemon, success is dependant on the start scripts doing the right thing.
  * When running with the daemon, success is dependent on DaemonConnector forking the daemon process with the right classpath.
  * 
- * This test is not meaningfull when running the embedded integration test mode, so we short circuit in that case.
+ * This test is not meaningfull when running the embedded integration test mode, so we ignore it in that case.
  */
 class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
     static heading = "systemClassLoader info"
-    
+
+    @IgnoreIf({Jvm.current().ibmJvm || !getSystemPropertyExecuter().forks })
     def "daemon bootstrap classpath is bare bones"() {
         given:
         buildFile << """
-            task echo << { 
-                def systemLoaderUrls = ClassLoader.systemClassLoader.URLs
+            task echo << {
+                def loader = ClassLoader.systemClassLoader
+                assert loader instanceof java.net.URLClassLoader : 'This test is not supported on certain vms.'
+                def systemLoaderUrls = loader.URLs
                 println "$heading"
                 println systemLoaderUrls.size()
                 println systemLoaderUrls[0]
@@ -49,11 +55,7 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
         def lines = output.readLines()
         lines.find { it == heading } // here for nicer output if the output isn't what we expect
         def headingIndex = lines.indexOf(heading)
-        !forkingExecuter || lines[headingIndex + 1] == "1"
-        !forkingExecuter || lines[headingIndex + 2].contains("gradle-launcher") 
-    }
-
-    boolean isForkingExecuter() {
-        executer.type.forks
+        lines[headingIndex + 1] == "1"
+        lines[headingIndex + 2].contains("gradle-launcher")
     }
 }
