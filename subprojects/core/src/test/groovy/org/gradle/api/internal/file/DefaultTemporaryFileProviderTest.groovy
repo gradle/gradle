@@ -38,10 +38,27 @@ class DefaultTemporaryFileProviderTest extends Specification {
         def file = provider.createTemporaryFile("prefix", "suffix", "foo/bar")
 
         then:
-        file.exists()
-        file.name.startsWith "prefix"
-        file.name.endsWith "suffix"
-        file.path.startsWith(new File(tmpDir.dir, "foo/bar").path)
+        correctTempFileCreated(file)
+    }
 
+    def "can create multiple temp files with same arguments"() {
+        when:
+        def file1 = provider.createTemporaryFile("prefix", "suffix", "foo/bar")
+        def file2 = provider.createTemporaryFile("prefix", "suffix", "foo/bar")
+        def file3 = provider.createTemporaryFile("prefix", "suffix", "foo/bar")
+
+        then:
+        correctTempFileCreated(file1)
+        correctTempFileCreated(file2)
+        correctTempFileCreated(file2)
+        file1 != file2
+        file2 != file3
+    }
+
+    void correctTempFileCreated(File file) {
+        assert file.exists()
+        assert file.name.startsWith("prefix")
+        assert file.name.endsWith("suffix")
+        assert file.path.startsWith(new File(tmpDir.dir, "foo/bar").path)
     }
 }

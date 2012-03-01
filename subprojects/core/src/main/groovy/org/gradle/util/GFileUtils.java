@@ -578,7 +578,7 @@ public class GFileUtils {
      * UncheckedIOException if it fails to do so.
      */
     public static void createDirectory(File directory) {
-        if (!directory.mkdirs()) {
+        if (!directory.exists() && !directory.mkdirs()) {
             throw new UncheckedIOException("Failed to create directory " + directory);
         }
     }

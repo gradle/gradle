@@ -40,4 +40,16 @@ three
 three
 """
     }
+
+    def "createDirectory() succeeds if directory already exists"() {
+        def dir = temp.createDir("foo")
+        assert dir.exists()
+
+        when:
+        GFileUtils.createDirectory(dir)
+
+        then:
+        noExceptionThrown()
+        dir.exists()
+    }
 }
