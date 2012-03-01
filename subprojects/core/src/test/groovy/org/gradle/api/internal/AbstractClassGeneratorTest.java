@@ -24,7 +24,6 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.tasks.ConventionValue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -171,8 +170,8 @@ public abstract class AbstractClassGeneratorTest {
 
         assertThat(bean.getProp(), nullValue());
 
-        conventionAware.getConventionMapping().map("prop", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        conventionAware.getConventionMapping().map("prop", new Callable<String>() {
+            public String call() {
                 return "conventionValue";
             }
         });
@@ -195,8 +194,8 @@ public abstract class AbstractClassGeneratorTest {
 
         assertThat(bean.getProp(), isEmpty());
 
-        conventionAware.getConventionMapping().map("prop", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        conventionAware.getConventionMapping().map("prop", new Callable<Object>() {
+            public Object call() {
                 return conventionValue;
             }
         });
@@ -590,8 +589,6 @@ public abstract class AbstractClassGeneratorTest {
     }
 
     public static class ConventionAwareBean extends Bean implements IConventionAware, ConventionMapping {
-        Map<String, ConventionValue> mapping = new HashMap<String, ConventionValue>();
-
         public Convention getConvention() {
             throw new UnsupportedOperationException();
         }
@@ -600,15 +597,7 @@ public abstract class AbstractClassGeneratorTest {
             throw new UnsupportedOperationException();
         }
 
-        public ConventionMapping map(Map<String, ? extends ConventionValue> properties) {
-            throw new UnsupportedOperationException();
-        }
-
         public MappedProperty map(String propertyName, Closure value) {
-            throw new UnsupportedOperationException();
-        }
-
-        public MappedProperty map(String propertyName, ConventionValue value) {
             throw new UnsupportedOperationException();
         }
 

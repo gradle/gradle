@@ -16,9 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.tasks.ConventionValue;
 
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -28,21 +26,9 @@ import java.util.concurrent.Callable;
  */
 public interface ConventionMapping {
 
-    /**
-     * @deprecated Use {@link #map(String, Callable)} instead.
-     */
-    @Deprecated
-    MappedProperty map(String propertyName, ConventionValue value);
-
     MappedProperty map(String propertyName, Closure<?> value);
 
     MappedProperty map(String propertyName, Callable<?> value);
-
-    /**
-     * @deprecated No replacement
-     */
-    @Deprecated
-    ConventionMapping map(Map<String, ? extends ConventionValue> properties);
 
     <T> T getConventionValue(T actualValue, String propertyName, boolean isExplicitValue);
 
