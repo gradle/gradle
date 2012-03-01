@@ -123,17 +123,6 @@ public class MavenPluginTest {
     }
 
     @org.junit.Test
-    public void addsConventionMappingToTheProjectRepositoryContainer() {
-        project.getPlugins().apply(JavaPlugin.class);
-        mavenPlugin.apply(project);
-
-        MavenPluginConvention convention = project.getConvention().getPlugin(MavenPluginConvention.class);
-        convention.setMavenPomDir(new File("pomDir").getAbsoluteFile());
-        
-        assertThat(project.getRepositories().getMavenPomDir(), equalTo(convention.getMavenPomDir()));
-    }
-
-    @org.junit.Test
     public void applyWithoutWarPlugin() {
         mavenPlugin.apply(project);
         assertThat(project.getConfigurations().findByName(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME),
