@@ -204,6 +204,11 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
      * Adds a repository which is Maven compatible.
+     * 
+     * @param args The argument to create the repository
+     * @param configClosure Further configuration of the dependency resolver
+     * @return The created dependency resolver
+     * @see #mavenRepo(java.util.Map)
      */
     DependencyResolver mavenRepo(Map<String, ?> args, Closure configClosure);
 
@@ -242,6 +247,8 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     /**
      * Returns the directory to write generated poms to.
      * @deprecated Use {@link org.gradle.api.plugins.MavenPluginConvention#getMavenPomDir()} instead.
+     *
+     * @return The directory to write maven poms to
      */
     @SuppressWarnings("JavadocReference")
     @Deprecated
