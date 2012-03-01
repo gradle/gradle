@@ -507,10 +507,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         DeprecationLogger.nagUserOfReplacedMethod("Project.createTask()", "task()");
     }
 
-    private void warnUsePluginDeprecated() {
-        DeprecationLogger.nagUserOfReplacedMethod("Project.usePlugin()", "apply()");
-    }
-
     public void addChildProject(ProjectInternal childProject) {
         childProjects.put(childProject.getName(), childProject);
     }
