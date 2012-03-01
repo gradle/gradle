@@ -26,6 +26,6 @@ compileJava.options.with {
     }
 
     def logStatement() {
-        "Java Compiler API"
+        "Java compiler API"
     }
 }

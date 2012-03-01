@@ -26,7 +26,7 @@ compileJava.options.with {
     }
 
     def logStatement() {
-        "Compiling with Ant Java compiler"
+        "Compiling with Ant javac task"
     }
 
     def getCompilerErrorOutput() {

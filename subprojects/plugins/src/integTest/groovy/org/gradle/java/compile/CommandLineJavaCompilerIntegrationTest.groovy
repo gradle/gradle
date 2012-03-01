@@ -37,6 +37,6 @@ compileJava.options.with {
     }
 
     def logStatement() {
-        "Compiling using Java compiler executable"
+        "Compiling with Java compiler executable"
     }
 }

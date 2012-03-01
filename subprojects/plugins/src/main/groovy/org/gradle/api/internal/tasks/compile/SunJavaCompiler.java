@@ -27,7 +27,7 @@ public class SunJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private static final Logger LOGGER = LoggerFactory.getLogger(SunJavaCompiler.class);
 
     public WorkResult execute(JavaCompileSpec spec) {
-        LOGGER.info("Compiling using Sun Java Compiler API.");
+        LOGGER.info("Compiling with Sun Java compiler API.");
 
         String[] options = createCommandLineOptions(spec);
         int exitCode = Main.compile(options);

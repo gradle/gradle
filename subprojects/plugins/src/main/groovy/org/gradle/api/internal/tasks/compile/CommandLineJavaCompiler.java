@@ -42,7 +42,7 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec> {
 
     public WorkResult execute(JavaCompileSpec spec) {
         String executable = spec.getCompileOptions().getForkOptions().getExecutable();
-        LOGGER.info("Compiling using Java compiler executable '{}'.", executable);
+        LOGGER.info("Compiling with Java compiler executable '{}'.", executable);
 
         Iterable<String> args = argumentsGenerator.generate(spec);
         ExecHandle handle = createCompilerHandle(executable, args);
