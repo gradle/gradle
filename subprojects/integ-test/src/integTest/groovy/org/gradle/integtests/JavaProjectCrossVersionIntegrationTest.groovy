@@ -23,10 +23,10 @@ class JavaProjectCrossVersionIntegrationTest extends CrossVersionIntegrationSpec
     public void "can upgrade and downgrade Gradle version used to build Java project"() {
         given:
         buildFile << """
-if (project.asDynamicObject.hasMethod('apply', Map)) {
-    apply plugin: 'java'
-} else {
+if (gradle.gradleVersion == "0.8") {
     usePlugin('java')
+} else {
+    apply plugin: 'java'
 }
 
 
