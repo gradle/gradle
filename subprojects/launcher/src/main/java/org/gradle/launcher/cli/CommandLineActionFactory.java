@@ -30,8 +30,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonMain;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientServices;
-import org.gradle.launcher.daemon.client.StopDaemonClientServices;
 import org.gradle.launcher.daemon.client.SingleUseDaemonClientServices;
+import org.gradle.launcher.daemon.client.StopDaemonClientServices;
 import org.gradle.launcher.daemon.configuration.CurrentProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
@@ -178,7 +178,8 @@ public class CommandLineActionFactory {
     }
 
     private boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
-        return new CurrentProcess().supportsBuildParameters(requiredBuildParameters);
+        CurrentProcess currentProcess = new CurrentProcess();
+        return currentProcess.configureForBuild(requiredBuildParameters);
     }
 
     private Action<ExecutionListener> runBuildInProcess(ServiceRegistry loggingServices, StartParameter startParameter) {

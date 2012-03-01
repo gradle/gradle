@@ -31,7 +31,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         distribution.requireIsolatedDaemons()
     }
 
-    def "should stop single use daemon on build complete"() {
+    def "stops single use daemon on build complete"() {
         requireJvmArg('-Xmx32m')
 
         file('build.gradle') << "println 'hello world'"
@@ -45,7 +45,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         executer.getDaemonRegistry().all.empty
     }
 
-    def "should stop single use daemon when build fails"() {
+    def "stops single use daemon when build fails"() {
         requireJvmArg('-Xmx32m')
 
         file('build.gradle') << "throw new RuntimeException('bad')"
@@ -60,7 +60,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null})
-    def "should not fork build if java home from gradle properties matches current process"() {
+    def "does not fork build if java home from gradle properties matches current process"() {
         def alternateJavaHome = AvailableJavaHomes.bestAlternative
 
         file('gradle.properties') << "org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}"
@@ -75,50 +75,41 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         !wasForked();
     }
 
-    def "jvm arguments from gradle properties should be used to run build"() {
+    def "forks build to run when immutable jvm args set regardless of the environment"() {
+        when:
         requireJvmArg('-Xmx32m')
+        runWithJvmArg('-Xmx32m')
 
+        and:
         file('build.gradle') << """
 assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx32m')
 """
 
-        when:
+        then:
         succeeds()
 
-        then:
+        and:
         wasForked()
-
-        when:
-        runWithJvmArg('-Xmx32m')
-        succeeds()
-
-        then:
-        !wasForked()
     }
 
-    def "system properties from gradle properties should be used to run build"() {
+    def "does not fork build and configures system properties from gradle properties"() {
+        when:
         requireJvmArg('-Dsome-prop=some-value')
 
+        and:
         file('build.gradle') << """
 assert System.getProperty('some-prop') == 'some-value'
 """
 
-        when:
+        then:
         succeeds()
 
-        then:
-        wasForked()
-
-        when:
-        runWithJvmArg('-Dsome-prop=some-value')
-        succeeds()
-
-        then:
+        and:
         !wasForked()
     }
 
     private def requireJvmArg(String jvmArg) {
-        file('gradle.properties') << "org.gradle.jvmargs=$jvmArg -ea"
+        file('gradle.properties') << "org.gradle.jvmargs=$jvmArg"
     }
 
     private def runWithJvmArg(String jvmArg) {

@@ -22,7 +22,7 @@ import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
-import java.util.Map;
+import java.util.Properties;
 
 public class CurrentProcess {
     private final File javaHome;
@@ -45,31 +45,25 @@ public class CurrentProcess {
         return javaHome;
     }
 
-    public boolean supportsBuildParameters(DaemonParameters requiredBuildParameters) {
-        return hasJavaHome(requiredBuildParameters)
-                && hasJvmArgs(requiredBuildParameters)
-                && hasSystemProperties(requiredBuildParameters);
-    }
+    /**
+     * Attempts to configure the current process to run with the required build parameters.
+     * @return True if the current process could be configured, false otherwise.
+     */
+    public boolean configureForBuild(DaemonParameters requiredBuildParameters) {
+        boolean javaHomeMatch = getJavaHome().equals(requiredBuildParameters.getEffectiveJavaHome());
 
-    private boolean hasJavaHome(DaemonParameters requiredJavaHome) {
-        return getJavaHome().equals(requiredJavaHome.getEffectiveJavaHome());
-    }
+        JvmOptions optionsWithNoArgsSet = new JvmOptions(new IdentityFileResolver());
+        boolean noImmutableJvmArgsRequired = requiredBuildParameters.isUsingDefaultJvmArgs()
+                || requiredBuildParameters.getEffectiveJvmArgs().equals(optionsWithNoArgsSet.getAllImmutableJvmArgs());
 
-    private boolean hasJvmArgs(DaemonParameters requiredBuildParameters) {
-        return requiredBuildParameters.isUsingDefaultJvmArgs() || (effectiveJvmOptions.getManagedJvmArgs().equals(requiredBuildParameters.getEffectiveJvmArgs()));
-    }
-
-    private boolean hasSystemProperties(DaemonParameters requiredBuildParameters) {
-        return containsAll(getJvmOptions().getSystemProperties(), requiredBuildParameters.getSystemProperties());
-    }
-
-    private boolean containsAll(Map<String, ?> systemProperties, Map<String, ?> requiredSystemProperties) {
-        for (String key : requiredSystemProperties.keySet()) {
-            if (!requiredSystemProperties.get(key).equals(systemProperties.get(key))) {
-                return false;
-            }
+        if (javaHomeMatch && noImmutableJvmArgsRequired) {
+            // Set the system properties and use this process
+            Properties properties = new Properties();
+            properties.putAll(requiredBuildParameters.getEffectiveSystemProperties());
+            System.setProperties(properties);
+            return true;
         }
-        return true;
+        return false;
     }
 
     private static JvmOptions inferJvmOptions() {

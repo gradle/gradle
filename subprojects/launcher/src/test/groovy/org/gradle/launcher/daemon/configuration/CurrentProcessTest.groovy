@@ -19,74 +19,63 @@ package org.gradle.launcher.daemon.configuration;
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.process.internal.JvmOptions
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 
 public class CurrentProcessTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final SetSystemProperties systemPropertiesSet = new SetSystemProperties()
     private FileResolver fileResolver = Mock()
     private def currentJavaHome = tmpDir.file('java_home')
     private JvmOptions currentJvmOptions = new JvmOptions(fileResolver)
     private DaemonParameters parameters = new DaemonParameters()
 
-    def "supports build with identical java home"() {
+    def "can only run build with identical java home"() {
         when:
         CurrentProcess currentProcess = new CurrentProcess(currentJavaHome, currentJvmOptions)
 
         then:
-        currentProcess.supportsBuildParameters(parametersWithJavaHome(currentJavaHome))
-        !currentProcess.supportsBuildParameters(parametersWithJavaHome(tmpDir.file('other')))
+        currentProcess.configureForBuild(buildParameters(currentJavaHome))
+        !currentProcess.configureForBuild(buildParameters(tmpDir.file('other')))
     }
 
-    def "supports build with no jvm arguments specified"() {
+    def "can only run build when no immutable jvm arguments specified"() {
         when:
         currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
-        CurrentProcess currentProcess = new CurrentProcess(tmpDir.file('java_home'), currentJvmOptions)
+        CurrentProcess currentProcess = new CurrentProcess(currentJavaHome, currentJvmOptions)
 
         then:
-        currentProcess.supportsBuildParameters(parametersWithJavaHome(tmpDir.file('java_home')))
+        currentProcess.configureForBuild(buildParameters([]))
+        currentProcess.configureForBuild(buildParameters(['-Dfoo=bar']))
+
+        and:
+        !currentProcess.configureForBuild(buildParameters(["-Xms10m"]))
+        !currentProcess.configureForBuild(buildParameters(["-XX:SomethingElse"]))
+        !currentProcess.configureForBuild(buildParameters(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"]))
+        !currentProcess.configureForBuild(buildParameters(['-Dfile.encoding=UTF8']))
     }
 
-    def "supports build when managed jvm args match required arguments exactly"() {
+    def "sets all mutable system properties before running build"() {
         when:
-        currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
         CurrentProcess currentProcess = new CurrentProcess(tmpDir.file('java_home'), currentJvmOptions)
 
         then:
-        currentProcess.supportsBuildParameters(parametersWithJvmArgs(["-Xmx100m"]))
-        currentProcess.supportsBuildParameters(parametersWithJvmArgs(["-Xmx100m", "-Dfoo=bar", "-Dbaz"]))
+        currentProcess.configureForBuild(buildParameters(["-Dfoo=bar", "-Dbaz"]))
 
-        !currentProcess.supportsBuildParameters(parametersWithJvmArgs(["-Xms10m"]))
-        !currentProcess.supportsBuildParameters(parametersWithJvmArgs(["-Xmx101m"]))
-
-        // Perhaps these should match
-        !currentProcess.supportsBuildParameters(parametersWithJvmArgs(["-Xmx100m", "-XX:SomethingElse"]))
-        !currentProcess.supportsBuildParameters(parametersWithJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"]))
+        and:
+        System.getProperty('foo') == 'bar'
+        System.getProperty('baz') != null
     }
 
-    def "supports build when current process has all required system properties"() {
-        when:
-        currentJvmOptions.setAllJvmArgs(["-Dfoo=bar", "-Dbaz"])
-        CurrentProcess currentProcess = new CurrentProcess(tmpDir.file('java_home'), currentJvmOptions)
-
-        then:
-        currentProcess.supportsBuildParameters(parametersWithJvmArgs([]))
-        currentProcess.supportsBuildParameters(parametersWithJvmArgs(["-Dfoo=bar"]))
-        currentProcess.supportsBuildParameters(parametersWithJvmArgs(["-Dfoo=bar", "-Dbaz"]))
-
-        !currentProcess.supportsBuildParameters(parametersWithJvmArgs(["-Dother"]))
-        !currentProcess.supportsBuildParameters(parametersWithJvmArgs(["-Dfoo=bar", "-Dbaz", "-Dother"]))
+    private DaemonParameters buildParameters(Iterable<String> jvmArgs) {
+        return buildParameters(currentJavaHome, jvmArgs)
     }
 
-    private DaemonParameters parametersWithJavaHome(File javaHome) {
+    private DaemonParameters buildParameters(File javaHome, Iterable<String> jvmArgs = []) {
         parameters.setJavaHome(javaHome)
-        return parameters
-    }
-
-    private DaemonParameters parametersWithJvmArgs(Iterable<String> args) {
-        parametersWithJavaHome(currentJavaHome)
-        parameters.setJvmArgs(args)
+        parameters.setJvmArgs(jvmArgs)
         return parameters
     }
 }
