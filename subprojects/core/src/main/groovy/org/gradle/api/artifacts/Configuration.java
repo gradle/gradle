@@ -69,6 +69,7 @@ public interface Configuration extends FileCollection {
      * Returns the state of the configuration.
      *
      * @see org.gradle.api.artifacts.Configuration.State
+     * @return The state of the configuration
      */
     State getState();
 
@@ -248,6 +249,7 @@ public interface Configuration extends FileCollection {
      * Returns the name of the task that upload the artifacts of this configuration to repositories
      * declared by the user.
      *
+     * @return The name of the associated upload task
      * @see org.gradle.api.tasks.Upload
      */
     String getUploadTaskName();
@@ -362,6 +364,7 @@ public interface Configuration extends FileCollection {
      * Returns the exclude rules applied for resolving any dependency of this configuration.
      *
      * @see #exclude(java.util.Map)
+     * @return The exclude rules
      */
     Set<ExcludeRule> getExcludeRules();
 
@@ -377,6 +380,8 @@ public interface Configuration extends FileCollection {
     /**
      * Returns all the configurations belonging to the same configuration container as this
      * configuration (including this configuration).
+     *
+     * @return All of the configurations belong to the configuration container that this set belongs to.
      */
     Set<Configuration> getAll();
 
