@@ -30,96 +30,51 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JavaCommandLineOptionsBuilder {
-    private static final Logger LOGGER = Logging.getLogger(JavaCommandLineOptionsBuilder.class);
+public class JavaCompilerArgumentsBuilder {
+    private static final Logger LOGGER = Logging.getLogger(JavaCompilerArgumentsBuilder.class);
 
     private final JavaCompileSpec spec;
 
     private boolean includeLauncherOptions;
+    private boolean includeMainOptions = true;
     private boolean includeSourceFiles;
-    private boolean logGeneratedOptions = true;
+    private boolean logArguments = true;
 
-    private final List<String> options = new ArrayList<String>();
+    private List<String> args;
 
-    public JavaCommandLineOptionsBuilder(JavaCompileSpec spec) {
+    public JavaCompilerArgumentsBuilder(JavaCompileSpec spec) {
         this.spec = spec;
     }
 
-    public JavaCommandLineOptionsBuilder includeLauncherOptions(boolean flag) {
+    public JavaCompilerArgumentsBuilder includeLauncherOptions(boolean flag) {
         includeLauncherOptions = flag;
         return this;
     }
 
-    public JavaCommandLineOptionsBuilder includeSourceFiles(boolean flag) {
+    public JavaCompilerArgumentsBuilder includeMainOptions(boolean flag) {
+        includeMainOptions = flag;
+        return this;
+    }
+
+    public JavaCompilerArgumentsBuilder includeSourceFiles(boolean flag) {
         includeSourceFiles = flag;
         return this;
     }
 
-    public JavaCommandLineOptionsBuilder logGeneratedOptions(boolean flag) {
-        logGeneratedOptions = flag;
+    public JavaCompilerArgumentsBuilder logArguments(boolean flag) {
+        logArguments = flag;
         return this;
     }
 
     public List<String> build() {
-        options.clear();
+        args = new ArrayList<String>();
 
-        addMainOptions();
         addLauncherOptions();
+        addMainOptions();
         addSourceFiles();
-        logOptions();
+        logArguments();
 
-        return options;
-    }
-
-    private void addMainOptions() {
-        String sourceCompatibility = spec.getSourceCompatibility();
-        if (sourceCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(sourceCompatibility))) {
-            options.add("-source");
-            options.add(sourceCompatibility);
-        }
-        String targetCompatibility = spec.getTargetCompatibility();
-        if (targetCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(targetCompatibility))) {
-            options.add("-target");
-            options.add(targetCompatibility);
-        }
-        File destinationDir = spec.getDestinationDir();
-        if (destinationDir != null) {
-            options.add("-d");
-            options.add(destinationDir.getPath());
-        }
-        CompileOptions compileOptions = spec.getCompileOptions();
-        if (compileOptions.isVerbose()) {
-            options.add("-verbose");
-        }
-        if (compileOptions.isDeprecation()) {
-            options.add("-deprecation");
-        }
-        if (!compileOptions.isWarnings()) {
-            options.add("-nowarn");
-        }
-        if (!compileOptions.isDebug()) {
-            options.add("-g:none");
-        }
-        if (compileOptions.getEncoding() != null) {
-            options.add("-encoding");
-            options.add(compileOptions.getEncoding());
-        }
-        if (compileOptions.getBootClasspath() != null) {
-            options.add("-bootclasspath");
-            options.add(compileOptions.getBootClasspath());
-        }
-        if (compileOptions.getExtensionDirs() != null) {
-            options.add("-extdirs");
-            options.add(compileOptions.getExtensionDirs());
-        }
-        Iterable<File> classpath = spec.getClasspath();
-        if (classpath != null && classpath.iterator().hasNext()) {
-            options.add("-classpath");
-            options.add(toFileCollection(classpath).getAsPath());
-        }
-        if (compileOptions.getCompilerArgs() != null) {
-            options.addAll(compileOptions.getCompilerArgs());
-        }
+        return args;
     }
 
     private void addLauncherOptions() {
@@ -127,10 +82,66 @@ public class JavaCommandLineOptionsBuilder {
 
         ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         if (forkOptions.getMemoryInitialSize() != null) {
-            options.add("-J-Xms" + forkOptions.getMemoryInitialSize());
+            args.add("-J-Xms" + forkOptions.getMemoryInitialSize().trim());
         }
         if (forkOptions.getMemoryMaximumSize() != null) {
-            options.add("-J-Xmx" + forkOptions.getMemoryMaximumSize());
+            args.add("-J-Xmx" + forkOptions.getMemoryMaximumSize().trim());
+        }
+        if (forkOptions.getJvmArgs() != null) {
+            args.addAll(forkOptions.getJvmArgs());
+        }
+    }
+
+    private void addMainOptions() {
+        if (!includeMainOptions) { return; }
+
+        String sourceCompatibility = spec.getSourceCompatibility();
+        if (sourceCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(sourceCompatibility))) {
+            args.add("-source");
+            args.add(sourceCompatibility);
+        }
+        String targetCompatibility = spec.getTargetCompatibility();
+        if (targetCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(targetCompatibility))) {
+            args.add("-target");
+            args.add(targetCompatibility);
+        }
+        File destinationDir = spec.getDestinationDir();
+        if (destinationDir != null) {
+            args.add("-d");
+            args.add(destinationDir.getPath());
+        }
+        CompileOptions compileOptions = spec.getCompileOptions();
+        if (compileOptions.isVerbose()) {
+            args.add("-verbose");
+        }
+        if (compileOptions.isDeprecation()) {
+            args.add("-deprecation");
+        }
+        if (!compileOptions.isWarnings()) {
+            args.add("-nowarn");
+        }
+        if (!compileOptions.isDebug()) {
+            args.add("-g:none");
+        }
+        if (compileOptions.getEncoding() != null) {
+            args.add("-encoding");
+            args.add(compileOptions.getEncoding());
+        }
+        if (compileOptions.getBootClasspath() != null) {
+            args.add("-bootclasspath");
+            args.add(compileOptions.getBootClasspath());
+        }
+        if (compileOptions.getExtensionDirs() != null) {
+            args.add("-extdirs");
+            args.add(compileOptions.getExtensionDirs());
+        }
+        Iterable<File> classpath = spec.getClasspath();
+        if (classpath != null && classpath.iterator().hasNext()) {
+            args.add("-classpath");
+            args.add(toFileCollection(classpath).getAsPath());
+        }
+        if (compileOptions.getCompilerArgs() != null) {
+            args.addAll(compileOptions.getCompilerArgs());
         }
     }
 
@@ -138,13 +149,13 @@ public class JavaCommandLineOptionsBuilder {
         if (!includeSourceFiles) { return; }
 
         for (File file : spec.getSource()) {
-            options.add(file.getPath());
+            args.add(file.getPath());
         }
     }
 
-    private void logOptions() {
-        if (logGeneratedOptions && LOGGER.isInfoEnabled()) {
-            LOGGER.info("Invoking Java compiler with options '{}'", Joiner.on(' ').join(options));
+    private void logArguments() {
+        if (logArguments && LOGGER.isInfoEnabled()) {
+            LOGGER.info("Invoking Java compiler with arguments '{}'", Joiner.on(' ').join(args));
         }
     }
 

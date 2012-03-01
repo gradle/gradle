@@ -46,7 +46,7 @@ public class Jdk6JavaCompiler implements Compiler<JavaCompileSpec>, Serializable
     }
 
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec) {
-        List<String> options = new JavaCommandLineOptionsBuilder(spec).build();
+        List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         CompileOptions compileOptions = spec.getCompileOptions();
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);

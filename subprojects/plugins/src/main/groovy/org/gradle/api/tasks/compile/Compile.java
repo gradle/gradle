@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.AntBuilder;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.Compiler;
@@ -41,7 +42,9 @@ public class Compile extends AbstractCompile {
     public Compile() {
         Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
         JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
-        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory((ProjectInternal) getProject(), antBuilderFactory, inProcessCompilerFactory);
+        ProjectInternal projectInternal = (ProjectInternal) getProject();
+        TemporaryFileProvider tempFileProvider = projectInternal.getServices().get(TemporaryFileProvider.class);
+        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, tempFileProvider, antBuilderFactory, inProcessCompilerFactory);
         Compiler<JavaCompileSpec> delegatingCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
         javaCompiler = new IncrementalJavaCompiler(delegatingCompiler, antBuilderFactory, getOutputs());
     }

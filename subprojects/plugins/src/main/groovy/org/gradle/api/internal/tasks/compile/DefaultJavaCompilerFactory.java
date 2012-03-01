@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.AntBuilder;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler;
 import org.gradle.api.logging.Logger;
@@ -27,11 +28,13 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final static Logger LOGGER = Logging.getLogger(DefaultJavaCompilerFactory.class);
 
     private final ProjectInternal project;
+    private final TemporaryFileProvider tempFileProvider;
     private final Factory<AntBuilder> antBuilderFactory;
     private final JavaCompilerFactory inProcessCompilerFactory;
 
-    public DefaultJavaCompilerFactory(ProjectInternal project, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory){
+    public DefaultJavaCompilerFactory(ProjectInternal project, TemporaryFileProvider tempFileProvider, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory){
         this.project = project;
+        this.tempFileProvider = tempFileProvider;
         this.antBuilderFactory = antBuilderFactory;
         this.inProcessCompilerFactory = inProcessCompilerFactory;
     }
@@ -56,7 +59,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
 
     private Compiler<JavaCompileSpec> createTargetCompiler(CompileOptions options) {
         if (options.isFork() && options.getForkOptions().getExecutable() != null) {
-            return new CommandLineJavaCompiler(project.getProjectDir());
+            return new CommandLineJavaCompiler(tempFileProvider, project.getProjectDir());
         }
 
         Compiler<JavaCompileSpec> compiler = inProcessCompilerFactory.create(options);

@@ -19,4 +19,8 @@ public class CompilationFailedException extends RuntimeException {
     public CompilationFailedException() {
         super("Compilation failed; see the compiler error output for details.");
     }
+
+    public CompilationFailedException(int exitCode) {
+        super(String.format("Compilation failed with exit code %d; see the compiler error output for details.", exitCode));
+    }
 }

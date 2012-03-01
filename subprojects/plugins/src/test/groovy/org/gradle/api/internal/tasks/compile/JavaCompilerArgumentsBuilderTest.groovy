@@ -19,9 +19,9 @@ import spock.lang.Specification
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 
-class JavaCommandLineOptionsBuilderTest extends Specification {
+class JavaCompilerArgumentsBuilderTest extends Specification {
     def spec = new DefaultJavaCompileSpec()
-    def builder = new JavaCommandLineOptionsBuilder(spec)
+    def builder = new JavaCompilerArgumentsBuilder(spec)
 
     def "generates no options for an unconfigured spec"() {
         expect:
@@ -35,7 +35,7 @@ class JavaCommandLineOptionsBuilderTest extends Specification {
         builder.build() == []
     }
 
-    def "generates -source option when compatibility differs current Jvm version"() {
+    def "generates -source option when compatibility differs from current Jvm version"() {
         spec.sourceCompatibility = "1.4"
 
         expect:
@@ -157,23 +157,46 @@ class JavaCommandLineOptionsBuilderTest extends Specification {
         builder.build() == ["-a", "value-a", "-b", "value-b"]
     }
 
-    def "optionally includes launcher options"() {
+    def "can include/exclude main options"() {
+        spec.sourceCompatibility = "1.4"
+
+        when:
+        builder.includeMainOptions(true)
+
+        then:
+        builder.build() == ["-source", "1.4"]
+
+        when:
+        builder.includeMainOptions(false)
+
+        then:
+        builder.build() == []
+    }
+
+    def "includes main options by default"() {
+        spec.sourceCompatibility = "1.4"
+
+        expect:
+        builder.build() == ["-source", "1.4"]
+    }
+
+    def "can include/exclude launcher options"() {
         spec.compileOptions.forkOptions.with {
             memoryInitialSize = "64m"
             memoryMaximumSize = "1g"
         }
 
         when:
-        builder.includeLauncherOptions(false)
-
-        then:
-        builder.build() == []
-
-        when:
         builder.includeLauncherOptions(true)
 
         then:
         builder.build() == ["-J-Xms64m", "-J-Xmx1g"]
+
+        when:
+        builder.includeLauncherOptions(false)
+
+        then:
+        builder.build() == []
     }
 
     def "does not include launcher options by default"() {
@@ -186,22 +209,22 @@ class JavaCommandLineOptionsBuilderTest extends Specification {
         builder.build() == []
     }
 
-    def "optionally includes source files"() {
+    def "can include/exclude source files"() {
         def file1 = new File("/src/Person.java")
         def file2 = new File("Computer.java")
         spec.source = new SimpleFileCollection(file1, file2)
-
-        when:
-        builder.includeSourceFiles(false)
-
-        then:
-        builder.build() == []
 
         when:
         builder.includeSourceFiles(true)
 
         then:
         builder.build() == [file1.path, file2.path]
+
+        when:
+        builder.includeSourceFiles(false)
+
+        then:
+        builder.build() == []
     }
 
     def "does not include source files by default"() {

@@ -39,7 +39,7 @@ public class SunJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     }
 
     private String[] createCommandLineOptions(JavaCompileSpec spec) {
-        List<String> options = new JavaCommandLineOptionsBuilder(spec).includeSourceFiles(true).build();
+        List<String> options = new JavaCompilerArgumentsBuilder(spec).includeSourceFiles(true).build();
         return options.toArray(new String[options.size()]);
     }
 }

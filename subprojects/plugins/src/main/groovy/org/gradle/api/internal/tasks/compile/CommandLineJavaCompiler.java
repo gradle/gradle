@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
@@ -24,17 +25,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.List;
 
 /**
- * Executes an arbitrary Java command line compiler.
+ * Executes the Java command line compiler specified in {@code JavaCompileSpec.forkOptions.getExecutable()}.
  */
 public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompiler.class);
 
+    private final CommandLineJavaCompilerArgumentsGenerator argumentsGenerator;
     private final File workingDir;
 
-    public CommandLineJavaCompiler(File workingDir) {
+    public CommandLineJavaCompiler(TemporaryFileProvider tempFileProvider, File workingDir) {
+        argumentsGenerator = new CommandLineJavaCompilerArgumentsGenerator(tempFileProvider);
         this.workingDir = workingDir;
     }
 
@@ -42,18 +44,14 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec> {
         String executable = spec.getCompileOptions().getForkOptions().getExecutable();
         LOGGER.info("Compiling using Java compiler executable '{}'.", executable);
 
-        List<String> args = generateCommandLineOptions(spec);
+        Iterable<String> args = argumentsGenerator.generate(spec);
         ExecHandle handle = createCompilerHandle(executable, args);
         executeCompiler(handle);
 
         return new SimpleWorkResult(true);
     }
 
-    private List<String> generateCommandLineOptions(JavaCompileSpec spec) {
-        return new JavaCommandLineOptionsBuilder(spec).includeLauncherOptions(true).includeSourceFiles(true).build();
-    }
-
-    private ExecHandle createCompilerHandle(String executable, List<String> args) {
+    private ExecHandle createCompilerHandle(String executable, Iterable<String> args) {
         ExecHandleBuilder builder = new ExecHandleBuilder();
         builder.setWorkingDir(workingDir);
         builder.setExecutable(executable);
@@ -66,8 +64,7 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec> {
         handle.start();
         ExecResult result = handle.waitForFinish();
         if (result.getExitValue() != 0) {
-            LOGGER.info("Compilation failed with exit code {}", result.getExitValue());
-            throw new CompilationFailedException();
+            throw new CompilationFailedException(result.getExitValue());
         }
     }
 }
