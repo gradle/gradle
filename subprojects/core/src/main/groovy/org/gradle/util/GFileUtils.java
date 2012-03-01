@@ -572,4 +572,14 @@ public class GFileUtils {
             return true;
         }
     }
+
+    /**
+     * Creates a directory and any unexisting parent directories. Throws an
+     * UncheckedIOException if it fails to do so.
+     */
+    public static void createDirectory(File directory) {
+        if (!directory.mkdirs()) {
+            throw new UncheckedIOException("Failed to create directory " + directory);
+        }
+    }
 }
