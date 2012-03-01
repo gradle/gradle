@@ -15,12 +15,13 @@
  */
 package org.gradle.util;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.Transformer;
 
 import java.util.*;
 
-abstract public class CollectionUtils {
+public abstract class CollectionUtils {
 
     public static <T> Set<T> filter(Set<T> set, Spec<? super T> filter) {
         return filter(set, new LinkedHashSet<T>(), filter);
@@ -54,4 +55,11 @@ abstract public class CollectionUtils {
         return destination;
     }
 
+    public static List<String> toStringList(Iterable<?> iterable) {
+        List<String> result = Lists.newArrayList();
+        for (Object elem : iterable) {
+            result.add(elem.toString());
+        }
+        return result;
+    }
 }

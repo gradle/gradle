@@ -17,59 +17,49 @@ package org.gradle.api.internal.tasks.compile
 
 import spock.lang.Specification
 import org.gradle.api.tasks.WorkResult
-import org.gradle.api.file.FileCollection
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 
 class NormalizingJavaCompilerTest extends Specification {
-    final Compiler<JavaCompileSpec> target = Mock()
-    final CompileOptions options = Mock()
-    final JavaCompileSpec spec = Mock()
-    final NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
+    Compiler<JavaCompileSpec> target = Mock()
+    JavaCompileSpec spec = new DefaultJavaCompileSpec()
+    NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
 
     def setup() {
-        _ * spec.compileOptions >> options
+        spec.source = new SimpleFileCollection(new File("source.java"))
+        spec.classpath = new SimpleFileCollection(new File("dependency.jar"))
     }
 
     def "delegates to target compiler after resolving source and classpath"() {
         WorkResult workResult = Mock()
-        _ * spec.source >> files(new File("source.java"))
-        _ * spec.classpath >> files()
+        target.execute(spec) >> workResult
 
         when:
         def result = compiler.execute(spec)
 
         then:
         result == workResult
-
-        and:
-        1 * spec.setSource(!null)
-        1 * spec.setClasspath(!null)
-
-        and:
-        1 * target.execute(spec) >> workResult
+        !spec.source.is(old(spec.source))
+        !spec.classpath.is(old(spec.classpath))
     }
 
     def "fails when a non-Java source file provided"() {
-        _ * spec.source >> files(new File("source.txt"))
-        _ * spec.classpath >> files()
+        spec.source = files(new File("source.txt"))
 
         when:
         compiler.execute(spec)
 
         then:
+        0 * target._
         InvalidUserDataException e = thrown()
         e.message == 'Cannot compile non-Java source file \'source.txt\'.'
-
-        and:
-        0 * target._
     }
 
     def "propagates compile failure when failOnError is true"() {
-        CompilationFailedException failure = new CompilationFailedException()
-        _ * spec.source >> files(new File("source.java"))
-        _ * spec.classpath >> files()
-        _ * options.failOnError >> true
+        def failure
+        target.execute(spec) >> { throw failure = new CompilationFailedException() }
+
+        spec.compileOptions.failOnError = true
 
         when:
         compiler.execute(spec)
@@ -77,30 +67,24 @@ class NormalizingJavaCompilerTest extends Specification {
         then:
         CompilationFailedException e = thrown()
         e == failure
-        
-        and:
-        1 * target.execute(spec) >> { throw failure }
     }
 
     def "ignores compile failure when failOnError is false"() {
-        CompilationFailedException failure = new CompilationFailedException()
-        _ * spec.source >> files(new File("source.java"))
-        _ * spec.classpath >> files()
+        target.execute(spec) >> { throw new CompilationFailedException() }
+
+        spec.compileOptions.failOnError = false
 
         when:
         def result = compiler.execute(spec)
 
         then:
+        noExceptionThrown()
         !result.didWork
-
-        and:
-        1 * target.execute(spec) >> { throw failure }
     }
 
     def "propagates other failure"() {
-        RuntimeException failure = new RuntimeException()
-        _ * spec.source >> files(new File("source.java"))
-        _ * spec.classpath >> files()
+        def failure
+        target.execute(spec) >> { throw failure = new RuntimeException() }
 
         when:
         compiler.execute(spec)
@@ -108,15 +92,15 @@ class NormalizingJavaCompilerTest extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
-
-        and:
-        1 * target.execute(spec) >> { throw failure }
     }
 
-    def files(File... files) {
-        FileCollection collection = Mock()
-        _ * collection.files >> { files as Set }
-        _ * collection.iterator() >> { (files as List).iterator() }
-        return collection
+    def "resolves any GStrings that make it into custom compiler args"() {
+        when:
+        compiler.execute(spec)
+
+        then:
+        1 * target.execute(_) >> { JavaCompileSpec spec ->
+            assert spec.compileOptions.compilerArgs.every { it instanceof String }
+        }
     }
 }

@@ -55,5 +55,12 @@ class CollectionUtilsTest extends Specification {
         filter().empty
         filter(4,5,6) == [4] as Set
     }
-    
+
+    def toStringList() {
+        def list = [42, "string"]
+
+        expect:
+        CollectionUtils.toStringList([]) == []
+        CollectionUtils.toStringList(list) == ["42", "string"]
+    }
 }

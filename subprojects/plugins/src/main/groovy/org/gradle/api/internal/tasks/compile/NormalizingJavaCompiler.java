@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,18 +37,44 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
-        // Scan the source and classpath and remember the results
+        resolveFileCollections(spec);
+        resolveGStringsInCompilerArgs(spec);
+        checkOnlyJavaSourceFiles(spec);
+        listSourceFilesIfRequested(spec);
+        return delegateAndHandleErrors(spec);
+    }
+
+    private void resolveFileCollections(JavaCompileSpec spec) {
         spec.setSource(new SimpleFileCollection(spec.getSource().getFiles()));
         spec.setClasspath(new SimpleFileCollection(Lists.newArrayList(spec.getClasspath())));
+    }
 
+    private void resolveGStringsInCompilerArgs(JavaCompileSpec spec) {
+        spec.getCompileOptions().setCompilerArgs(CollectionUtils.toStringList(spec.getCompileOptions().getCompilerArgs()));
+    }
+
+    private void checkOnlyJavaSourceFiles(JavaCompileSpec spec) {
         for (File file : spec.getSource()) {
             if (!file.getName().endsWith(".java")) {
                 throw new InvalidUserDataException(String.format("Cannot compile non-Java source file '%s'.", file));
             }
         }
+    }
 
-        listFilesIfRequested(spec);
+    private void listSourceFilesIfRequested(JavaCompileSpec spec) {
+        if (!spec.getCompileOptions().isListFiles()) { return; }
 
+        StringBuilder builder = new StringBuilder();
+        builder.append("Source files to be compiled:");
+        for (File file : spec.getSource()) {
+            builder.append('\n');
+            builder.append(file);
+        }
+        // logging happening in compiler daemon is not yet rerouted to client, hence we use println
+        System.out.println(builder.toString());
+    }
+
+    private WorkResult delegateAndHandleErrors(JavaCompileSpec spec) {
         try {
             return delegate.execute(spec);
         } catch (CompilationFailedException e) {
@@ -57,17 +84,5 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
             LOGGER.debug("Ignoring compilation failure.");
             return new SimpleWorkResult(false);
         }
-    }
-
-    private void listFilesIfRequested(JavaCompileSpec spec) {
-        if (!spec.getCompileOptions().isListFiles()) { return; }
-
-        StringBuilder builder = new StringBuilder();
-        builder.append("Source files to be compiled:");
-        for (File file : spec.getSource()) {
-            builder.append('\n');
-            builder.append(file);
-        }
-        System.out.println(builder.toString());
     }
 }
