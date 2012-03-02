@@ -22,7 +22,7 @@ package org.gradle.tooling.model;
  * For internal purposes use {@link HierarchicalElement} or one of its subtypes instead.
  */
 @Deprecated
-public interface HierarchicalProject extends Project, HierarchicalElement {
+public interface HierarchicalProject extends HierarchicalElement {
     /**
      * Returns the parent project of this project, if any.
      *

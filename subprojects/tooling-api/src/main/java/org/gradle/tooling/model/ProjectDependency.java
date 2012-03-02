@@ -19,10 +19,5 @@ package org.gradle.tooling.model;
  * Represents a dependency on another project.
  */
 public interface ProjectDependency extends Dependency {
-    /**
-     * Returns the target of this dependency.
-     *
-     * @return The target project. Does not return null.
-     */
-    Project getTargetProject();
+
 }

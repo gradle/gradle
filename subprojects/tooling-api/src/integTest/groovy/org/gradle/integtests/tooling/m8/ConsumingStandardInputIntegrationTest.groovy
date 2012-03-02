@@ -20,7 +20,7 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.model.Project
+import org.gradle.tooling.model.GradleProject
 import spock.lang.Timeout
 
 @MinToolingApiVersion('1.0-milestone-8')
@@ -39,8 +39,8 @@ class ConsumingStandardInputIntegrationTest extends ToolingApiSpecification {
 description = System.in.text
 """
         when:
-        Project model = (Project) withConnection { ProjectConnection connection ->
-            def model = connection.model(Project.class)
+        GradleProject model = (GradleProject) withConnection { ProjectConnection connection ->
+            def model = connection.model(GradleProject.class)
             model.standardInput = new ByteArrayInputStream("Cool project".bytes)
             model.get()
         }
@@ -56,14 +56,14 @@ description = System.in.text
 description = System.in.text
 """
         when:
-        Project model = (Project) withConnection { ProjectConnection connection ->
-            def model = connection.model(Project.class)
+        GradleProject model = (GradleProject) withConnection { ProjectConnection connection ->
+            def model = connection.model(GradleProject.class)
             model.standardInput = null
             model.get()
         }
 
         then:
-        model.description == null
+        model.description == ""
     }
 
     @Timeout(90)
@@ -73,8 +73,8 @@ description = System.in.text
 description = "empty" + System.in.text
 """
         when:
-        Project model = (Project) withConnection { ProjectConnection connection ->
-            def model = connection.model(Project.class)
+        GradleProject model = (GradleProject) withConnection { ProjectConnection connection ->
+            def model = connection.model(GradleProject.class)
             model.get()
         }
 

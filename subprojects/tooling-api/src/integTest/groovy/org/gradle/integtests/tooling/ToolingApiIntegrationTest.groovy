@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.model.Project
+import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
 import org.junit.Rule
@@ -41,7 +41,7 @@ class ToolingApiIntegrationTest extends Specification {
         projectDir.file('build.gradle') << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
 
         when:
-        Project model = toolingApi.withConnection { connection -> connection.getModel(Project.class) }
+        GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         model != null
@@ -94,7 +94,7 @@ allprojects {
         toolingApi.withConnector { connector ->
             connector.useInstallation(otherVersion.gradleHomeDir)
         }
-        Project model = toolingApi.withConnection { connection -> connection.getModel(Project.class) }
+        GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         model != null
@@ -107,7 +107,7 @@ allprojects {
         toolingApi.withConnector { connector ->
             connector.useDistribution(otherVersion.binDistribution.toURI())
         }
-        Project model = toolingApi.withConnection { connection -> connection.getModel(Project.class) }
+        GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         model != null
@@ -120,7 +120,7 @@ allprojects {
         toolingApi.withConnector { connector ->
             connector.useGradleVersion(otherVersion.version)
         }
-        Project model = toolingApi.withConnection { connection -> connection.getModel(Project.class) }
+        GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         model != null
@@ -131,7 +131,7 @@ allprojects {
 
         when:
         toolingApi.withConnector { connector -> connector.useDistribution(dist.toURI()) }
-        def e = toolingApi.maybeFailWithConnection { connection -> connection.getModel(Project.class) }
+        def e = toolingApi.maybeFailWithConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         e.class == UnsupportedVersionException

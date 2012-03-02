@@ -21,7 +21,7 @@ package org.gradle.tooling.model;
  * @deprecated Use {@link BuildableElement} or one of its subtypes instead.
  */
 @Deprecated
-public interface BuildableProject extends Project, BuildableElement {
+public interface BuildableProject extends BuildableElement {
     /**
      * Returns the tasks of this project.
      *

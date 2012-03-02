@@ -20,7 +20,7 @@ import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.internal.consumer.async.AsyncConnection
 import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
-import org.gradle.tooling.model.Project
+import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.internal.Exceptions
 import org.gradle.util.ConcurrentSpecification
 
@@ -28,13 +28,13 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
     final AsyncConnection protocolConnection = Mock()
     final ProtocolToModelAdapter adapter = Mock()
     final ConnectionParameters parameters = Mock()
-    final DefaultModelBuilder<Project, ProjectVersion3> builder = new DefaultModelBuilder<Project, ProjectVersion3>(Project, ProjectVersion3, protocolConnection, adapter, parameters)
+    final DefaultModelBuilder<GradleProject, ProjectVersion3> builder = new DefaultModelBuilder<GradleProject, ProjectVersion3>(GradleProject, ProjectVersion3, protocolConnection, adapter, parameters)
 
     def getModelDelegatesToProtocolConnectionToFetchModel() {
-        ResultHandler<Project> handler = Mock()
+        ResultHandler<GradleProject> handler = Mock()
         ResultHandlerVersion1<ProjectVersion3> adaptedHandler
         ProjectVersion3 result = Mock()
-        Project adaptedResult = Mock()
+        GradleProject adaptedResult = Mock()
 
         when:
         builder.get(handler)
@@ -52,13 +52,13 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         adaptedHandler.onComplete(result)
 
         then:
-        1 * adapter.adapt(Project.class, result) >> adaptedResult
+        1 * adapter.adapt(GradleProject.class, result) >> adaptedResult
         1 * handler.onComplete(adaptedResult)
         0 * _._
     }
 
     def getModelWrapsFailureToFetchModel() {
-        ResultHandler<Project> handler = Mock()
+        ResultHandler<GradleProject> handler = Mock()
         ResultHandlerVersion1<ProjectVersion3> adaptedHandler
         RuntimeException failure = new RuntimeException()
         GradleConnectionException wrappedFailure
@@ -75,13 +75,13 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         then:
         1 * handler.onFailure(!null) >> {args -> wrappedFailure = args[0] }
         _ * protocolConnection.displayName >> '[connection]'
-        wrappedFailure.message == 'Could not fetch model of type \'Project\' using [connection].'
+        wrappedFailure.message == 'Could not fetch model of type \'GradleProject\' using [connection].'
         wrappedFailure.cause.is(failure)
         0 * _._
     }
 
     def "provides compatibility hint on failure"() {
-        ResultHandler<Project> handler = Mock()
+        ResultHandler<GradleProject> handler = Mock()
         ResultHandlerVersion1<ProjectVersion3> adaptedHandler
         RuntimeException failure = new UnsupportedOperationException()
         GradleConnectionException wrappedFailure
@@ -104,8 +104,8 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
     def getModelBlocksUntilResultReceivedFromProtocolConnection() {
         def supplyResult = waitsForAsyncCallback()
         ProjectVersion3 result = Mock()
-        Project adaptedResult = Mock()
-        _ * adapter.adapt(Project.class, result) >> adaptedResult
+        GradleProject adaptedResult = Mock()
+        _ * adapter.adapt(GradleProject.class, result) >> adaptedResult
 
         when:
         def model

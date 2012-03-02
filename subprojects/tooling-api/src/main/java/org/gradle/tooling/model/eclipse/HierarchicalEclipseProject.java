@@ -20,6 +20,8 @@ import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.HierarchicalProject;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
+import java.io.File;
+
 /**
  * Represents the basic information about an Eclipse project.
  */
@@ -58,4 +60,12 @@ public interface HierarchicalEclipseProject extends HierarchicalProject, Hierarc
      *  You can safely catch ignore this exception and query the model for other information.
      */
     DomainObjectSet<? extends EclipseLinkedResource> getLinkedResources() throws UnsupportedMethodException;
+
+    /**
+     * Returns the project directory for this project.
+     *
+     * @return The project directory.
+     */
+    File getProjectDirectory();
+
 }

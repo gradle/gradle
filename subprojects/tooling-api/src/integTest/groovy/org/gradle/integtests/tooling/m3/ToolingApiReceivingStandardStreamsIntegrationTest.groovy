@@ -16,7 +16,7 @@
 package org.gradle.integtests.tooling.m3
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.Project
+import org.gradle.tooling.model.GradleProject
 
 class ToolingApiReceivingStandardStreamsIntegrationTest extends ToolingApiSpecification {
 
@@ -58,7 +58,7 @@ System.err.println 'this is stderr'
 
         when:
         withConnection { connection ->
-            def model = connection.model(Project.class)
+            def model = connection.model(GradleProject.class)
             model.standardOutput = stdout
             model.standardError = stderr
             return model.get()

@@ -19,7 +19,7 @@ package org.gradle.integtests.tooling.m8
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.Project
+import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 
 @MinToolingApiVersion('1.0-milestone-8')
@@ -45,7 +45,7 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
 
         when:
         BuildEnvironment env = withConnection { it.getModel(BuildEnvironment.class) }
-        Project project = withConnection { it.getModel(Project.class) }
+        GradleProject project = withConnection { it.getModel(GradleProject.class) }
 
         then:
         def inputArgsInBuild = project.description.split('##') as List
@@ -58,7 +58,7 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
 
         when:
         BuildEnvironment env = withConnection { it.getModel(BuildEnvironment.class) }
-        Project project = withConnection { it.getModel(Project.class) }
+        GradleProject project = withConnection { it.getModel(GradleProject.class) }
 
         then:
         env.java.javaHome.toString() == project.description
@@ -70,7 +70,7 @@ class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
 
         when:
         BuildEnvironment env = withConnection { it.getModel(BuildEnvironment.class) }
-        Project project = withConnection { it.getModel(Project.class) }
+        GradleProject project = withConnection { it.getModel(GradleProject.class) }
 
         then:
         env.gradle.gradleVersion == project.description

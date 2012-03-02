@@ -19,7 +19,7 @@ package org.gradle.integtests.tooling.m8
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.Project
+import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -71,7 +71,7 @@ assert System.getProperty('some-prop') == 'BBB'
 
         when:
         def model = withConnection {
-            it.model(Project.class)
+            it.model(GradleProject.class)
                 .setJvmArguments('-Dsome-prop=BBB', '-Xmx23m')
                 .get()
         }
@@ -87,10 +87,10 @@ assert System.getProperty('some-prop') == 'BBB'
 
         when:
         BuildEnvironment env
-        Project project
+        GradleProject project
         withConnection {
             env = it.model(BuildEnvironment.class).setJvmArguments('-Xmx200m', '-Xms100m').get()
-            project = it.model(Project.class).setJvmArguments('-Xmx200m', '-Xms100m').get()
+            project = it.model(GradleProject.class).setJvmArguments('-Xmx200m', '-Xms100m').get()
         }
 
         then:

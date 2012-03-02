@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling.m3
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProgressListener
-import org.gradle.tooling.model.Project
+import org.gradle.tooling.model.GradleProject
 
 class ToolingApiModelIntegrationTest extends ToolingApiSpecification {
     def "receives progress while the model is building"() {
@@ -31,7 +31,7 @@ System.err.println 'this is stderr'
 
         when:
         withConnection { connection ->
-            def model = connection.model(Project.class)
+            def model = connection.model(GradleProject.class)
             model.addProgressListener({ event -> progressMessages << event.description } as ProgressListener)
             return model.get()
         }
@@ -47,12 +47,12 @@ System.err.println 'this is stderr'
 
         when:
         withConnection { connection ->
-            return connection.getModel(Project.class)
+            return connection.getModel(GradleProject.class)
         }
 
         then:
         BuildException e = thrown()
-        e.message.startsWith('Could not fetch model of type \'Project\' using Gradle')
+        e.message.startsWith('Could not fetch model of type \'GradleProject\' using Gradle')
         e.cause.message.contains('A problem occurred evaluating root project')
     }
 }

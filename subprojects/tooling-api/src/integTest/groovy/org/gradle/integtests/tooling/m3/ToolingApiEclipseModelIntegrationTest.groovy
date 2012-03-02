@@ -34,7 +34,6 @@ description = 'this is a project'
         HierarchicalEclipseProject minimalProject = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
 
         then:
-        minimalProject.path == ':'
         minimalProject.name == 'test project'
         minimalProject.description == 'this is a project'
         minimalProject.projectDirectory == projectDir
@@ -45,7 +44,6 @@ description = 'this is a project'
         EclipseProject fullProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
-        fullProject.path == ':'
         fullProject.name == 'test project'
         fullProject.description == 'this is a project'
         fullProject.projectDirectory == projectDir

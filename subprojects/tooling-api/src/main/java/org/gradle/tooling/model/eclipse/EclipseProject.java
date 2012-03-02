@@ -17,6 +17,8 @@ package org.gradle.tooling.model.eclipse;
 
 import org.gradle.tooling.model.*;
 
+import java.io.File;
+
 /**
  * The complete model of an Eclipse project.
  *
@@ -58,4 +60,12 @@ public interface EclipseProject extends HierarchicalEclipseProject, BuildablePro
      * @return The dependencies. Returns an empty set if the project has no external dependencies.
      */
     DomainObjectSet<? extends ExternalDependency> getClasspath();
+
+    /**
+     * Returns the project directory for this project.
+     *
+     * @return The project directory.
+     */
+    File getProjectDirectory();
+
 }

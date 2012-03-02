@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.model.Project
+import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.Jvm
 import spock.lang.IgnoreIf
@@ -95,10 +95,10 @@ class M9JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
         when:
         File javaHome = AvailableJavaHomes.bestAlternative
         BuildEnvironment env
-        Project project
+        GradleProject project
         withConnection {
             env = it.model(BuildEnvironment.class).setJavaHome(javaHome).get()
-            project = it.model(Project.class).setJavaHome(javaHome).get()
+            project = it.model(GradleProject.class).setJavaHome(javaHome).get()
         }
 
         then:

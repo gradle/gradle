@@ -28,7 +28,7 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.internal.consumer.Distribution
-import org.gradle.tooling.model.Project
+import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
 import spock.lang.Issue
@@ -111,7 +111,7 @@ project.description = text
         withConnection { connection ->
             threads.times { idx ->
                 concurrent.start {
-                    def model = connection.model(Project.class)
+                    def model = connection.model(GradleProject.class)
                     def operation = new ConfigurableOperation(model)
                         .setStandardInput("hasta la vista $idx")
 
@@ -140,7 +140,7 @@ project.description = text
         threads.times { idx ->
             concurrent.start {
                 withConnectionInDir("build$idx") { connection ->
-                    def model = connection.model(Project.class)
+                    def model = connection.model(GradleProject.class)
                     model.standardInput = new ByteArrayInputStream("project $idx".toString().bytes)
                     def project = model.get()
                     assert project.description == "project $idx"
@@ -238,7 +238,7 @@ project.description = text
                 def connection = connector.connect()
 
                 try {
-                    def model = connection.model(Project)
+                    def model = connection.model(GradleProject)
                     def operation = new ConfigurableOperation(model)
 
                     assert model.get()
@@ -294,7 +294,7 @@ logger.lifecycle 'this is lifecycle: $idx'
         threads.times { idx ->
             concurrent.start {
                 withConnectionInDir("build$idx") { connection ->
-                    def model = connection.model(Project.class)
+                    def model = connection.model(GradleProject.class)
                     def operation = new ConfigurableOperation(model)
                     assert model.get()
 
