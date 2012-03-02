@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling
 import java.util.logging.LogManager
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.tooling.model.BuildableProject
+import org.gradle.tooling.model.GradleProject
 
 class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -34,7 +34,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "task hey"
 
         when:
-        BuildableProject model = toolingApi.withConnection { connection -> connection.getModel(BuildableProject.class) }
+        GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         model.tasks.find { it.name == 'hey' }
@@ -74,7 +74,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         assert java.util.logging.Level.OFF == LogManager.getLogManager().getLogger("").level
-        BuildableProject model = toolingApi.withConnection { connection -> connection.getModel(BuildableProject.class) }
+        GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         model.tasks.find { it.name == 'hey' }

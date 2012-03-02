@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.tooling.m3
+package org.gradle.integtests.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProgressListener
-import org.gradle.tooling.model.BuildableProject
+import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.eclipse.EclipseProject
 
@@ -33,7 +33,7 @@ task c
 '''
 
         when:
-        def project = withConnection { connection -> connection.getModel(BuildableProject.class) }
+        GradleProject project = withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         def taskA = project.tasks.find { it.name == 'a' }
@@ -62,7 +62,7 @@ apply plugin: 'java'
 
         when:
         withConnection { connection ->
-            BuildableProject project = connection.getModel(BuildableProject.class)
+            GradleProject project = connection.getModel(GradleProject.class)
             Task clean = project.tasks.find { it.name == 'clean' }
             def build = connection.newBuild()
             build.forTasks(clean)
@@ -117,16 +117,16 @@ task c
 '''
 
         when:
-        def project = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject project = withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
-        def taskA = project.tasks.find { it.name == 'a' }
+        def taskA = project.gradleProject.tasks.find { it.name == 'a' }
         taskA != null
         taskA.path == ':a'
         taskA.description == 'this is task a'
-        taskA.project == project
-        project.tasks.find { it.name == 'b' }
-        project.tasks.find { it.name == 'c' }
+        taskA.project == project.gradleProject
+        project.gradleProject.tasks.find { it.name == 'b' }
+        project.gradleProject.tasks.find { it.name == 'c' }
     }
 
     def "does not resolve dependencies when building the set of tasks for a project"() {
@@ -138,7 +138,7 @@ dependencies {
 '''
 
         when:
-        def project = withConnection { connection -> connection.getModel(BuildableProject.class) }
+        GradleProject project = withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         !project.tasks.empty

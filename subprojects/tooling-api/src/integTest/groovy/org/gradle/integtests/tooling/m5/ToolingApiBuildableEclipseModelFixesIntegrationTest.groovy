@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.tooling.m4
+package org.gradle.integtests.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.BuildableProject
+import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Issue
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 
-@MinTargetGradleVersion('1.0-milestone-4')
+@MinTargetGradleVersion('1.0-milestone-5')
 class ToolingApiBuildableEclipseModelFixesIntegrationTest extends ToolingApiSpecification {
     @Issue("GRADLE-1529")
     //this is just one of the ways of fixing the problem. See the issue for details
@@ -31,7 +31,7 @@ task a
 task b
 '''
         when:
-        def project = withConnection { connection -> connection.getModel(BuildableProject.class) }
+        def project = withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
         def tasks = project.tasks.collect { it.name }
@@ -54,13 +54,13 @@ project(':api') {
         EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
 
         then:
-        def rootTasks = eclipseProject.tasks.collect { it.name }
+        def rootTasks = eclipseProject.gradleProject.tasks.collect { it.name }
 
         EclipseProject api = eclipseProject.children[1]
-        def apiTasks = api.tasks.collect { it.name }
+        def apiTasks = api.gradleProject.tasks.collect { it.name }
 
         EclipseProject impl = eclipseProject.children[0]
-        def implTasks = impl.tasks.collect { it.name }
+        def implTasks = impl.gradleProject.tasks.collect { it.name }
 
         ['eclipse', 'cleanEclipse', 'eclipseProject', 'cleanEclipseProject'].each {
             assert !rootTasks.contains(it)
