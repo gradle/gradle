@@ -21,12 +21,12 @@ import static org.gradle.integtests.fixtures.GradleDistributionExecuter.getSyste
 
 /**
  * Verifies that Gradle doesn't pollute the system class loader.
- * 
+ *
  * This is important for plugins that need to use isolated class loaders to avoid conflicts.
- * 
+ *
  * When running without the daemon, success is dependant on the start scripts doing the right thing.
  * When running with the daemon, success is dependent on DaemonConnector forking the daemon process with the right classpath.
- * 
+ *
  * This test is not meaningful when running the embedded integration test mode, so we ignore it in that case.
  */
 class SystemClassLoaderTest extends AbstractIntegrationSpec {
@@ -41,27 +41,28 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
             task loadClasses << {
                 def systemLoader = ClassLoader.systemClassLoader
 
-                systemLoader.loadClass(GradleMain.name) // this should be on the classpath, it's from the launcher package
+                systemLoader.loadClass(org.gradle.launcher.GradleMain.name) // this should be on the classpath, it's from the launcher package
 
+                def nonLauncherOrCoreClass = org.slf4j.Logger
+                getClass().classLoader.loadClass(nonLauncherOrCoreClass.name)
                 try {
-                    systemLoader.loadClass(Project.class.name)
+                    systemLoader.loadClass(nonLauncherOrCoreClass.name)
                     assert false : "ClassNotFoundException should have been thrown trying to load a “core” class from the system classloader"
                 } catch (ClassNotFoundException e) {
                     //
                 }
-                
-                
+
                 if (systemLoader instanceof java.net.URLClassLoader) {
-                    def systemLoaderUrls = loader.URLs
+                    def systemLoaderUrls = systemLoader.URLs
                     println "$heading"
                     println systemLoaderUrls.size()
-                    println systemLoaderUrls[0]                
+                    println systemLoaderUrls[0]
                 } else {
                     println "$noInfoHeading"
                 }
             }
         """
-        
+
         when:
         succeeds "loadClasses"
 
