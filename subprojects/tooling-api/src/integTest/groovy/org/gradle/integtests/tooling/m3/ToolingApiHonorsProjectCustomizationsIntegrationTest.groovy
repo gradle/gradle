@@ -30,11 +30,11 @@ allprojects {
 }
 
 project(':api') {
-    eclipseProject { projectName = 'gradle-api' }
+    eclipse.project.name = 'gradle-api'
 }
 
 project(':impl') {
-    eclipseProject { projectName = 'gradle-impl' }
+    eclipse.project.name = 'gradle-impl'
 }
 '''
         projectDir.file('settings.gradle').text = "include 'api', 'impl'"
