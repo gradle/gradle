@@ -19,11 +19,8 @@ package org.gradle.integtests.resolve.custom
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.SFTPServer
-import org.gradle.internal.os.OperatingSystem
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
-@IgnoreIf ( { OperatingSystem.current().isWindows() })
 class IvySFtpResolverIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
