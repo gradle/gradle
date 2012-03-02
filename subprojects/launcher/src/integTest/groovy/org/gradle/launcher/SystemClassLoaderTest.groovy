@@ -63,7 +63,7 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
         """
         
         when:
-        succeeds loadClasses
+        succeeds "loadClasses"
 
         then:
         def lines = output.readLines()
