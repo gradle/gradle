@@ -114,11 +114,11 @@ public class DefaultWorkerProcess implements WorkerProcess {
                         throw new ExecException(String.format("Timeout waiting for %s to connect.", execHandle));
                     }
                 } catch (InterruptedException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
             if (processFailure != null) {
-                throw UncheckedException.asUncheckedException(processFailure);
+                throw UncheckedException.throwAsUncheckedException(processFailure);
             }
             if (connection == null) {
                 throw new ExecException(String.format("Never received a connection from %s.", execHandle));

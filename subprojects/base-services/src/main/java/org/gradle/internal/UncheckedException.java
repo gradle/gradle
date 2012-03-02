@@ -26,23 +26,28 @@ public final class UncheckedException extends RuntimeException {
         super(cause);
     }
 
-    public static RuntimeException asUncheckedException(Throwable t) {
+    /**
+     * Note: always throws the failure in some form. The return value is to keep the compiler happy.
+     */
+    public static RuntimeException throwAsUncheckedException(Throwable t) {
         if (t instanceof RuntimeException) {
-            return (RuntimeException) t;
+            throw (RuntimeException) t;
         }
-        return new UncheckedException(t);
+        if (t instanceof Error) {
+            throw (Error) t;
+        }
+        throw new UncheckedException(t);
     }
 
     /**
      * Uwraps passed InvocationTargetException hence making the stack of exceptions cleaner without losing information.
+     *
+     * Note: always throws the failure in some form. The return value is to keep the compiler happy.
+     *
      * @param e to be unwrapped
      * @return an instance of RuntimeException based on the target exception of the parameter.
      */
-    public static RuntimeException unwrap(InvocationTargetException e) {
-        if (e.getTargetException() instanceof RuntimeException) {
-            return (RuntimeException) e.getTargetException();
-        } else {
-            return UncheckedException.asUncheckedException(e.getTargetException());
-        }
+    public static RuntimeException unwrapAndRethrow(InvocationTargetException e) {
+        return UncheckedException.throwAsUncheckedException(e.getTargetException());
     }
 }

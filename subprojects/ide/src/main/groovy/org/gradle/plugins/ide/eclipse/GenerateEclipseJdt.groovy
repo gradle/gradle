@@ -15,13 +15,11 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.api.internal.Instantiator
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
-import org.gradle.plugins.ide.api.PropertiesGeneratorTask;
-import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
-import org.gradle.plugins.ide.eclipse.model.Jdt;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.plugins.ide.api.PropertiesGeneratorTask
+import org.gradle.plugins.ide.eclipse.model.EclipseJdt
+import org.gradle.plugins.ide.eclipse.model.Jdt
 
 /**
  * Generates the Eclipse JDT configuration file. If you want to fine tune the eclipse configuration
@@ -34,40 +32,6 @@ class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
      * Eclipse project model that contains information needed for this task
      */
     EclipseJdt jdt
-
-    /**
-     * Deprecated. Please use #eclipse.jdt.sourceCompatibility. See examples in {@link EclipseJdt}.
-     * <p>
-     * The source Java language level.
-     */
-    @Deprecated
-    JavaVersion getSourceCompatibility() {
-        DeprecationLogger.nagUserOfReplacedMethod("eclipseJdt.sourceCompatibility", "eclipse.jdt.sourceCompatibility")
-        jdt.sourceCompatibility
-    }
-
-    @Deprecated
-    void setSourceCompatibility(Object sourceCompatibility) {
-        DeprecationLogger.nagUserOfReplacedMethod("eclipseJdt.sourceCompatibility", "eclipse.jdt.sourceCompatibility")
-        jdt.sourceCompatibility = sourceCompatibility
-    }
-
-    /**
-     * Deprecated. Please use #eclipse.jdt.targetCompatibility. See examples in {@link EclipseJdt}.
-     * <p>
-     * The target JVM to generate {@code .class} files for.
-     */
-    @Deprecated
-    JavaVersion getTargetCompatibility() {
-        DeprecationLogger.nagUserOfReplacedMethod("eclipseJdt.targetCompatibility", "eclipse.jdt.targetCompatibility")
-        jdt.targetCompatibility
-    }
-
-    @Deprecated
-    void setTargetCompatibility(Object targetCompatibility) {
-        DeprecationLogger.nagUserOfReplacedMethod("eclipseJdt.targetCompatibility", "eclipse.jdt.targetCompatibility")
-        jdt.targetCompatibility = targetCompatibility
-    }
 
     GenerateEclipseJdt() {
         jdt = services.get(Instantiator).newInstance(EclipseJdt, new PropertiesFileContentMerger(getTransformer()))

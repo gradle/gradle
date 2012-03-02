@@ -19,6 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.exec.ReportedException;
 
@@ -51,6 +52,8 @@ public class ExecuteBuild extends BuildCommandOnly {
                 have already been logged and do away with this wrapper.
             */
             execution.setException(new ReportedException(e));
+        } finally {
+            LOGGER.debug(DaemonMessages.FINISHED_BUILD);
         }
 
         execution.proceed(); // ExecuteBuild should be the last action, but in case we want to decorate the result in the future

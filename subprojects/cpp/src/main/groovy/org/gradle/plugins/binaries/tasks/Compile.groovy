@@ -15,18 +15,18 @@
  */
 package org.gradle.plugins.binaries.tasks
 
-import org.gradle.api.tasks.TaskAction
 import org.gradle.api.DefaultTask
-
+import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.api.tasks.TaskAction
 import org.gradle.plugins.binaries.model.CompileSpec
 
 class Compile extends DefaultTask {
-
     CompileSpec spec
+    Compiler compiler
 
     @TaskAction
     void compile() {
-        spec.compile()
+        def result = compiler.execute(spec)
+        didWork = result.didWork
     }
-
 }

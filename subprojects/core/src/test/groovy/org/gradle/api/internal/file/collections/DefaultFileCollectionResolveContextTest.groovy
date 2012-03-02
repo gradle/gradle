@@ -214,6 +214,19 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == []
     }
 
+    def resolvesTasksOutputsWithEmptyFileCollection() {
+        FileCollection content = Mock()
+        TaskOutputs outputs = Mock()
+        when:
+
+        context.add outputs
+        def result = context.resolveAsFileCollections()
+
+        then:
+        1 * outputs.files >> content
+        result == [content]
+    }
+
     def recursivelyResolvesReturnValueOfACallable() {
         FileCollection content = Mock()
         Callable<?> callable = Mock()

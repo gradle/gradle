@@ -16,35 +16,57 @@
 package org.gradle.api.plugins;
 
 /**
- * <p>Represents an object that is able to accept DSL extensions. A DSL extension is basically a custom namespace in the DSL.
- *
- * <p>To add an extension to this object, you call {@link ExtensionContainer#add(String, Object)} on this
- * object's {@link ExtensionContainer}, passing the extension object. The extension becomes a dynamic property of this target object:</p>
+ * Objects that can be extended at runtime with other objects.
  *
  * <pre autoTested="">
- * extensions.add('custom', new MyPojo())
+ * // Extensions are just plain objects, there is no interface/type
+ * class MyExtension {
+ *   String foo
  *
- * // Extension is available as a property
- * custom.someProperty = 'value'
- *
- * // And as a script block
- * custom {
- *     someProperty = 'value'
+ *   MyExtension(String foo) {
+ *     this.foo = foo
+ *   }
  * }
  *
- * class MyPojo {
- *     String someProperty
+ * // Add new extensions via the extension container
+ * project.extensions.create('custom', MyExtension, "bar")
+ * //                       («name»,   «type»,       «constructor args», …)
+ *
+ * // extensions appear as properties on the target object by the given name
+ * assert project.custom instanceof MyExtension
+ * assert project.custom.foo == "bar"
+ *
+ * // also via a namespace method
+ * project.custom {
+ *   assert foo == "bar"
+ *   foo = "other"
  * }
+ * assert project.custom.foo == "other"
+ *
+ * // Extensions added with the extensnion container's create method are themselves extensible
+ * assert project.custom instanceof ExtensionAware
+ * project.custom.extensions.create("nested", MyExtension, "baz")
+ * assert project.custom.nested.foo == "baz"
+ *
+ * // All extension aware objects have a special “ext” extension of type ExtraPropertiesExtension
+ * assert project.hasProperty("myProperty") == false
+ * project.ext.myProperty = "myValue"
+ *
+ * // Properties added to the “ext” extension are promoted to the owning object
+ * assert project.myProperty == "myValue"
  * </pre>
  *
- * <p>Extensions can also be added using a dynamic property accessor on the extension container:
- * {@code project.extensions.myExtension = myPojo} is the same as {@code project.extensions.add('myExtension', myPojo)}.</p>
- *
- * <p>Many Gradle types implement this interface, either statically or dynamically at runtime.</p>
+ * Many Gradle objects are extension aware. This includes; projects, tasks, configurations, dependencies etc.
+ * <p>
+ * For more on adding & creating extensions, see {@link ExtensionContainer}.
+ * <p>
+ * For more on extra properties, see {@link ExtraPropertiesExtension}.
  */
 public interface ExtensionAware {
+
     /**
-     * Returns the set of extensions applied to this object.
+     * The container of extensions.
      */
     ExtensionContainer getExtensions();
+
 }

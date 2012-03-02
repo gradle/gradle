@@ -19,21 +19,27 @@ import org.gradle.api.AntBuilder;
 import org.gradle.internal.Factory;
 import org.gradle.api.internal.TaskOutputsInternal;
 
-public class IncrementalJavaCompiler extends IncrementalJavaCompilerSupport<JavaCompiler> implements JavaCompiler {
+public class IncrementalJavaCompiler extends IncrementalJavaCompilerSupport<JavaCompileSpec> implements Compiler<JavaCompileSpec> {
+    private final Compiler<JavaCompileSpec> compiler;
     private final Factory<AntBuilder> antBuilderFactory;
     private final TaskOutputsInternal taskOutputs;
 
-    public IncrementalJavaCompiler(JavaCompiler compiler, Factory<AntBuilder> antBuilderFactory,
+    public IncrementalJavaCompiler(Compiler<JavaCompileSpec> compiler, Factory<AntBuilder> antBuilderFactory,
                                    TaskOutputsInternal taskOutputs) {
-        super(compiler);
+        this.compiler = compiler;
         this.antBuilderFactory = antBuilderFactory;
         this.taskOutputs = taskOutputs;
     }
 
-    protected StaleClassCleaner createCleaner() {
-        if (getCompileOptions().isUseDepend()) {
+    @Override
+    protected Compiler<JavaCompileSpec> getCompiler() {
+        return compiler;
+    }
+
+    protected StaleClassCleaner createCleaner(JavaCompileSpec spec) {
+        if (spec.getCompileOptions().isUseDepend()) {
             AntDependsStaleClassCleaner cleaner = new AntDependsStaleClassCleaner(antBuilderFactory);
-            cleaner.setDependencyCacheDir(dependencyCacheDir);
+            cleaner.setDependencyCacheDir(spec.getDependencyCacheDir());
             return cleaner;
         } else {
             return new SimpleStaleClassCleaner(taskOutputs);

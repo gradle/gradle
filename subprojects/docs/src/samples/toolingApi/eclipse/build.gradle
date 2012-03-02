@@ -1,11 +1,14 @@
+//This build script contains extra logic that we use for automated tests
+//Not all of that is needed to use the Tooling Api!
+
 apply plugin: 'java'
 apply plugin: 'application'
 
 if (!hasProperty('toolingApiVersion')) {
-    toolingApiVersion = gradle.gradleVersion
+    ext.toolingApiVersion = gradle.gradleVersion
 }
 if (!hasProperty('toolingApiRepo')) {
-    toolingApiRepo = 'http://repo.gradle.org/gradle/libs-releases-local'
+    ext.toolingApiRepo = 'http://repo.gradle.org/gradle/libs-releases-local'
 }
 
 repositories {
@@ -26,5 +29,10 @@ mainClassName = 'org.gradle.sample.Main'
 run {
     if (project.hasProperty('gradleDistribution')) {
         args = [gradleDistribution]
+    }
+
+    if (project.hasProperty('automationSystemProperty')) {
+        def entry = project.getProperty('automationSystemProperty').split('=')
+        systemProperties[entry[0]] = entry[1]
     }
 }

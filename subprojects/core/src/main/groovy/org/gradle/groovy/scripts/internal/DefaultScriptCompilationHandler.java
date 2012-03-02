@@ -28,7 +28,7 @@ import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.GradleException;
-import org.gradle.api.ScriptCompilationException;
+import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.UncheckedException;
@@ -144,7 +144,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     nameField.setAccessible(true);
                     nameField.set(sourceUnit, source.getDisplayName());
                 } catch (Exception failure) {
-                    throw UncheckedException.asUncheckedException(failure);
+                    throw UncheckedException.throwAsUncheckedException(failure);
                 }
             }
         }

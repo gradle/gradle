@@ -70,7 +70,7 @@ public class QueuingDispatch<T> implements Dispatch<T>, Stoppable {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         } finally {

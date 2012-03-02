@@ -1,4 +1,0 @@
-task produce << {
-    println "Producing message:"
-    rootProject.producerMessage = 'Watch the order of execution.'
-}

@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.util.ObservableUrlClassLoader;
+import org.gradle.util.MutableURLClassLoader;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,7 +38,7 @@ import java.util.Map;
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final DependencyManagementServices dependencyManagementServices;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
-    private final Map<Collection<Object>, ObservableUrlClassLoader> classLoaderCache = new HashMap<Collection<Object>, ObservableUrlClassLoader>();
+    private final Map<Collection<Object>, MutableURLClassLoader> classLoaderCache = new HashMap<Collection<Object>, MutableURLClassLoader>();
     private final FileResolver fileResolver;
     private final ProjectFinder projectFinder = new ProjectFinder() {
         public ProjectInternal getProject(String path) {
@@ -64,9 +64,9 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
         ConfigurationContainer configurationContainer = services.getConfigurationContainer();
         DependencyHandler dependencyHandler = services.getDependencyHandler();
         Collection<Object> key = Arrays.asList(scriptSource.getClassName(), parentClassLoader);
-        ObservableUrlClassLoader classLoader = classLoaderCache.get(key);
+        MutableURLClassLoader classLoader = classLoaderCache.get(key);
         if (classLoader == null) {
-            classLoader = new ObservableUrlClassLoader(parentClassLoader);
+            classLoader = new MutableURLClassLoader(parentClassLoader);
             classLoaderCache.put(key, classLoader);
             return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, classLoader);
         }

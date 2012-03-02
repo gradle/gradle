@@ -27,7 +27,6 @@ import org.apache.ivy.plugins.namespace.NameSpaceHelper;
 import org.apache.ivy.plugins.parser.ModuleDescriptorParser;
 import org.apache.ivy.plugins.parser.ParserSettings;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
-import org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder;
 import org.apache.ivy.plugins.parser.m2.PomReader;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter;
 import org.apache.ivy.plugins.repository.Resource;
@@ -98,8 +97,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
     public ModuleDescriptor parseDescriptor(ParserSettings ivySettings, URL descriptorURL,
                                             Resource res, boolean validate) throws ParseException, IOException {
 
-        PomModuleDescriptorBuilder mdBuilder = new PomModuleDescriptorBuilder(
-                this, res, ivySettings);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(this, res, ivySettings);
 
         try {
             PomReader domReader = new PomReader(descriptorURL, res);
@@ -132,7 +130,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
                             + " Parent=" + parentModRevID);
                 }
                 if (parentDescr != null) {
-                    Map parentPomProps = PomModuleDescriptorBuilder.extractPomProperties(
+                    Map parentPomProps = GradlePomModuleDescriptorBuilder.extractPomProperties(
                             parentDescr.getExtraInfo());
                     for (Object o : parentPomProps.entrySet()) {
                         Map.Entry prop = (Map.Entry) o;
@@ -181,7 +179,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
                     DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(mdBuilder
                             .getModuleDescriptor(), relocation, true, false, true);
                     /* Map all public dependencies */
-                    Configuration[] m2Confs = PomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
+                    Configuration[] m2Confs = GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
                     for (Configuration m2Conf : m2Confs) {
                         if (Visibility.PUBLIC.equals(m2Conf.getVisibility())) {
                             dd.addDependencyConfiguration(m2Conf.getName(), m2Conf.getName());
@@ -204,14 +202,14 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
                     mdBuilder.addExtraInfos(parentDescr.getExtraInfo());
 
                     // add dependency management info from parent
-                    List depMgt = PomModuleDescriptorBuilder.getDependencyManagements(parentDescr);
+                    List depMgt = GradlePomModuleDescriptorBuilder.getDependencyManagements(parentDescr);
                     for (Object aDepMgt : depMgt) {
                         mdBuilder.addDependencyMgt((PomDependencyMgt) aDepMgt);
                     }
 
                     // add plugins from parent
                     List /*<PomDependencyMgt>*/ plugins =
-                            PomModuleDescriptorBuilder.getPlugins(parentDescr);
+                            GradlePomModuleDescriptorBuilder.getPlugins(parentDescr);
                     for (Object plugin : plugins) {
                         mdBuilder.addPlugin((PomDependencyMgt) plugin);
                     }
@@ -230,7 +228,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
                             ModuleDescriptor importDescr = importModule.getDescriptor();
 
                             // add dependency management info from imported module
-                            List depMgt = PomModuleDescriptorBuilder.getDependencyManagements(importDescr);
+                            List depMgt = GradlePomModuleDescriptorBuilder.getDependencyManagements(importDescr);
                             for (Object aDepMgt : depMgt) {
                                 mdBuilder.addDependencyMgt((PomDependencyMgt) aDepMgt);
                             }
@@ -246,7 +244,7 @@ public final class GradlePomModuleDescriptorParser implements ModuleDescriptorPa
 
                 for (Object o : domReader.getDependencies()) {
                     PomReader.PomDependencyData dep = (PomReader.PomDependencyData) o;
-                    mdBuilder.addDependency(res, dep);
+                    mdBuilder.addDependency(dep);
                 }
 
                 if (parentDescr != null) {

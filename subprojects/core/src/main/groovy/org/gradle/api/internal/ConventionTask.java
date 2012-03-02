@@ -19,8 +19,6 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.ConventionValue;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.concurrent.Callable;
 
@@ -32,18 +30,6 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
 
     protected ConventionTask() {
         conventionMapping = new ConventionAwareHelper(this, getProject().getConvention());
-    }
-
-    /**
-     * Adds a convention mapping to this task.
-     *
-     * @deprecated Use {@link #conventionMapping(String, java.util.concurrent.Callable)} instead.
-     */
-    @Deprecated
-    public Task conventionMapping(String property, ConventionValue mapping) {
-        DeprecationLogger.nagUserOfReplacedMethod("ConventionTask.conventionMapping(String, ConventionValue)", "conventionMapping(String, Callable)");
-        conventionMapping.map(property, mapping);
-        return this;
     }
 
     public Task conventionMapping(String property, Callable<?> mapping) {
@@ -60,7 +46,4 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
         return conventionMapping;
     }
 
-    public void setConventionMapping(ConventionMapping mapping) {
-        this.conventionMapping = mapping;
-    }
 }

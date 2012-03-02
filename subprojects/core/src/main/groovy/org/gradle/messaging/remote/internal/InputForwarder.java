@@ -83,7 +83,7 @@ public class InputForwarder implements Stoppable {
                                 break;
                             } catch (IOException e) {
                                 // Unsure what the best thing to do is here, should we forward the error?
-                                throw UncheckedException.asUncheckedException(e);
+                                throw UncheckedException.throwAsUncheckedException(e);
                             }
 
                             try {
@@ -91,14 +91,14 @@ public class InputForwarder implements Stoppable {
                             } catch (IOException e) {
                                 // this shouldn't happen as outputBuffer will only throw if close has been called
                                 // and we own this object exclusively and will not have done that at this time
-                                throw UncheckedException.asUncheckedException(e);
+                                throw UncheckedException.throwAsUncheckedException(e);
                             }
                         }
                     } finally {
                         try {
                             outputBuffer.close(); // will flush any unterminated lines out synchronously
                         } catch (IOException e) {
-                            throw UncheckedException.asUncheckedException(e);
+                            throw UncheckedException.throwAsUncheckedException(e);
                         }
                     }
                     
@@ -121,7 +121,7 @@ public class InputForwarder implements Stoppable {
                 try {
                     disconnectableInput.close();
                 } catch (IOException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 
                 forwardingExecuter.stop();

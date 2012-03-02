@@ -18,39 +18,50 @@ package org.gradle.plugins.cpp.gpp
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.compile.Compiler
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.binaries.model.Binary
 import org.gradle.plugins.binaries.model.CompileSpec
 import org.gradle.plugins.binaries.model.Library
+import org.gradle.plugins.binaries.model.internal.CompileTaskAware
 import org.gradle.plugins.binaries.tasks.Compile
 import org.gradle.plugins.cpp.CppSourceSet
 import org.gradle.plugins.cpp.compiler.capability.StandardCppCompiler
-import org.gradle.process.internal.DefaultExecAction
+import org.gradle.plugins.cpp.internal.CppCompileSpec
+import org.gradle.util.DeprecationLogger
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.internal.tasks.DefaultTaskDependency
 
-class GppCompileSpec implements CompileSpec, StandardCppCompiler {
-
+class GppCompileSpec implements CompileSpec, StandardCppCompiler, CompileTaskAware, CppCompileSpec {
     Binary binary
 
-    final Compile task
+    Compile task
     List<Closure> settings = []
 
     String outputFileName
     String baseName
     String extension
+    private final Compiler<? super GppCompileSpec> compiler
+    private final ProjectInternal project
+    private final ConfigurableFileCollection libs
+    private final ConfigurableFileCollection includes
+    private final ConfigurableFileCollection source
 
-    GppCompileSpec(Binary binary) {
+    GppCompileSpec(Binary binary, Compiler<? super GppCompileSpec> compiler, ProjectInternal project) {
         this.binary = binary
-        this.task = project.task("compile${name.capitalize()}", type: Compile) { spec = this }
-
-        init()
+        this.compiler = compiler
+        this.project = project
+        libs = project.files()
+        includes = project.files()
+        source = project.files()
     }
 
-    protected init() {
-        setting {
-            def outputFile = getOutputFile()
-            if (outputFile) {
-                it.args "-o", outputFile.absolutePath
-            }
-        }
+    void configure(Compile task) {
+        this.task = task
+        task.spec = this
+        task.compiler = compiler
 
         task.onlyIf { !task.inputs.files.empty }
         task.outputs.file { getOutputFile() }
@@ -63,12 +74,69 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler {
         binary.name
     }
 
-    protected ProjectInternal getProject() {
-        binary.project
+    TaskDependency getBuildDependencies() {
+        return new DefaultTaskDependency().add(task)
     }
 
     File getWorkDir() {
         project.file "$project.buildDir/compileWork/$name"
+    }
+
+    Iterable<File> getLibs() {
+        return libs
+    }
+
+    Iterable<File> getIncludeRoots() {
+        return includes
+    }
+
+    Iterable<File> getSource() {
+        return source
+    }
+
+    /**
+     * @deprecated No replacement
+     */
+    @Deprecated
+    Compile getTask() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.getTask()")
+        return task
+    }
+
+    /**
+     * @deprecated No replacement
+     */
+    @Deprecated
+    void setTask(Compile task) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.setTask()")
+        this.task = task
+    }
+
+    /**
+     * @deprecated No replacement
+     */
+    @Deprecated
+    String getExtension() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.getExtension()")
+        return extension
+    }
+
+    /**
+     * @deprecated No replacement
+     */
+    @Deprecated
+    void setExtension(String extension) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.setExtension()")
+        this.extension = extension
+    }
+
+    /**
+     * @deprecated No replacement
+     */
+    @Deprecated
+    void setBinary(Binary binary) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GppCompileSpec.setBinary()")
+        this.binary = binary
     }
 
     File getOutputFile() {
@@ -77,10 +145,16 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler {
 
     String getOutputFileName() {
         if (outputFileName) {
-            outputFileName
+            return outputFileName
+        } else if (extension) {
+            return "${getBaseName()}.${extension}"
         } else {
-            extension ? "${getBaseName()}.${extension}" : getBaseName()
+            return getDefaultOutputFileName()
         }
+    }
+
+    protected String getDefaultOutputFileName() {
+        return OperatingSystem.current().getExecutableName(getBaseName())
     }
 
     String getBaseName() {
@@ -104,44 +178,34 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler {
 
     void includes(SourceDirectorySet dirs) {
         task.inputs.files dirs
-        setting {
-            it.args(*dirs.srcDirs.collect { "-I${it.absolutePath}" })
-        }
+        includes.from({dirs.srcDirs})
     }
 
     // special filecollection version because filecollection may be buildable
     void includes(FileCollection includeRoots) {
         task.inputs.files includeRoots
-        setting {
-            it.args(*includeRoots.collect { "-I${it.absolutePath}" })
-        }
+        includes.from(includeRoots)
     }
 
     void includes(Iterable<File> includeRoots) {
         includeRoots.each { task.inputs.dir(it) }
-        setting {
-            it.args(*includeRoots.collect { "-I${it.absolutePath}" })
-        }
+        includes.from(includeRoots)
     }
 
     void source(Iterable<File> files) {
         task.inputs.files files
-        setting {
-            it.args(*files*.absolutePath)
-        }
+        source.from files
     }
 
     // special filecollection version because filecollection may be buildable
     void source(FileCollection files) {
         task.inputs.source files
-        setting {
-            it.args(*files*.absolutePath)
-        }
+        source.from files
     }
 
     void libs(Iterable<Library> libs) {
-        task.dependsOn { libs*.spec*.task }
-        source(project.files { libs*.spec*.outputFile })
+        task.dependsOn libs
+        this.libs.from({ libs*.spec*.outputFile })
         includes(project.files { libs*.headers*.srcDirs })
     }
 
@@ -151,32 +215,20 @@ class GppCompileSpec implements CompileSpec, StandardCppCompiler {
         }
     }
 
+    /**
+     * @deprecated No replacement
+     */
+    @Deprecated
     void sharedLibrary() {
-        setting { it.args "-shared" }
-        setting { it.args "-fPIC" }
-
-        extension = "so" // problem: this will be different on differnt platforms, need a way to “inject” this?
+        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileSpec.sharedLibrary()")
     }
 
+    /**
+     * @deprecated No replacement
+     */
+    @Deprecated
     void compile() {
-        def workDir = getWorkDir()
-
-        ensureDirsExist(workDir, getOutputFile().parentFile)
-
-        def compiler = new DefaultExecAction(project.fileResolver)
-        compiler.executable "g++"
-        compiler.workingDir workDir
-
-        // Apply all of the settings
-        settings.each { it(compiler) }
-
-        compiler.execute()
-    }
-
-    private ensureDirsExist(File... dirs) {
-        for (dir in dirs) {
-            // todo: not a nice error message
-            assert (dir.exists() && dir.directory) || dir.mkdirs()
-        }
+        DeprecationLogger.nagUserOfDiscontinuedMethod("CompileSpec.compile()")
+        compiler.execute(this)
     }
 }

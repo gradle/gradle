@@ -17,8 +17,6 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-
-import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.protocol.DaemonFailure;
 
 /**
@@ -34,7 +32,7 @@ public class CatchAndForwardDaemonFailure implements DaemonCommandAction {
             execution.proceed();
         } catch (Throwable e) {
             LOGGER.error(String.format("Daemon failure during execution of %s - ", execution.getCommand()), e);
-            execution.getConnection().dispatch(new DaemonFailure(UncheckedException.asUncheckedException(e)));
+            execution.getConnection().dispatch(new DaemonFailure(e));
         }
     }
 }

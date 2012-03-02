@@ -15,13 +15,9 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.api.tasks.ConventionValue;
-import org.gradle.api.plugins.Convention;
-
-import java.util.Map;
-import java.util.concurrent.Callable;
-
 import groovy.lang.Closure;
+
+import java.util.concurrent.Callable;
 
 /**
  * <p>A {@code ConventionMapping} maintains the convention mappings for the properties of a particular object.</p>
@@ -29,25 +25,10 @@ import groovy.lang.Closure;
  * <p>Implementations should also allow mappings to be set using dynamic properties.</p>
  */
 public interface ConventionMapping {
-    Convention getConvention();
-
-    void setConvention(Convention convention);
-
-    /**
-     * @deprecated Use {@link #map(String, Callable)} instead.
-     */
-    @Deprecated
-    MappedProperty map(String propertyName, ConventionValue value);
 
     MappedProperty map(String propertyName, Closure<?> value);
 
     MappedProperty map(String propertyName, Callable<?> value);
-
-    /**
-     * @deprecated No replacement
-     */
-    @Deprecated
-    ConventionMapping map(Map<String, ? extends ConventionValue> properties);
 
     <T> T getConventionValue(T actualValue, String propertyName, boolean isExplicitValue);
 

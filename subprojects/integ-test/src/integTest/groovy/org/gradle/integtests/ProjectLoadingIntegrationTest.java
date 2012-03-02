@@ -22,7 +22,8 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.startsWith;
 
 public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -42,14 +43,6 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         testFile("settings.gradle").write("   \n  ");
         testFile("build.gradle").write("   ");
         inTestDirectory().withTaskList().run();
-    }
-
-    @Test
-    public void embeddedBuildFileIgnoresBuildAndScriptFiles() {
-        File rootDir = getTestDir();
-        testFile("settings.gradle").write("throw new RuntimeException()");
-        testFile("build.gradle").write("throw new RuntimeException()");
-        inDirectory(rootDir).usingBuildScript("Task task = task('do-stuff')").withTasks("do-stuff").run();
     }
 
     @Test

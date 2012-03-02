@@ -15,11 +15,11 @@
  */
 package org.gradle.internal.nativeplatform.services;
 
+import com.sun.jna.Native;
 import org.gradle.internal.nativeplatform.*;
+import org.gradle.internal.nativeplatform.jna.*;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.nativeplatform.jna.PosixBackedProcessEnvironment;
-import org.gradle.internal.nativeplatform.jna.UnsupportedEnvironment;
-import org.gradle.internal.nativeplatform.jna.WindowsProcessEnvironment;
 import org.jruby.ext.posix.POSIX;
 
 /**
@@ -41,7 +41,7 @@ public class NativeServices extends DefaultServiceRegistry {
     protected ProcessEnvironment createProcessEnvironment() {
         try {
             if (OperatingSystem.current().isUnix()) {
-                return new PosixBackedProcessEnvironment();
+                return new LibCBackedProcessEnvironment(get(LibC.class));
             } else if (OperatingSystem.current().isWindows()) {
                 return new WindowsProcessEnvironment();
             } else {
@@ -51,5 +51,21 @@ public class NativeServices extends DefaultServiceRegistry {
             // Thrown when jna cannot initialize the native stuff
             return new UnsupportedEnvironment();
         }
+    }
+
+    protected TerminalDetector createTerminalDetector() {
+        try {
+            if (get(OperatingSystem.class).isWindows()) {
+                return new WindowsTerminalDetector();
+            }
+            return new LibCBackedTerminalDetector(get(LibC.class));
+        } catch (LinkageError e) {
+            // Thrown when jna cannot initialize the native stuff
+            return new NoOpTerminalDetector();
+        }
+    }
+    
+    protected LibC createLibC() {
+        return (LibC) Native.loadLibrary("c", LibC.class);
     }
 }

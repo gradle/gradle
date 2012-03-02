@@ -49,8 +49,7 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
 
     @Override
     protected CodeQualityExtension createExtension() {
-        extension = instantiator.newInstance(JDependExtension)
-        project.extensions.jdepend = extension
+        extension = project.extensions.create("jdepend", JDependExtension)
         extension.with {
             toolVersion = "2.9.1"
         }

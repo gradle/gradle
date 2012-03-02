@@ -15,26 +15,24 @@
  */
 package org.gradle.build.docs.dsl.docbook
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.InputFiles
-import org.w3c.dom.Document
 import groovy.xml.dom.DOMCategory
-import org.w3c.dom.Element
+import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.tasks.InputDirectory
-import org.gradle.build.docs.XIncludeAwareXmlProvider
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
 import org.gradle.build.docs.BuildableDOMCategory
+import org.gradle.build.docs.DocGenerationException
+import org.gradle.build.docs.XIncludeAwareXmlProvider
+import org.gradle.build.docs.dsl.ClassLinkMetaData
+import org.gradle.build.docs.dsl.LinkMetaData
+import org.gradle.build.docs.dsl.model.ClassExtensionMetaData
 import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
-import org.gradle.build.docs.dsl.LinkMetaData
-import org.gradle.api.Project
-import org.gradle.build.docs.dsl.ClassLinkMetaData
-import org.gradle.build.docs.dsl.model.ClassExtensionMetaData
-import org.gradle.build.docs.DocGenerationException
+import org.w3c.dom.Document
+import org.w3c.dom.Element
 
 /**
  * Generates the docbook source for the DSL reference guide.
@@ -67,12 +65,10 @@ class AssembleDslDocTask extends DefaultTask {
     File destFile
     @OutputFile
     File linksFile
-    @InputFiles
-    FileCollection classpath;
 
     @TaskAction
     def transform() {
-        XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider(classpath)
+        XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
         provider.parse(sourceFile)
         transformDocument(provider.document)
         provider.write(destFile)
@@ -90,7 +86,7 @@ class AssembleDslDocTask extends DefaultTask {
         use(DOMCategory) {
             use(BuildableDOMCategory) {
                 Map<String, ClassExtensionMetaData> extensions = loadPluginsMetaData()
-                DslDocModel model = new DslDocModel(classDocbookDir, mainDocbookTemplate, classpath, classRepository, extensions)
+                DslDocModel model = new DslDocModel(classDocbookDir, mainDocbookTemplate, classRepository, extensions)
                 def root = mainDocbookTemplate.documentElement
                 root.section.table.each { Element table ->
                     mergeContent(table, model, linkRepository)
@@ -107,7 +103,7 @@ class AssembleDslDocTask extends DefaultTask {
     }
 
     def loadPluginsMetaData() {
-        XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider(classpath)
+        XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
         provider.parse(pluginsMetaDataFile)
         Map<String, ClassExtensionMetaData> extensions = [:]
         provider.root.plugin.each { Element plugin ->

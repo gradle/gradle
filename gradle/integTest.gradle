@@ -51,7 +51,7 @@ integTestTasks.all {
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
-    jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
+    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
     maxParallelForks = guessMaxForks()
 
     testResultsDir = file("${project.testResultsDir}/$name")
@@ -87,7 +87,6 @@ daemonIntegTest {
 
 task waitForDaemonsToDie << {
     def mins = 5
-    //TODO SF a workaround until we have a fix to kill daemons at the end of the suite
     println "I'm waiting for $mins mins so that existing deamons can die with honor. It's a workaround until we fix it properly."
     Thread.sleep(mins * 60 * 1000);
 }

@@ -19,6 +19,10 @@
     <xsl:import href="highlighting/common.xsl"/>
     <xsl:import href="html/highlight.xsl"/>
 
+    <xsl:output method="html"
+                encoding="UTF-8"
+                indent="no"/>
+
     <xsl:param name="use.extensions">1</xsl:param>
     <xsl:param name="toc.section.depth">1</xsl:param>
     <xsl:param name="section.autolabel">1</xsl:param>

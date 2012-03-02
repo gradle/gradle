@@ -130,7 +130,7 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
                         try {
                             notFullOrStop.await();
                         } catch (InterruptedException e) {
-                            throw UncheckedException.asUncheckedException(e);
+                            throw UncheckedException.throwAsUncheckedException(e);
                         }
                     }
 
@@ -194,7 +194,7 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
                 try {
                     notEmptyOrNoReceivers.await();
                 } catch (InterruptedException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
 
@@ -256,7 +256,7 @@ public class EagerReceiveBuffer<T> implements Receive<T>, AsyncStoppable {
         try {
             onReceiversExhaustedFinishedLatch.await();
         } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         lock.lock();

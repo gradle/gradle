@@ -38,7 +38,7 @@ public class HandshakeOutgoingConnector implements OutgoingConnector<Message> {
             connection.dispatch(new ConnectRequest(destinationAddress));
         } catch (Throwable e) {
             connection.stop();
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         return connection;

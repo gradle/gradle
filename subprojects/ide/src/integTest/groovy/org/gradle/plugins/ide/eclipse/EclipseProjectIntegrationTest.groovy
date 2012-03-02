@@ -150,7 +150,7 @@ org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.3
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
-hooks = []
+ext.hooks = []
 
 eclipse {
 

@@ -20,26 +20,26 @@ import org.gradle.api.tasks.WorkResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 
-public class SunJavaCompiler extends CommandLineJavaCompilerSupport {
+public class SunJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(SunJavaCompiler.class);
 
-    public WorkResult execute() {
-        LOGGER.info("Compiling using Sun Java Compiler API.");
-        listFilesIfRequested();
+    public WorkResult execute(JavaCompileSpec spec) {
+        LOGGER.info("Compiling with Sun Java compiler API.");
 
-        List<String> options = generateCommandLineOptions();
-        for (File file : source) {
-            options.add(file.getPath());
-        }
-
-        int exitCode = Main.compile(options.toArray(new String[options.size()]));
-        if (exitCode != 0 && compileOptions.isFailOnError()) {
+        String[] options = createCommandLineOptions(spec);
+        int exitCode = Main.compile(options);
+        if (exitCode != 0) {
             throw new CompilationFailedException();
         }
 
         return new SimpleWorkResult(true);
+    }
+
+    private String[] createCommandLineOptions(JavaCompileSpec spec) {
+        List<String> options = new JavaCompilerArgumentsBuilder(spec).includeSourceFiles(true).build();
+        return options.toArray(new String[options.size()]);
     }
 }

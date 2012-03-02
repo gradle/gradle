@@ -19,11 +19,11 @@ import com.google.common.io.Files;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.client.DaemonParameters;
+import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
+import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonGreeter;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.DaemonStoppedException;
@@ -34,7 +34,8 @@ import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 
 import java.io.*;
-import java.util.UUID;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * The entry point for a daemon process.
@@ -47,13 +48,12 @@ public class DaemonMain extends EntryPoint {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonMain.class);
 
-    final private File daemonBaseDir;
-    final private boolean redirectIo;
-    final private int idleTimeoutMs;
+    private final DaemonServerConfiguration configuration;
 
     public static void main(String[] args) {
-        if (args.length != 3) {
-            invalidArgs("3 arguments are required: <gradle-version> <daemon-dir> <timeout-millis>");
+        //The first argument is not really used but it is very useful in diagnosing, i.e. running 'jps -m'
+        if (args.length < 4) {
+            invalidArgs("Following arguments are required: <gradle-version> <daemon-dir> <timeout-millis> <daemonUid> <optional startup jvm opts>");
         }
         File daemonBaseDir = new File(args[1]);
 
@@ -64,11 +64,19 @@ public class DaemonMain extends EntryPoint {
             invalidArgs("Second argument must be a whole number (i.e. daemon idle timeout in ms)");
         }
 
-        DaemonParameters parameters = new DaemonParameters();
-        parameters.setBaseDir(daemonBaseDir);
-        parameters.setIdleTimeout(idleTimeoutMs);
+        String daemonUid = args[3];
 
-        new DaemonMain(parameters, true).run();
+        List<String> startupOpts = new LinkedList<String>();
+        for (int i = 4; i < args.length; i++) {
+            startupOpts.add(args[i]);
+        }
+        LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
+
+        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(
+                daemonUid, daemonBaseDir, idleTimeoutMs, startupOpts);
+        DaemonMain daemonMain = new DaemonMain(parameters);
+
+        daemonMain.run();
     }
 
     private static void invalidArgs(String message) {
@@ -77,70 +85,73 @@ public class DaemonMain extends EntryPoint {
         System.exit(1);
     }
 
-    public DaemonMain(DaemonParameters parameters, boolean redirectIo) {
-        this.daemonBaseDir = parameters.getBaseDir();
-        this.idleTimeoutMs = parameters.getIdleTimeout();
-        this.redirectIo = redirectIo;
+    public DaemonMain(DaemonServerConfiguration configuration) {
+        this.configuration = configuration;
     }
 
     protected void doAction(ExecutionListener listener) {
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newChildProcessLogging();
-        DaemonServices daemonServices = new DaemonServices(daemonBaseDir, idleTimeoutMs, loggingRegistry);
-        DaemonDir daemonDir = daemonServices.get(DaemonDir.class);
+        LoggingManagerInternal loggingManager = loggingRegistry.getFactory(LoggingManagerInternal.class).create();
+        DaemonServices daemonServices = new DaemonServices(configuration, loggingRegistry, loggingManager);
+        File daemonLog = daemonServices.getDaemonLogFile();
         final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
-        final Long pid = daemonContext.getPid();
 
-        if (redirectIo) {
-            //create log file
-            PrintStream log = createLogOutput(daemonDir, pid);
-            
-            //close all streams and redirect IO
-            redirectOutputsAndInput(log);
-            
-            //after redirecting we need to add the new std out/err to the renderer singleton
-            //so that logging gets its way to the daemon log:
-            loggingRegistry.get(OutputEventRenderer.class).addStandardOutputAndError();
-
-            //logging manager takes care of static slf4j configuration stuff, etc.
-            LoggingManagerInternal loggingManager = loggingRegistry.getFactory(LoggingManagerInternal.class).create();
-            //Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
-            //Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)
-            loggingManager.setLevel(LogLevel.DEBUG);
-            //TODO SF we could make it slightly nicer. E.g. rely on the logging manager to replace std out on start
-            //and explicitly only demonize the process (e.g. close err/out).
-            //Then add some unit-test coverage to make sure process is demonized and out/err replaced
-            loggingManager.start();
-            
-            LOGGER.info(DaemonMessages.PROCESS_STARTED);
-        }
+        initialiseLogging(loggingRegistry.get(OutputEventRenderer.class), loggingManager, daemonLog);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
-                LOGGER.info("Daemon[pid = {}] finishing", pid);
+                LOGGER.info("Daemon[pid = {}] process has finished.", daemonContext.getPid());
             }
         });
 
-        Daemon daemon = daemonServices.get(Daemon.class);
-        daemon.start();
+        Daemon daemon = startDaemon(daemonServices);
         try {
-            daemon.awaitIdleTimeout(idleTimeoutMs);
-            LOGGER.info("Daemon hit idle timeout (" + idleTimeoutMs + "ms), stopping");
+            daemon.awaitIdleTimeout(configuration.getIdleTimeout());
+            LOGGER.info("Daemon hit idle timeout (" + configuration.getIdleTimeout() + "ms), stopping...");
             daemon.stop();
         } catch (DaemonStoppedException e) {
-            LOGGER.info("Daemon stopping due to stop request");
+            LOGGER.debug("Daemon stopping due to the stop request");
             listener.onFailure(e);
         }
     }
 
-    private static PrintStream createLogOutput(DaemonDir daemonDir, Long pid) {
-        String logFileName = String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid);
-        File logFile = new File(daemonDir.getVersionedDir(), logFileName);
+    protected void initialiseLogging(OutputEventRenderer renderer, LoggingManagerInternal loggingManager, File daemonLog) {
+        //create log file
+        PrintStream result;
         try {
-            Files.createParentDirs(logFile);
-            return new PrintStream(new FileOutputStream(logFile), true);
+            Files.createParentDirs(daemonLog);
+            result = new PrintStream(new FileOutputStream(daemonLog), true);
         } catch (Exception e) {
             throw new RuntimeException("Unable to create daemon log file", e);
         }
+        final PrintStream log = result;
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                //just in case we have a bug related to logging,
+                //printing some exit info directly to file:
+                log.println(DaemonMessages.DAEMON_VM_SHUTTING_DOWN);
+            }
+        });
+
+        //close all streams and redirect IO
+        redirectOutputsAndInput(log);
+
+        //after redirecting we need to add the new std out/err to the renderer singleton
+        //so that logging gets its way to the daemon log:
+        renderer.addStandardOutputAndError();
+
+        //Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
+        //Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)
+        loggingManager.setLevel(LogLevel.DEBUG);
+
+        loggingManager.start();
+    }
+
+    protected Daemon startDaemon(DaemonServices daemonServices) {
+        Daemon daemon = daemonServices.get(Daemon.class);
+        daemon.start();
+        return daemon;
     }
 
     private static void redirectOutputsAndInput(OutputStream log) {

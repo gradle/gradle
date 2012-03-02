@@ -189,7 +189,7 @@ class XmlTransformerTest extends Specification {
         def result = transformer.transform("<root></root>")
 
         then:
-        result == TextUtil.toPlatformLineSeparators("<?xml version=\"1.0\"?>\n<!DOCTYPE application PUBLIC \"-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN\" \"http://java.sun.com/dtd/application_1_3.dtd\">\n<root>\n  <someChild/>\n</root>\n")
+        looksLike "<!DOCTYPE application PUBLIC \"-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN\" \"http://java.sun.com/dtd/application_1_3.dtd\">\n<root>\n  <someChild/>\n</root>\n", result
     }
 
     def "can specify DOCTYPE when using DomNode"() {
@@ -202,10 +202,9 @@ class XmlTransformerTest extends Specification {
         transformer.transform(node, writer)
 
         then:
-        writer.toString() == TextUtil.toPlatformLineSeparators('''<?xml version=\"1.0\"?>
-<!DOCTYPE root PUBLIC "public-id" "system-id">
+        looksLike '''<!DOCTYPE root PUBLIC "public-id" "system-id">
 <root/>
-''')
+''', writer.toString()
     }
 
     def "DOCTYPE is preserved when transformed as a Node"() {
@@ -219,12 +218,11 @@ class XmlTransformerTest extends Specification {
         transformer.transform(node, writer)
 
         then:
-        writer.toString() == TextUtil.toPlatformLineSeparators('''<?xml version=\"1.0\"?>
-<!DOCTYPE root PUBLIC "public-id" "system-id">
+        looksLike '''<!DOCTYPE root PUBLIC "public-id" "system-id">
 <root>
   <someChild/>
 </root>
-''')
+''', writer.toString()
     }
 
     def "DOCTYPE is preserved when transformed as a DOM element"() {
@@ -238,12 +236,11 @@ class XmlTransformerTest extends Specification {
         transformer.transform(node, writer)
 
         then:
-        writer.toString() == TextUtil.toPlatformLineSeparators("""<?xml version="1.0"?>
-<!DOCTYPE root PUBLIC "public-id" "${node.getSystemId()}">
+        looksLike """<!DOCTYPE root PUBLIC "public-id" "${node.getSystemId()}">
 <root>
   <someChild/>
 </root>
-""")
+""", writer.toString()
     }
 
     def "indentation correct when writing out DOM element (only) if indenting with spaces"() {
@@ -266,7 +263,11 @@ class XmlTransformerTest extends Specification {
     }
 
     private void looksLike(String expected, String actual) {
-        assert actual == TextUtil.toPlatformLineSeparators(addXmlDeclaration(expected))
+        assert removeTrailingWhitespace(actual) == removeTrailingWhitespace(TextUtil.toPlatformLineSeparators(addXmlDeclaration(expected)))
+    }
+
+    private String removeTrailingWhitespace(String value) {
+        return value.replaceFirst('(?s)\\s+$', "")
     }
 
     private String addXmlDeclaration(String value) {

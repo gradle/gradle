@@ -22,17 +22,6 @@ package org.gradle.api.tasks.testing;
 public interface TestLogging {
 
     /**
-     * Deprecated for naming consistency reasons, please use {@link #setShowStandardStreams(boolean)}
-     *
-     * @deprecated
-     *
-     * @param standardStreams to configure
-     * @return this logging instance
-     */
-    @Deprecated
-    TestLogging setShowStandardStream(boolean standardStreams);
-
-    /**
      * Whether to show eagerly the standard stream events. Standard output is printed at INFO level, standard error at ERROR level.
      *
      * @param standardStreams to configure

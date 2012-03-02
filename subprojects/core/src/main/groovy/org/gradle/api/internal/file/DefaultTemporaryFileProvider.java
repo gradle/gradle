@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.io.IOException;
 
 public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
     private final FileSource baseDir;
@@ -30,5 +33,15 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
 
     public File newTemporaryFile(String... path) {
         return GFileUtils.canonicalise(new File(baseDir.get(), GUtil.join(path, "/")));
+    }
+
+    public File createTemporaryFile(String prefix, @Nullable String suffix, String... path) {
+        File dir = new File(baseDir.get(), GUtil.join(path, "/"));
+        GFileUtils.createDirectory(dir);
+        try {
+            return File.createTempFile(prefix, suffix, dir);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
+        }
     }
 }

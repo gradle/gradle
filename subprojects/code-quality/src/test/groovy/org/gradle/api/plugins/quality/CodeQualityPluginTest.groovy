@@ -62,7 +62,7 @@ class CodeQualityPluginTest {
 
         def task = project.tasks[CodeQualityPlugin.CHECKSTYLE_MAIN_TASK]
         assertThat(task, instanceOf(Checkstyle))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.allJava))
+        assertThat(task.source as List, equalTo(project.sourceSets.main.allJava as List))
         assertThat(task.checkstyleClasspath, equalTo(project.configurations.checkstyle))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/main.xml")))
@@ -71,7 +71,7 @@ class CodeQualityPluginTest {
 
         task = project.tasks[CodeQualityPlugin.CHECKSTYLE_TEST_TASK]
         assertThat(task, instanceOf(Checkstyle))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.test.allJava))
+        assertThat(task.source as List, equalTo(project.sourceSets.test.allJava as List))
         assertThat(task.checkstyleClasspath, equalTo(project.configurations.checkstyle))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/test.xml")))
@@ -81,7 +81,7 @@ class CodeQualityPluginTest {
         project.sourceSets.add('custom')
         task = project.tasks['checkstyleCustom']
         assertThat(task, instanceOf(Checkstyle))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.custom.allJava))
+        assertThat(task.source as List, equalTo(project.sourceSets.custom.allJava as List))
         assertThat(task.checkstyleClasspath, equalTo(project.configurations.checkstyle))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/custom.xml")))
@@ -99,7 +99,7 @@ class CodeQualityPluginTest {
 
         def task = project.tasks[CodeQualityPlugin.CODE_NARC_MAIN_TASK]
         assertThat(task, instanceOf(CodeNarc))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.allGroovy))
+        assertThat(task.source as List, equalTo(project.sourceSets.main.allGroovy as List))
         assertThat(task.codenarcClasspath, equalTo(project.configurations.codenarc))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/main.html")))
@@ -107,7 +107,7 @@ class CodeQualityPluginTest {
 
         task = project.tasks[CodeQualityPlugin.CODE_NARC_TEST_TASK]
         assertThat(task, instanceOf(CodeNarc))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.test.allGroovy))
+        assertThat(task.source as List, equalTo(project.sourceSets.test.allGroovy as List))
         assertThat(task.codenarcClasspath, equalTo(project.configurations.codenarc))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFormat, equalTo(project.codeNarcReportsFormat))
@@ -117,7 +117,7 @@ class CodeQualityPluginTest {
         project.sourceSets.add('custom')
         task = project.tasks['codenarcCustom']
         assertThat(task, instanceOf(CodeNarc))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.custom.allGroovy))
+        assertThat(task.source as List, equalTo(project.sourceSets.custom.allGroovy as List))
         assertThat(task.codenarcClasspath, equalTo(project.configurations.codenarc))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFormat, equalTo(project.codeNarcReportsFormat))
@@ -136,7 +136,7 @@ class CodeQualityPluginTest {
         project.checkstyleProperties.someProp = 'someValue'
 
         def task = project.tasks.add('checkstyleApi', Checkstyle)
-        assertThat(task.defaultSource, nullValue())
+        assertThat(task.source, isEmpty())
         assertThat(task.checkstyleClasspath, equalTo(project.configurations.checkstyle))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/api.xml")))
@@ -149,7 +149,7 @@ class CodeQualityPluginTest {
         project.checkstyleProperties.someProp = 'someValue'
 
         def task = project.tasks.add('codenarcApi', CodeNarc)
-        assertThat(task.defaultSource, nullValue())
+        assertThat(task.source, isEmpty())
         assertThat(task.codenarcClasspath, equalTo(project.configurations.codenarc))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/api.html")))

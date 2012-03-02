@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
@@ -70,7 +70,7 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
             public void execute(SourceSet sourceSet) {
                 final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(((DefaultSourceSet) sourceSet).getDisplayName(), project.getFileResolver());
-                ((DynamicObjectAware) sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
+                new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
 
                 groovySourceSet.getGroovy().srcDir(String.format("src/%s/groovy", sourceSet.getName()));
                 sourceSet.getResources().getFilter().exclude(new Spec<FileTreeElement>() {
@@ -86,11 +86,7 @@ public class GroovyBasePlugin implements Plugin<ProjectInternal> {
                 javaBasePlugin.configureForSourceSet(sourceSet, compile);
                 compile.dependsOn(sourceSet.getCompileJavaTaskName());
                 compile.setDescription(String.format("Compiles the %s Groovy source.", sourceSet.getName()));
-                compile.conventionMapping("defaultSource", new Callable<Object>() {
-                    public Object call() throws Exception {
-                        return groovySourceSet.getGroovy();
-                    }
-                });
+                compile.setSource(groovySourceSet.getGroovy());
 
                 project.getTasks().getByName(sourceSet.getClassesTaskName()).dependsOn(compileTaskName);
             }

@@ -73,13 +73,11 @@ class GroovyPluginTest {
         def task = project.tasks['compileGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.description, equalTo('Compiles the main Groovy source.'))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.groovy))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME))
 
         task = project.tasks['compileTestGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.description, equalTo('Compiles the test Groovy source.'))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.test.groovy))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
     }
 

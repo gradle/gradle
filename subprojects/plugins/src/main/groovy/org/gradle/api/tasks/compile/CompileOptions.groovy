@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
+import org.gradle.util.DeprecationLogger
 
 /**
  * @author Hans Dockter
@@ -77,7 +78,7 @@ class CompileOptions extends AbstractOptions {
     DebugOptions debugOptions = new DebugOptions()
 
     /**
-     * Specifies whether to run the compiler in a child process. The default is {@code false}.
+     * Specifies whether to run the compiler in its own process. The default is {@code false}.
      */
     boolean fork = false
 
@@ -100,8 +101,15 @@ class CompileOptions extends AbstractOptions {
     /**
      * The compiler to use.
      */
+    @Deprecated
     @Input @Optional
     String compiler = null
+
+    void setCompiler(String compiler) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.compiler", "To use an alternative compiler, " +
+                "set 'CompileOptions.fork' to 'true', and 'CompileOptions.forkOptions.executable' to the path of the compiler executable.");
+        this.compiler = compiler
+    }
 
     @Input
     boolean includeJavaRuntime = false
@@ -126,9 +134,9 @@ class CompileOptions extends AbstractOptions {
 
     /**
      * Whether to use the Ant javac task or Gradle's own Java compiler integration.
-     * Defaults to <tt>true</tt>.
+     * Defaults to <tt>false</tt>.
      */
-    boolean useAnt = true
+    boolean useAnt = false
 
     /**
      * Convenience method to set fork options with named parameter syntax.
@@ -180,11 +188,7 @@ class CompileOptions extends AbstractOptions {
     }
 
     Map optionMap() {
-        def map = super.optionMap() + debugOptions.optionMap()
-        if (useAnt) {
-            map.putAll(forkOptions.optionMap())
-        }
-        map
+        super.optionMap() + debugOptions.optionMap() + forkOptions.optionMap()
     }
 }
 

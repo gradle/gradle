@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.WorkResult
-
 import org.gradle.internal.Factory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -27,7 +26,7 @@ import org.slf4j.LoggerFactory
 /**
  * @author Hans Dockter
  */
-class AntJavaCompiler extends JavaCompilerSupport {
+class AntJavaCompiler implements org.gradle.api.internal.tasks.compile.Compiler<JavaCompileSpec> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntJavaCompiler)
     private static final String CLASSPATH_ID = 'compile.classpath'
 
@@ -37,24 +36,25 @@ class AntJavaCompiler extends JavaCompilerSupport {
         this.antBuilderFactory = antBuilderFactory
     }
 
-    WorkResult execute() {
+    WorkResult execute(JavaCompileSpec spec) {
         def ant = antBuilderFactory.create()
 
-        createAntClassPath(ant, classpath)
+        createAntClassPath(ant, spec.classpath)
         Map otherArgs = [
                 includeAntRuntime: false,
-                destdir: destinationDir,
+                destdir: spec.destinationDir,
                 classpathref: CLASSPATH_ID,
                 sourcepath: '',
-                target: targetCompatibility,
-                source: sourceCompatibility
+                target: spec.targetCompatibility,
+                source: spec.sourceCompatibility
         ]
 
-        Map options = otherArgs + compileOptions.optionMap()
-        LOGGER.debug("Running Ant javac with the following options {}", options)
+        Map options = otherArgs + spec.compileOptions.optionMap()
+        LOGGER.info("Compiling with Ant javac task.")
+        LOGGER.debug("Ant javac task options: {}", options)
         def task = ant.javac(options) {
-            source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
-            compileOptions.compilerArgs.each {value ->
+            spec.source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
+            spec.compileOptions.compilerArgs.each {value ->
                 compilerarg(value: value)
             }
         }

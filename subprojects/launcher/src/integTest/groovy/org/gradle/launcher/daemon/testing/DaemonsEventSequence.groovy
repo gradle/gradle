@@ -37,6 +37,7 @@ class DaemonsEventSequence implements Stoppable, Runnable {
 
     private final int pollRegistryMs
     private final int timeoutBetweenStateChangeMs
+    private Date runStartedAt
     private Date lastStateChangeAt
 
     private final DaemonRegistry registry
@@ -45,7 +46,7 @@ class DaemonsEventSequence implements Stoppable, Runnable {
     private final List<DaemonsStateCheckpoint> remainingCheckpoints
 
     private DaemonsState lastDaemonsState = new DaemonsState(0, 0)
-    private final List<DaemonsState> pastStateChanges = new LinkedList() // processed changes
+    private final Map<Long, DaemonsState> pastStateChanges = new LinkedHashMap<Long, DaemonsState>() // processed changes
     private final Queue<Holder> changeQueue = new LinkedBlockingQueue() // unprocessed changes
 
     private final StoppableExecutor executor
@@ -72,10 +73,11 @@ class DaemonsEventSequence implements Stoppable, Runnable {
     }
 
     void run() {
+        runStartedAt = new Date()
         executor.execute {
             try {
                 putOnChangeQueue(lastDaemonsState) // always start with no daemons
-                lastStateChangeAt = new Date()
+                lastStateChangeAt = runStartedAt
                 while (!stop) {
                     checkForDaemonsStateChange()
                     sleep(pollRegistryMs)
@@ -121,7 +123,8 @@ class DaemonsEventSequence implements Stoppable, Runnable {
 
             if (daemonsState == null) { return }
 
-            pastStateChanges << daemonsState
+            Long timeSinceStart = lastStateChangeAt == null ? 0 : lastStateChangeAt.time - runStartedAt.time
+            pastStateChanges[timeSinceStart] = daemonsState
             def nextCheckpoint = remainingCheckpoints.first()
 
             if (nextCheckpoint.test(daemonsState)) {

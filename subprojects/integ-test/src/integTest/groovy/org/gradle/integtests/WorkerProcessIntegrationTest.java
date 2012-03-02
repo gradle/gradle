@@ -290,7 +290,11 @@ public class WorkerProcessIntegrationTest {
             assertThat(antClassLoader, not(sameInstance(systemClassLoader)));
             assertThat(thisClassLoader, not(sameInstance(systemClassLoader)));
             assertThat(antClassLoader.getParent(), equalTo(systemClassLoader.getParent()));
-            assertThat(thisClassLoader.getParent().getParent().getParent(), sameInstance(antClassLoader));
+            try {
+                assertThat(thisClassLoader.loadClass(Project.class.getName()), sameInstance((Object)Project.class));
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
 
             // Send some messages
             TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(

@@ -18,8 +18,13 @@ package org.gradle.api.internal.plugins;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.internal.*;
+import org.gradle.api.GradleException;
+import org.gradle.api.internal.BeanDynamicObject;
+import org.gradle.api.internal.DynamicObject;
+import org.gradle.api.internal.Instantiator;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.*;
 
@@ -31,21 +36,24 @@ public class DefaultConvention implements Convention {
     private final Map<String, Object> plugins = new LinkedHashMap<String, Object>();
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
+    private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
     private final Instantiator instantiator;
 
     /**
-     * This method should be used in runtime code proper as it uses a new class generator for each instance.
+     * This method should be used in runtime code proper as means that the convention cannot create
+     * dynamic extensions.
      *
      * It's here for backwards compatibility with our tests and for convenience.
      *
      * @see #DefaultConvention(org.gradle.api.internal.Instantiator)
      */
     public DefaultConvention() {
-        this(new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator()));
+        this(null);
     }
 
     public DefaultConvention(Instantiator instantiator) {
         this.instantiator = instantiator;
+        add(ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 
     public Map<String, Object> getPlugins() {
@@ -54,6 +62,13 @@ public class DefaultConvention implements Convention {
 
     public DynamicObject getExtensionsAsDynamicObject() {
         return extensionsDynamicObject;
+    }
+
+    private Instantiator getInstantiator() {
+        if (instantiator == null) {
+            throw new GradleException("request for DefaultConvention.instantiator when the object was constructed without a convention");
+        }
+        return instantiator;
     }
 
     public <T> T getPlugin(Class<T> type) {
@@ -84,14 +99,25 @@ public class DefaultConvention implements Convention {
 
     public void add(String name, Object extension) {
         if (extension instanceof Class) {
-            add(name, (Class<?>)extension, new Object[0]);
+            create(name, (Class<?>) extension);
         } else {
             extensionsStorage.add(name, extension);
         }
     }
 
     public void add(String name, Class<?> type, Object... constructionArguments) {
-        add(name, instantiator.newInstance(type, constructionArguments));
+        DeprecationLogger.nagUserOfReplacedMethod("extensions.add(String, Class, Object...)", "extensions.create(String, Class, Object...)");
+        create(name, type, constructionArguments);
+    }
+
+    public <T> T create(String name, Class<T> type, Object... constructionArguments) {
+        T instance = getInstantiator().newInstance(type, constructionArguments);
+        add(name, instance);
+        return instance;
+    }
+
+    public ExtraPropertiesExtension getExtraProperties() {
+        return extraProperties;
     }
 
     public <T> T getByType(Class<T> type) {

@@ -15,12 +15,15 @@
  */
 package org.gradle.launcher.daemon.registry
 
-import spock.lang.*
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
+import spock.lang.Specification
 
 class DaemonRegistryServicesTest extends Specification {
+    @Rule TemporaryFolder tmp = new TemporaryFolder()
 
     def registry(baseDir) {
-        new DaemonRegistryServices(new File(baseDir))
+        new DaemonRegistryServices(tmp.createDir(baseDir))
     }
 
     def "same daemon registry instance is used for same daemon registry file across service instances"() {

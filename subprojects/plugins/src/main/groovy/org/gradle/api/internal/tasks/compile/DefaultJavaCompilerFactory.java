@@ -16,53 +16,57 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.AntBuilder;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler;
-import org.gradle.api.internal.tasks.compile.fork.ForkingJavaCompiler;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
-import org.gradle.util.Jvm;
 
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
+    private final static Logger LOGGER = Logging.getLogger(DefaultJavaCompilerFactory.class);
+
     private final ProjectInternal project;
+    private final TemporaryFileProvider tempFileProvider;
     private final Factory<AntBuilder> antBuilderFactory;
     private final JavaCompilerFactory inProcessCompilerFactory;
-    private Jvm jvmInstance;
 
-    public DefaultJavaCompilerFactory(ProjectInternal project, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory) {
-        this(project, antBuilderFactory, inProcessCompilerFactory, Jvm.current());
-    }
-
-    DefaultJavaCompilerFactory(ProjectInternal project, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory, Jvm jvm){
+    public DefaultJavaCompilerFactory(ProjectInternal project, TemporaryFileProvider tempFileProvider, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory){
         this.project = project;
+        this.tempFileProvider = tempFileProvider;
         this.antBuilderFactory = antBuilderFactory;
         this.inProcessCompilerFactory = inProcessCompilerFactory;
-        this.jvmInstance = jvm;
     }
 
-    public JavaCompiler create(CompileOptions options) {
-        JavaCompiler compiler = createBasicJavaCompiler(options);
-        if(jvmInstance.isJava7()){
-              return new Jdk7CompliantJavaCompiler(compiler);
-        }else{
-            return compiler;
-        }
-    }
+    public Compiler<JavaCompileSpec> create(CompileOptions options) {
+        fallBackToAntIfNecessary(options);
 
-    private JavaCompiler createBasicJavaCompiler(CompileOptions options) {
         if (options.isUseAnt()) {
             return new AntJavaCompiler(antBuilderFactory);
         }
         return new NormalizingJavaCompiler(createTargetCompiler(options));
     }
 
-    private JavaCompiler createTargetCompiler(CompileOptions options) {
-        if (!options.isFork()) {
-            return inProcessCompilerFactory.create(options);
+    private void fallBackToAntIfNecessary(CompileOptions options) {
+        if (options.isUseAnt()) { return; }
+
+        if (options.getCompiler() != null) {
+            LOGGER.warn("Falling back to Ant javac task ('CompileOptions.useAnt = true') because 'CompileOptions.compiler' is set.");
+            options.setUseAnt(true);
         }
-        if (options.getForkOptions().isUseCompilerDaemon()) {
-            return new DaemonJavaCompiler(project, inProcessCompilerFactory.create(options));
+    }
+
+    private Compiler<JavaCompileSpec> createTargetCompiler(CompileOptions options) {
+        if (options.isFork() && options.getForkOptions().getExecutable() != null) {
+            return new CommandLineJavaCompiler(tempFileProvider, project.getProjectDir());
         }
-        return new ForkingJavaCompiler(project);
+
+        Compiler<JavaCompileSpec> compiler = inProcessCompilerFactory.create(options);
+        if (options.isFork()) {
+            return new DaemonJavaCompiler(project, compiler);
+        }
+
+        return compiler;
     }
 }

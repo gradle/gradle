@@ -124,13 +124,13 @@ class TestFileHelper {
             throw new RuntimeException("Could not set permissions for '$file': $error")
         }
     }
-    
-    Map<String, ?> exec() {
-        def process = [file.absolutePath].execute()
+
+    Map<String, ?> exec(Object... args) {
+        def process = ([file.absolutePath] + (args as List)).execute()
         def output = process.inputStream.text
         def error = process.errorStream.text
         if (process.waitFor() != 0) {
-            throw new RuntimeException("Could not execute $file: $error")
+            throw new RuntimeException("Could not execute $file. Error: $error, Output: $output")
         }
         return [out: output, error: error]
     }

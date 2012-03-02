@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.logging;
 
 import org.gradle.api.tasks.testing.TestLogging;
-import org.gradle.util.DeprecationLogger;
 
 /**
  * by Szczepan Faber, created at: 10/31/11
@@ -28,11 +27,6 @@ public class DefaultTestLogging implements TestLogging {
 
     public boolean getShowStandardStreams() {
         return showStandardStreams;
-    }
-
-    public TestLogging setShowStandardStream(boolean standardStreams) {
-        DeprecationLogger.nagUserOfReplacedMethod("showStandardStream", "showStandardStreams");
-        return setShowStandardStreams(standardStreams);
     }
 
     public TestLogging setShowStandardStreams(boolean standardStreams) {

@@ -149,7 +149,7 @@ public class XmlTransformer implements Transformer<String, String> {
                 doWriteTo(writer, "UTF-8");
                 writer.flush();
             } catch (IOException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
@@ -167,7 +167,7 @@ public class XmlTransformer implements Transformer<String, String> {
                 try {
                     node = new XmlParser().parseText(toString());
                 } catch (Exception e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 builder = null;
                 element = null;
@@ -181,7 +181,7 @@ public class XmlTransformer implements Transformer<String, String> {
                 try {
                     document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(toString())));
                 } catch (Exception e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 element = document.getDocumentElement();
                 builder = null;
@@ -204,7 +204,7 @@ public class XmlTransformer implements Transformer<String, String> {
                     writer.append(TextUtil.toPlatformLineSeparators(stripXmlDeclaration(stringValue)));
                 }
             } catch (IOException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
@@ -254,7 +254,7 @@ public class XmlTransformer implements Transformer<String, String> {
 
                 transformer.transform(new DOMSource(node), new StreamResult(destination));
             } catch (TransformerException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
@@ -289,7 +289,7 @@ public class XmlTransformer implements Transformer<String, String> {
                 writer.write("?>");
                 writer.write(SystemProperties.getLineSeparator());
             } catch (IOException e) {
-                throw UncheckedException.asUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         private boolean hasXmlDeclaration(String xml) {

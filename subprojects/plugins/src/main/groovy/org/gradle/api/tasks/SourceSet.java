@@ -19,8 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 
-import java.io.File;
-
 /**
  * A {@code SourceSet} represents a logical group of Java source and resources.
  * <p>
@@ -84,38 +82,6 @@ public interface SourceSet {
      * @param classpath The classpath. Should not be null.
      */
     void setRuntimeClasspath(FileCollection classpath);
-
-    /**
-     * Deprecated. Use {@code getOutput().getClassesDir()} instead.
-     * <p>
-     * Returns the directory to assemble the compiled classes into.
-     *
-     * @return The classes dir. Never returns null.
-     */
-    @Deprecated
-    File getClassesDir();
-
-    /**
-     * Deprecated. Use {@code getOutput().setClassesDir()} instead.
-     * <p>
-     * Sets the directory to assemble the compiled classes into.
-     *
-     * @param classesDir the classes dir. Should not be null.
-     */
-    @Deprecated
-    void setClassesDir(File classesDir);
-
-    /**
-     * Deprecated. Use {@link #getOutput()} instead.
-     * <p>
-     * Returns {@link SourceSetOutput} that extends {@link FileCollection} which means that it provides all output directories (compiled classes, processed resources, etc.)
-     * <p>
-     * Provides a way to configure the default output dirs and specify additional output dirs - see {@link SourceSetOutput}
-     *
-     * @return The output dirs, as a {@link SourceSetOutput}.
-     */
-    @Deprecated
-    SourceSetOutput getClasses();
 
    /**
      * {@link SourceSetOutput} is a {@link FileCollection} of all output directories (compiled classes, processed resources, etc.)

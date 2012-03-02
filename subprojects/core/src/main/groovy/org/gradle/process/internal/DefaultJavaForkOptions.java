@@ -111,6 +111,14 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         options.setMaxHeapSize(heapSize);
     }
 
+    public String getDefaultCharacterEncoding() {
+        return options.getDefaultCharacterEncoding();
+    }
+
+    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+        options.setDefaultCharacterEncoding(defaultCharacterEncoding);
+    }
+
     public boolean getEnableAssertions() {
         return options.getEnableAssertions();
     }

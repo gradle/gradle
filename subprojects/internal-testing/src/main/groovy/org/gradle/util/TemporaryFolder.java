@@ -31,7 +31,8 @@ public class TemporaryFolder implements MethodRule, TestFileContext {
     private static TestFile root;
 
     static {
-        root = new TestFile(new File("build/tmp/tests"));
+        // NOTE: the space in the directory name is intentional
+        root = new TestFile(new File("build/tmp/test files"));
     }
 
     public TestFile getDir() {
@@ -75,7 +76,7 @@ public class TemporaryFolder implements MethodRule, TestFileContext {
 
     private void init(FrameworkMethod method, Object target) {
         if (prefix == null) {
-            String safeMethodName = method.getName().replaceAll("\\s", "_");
+            String safeMethodName = method.getName().replaceAll("\\s", "_").replace(File.pathSeparator, "_").replace(":", "_");
             if (safeMethodName.length() > 64) {
                 safeMethodName = safeMethodName.substring(0, 32) + "..." + safeMethodName.substring(safeMethodName.length() - 32);
             }

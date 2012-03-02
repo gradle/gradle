@@ -19,7 +19,7 @@ task books << {
 }
 
 class DocumentationPlugin implements Plugin<Project> {
-    def void apply(Project project) {
+    void apply(Project project) {
         def books = project.container(Book)
         books.all {
             sourceFile = project.file("src/docs/$name")

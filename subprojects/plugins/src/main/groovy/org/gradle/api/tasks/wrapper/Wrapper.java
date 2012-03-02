@@ -154,31 +154,6 @@ public class Wrapper extends DefaultTask {
     }
 
     /**
-     * Returns the script destination path, relative to the project directory.
-     *
-     * @see #setScriptDestinationPath(String)
-     */
-    @Deprecated
-    public String getScriptDestinationPath() {
-        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.getScriptDestinationPath()", "getScriptFile()");
-        return getProject().relativePath(getScriptFile().getParentFile());
-    }
-
-    /**
-     * Specifies a path as the parent dir of the scripts which are generated when executing the wrapper task. This path
-     * specifies a directory <i>relative</i> to the project dir.  Defaults to empty string, i.e. the scripts are placed
-     * into the project root dir.
-     *
-     * @param scriptDestinationPath Any object which <code>toString</code> method specifies the path. Most likely a
-     * String or File object.
-     */
-    @Deprecated
-    public void setScriptDestinationPath(String scriptDestinationPath) {
-        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.setScriptDestinationPath()", "setScriptFile()");
-        setScriptFile(scriptDestinationPath + "/gradlew");
-    }
-
-    /**
      * Returns the file to write the wrapper jar file to.
      */
     @OutputFile
@@ -198,28 +173,6 @@ public class Wrapper extends DefaultTask {
         File jarFileDestination = getJarFile();
         return new File(jarFileDestination.getParentFile(), jarFileDestination.getName().replaceAll("\\.jar$",
                 ".properties"));
-    }
-
-    /**
-     * Returns the jar path, relative to the project directory.
-     *
-     * @see #setJarPath(String)
-     */
-    @Deprecated
-    public String getJarPath() {
-        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.getJarPath()", "getJarFile()");
-        return getProject().relativePath(getJarFile().getParentFile());
-    }
-
-    /**
-     * When executing the wrapper task, the jar path specifies the path where the gradle-wrapper.jar is copied to. The
-     * jar path must be a path relative to the project dir. The gradle-wrapper.jar must be submitted to your version
-     * control system. Defaults to empty string, i.e. the jar is placed into the project root dir.
-     */
-    @Deprecated
-    public void setJarPath(String jarPath) {
-        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.setJarPath()", "setJarFile()");
-        setJarFile(jarPath + "/gradle-wrapper.jar");
     }
 
     /**
@@ -262,7 +215,9 @@ public class Wrapper extends DefaultTask {
     /**
      * The URL to download the gradle distribution from.
      *
-     * <p>If not set, the download URL is assembled by the pattern: <code>[urlRoot]/[archiveName]-[gradleVersion]-[archiveClassifier].zip</code>
+     * <p>If not set, the download URL is the default for the specified {@link #getGradleVersion()}.
+     *
+     * <p>If {@link #getGradleVersion()} is not set, will return null.
      *
      * <p>The wrapper downloads a certain distribution only once and caches it. If your distribution base is the
      * project, you might submit the distribution to your version control system. That way no download is necessary at
@@ -273,34 +228,15 @@ public class Wrapper extends DefaultTask {
     public String getDistributionUrl() {
         if (distributionUrl != null) {
             return distributionUrl;
+        } else if (gradleVersion != null) {
+            return locator.getDistributionFor(gradleVersion);
+        } else {
+            return null;
         }
-        return locator.getDistribution(getUrlRoot(), gradleVersion, archiveName, archiveClassifier);
     }
 
     public void setDistributionUrl(String url) {
         this.distributionUrl = url;
-    }
-
-    /**
-     * The base URL to download the gradle distribution from.
-     *
-     * <p>The download URL is assembled by the pattern: <code>[urlRoot]/[archiveName]-[gradleVersion]-[archiveClassifier].zip</code>
-     */
-    @Deprecated
-    public String getUrlRoot() {
-        if (urlRoot != null) {
-            return urlRoot;
-        }
-        return locator.getDistributionRepository(gradleVersion);
-    }
-
-    /**
-     * Sets the base URL to download the gradle distribution from.
-     */
-    @Deprecated
-    public void setUrlRoot(String urlRoot) {
-        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.setUrlRoot()", "setDistributionUrl()");
-        this.urlRoot = urlRoot;
     }
 
     /**
@@ -351,39 +287,4 @@ public class Wrapper extends DefaultTask {
         this.archiveBase = archiveBase;
     }
 
-    /**
-     * The name of the archive as part of the download URL.
-     *
-     * <p>The download URL is assembled by the pattern: <code>[urlRoot]/[archiveName]-[gradleVersion]-[archiveClassifier].zip</code>
-     *
-     * <p>The default for the archive name is {@value #DEFAULT_ARCHIVE_NAME}.
-     */
-    @Deprecated
-    public String getArchiveName() {
-        return archiveName;
-    }
-
-    @Deprecated
-    public void setArchiveName(String archiveName) {
-        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.setArchiveName()", "setDistributionUrl()");
-        this.archiveName = archiveName;
-    }
-
-    /**
-     * The classifier of the archive as part of the download URL.
-     *
-     * <p>The download URL is assembled by the pattern: <code>[urlRoot]/[archiveName]-[gradleVersion]-[archiveClassifier].zip</code>
-     *
-     * <p>The default for the archive classifier is {@value #DEFAULT_ARCHIVE_CLASSIFIER}.
-     */
-    @Deprecated
-    public String getArchiveClassifier() {
-        return archiveClassifier;
-    }
-
-    @Deprecated
-    public void setArchiveClassifier(String archiveClassifier) {
-        DeprecationLogger.nagUserOfReplacedMethod("Wrapper.setArchiveClassifier()", "setDistributionUrl()");
-        this.archiveClassifier = archiveClassifier;
-    }
 }

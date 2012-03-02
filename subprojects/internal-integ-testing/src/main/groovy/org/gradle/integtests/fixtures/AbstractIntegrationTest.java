@@ -49,10 +49,6 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
         return executer.usingBuildScript(file);
     }
 
-    protected GradleExecuter usingBuildScript(String script) {
-        return executer.usingBuildScript(script);
-    }
-
     protected GradleExecuter usingProjectDir(File projectDir) {
         return executer.usingProjectDirectory(projectDir);
     }

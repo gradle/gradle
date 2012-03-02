@@ -66,23 +66,24 @@ public class ForwardClientInput implements DaemonCommandAction {
                 if (command instanceof ForwardInput) {
                     try {
                         ForwardInput forwardedInput = (ForwardInput)command;
-                        LOGGER.info("Putting forwarded input '{}' on daemon's stdin", new String(forwardedInput.getBytes()).replace("\n", "\\n"));
+                        LOGGER.debug("Putting forwarded input '{}' on daemon's stdin.", new String(forwardedInput.getBytes()).replace("\n", "\\n"));
                         inputSource.write(forwardedInput.getBytes());
 
                     } catch (Exception e) {
-                        LOGGER.warn("Received exception trying to forward client input", e);
+                        LOGGER.warn("Received exception trying to forward client input.", e);
                     }
                 } else if (command instanceof CloseInput) {
                     try {
-                        LOGGER.info("Closing daemons standard input as requested by received command: {}", command);
+                        LOGGER.info("Closing daemons standard input as requested by received command: {} ...", command);
                         inputSource.close();
-                    } catch (Exception e) {
-                        LOGGER.warn("Exception closing output stream connected to replacement stdin", e);
+                    } catch (Throwable e) {
+                        LOGGER.warn("Problem closing output stream connected to replacement stdin", e);
                     } finally {
+                        LOGGER.info("The daemon will no longer process any standard input.");
                         countDownInputOrConnectionClosedLatch.run();
                     }
                 } else {
-                    LOGGER.warn("While listening for IOCommands, received unexpected command: {}", command);
+                    LOGGER.warn("While listening for IOCommands, received unexpected command: {}.", command);
                 }
             }
         };
@@ -101,7 +102,7 @@ public class ForwardClientInput implements DaemonCommandAction {
                     inputOrConnectionClosedLatch.await();
                 } catch (InterruptedException e) {
                     LOGGER.debug("Interrupted while waiting for client to disconnect.");
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 } finally {
                     inputReceiver.stop();
                     LOGGER.debug("The input receiver has been stopped.");
@@ -118,7 +119,7 @@ public class ForwardClientInput implements DaemonCommandAction {
             });
             replacementStdin.close();
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

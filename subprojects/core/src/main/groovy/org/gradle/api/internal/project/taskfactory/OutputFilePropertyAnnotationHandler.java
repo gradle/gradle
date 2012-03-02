@@ -69,7 +69,7 @@ public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHa
                         try {
                             files = valueTransformer.transform(futureValue.call());
                         } catch (Exception e) {
-                            throw UncheckedException.asUncheckedException(e);
+                            throw UncheckedException.throwAsUncheckedException(e);
                         }
                         for (File file : files) {
                             file = GFileUtils.canonicalise(file);

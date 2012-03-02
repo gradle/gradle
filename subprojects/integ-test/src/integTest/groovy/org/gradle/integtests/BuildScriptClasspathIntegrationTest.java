@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.ExecutionFailure;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -122,10 +122,10 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "  new ImportedClass()",
                 "  new OnDemandImportedClass()",
                 "}",
-                "a = new ImportedClass()",
-                "b = OnDemandImportedClass",
-                "c = someValue",
-                "d = anotherValue",
+                "ext.a = new ImportedClass()",
+                "ext.b = OnDemandImportedClass",
+                "ext.c = someValue",
+                "ext.d = anotherValue",
                 "class TestClass extends ImportedClass { }",
                 "def aMethod() { return new OnDemandImportedClass() }"
         );

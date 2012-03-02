@@ -26,7 +26,7 @@ import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 class CppLibConventionPlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.apply(plugin: "cpp")
+        project.plugins.apply(CppPlugin)
 
         project.with {
             cpp {
@@ -37,10 +37,7 @@ class CppLibConventionPlugin implements Plugin<Project> {
             libraries {
                 main {
                     sourceSets << project.cpp.sourceSets.main
-                    spec {
-                        // Do we default to shared?
-                        sharedLibrary()
-                    }
+                    spec.baseName = project.name
                 }
             }
 
@@ -53,7 +50,7 @@ class CppLibConventionPlugin implements Plugin<Project> {
 
                 // needs to be more general and not peer into the spec
                 libraries.main.spec.outputFile,
-                libraries.main.spec.task
+                libraries.main
             )
 
             task("assembleHeaders", type: Zip) {

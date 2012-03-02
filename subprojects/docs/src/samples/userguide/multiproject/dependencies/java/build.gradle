@@ -22,6 +22,3 @@ project(':services:personService') {
     }
 }
 
-dependsOnChildren()
-
-

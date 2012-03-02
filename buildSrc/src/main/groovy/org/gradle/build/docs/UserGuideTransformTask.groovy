@@ -20,7 +20,6 @@ package org.gradle.build.docs
 import groovy.xml.dom.DOMCategory
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.file.FileCollection
 import org.gradle.build.docs.dsl.ClassLinkMetaData
 import org.gradle.build.docs.dsl.LinkMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
@@ -58,8 +57,6 @@ public class UserGuideTransformTask extends DefaultTask {
     File snippetsDir
     @Input
     Set<String> tags = new HashSet()
-    @InputFiles
-    FileCollection classpath;
 
     final SampleElementValidator validator = new SampleElementValidator();
 
@@ -81,7 +78,7 @@ public class UserGuideTransformTask extends DefaultTask {
 
     @TaskAction
     def transform() {
-        XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider(classpath)
+        XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
         provider.parse(sourceFile)
         transform(provider.document)
         provider.write(destFile)
@@ -175,7 +172,7 @@ public class UserGuideTransformTask extends DefaultTask {
     }
 
     def transformSamples(Document doc) {
-        XIncludeAwareXmlProvider samplesXmlProvider = new XIncludeAwareXmlProvider(classpath)
+        XIncludeAwareXmlProvider samplesXmlProvider = new XIncludeAwareXmlProvider()
         samplesXmlProvider.emptyDoc() << {
             samples()
         }

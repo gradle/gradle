@@ -15,9 +15,6 @@
  */
 package org.gradle.initialization.layout;
 
-import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.groovy.scripts.UriScriptSource;
-
 import java.io.File;
 
 public class BuildLayoutFactory {
@@ -32,9 +29,11 @@ public class BuildLayoutFactory {
      * Determines the layout of the build, given a current directory and some other configuration.
      */
     public BuildLayout getLayoutFor(BuildLayoutConfiguration configuration) {
-
-        if (configuration.getSettingsScript() != null) {
-            return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), configuration.getSettingsScript());
+        if (configuration.isUseEmptySettings()) {
+            return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), null);
+        }
+        if (configuration.getSettingsFile() != null) {
+            return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), configuration.getSettingsFile());
         }
 
         File currentDir = configuration.getCurrentDir();
@@ -61,10 +60,10 @@ public class BuildLayoutFactory {
     }
 
     private BuildLayout layout(File rootDir, File settingsDir) {
-        return new BuildLayout(rootDir, settingsDir, new StringScriptSource("empty settings file", ""));
+        return new BuildLayout(rootDir, settingsDir, null);
     }
 
     private BuildLayout layout(File rootDir, File settingsDir, File settingsFile) {
-        return new BuildLayout(rootDir, settingsDir, new UriScriptSource("settings file", settingsFile));
+        return new BuildLayout(rootDir, settingsDir, settingsFile);
     }
 }

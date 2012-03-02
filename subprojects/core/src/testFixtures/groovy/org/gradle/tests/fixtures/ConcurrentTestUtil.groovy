@@ -23,9 +23,7 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import org.gradle.messaging.concurrent.ExecutorFactory
 import org.gradle.messaging.concurrent.StoppableExecutor
-import org.junit.rules.TestRule
-import org.junit.runner.Description
-import org.junit.runners.model.Statement
+import org.junit.rules.ExternalResource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -44,7 +42,7 @@ import org.slf4j.LoggerFactory
  * <li>An action starts another action asynchronously and waits for the result.</li>
  * </ul>
  */
-class ConcurrentTestUtil implements TestRule {
+class ConcurrentTestUtil extends ExternalResource {
     private static final Logger LOG = LoggerFactory.getLogger(ConcurrentTestUtil.class)
 
     private Lock lock = new ReentrantLock()
@@ -54,22 +52,15 @@ class ConcurrentTestUtil implements TestRule {
     private List<Throwable> failures = []
     private timeout = 5000
 
-    public ConcurrentTestUtil() {}
+    ConcurrentTestUtil() {}
 
-    public ConcurrentTestUtil(int timeout) {
+    ConcurrentTestUtil(int timeout) {
         this.timeout = timeout
     }
 
-    Statement apply(Statement base, Description description) {
-        return new Statement() {
-            void evaluate() {
-                try {
-                    base.evaluate()
-                } finally {
-                    finished()
-                }
-            }
-        }
+    @Override
+    protected void after() {
+        finished()
     }
 
     //simplistic polling assertion. attempts asserting every x millis up to some max timeout
@@ -358,9 +349,15 @@ interface TestParticipant extends LongRunningAction {
 }
 
 abstract class AbstractAction implements LongRunningAction {
+    
+    Date defaultExpiry
+
+    AbstractAction(Date defaultExpiry) {
+        this.defaultExpiry = defaultExpiry
+    }
+    
     void completed() {
-        Date expiry = ConcurrentTestUtil.shortTimeout()
-        completesBefore(expiry)
+        completesBefore(defaultExpiry)
     }
 
     void completesWithin(long maxWaitValue, TimeUnit maxWaitUnits) {
@@ -375,6 +372,7 @@ abstract class AbstractTestParticipant extends AbstractAction implements TestPar
     private final ConcurrentTestUtil owner
 
     AbstractTestParticipant(ConcurrentTestUtil owner) {
+        super(owner.shortTimeout())
         this.owner = owner
     }
 }
@@ -556,10 +554,14 @@ class StartAsyncAction extends AbstractAsyncAction {
         Date timeout = shortTimeout()
         withLock {
             if (startThread == null) {
-                throw new IllegalStateException("Action has not been started.")
+                def e = new IllegalStateException("Action has not been started.")
+                e.printStackTrace()
+                throw e
             }
             if (Thread.currentThread() == startThread) {
-                throw new IllegalStateException("Cannot wait for action to complete from the thread that is executing it.")
+                def e = new IllegalStateException("Cannot wait for action to complete from the thread that is executing it.")
+                e.printStackTrace()
+                throw e
             }
             while (!started && !failure) {
                 if (!condition.awaitUntil(timeout)) {

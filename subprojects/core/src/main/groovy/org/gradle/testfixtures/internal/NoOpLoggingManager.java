@@ -16,7 +16,6 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.OutputEventListener;
@@ -28,15 +27,6 @@ public class NoOpLoggingManager implements LoggingManagerInternal {
     public LoggingManagerInternal captureStandardOutput(LogLevel level) {
         stdoutLevel = level;
         return this;
-    }
-
-    public LoggingManager disableStandardOutputCapture() {
-        stdoutLevel = null;
-        return this;
-    }
-
-    public boolean isStandardOutputCaptureEnabled() {
-        return stdoutLevel != null;
     }
 
     public LogLevel getStandardOutputCaptureLevel() {

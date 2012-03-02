@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.context;
 import com.google.common.collect.Lists;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.util.Jvm;
 
 import java.io.File;
@@ -33,6 +34,7 @@ import static org.gradle.util.GFileUtils.canonicalise;
  */
 public class DaemonContextBuilder implements Factory<DaemonContext> {
 
+    private String uid;
     private File javaHome;
     private File daemonRegistryDir;
     private Long pid;
@@ -60,6 +62,14 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         this.daemonRegistryDir = daemonRegistryDir;
     }
 
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
     public Long getPid() {
         return pid;
     }
@@ -84,6 +94,11 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         this.daemonOpts = daemonOpts;
     }
 
+    public void useDaemonParameters(DaemonParameters daemonParameters) {
+        setJavaHome(daemonParameters.getEffectiveJavaHome());
+        setDaemonOpts(daemonParameters.getEffectiveJvmArgs());
+    }
+
     /**
      * Creates a new daemon context, based on the current state of this builder.
      */
@@ -91,6 +106,6 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         if (daemonRegistryDir == null) {
             throw new IllegalStateException("Registry dir must be specified.");
         }
-        return new DefaultDaemonContext(javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts);
+        return new DefaultDaemonContext(uid, javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts);
     }
 }

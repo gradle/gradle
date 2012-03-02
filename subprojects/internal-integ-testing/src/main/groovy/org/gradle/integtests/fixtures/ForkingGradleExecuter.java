@@ -20,8 +20,9 @@ import org.gradle.StartParameter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeplatform.OperatingSystem;
-import org.gradle.launcher.daemon.client.DaemonParameters;
+import org.gradle.internal.nativeplatform.jna.WindowsProcessInitializer;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.process.internal.ExecHandleBuilder;
@@ -40,7 +41,6 @@ import static org.junit.Assert.fail;
 public class ForkingGradleExecuter extends AbstractGradleExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
     private final TestFile gradleHomeDir;
-    private final List<String> gradleOpts = new ArrayList<String>();
 
     public ForkingGradleExecuter(TestFile gradleHomeDir) {
         this.gradleHomeDir = gradleHomeDir;
@@ -95,9 +95,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                     + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
         }
 
-        CommandBuilder commandBuilder = OperatingSystem.current().isWindows() ? new WindowsCommandBuilder()
-                : new UnixCommandBuilder();
-
         ExecHandleBuilder builder = new ExecHandleBuilder() {
             @Override
             public File getWorkingDir() {
@@ -117,7 +114,9 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.workingDir(getWorkingDir());
         builder.setStandardInput(getStdin());
 
-        commandBuilder.build(builder);
+        ExecHandlerConfigurer configurer = OperatingSystem.current().isWindows() ? new WindowsConfigurer()
+                : new UnixConfigurer();
+        configurer.configure(builder);
 
         builder.args(getAllArgs());
 
@@ -129,7 +128,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     public GradleHandle doStart() {
-        return new ForkingGradleHandle(new Factory<ExecHandleBuilder>() {
+        return new ForkingGradleHandle(getDefaultCharacterEncoding(), new Factory<ExecHandleBuilder>() {
             public ExecHandleBuilder create() {
                 return createExecHandleBuilder();
             }
@@ -159,15 +158,20 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                 result.append(gradleOpt);
             }
         }
+        
+        result.append(" -Dfile.encoding=");
+        result.append(getDefaultCharacterEncoding());
+        result.append(" -Dorg.gradle.deprecation.trace=true");
+
         return result.toString();
     }
 
-    private interface CommandBuilder {
-        void build(ExecHandleBuilder builder);
+    private interface ExecHandlerConfigurer {
+        void configure(ExecHandleBuilder builder);
     }
 
-    private class WindowsCommandBuilder implements CommandBuilder {
-        public void build(ExecHandleBuilder builder) {
+    private class WindowsConfigurer implements ExecHandlerConfigurer {
+        public void configure(ExecHandleBuilder builder) {
             String cmd;
             if (getExecutable() != null) {
                 cmd = getExecutable().replace('/', File.separatorChar);
@@ -190,11 +194,14 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                                                       gradleHome,
                                                       path));
             builder.environment("GRADLE_EXIT_CONSOLE", "true");
+
+            LOG.info("Initializing windows process so that child process will be fully detached...");
+            new WindowsProcessInitializer().initialize();
         }
     }
 
-    private class UnixCommandBuilder implements CommandBuilder {
-        public void build(ExecHandleBuilder builder) {
+    private class UnixConfigurer implements ExecHandlerConfigurer {
+        public void configure(ExecHandleBuilder builder) {
             if (getExecutable() != null) {
                 File exe = new File(getExecutable());
                 if (exe.isAbsolute()) {

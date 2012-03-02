@@ -25,16 +25,14 @@ import org.w3c.dom.Document
 class DslDocModel {
     private final File classDocbookDir
     private final Document document
-    private final Iterable<File> classpath
     private final Map<String, ClassDoc> classes = [:]
     private final ClassMetaDataRepository<ClassMetaData> classMetaData
     private final Map<String, ClassExtensionMetaData> extensionMetaData
     private final JavadocConverter javadocConverter
 
-    DslDocModel(File classDocbookDir, Document document, Iterable<File> classpath, ClassMetaDataRepository<ClassMetaData> classMetaData, Map<String, ClassExtensionMetaData> extensionMetaData) {
+    DslDocModel(File classDocbookDir, Document document, ClassMetaDataRepository<ClassMetaData> classMetaData, Map<String, ClassExtensionMetaData> extensionMetaData) {
         this.classDocbookDir = classDocbookDir
         this.document = document
-        this.classpath = classpath
         this.classMetaData = classMetaData
         this.extensionMetaData = extensionMetaData
         javadocConverter = new JavadocConverter(document, new JavadocLinkConverter(document, new TypeNameResolver(classMetaData), new LinkRenderer(document, this), classMetaData))
@@ -70,7 +68,7 @@ class DslDocModel {
             if (!classFile.isFile()) {
                 throw new RuntimeException("Docbook source file not found for class '$className' in $classDocbookDir.")
             }
-            XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider(classpath)
+            XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
             def doc = new ClassDoc(className, provider.parse(classFile), document, classMetaData, extensionMetaData, this, javadocConverter)
             doc.mergeContent()
             return doc

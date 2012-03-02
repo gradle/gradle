@@ -63,15 +63,16 @@ class DomainRegistryUpdater {
         LOGGER.info("Advertising the daemon address to the clients: {}", connectorAddress);
         LOGGER.debug("Advertised daemon context: {}", daemonContext);
         daemonRegistry.store(connectorAddress, daemonContext, password);
+        daemonRegistry.markBusy(connectorAddress);
     }
 
     public void onStop() {
-        LOGGER.info("Removing our presence to clients, eg. removing this address from the registry: " + connectorAddress);
+        LOGGER.debug("Removing our presence to clients, eg. removing this address from the registry: " + connectorAddress);
         try {
             daemonRegistry.remove(connectorAddress);
         } catch (DaemonRegistry.EmptyRegistryException e) {
             LOGGER.warn("Cannot remove daemon from the registry because the registry is empty.");
         }
-        LOGGER.info("Address removed from registry.");
+        LOGGER.debug("Address removed from registry.");
     }
 }

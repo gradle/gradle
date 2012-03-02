@@ -41,7 +41,7 @@ class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath"
     static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt"
 
-    EclipseModel model = new EclipseModel()
+    EclipseModel model
 
     @Override protected String getLifecycleTaskName() {
         return 'eclipse'
@@ -51,7 +51,7 @@ class EclipsePlugin extends IdePlugin {
         lifecycleTask.description = 'Generates all Eclipse files.'
         cleanTask.description = 'Cleans all Eclipse files.'
 
-        project.extensions.eclipse = model
+        model = project.extensions.create("eclipse", EclipseModel)
 
         configureEclipseProject(project)
         configureEclipseClasspath(project)

@@ -42,7 +42,9 @@ public class ReleasedVersions {
                 "1.0-milestone-4",
                 "1.0-milestone-5",
                 "1.0-milestone-6",
-                "1.0-milestone-7");
+                "1.0-milestone-7",
+                "1.0-milestone-8",
+                "1.0-milestone-8a");
 
     private final GradleDistribution current;
 

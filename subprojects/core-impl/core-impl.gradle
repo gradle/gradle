@@ -11,9 +11,6 @@ dependencies {
     compile libraries.ivy
     compile libraries.slf4j_api
     compile libraries.maven_ant_tasks
-    compile module('org.jfrog.wharf:wharf-core:1.0-20111007143103') {
-        dependency libraries.ivy
-    }
 
     testCompile libraries.junit
 }

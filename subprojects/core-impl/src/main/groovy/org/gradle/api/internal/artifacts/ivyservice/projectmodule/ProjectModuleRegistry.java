@@ -19,7 +19,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 
 /**
- * TODO:DAZ - this probably should lookup a project by id, much like ClientModuleRegistry. Then, there would be no dependency on ivy DependencyDescriptor.
+ * TODO - this probably should lookup a project by id, much like ClientModuleRegistry. Then, there would be no dependency on ivy DependencyDescriptor.
  */
 public interface ProjectModuleRegistry {
     ModuleDescriptor findProject(DependencyDescriptor descriptor);

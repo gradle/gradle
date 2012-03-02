@@ -36,7 +36,7 @@ class SigningPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.apply(BasePlugin)
 
-        project.extensions.add("signing", SigningExtension, project)
+        project.extensions.create("signing", SigningExtension, project)
         def extension = project.signing
 
         def convention = new SigningPluginConvention(extension)

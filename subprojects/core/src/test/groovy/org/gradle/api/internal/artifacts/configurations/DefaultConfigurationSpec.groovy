@@ -116,7 +116,7 @@ class DefaultConfigurationSpec extends Specification {
         added == ["p1-1", "p1p1-1", "p1p2-1", "p2-1", "p2p1-1", "p2p2-1"]
 
         when:
-        masterParent2Parent2.removeArtifact masterParent2Parent2.artifacts.toList().first()
+        masterParent2Parent2.artifacts.remove masterParent2Parent2.artifacts.toList().first()
 
         then:
         allArtifacts.size() == 5
@@ -284,6 +284,6 @@ class DefaultConfigurationSpec extends Specification {
         
         then:
         copied.excludeRules.size() == 2
-        copied.excludeRules*.excludeArgs.sort { it.group } == [p1Exclude, p2Exclude]
+        copied.excludeRules.collect{[group: it.group, module: it.module]}.sort { it.group } == [p1Exclude, p2Exclude]
     }
 }

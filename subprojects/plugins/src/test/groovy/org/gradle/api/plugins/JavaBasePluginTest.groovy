@@ -68,16 +68,17 @@ class JavaBasePluginTest extends Specification {
         processResources instanceof Copy
         Matchers.dependsOn().matches(processResources)
         processResources.destinationDir == project.sourceSets.custom.output.resourcesDir
-        processResources.defaultSource == project.sourceSets.custom.resources
+        def resources = processResources.source
+        resources sameCollection(project.sourceSets.custom.resources)
 
         def compileJava = project.tasks['compileCustomJava']
         compileJava.description == 'Compiles the custom Java source.'
         compileJava instanceof Compile
         Matchers.dependsOn().matches(compileJava)
-        compileJava.defaultSource == project.sourceSets.custom.java
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
         compileJava.destinationDir == project.sourceSets.custom.output.classesDir
-
+        def sources = compileJava.source
+        sources sameCollection(project.sourceSets.custom.java)
         def classes = project.tasks['customClasses']
         classes.description == 'Assembles the custom classes.'
         classes instanceof DefaultTask
@@ -134,15 +135,15 @@ class JavaBasePluginTest extends Specification {
         javaBasePlugin.apply(project)
 
         then:
-        def compile = project.createTask('customCompile', type: Compile)
+        def compile = project.task('customCompile', type: Compile)
         compile.sourceCompatibility == project.sourceCompatibility.toString()
 
-        def test = project.createTask('customTest', type: Test.class)
+        def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
         test.testResultsDir == project.testResultsDir
         test.testReportDir == project.testReportDir
 
-        def javadoc = project.createTask('customJavadoc', type: Javadoc)
+        def javadoc = project.task('customJavadoc', type: Javadoc)
         javadoc.destinationDir == project.file("$project.docsDir/javadoc")
         javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
@@ -150,7 +151,7 @@ class JavaBasePluginTest extends Specification {
     void appliesMappingsToCustomJarTasks() {
         when:
         javaBasePlugin.apply(project)
-        def task = project.createTask('customJar', type: Jar)
+        def task = project.task('customJar', type: Jar)
 
         then:
         Matchers.dependsOn().matches(task)

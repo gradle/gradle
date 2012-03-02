@@ -21,19 +21,15 @@ import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.internal.tasks.compile.Compiler
 
-class AntScalaCompiler implements ScalaCompiler {
+class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
     private static Logger logger = LoggerFactory.getLogger(AntScalaCompiler)
 
     private final IsolatedAntBuilder antBuilder
     private final Iterable<File> bootclasspathFiles
     private final Iterable<File> extensionDirs
-    FileCollection source
-    File destinationDir
-    Iterable<File> classpath
-    Iterable<File> scalaClasspath
-    ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()
-    
+
     def AntScalaCompiler(IsolatedAntBuilder antBuilder) {
         this.antBuilder = antBuilder
         this.bootclasspathFiles = []
@@ -46,15 +42,18 @@ class AntScalaCompiler implements ScalaCompiler {
         this.extensionDirs = extensionDirs
     }
 
-    WorkResult execute() {
+    WorkResult execute(ScalaCompileSpec spec) {
+        File destinationDir = spec.destinationDir
+        ScalaCompileOptions scalaCompileOptions = spec.scalaCompileOptions
         Map options = ['destDir': destinationDir] + scalaCompileOptions.optionMap()
         String taskName = scalaCompileOptions.useCompileDaemon ? 'fsc' : 'scalac'
+        Iterable<File> compileClasspath = spec.classpath
 
-        antBuilder.withClasspath(scalaClasspath).execute { ant ->
+        antBuilder.withClasspath(spec.scalaClasspath).execute { ant ->
             taskdef(resource: 'scala/tools/ant/antlib.xml')
 
             "${taskName}"(options) {
-                source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
+                spec.source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
                 bootclasspathFiles.each {file ->
                     bootclasspath(location: file)
                 }
@@ -62,7 +61,7 @@ class AntScalaCompiler implements ScalaCompiler {
                     extdirs(location: dir)
                 }
                 classpath(location: destinationDir)
-                classpath.each {file ->
+                compileClasspath.each {file ->
                     classpath(location: file)
                 }
             }

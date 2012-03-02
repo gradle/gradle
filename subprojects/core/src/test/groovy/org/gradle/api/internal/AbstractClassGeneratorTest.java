@@ -19,11 +19,11 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.plugins.DefaultConvention;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.tasks.ConventionValue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -58,8 +58,6 @@ public abstract class AbstractClassGeneratorTest {
         assertThat(conventionAware.getConventionMapping(), instanceOf(ConventionAwareHelper.class));
         conventionAware.getConventionMapping().map("prop", TEST_CLOSURE);
         ConventionMapping mapping = new ConventionAwareBean();
-        conventionAware.setConventionMapping(mapping);
-        assertThat(conventionAware.getConventionMapping(), sameInstance(mapping));
     }
 
     @Test
@@ -72,9 +70,6 @@ public abstract class AbstractClassGeneratorTest {
         dynamicBean.getAsDynamicObject().setProperty("prop", "value");
         assertThat(bean.getProp(), equalTo("value"));
         assertThat(bean.doStuff("some value"), equalTo("{some value}"));
-
-        assertThat(dynamicBean.getExtensions(), notNullValue());
-        assertThat(dynamicBean.getConvention(), sameInstance(dynamicBean.getExtensions()));
     }
 
     @Test
@@ -175,8 +170,8 @@ public abstract class AbstractClassGeneratorTest {
 
         assertThat(bean.getProp(), nullValue());
 
-        conventionAware.getConventionMapping().map("prop", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        conventionAware.getConventionMapping().map("prop", new Callable<String>() {
+            public String call() {
                 return "conventionValue";
             }
         });
@@ -199,8 +194,8 @@ public abstract class AbstractClassGeneratorTest {
 
         assertThat(bean.getProp(), isEmpty());
 
-        conventionAware.getConventionMapping().map("prop", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        conventionAware.getConventionMapping().map("prop", new Callable<Object>() {
+            public Object call() {
                 return conventionValue;
             }
         });
@@ -313,19 +308,11 @@ public abstract class AbstractClassGeneratorTest {
     }
 
     @Test
-    public void usesSameConventionForDynamicObjectAndConventionMappings() throws Exception {
-        Bean bean = generator.generate(Bean.class).newInstance();
-        IConventionAware conventionAware = (IConventionAware) bean;
-        DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
-        assertThat(dynamicObjectAware.getConvention(), sameInstance(conventionAware.getConventionMapping().getConvention()));
-    }
-
-    @Test
     public void canAddDynamicPropertiesAndMethodsToJavaObject() throws Exception {
         Bean bean = generator.generate(Bean.class).newInstance();
         DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
         ConventionObject conventionObject = new ConventionObject();
-        dynamicObjectAware.getConvention().getPlugins().put("plugin", conventionObject);
+        new DslObject(dynamicObjectAware).getConvention().getPlugins().put("plugin", conventionObject);
 
         call("{ it.conventionProperty = 'value' }", bean);
         assertThat(conventionObject.getConventionProperty(), equalTo("value"));
@@ -340,7 +327,7 @@ public abstract class AbstractClassGeneratorTest {
         TestDecoratedGroovyBean bean = generator.generate(TestDecoratedGroovyBean.class).newInstance();
         DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
         ConventionObject conventionObject = new ConventionObject();
-        dynamicObjectAware.getConvention().getPlugins().put("plugin", conventionObject);
+        new DslObject(dynamicObjectAware).getConvention().getPlugins().put("plugin", conventionObject);
 
         call("{ it.conventionProperty = 'value' }", bean);
         assertThat(conventionObject.getConventionProperty(), equalTo("value"));
@@ -468,6 +455,17 @@ public abstract class AbstractClassGeneratorTest {
 
         assertThat(call("{ it.prop 1}", bean), nullValue());
         assertThat(bean.getProp(), equalTo("<1>"));
+
+        // failing, seems to be that set method override doesn't work for iterables - GRADLE-2097
+        //assertThat(call("{ bean, list -> bean.things(list) }", bean, new LinkedList<Object>()), nullValue());
+        //assertThat(bean.getThings().size(), equalTo(0));
+
+        //assertThat(call("{ bean -> bean.things([1,2,3]) }", bean), nullValue());
+        //assertThat(bean.getThings().size(), equalTo(3));
+
+        //FileCollection files = ProjectBuilder.builder().build().files();
+        //assertThat(call("{ bean, fc -> bean.files fc}", bean, files), nullValue());
+        //assertThat(bean.getFiles(), sameInstance(files));
     }
 
     @Test
@@ -484,6 +482,10 @@ public abstract class AbstractClassGeneratorTest {
         bean.prop = "value";
 
         assertThat(call("{def value; it.doStuff { value = it }; return value }", bean), equalTo((Object) "[value]"));
+    }
+
+    @Test public void generatesDslObjectCompatibleObject() throws Exception {
+        new DslObject(generator.generate(Bean.class).newInstance());
     }
 
     public static class Bean {
@@ -540,6 +542,8 @@ public abstract class AbstractClassGeneratorTest {
 
     public static class BeanWithDslMethods extends Bean {
         private String prop;
+        private FileCollection files;
+        private List<Object> things;
 
         public String getProp() {
             return prop;
@@ -547,6 +551,22 @@ public abstract class AbstractClassGeneratorTest {
 
         public void setProp(String prop) {
             this.prop = prop;
+        }
+
+        public FileCollection getFiles() {
+            return files;
+        }
+
+        public void setFiles(FileCollection files) {
+            this.files = files;
+        }
+
+        public List<Object> getThings() {
+            return things;
+        }
+
+        public void setThings(List<Object> things) {
+            this.things = things;
         }
 
         public BeanWithDslMethods prop(String property) {
@@ -569,8 +589,6 @@ public abstract class AbstractClassGeneratorTest {
     }
 
     public static class ConventionAwareBean extends Bean implements IConventionAware, ConventionMapping {
-        Map<String, ConventionValue> mapping = new HashMap<String, ConventionValue>();
-
         public Convention getConvention() {
             throw new UnsupportedOperationException();
         }
@@ -579,15 +597,7 @@ public abstract class AbstractClassGeneratorTest {
             throw new UnsupportedOperationException();
         }
 
-        public ConventionMapping map(Map<String, ? extends ConventionValue> properties) {
-            throw new UnsupportedOperationException();
-        }
-
         public MappedProperty map(String propertyName, Closure value) {
-            throw new UnsupportedOperationException();
-        }
-
-        public MappedProperty map(String propertyName, ConventionValue value) {
             throw new UnsupportedOperationException();
         }
 
@@ -617,7 +627,7 @@ public abstract class AbstractClassGeneratorTest {
     }
 
     public static class DynamicObjectAwareBean extends Bean implements DynamicObjectAware {
-        Convention conv = new DefaultConvention();
+        Convention conv = new ExtensibleDynamicObject(this, ThreadGlobalInstantiator.getOrCreate()).getConvention();
 
         public Convention getConvention() {
             return conv;

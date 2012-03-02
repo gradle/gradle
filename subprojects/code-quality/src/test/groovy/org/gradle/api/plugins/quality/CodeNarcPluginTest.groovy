@@ -76,7 +76,7 @@ class CodeNarcPluginTest extends Specification {
         assert task instanceof CodeNarc
         task.with {
             assert description == "Run CodeNarc analysis for ${sourceSet.name} classes"
-            assert defaultSource == sourceSet.allGroovy
+            assert source as List == sourceSet.allGroovy  as List
             assert codenarcClasspath == project.configurations.codenarc
             assert configFile == project.file("config/codenarc/codenarc.xml")
             assert reportFormat == "html"
@@ -112,7 +112,7 @@ class CodeNarcPluginTest extends Specification {
         assert task instanceof CodeNarc
         task.with {
             assert description == "Run CodeNarc analysis for ${sourceSet.name} classes"
-            assert defaultSource == sourceSet.allGroovy
+            assert source as List == sourceSet.allGroovy as List
             assert codenarcClasspath == project.configurations.codenarc
             assert configFile == project.file("codenarc-config")
             assert reportFormat == "xml"
@@ -126,7 +126,7 @@ class CodeNarcPluginTest extends Specification {
 
         expect:
         task.description == null
-        task.defaultSource == null
+        task.source.isEmpty()
         task.codenarcClasspath == project.configurations.codenarc
         task.configFile == project.file("config/codenarc/codenarc.xml")
         task.reportFormat == "html"
@@ -146,7 +146,7 @@ class CodeNarcPluginTest extends Specification {
 
         expect:
         task.description == null
-        task.defaultSource == null
+        task.source.isEmpty()
         task.codenarcClasspath == project.configurations.codenarc
         task.configFile == project.file("codenarc-config")
         task.reportFormat == "xml"

@@ -149,9 +149,9 @@ class DefaultArtifactRepositoryContainerTest {
         resolverContainer.addFirst(repository1)
         resolverContainer.addFirst(repository2)
 
-        assert resolverContainer.all as List == [repository2, repository1]
+        assert resolverContainer == [repository2, repository1]
         assert resolverContainer.collect { it } == [repository2, repository1]
-        assert resolverContainer.matching { true }.all as List == [repository2, repository1]
+        assert resolverContainer.matching { true } == [repository2, repository1]
         assert resolverContainer.matching { true }.collect { it } == [repository2, repository1]
     }
 
@@ -167,7 +167,7 @@ class DefaultArtifactRepositoryContainerTest {
         resolverContainer.addLast(repository1)
         resolverContainer.addLast(repository2)
 
-        assert resolverContainer.all as List == [repository1, repository2]
+        assert resolverContainer == [repository1, repository2]
     }
     
     @Test public void testAddFirstUsingUserDescription() {

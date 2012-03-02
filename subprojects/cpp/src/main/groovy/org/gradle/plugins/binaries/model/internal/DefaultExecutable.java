@@ -20,7 +20,12 @@ import org.gradle.plugins.binaries.model.Executable;
 import org.gradle.api.internal.project.ProjectInternal;
 
 public class DefaultExecutable extends DefaultBinary implements Executable {
-    public DefaultExecutable(String name, ProjectInternal project) {
-        super(name, project);
+    public DefaultExecutable(String name, ProjectInternal project, CompileSpecFactory specFactory) {
+        super(name, project, specFactory);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("executable '%s'", getName());
     }
 }

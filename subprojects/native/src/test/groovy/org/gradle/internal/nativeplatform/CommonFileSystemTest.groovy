@@ -15,21 +15,21 @@
  */
 package org.gradle.internal.nativeplatform
 
-import com.google.common.io.Files;
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Specification
-import org.junit.Rule
 import org.gradle.util.TemporaryFolder
 
+import org.junit.Rule
+import spock.lang.Specification
+
 class CommonFileSystemTest extends Specification {
-    @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
     def fs = FileSystems.default
     def posix = PosixUtil.current()
 
     def "unix permissions cannot be read on non existing file"() {
         when:
-        fs.getUnixMode(new File(tmpDir.dir, "someFile"))
+        fs.getUnixMode(tmpDir.file("someFile"))
 
         then:
         thrown(FileNotFoundException)
@@ -37,16 +37,14 @@ class CommonFileSystemTest extends Specification {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "unix permissions on files can be changed and read"() {
-        setup:
-        def File f = new File(tmpDir.dir, "someFile")
-        Files.touch(f)
+        def f = tmpDir.createFile("someFile")
 
         when:
         fs.chmod(f, mode)
 
         then:
         fs.getUnixMode(f) == mode
-        (PosixUtil.current().stat(f.getAbsolutePath()).mode() & 0777) == mode
+        (posix.stat(f.getAbsolutePath()).mode() & 0777) == mode
 
         where:
         mode << [0644, 0600]
@@ -54,16 +52,14 @@ class CommonFileSystemTest extends Specification {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "unix permissions on directories can be changed and read"() {
-        setup:
-        def File d = new File(tmpDir.dir, "someDir")
-        assert d.mkdir()
+        def d = tmpDir.createDir("someDir")
 
         when:
         fs.chmod(d, mode)
 
         then:
         fs.getUnixMode(d) == mode
-        (PosixUtil.current().stat(d.getAbsolutePath()).mode() & 0777) == mode
+        (posix.stat(d.getAbsolutePath()).mode() & 0777) == mode
 
         where:
         mode << [0755, 0700]

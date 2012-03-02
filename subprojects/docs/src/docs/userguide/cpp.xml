@@ -19,7 +19,7 @@
 
     <note>
         <para>
-            The Gradle C++ support is experimental and in very early stages of development so should not be considered stable.
+            The Gradle C++ support is in very early stages of development. Please be aware that the DSL and other configuration may change in later Gradle versions.
         </para>
     </note>
 
@@ -29,8 +29,27 @@
         found in the JVM development space to C++ developers.
     </para>
     <para>
-        Currently, support is restricted to building with the <literal>g++</literal> (i.e. the C++ focussed frontend to <ulink url="http://gcc.gnu.org/">GCC</ulink>)
-        compiler/linker. Furthermore, there is no direct support for creating multiple variants of the same binary (e.g. 32 bit vs. 64 bit) and there is no direct
+        The following platforms are supported:
+    </para>
+    <table>
+        <thread>
+            <tr><td>Operating System</td><td>Compiler</td><td>Notes</td></tr>
+        </thread>
+        <tr>
+            <td>Linux</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Tested with GCC 4.6.1 on Ubuntu 11.10</td>
+        </tr>
+        <tr>
+            <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Tested with XCode 4.2.1 on OS X 10.7</td>
+        </tr>
+        <tr>
+            <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Tested with Windows 7 and Visual C++ 2010</td>
+        </tr>
+        <tr>
+            <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Tested with Windows 7 and MinGW 4.6.2. Note: G++ support is currently broken under cygwin</td>
+        </tr>
+    </table>
+    <para>
+        Currently, there is no direct support for creating multiple variants of the same binary (e.g. 32 bit vs. 64 bit) and there is no direct
         support for cross platform source configuration (à la <ulink url="http://www.gnu.org/s/autoconf/">autoconf</ulink>) at this time. Support for different
         compiler chains, managing multiple variants and cross platform source configuration will be added over time, making Gradle a fully capable build tool for C++
         (and other “native” language) projects.
@@ -50,37 +69,63 @@
             <sourcefile file="build.gradle" snippet="use-plugin-lib"/>
         </sample>
         <para>
-            The <literal>cpp-exe</literal> plugin configures the project to build a single executable (at <filename>$buildDir/binaries/main</filename>) and
-            the <literal>cpp-lib</literal> plugin configures the project to build a single shared library (at <filename>$buildDir/binaries/main.so</filename>).
+            The <literal>cpp-exe</literal> plugin configures the project to build a single executable (at <filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable></filename>) and
+            the <literal>cpp-lib</literal> plugin configures the project to build a single shared library (at <filename><replaceable>$buildDir</replaceable>/binaries/lib<replaceable>$project.name</replaceable>.so</filename>).
         </para>
     </section>
 
     <section>
         <title>Source code locations</title>
         <para>
-            Both plugins configure the project to look for <literal>.cpp</literal> source files in <literal>src/main/cpp</literal> and use the <literal>src/main/headers</literal>
-            directory as a header include root. For a library, the header files in <literal>src/main/headers</literal> are considered the “public” or “exported” headers.
-            Header files that should not be exported (but are used internally) should be placed inside the <literal>src/main/cpp</literal> directory (though be aware that
+            Both plugins configure the project to look for <filename>.cpp</filename> and <filename>.c</filename> source files in <filename>src/main/cpp</filename> and use the <filename>src/main/headers</filename>
+            directory as a header include root. For a library, the header files in <filename>src/main/headers</filename> are considered the “public” or “exported” headers.
+            Header files that should not be exported (but are used internally) should be placed inside the <filename>src/main/cpp</filename> directory (though be aware that
             such header files should always be referenced in a manner relative to the file including them).
+        </para>
+        <para>
+            The <literal>cpp</literal> plugin is also very flexible in where it looks for source and header files, aand you can configure the above conventions to look however you
+            like.
         </para>
     </section>
 
     <section>
         <title>Compiling</title>
         <para>
-            For both the <literal>cpp-lib</literal> and <literal>cpp-exe</literal> plugins, you can run the <literal>compileMain</literal> task.
+            For both the <literal>cpp-lib</literal> and <literal>cpp-exe</literal> plugins, you can run <userinput>gradle compileMain</userinput> to compile and link the binary.
         </para>
-        <para>
-            As previously stated, the C++ support is currently based on the <literal>g++</literal> tool which must be installed and on the <literal>PATH</literal>
-            for the Gradle process.
-        </para>
-        <para>Arbitrary arguments can be provided to <literal>g++</literal> by using the following syntax:</para>
-        <sample id="gppArgs" dir="cpp/exe" title="Supplying arbitrary args to gpp">
+        <section>
+            <title>Compiling on UNIX</title>
+            <para>
+                The UNIX C++ support is currently based on the <literal>g++</literal> tool which must be installed and on the <literal>PATH</literal>
+                for the Gradle process.
+            </para>
+        </section>
+        <section>
+            <title>Compiling on Windows</title>
+            <para>
+                The Windows C++ support can use either the MinGW <literal>g++</literal> or the Microsoft Visual C++ <literal>cl</literal> tool, either of which must be installed and on the
+                <literal>PATH</literal> for the Gradle process. Gradle searches first for Microsoft Visual C++, and then MinGW.
+            </para>
+        </section>
+    </section>
+
+    <section>
+        <title>Configuring the compiler</title>
+        <para>Arbitrary arguments can be provided to the compiler by using the following syntax:</para>
+        <sample id="gppArgs" dir="cpp/exe" title="Supplying arbitrary args to the compiler">
             <sourcefile file="build.gradle" snippet="args"/>
         </sample>
         <para>
             The above example applies to the <literal>cpp-exe</literal> plugin, to supply arguments for the <literal>cpp-lib</literal> plugin replace
             “<literal>executables</literal>” with “<literal>libraries</literal>”.
+        </para>
+    </section>
+
+    <section>
+        <title>Working with shared libraries</title>
+        <para>
+            The C++ plugin provides an <literal>installMain</literal> task, which creates a development install of the executable, along with the shared libraries it requires.
+            This allows you to run the executable without needing to install the shared libraries in their final locations.
         </para>
     </section>
 
@@ -103,7 +148,7 @@
                 <literal>group</literal>, <literal>name</literal> and <literal>version</literal> arguments <emphasis>must</emphasis> be supplied.
             </para>
             <para>
-                For each declared dependency, two actual dependencies are created. One with the classifer “<literal>headers</literal>” and extension
+                For each declared dependency, two actual dependencies are created. One with the classifier “<literal>headers</literal>” and extension
                 “<literal>zip</literal>” which is a zip file of the exported headers, and another with the classifier “<literal>so</literal>” and extension
                 “<literal>so</literal>” which is the compiled library binary to link against (which is supplied as a direct input to the g++ link operation).
             </para>

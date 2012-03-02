@@ -39,8 +39,7 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
     @Override
     protected CodeQualityExtension createExtension() {
-        extension = instantiator.newInstance(CodeNarcExtension)
-        project.extensions.codenarc = extension
+        extension = project.extensions.create("codenarc", CodeNarcExtension)
         extension.with {
             toolVersion = "0.16.1"
             configFile = project.rootProject.file("config/codenarc/codenarc.xml")
@@ -81,8 +80,6 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         task.with {
             description = "Run CodeNarc analysis for $sourceSet.name classes"
         }
-        task.conventionMapping.with {
-            defaultSource = { sourceSet.allGroovy }
-        }
+        task.setSource( sourceSet.allGroovy )
     }
 }

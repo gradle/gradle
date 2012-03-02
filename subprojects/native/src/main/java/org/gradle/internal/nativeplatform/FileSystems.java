@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.nativeplatform;
 
+import org.gradle.internal.os.OperatingSystem;
+
 public abstract class FileSystems {
     /**
      * Returns the default file system. The default file system is defined as the file system

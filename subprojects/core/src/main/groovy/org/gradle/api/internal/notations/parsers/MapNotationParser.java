@@ -22,7 +22,12 @@ import org.gradle.util.ConfigureUtil;
 
 import java.util.*;
 
-public abstract class MapNotationParser<T> implements NotationParser<T> {
+public abstract class MapNotationParser<T> extends TypedNotationParser<Map, T> implements NotationParser<T> {
+
+    public MapNotationParser(){
+        super(Map.class);
+    }
+
     public void describe(Collection<String> candidateFormats) {
         candidateFormats.add("Maps");
     }
@@ -40,11 +45,7 @@ public abstract class MapNotationParser<T> implements NotationParser<T> {
      */
     protected abstract T parseMap(Map<String, Object> values);
     
-    public T parseNotation(Object notation) throws UnsupportedNotationException {
-        if (!(notation instanceof Map)) {
-            throw new UnsupportedNotationException(notation);
-        }
-        Map<String, Object> values = new HashMap<String, Object>((Map<String, ?>) notation);
+    public T parseType(Map values) throws UnsupportedNotationException {
         Set<String> missing = new TreeSet<String>(getRequiredKeys());
         missing.removeAll(values.keySet());
         if (!missing.isEmpty()) {

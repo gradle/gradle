@@ -17,9 +17,6 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.plugins.DefaultConvention;
-import org.gradle.api.plugins.Convention;
-import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestTask;
 import org.junit.Before;
@@ -46,27 +43,7 @@ public class ConventionAwareHelperTest {
 
     @Before public void setUp() {
         testTask = HelperUtil.createTask(TestTask.class);
-        conventionAware = new ConventionAwareHelper(testTask, new DefaultConvention());
-    }
-
-    @Test public void canMapPropertiesUsingConventionValue() {
-        final List expectedList1 = toList("a");
-        final List expectedList2 = toList("b");
-        assertNotNull(conventionAware.map("list1", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                assertSame(conventionAware.getConvention(), convention);
-                assertSame(testTask, conventionAwareObject);
-                return expectedList1;
-            }
-        }));
-        assertNotNull(conventionAware.map("list2", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return expectedList2;
-            }
-        }));
-
-        assertSame(expectedList1, conventionAware.getConventionValue(null, "list1", false));
-        assertSame(expectedList2, conventionAware.getConventionValue(null, "list2", false));
+        conventionAware = new ConventionAwareHelper(testTask);
     }
 
     @Test
@@ -109,8 +86,8 @@ public class ConventionAwareHelperTest {
 
     @Test public void canOverwriteProperties() {
         final List conventionList1 = toList("a");
-        conventionAware.map("list1", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        conventionAware.map("list1", new Callable<Object>() {
+            public Object call() {
                 return conventionList1;
             }
         });
@@ -120,8 +97,8 @@ public class ConventionAwareHelperTest {
     }
 
     @Test public void canEnableCachingOfPropertyValue() {
-        conventionAware.map("list1", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        conventionAware.map("list1", new Callable<Object>() {
+            public Object call() {
                 return toList("a");
             }
         }).cache();
@@ -129,8 +106,8 @@ public class ConventionAwareHelperTest {
     }
 
     @Test public void notCachesPropertyValuesByDefault() {
-        conventionAware.map("list1", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        conventionAware.map("list1", new Callable<Object>() {
+            public Object call() {
                 return toList("a");
             }
         });
@@ -142,8 +119,8 @@ public class ConventionAwareHelperTest {
     }
 
     @Test public void doesNotUseMappingWhenExplicitValueProvided() {
-        conventionAware.map("list1", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        conventionAware.map("list1", new Callable<Object>() {
+            public Object call() {
                 throw new UnsupportedOperationException();
             }
         });
@@ -153,8 +130,8 @@ public class ConventionAwareHelperTest {
     }
 
     @Test public void usesConventionValueForEmptyCollection() {
-        conventionAware.map("list1", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        conventionAware.map("list1", new Callable<Object>() {
+            public Object call() {
                 return toList("a");
             }
         });
@@ -162,8 +139,8 @@ public class ConventionAwareHelperTest {
     }
 
     @Test public void usesConventionValueForEmptyMap() {
-        conventionAware.map("map1", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        conventionAware.map("map1", new Callable<Object>() {
+            public Object call() {
                 return toMap("a", "b");
             }
         });

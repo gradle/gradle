@@ -38,7 +38,10 @@ public class ModuleDescriptorStore {
 
     public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
         File moduleDescriptorFile = moduleDescriptorFileStore.getModuleDescriptorFile(repository, moduleRevisionId);
-        return parseModuleDescriptorFile(moduleDescriptorFile);
+        if (moduleDescriptorFile.exists()) {
+            return parseModuleDescriptorFile(moduleDescriptorFile);
+        }
+        return null;
     }
 
     private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile)  {
@@ -47,7 +50,7 @@ public class ModuleDescriptorStore {
             URL result = moduleDescriptorFile.toURI().toURL();
             return parser.parseDescriptor(settings, result, false);
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -56,7 +59,7 @@ public class ModuleDescriptorStore {
         try {
             XmlModuleDescriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

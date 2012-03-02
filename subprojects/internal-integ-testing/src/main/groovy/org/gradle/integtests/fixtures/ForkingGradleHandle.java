@@ -18,12 +18,14 @@ package org.gradle.integtests.fixtures;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleState;
 
 import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
 
 class ForkingGradleHandle extends OutputScrapingGradleHandle {
     final private Factory<? extends AbstractExecHandleBuilder> execHandleFactory;
@@ -32,17 +34,27 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     final private ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
 
     private ExecHandle execHandle;
+    private final String outputEncoding;
 
-    public ForkingGradleHandle(Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
+    public ForkingGradleHandle(String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
         this.execHandleFactory = execHandleFactory;
+        this.outputEncoding = outputEncoding;
     }
 
     public String getStandardOutput() {
-        return standardOutput.toString();
+        try {
+            return standardOutput.toString(outputEncoding);
+        } catch (UnsupportedEncodingException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public String getErrorOutput() {
-        return errorOutput.toString();
+        try {
+            return errorOutput.toString(outputEncoding);
+        } catch (UnsupportedEncodingException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public GradleHandle start() {

@@ -63,7 +63,7 @@ public class DelayedReceive<T> implements Stoppable, Receive<T> {
                 }
             }
         } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             lock.unlock();
         }
@@ -132,7 +132,7 @@ public class DelayedReceive<T> implements Stoppable, Receive<T> {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         } finally {

@@ -20,13 +20,13 @@ package org.gradle.launcher.daemon.protocol;
  * <p>
  * The “value” of this result will be an exception that represents the failure. It may not be {@code null}.
  */
-abstract public class Failure extends Result<RuntimeException> {
+abstract public class Failure extends Result<Throwable> {
     
-    public Failure(RuntimeException value) {
+    public Failure(Throwable value) {
         super(assertNotNull(value));
     }
     
-    private static RuntimeException assertNotNull(RuntimeException value) {
+    private static Throwable assertNotNull(Throwable value) {
         if (value == null) {
             throw new IllegalArgumentException("The value parameter of a failure cannot be null");
         }

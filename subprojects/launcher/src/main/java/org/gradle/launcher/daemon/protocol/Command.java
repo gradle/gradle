@@ -18,21 +18,29 @@ package org.gradle.launcher.daemon.protocol;
 import org.gradle.initialization.BuildClientMetaData;
 
 import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Command implements Serializable {
+
+    private static final AtomicInteger SEQUENCER = new AtomicInteger(1);
+
     private final BuildClientMetaData clientMetaData;
-    private final long identifier;
+    private final String identifier;
 
     public Command(BuildClientMetaData clientMetaData) {
         this.clientMetaData = clientMetaData;
-        this.identifier = System.identityHashCode(this);
+        //unique only within the process but this should be enough
+        this.identifier = System.currentTimeMillis() + "-" + SEQUENCER.getAndIncrement();
     }
 
     public BuildClientMetaData getClientMetaData() {
         return clientMetaData;
     }
 
-    public long getIdentifier() {
+    /**
+     * @return an id that is guaranteed to be unique in the same process
+     */
+    public String getIdentifier() {
         return identifier;
     }
 

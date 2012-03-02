@@ -27,7 +27,7 @@ public abstract class AbstractFileAccess implements FileAccess {
                 try {
                     return action.call();
                 } catch (Exception e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         });

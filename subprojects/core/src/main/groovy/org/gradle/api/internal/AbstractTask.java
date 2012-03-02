@@ -21,15 +21,12 @@ import groovy.lang.MissingPropertyException;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
@@ -42,6 +39,7 @@ import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.internal.Factory;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
@@ -50,7 +48,6 @@ import org.gradle.util.DeprecationLogger;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -72,7 +69,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private DefaultTaskDependency dependencies;
 
-    private DynamicObjectHelper dynamicObjectHelper;
+    private ExtensibleDynamicObject extensibleDynamicObject;
 
     private String description;
 
@@ -113,9 +110,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         assert name != null;
         path = project.absoluteProjectPath(name);
         state = new TaskStateInternal(toString());
-        dynamicObjectHelper = new DynamicObjectHelper(this, new DefaultConvention(project.getServices().get(Instantiator.class)));
         dependencies = new DefaultTaskDependency(project.getTasks());
         services = project.getServices().createFor(this);
+        extensibleDynamicObject = new ExtensibleDynamicObject(this, getServices().get(Instantiator.class));
         outputs = services.get(TaskOutputsInternal.class);
         inputs = services.get(TaskInputs.class);
         executer = services.get(TaskExecuter.class);
@@ -296,18 +293,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return buildLogger;
     }
 
-    public Task disableStandardOutputCapture() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Task.disableStandardOutputCapture()");
-        loggingManager.disableStandardOutputCapture();
-        return this;
-    }
-
-    public Task captureStandardOutput(LogLevel level) {
-        DeprecationLogger.nagUserOfReplacedMethod("Task.captureStandardOutput()", "getLogging().captureStandardOutput()");
-        loggingManager.captureStandardOutput(level);
-        return this;
-    }
-
     public LoggingManager getLogging() {
         return loggingManager;
     }
@@ -316,28 +301,25 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return loggingManager;
     }
 
-    public Map<String, Object> getAdditionalProperties() {
-        return dynamicObjectHelper.getAdditionalProperties();
-    }
-
     public DynamicObjectHelper getDynamicObjectHelper() {
-        return dynamicObjectHelper;
+        DeprecationLogger.nagUserOfReplacedMethod("AbstractTask.getDynamicObjectHelper()", "getAsDynamicObject()");
+        return new DynamicObjectHelper(extensibleDynamicObject);
     }
 
     public Object property(String propertyName) throws MissingPropertyException {
-        return dynamicObjectHelper.getProperty(propertyName);
+        return extensibleDynamicObject.getProperty(propertyName);
     }
 
     public boolean hasProperty(String propertyName) {
-        return dynamicObjectHelper.hasProperty(propertyName);
+        return extensibleDynamicObject.hasProperty(propertyName);
     }
 
     public void setProperty(String name, Object value) {
-        dynamicObjectHelper.setProperty(name, value);
+        extensibleDynamicObject.setProperty(name, value);
     }
 
     public Convention getConvention() {
-        return dynamicObjectHelper.getConvention();
+        return extensibleDynamicObject.getConvention();
     }
 
     public ExtensionContainer getExtensions() {
@@ -345,7 +327,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public DynamicObject getAsDynamicObject() {
-        return dynamicObjectHelper;
+        return extensibleDynamicObject;
     }
 
     public String getDescription() {

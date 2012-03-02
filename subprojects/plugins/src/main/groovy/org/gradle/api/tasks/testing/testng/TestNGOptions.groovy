@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.gradle.api.tasks.testing.testng
 
 import groovy.xml.MarkupBuilder
@@ -25,9 +23,8 @@ import org.gradle.api.tasks.testing.TestFrameworkOptions
  * @author Tom Eyckmans
  */
 public class TestNGOptions extends TestFrameworkOptions implements Serializable {
-
-    public static final String JDK_ANNOTATIONS = 'JDK'
-    public static final String JAVADOC_ANNOTATIONS = 'Javadoc'
+    static final String JDK_ANNOTATIONS = 'JDK'
+    static final String JAVADOC_ANNOTATIONS = 'Javadoc'
 
     /**
      * When true, Javadoc annotations are used for these tests. When false, JDK annotations are used. If you use
@@ -38,8 +35,8 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
      */
     boolean javadocAnnotations
 
-    def String getAnnotations() {
-        return javadocAnnotations ? JAVADOC_ANNOTATIONS : JDK_ANNOTATIONS;
+    String getAnnotations() {
+        javadocAnnotations ? JAVADOC_ANNOTATIONS : JDK_ANNOTATIONS
     }
 
     /**
@@ -105,7 +102,7 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
     transient MarkupBuilder suiteXmlBuilder = null
     private File projectDir
 
-    public TestNGOptions(File projectDir) {
+    TestNGOptions(File projectDir) {
         this.projectDir = projectDir
     }
 
@@ -120,14 +117,14 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
     MarkupBuilder suiteXmlBuilder() {
         suiteXmlWriter = new StringWriter()
         suiteXmlBuilder = new MarkupBuilder(suiteXmlWriter)
-        return suiteXmlBuilder
+        suiteXmlBuilder
     }
 
     /**
      * Add suite files by Strings. Each suiteFile String should be a path relative to the project root.
      */
     void suites(String ... suiteFiles) {
-        suiteFiles.each {it ->
+        suiteFiles.each {
             suiteXmlFiles.add(new File(projectDir, it))
         }
     }
@@ -145,16 +142,16 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
         suites.addAll(suiteXmlFiles)
 
         if (suiteXmlBuilder != null) {
-            File buildSuiteXml = new File(testSuitesDir.absolutePath, "build-suite.xml");
+            File buildSuiteXml = new File(testSuitesDir.absolutePath, "build-suite.xml")
 
             if (buildSuiteXml.exists()) {
                 if (!buildSuiteXml.delete()) {
-                    throw new RuntimeException("failed to remove already existing build-suite.xml file");
+                    throw new RuntimeException("failed to remove already existing build-suite.xml file")
                 }
             }
 
-            buildSuiteXml.append('<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">');
-            buildSuiteXml.append(suiteXmlWriter.toString());
+            buildSuiteXml.append('<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">')
+            buildSuiteXml.append(suiteXmlWriter.toString())
 
             suites.add(buildSuiteXml);
         }
@@ -164,37 +161,35 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
 
     TestNGOptions jdkAnnotations() {
         javadocAnnotations = false
-        return this
+        this
     }
 
     TestNGOptions javadocAnnotations() {
         javadocAnnotations = true
-        return this
+        this
     }
 
-    public TestNGOptions includeGroups(String ... includeGroups) {
+    TestNGOptions includeGroups(String ... includeGroups) {
         this.includeGroups.addAll(Arrays.asList(includeGroups))
-        return this
+        this
     }
 
-    public TestNGOptions excludeGroups(String ... excludeGroups) {
+    TestNGOptions excludeGroups(String ... excludeGroups) {
         this.excludeGroups.addAll(Arrays.asList(excludeGroups))
-        return this;
+        this
     }
 
     TestNGOptions useDefaultListeners() {
-        useDefaultListeners = true;
-
-        return this;
+        useDefaultListeners = true
+        this
     }
 
     TestNGOptions useDefaultListeners(boolean useDefaultListeners) {
-        this.useDefaultListeners = useDefaultListeners;
-
-        return this;
+        this.useDefaultListeners = useDefaultListeners
+        this
     }
 
-    public def propertyMissing(String name) {
+    Object propertyMissing(String name) {
         if (suiteXmlBuilder != null) {
             return suiteXmlBuilder.getMetaClass()."${name}"
         } else {
@@ -202,9 +197,9 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
         }
     }
 
-    public def methodMissing(String name, args) {
+    Object methodMissing(String name, Object args) {
         if (suiteXmlBuilder != null) {
-            return suiteXmlBuilder.getMetaClass().invokeMethod(suiteXmlBuilder, name, args);
+            return suiteXmlBuilder.getMetaClass().invokeMethod(suiteXmlBuilder, name, args)
         } else {
             return super.methodMissing(name, args)
         }

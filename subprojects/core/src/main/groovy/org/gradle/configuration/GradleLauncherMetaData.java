@@ -32,7 +32,7 @@ public class GradleLauncherMetaData implements Serializable, BuildClientMetaData
                 output.append(arg);
             }
         } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

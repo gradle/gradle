@@ -217,7 +217,7 @@ public class DefaultPomDependenciesConverterTest {
         final Exclusion mavenExclude = new Exclusion();
         mavenExclude.setGroupId("a");
         mavenExclude.setArtifactId("b");
-        dependency1.exclude(toMap("key", "value"));
+        dependency1.exclude(toMap(ExcludeRule.GROUP_KEY, "value"));
         context.checking(new Expectations() {{
            allowing(conf2ScopeMappingContainerMock).getMapping(toSet(someConfigurationStub)); will(returnValue(createMapping(compileConfStub, "compile")));
            allowing(excludeRuleConverterMock).convert(dependency1.getExcludeRules().iterator().next()); will(returnValue(mavenExclude));
@@ -234,7 +234,7 @@ public class DefaultPomDependenciesConverterTest {
     @Test
     public void convertWithConvertableConfigurationExcludes() {
         final Configuration someConfigurationStub = createNamedConfigurationStubWithDependencies("someConfiguration", 
-                WrapUtil.<ExcludeRule>toSet(new DefaultExcludeRule(toMap("key", "value"))), dependency1);
+                WrapUtil.<ExcludeRule>toSet(new DefaultExcludeRule("value", null)), dependency1);
         final Exclusion mavenExclude = new Exclusion();
         mavenExclude.setGroupId("a");
         mavenExclude.setArtifactId("b");

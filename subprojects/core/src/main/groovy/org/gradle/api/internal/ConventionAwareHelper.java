@@ -21,12 +21,10 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.tasks.ConventionValue;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.ReflectionUtil;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -34,13 +32,15 @@ import java.util.concurrent.Callable;
 /**
  * @author Hans Dockter
  */
-public class ConventionAwareHelper implements ConventionMapping {
+public class ConventionAwareHelper implements ConventionMapping, HasConvention {
+
     private Convention convention;
-
     private IConventionAware source;
+    private Map<String, MappedPropertyImpl> mappings = new HashMap<String, MappedPropertyImpl>();
 
-    private Map<String, ConventionValue> conventionMapping = new HashMap<String, ConventionValue>();
-
+    /**
+     * @see org.gradle.api.internal.AsmBackedClassGenerator.ClassBuilderImpl#mixInConventionAware()
+     */
     public ConventionAwareHelper(IConventionAware source) {
         this.source = source;
         this.convention = new DefaultConvention();
@@ -51,14 +51,23 @@ public class ConventionAwareHelper implements ConventionMapping {
         this.convention = convention;
     }
 
-    public MappedProperty map(String propertyName, ConventionValue value) {
-        MappedPropertyImpl property = new MappedPropertyImpl(value);
-        map(Collections.singletonMap(propertyName, property));
-        return property;
+    private static interface Value<T> {
+        T getValue(Convention convention, IConventionAware conventionAwareObject);
+    }
+
+    private MappedProperty map(String propertyName, Value<?> value) {
+        if (!ReflectionUtil.hasProperty(source, propertyName)) {
+            throw new InvalidUserDataException(
+                    "You can't map a property that does not exist: propertyName=" + propertyName);
+        }
+
+        MappedPropertyImpl mappedProperty = new MappedPropertyImpl(value);
+        mappings.put(propertyName, mappedProperty);
+        return mappedProperty;
     }
 
     public MappedProperty map(String propertyName, final Closure<?> value) {
-        return map(propertyName, new ConventionValue() {
+        return map(propertyName, new Value<Object>() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 switch (value.getMaximumNumberOfParameters()) {
                     case 0:
@@ -73,37 +82,20 @@ public class ConventionAwareHelper implements ConventionMapping {
     }
 
     public MappedProperty map(String propertyName, final Callable<?> value) {
-        return map(propertyName, new ConventionValue() {
+        return map(propertyName, new Value<Object>() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 try {
                     return value.call();
                 } catch (Exception e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         });
     }
 
-    public ConventionMapping map(Map<String, ? extends ConventionValue> mapping) {
-        for (Map.Entry<String, ? extends ConventionValue> entry : mapping.entrySet()) {
-            String propertyName = entry.getKey();
-            if (!ReflectionUtil.hasProperty(source, propertyName)) {
-                throw new InvalidUserDataException(
-                        "You can't map a property that does not exist: propertyName=" + propertyName);
-            }
-            if (entry.getValue() == null) {
-                throw new IllegalArgumentException("No convention value provided: propertyName= " + propertyName);
-            }
-        }
-        this.conventionMapping.putAll(mapping);
-        return this;
-    }
-
     public void propertyMissing(String name, Object value) {
         if (value instanceof Closure) {
             map(name, (Closure) value);
-        } else if (value instanceof ConventionValue) {
-            map(name, (ConventionValue) value);
         } else {
             throw new MissingPropertyException(name, getClass());
         }
@@ -115,7 +107,7 @@ public class ConventionAwareHelper implements ConventionMapping {
         }
 
         Object returnValue = actualValue;
-        if (conventionMapping.keySet().contains(propertyName)) {
+        if (mappings.containsKey(propertyName)) {
             boolean useMapping = true;
             if (actualValue instanceof Collection && !((Collection<?>) actualValue).isEmpty()) {
                 useMapping = false;
@@ -123,7 +115,7 @@ public class ConventionAwareHelper implements ConventionMapping {
                 useMapping = false;
             }
             if (useMapping) {
-                returnValue = conventionMapping.get(propertyName).getValue(convention, source);
+                returnValue = mappings.get(propertyName).getValue(convention, source);
             }
         }
         return (T) returnValue;
@@ -131,10 +123,6 @@ public class ConventionAwareHelper implements ConventionMapping {
 
     public Convention getConvention() {
         return convention;
-    }
-
-    public void setConvention(Convention convention) {
-        this.convention = convention;
     }
 
     public IConventionAware getSource() {
@@ -145,21 +133,13 @@ public class ConventionAwareHelper implements ConventionMapping {
         this.source = source;
     }
 
-    public Map getConventionMapping() {
-        return conventionMapping;
-    }
-
-    public void setConventionMapping(Map conventionMapping) {
-        this.conventionMapping = conventionMapping;
-    }
-
-    private static class MappedPropertyImpl implements MappedProperty, ConventionValue {
-        private final ConventionValue value;
+    private static class MappedPropertyImpl implements MappedProperty {
+        private final Value<?> value;
         private boolean haveValue;
         private boolean cache;
         private Object cachedValue;
 
-        private MappedPropertyImpl(ConventionValue value) {
+        private MappedPropertyImpl(Value<?> value) {
             this.value = value;
         }
 

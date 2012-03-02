@@ -79,13 +79,6 @@ public interface GradleExecuter {
     GradleExecuter usingBuildScript(File buildScript);
 
     /**
-     * Uses the given build script
-     *
-     * @param scriptText The script text.
-     */
-    GradleExecuter usingBuildScript(String scriptText);
-
-    /**
      * Sets the user home dir. Set to null to use the default user home dir.
      */
     GradleExecuter withUserHomeDir(File userHomeDir);
@@ -137,4 +130,22 @@ public interface GradleExecuter {
      * @return the handle, never null.
      */
     GradleHandle start();
+
+    /**
+     * Only makes sense for the forking executor or foreground daemon.
+     *
+     * @param gradleOpts the jvm opts
+     *
+     * @return this executer
+     */
+    GradleExecuter withGradleOpts(String ... gradleOpts);
+
+    /**
+     * Sets the default character encoding to use.
+     *
+     * Only makes sense for forking executers.
+     *
+     * @return this executer
+     */
+    GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding);
 }

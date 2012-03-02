@@ -15,9 +15,8 @@
  */
 package org.gradle.initialization.layout
 
-import spock.lang.Specification
 import org.gradle.StartParameter
-import org.gradle.groovy.scripts.UriScriptSource
+import spock.lang.Specification
 
 class BuildLayoutConfigurationTest extends Specification {
     def "uses specified settings script"() {
@@ -27,8 +26,7 @@ class BuildLayoutConfigurationTest extends Specification {
         def config = new BuildLayoutConfiguration(startParameter)
 
         expect:
-        config.settingsScript instanceof UriScriptSource
-        config.settingsScript.resource.sourceFile == settingsFile.canonicalFile
+        config.settingsFile == settingsFile.canonicalFile
     }
 
     def "uses default settings file when none specified"() {
@@ -36,6 +34,6 @@ class BuildLayoutConfigurationTest extends Specification {
         def config = new BuildLayoutConfiguration(startParameter)
 
         expect:
-        config.settingsScript == null
+        config.settingsFile == null
     }
 }

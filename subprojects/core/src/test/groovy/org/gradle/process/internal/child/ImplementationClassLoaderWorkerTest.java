@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.ObservableUrlClassLoader;
+import org.gradle.util.MutableURLClassLoader;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -39,7 +39,7 @@ public class ImplementationClassLoaderWorkerTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ClassLoader applicationClassLoader = getClass().getClassLoader();
     private final LoggingManagerInternal loggingManager = context.mock(LoggingManagerInternal.class);
-    private final ObservableUrlClassLoader implementationClassLoader = new ObservableUrlClassLoader(applicationClassLoader);
+    private final MutableURLClassLoader implementationClassLoader = new MutableURLClassLoader(applicationClassLoader);
     private final WorkerContext workerContext = context.mock(WorkerContext.class);
     private final SerializableMockHelper helper = new SerializableMockHelper();
 
@@ -76,7 +76,7 @@ public class ImplementationClassLoaderWorkerTest {
         }
 
         @Override
-        protected ObservableUrlClassLoader createImplementationClassLoader(ClassLoader system,
+        protected MutableURLClassLoader createImplementationClassLoader(ClassLoader system,
                                                                            ClassLoader application) {
             return implementationClassLoader;
         }

@@ -49,14 +49,8 @@ class ForkOptions extends AbstractOptions {
     /**
      * Any additional JVM arguments for the compiler process.
      */
-    List jvmArgs = []
+    List<String> jvmArgs = []
 
-    /**
-     * Whether to use the Gradle compiler daemon or simply forking a new process
-     * for each Compile task. Defaults to <tt>false</tt>.
-     */
-    boolean useCompilerDaemon = false
-    
     Map fieldName2AntMap() {
         [tempDir: 'tempdir']
     }

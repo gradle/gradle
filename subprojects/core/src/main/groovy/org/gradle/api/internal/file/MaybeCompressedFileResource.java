@@ -36,9 +36,9 @@ public class MaybeCompressedFileResource implements ReadableResource {
     public MaybeCompressedFileResource(ReadableResource resource) {
         String ext = FilenameUtils.getExtension(resource.getURI().toString());
 
-        if (Compression.BZIP2.getExtension().equals(ext)) {
+        if (Compression.BZIP2.getSupportedExtensions().contains(ext)) {
             this.resource = new Bzip2Archiver(resource);
-        } else if (Compression.GZIP.getExtension().equals(ext)) {
+        } else if (Compression.GZIP.getSupportedExtensions().contains(ext)) {
             this.resource = new GzipArchiver(resource);
         } else {
             this.resource = resource;

@@ -6,7 +6,6 @@ dependencies {
 }
 
 useTestFixtures()
-useTestFixtures(sourceSet: 'integTest', project: ':native')
 
 integTestTasks.all {
     jvmArgs '-XX:MaxPermSize=256m'

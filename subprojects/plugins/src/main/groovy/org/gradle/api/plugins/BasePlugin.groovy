@@ -17,19 +17,19 @@
 
 package org.gradle.api.plugins
 
+import org.apache.commons.lang.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Rule
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.Dependency
-import org.apache.commons.lang.StringUtils
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 
 /**
  * <p>A  {@link org.gradle.api.Plugin}  which defines a basic project lifecycle and some common convention properties.</p>
@@ -174,8 +174,7 @@ class BasePlugin implements Plugin<Project> {
         configurations.add(Dependency.DEFAULT_CONFIGURATION).
                 setDescription("Configuration for default artifacts.");
 
-        def defaultArtifacts = new DefaultArtifactPublicationSet(archivesConfiguration.artifacts)
-        project.extensions.defaultArtifacts = defaultArtifacts
+        def defaultArtifacts = project.extensions.create("defaultArtifacts", DefaultArtifactPublicationSet, archivesConfiguration.artifacts)
 
         configurations.all {
             artifacts.all { artifact ->

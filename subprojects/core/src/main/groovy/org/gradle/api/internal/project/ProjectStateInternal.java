@@ -54,7 +54,7 @@ public class ProjectStateInternal implements ProjectState {
         if (failure == null) {
             return;
         }
-        throw UncheckedException.asUncheckedException(failure);
+        throw UncheckedException.throwAsUncheckedException(failure);
     }
     
     public String toString() {

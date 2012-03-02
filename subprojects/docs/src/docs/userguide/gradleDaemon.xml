@@ -45,8 +45,7 @@
         <para>
             In general, snappy behavior of the build tool is always handy.
             If you try using the daemon for your local builds it's going to be hard
-            for you to go back to regular use of Gradle. At the moment, we marked the
-            Gradle build daemon as experimental because there are still many aspects of the daemon we'd like to improve.
+            for you to go back to regular use of Gradle.
         </para>
         <para>
             The Tooling API (see <xref linkend="embedding"/>)
@@ -65,7 +64,7 @@
                 <listitem>Utilize a pool of reusable processes available for compilation and testing.
                     For example, both the Groovy and Scala compilers have a large startup cost.
                     The build daemon could maintain a process with Groovy and/or Scala already loaded.</listitem>
-                <listitem>Preemtive execution of certain tasks, for example compilation. Quicker feedback.</listitem>
+                <listitem>Preemptive execution of certain tasks, for example compilation. Quicker feedback.</listitem>
                 <listitem>Fast and accurate bash tab completion.</listitem>
                 <listitem>Periodically garbage collect the Gradle caches.</listitem>
             </itemizedlist>
@@ -82,10 +81,10 @@
             <itemizedlist>
                 <listitem>If the daemon process is currently busy running some job, a brand new daemon process will be started.</listitem>
                 <listitem>We fork a separate daemon process per java home. So even if there is some idle daemon waiting
-                    for build requests but you happen to run build with a different java home then a brand new deamon will be forked.</listitem>
+                    for build requests but you happen to run build with a different java home then a brand new daemon will be forked.</listitem>
                 <listitem>At the moment daemon is coupled with particular version of gradle.
                     This means that even if some daemon is idle but you are running the build
-                    with a different version of Gradle, a new deamon will be started.
+                    with a different version of Gradle, a new daemon will be started.
                     This also have a consequence for the <literal>--stop</literal> command line instruction:
                     You can only stop daemons that were started with the gradle version you use when running <literal>--stop</literal>.
                 </listitem>

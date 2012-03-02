@@ -19,6 +19,8 @@ package org.gradle.initialization;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,9 +67,15 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         } else {
             LOGGER.debug("project property file does not exists. We continue!");
         }
+        
         Map<String, String> mergedProperties = propertiesLoader.mergeProperties(new HashMap(projectProperties));
-        for (Object key : mergedProperties.keySet()) {
-            project.setProperty((String) key, mergedProperties.get(key));
+        ExtraPropertiesExtension extraProperties = new DslObject(project).getExtensions().getExtraProperties();
+        for (Map.Entry<String, String> entry: mergedProperties.entrySet()) {
+            if (project.hasProperty(entry.getKey())) {
+                project.setProperty(entry.getKey(), entry.getValue());    
+            } else {
+                extraProperties.set(entry.getKey(), entry.getValue());
+            }
         }
     }
 }

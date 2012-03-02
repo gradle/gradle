@@ -28,7 +28,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
@@ -68,7 +67,8 @@ import java.util.Set;
  *
  * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
  * present, against the project. The project are evaluated in breadth-wise order, such that a project is evaluated
- * before its child projects. This order can be overridden by adding an evaluation dependency.</li>
+ * before its child projects. This order can be overridden by calling <code>{@link #evaluationDependsOnChildren()}</code> or by adding an
+ * explicit evaluation dependency using <code>{@link #evaluationDependsOn(String)}</code>.</li>
  *
  * </ul>
  *
@@ -226,24 +226,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     void setBuildDir(Object path);
 
     /**
-     * <p>Returns the name of the build directory of this project. It is resolved relative to the project directory of
-     * this project to determine the build directory. The default value is {@value #DEFAULT_BUILD_DIR_NAME}.</p>
-     *
-     * @return The build dir name. Never returns null.
-     */
-    @Deprecated
-    String getBuildDirName();
-
-    /**
-     * <p>Sets the build directory name of this project.</p>
-     *
-     * @param buildDirName The build dir name. Should not be null.
-     * @deprecated Use {@link #setBuildDir(Object)} instead.
-     */
-    @Deprecated
-    void setBuildDirName(String buildDirName);
-
-    /**
      * <p>Returns the build file Gradle will evaluate against this project object. The default is <code> {@value
      * #DEFAULT_BUILD_FILE}</code>. If an embedded script is provided the build file will be null. </p>
      *
@@ -391,28 +373,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     Set<Project> getSubprojects();
 
     /**
-     * <p>Applies a {@link Plugin} to this project.</p>
-     *
-     * @param pluginId The id of the plugin.
-     * @return This project.
-     * @deprecated You should use the {@link #apply(java.util.Map)} or {@link #apply(groovy.lang.Closure)} method
-     *             instead.
-     */
-    @Deprecated
-    Project usePlugin(String pluginId);
-
-    /**
-     * <p>Applies a {@link Plugin} to this project.</p>
-     *
-     * @param pluginClass The class of the plugin.  This class must implement the {@link Plugin} interface.
-     * @return This project.
-     * @deprecated You should use the {@link #apply(java.util.Map)} or {@link #apply(groovy.lang.Closure)} method
-     *             instead.
-     */
-    @Deprecated
-    Project usePlugin(Class<? extends Plugin> pluginClass);
-
-    /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Calling this method is equivalent to
      * calling {@link #task(java.util.Map, String)} with an empty options map.</p>
      *
@@ -502,139 +462,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     Task task(String name, Closure configureClosure);
 
     /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Calling this method is equivalent to
-     * calling {@link #createTask(java.util.Map, String)} with an empty options map.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
-     *
-     * @param name The name of the task to be created
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(String)} instead.
-     */
-    @Deprecated
-    Task createTask(String name) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action is passed to the task's {@link Task#doFirst(Action)} method. Calling this method is equivalent to calling
-     * {@link #createTask(java.util.Map, String, Action)} with an empty options map.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
-     *
-     * @param name The name of the task to be created
-     * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(String name, Action<? super Task> action) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. A map of creation options can be
-     * passed to this method to control how the task is created. The following options are available:</p>
-     *
-     * <table>
-     *
-     * <tr><th>Option</th><th>Description</th><th>Default Value</th></tr>
-     *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_TYPE}</code></td><td>The class of the task to
-     * create.</td><td>{@link org.gradle.api.DefaultTask}</td></tr>
-     *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code></td><td>Replace an existing
-     * task?</td><td><code>false</code></td></tr>
-     *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_DEPENDS_ON}</code></td><td>A task name or set of task names which
-     * this task depends on</td><td><code>[]</code></td></tr>
-     *
-     * </table>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
-     * to true, an exception is thrown.</p>
-     *
-     * @param args The task creation options.
-     * @param name The name of the task to be created
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(Map<String, ?> args, String name) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action is passed to the task's {@link Task#doFirst(Action)} method. A map of creation options can be passed to
-     * this method to control how the task is created. See {@link #createTask(java.util.Map, String)} for the available
-     * options.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
-     * to true, an exception is thrown.</p>
-     *
-     * @param args The task creation options.
-     * @param name The name of the task to be created
-     * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(Map<String, ?> args, String name, Action<? super Task> action) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action closure is passed to the task's {@link Task#doFirst(Closure)} method. Calling this method is equivalent to
-     * calling {@link #createTask(java.util.Map, String, Closure)} with an empty options map.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
-     *
-     * @param name The name of the task to be created
-     * @param action The closure to be passed to the {@link Task#doFirst(Closure)} method of the created task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(String name, Closure action);
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action closure is passed to the task's {@link Task#doFirst(Closure)} method. A map of creation options can be
-     * passed to this method to control how the task is created. See {@link #createTask(java.util.Map, String)} for the
-     * available options.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
-     * to true, an exception is thrown.</p>
-     *
-     * @param args The task creation options.
-     * @param name The name of the task to be created
-     * @param action The closure to be passed to the {@link Task#doFirst(Closure)} method of the created task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
-     */
-    @Deprecated
-    Task createTask(Map<String, ?> args, String name, Closure action);
-
-    /**
      * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
      *
      * @return The path. Never returns null.
@@ -671,6 +498,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @param path The path of the project which this project depends on.
      * @throws UnknownProjectException If no project with the given path exists.
      */
+    @Deprecated
     void dependsOn(String path) throws UnknownProjectException;
 
     /**
@@ -680,6 +508,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @param evaluateDependsOnProject If true, adds an evaluation dependency.
      * @throws UnknownProjectException If no project with the given path exists.
      */
+    @Deprecated
     void dependsOn(String path, boolean evaluateDependsOnProject) throws UnknownProjectException;
 
     /**
@@ -692,10 +521,17 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     Project evaluationDependsOn(String path) throws UnknownProjectException;
 
     /**
+     * <p>Declares that this project has an evaluation dependency on each of its child projects.</p>
+     *
+     */
+    void evaluationDependsOnChildren();
+
+    /**
      * <p>Declares that all child projects of this project have an execution dependency on this project.</p>
      *
      * @return this project.
      */
+    @Deprecated
     Project childrenDependOnMe();
 
     /**
@@ -703,6 +539,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      *
      * @return this project.
      */
+    @Deprecated
     Project dependsOnChildren();
 
     /**
@@ -711,6 +548,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @param evaluateDependsOnProject If true, adds an evaluation dependency.
      * @return this project.
      */
+    @Deprecated
     Project dependsOnChildren(boolean evaluateDependsOnProject);
 
     /**
@@ -852,8 +690,10 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * <li>An Object. Its {@code toString()} value is treated the same way as a String, as for {@link
      * #file(Object)}.</li> </ul>
      *
-     * <li>A {@link Task}. Converted to the task's output files.</li>
+     * <li>A {@link org.gradle.api.tasks.TaskOutputs}. Converted to the output files the related task.</li>
      *
+     * <li>A Closure. May return any of the types listed here. The return value of the closure is recursively converted
+     * to files. A {@code null} return value is treated as an empty collection.</li>
      * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
      * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
      * of the collection is queried.</p>
@@ -1047,16 +887,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @return the result of the execution
      */
     ExecResult exec(Closure closure);
-
-    /**
-     * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
-     *
-     * @param path The path to convert.
-     * @return The absolute path.
-     * @deprecated Use {@link #absoluteProjectPath(String)} instead.
-     */
-    @Deprecated
-    String absolutePath(String path);
 
     /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
@@ -1369,30 +1199,6 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @return the LoggingManager. Never returns null.
      */
     LoggingManager getLogging();
-
-    /**
-     * Disables redirection of standard output during project evaluation. By default redirection is enabled.
-     *
-     * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
-     */
-    @Deprecated
-    void disableStandardOutputCapture();
-
-    /**
-     * <p>Starts redirection of standard output during to the logging system during project evaluation. By default
-     * redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected to the
-     * ERROR level. Redirection of output at execution time can be configured via the tasks.</p>
-     *
-     * <p>In a multi-project this is a per-project setting.</p>
-     *
-     * @param level The level standard out should be logged to.
-     * @see #disableStandardOutputCapture()
-     * @see Task#captureStandardOutput(org.gradle.api.logging.LogLevel)
-     * @see org.gradle.api.Task#disableStandardOutputCapture()
-     * @deprecated Use the {@link org.gradle.api.logging.LoggingManager} returned by {@link #getLogging()} instead
-     */
-    @Deprecated
-    void captureStandardOutput(LogLevel level);
 
     /**
      * <p>Configures an object via a closure, with the closure's delegate set to the supplied object. This way you don't

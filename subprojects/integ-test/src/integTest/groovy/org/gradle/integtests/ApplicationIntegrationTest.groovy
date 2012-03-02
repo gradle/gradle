@@ -17,18 +17,18 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.GradleExecuter
 import org.gradle.integtests.fixtures.ScriptExecuter
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.TestFile
 import org.junit.Rule
+
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.*
-import org.gradle.internal.nativeplatform.OperatingSystem
 
 class ApplicationIntegrationTest extends Specification {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleExecuter executer = new GradleDistributionExecuter()
+    @Rule GradleDistribution distribution = new GradleDistribution()
+    @Rule GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     def canUseEnvironmentVariableToPassMultipleOptionsToJvmWhenRunningScript() {
         distribution.testFile('build.gradle') << '''

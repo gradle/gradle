@@ -29,22 +29,6 @@
             <sourcefile file="build.gradle"/>
             <output args="-q compile"/>
         </sample>
-        <para>But Gradle offers you also <emphasis>Directory Tasks</emphasis> to deal with this.</para>
-        <sample id="directoryTask" dir="userguide/tutorial/directoryTask" title="Directory creation with Directory tasks">
-            <sourcefile file="build.gradle"/>
-            <output args="-q otherResources"/>
-        </sample>
-        <para>A <emphasis>Directory Task</emphasis>
-            is a simple task whose name is a relative path to the project dir
-            <footnote>
-                <para>The notation <literal>dir('/somepath')</literal> is a convenience method for
-                    <literal>tasks.add('somepath', type: Directory)</literal>
-                </para>
-            </footnote>
-            . During the execution phase the directory corresponding to this path gets created if it does not exist yet.
-            Another interesting thing to note in this example, is that you can also pass tasks objects to the dependsOn
-            declaration of a task.
-        </para>
     </section>
     <section id='sec:gradle_properties_and_system_properties'>
         <title>Gradle properties and system properties</title>
@@ -105,7 +89,7 @@
 
     <section id="sec:gradle_configuration_properties">
         <title>Configuring gradle via gradle.properties</title>
-        <para>The idea is that certain settings like jvm memory settings, java home, deamon on/off
+        <para>The idea is that certain settings like jvm memory settings, java home, daemon on/off
             are best useful if they can versioned with the project in your VCS so that
             the entire team can work with consistent environment.
             You can place those settings in the <filename>gradle.properties</filename>.

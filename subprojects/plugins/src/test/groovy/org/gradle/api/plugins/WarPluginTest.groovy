@@ -24,8 +24,8 @@ import org.gradle.api.tasks.bundling.War
 import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test
-import static org.gradle.util.Matchers.*
-import static org.gradle.util.WrapUtil.*
+import static org.gradle.util.Matchers.dependsOn
+import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -120,7 +120,7 @@ class WarPluginTest {
     @Test public void appliesMappingsToArchiveTasks() {
         warPlugin.apply(project)
 
-        def task = project.createTask('customWar', type: War)
+        def task = project.task('customWar', type: War)
         assertThat(task, dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME)))
         assertThat(task.destinationDir, equalTo(project.libsDir))
     }

@@ -16,9 +16,11 @@
 package org.gradle.util;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.util.internal.LimitedDescription;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -291,6 +293,40 @@ public class GFileUtils {
         }
     }
 
+    public static class TailReadingException extends RuntimeException {
+        public TailReadingException(Throwable throwable) {
+            super(throwable);
+        }
+    }
+
+    /**
+     * @param file to read from tail
+     * @param maxLines max lines to read
+     * @return tail content
+     * @throws org.gradle.util.GFileUtils.TailReadingException when reading failed
+     */
+    public static String tail(File file, int maxLines) throws TailReadingException {
+        BufferedReader reader = null;
+        FileReader fileReader = null;
+        try {
+            fileReader = new FileReader(file);
+            reader = new BufferedReader(fileReader);
+
+            LimitedDescription description = new LimitedDescription(maxLines);
+            String line = reader.readLine();
+            while (line != null) {
+                description.append(line);
+                line = reader.readLine();
+            }
+            return description.toString();
+        } catch (Exception e) {
+            throw new TailReadingException(e);
+        } finally {
+            IOUtils.closeQuietly(fileReader);
+            IOUtils.closeQuietly(reader);
+        }
+    }
+
     public static LineIterator lineIterator(File file, String encoding) {
         try {
             return FileUtils.lineIterator(file, encoding);
@@ -534,6 +570,16 @@ public class GFileUtils {
             return directoriesCreated;
         } else {
             return true;
+        }
+    }
+
+    /**
+     * Creates a directory and any unexisting parent directories. Throws an
+     * UncheckedIOException if it fails to do so.
+     */
+    public static void createDirectory(File directory) {
+        if (!directory.exists() && !directory.mkdirs()) {
+            throw new UncheckedIOException("Failed to create directory " + directory);
         }
     }
 }

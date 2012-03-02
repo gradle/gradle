@@ -107,7 +107,7 @@ public class ProtocolStack<T> implements AsyncStoppable {
         try {
             protocolsStopped.await();
         } catch (InterruptedException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         callbackQueue.clear();
         new CompositeStoppable(callbackQueue, receiver, workQueue, incomingQueue, outgoingQueue).stop();

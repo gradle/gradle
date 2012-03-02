@@ -5,7 +5,7 @@ greeting.message = 'Hi from Gradle'
 class GreetingPlugin implements Plugin<Project> {
     void apply(Project project) {
         // Add the 'greeting' extension object
-        project.extensions.greeting = new GreetingPluginExtension()
+        project.extensions.create("greeting", GreetingPluginExtension)
         // Add a task that uses the configuration
         project.task('hello') << {
             println project.greeting.message

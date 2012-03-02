@@ -63,7 +63,6 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
                 dependencyMetaDataProvider, new DefaultResolutionStrategy());
     }
 
-    // Override deprecated version from DomainObjectCollection (through AbstractNamedDomainObjectContainer)
     public Set<Configuration> getAll() {
         return this;
     }

@@ -17,6 +17,7 @@
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.AssembleSamplesDocTask
+import org.gradle.build.docs.Docbook2Xhtml
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.ExtractDslMetaDataTask
 import org.gradle.build.GenerateReleasesXml
@@ -67,13 +68,11 @@ tasks.withType(Docbook2Xhtml) {
     stylesheetsDir = userguideStyleSheets.destinationDir
 }
 tasks.withType(UserGuideTransformTask) {
-    classpath = configurations.userGuideTask
     dependsOn samples, dslDocbook
     snippetsDir = samples.snippetsDir
     linksFile = dslDocbook.linksFile
 }
 tasks.withType(AssembleDslDocTask) {
-    classpath = configurations.userGuideTask
     classDocbookDir = dslSrcDir
 }
 
@@ -163,7 +162,7 @@ task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samples
 }
 
 // This is used for the PDF, where we need absolute links to the javadoc etc.
-task pdfUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
+task pdfUserguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
     javadocUrl = project.version.javadocUrl
     groovydocUrl = project.version.groovydocUrl
@@ -202,7 +201,7 @@ task userguideSingleHtml(type: Docbook2Xhtml) {
     }
 }
 
-task userguideXhtml(type: Docbook2Xhtml) {
+task pdfUserguideXhtml(type: Docbook2Xhtml) {
     source pdfUserguideDocbook
     destFile = new File(buildDir, 'tmp/userguidePdf/userguidePdf.html')
     stylesheetName = 'userGuidePdf.xsl'
@@ -214,9 +213,9 @@ task userguideXhtml(type: Docbook2Xhtml) {
     }
 }
 
-task userguidePdf(type: Xhtml2Pdf, dependsOn: userguideXhtml) {
+task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
     inputs.dir cssSrcDir
-    sourceFile = userguideXhtml.destFile
+    sourceFile = pdfUserguideXhtml.destFile
     destFile = new File(userguideDir, 'userguide.pdf')
     classpath = configurations.userGuideTask
 }
@@ -225,8 +224,14 @@ def javaApiUrl = "http://docs.oracle.com/javase/1.5.0/docs/api/"
 def groovyApiUrl = "http://groovy.codehaus.org/gapi/"
 
 task javadoc(type: Javadoc) {
+    stylesheetFile = file("src/docs/css/javadoc.css")
+    inputs.file stylesheetFile
+
     group = 'documentation'
     options.encoding = 'utf-8'
+    options.docEncoding = 'utf-8'
+    options.charSet = 'utf-8'
+    options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source groovyProjects().collect {project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
     classpath = files(groovyProjects().collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
@@ -245,8 +250,21 @@ task javadoc(type: Javadoc) {
     }
 }
 
+task configureGroovyDoc {
+    doFirst {
+        project.configure(groovydoc) {
+            [javaApiUrl, groovyApiUrl].each {
+                link(it, *(new URL("$it/package-list").text.tokenize("\n")))
+            }
+            docTitle = "Gradle API $version"
+            windowTitle = "Gradle API $version"
+            footer = "Gradle API $version"
+        }
+    }
+}
+
 //TODO SF - generates for java as well, rename to codedoc?
-task groovydoc(type: Groovydoc) {
+task groovydoc(type: Groovydoc, dependsOn: configureGroovyDoc) {
     group = 'documentation'
     source groovyProjects().collect {project -> project.sourceSets.main.groovy + project.sourceSets.main.java }
     destinationDir = new File(docsDir, 'groovydoc')
@@ -257,16 +275,6 @@ task groovydoc(type: Groovydoc) {
         title = "Gradle API $version"
     }
     groovyClasspath = project(':core').configurations.groovy
-    doFirst {
-        [javaApiUrl, groovyApiUrl].each {
-            link(it, *(new URL("$it/package-list").text.tokenize("\n")))
-        }
-
-        docTitle = "Gradle API $version"
-        windowTitle = "Gradle API $version"
-        footer = "Gradle API $version"
-    }
-    
     doLast {
         def index = new File(destinationDir, "index.html")
         index.text = index.text.replace("{todo.title}", windowTitle) // workaround groovydoc bug
@@ -276,7 +284,11 @@ task groovydoc(type: Groovydoc) {
         if (it.hasTask(groovydoc)) {
             def systemCharset = java.nio.charset.Charset.defaultCharset().name()
             if (systemCharset != "UTF-8") {
-                throw new InvalidUserDataException("Cannot run $groovydoc.name task unless system charset is UTF-8 (it's $systemCharset, set -Dfile.encoding=UTF-8) in GRADLE_OPTS")
+                if (isReleaseBuild()) {
+                    throw new InvalidUserDataException("Cannot run $groovydoc.name task unless system charset is UTF-8 (it's $systemCharset, set -Dfile.encoding=UTF-8) in GRADLE_OPTS")
+                } else {
+                    logger.warn("Groovydoc will be generated in this build, but the default character encoding is '$systemCharset'. It should be 'UTF-8'. This is ok for a non release build.")
+                }
             }
         }
     }
@@ -321,72 +333,6 @@ task docsZip(type: Zip) {
     from project.outputs.docs
 }
 
-
-class Docbook2Xhtml extends SourceTask {
-    @InputFiles
-    FileCollection classpath
-
-    @OutputFile @Optional
-    File destFile
-
-    @OutputDirectory @Optional
-    File destDir
-
-    @InputDirectory
-    File stylesheetsDir
-
-    String stylesheetName
-
-    @InputFiles @Optional
-    FileCollection resources
-
-    @TaskAction
-    def transform() {
-        if (!((destFile != null) ^ (destDir != null))) {
-            throw new InvalidUserDataException("Must specify exactly 1 of output file or dir.")
-        }
-
-        source.visit { FileVisitDetails fvd ->
-            if (fvd.isDirectory()) {
-                return
-            }
-
-            ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
-                jvmarg(value: '-Xmx256m')
-                arg(value: '-in')
-                arg(value: fvd.file)
-                if (destFile) {
-                    arg(value: '-out')
-                    arg(value: destFile)
-                } else {
-                    arg(value: '-out')
-                    File outFile = fvd.relativePath.replaceLastName(fvd.file.name.replaceAll('.xml$', '.html')).getFile(destDir)
-                    outFile.parentFile.mkdirs()
-                    arg(value: outFile)
-                }
-                arg(value: '-xsl')
-                arg(value: new File(stylesheetsDir, stylesheetName))
-                if (destDir) {
-                    arg(line: "-param base.dir ${destDir}/")
-                }
-                sysproperty(key: 'xslthl.config', value: new File("$stylesheetsDir/highlighting/xslthl-config.xml").toURI())
-                sysproperty(key: 'org.apache.xerces.xni.parser.XMLParserConfiguration', value: 'org.apache.xerces.parsers.XIncludeParserConfiguration')
-                classpath {
-                    path(path: classpath.asPath)
-                    path(location: new File(stylesheetsDir, 'extensions/xalan27.jar'))
-                }
-            }
-        }
-
-        if (resources) {
-            project.copy {
-                into this.destDir ?: destFile.parentFile
-                from resources
-            }
-        }
-    }
-}
-
 class Xhtml2Pdf extends DefaultTask {
     @InputFile
     File sourceFile
@@ -396,10 +342,6 @@ class Xhtml2Pdf extends DefaultTask {
 
     @InputFiles
     FileCollection classpath
-
-    def Xhtml2Pdf() {
-        onlyIf { !OperatingSystem.current().isWindows() }
-    }
 
     @TaskAction
     def transform() {

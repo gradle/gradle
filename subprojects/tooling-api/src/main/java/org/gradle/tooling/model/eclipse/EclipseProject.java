@@ -17,12 +17,14 @@ package org.gradle.tooling.model.eclipse;
 
 import org.gradle.tooling.model.*;
 
+import java.io.File;
+
 /**
  * The complete model of an Eclipse project.
  *
  * <p>Note that the names of Eclipse projects are unique, and can be used as an identifier for the project.
  */
-public interface EclipseProject extends HierarchicalEclipseProject, BuildableProject, HasGradleProject {
+public interface EclipseProject extends HierarchicalEclipseProject, HasGradleProject {
     /**
      * {@inheritDoc}
      */
@@ -44,18 +46,17 @@ public interface EclipseProject extends HierarchicalEclipseProject, BuildablePro
     GradleProject getGradleProject();
 
     /**
-     * Deprected because eclipse project does not have any tasks associated.
-     * However, eclipse project is associated to a gradle project and via gradle project you can get access to the gradle tasks.
-     * <p>
-     * Please use getGradleProject().getTasks() instead.
-     */
-    @Deprecated
-    DomainObjectSet<? extends EclipseTask> getTasks();
-
-    /**
      * Returns the external dependencies which make up the classpath of this project.
      *
      * @return The dependencies. Returns an empty set if the project has no external dependencies.
      */
     DomainObjectSet<? extends ExternalDependency> getClasspath();
+
+    /**
+     * Returns the project directory for this project.
+     *
+     * @return The project directory.
+     */
+    File getProjectDirectory();
+
 }

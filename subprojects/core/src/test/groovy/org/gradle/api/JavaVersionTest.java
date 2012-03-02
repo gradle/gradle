@@ -15,9 +15,12 @@
  */
 package org.gradle.api;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class JavaVersionTest {
     @Test
@@ -82,6 +85,11 @@ public class JavaVersionTest {
         conversionFails(1.21);
         conversionFails(2.0);
         conversionFails(4.2);
+    }
+    
+    @Test
+    public void currentReturnsJvmVersion() {
+        assertThat(JavaVersion.current(), equalTo(JavaVersion.toVersion(System.getProperty("java.version"))));
     }
 
     @Test

@@ -13,133 +13,145 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='plugins' xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Using Plugins</title>
-    <para>Now we look at <emphasis>how</emphasis> Gradle provides build-by-convention and out of the box functionality.
-        These features are decoupled from the core of Gradle, and are provided via plugins. Although the plugins are
-        decoupled, we would like to point out that the Gradle core plugins are NEVER updated or changed for a
-        particular Gradle distribution. If there is a bug in the compile functionality of Gradle, we will release a new
-        version of Gradle. There is no change of behavior for the lifetime of a given distribution of Gradle.
+<chapter id='plugins'>
+    <title>Gradle Plugins</title>
+    <para>
+        Gradle at its core intentionally provides little useful functionality for real world automation. All of the useful
+        features, such as the ability to compile Java code for example, are added by <emphasis>plugins</emphasis>.
+        Plugins add new tasks (e.g. <apilink class='org.gradle.api.tasks.compile.Compile'/>), domain objects (e.g.
+        <apilink class="org.gradle.api.tasks.SourceSet"/>), conventions (e.g. main Java source is located at
+        <literal>src/main/java</literal>) as well as extending core objects and objects from other plugins.
+    </para>
+    <para>
+        In this chapter we will discuss how to use plugins and the terminology and concepts surrounding plugins.
     </para>
     <section id='sec:using_plugins'>
-        <title>Declaring plugins</title>
-        <para>If you want to use the plugin for building a Java project, simply include
+        <title>Applying plugins</title>
+        <para>
+            Plugins are said to be <emphasis>applied</emphasis>, which is done via the <apilink class="org.gradle.api.Project" method="apply(java.util.Map)" /> method.
         </para>
-        <sample id="useJavaPlugin" dir="java/quickstart" title="Using a plugin">
+        <sample id="useJavaPlugin" dir="java/quickstart" title="Applying a plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
-        <para>in your script. That's all. From a technological point of view plugins use just the same
-            operations as you can use from your build scripts. That is, they use the Project and Task API.
-            The Gradle plugins generally use this API to:
+        <para>
+            Plugins advertise a short name for themselves. In the above case, we are using the short name ‘<literal>java</literal>’ to apply
+            the <apilink class="org.gradle.api.plugins.JavaPlugin" />.
         </para>
-        <itemizedlist>
-            <listitem>
-                <para>Add tasks to the project (e.g. compile, test)
-                </para>
-            </listitem>
-            <listitem>
-                <para>Create dependencies between those tasks to let them execute in the appropriate order.
-                </para>
-            </listitem>
-            <listitem>
-                <para>Add dependency configurations to the project.</para>
-            </listitem>
-            <listitem>
-                <para>Add a so called <firstterm>convention object</firstterm> to the project.
-                </para>
-            </listitem>
-        </itemizedlist>
-        <para>Let's check this out:
-        </para>
-        <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a plugin by id">
-            <sourcefile file="build.gradle" snippet="apply-by-id"/>
-            <output args="-q show"/>
-        </sample>
-        <para>The Java plugin adds a <literal>compileJava</literal> task and a <literal>processResources</literal> task
-            to the project object which can be accessed by a build script. It has configured the <literal>destinationDir</literal>
-            property of both of these tasks.
-        </para>
-        <para>The <literal>apply()</literal> method either takes a string or a class as an argument. You can write
+        <para>
+            We could also have used the following syntax:
         </para>
         <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a plugin by type">
             <sourcefile file="build.gradle" snippet="apply-by-type"/>
         </sample>
-        <para>Thanks to Gradle's default imports (see <xref linkend='ide_support'/>) you can also write in this case.
+        <para>
+            Thanks to Gradle's default imports (see <xref linkend='ide_support'/>) you could also write:
         </para>
         <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a plugin by type">
             <sourcefile file="build.gradle" snippet="apply-by-type-with-import"/>
         </sample>
-        <para>Any class, which implements the <apilink class="org.gradle.api.Plugin"/> interface, can be used as a
-            plugin. Just pass the class as an argument. You don't need to configure anything else for this.</para>
-        <para>If you want to use your own plugins, you must make sure that they are accessible via the build script
-            classpath (see <xref linkend='organizing_build_logic'/> for more information). To learn more about how
-            to write custom plugins, see <xref linkend='custom_plugins'/>.
+        <para>
+            The application of plugins is <emphasis>idempotent</emphasis>. That is, a plugin can be applied multiple times. If the plugin
+            has previously been applied, any further applications will have no effect.
+        </para>
+        <para>
+            A plugin is simply any class that implements the <apilink class="org.gradle.api.Plugin"/> interface. Gradle provides
+            the core plugins as part of its distribution so simply applying the plugin as above is all you need to do.
+            For 3rd party plugins however, you need to make the plugins available to the build classpath. For more information
+            on how to do this, see <xref linkend="sec:external_dependencies" />.
+        </para>
+        <para>
+            For more on writing your own plugins, see <xref linkend="custom_plugins" />.
+        </para>
+    </section>
+    <section>
+        <title>What plugins do</title>
+        <para>
+            Applying a plugin to the project allows the plugin to extend the project's capabilities. It can do things
+            such as:
+        </para>
+        <itemizedlist>
+            <listitem>Add tasks to the project (e.g. compile, test)</listitem>
+            <listitem>Pre-configure added tasks with useful defaults.</listitem>
+            <listitem>Add dependency configurations to the project (see <xref linkend="configurations"/>).</listitem>
+            <listitem>Add new properties and methods to existing type via extensions.</listitem>
+        </itemizedlist>
+        <para>
+            Let's check this out:
+        </para>
+        <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Tasks added by a plugin">
+            <sourcefile file="build.gradle" snippet="apply-by-id"/>
+            <output args="-q show"/>
+        </sample>
+        <para>
+            The Java plugin has added a <literal>compileJava</literal> task and a <literal>processResources</literal> task
+            to the project and configured the <literal>destinationDir</literal> property of both of these tasks.
         </para>
     </section>
     <section id='sub:more_about_convention_objects'>
-        <title>Using the convention object</title>
-        <para>If you use the Java plugin
-            for example, there are a <literal>compileJava</literal> and a <literal>processResources</literal> task for
-            your production code (the same is true for your test
-            code). What if you want to change the default configuration? Let's try:
+        <title>Conventions</title>
+        <para>
+            Plugins can pre-configure the project in smart ways to support convention-over-configuration. Gradle
+            provides mechanisms and sophisticated support and it's a key ingredient in powerful-yet-concise build scripts.
         </para>
-        <sample id="pluginConfig" dir="userguide/tutorial/pluginConfig" title="Configuring a plugin task">
+        <para>
+            We saw in the example above that the Java plugins adds a task named <literal>compileJava</literal> that has
+            a property named <literal>destinationDir</literal> (that configures where the compiled Java source should be placed).
+            The Java plugin defaults this property to point to <literal>build/classes/main</literal> in the project directory.
+            This is an example of convention-over-configuration via a <emphasis>reasonable default</emphasis>.
+        </para>
+        <para>
+            We can change this property simply by giving it a new value.
+        </para>
+        <sample id="pluginConfig" dir="userguide/tutorial/pluginConfig" title="Changing plugin defaults">
             <sourcefile file="build.gradle"/>
             <output args="-q show"/>
         </sample>
-        <para>Setting the <literal>destinationDir</literal>
-            of the <literal>processResources</literal> task had only an effect on the <literal>processResources</literal>
-            task. Maybe this was what you wanted. But what if
-            you want to change the output directory for all tasks? It would be unfortunate if you had to do this for
-            each task separately.
+        <para>
+            However, the <literal>compileJava</literal> task is likely to not be the only task that needs to know where
+            the class files are. 
         </para>
-        <para>Gradle's tasks are usually <firstterm>convention aware</firstterm>. A plugin can add a convention object to
-            your project, and map certain values of this convention object to task properties.
+        <para>
+            The Java plugin adds the concept of <emphasis>source sets</emphasis> (see <apilink class="org.gradle.api.tasks.SourceSet" />)
+            to describe the aspects of a set of source, one aspect being where the class files should be written to when it is compiled.
+            The Java plugin maps the <literal>destinationDir</literal> property of the <literal>compileJava</literal> task to this aspect of the source set.
+        </para>
+        <para>
+            We can change where the class files are written via the source set.
         </para>
         <sample id="pluginConvention" dir="userguide/tutorial/pluginConvention" title="Plugin convention object">
             <sourcefile file="build.gradle"/>
             <output args="-q show"/>
         </sample>
-        <para>The Java plugin has added a convention object with a <literal>sourceSets</literal>
-            property, which we use to set the classes directory.
+        <para>
+            In the above example, we applied the Java plugin which, among other things, did the following:
         </para>
-        <para>By setting a task attribute explicitly (as we have done in the first example) you overwrite the convention
-            value for this particular task.
-        </para>
-        <para>Not all of the tasks attributes are mapped to convention object values. It is the decision of the plugin
-            to decide what are the shared properties and then bundle them in a convention object and map them to the
-            tasks.
+        <itemizedlist>
+            <listitem>Added a new domain object type: <apilink class="org.gradle.api.tasks.SourceSet" /></listitem>
+            <listitem>Configured a <literal>main</literal> source set with default (i.e. conventional) values for properties</listitem>
+            <listitem>Configured supporting tasks to use these properties to perform work</listitem>
+        </itemizedlist>
+        <para>
+            All of this happened during the <literal>apply plugin: "java"</literal> step. In the example above we <emphasis>changed</emphasis>
+            the desired location of the class files after this conventional configuration had been performed. Notice by the output with the example
+            that the value for <literal>compileJava.destinationDir</literal> also changed to reflect the configuration change.
         </para>
         <para>
-            The properties of a convention object can be accessed as project properties. As shown in the following
-            example, you can also access the convention object explicitly.
+            Consider the case where another task is to consume the classes files. If this task is configured to use the value from
+            <literal>sourceSets.main.output.classesDir</literal>, then changing it in this location will update both the
+            <literal>compileJava</literal> task and this other consumer task whenever it is changed.
         </para>
-        <sample id="pluginAccessConvention" dir="userguide/tutorial/pluginAccessConvention" title="Using the plugin convention object">
-            <sourcefile file="build.gradle"/>
-            <output args="-q show"/>
-        </sample>
-        <para>Every project object has a <apilink class="org.gradle.api.plugins.Convention"/> object which is a
-            container for convention objects contributed
-            by the plugins declared for your project. If you simply access or set a property or access a method in
-            your build script, the project object first looks if this is a property of itself. If not, it delegates
-            the request to its convention object. The convention object checks if any of the plugin convention
-            objects can fulfill the request (first wins and the order is not defined). The plugin convention objects
-            also introduce a namespace.
+        <para>
+            This ability to configure properties of objects to reflect the value of another object's task at all times (i.e. even when it changes) is
+            known as “<emphasis>convention mapping</emphasis>”. It allows Gradle to provide conciseness through convention-over-configuration and
+            sensible defaults yet not require complete reconfiguration if a conventional default needs to be changed. Without this, in the above example
+            we would have had to reconfigure every object that needs to work with the class files.
         </para>
-        <section id='sub:declaring_plugins_multiple_times'>
-            <title>Declaring plugins multiple times</title>
-            <para>A plugin is only called once for a given project, even if you have multiple
-                <literal>apply()</literal>
-                statements. An additional call after the first call has no effect but doesn't hurt either. This can be
-                important if you use plugins which extend other plugins. For example
-                the Groovy plugin automatically applies the Java plugin. We say the Groovy plugin extends the Java plugin. But you might as well
-                write:
-            </para>
-            <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Explicit application of an implied plugin">
-                <sourcefile file="build.gradle" snippet="explicit-apply"/>
-            </sample>
-            <para>If you use cross-project configuration in multi-project builds this is a useful feature.
-            </para>
-        </section>
+    </section>
+    <section>
+        <title>More on plugins</title>
+        <para>
+            This chapter aims to serve as an introduction to plugins and Gradle and the role they play. For more information on the inner workings
+            of plugins, see <xref linkend="custom_plugins" />.
+        </para>
     </section>
 </chapter>

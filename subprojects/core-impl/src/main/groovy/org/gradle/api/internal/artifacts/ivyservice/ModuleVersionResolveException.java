@@ -84,7 +84,7 @@ public class ModuleVersionResolveException extends AbstractMultiCauseException {
         try {
             return getClass().getConstructor(String.class).newInstance(message);
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

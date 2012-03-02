@@ -18,7 +18,8 @@ package org.gradle.util;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
-import groovy.lang.MissingPropertyException;
+import org.gradle.api.internal.DynamicObject;
+import org.gradle.api.internal.DynamicObjectUtil;
 
 import java.util.Collection;
 import java.util.Map;
@@ -31,19 +32,23 @@ import static org.apache.commons.collections.CollectionUtils.subtract;
 public class ConfigureUtil {
 
     public static <T> T configureByMap(Map<String, ?> properties, T delegate) {
+        DynamicObject dynamicObject = DynamicObjectUtil.asDynamicObject(delegate);
+
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
-            try {
-                ReflectionUtil.setProperty(delegate, entry.getKey(), entry.getValue());
-            } catch (MissingPropertyException e) {
-                // Try as a method
+            String name = entry.getKey();
+            Object value = entry.getValue();
+
+            if (dynamicObject.hasProperty(name)) {
+                dynamicObject.setProperty(name, value);
+            } else {
                 try {
-                    ReflectionUtil.invoke(delegate, entry.getKey(), new Object[]{entry.getValue()});
-                } catch (MissingMethodException mme) {
-                    // Throw the original MPE
-                    throw e;
+                    dynamicObject.invokeMethod(name, value);
+                } catch (MissingMethodException e) {
+                    dynamicObject.setProperty(name, value);
                 }
             }
         }
+
         return delegate;
     }
 

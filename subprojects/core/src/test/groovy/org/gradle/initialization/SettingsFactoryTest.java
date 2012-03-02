@@ -21,14 +21,16 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.WrapUtil;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Map;
-import java.net.URLClassLoader;
 import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 /**
  * @author Hans Dockter
@@ -55,7 +57,10 @@ public class SettingsFactoryTest {
 
         assertSame(gradle, settings.getGradle());
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
-        assertEquals(expectedGradleProperties, settings.getAdditionalProperties());
+        for (Map.Entry<String, String> entry : expectedGradleProperties.entrySet()) {
+            assertEquals(entry.getValue(), settings.getDynamicObject().getProperty(entry.getKey()));
+        }
+
         assertSame(expectedSettingsDir, settings.getSettingsDir());
         assertSame(expectedScriptSource, settings.getSettingsScript());
         assertSame(expectedStartParameter, settings.getStartParameter());

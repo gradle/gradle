@@ -21,10 +21,10 @@ import static org.gradle.util.TextUtil.escapeString
 import spock.lang.Unroll
 
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
-    @Unroll({"#desc can handle symlinks"})
+    @Unroll("#desc can handle symlinks")
     def "file collection can handle symlinks"() {
         def buildScript = file("build.gradle")
-        def baseDir = getTestFile("file").getParentFile()
+        def baseDir = getTestFile("symlinks")
 
         buildScript << """
 def baseDir = new File("${escapeString(baseDir)}")

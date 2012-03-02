@@ -15,49 +15,110 @@
  */
 package org.gradle.api.internal.tasks.compile
 
-import spock.lang.Specification
 import org.gradle.api.tasks.WorkResult
-import org.gradle.api.file.FileCollection
-import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.file.collections.SimpleFileCollection
+
+import groovy.transform.InheritConstructors
+
+import spock.lang.Specification
 
 class NormalizingJavaCompilerTest extends Specification {
-    final JavaCompiler target = Mock()
-    final NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
+    Compiler<JavaCompileSpec> target = Mock()
+    JavaCompileSpec spec = new DefaultJavaCompileSpec()
+    NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
 
-    def "delegates to target compiler"() {
+    def setup() {
+        spec.source = files("Source1.java", "Source2.java", "Source3.java")
+        spec.classpath = files("Dep1.jar", "Dep2.jar", "Dep3.jar")
+    }
+
+    def "delegates to target compiler after resolving source and classpath"() {
         WorkResult workResult = Mock()
-        compiler.source = files(new File("source.java"))
-        compiler.classpath = files()
 
         when:
-        def result = compiler.execute()
+        def result = compiler.execute(spec)
 
         then:
+        1 * target.execute(spec) >> {
+            assert spec.source.getClass() == SimpleFileCollection
+            assert spec.source.files == old(spec.source.files)
+            assert spec.classpath.getClass() == SimpleFileCollection
+            assert spec.classpath.files == old(spec.classpath.files)
+            workResult
+        }
         result == workResult
-
-        and:
-        1 * target.execute() >> workResult
     }
 
-    def "fails when a non-Java source file provided"() {
-        compiler.source = files(new File("source.txt"))
-        compiler.classpath = files()
+    def "silently excludes source files not ending in .java"() {
+        spec.source = files("House.scala", "Person1.java", "package.html", "Person2.java")
 
         when:
-        compiler.execute()
+        compiler.execute(spec)
 
         then:
-        InvalidUserDataException e = thrown()
-        e.message == 'Cannot compile non-Java source file \'source.txt\'.'
-
-        and:
-        0 * target.execute()
+        1 * target.execute(spec) >> {
+            assert spec.source.files == files("Person1.java", "Person2.java").files
+        }
     }
 
-    def files(File... files) {
-        FileCollection collection = Mock()
-        _ * collection.files >> { files as Set }
-        _ * collection.iterator() >> { (files as List).iterator() }
-        return collection
+    def "propagates compile failure when failOnError is true"() {
+        def failure
+        target.execute(spec) >> { throw failure = new CompilationFailedException() }
+
+        spec.compileOptions.failOnError = true
+
+        when:
+        compiler.execute(spec)
+        
+        then:
+        CompilationFailedException e = thrown()
+        e == failure
     }
+
+    def "ignores compile failure when failOnError is false"() {
+        target.execute(spec) >> { throw new CompilationFailedException() }
+
+        spec.compileOptions.failOnError = false
+
+        when:
+        def result = compiler.execute(spec)
+
+        then:
+        noExceptionThrown()
+        !result.didWork
+    }
+
+    def "propagates other failure"() {
+        def failure
+        target.execute(spec) >> { throw failure = new RuntimeException() }
+
+        when:
+        compiler.execute(spec)
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+    }
+
+    def "resolves any non-strings that make it into custom compiler args"() {
+        spec.compileOptions.compilerArgs << "a dreaded ${"GString"}"
+        spec.compileOptions.compilerArgs << 42
+        assert !spec.compileOptions.compilerArgs.any { it instanceof String }
+
+        when:
+        compiler.execute(spec)
+
+        then:
+        1 * target.execute(_) >> { JavaCompileSpec spec ->
+            assert spec.compileOptions.compilerArgs.every { it instanceof String }
+        }
+    }
+
+    private files(String... paths) {
+        new TestFileCollection(paths.collect { new File(it) })
+    }
+
+    // file collection whose type is distinguishable from SimpleFileCollection
+    @InheritConstructors
+    static class TestFileCollection extends SimpleFileCollection {}
 }

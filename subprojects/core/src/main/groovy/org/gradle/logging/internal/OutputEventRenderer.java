@@ -17,7 +17,7 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.api.specs.Spec;
+import org.gradle.internal.nativeplatform.TerminalDetector;
 import org.gradle.listener.ListenerBroadcast;
 
 import java.io.FileDescriptor;
@@ -31,12 +31,12 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
-    private final Spec<FileDescriptor> terminalDetector;
+    private final TerminalDetector terminalDetector;
     private final Object lock = new Object();
     private final DefaultColorMap colourMap = new DefaultColorMap();
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 
-    public OutputEventRenderer(Spec<FileDescriptor> terminalDetector) {
+    public OutputEventRenderer(TerminalDetector terminalDetector) {
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
         formatters.add(stdOutChain);
         OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
@@ -51,8 +51,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     }
 
     public OutputEventRenderer addStandardOutputAndError() {
-        boolean stdOutIsTerminal = terminalDetector.isSatisfiedBy(FileDescriptor.out);
-        boolean stdErrIsTerminal = terminalDetector.isSatisfiedBy(FileDescriptor.err);
+        boolean stdOutIsTerminal = terminalDetector.isTerminal(FileDescriptor.out);
+        boolean stdErrIsTerminal = terminalDetector.isTerminal(FileDescriptor.err);
         if (stdOutIsTerminal) {
             PrintStream outStr = org.fusesource.jansi.AnsiConsole.out();
             Console console = new AnsiConsole(outStr, outStr, colourMap);

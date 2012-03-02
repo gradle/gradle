@@ -61,8 +61,7 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
 
     @Override
     protected CodeQualityExtension createExtension() {
-        extension = instantiator.newInstance(FindBugsExtension)
-        project.extensions.findbugs = extension
+        extension = project.extensions.create("findbugs", FindBugsExtension)
         extension.with {
             toolVersion = "2.0.0"
         }
@@ -100,8 +99,8 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
         task.with {
             description = "Run FindBugs analysis for ${sourceSet.name} classes"
         }
+        task.source = sourceSet.allJava
         task.conventionMapping.with {
-            defaultSource = { sourceSet.allJava }
             classes = {
                 // the simple "classes = sourceSet.output" may lead to non-existing resources directory
                 // being passed to FindBugs Ant task, resulting in an error

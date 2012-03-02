@@ -17,6 +17,7 @@
 package org.gradle.internal.nativeplatform.jna;
 
 import com.sun.jna.*;
+import com.sun.jna.win32.W32APIOptions;
 
 /**
 * Windows' Kernel32
@@ -25,25 +26,26 @@ public interface Kernel32 extends Library {
 
     //CHECKSTYLE:OFF
 
-    Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32", Kernel32.class);
+    Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32", Kernel32.class, W32APIOptions.UNICODE_OPTIONS);
 
-    // Process creation flags
-    int DETACHED_PROCESS = 0x00000008;
+    int STD_INPUT_HANDLE = -10;
+    int STD_OUTPUT_HANDLE = -11;
+    int STD_ERROR_HANDLE = -12;
+    int HANDLE_FLAG_INHERIT = 1;
+    int ERROR_INVALID_PARAMETER = 87;
+    HANDLE INVALID_HANDLE_VALUE = new HANDLE(new Pointer(-1));
 
     int GetLastError();
 
-    boolean CloseHandle(HANDLE hObject);
+    boolean SetEnvironmentVariable(String lpName, String lpValue);
 
-    boolean CreateProcessW(WString lpApplicationName, WString lpCommandLine, SecurityAttributes lpProcessAttributes,
-                           SecurityAttributes lpThreadAttributes, boolean bInheritHandles, int dwCreationFlags,
-                           Pointer lpEnvironment, WString lpCurrentDirectory, StartupInfo lpStartupInfo,
-                           ProcessInfo lpProcessInformation);
+    HANDLE GetStdHandle(int stdHandle);
 
-    boolean SetEnvironmentVariableW(WString lpName, WString lpValue);
+    boolean SetHandleInformation(HANDLE handle, int dwMask, int dwFlags);
 
-    boolean SetCurrentDirectoryW(WString lpPathName);
+    boolean SetCurrentDirectory(String lpPathName);
 
-    int GetCurrentDirectoryW(int nBufferLength, char[] lpBuffer);
+    int GetCurrentDirectory(int nBufferLength, char[] lpBuffer);
 
     int GetCurrentProcessId();
 
@@ -54,48 +56,6 @@ public interface Kernel32 extends Library {
         public HANDLE(Pointer p) {
             super(p);
         }
-    }
-
-    class SecurityAttributes extends Structure {
-        public int nLength;
-        public Pointer lpSecurityDescriptor;
-        public boolean bInheritHandle;
-
-        public SecurityAttributes() {
-            nLength = size();
-        }
-    }
-
-    class StartupInfo extends Structure {
-        public int cb;
-        public WString lpReserved;
-        public WString lpDesktop;
-        public WString lpTitle;
-        public int dwX;
-        public int dwY;
-        public int dwXSize;
-        public int dwYSize;
-        public int dwXCountChars;
-        public int dwYCountChars;
-        public int dwFillAttribute;
-        public int dwFlags;
-        public short wShowWindow;
-        public short cbReserved2;
-        public Pointer lpReserved2;
-        public HANDLE hStdInput;
-        public HANDLE hStdOutput;
-        public HANDLE hStdError;
-
-        public StartupInfo() {
-            cb = size();
-        }
-    }
-
-    class ProcessInfo extends Structure {
-        public HANDLE hProcess;
-        public HANDLE hThread;
-        public int dwProcessId;
-        public int dwThreadId;
     }
 
     //CHECKSTYLE:ON

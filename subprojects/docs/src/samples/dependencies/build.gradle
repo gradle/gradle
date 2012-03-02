@@ -106,7 +106,7 @@ task test(dependsOn: [configurations.subprojectAtlantic, configurations.subproje
 }
 
 def assertCorrectFilesForCompleteConfigurations() {
-    expectedResults = [
+    ext.expectedResults = [
             oneDepWithNoTransitives: ['herring-1.0.jar'] as Set,
             oneDepWithTransitives: ['tuna-1.0.jar', 'herring-1.0.jar'] as Set,
             twoDepsWithNoTransitives: ['seal-1.0.jar', 'herring-1.0.jar'] as Set,

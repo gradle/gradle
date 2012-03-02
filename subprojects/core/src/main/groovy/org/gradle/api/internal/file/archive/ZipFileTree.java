@@ -145,5 +145,9 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         public RelativePath getRelativePath() {
             return new RelativePath(!entry.isDirectory(), entry.getName().split("/"));
         }
+
+        public int getMode() {
+            return entry.getUnixMode() & 0777;
+        }
     }
 }

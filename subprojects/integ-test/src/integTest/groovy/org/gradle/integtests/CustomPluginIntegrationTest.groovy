@@ -15,16 +15,20 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.ArtifactBuilder
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ArtifactBuilder
 
 public class CustomPluginIntegrationTest extends AbstractIntegrationSpec {
     public void "can reference plugin in buildSrc by id"() {
         given:
         file('buildSrc/src/main/java/CustomPlugin.java') << '''
 import org.gradle.api.*;
+import org.gradle.api.internal.plugins.DslObject;
+
 public class CustomPlugin implements Plugin<Project> {
-    public void apply(Project p) { p.setProperty("prop", "value"); }
+    public void apply(Project p) {
+      new DslObject(p).getExtensions().getExtraProperties().set("prop", "value");
+    }
 }
 '''
 
@@ -47,8 +51,12 @@ task test
         ArtifactBuilder builder = artifactBuilder()
         builder.sourceFile('CustomPlugin.java') << '''
 import org.gradle.api.*;
+import org.gradle.api.internal.plugins.DslObject;
+
 public class CustomPlugin implements Plugin<Project> {
-    public void apply(Project p) { p.setProperty("prop", "value"); }
+    public void apply(Project p) {
+      new DslObject(p).getExtensions().getExtraProperties().set("prop", "value");
+    }
 }
 '''
         builder.resourceFile('META-INF/gradle-plugins/custom.properties') << '''
@@ -118,7 +126,7 @@ import org.gradle.api.Project
 import org.gradle.api.Plugin
 class CustomPlugin implements Plugin<Project> {
     void apply(Project project) {
-        project.custom = 'value'
+        project.ext.custom = 'value'
     }
 }
         """

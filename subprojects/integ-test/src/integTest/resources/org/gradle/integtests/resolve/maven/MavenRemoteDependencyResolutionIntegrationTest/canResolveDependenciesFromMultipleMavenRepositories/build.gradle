@@ -1,5 +1,5 @@
-sillyexceptions = 'sillyexceptions'
-repotest = 'repotest'
+ext.sillyexceptions = 'sillyexceptions'
+ext.repotest = 'repotest'
 
 /*
  * gradle_sourceforge:

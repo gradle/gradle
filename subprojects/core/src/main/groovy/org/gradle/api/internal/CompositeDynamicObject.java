@@ -15,12 +15,18 @@
  */
 package org.gradle.api.internal;
 
-import groovy.lang.*;
+import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Presents a {@link DynamicObject} view of multiple objects at once.
+ *
+ * Can be used to provide a dynamic view of an object with enhancements.
+ */
 public abstract class CompositeDynamicObject extends AbstractDynamicObject {
     private DynamicObject[] objects = new DynamicObject[0];
     private DynamicObject[] updateObjects = new DynamicObject[0];

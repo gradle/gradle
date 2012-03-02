@@ -52,7 +52,7 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
     protected static final String TEST_CONF = "conf";
     protected static final String TEST_DEP_CONF = "depconf1";
 
-    protected static final ExcludeRule TEST_EXCLUDE_RULE = new org.gradle.api.internal.artifacts.DefaultExcludeRule(WrapUtil.toMap("org", "testOrg"));
+    protected static final ExcludeRule TEST_EXCLUDE_RULE = new org.gradle.api.internal.artifacts.DefaultExcludeRule("testOrg", null);
     protected static final org.apache.ivy.core.module.descriptor.ExcludeRule TEST_IVY_EXCLUDE_RULE = HelperUtil.getTestExcludeRule("testOrg");
     protected ExcludeRuleConverter excludeRuleConverterStub = context.mock(ExcludeRuleConverter.class);
     protected final DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(WrapUtil.toSet(TEST_CONF));
@@ -74,7 +74,7 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
     protected Dependency setUpDependency(ModuleDependency dependency) {
         return dependency.addArtifact(artifact).
                 addArtifact(artifactWithClassifiers).
-                exclude(TEST_EXCLUDE_RULE.getExcludeArgs()).
+                exclude(WrapUtil.toMap("group", TEST_EXCLUDE_RULE.getGroup())).
                 setTransitive(true);
     }
 

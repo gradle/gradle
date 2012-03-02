@@ -33,8 +33,7 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
     @Override
     protected CodeQualityExtension createExtension() {
-        extension = instantiator.newInstance(CheckstyleExtension)
-        project.extensions.checkstyle = extension
+        extension = project.extensions.create("checkstyle", CheckstyleExtension)
 
         extension.with {
             toolVersion = "5.5"
@@ -73,8 +72,6 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
             description = "Run Checkstyle analysis for ${sourceSet.name} classes"
             classpath = sourceSet.output
         }
-        task.conventionMapping.with {
-            defaultSource = { sourceSet.allJava }
-        }
+        task.setSource(sourceSet.allJava)
     }
 }

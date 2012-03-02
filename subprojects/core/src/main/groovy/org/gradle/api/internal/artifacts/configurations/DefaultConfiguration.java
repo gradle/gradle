@@ -34,9 +34,8 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -298,11 +297,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return false;
     }
 
-    public TaskDependency getBuildArtifacts() {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.getBuildArtifacts()", "getAllArtifacts().getBuildDependencies()");
-        return allArtifacts.getBuildDependencies();
-    }
-
     public DependencySet getDependencies() {
         return dependencies;
     }
@@ -311,47 +305,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return allDependencies;
     }
 
-    public <T extends Dependency> DomainObjectSet<T> getDependencies(Class<T> type) {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.getDependencies(type)", "getDependencies().withType(type)");
-        return dependencies.withType(type);
-    }
-
-    public <T extends Dependency> DomainObjectSet<T> getAllDependencies(Class<T> type) {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.getAllDependencies(type)", "getAllDependencies().withType(type)");
-        return allDependencies.withType(type);
-    }
-
-    public void addDependency(Dependency dependency) {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.addDependency()", "getDependencies().add()");
-        throwExceptionIfNotInUnresolvedState();
-        dependencies.add(dependency);
-    }
-
-    public Configuration addArtifact(PublishArtifact artifact) {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.addArtifact()", "getArtifacts().add()");
-        throwExceptionIfNotInUnresolvedState();
-        artifacts.add(artifact);
-        return this;
-    }
-
-    public Configuration removeArtifact(PublishArtifact artifact) {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.removeArtifact()", "getArtifacts().remove()");
-        throwExceptionIfNotInUnresolvedState();
-        artifacts.remove(artifact);
-        return this;
-    }
-
     public PublishArtifactSet getArtifacts() {
         return artifacts;
     }
 
     public PublishArtifactSet getAllArtifacts() {
         return allArtifacts;
-    }
-
-    public FileCollection getAllArtifactFiles() {
-        DeprecationLogger.nagUserOfReplacedMethod("Configuration.getAllArtifactFiles()", "getAllArtifacts().getFiles()");
-        return allArtifacts.getFiles();
     }
 
     public Set<ExcludeRule> getExcludeRules() {
@@ -365,7 +324,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
         throwExceptionIfNotInUnresolvedState();
-        excludeRules.add(new DefaultExcludeRule(excludeRuleArgs));
+        excludeRules.add(new DefaultExcludeRule(excludeRuleArgs.get(ExcludeRule.GROUP_KEY), excludeRuleArgs.get(ExcludeRule.MODULE_KEY)));
         return this;
     }
 
@@ -422,7 +381,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         for (Configuration excludeRuleSource : excludeRuleSources) {
             for (ExcludeRule excludeRule : excludeRuleSource.getExcludeRules()) {
-                copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
+                copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getGroup(), excludeRule.getModule()));
             }
         }
 

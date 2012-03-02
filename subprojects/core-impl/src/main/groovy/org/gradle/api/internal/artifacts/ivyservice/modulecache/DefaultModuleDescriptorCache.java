@@ -64,9 +64,13 @@ public class DefaultModuleDescriptorCache implements ModuleDescriptorCache {
         if (moduleDescriptorCacheEntry == null) {
             return null;
         }
-        ModuleDescriptor descriptor = null;
-        if (!moduleDescriptorCacheEntry.isMissing) {
-            descriptor = moduleDescriptorStore.getModuleDescriptor(repository, moduleRevisionId);
+        if (moduleDescriptorCacheEntry.isMissing) {
+            return new DefaultCachedModuleDescriptor(moduleDescriptorCacheEntry, null, timeProvider);
+        }
+        ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(repository, moduleRevisionId);
+        if (descriptor == null) {
+            // Descriptor file has been manually deleted - ignore the entry
+            return null;
         }
         return new DefaultCachedModuleDescriptor(moduleDescriptorCacheEntry, descriptor, timeProvider);
     }

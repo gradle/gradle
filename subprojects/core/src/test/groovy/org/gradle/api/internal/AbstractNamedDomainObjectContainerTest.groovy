@@ -171,7 +171,7 @@ class DynamicOwner {
                 add dynamicMethod('a', 'b', 'c')
                 add dynamicMethod { doesntGetEvaluated }
                 // delegate properties and methods - delegate is a TestObject
-                add all.size()
+                add owner.size()
                 prop = 'prop'
                 add prop
                 testObjectDynamicMethod { doesntGetEvaluated }

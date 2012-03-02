@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
 /**
@@ -39,14 +40,36 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         """
     }
 
+    //TODO SF add coverage for reconnecting to those daemons.
+    def "honours jvm sys property that contain a space in gradle.properties"() {
+        given:
+        distribution.file("gradle.properties") << 'org.gradle.jvmargs=-Dsome-prop="i have space"'
+
+        expect:
+        buildSucceeds """
+assert System.getProperty('some-prop').toString() == 'i have space'
+        """
+    }
+
+    def "honours jvm option that contain a space in gradle.properties"() {
+        given:
+        distribution.file("gradle.properties") << 'org.gradle.jvmargs=-XX:HeapDumpPath="/tmp/with space" -Dsome-prop="and some more stress..."'
+
+        expect:
+        buildSucceeds """
+def inputArgs = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments()
+assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
+"""
+    }
+
     @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
     def "honours java home specified in gradle.properties"() {
         given:
         File javaHome = AvailableJavaHomes.bestAlternative
-        String javaPath = javaHome.canonicalPath.replaceAll("\\\\", "\\\\\\\\")
-        distribution.file("gradle.properties") << "org.gradle.java.home=" + javaPath
+        String javaPath = TextUtil.escapeString(javaHome.canonicalPath)
+        distribution.file("gradle.properties") << "org.gradle.java.home=$javaPath"
 
         expect:
-        buildSucceeds "assert System.getProperty('java.home').startsWith('${javaPath}')"
+        buildSucceeds "assert System.getProperty('java.home').startsWith('$javaPath')"
     }
 }

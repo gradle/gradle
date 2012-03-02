@@ -45,7 +45,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         super(type, store);
         this.instantiator = instantiator;
         this.convention = new DefaultConvention(instantiator);
-        this.dynamicObject = new DynamicObjectHelper(new ContainerDynamicObject(elementsDynamicObject), convention);
+        this.dynamicObject = new ExtensibleDynamicObject(this, new ContainerDynamicObject(elementsDynamicObject), convention);
         this.namer = namer;
     }
 
@@ -53,7 +53,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         super(type, store, eventRegister);
         this.instantiator = instantiator;
         this.convention = new DefaultConvention(instantiator);
-        this.dynamicObject = new DynamicObjectHelper(new ContainerDynamicObject(elementsDynamicObject), convention);
+        this.dynamicObject = new ExtensibleDynamicObject(this, new ContainerDynamicObject(elementsDynamicObject), convention);
         this.namer = namer;
     }
 

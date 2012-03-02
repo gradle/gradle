@@ -1,0 +1,62 @@
+apply from: 'src/generator.groovy'
+
+configurations {
+    junit
+}
+
+dependencies {
+    junit 'junit:junit:4.10'
+    groovy libraries.groovy
+}
+
+useTestFixtures()
+
+task small(type: ProjectGeneratorTask, description: 'Generates a small project') {
+}
+
+task largeSrc(type: ProjectGeneratorTask, description: 'Generates a single project with lots of source files') {
+    sourceFiles = 50000
+    linesOfCodePerSourceFile = 20
+}
+
+task multi(type: ProjectGeneratorTask, description: 'Generates a multi-project build') {
+    projects = 25
+    sourceFiles = 100
+}
+
+task mixedSize(type: ProjectGeneratorTask) {
+    projects = 400
+    sourceFiles = 100
+    projects[1].sourceFiles = 20000
+}
+
+task multiGroovy(type: ProjectGeneratorTask, description: 'Generates a multi-project groovy build') {
+    projects = 25
+    groovyProject = true
+}
+
+def generators = tasks.withType(ProjectGeneratorTask)
+generators.all {
+    group = 'Project setup'
+    testDependencies = configurations.junit
+}
+task all(dependsOn: generators)
+
+task prepareSamples(dependsOn: [small, multi])
+
+tasks.integTest.dependsOn prepareSamples
+
+task performanceTest(dependsOn: tasks.integTest) {
+    description = "Runs the performance test (note that performanceTest is not a part of 'check' or 'test')"
+}
+
+tasks.integTest.testLogging.showStandardStreams = true
+
+gradle.taskGraph.whenReady {
+    if (!it.hasTask(':performance:performanceTest')) {
+        project.tasks.withType(Test) {
+            logger.info("Skipping $it because task 'performanceTest' was not requested.")
+            enabled = false
+        }
+    }
+}

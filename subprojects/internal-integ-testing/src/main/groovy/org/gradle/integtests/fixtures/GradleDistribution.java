@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.*;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -71,7 +71,11 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
         return true;
     }
 
-    public boolean daemonSupported() {
+    public boolean isDaemonSupported() {
+        return true;
+    }
+
+    public boolean isDaemonIdleTimeoutConfigurable() {
         return true;
     }
 

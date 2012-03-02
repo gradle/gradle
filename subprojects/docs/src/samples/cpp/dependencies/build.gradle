@@ -1,3 +1,5 @@
+apply plugin: "base"
+
 project(":lib") {
     archivesBaseName = "some-lib"
 

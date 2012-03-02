@@ -18,9 +18,9 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.GradleHandle
-import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
-import org.gradle.launcher.daemon.context.DefaultDaemonContext
+import org.gradle.launcher.daemon.testing.DaemonContextParser
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.util.Jvm
 import spock.lang.IgnoreIf
@@ -35,20 +35,29 @@ import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
  */
 class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
-    def daemonIdleTimeout = 5
+    int daemonIdleTimeout = 100
+    //normally, state transition timeout must be lower than the daemon timeout
+    //so that the daemon does not timeout in the middle of the state verification
+    //effectively hiding some bugs or making tests fail
+    int stateTransitionTimeout = daemonIdleTimeout/2
 
     final List<GradleHandle> builds = []
     final List<GradleHandle> foregroundDaemons = []
 
     // set this to change the java home used to launch any gradle, set back to null to use current JVM
     def javaHome = null
+    
+    // set this to change the desired default encoding for the build request
+    def buildEncoding = null
 
-    @Delegate DaemonEventSequenceBuilder sequenceBuilder = new DaemonEventSequenceBuilder()
+    @Delegate DaemonEventSequenceBuilder sequenceBuilder =
+        new DaemonEventSequenceBuilder(stateTransitionTimeout * 1000)
 
     def setup() {
         //to work around an issue with the daemon having awkward jvm input arguments
         //when GRADLE_OPTS contains -Djava.io.tmpdir with value that has spaces
         //once this problem is fixed we could get rid of this workaround
+        //TODO SF - validate if it is still needed
         distribution.avoidsConfiguringTmpDir()
     }
 
@@ -62,7 +71,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         dir
     }
 
-    void startBuild() {
+    void startBuild(String javaHome = null, String buildEncoding = null) {
         run {
             executer.withTasks("watch")
             executer.withArguments(
@@ -72,13 +81,13 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             if (javaHome) {
                 executer.withJavaHome(javaHome)
             }
-            //TODO SF when the tests are interrupted (for example, from idea)
-            //or when they break they seem to leave GradleDaemon and GradleMain processes hung forever
-            //the sanity check does not really help
+            if (buildEncoding) {
+                executer.withDefaultCharacterEncoding(buildEncoding)
+            }
             executer.usingProjectDirectory buildDirWithScript(builds.size(), """
                 task('watch') << {
                     println "waiting for stop file"
-                    long sanityCheck = System.currentTimeMillis() + 20000L
+                    long sanityCheck = System.currentTimeMillis() + 120000L
                     while(!file("stop").exists()) {
                         sleep 100
                         if (file("exit").exists()) {
@@ -127,6 +136,14 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     void startForegroundDaemonWithAlternateJavaHome() {
         run {
             javaHome = AvailableJavaHomes.bestAlternative
+            startForegroundDaemonNow()
+            javaHome = null
+        }
+    }
+
+    void startForegroundDaemonWithDefaultCharacterEncoding(String encoding) {
+        run {
+            executer.withDefaultCharacterEncoding(encoding)
             startForegroundDaemonNow()
             javaHome = null
         }
@@ -184,10 +201,15 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     void doDaemonContext(gradleHandle, Closure assertions) {
-        DefaultDaemonContext.parseFrom(gradleHandle.standardOutput).with(assertions)
+        DaemonContextParser.parseFrom(gradleHandle.standardOutput).with(assertions)
     }
 
     def "daemons do some work - sit idle - then timeout and die"() {
+        //in this particular test we need to make the daemon timeout
+        //shorter than the state transition timeout so that
+        //we can detect the daemon idling out within state verification window
+        daemonIdleTimeout = stateTransitionTimeout/2
+
         when:
         startBuild()
 
@@ -204,15 +226,32 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
-    def "existing idle daemons are used"() {
-        given:
-        //idle timeout is high enough to catch the subtle problem of the
-        // 1st daemon timeouting and hence preventing us to verify if we connect to an existing daemon.
-        daemonIdleTimeout = 15
-
+    def "existing foreground idle daemons are used"() {
         when:
         startForegroundDaemon()
 
+        then:
+        idle()
+
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+    }
+
+    def "existing idle background daemons are used"() {
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+        
+        when:
+        completeBuild()
+        
         then:
         idle()
 
@@ -273,8 +312,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     def "sending stop to busy daemons cause them to disappear from the registry and disconnect from the client, and terminates the daemon process"() {
-        daemonIdleTimeout = 15
-
         when:
         startForegroundDaemon()
 
@@ -421,6 +458,40 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
+    def "if a daemon exists but is using a file encoding, a new compatible daemon will be created and used"() {
+        when:
+        startBuild(null, "US-ASCII")
+        waitForBuildToWait()
+
+        then:
+        busy()
+        daemonContext {
+            assert daemonOpts.contains("-Dfile.encoding=US-ASCII")
+        }
+
+        then:
+        completeBuild()
+
+        then:
+        idle()
+
+        when:
+        startBuild(null, "UTF-8")
+        waitForBuildToWait()
+
+        then:
+        state 1, 1
+
+        then:
+        completeBuild(1)
+        
+        then:
+        idle 2
+        daemonContext(1) {
+            assert daemonOpts.contains("-Dfile.encoding=UTF-8")
+        }
+    }
+    
     def cleanup() {
         try {
             sequenceBuilder.build(executer.daemonRegistry).run()

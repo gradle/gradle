@@ -231,6 +231,20 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    public String getDefaultCharacterEncoding() {
+        return options.getDefaultCharacterEncoding();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+        options.setDefaultCharacterEncoding(defaultCharacterEncoding);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public void setMinHeapSize(String heapSize) {
         options.setMinHeapSize(heapSize);
     }

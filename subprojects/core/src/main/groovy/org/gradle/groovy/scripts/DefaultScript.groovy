@@ -23,9 +23,8 @@ import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
@@ -33,12 +32,12 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.internal.nativeplatform.FileSystems
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.process.ExecResult
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.DeprecationLogger
 import org.gradle.api.internal.file.*
-import org.gradle.api.internal.ProcessOperations
-import org.gradle.internal.nativeplatform.FileSystems
 
 abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class)
@@ -164,16 +163,6 @@ abstract class DefaultScript extends BasicScript {
 
     LoggingManager getLogging() {
         return loggingManager
-    }
-
-    public void captureStandardOutput(LogLevel level) {
-        DeprecationLogger.nagUserOfReplacedMethod('captureStandardOutput()', 'getLogging().captureStandardOutput()')
-        logging.captureStandardOutput(level)
-    }
-
-    public void disableStandardOutputCapture() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod('disableStandardOutputCapture')
-        logging.disableStandardOutputCapture()
     }
 
     public Logger getLogger() {

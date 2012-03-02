@@ -16,7 +16,6 @@
 package org.gradle.internal.nativeplatform.jna;
 
 import com.sun.jna.Native;
-import com.sun.jna.WString;
 import org.gradle.internal.nativeplatform.NativeIntegrationException;
 
 import java.io.File;
@@ -29,7 +28,7 @@ public class WindowsProcessEnvironment extends AbstractProcessEnvironment {
     private final Kernel32 kernel32 = Kernel32.INSTANCE;
 
     public void setNativeEnvironmentVariable(String name, String value) {
-        boolean retval = kernel32.SetEnvironmentVariableW(new WString(name), value == null ? null : new WString(value));
+        boolean retval = kernel32.SetEnvironmentVariable(name, value == null ? null : value);
         if (!retval) {
             throw new NativeIntegrationException(String.format("Could not set environment variable '%s'. errno: %d", name, kernel32.GetLastError()));
         }
@@ -40,7 +39,7 @@ public class WindowsProcessEnvironment extends AbstractProcessEnvironment {
     }
 
     public void setNativeProcessDir(File dir) {
-        boolean retval = kernel32.SetCurrentDirectoryW(new WString(dir.getAbsolutePath()));
+        boolean retval = kernel32.SetCurrentDirectory(dir.getAbsolutePath());
         if (!retval) {
             throw new NativeIntegrationException(String.format("Could not set process working directory to '%s'. errno: %d", dir, kernel32.GetLastError()));
         }
@@ -48,7 +47,7 @@ public class WindowsProcessEnvironment extends AbstractProcessEnvironment {
 
     public File getProcessDir() {
         char[] out = new char[LOTS_OF_CHARS];
-        int retval = kernel32.GetCurrentDirectoryW(out.length, out);
+        int retval = kernel32.GetCurrentDirectory(out.length, out);
         if (retval == 0) {
             throw new NativeIntegrationException(String.format("Could not get process working directory. errno: %d", kernel32.GetLastError()));
         }

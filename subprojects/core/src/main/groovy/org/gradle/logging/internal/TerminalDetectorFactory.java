@@ -18,15 +18,12 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.internal.nativeplatform.NativeIntegrationUnavailableException;
-import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.internal.nativeplatform.NoOpTerminalDetector;
+import org.gradle.internal.nativeplatform.TerminalDetector;
 import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer;
 import org.gradle.internal.nativeplatform.services.NativeServices;
-import org.jruby.ext.posix.POSIX;
-
-import java.io.FileDescriptor;
+import org.gradle.internal.os.OperatingSystem;
 
 /**
  * @author: Szczepan Faber, created at: 9/12/11
@@ -35,16 +32,13 @@ public class TerminalDetectorFactory {
 
     private static final Logger LOGGER = Logging.getLogger(TerminalDetectorFactory.class);
 
-    public Spec<FileDescriptor> create(JnaBootPathConfigurer jnaBootPathConfigurer) {
+    public TerminalDetector create(JnaBootPathConfigurer jnaBootPathConfigurer) {
         try {
             jnaBootPathConfigurer.configure();
-            if (OperatingSystem.current().isWindows()) {
-                return new WindowsTerminalDetector();
-            }
-            return new PosixBackedTerminalDetector(new NativeServices().get(POSIX.class));
+            return new NativeServices().get(TerminalDetector.class);
         } catch (NativeIntegrationUnavailableException e) {
             LOGGER.info("Unable to initialise the native integration for current platform: " + OperatingSystem.current() + ". Details: " + e.getMessage());
-            return Specs.satisfyNone();
+            return new NoOpTerminalDetector();
         }
     }
 }

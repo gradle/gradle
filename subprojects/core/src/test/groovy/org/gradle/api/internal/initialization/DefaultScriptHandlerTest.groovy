@@ -24,11 +24,11 @@ import org.gradle.util.WrapUtil
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.gradle.util.Matchers.*
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.util.ObservableUrlClassLoader
+import org.gradle.util.MutableURLClassLoader
 import org.gradle.util.ConfigureUtil
 
 @RunWith(JMock)
@@ -39,7 +39,7 @@ public class DefaultScriptHandlerTest {
     private final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class)
     private final Configuration configuration = context.mock(Configuration.class)
     private final ScriptSource scriptSource = context.mock(ScriptSource.class)
-    private final ObservableUrlClassLoader classLoader = context.mock(ObservableUrlClassLoader.class)
+    private final MutableURLClassLoader classLoader = context.mock(MutableURLClassLoader.class)
 
     @Test void addsClasspathConfiguration() {
         context.checking {

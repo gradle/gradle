@@ -15,21 +15,21 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
+import org.gradle.api.internal.SettingsInternal;
 import org.jmock.Expectations;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.gradle.StartParameter;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.api.internal.SettingsInternal;
 
 import java.io.File;
-import java.net.URLClassLoader;
 import java.net.URL;
+import java.net.URLClassLoader;
+
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class PropertiesLoadingSettingsProcessorTest {
@@ -43,9 +43,8 @@ public class PropertiesLoadingSettingsProcessorTest {
         final StartParameter startParameter = new StartParameter();
         final SettingsInternal settings = context.mock(SettingsInternal.class);
         final File settingsDir = new File("root");
-        final ScriptSource settingsScriptSource = context.mock(ScriptSource.class);
         final GradleInternal gradle = context.mock(GradleInternal.class);
-        final SettingsLocation settingsLocation = new SettingsLocation(settingsDir, settingsScriptSource);
+        final SettingsLocation settingsLocation = new SettingsLocation(settingsDir, new File("foo"));
 
         PropertiesLoadingSettingsProcessor processor = new PropertiesLoadingSettingsProcessor(delegate, propertiesLoader);
 

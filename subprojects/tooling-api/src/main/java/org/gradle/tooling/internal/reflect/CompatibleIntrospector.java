@@ -52,8 +52,4 @@ public class CompatibleIntrospector {
             throw new RuntimeException("Unable to get value reflectively", e);
         }
     }
-
-    public boolean isConfigured(String methodName) {
-        return getSafely(null, methodName) != null;
-    }
 }

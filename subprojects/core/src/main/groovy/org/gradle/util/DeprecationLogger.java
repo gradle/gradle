@@ -27,6 +27,7 @@ import java.util.Set;
 public class DeprecationLogger {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeprecationLogger.class);
     private static final Set<String> PLUGINS = Collections.synchronizedSet(new HashSet<String>());
+    private static final Set<String> TASKS = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> METHODS = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> PROPERTIES = Collections.synchronizedSet(new HashSet<String>());
     private static final Set<String> NAMED_PARAMETERS = Collections.synchronizedSet(new HashSet<String>());
@@ -35,6 +36,13 @@ public class DeprecationLogger {
         @Override
         protected Boolean initialValue() {
             return true;
+        }
+    };
+
+    private static final ThreadLocal<Boolean> LOG_TRACE = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            return false;
         }
     };
 
@@ -55,6 +63,15 @@ public class DeprecationLogger {
             logTraceIfNecessary();
         }
     }
+
+    public static void nagUserOfReplacedTask(String taskName, String replacement) {
+        if (isEnabled() && TASKS.add(taskName)) {
+            LOGGER.warn(String.format(
+                    "The %s task has been deprecated and will be removed in the next version of Gradle. Please use the %s instead.",
+                    taskName, replacement));
+            logTraceIfNecessary();
+        }
+    }
     
     public static void nagUserOfReplacedMethod(String methodName, String replacement) {
         if (isEnabled() && METHODS.add(methodName)) {
@@ -66,7 +83,7 @@ public class DeprecationLogger {
     }
 
     public static void nagUserOfReplacedProperty(String propertyName, String replacement) {
-        if (isEnabled() && METHODS.add(propertyName)) {
+        if (isEnabled() && PROPERTIES.add(propertyName)) {
             LOGGER.warn(String.format(
                     "The %s property has been deprecated and will be removed in the next version of Gradle. Please use the %s property instead.",
                     propertyName, replacement));
@@ -78,6 +95,14 @@ public class DeprecationLogger {
         if (isEnabled() && METHODS.add(methodName)) {
             LOGGER.warn(String.format("The %s method has been deprecated and will be removed in the next version of Gradle.",
                     methodName));
+            logTraceIfNecessary();
+        }
+    }
+
+    public static void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
+        if (isEnabled() && PROPERTIES.add(propertyName)) {
+            LOGGER.warn(String.format("The %s property has been deprecated and will be removed in the next version of Gradle. %s",
+                    propertyName, advice));
             logTraceIfNecessary();
         }
     }
@@ -108,7 +133,7 @@ public class DeprecationLogger {
     }
 
     private static boolean isTraceLoggingEnabled() {
-        return Boolean.getBoolean(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
+        return Boolean.getBoolean(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME) || LOG_TRACE.get();
     }
 
     private static void logTraceIfNecessary() {
@@ -124,5 +149,9 @@ public class DeprecationLogger {
 
     private static boolean isEnabled() {
         return ENABLED.get();
+    }
+    
+    public static void setLogTrace(boolean flag) {
+        LOG_TRACE.set(flag);
     }
 }

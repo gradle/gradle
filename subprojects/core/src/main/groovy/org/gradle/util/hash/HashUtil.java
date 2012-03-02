@@ -58,7 +58,7 @@ public class HashUtil {
         try {
             return MessageDigest.getInstance(algorithm);
         } catch (NoSuchAlgorithmException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

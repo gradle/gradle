@@ -95,10 +95,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal {
         return stdOutLoggingSystem.level;
     }
 
-    public boolean isStandardOutputCaptureEnabled() {
-        return getStandardOutputCaptureLevel() != null;
-    }
-
     public DefaultLoggingManager captureStandardOutput(LogLevel level) {
         stdOutLoggingSystem.setLevel(level);
         return this;
@@ -106,12 +102,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal {
 
     public DefaultLoggingManager captureStandardError(LogLevel level) {
         stdErrLoggingSystem.setLevel(level);
-        return this;
-    }
-
-    public DefaultLoggingManager disableStandardOutputCapture() {
-        stdOutLoggingSystem.disable();
-        stdErrLoggingSystem.disable();
         return this;
     }
 

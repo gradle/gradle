@@ -103,6 +103,12 @@
                     <para>The output files of the task are included in the file collection.</para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term><classname>TaskOutputs</classname></term>
+                <listitem>
+                    <para>The output files of the TaskOutputs are included in the file collection.</para>
+                </listitem>
+            </varlistentry>
         </variablelist>
 
         <para>It is important to note that the content of a file collection is evaluated lazily, when it is needed.
@@ -391,5 +397,5 @@
         </para>
 
     </section>
-    
+
 </chapter>

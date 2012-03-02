@@ -19,7 +19,7 @@ package org.gradle.api.plugins.antlr;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.plugins.JavaPlugin;
@@ -56,7 +56,7 @@ public class AntlrPlugin implements Plugin<ProjectInternal> {
                         // 1) Add a new 'antlr' virtual directory mapping
                         final AntlrSourceVirtualDirectoryImpl antlrDirectoryDelegate
                                 = new AntlrSourceVirtualDirectoryImpl(((DefaultSourceSet) sourceSet).getDisplayName(), project.getFileResolver());
-                        ((DynamicObjectAware) sourceSet).getConvention().getPlugins().put(
+                        new DslObject(sourceSet).getConvention().getPlugins().put(
                                 AntlrSourceVirtualDirectory.NAME, antlrDirectoryDelegate);
                         final String srcDir = String.format("src/%s/antlr", sourceSet.getName());
                         antlrDirectoryDelegate.getAntlr().srcDir(srcDir);
@@ -70,11 +70,7 @@ public class AntlrPlugin implements Plugin<ProjectInternal> {
                                 sourceSet.getName()));
 
                         // 3) set up convention mapping for default sources (allows user to not have to specify)
-                        antlrTask.conventionMapping("defaultSource", new Callable<Object>() {
-                            public Object call() throws Exception {
-                                return antlrDirectoryDelegate.getAntlr();
-                            }
-                        });
+                        antlrTask.setSource(antlrDirectoryDelegate.getAntlr());
 
                         // 4) set up convention mapping for handling the 'antlr' dependency configuration
                         antlrTask.getConventionMapping().map("antlrClasspath", new Callable<Object>() {

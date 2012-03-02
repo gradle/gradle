@@ -46,6 +46,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private MethodCodeBody initMetaClass;
         private final Type conventionAwareType = Type.getType(IConventionAware.class);
         private final Type dynamicObjectAwareType = Type.getType(DynamicObjectAware.class);
+        private final Type extensionAwareType = Type.getType(ExtensionAware.class);
+        private final Type hasConventionType = Type.getType(HasConvention.class);
         private final Type dynamicObjectType = Type.getType(DynamicObject.class);
         private final Type conventionMappingType = Type.getType(ConventionMapping.class);
         private final Type groovyObjectType = Type.getType(GroovyObject.class);
@@ -70,7 +72,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
             if (isDynamicAware) {
                 interfaceTypes.add(dynamicObjectAwareType.getInternalName());
-                interfaceTypes.add(Type.getType(ExtensionAware.class).getInternalName());
+                interfaceTypes.add(extensionAwareType.getInternalName());
+                interfaceTypes.add(hasConventionType.getInternalName());
                 interfaceTypes.add(groovyObjectType.getInternalName());
             }
 
@@ -113,11 +116,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void mixInDynamicAware() throws Exception {
-            final Type helperType = Type.getType(MixInDynamicObject.class);
+            final Type helperType = Type.getType(MixInExtensibleDynamicObject.class);
 
-            // GENERATE private MixInDynamicObject dynamicObjectHelper = new MixInDynamicObject(this, super.getAsDynamicObject())
+            // GENERATE private MixInExtensibleDynamicObject dynamicObjectHelper = new MixInExtensibleDynamicObject(this, super.getAsDynamicObject())
 
-            final String fieldSignature = "L" + MixInDynamicObject.class.getName().replaceAll("\\.", "/") + ";";
+            final String fieldSignature = "L" + MixInExtensibleDynamicObject.class.getName().replaceAll("\\.", "/") + ";";
             visitor.visitField(Opcodes.ACC_PRIVATE, "dynamicObjectHelper", fieldSignature, null, null);
             initDynamicObjectHelper = new MethodCodeBody() {
                 public void add(MethodVisitor visitor) throws Exception {
@@ -125,11 +128,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                             Type.getType(Object.class), dynamicObjectType
                     });
 
-                    // GENERATE dynamicObjectHelper = new MixInDynamicObject(this, super.getAsDynamicObject())
+                    // GENERATE dynamicObjectHelper = new MixInExtensibleDynamicObject(this, super.getAsDynamicObject())
 
                     visitor.visitVarInsn(Opcodes.ALOAD, 0);
 
-                    // GENERATE new DynamicObjectHelper(this, super.getAsDynamicObject())
+                    // GENERATE new MixInExtensibleDynamicObject(this, super.getAsDynamicObject())
                     visitor.visitTypeInsn(Opcodes.NEW, helperType.getInternalName());
                     visitor.visitInsn(Opcodes.DUP);
 
@@ -161,7 +164,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE public Convention getConvention() { return dynamicObjectHelper.getConvention(); }
 
-            addGetter(DynamicObjectAware.class.getDeclaredMethod("getConvention"), new MethodCodeBody() {
+            addGetter(HasConvention.class.getDeclaredMethod("getConvention"), new MethodCodeBody() {
                 public void add(MethodVisitor visitor) throws Exception {
 
                     // GENERATE dynamicObjectHelper.getConvention()
@@ -169,7 +172,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     visitor.visitVarInsn(Opcodes.ALOAD, 0);
                     visitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), "dynamicObjectHelper",
                             fieldSignature);
-                    String getterDescriptor = Type.getMethodDescriptor(DynamicObjectHelper.class.getDeclaredMethod(
+                    String getterDescriptor = Type.getMethodDescriptor(ExtensibleDynamicObject.class.getDeclaredMethod(
                             "getConvention"));
                     visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, helperType.getInternalName(), "getConvention",
                             getterDescriptor);
@@ -180,13 +183,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE public ExtensionContainer getExtensions() { return getConvention(); }
 
-            addGetter(DynamicObjectAware.class.getDeclaredMethod("getExtensions"), new MethodCodeBody() {
+            addGetter(ExtensionAware.class.getDeclaredMethod("getExtensions"), new MethodCodeBody() {
                 public void add(MethodVisitor visitor) throws Exception {
 
                     // GENERATE getConvention()
 
                     visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    String getterDescriptor = Type.getMethodDescriptor(DynamicObjectHelper.class.getDeclaredMethod(
+                    String getterDescriptor = Type.getMethodDescriptor(ExtensibleDynamicObject.class.getDeclaredMethod(
                             "getConvention"));
                     visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getConvention",
                             getterDescriptor);
@@ -288,18 +291,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     visitor.visitInsn(Opcodes.ARETURN);
                 }
             });
-
-            // GENERATE public void setConventionMapping(ConventionMapping m) { mapping = m; }
-
-            addSetter(IConventionAware.class.getDeclaredMethod("setConventionMapping", ConventionMapping.class),
-                    new MethodCodeBody() {
-                        public void add(MethodVisitor visitor) {
-                            visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                            visitor.visitVarInsn(Opcodes.ALOAD, 1);
-                            visitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), "mapping",
-                                    mappingFieldSignature);
-                        }
-                    });
         }
 
         public void mixInGroovyObject() throws Exception {
@@ -699,19 +690,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         void add(MethodVisitor visitor) throws Exception;
     }
 
-    public static class MixInDynamicObject extends DynamicObjectHelper {
+    public static class MixInExtensibleDynamicObject extends ExtensibleDynamicObject {
 
-        private static Instantiator getInstantiator() {
-            Instantiator instantiator = ThreadGlobalInstantiator.get();
-            if (instantiator != null) {
-                return instantiator;
-            } else {
-                return new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator());
-            }
-        }
-
-        public MixInDynamicObject(Object delegateObject, DynamicObject dynamicObject) {
-            super(wrap(delegateObject, dynamicObject), new DefaultConvention(getInstantiator()));
+        public MixInExtensibleDynamicObject(Object delegateObject, DynamicObject dynamicObject) {
+            super(delegateObject, wrap(delegateObject, dynamicObject), ThreadGlobalInstantiator.getOrCreate());
         }
 
         private static AbstractDynamicObject wrap(Object delegateObject, DynamicObject dynamicObject) {

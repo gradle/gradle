@@ -16,7 +16,9 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.util.DeprecationLogger;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -25,14 +27,39 @@ import java.util.Map;
  *         DefaultExcludeRule is a value object
  */
 public class DefaultExcludeRule implements ExcludeRule {
-    private Map<String, String> excludeArgs;
+    private String group;
+    private String module;
 
-    public DefaultExcludeRule(Map<String, String> excludeArgs) {
-        this.excludeArgs = excludeArgs;
+    public DefaultExcludeRule(){
+    }
+
+    public DefaultExcludeRule(String group, String module) {
+        this.group = group;
+        this.module = module;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String groupValue) {
+        this.group = groupValue;
+    }
+
+    public String getModule() {
+        return module;
+    }
+
+    public void setModule(String moduleValue) {
+        this.module = moduleValue;
     }
 
     public Map<String, String> getExcludeArgs() {
-        return excludeArgs;
+        DeprecationLogger.nagUserWith("The getExcludeArgs method has been deprecated and will be removed in the next version of Gradle. Please use the getGroup() method or the getModule() method instead.");
+        Map excludeArgsAsMap = new HashMap();
+        excludeArgsAsMap.put(ExcludeRule.GROUP_KEY, group);
+        excludeArgsAsMap.put(ExcludeRule.MODULE_KEY, module);
+        return excludeArgsAsMap;
     }
 
     @Override
@@ -46,15 +73,19 @@ public class DefaultExcludeRule implements ExcludeRule {
 
         DefaultExcludeRule that = (DefaultExcludeRule) o;
 
-        if (excludeArgs != null ? !excludeArgs.equals(that.excludeArgs) : that.excludeArgs != null) {
+        if (group != null ? !group.equals(that.group) : that.group != null) {
             return false;
         }
-
+        if (module != null ? !module.equals(that.module) : that.module != null) {
+            return false;
+        }
         return true;
     }
 
     @Override
     public int hashCode() {
-        return excludeArgs != null ? excludeArgs.hashCode() : 0;
+        int result = group != null ? group.hashCode() : 0;
+        result = 31 * result + (module != null ? module.hashCode() : 0);
+        return result;
     }
 }

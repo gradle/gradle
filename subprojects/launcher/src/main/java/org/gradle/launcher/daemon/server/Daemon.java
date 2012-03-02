@@ -74,6 +74,14 @@ public class Daemon implements Runnable, Stoppable {
         handlersExecutor = executorFactory.create("Daemon Connection Handler");
     }
 
+    public String getUid() {
+        return daemonContext.getUid();
+    }
+
+    public Address getAddress() {
+        return connectorAddress;
+    }
+
     /**
      * Starts the daemon, receiving connections asynchronously (i.e. returns immediately).
      * 
@@ -101,8 +109,8 @@ public class Daemon implements Runnable, Stoppable {
                         public void run() {
                             try {
                                 command = (Command) connection.receive();
-                                LOGGER.info("Daemon (pid: {}) received command: {}", daemonContext.getPid(), command);
-                            } catch (RuntimeException e) {
+                                LOGGER.info("Daemon (pid: {}) received command: {}.", daemonContext.getPid(), command);
+                            } catch (Throwable e) {
                                 String message = String.format("Unable to receive command from connection: '%s'", connection);
                                 LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
                                 connection.dispatch(new DaemonFailure(new RuntimeException(message, e)));
@@ -113,7 +121,7 @@ public class Daemon implements Runnable, Stoppable {
                             try {
                                 LOGGER.debug(DaemonMessages.STARTED_EXECUTING_COMMAND + command + " with connection: " + connection + ".");
                                 commandExecuter.executeCommand(connection, command, daemonContext, stateCoordinator);
-                            } catch (RuntimeException e) {
+                            } catch (Throwable e) {
                                 String message = String.format("Uncaught exception when executing command: '%s' from connection: '%s'.", command, connection);
                                 LOGGER.warn(message + ". Dispatching the failure to the daemon client...", e);
                                 connection.dispatch(new DaemonFailure(new RuntimeException(message, e)));
@@ -155,7 +163,7 @@ public class Daemon implements Runnable, Stoppable {
 
             Runnable onStopRequested = new Runnable() {
                 public void run() {
-                    LOGGER.info("Stop requested. Daemon is removing its presence from the registry...");
+                    LOGGER.info(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP);
                     registryUpdater.onStop();
                 }
             };

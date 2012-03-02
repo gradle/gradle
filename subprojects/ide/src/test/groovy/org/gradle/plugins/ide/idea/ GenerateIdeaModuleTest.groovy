@@ -33,14 +33,14 @@ class GenerateIdeaModuleTest extends Specification {
     def "moduleName controls outputFile"() {
         given:
         applyPluginToProjects()
-        assert childProject.ideaModule.moduleName == "child"
+        assert childProject.idea.module.name == "child"
         def existingOutputFolder = childProject.ideaModule.outputFile.parentFile
 
         when:
-        childProject.ideaModule.moduleName = "foo"
+        childProject.idea.module.name = "foo"
 
         then:
-        childProject.ideaModule.moduleName == "foo"
+        childProject.idea.module.name == "foo"
         childProject.ideaModule.outputFile.name == "foo.iml"
         childProject.ideaModule.outputFile.parentFile == existingOutputFolder
     }

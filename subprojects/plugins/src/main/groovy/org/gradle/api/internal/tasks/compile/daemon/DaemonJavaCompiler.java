@@ -16,27 +16,29 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.JavaCompiler;
-import org.gradle.api.internal.tasks.compile.JavaCompilerSupport;
+import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.UncheckedException;
 
-public class DaemonJavaCompiler extends JavaCompilerSupport {
+public class DaemonJavaCompiler implements Compiler<JavaCompileSpec> {
     private final ProjectInternal project;
-    private final JavaCompiler delegate;
+    private final Compiler<JavaCompileSpec> delegate;
 
-    public DaemonJavaCompiler(ProjectInternal project, JavaCompiler delegate) {
+    public DaemonJavaCompiler(ProjectInternal project, Compiler<JavaCompileSpec> delegate) {
         this.project = project;
         this.delegate = delegate;
     }
 
-    public WorkResult execute() {
-        configure(delegate);
-        CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project);
-        CompileResult result = daemon.execute(delegate);
+    public WorkResult execute(JavaCompileSpec spec) {
+        CompileOptions compileOptions = spec.getCompileOptions();
+        DaemonForkOptions forkOptions = new DaemonForkOptions(compileOptions.getForkOptions());
+        CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project, forkOptions);
+        CompileResult result = daemon.execute(delegate, spec);
         if (result.isSuccess()) {
             return result;
         }
-        throw UncheckedException.asUncheckedException(result.getException());
+        throw UncheckedException.throwAsUncheckedException(result.getException());
     }
 }

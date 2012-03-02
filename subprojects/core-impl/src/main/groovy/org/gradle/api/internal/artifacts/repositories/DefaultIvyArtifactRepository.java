@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.repositories.layout.*;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
 
 import java.net.URI;
@@ -45,30 +44,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.transportFactory = transportFactory;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
         this.layout = new GradleRepositoryLayout();
-    }
-
-    public String getUserName() {
-        nagUser("userName", "username");
-        return getCredentials().getUsername();
-    }
-
-    public void setUserName(String username) {
-        nagUser("userName", "username");
-        getCredentials().setUsername(username);
-    }
-
-    public String getPassword() {
-        nagUser("password", "password");
-        return getCredentials().getPassword();
-    }
-
-    public void setPassword(String password) {
-        nagUser("password", "password");
-        getCredentials().setPassword(password);
-    }
-
-    private void nagUser(String propertyName, String replacementName) {
-        DeprecationLogger.nagUserWith(String.format("The IvyArtifactRepository.%s property has been deprecated. Please credentials { %s = 'value' } instead.", propertyName, replacementName));
     }
 
     public DependencyResolver createResolver() {

@@ -61,7 +61,7 @@ public class LazyConnection implements ConsumerConnection {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
             connection = this.connection;

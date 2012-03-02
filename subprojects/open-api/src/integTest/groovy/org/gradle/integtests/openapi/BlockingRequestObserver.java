@@ -128,7 +128,7 @@ public class BlockingRequestObserver implements RequestObserverVersion1 {
                 throw failure;
             }
         } catch(Throwable t) {
-            throw UncheckedException.asUncheckedException(t);
+            throw UncheckedException.throwAsUncheckedException(t);
         } finally {
             lock.unlock();
         }

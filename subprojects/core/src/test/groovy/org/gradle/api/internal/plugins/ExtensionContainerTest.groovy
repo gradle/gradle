@@ -18,18 +18,17 @@ package org.gradle.api.internal.plugins;
 
 
 import org.gradle.api.UnknownDomainObjectException
-import spock.lang.Specification
+import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.DirectInstantiator
+import org.gradle.api.plugins.ExtraPropertiesExtension
+import spock.lang.Specification
 
 /**
  * @author: Szczepan Faber, created at: 6/24/11
  */
 public class ExtensionContainerTest extends Specification {
 
-    def container = new DefaultConvention(new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator()))
+    def container = new DefaultConvention(ThreadGlobalInstantiator.getOrCreate())
     def extension = new FooExtension()
     def barExtension = new BarExtension()
 
@@ -40,6 +39,11 @@ public class ExtensionContainerTest extends Specification {
     class BarExtension {}
     class SomeExtension {}
 
+    def "has dynamic extension"() {
+        expect:
+        container.getByName(ExtraPropertiesExtension.EXTENSION_NAME) == container.extraProperties
+    }
+    
     def "extension can be accessed and configured"() {
         when:
         container.add("foo", extension)
@@ -129,7 +133,7 @@ public class ExtensionContainerTest extends Specification {
 
         then:
         def ex = thrown(UnknownDomainObjectException)
-        ex.message == "Extension with name 'i don't exist' does not exist. Currently registered extension names: [foo]"
+        ex.message == "Extension with name 'i don't exist' does not exist. Currently registered extension names: [${ExtraPropertiesExtension.EXTENSION_NAME}, foo]"
     }
 
     def "throws when unknown extension wanted by type"() {
@@ -140,7 +144,7 @@ public class ExtensionContainerTest extends Specification {
 
         then:
         def ex = thrown(UnknownDomainObjectException)
-        ex.message == "Extension of type 'SomeExtension' does not exist. Currently registered extension types: [FooExtension]"
+        ex.message == "Extension of type 'SomeExtension' does not exist. Currently registered extension types: [${DefaultExtraPropertiesExtension.simpleName}, FooExtension]"
     }
 
     def "types can be retrieved by interface and super types"() {
@@ -168,7 +172,7 @@ public class ExtensionContainerTest extends Specification {
         extension instanceof ExtensionAware
         
         when:
-        extension.extensions.add("thing", Thing, "bar")
+        extension.extensions.create("thing", Thing, "bar")
         
         then:
         extension.thing.name == "bar"

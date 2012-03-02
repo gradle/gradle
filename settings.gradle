@@ -41,6 +41,7 @@ include 'native'
 include 'internalTesting'
 include 'internalIntegTesting'
 include 'website'
+include 'performance'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

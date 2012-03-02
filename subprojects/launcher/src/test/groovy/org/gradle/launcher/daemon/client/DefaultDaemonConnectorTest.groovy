@@ -15,9 +15,9 @@
  */
 package org.gradle.launcher.daemon.client
 
-import org.gradle.api.GradleException
 import org.gradle.api.specs.Spec
 import org.gradle.launcher.daemon.context.DaemonContext
+import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.internal.Connection
@@ -26,6 +26,7 @@ import spock.lang.Specification
 
 class DefaultDaemonConnectorTest extends Specification {
 
+    def javaHome = new File("tmp")
     def connectTimeoutSecs = 1
     def daemonCounter = 0
 
@@ -52,17 +53,26 @@ class DefaultDaemonConnectorTest extends Specification {
         def connector = new DefaultDaemonConnector(
                 new EmbeddedDaemonRegistry(),
                 createOutgoingConnector(),
-                { startNewDaemon() }
+                { startBusyDaemon() } as DaemonStarter
         )
         connector.connectTimeout = connectTimeoutSecs * 1000
         connector
     }
 
-    def startNewDaemon() {
+    def startBusyDaemon() {
         def daemonNum = daemonCounter++
-        def context = [:] as DaemonContext
-        context.metaClass.num = daemonNum
-        registry.store(createAddress(daemonNum), context, "password")
+        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [])
+        def address = createAddress(daemonNum)
+        registry.store(address, context, "password")
+        registry.markBusy(address)
+        return daemonNum.toString()
+    }
+
+    def startIdleDaemon() {
+        def daemonNum = daemonCounter++
+        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [])
+        def address = createAddress(daemonNum)
+        registry.store(address, context, "password")
     }
 
     def theConnector
@@ -84,40 +94,40 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def "maybeConnect() returns connection to any daemon that matches spec"() {
         given:
-        startNewDaemon()
-        startNewDaemon()
+        startIdleDaemon()
+        startIdleDaemon()
         
         expect:
-        def connection = connector.maybeConnect({it.num < 12} as Spec)
+        def connection = connector.maybeConnect({it.pid < 12} as Spec)
         connection && connection.connection.num < 12
     }
 
     def "maybeConnect() returns null when no daemon matches spec"() {
         given:
-        startNewDaemon()
-        startNewDaemon()
+        startIdleDaemon()
+        startIdleDaemon()
 
         expect:
-        connector.maybeConnect({it.num == 12} as Spec) == null
+        connector.maybeConnect({it.pid == 12} as Spec) == null
     }
 
     def "maybeConnect() ignores daemons that do not match spec"() {
         given:
-        startNewDaemon()
-        startNewDaemon()
+        startIdleDaemon()
+        startIdleDaemon()
 
         expect:
-        def connection = connector.maybeConnect({it.num == 1} as Spec)
+        def connection = connector.maybeConnect({it.pid == 1} as Spec)
         connection && connection.connection.num == 1
     }
 
     def "connect() returns connection to any existing daemon that matches spec"() {
         given:
-        startNewDaemon()
-        startNewDaemon()
+        startIdleDaemon()
+        startIdleDaemon()
 
         expect:
-        def connection = connector.connect({it.num < 12} as Spec)
+        def connection = connector.connect({it.pid < 12} as Spec)
         connection && connection.connection.num < 12
 
         and:
@@ -126,10 +136,10 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def "connect() starts a new daemon when no daemon matches spec"() {
         given:
-        startNewDaemon()
+        startIdleDaemon()
 
         expect:
-        def connection = connector.connect({it.num > 0} as Spec)
+        def connection = connector.connect({it.pid > 0} as Spec)
         connection && connection.connection.num > 0
 
         and:
@@ -138,23 +148,23 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def "connect() will not use existing connection if it fails the compatibility spec"() {
         given:
-        startNewDaemon()
+        startIdleDaemon()
 
         expect:
-        def connection = connector.connect({it.num != 0} as Spec)
+        def connection = connector.connect({it.pid != 0} as Spec)
         connection && connection.connection.num != 0
 
         and:
         numAllDaemons == 2
     }
 
-    def "connect() will error if daemon started by connector fails compatibility spec"() {
+    def "connect() will use daemon started by connector even if it fails compatibility spec"() {
         when:
-        connector.connect({false} as Spec)
+        def connection = connector.connect({false} as Spec)
+        connection && connection.connection.num == 0
 
         then:
-        GradleException e = thrown()
-        e.message.startsWith "Timeout waiting to connect to Gradle daemon"
+        numAllDaemons == 1
     }
 
 

@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.binaries.model;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.DomainObjectSet;
@@ -22,10 +23,16 @@ import org.gradle.api.DomainObjectSet;
 /**
  * Something to be created.
  */
-public interface Binary extends Named {
+public interface Binary extends Named, Buildable {
 
     CompileSpec getSpec();
 
+    /**
+     * Returns the project that this binary is built by.
+     *
+     * @deprecated No replacement
+     */
+    @Deprecated
     Project getProject();
     
     DomainObjectSet<SourceSet> getSourceSets();

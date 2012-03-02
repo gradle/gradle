@@ -15,6 +15,12 @@
  */
 package org.gradle.api.tasks.bundling;
 
+import org.gradle.util.DeprecationLogger;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Specifies the compression which should be applied to a TAR archive.
  * 
@@ -22,16 +28,32 @@ package org.gradle.api.tasks.bundling;
  */
 public enum Compression {
     NONE("tar"),
-    GZIP("tgz"),
-    BZIP2("tbz2");
+    GZIP("tgz", "gz"),
+    BZIP2("tbz2", "bz2");
 
-    private final String extension;
+    private final String defaultExtension;
+    private final List<String> supportedExtensions = new ArrayList<String>(2);
 
-    private Compression(String extension) {
-        this.extension = extension;
+    private Compression(String defaultExtension, String... additionalSupportedExtensions) {
+        this.defaultExtension = defaultExtension;
+        this.supportedExtensions.addAll(Arrays.asList(additionalSupportedExtensions));
+        this.supportedExtensions.add(defaultExtension);
     }
 
+    /**
+     * <p>Returns the file extension of the type of Compression.</p>
+     * @deprecated Use {@link #getDefaultExtension()} instead.
+     */
     public String getExtension() {
-        return extension;
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Compression.getExtension()");
+        return defaultExtension;
+    }
+
+    public String getDefaultExtension(){
+        return defaultExtension;
+    }
+
+    public List<String> getSupportedExtensions(){
+        return supportedExtensions;
     }
 }

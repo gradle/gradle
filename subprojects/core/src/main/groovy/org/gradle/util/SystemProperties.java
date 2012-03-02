@@ -15,10 +15,17 @@
  */
 package org.gradle.util;
 
+import java.util.Map;
+
 /**
  * Provides access to frequently used system properties.
  */
 public class SystemProperties {
+    @SuppressWarnings("unchecked")
+    public static Map<String, String> asMap() {
+        return (Map) System.getProperties();
+    }
+
     public static String getLineSeparator() {
         return System.getProperty("line.separator");
     }

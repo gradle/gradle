@@ -19,7 +19,7 @@ package org.gradle.api.plugins.announce.internal;
 
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.plugins.announce.Announcer
-import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 
 /**
  * This class wraps the Ubuntu Notify Send functionality.

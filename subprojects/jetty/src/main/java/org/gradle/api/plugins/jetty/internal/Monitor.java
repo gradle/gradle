@@ -16,16 +16,16 @@
 
 package org.gradle.api.plugins.jetty.internal;
 
+import org.mortbay.jetty.Server;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-
-import org.mortbay.jetty.Server;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Monitor <p/> Listens for stop commands eg via mvn jetty:stop and causes jetty to stop either by exiting the jvm, or
@@ -36,12 +36,12 @@ public class Monitor extends Thread {
     private static final Logger LOGGER = LoggerFactory.getLogger(Monitor.class);
 
     private String key;
-    private Server[] servers;
 
     ServerSocket serverSocket;
-    boolean kill;
+    private final Server server;
 
-    public Monitor(int port, String key, Server[] servers, boolean kill) throws IOException {
+    public Monitor(int port, String key, Server server) throws IOException {
+        this.server = server;
         if (port <= 0) {
             throw new IllegalStateException("Bad stop port");
         }
@@ -50,8 +50,6 @@ public class Monitor extends Thread {
         }
 
         this.key = key;
-        this.servers = servers;
-        this.kill = kill;
         setDaemon(true);
         setName("StopJettyPluginMonitor");
         serverSocket = new ServerSocket(port, 1, InetAddress.getByName("127.0.0.1"));
@@ -90,19 +88,15 @@ public class Monitor extends Thread {
 
                     serverSocket = null;
 
-                    if (kill) {
-                        LOGGER.info("Killing Jetty");
-                        System.exit(0);
-                    } else {
-                        for (int i = 0; servers != null && i < servers.length; i++) {
-                            try {
-                                LOGGER.info("Stopping server " + i);
-                                servers[i].stop();
-                            } catch (Exception e) {
-                                LOGGER.error("Exception when stopping server", e);
-                            }
-                        }
+                    try {
+                        LOGGER.info("Stopping server due to received '{}' command...", cmd);
+                        server.stop();
+                    } catch (Exception e) {
+                        LOGGER.error("Exception when stopping server", e);
                     }
+
+                    //We've stopped the server. No point hanging around any more...
+                    return;
                 } else {
                     LOGGER.info("Unsupported monitor operation");
                 }

@@ -15,36 +15,42 @@
  */
 package org.gradle.api.internal.tasks.compile.jdk6;
 
-import org.gradle.api.internal.tasks.compile.CommandLineJavaCompilerSupport;
-import org.gradle.api.internal.tasks.compile.CompilationFailedException;
-import org.gradle.api.internal.tasks.compile.SimpleWorkResult;
+import org.gradle.api.internal.tasks.compile.*;
+import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.List;
 
-public class Jdk6JavaCompiler extends CommandLineJavaCompilerSupport {
+public class Jdk6JavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Jdk6JavaCompiler.class);
 
-    public WorkResult execute() {
-        LOGGER.info("Compiling using JDK 6 Java Compiler API.");
-        listFilesIfRequested();
+    public WorkResult execute(JavaCompileSpec spec) {
+        LOGGER.info("Compiling with JDK 6 Java compiler API.");
 
-        List<String> options = generateCommandLineOptions();
-        javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
-        Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(source);
-        javax.tools.JavaCompiler.CompilationTask task = compiler.getTask(null, null, null, options, null, compilationUnits);
-
+        JavaCompiler.CompilationTask task = createCompileTask(spec);
         boolean success = task.call();
-        if (!success && compileOptions.isFailOnError()) {
+        if (!success) {
             throw new CompilationFailedException();
         }
+
         return new SimpleWorkResult(true);
+    }
+
+    private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec) {
+        List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        CompileOptions compileOptions = spec.getCompileOptions();
+        StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null);
+        Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(spec.getSource());
+        return compiler.getTask(null, null, null, options, null, compilationUnits);
     }
 }

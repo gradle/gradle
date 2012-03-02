@@ -44,9 +44,6 @@ public class ModelMapping {
 
     static Map<Class<? extends Model>, Class> getModelsUpToM6() {
         Map<Class<? extends Model>, Class> map = new HashMap<Class<? extends Model>, Class>();
-        map.put(Project.class, ProjectVersion3.class);
-        map.put(BuildableProject.class, BuildableProjectVersion1.class);
-        map.put(HierarchicalProject.class, HierarchicalProjectVersion1.class);
         map.put(HierarchicalEclipseProject.class, HierarchicalEclipseProjectVersion1.class);
         map.put(EclipseProject.class, EclipseProjectVersion3.class);
         map.put(IdeaProject.class, InternalIdeaProject.class);

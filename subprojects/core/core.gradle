@@ -37,9 +37,6 @@ dependencies {
     compile libraries.guava
     compile libraries.jcip
     compile libraries.jul_to_slf4j
-    compile module('org.fusesource.jansi:jansi:1.2.1') {
-        dependency libraries.jna
-    }
 
     compile project(":cli")
     compile project(":native")
@@ -59,7 +56,6 @@ dependencies {
 
     reports 'css3-pie:css3-pie:1.0beta3'
 }
-useTestFixtures(project: ':native')
 
 test {
     jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'

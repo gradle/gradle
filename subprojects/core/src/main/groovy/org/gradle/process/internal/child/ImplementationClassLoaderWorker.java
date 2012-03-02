@@ -59,7 +59,7 @@ public class ImplementationClassLoaderWorker implements Action<WorkerContext>, S
 
         ClassLoader applicationClassLoader = workerContext.getApplicationClassLoader();
         FilteringClassLoader filteredApplication = new FilteringClassLoader(applicationClassLoader);
-        ObservableUrlClassLoader implementationClassLoader = createImplementationClassLoader(filteredWorkerClassLoader,
+        MutableURLClassLoader implementationClassLoader = createImplementationClassLoader(filteredWorkerClassLoader,
                 filteredApplication);
 
         // Configure classpaths
@@ -75,7 +75,7 @@ public class ImplementationClassLoaderWorker implements Action<WorkerContext>, S
                     implementationClassLoader);
             action = (Action<WorkerContext>) instr.readObject();
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         action.execute(workerContext);
     }
@@ -84,7 +84,7 @@ public class ImplementationClassLoaderWorker implements Action<WorkerContext>, S
         return LoggingServiceRegistry.newChildProcessLogging().newInstance(LoggingManagerInternal.class);
     }
 
-    ObservableUrlClassLoader createImplementationClassLoader(ClassLoader system, ClassLoader application) {
-        return new ObservableUrlClassLoader(new MultiParentClassLoader(application, system));
+    MutableURLClassLoader createImplementationClassLoader(ClassLoader system, ClassLoader application) {
+        return new MutableURLClassLoader(new MultiParentClassLoader(application, system));
     }
 }

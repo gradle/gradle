@@ -99,7 +99,8 @@ class SamplesJavaMultiProjectIntegrationTest {
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/shared/Person.class',
-                'org/gradle/shared/package-info.class',
+                // package-info.java only gets compiled into class if it contains at least one annotation
+                // 'org/gradle/shared/package-info.class',
                 'org/gradle/shared/main.properties'
         )
 

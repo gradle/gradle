@@ -26,8 +26,11 @@ import java.util.List;
 
 public class DependencyResolverIdentifier {
     private final String resolverId;
+    private final String resolverName;
 
     public DependencyResolverIdentifier(DependencyResolver resolver) {
+        resolverName = resolver.getName();
+
         List<String> parts = new ArrayList<String>();
         parts.add(resolver.getClass().getName());
         if (resolver instanceof ResourceCollectionResolver) {
@@ -61,7 +64,11 @@ public class DependencyResolverIdentifier {
         return HashUtil.createHash(idString, "MD5").asHexString();
     }
 
-    public String getId() {
+    public String getUniqueId() {
         return resolverId;
+    }
+
+    public String getName() {
+        return resolverName;
     }
 }

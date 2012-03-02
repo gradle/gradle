@@ -29,7 +29,7 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.CopyActionImpl
 import org.gradle.api.internal.file.copy.CopySpecImpl
 import org.gradle.api.internal.tasks.TaskResolver
-import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecException
 import org.gradle.util.ClasspathUtil

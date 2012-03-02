@@ -17,7 +17,7 @@ package org.gradle.api.plugins.announce.internal
 
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.plugins.announce.AnnouncePluginExtension
-import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
 

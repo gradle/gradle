@@ -57,12 +57,11 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer {
         if (currentLevel == logLevel) {
             return;
         }
-
         try {
             doConfigure(logLevel);
         } catch (Throwable e) {
             doFailsafeConfiguration();
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

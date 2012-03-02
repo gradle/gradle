@@ -58,14 +58,14 @@ public class ScalaPluginTest {
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the main Scala source.'))
         assertThat(task.classpath, equalTo(project.sourceSets.main.compileClasspath))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.scala))
+        assertThat(task.source as List, equalTo(project.sourceSets.main.scala  as List))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME))
 
         task = project.tasks['compileTestScala']
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the test Scala source.'))
         assertThat(task.classpath, equalTo(project.sourceSets.test.compileClasspath))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.test.scala))
+        assertThat(task.source as List, equalTo(project.sourceSets.test.scala as List))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
     }
 
@@ -86,7 +86,7 @@ public class ScalaPluginTest {
         assertThat(task, instanceOf(ScalaDoc.class))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.scala))
+        assertThat(task.source as List, equalTo(project.sourceSets.main.scala as List))
         assertThat(task.classpath, Matchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }
@@ -94,7 +94,7 @@ public class ScalaPluginTest {
     @Test public void configuresScalaDocTasksDefinedByTheBuildScript() {
         scalaPlugin.apply(project)
 
-        def task = project.createTask('otherScaladoc', type: ScalaDoc)
+        def task = project.task('otherScaladoc', type: ScalaDoc)
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.classpath, Matchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
     }

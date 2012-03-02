@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.server
 import org.gradle.BuildResult
 import org.gradle.GradleLauncher
 import org.gradle.configuration.GradleLauncherMetaData
+import org.gradle.initialization.DefaultGradleLauncherFactory
 import org.gradle.initialization.GradleLauncherAction
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.launcher.daemon.client.DaemonClient
@@ -29,6 +30,7 @@ import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput
 import org.gradle.launcher.exec.DefaultBuildActionParameters
+import org.gradle.logging.LoggingManagerInternal
 import org.gradle.messaging.concurrent.ExecutorFactory
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
@@ -39,7 +41,7 @@ import spock.lang.Specification
  */
 class DaemonServerExceptionHandlingTest extends Specification {
 
-    @Rule def temp = new TemporaryFolder()
+    @Rule TemporaryFolder temp = new TemporaryFolder()
     def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), 0, new HashMap(System.properties), [:], temp.dir)
 
     static class DummyLauncherAction implements GradleLauncherAction, Serializable {
@@ -67,31 +69,53 @@ class DaemonServerExceptionHandlingTest extends Specification {
         ex.message.contains("Unable to receive command from connection")
     }
 
-    def "sends back the failure when daemon failure happens after listening for input"() {
-        given:
+    EmbeddedDaemonClientServices servicesWith(Closure configureDeamonActions) {
         //we need to override some methods to inject a failure action into the sequence
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
-                return new DefaultDaemonCommandExecuter(loggingServices, get(ExecutorFactory), get(ProcessEnvironment)) {
+                return new DefaultDaemonCommandExecuter(new DefaultGradleLauncherFactory(loggingServices), get(ExecutorFactory),
+                        get(ProcessEnvironment), loggingServices.getFactory(LoggingManagerInternal.class).create(), new File("dummy")) {
                     List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
-                        def actions = super.createActions(daemonContext);
-                        def failingAction = { throw new RuntimeException("boo!") } as DaemonCommandAction
-                        //we need to inject the failing action in an appropriate place in the sequence
-                        //that is after the ForwardClientInput
-                        actions.add(actions.findIndexOf { it instanceof ForwardClientInput } + 1, failingAction)
+                        def actions = new LinkedList(super.createActions(daemonContext));
+                        configureDeamonActions(actions);
                         return actions
                     }
                 }
             }
         }
+        services
+    }
 
-        def client = services.get(DaemonClient.class)
+    def "sends back any Throwable when daemon failure happens after listening for input"() {
+        given:
+        def services = servicesWith { daemonActions ->
+            def throwsError = { throw new Error("boo!") } as DaemonCommandAction
+            //we need to inject the failing action in an appropriate place in the sequence
+            //that is after the ForwardClientInput
+            daemonActions.add(daemonActions.findIndexOf { it instanceof ForwardClientInput } + 1, throwsError)
+        }
 
         when:
-        client.execute(new DummyLauncherAction(), parameters)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), parameters)
+
+        then:
+        def ex = thrown(Throwable)
+        ex.message.contains('boo!')
+    }
+
+    def "reports any Throwable that might happen before client receives the output"() {
+        given:
+        //we need to override some methods to inject a failure action into the sequence
+        def services = servicesWith { daemonActions ->
+            def oome = { throw new OutOfMemoryError("Buy more ram, dude!") } as DaemonCommandAction
+            daemonActions.add(0, oome)
+        }
+
+        when:
+        services.get(DaemonClient).execute(new DummyLauncherAction(), parameters)
 
         then:
         def ex = thrown(RuntimeException)
-        ex.message == 'boo!'
+        ex.cause.message.contains 'Buy more ram'
     }
 }

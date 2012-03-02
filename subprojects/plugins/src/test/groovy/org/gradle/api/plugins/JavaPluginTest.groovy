@@ -137,16 +137,16 @@ class JavaPluginTest {
         def task = project.tasks[JavaPlugin.PROCESS_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
         assertThat(task, dependsOn())
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.resources))
+        assertThat(task.source, sameCollection(project.sourceSets.main.resources))
         assertThat(task.destinationDir, equalTo(project.sourceSets.main.output.resourcesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_JAVA_TASK_NAME]
         assertThat(task, instanceOf(Compile))
         assertThat(task, dependsOn())
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.java))
         assertThat(task.classpath, sameInstance(project.sourceSets.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.sourceSets.main.output.classesDir))
-
+        assertThat(task.source, sameCollection(project.sourceSets.main.java))
+        
         task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
         assertThat(task, dependsOn(JavaPlugin.PROCESS_RESOURCES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME))
@@ -154,15 +154,15 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
         assertThat(task, dependsOn())
-        assertThat(task.defaultSource, equalTo(project.sourceSets.test.resources))
+        assertThat(task.source, sameCollection(project.sourceSets.test.resources))
         assertThat(task.destinationDir, equalTo(project.sourceSets.test.output.resourcesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME]
         assertThat(task, instanceOf(Compile))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.test.java))
         assertThat(task.classpath, sameInstance(project.sourceSets.test.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.sourceSets.test.output.classesDir))
+        assertThat(task.source, sameCollection(project.sourceSets.test.java))
 
         task = project.tasks[JavaPlugin.TEST_CLASSES_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))

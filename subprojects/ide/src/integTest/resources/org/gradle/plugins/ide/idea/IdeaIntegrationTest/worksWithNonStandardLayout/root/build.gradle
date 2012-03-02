@@ -1,4 +1,6 @@
 allprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
+
+    sourceCompatibility = 1.5
 }

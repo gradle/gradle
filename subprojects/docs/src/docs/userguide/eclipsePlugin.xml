@@ -271,11 +271,11 @@
     <section>
         <title>Customizing the generated files</title>
         <para>
-            The Eclipse plugin allows you to customise the generated metadata files. The plugin provides a DSL for configurinh model objects
+            The Eclipse plugin allows you to customise the generated metadata files. The plugin provides a DSL for configuring model objects
             that model the Eclipse view of the project. These model objects are then merged with the existing Eclipse XML metadata to ultimately
             generate new metadata. The model objects provide lower level hooks for working with domain objects representing the file content 
             before and after merging with the model configuration. They also provide a very low level hook for working directly with the raw 
-            XML for adjustment before it is persisted, for fine tuning and and configuration that the Eclipse plugin does not model.
+            XML for adjustment before it is persisted, for fine tuning and configuration that the Eclipse plugin does not model.
         </para>
         <section>
             <title>Merging</title>

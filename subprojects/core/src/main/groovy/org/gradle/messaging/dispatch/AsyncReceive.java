@@ -127,7 +127,7 @@ public class AsyncReceive<T> implements AsyncStoppable {
                     try {
                         condition.await();
                     } catch (InterruptedException e) {
-                        throw UncheckedException.asUncheckedException(e);
+                        throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
                 if (state != State.Init) {

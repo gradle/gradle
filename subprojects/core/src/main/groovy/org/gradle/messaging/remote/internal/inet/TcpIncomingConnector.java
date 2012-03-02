@@ -66,7 +66,7 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
             serverSocket.socket().bind(new InetSocketAddress(0));
             localPort = serverSocket.socket().getLocalPort();
         } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         Object id = idGenerator.generateId();

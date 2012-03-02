@@ -70,7 +70,7 @@ public class DaemonStateCoordinator implements Stoppable {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         } finally {
@@ -123,7 +123,7 @@ public class DaemonStateCoordinator implements Stoppable {
                         throw new IllegalStateException("waiting for daemon to stop or idle timeout, daemon has started but is not busy or idle, this shouldn't happen");
                     }
                 } catch (InterruptedException e) {
-                    throw UncheckedException.asUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         } finally {

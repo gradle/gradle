@@ -18,23 +18,23 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import java.awt.Point
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.DirectInstantiator
 import org.gradle.api.internal.Instantiator
+import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import spock.lang.Specification
-import org.gradle.api.Task
 
 /**
  * @author Hans Dockter
  */
 public class DefaultPublishArtifactFactoryTest extends Specification {
     final DependencyMetaDataProvider provider = Mock()
-    final Instantiator instantiator = new DirectInstantiator()
+    final Instantiator instantiator = ThreadGlobalInstantiator.getOrCreate()
     final DefaultPublishArtifactFactory publishArtifactFactory = new DefaultPublishArtifactFactory(instantiator, provider)
 
     def setup() {

@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.launcher.daemon.protocol.BuildAndStop;
 import org.gradle.launcher.daemon.protocol.Stop;
 
 /**
@@ -31,7 +32,13 @@ public class HandleStop implements DaemonCommandAction {
             */
             execution.getDaemonStateCoordinator().requestStop();
         } else {
-            execution.proceed();
+            try {
+                execution.proceed();
+            } finally {
+                if (execution.getCommand() instanceof BuildAndStop) {
+                    execution.getDaemonStateCoordinator().requestStop();
+                }
+            }
         }
     }
 }

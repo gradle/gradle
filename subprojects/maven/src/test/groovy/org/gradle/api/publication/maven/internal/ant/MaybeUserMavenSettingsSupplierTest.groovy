@@ -17,8 +17,9 @@
 package org.gradle.api.publication.maven.internal.ant
 
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations
+
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 
 /**
  * @author Szczepan Faber, created at: 3/29/11
@@ -31,9 +32,9 @@ class MaybeUserMavenSettingsSupplierTest extends Specification {
     def "supplies empty settings when user settings not found"() {
         given:
         supplier.emptySettingsSupplier = Mock(EmptyMavenSettingsSupplier)
-        supplier.mavenSettingsProvider = Mock(MavenSettingsProvider)
+        supplier.mavenFileLocations = Mock(DefaultMavenFileLocations)
 
-        supplier.mavenSettingsProvider.getUserSettingsFile() >> { new File('does not exist') }
+        supplier.mavenFileLocations.getUserSettingsFile() >> { new File('does not exist') }
 
         when:
         supplier.supply(support)
@@ -47,11 +48,11 @@ class MaybeUserMavenSettingsSupplierTest extends Specification {
     def "supplies user settings when file exists"() {
         given:
         supplier.emptySettingsSupplier = Mock(EmptyMavenSettingsSupplier)
-        supplier.mavenSettingsProvider = Mock(MavenSettingsProvider)
+        supplier.mavenFileLocations = Mock(DefaultMavenFileLocations)
 
         def concreteFile = File.createTempFile('I exist', ', really')
         concreteFile.deleteOnExit()
-        supplier.mavenSettingsProvider.getUserSettingsFile() >> { concreteFile }
+        supplier.mavenFileLocations.getUserSettingsFile() >> { concreteFile }
 
         when:
         supplier.supply(support)

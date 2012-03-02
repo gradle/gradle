@@ -15,33 +15,38 @@
  */
 package org.gradle.launcher.cli
 
+import org.gradle.BuildResult
+import org.gradle.GradleLauncher
+import org.gradle.StartParameter
+import org.gradle.cli.CommandLineArgumentException
+import org.gradle.cli.CommandLineConverter
+import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.internal.Factory
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.cli.CommandLineConverter
+import org.gradle.launcher.daemon.bootstrap.DaemonMain
+import org.gradle.launcher.exec.ExceptionReportingAction
+import org.gradle.launcher.exec.ExecutionListener
 import org.gradle.logging.LoggingConfiguration
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.*
-import org.gradle.cli.CommandLineArgumentException
-import org.gradle.initialization.GradleLauncherFactory
-
-import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.launcher.daemon.bootstrap.DaemonMain
-import org.gradle.launcher.exec.ExceptionReportingAction
-import org.gradle.launcher.exec.ExecutionListener
 
 import static org.gradle.launcher.cli.CommandLineActionFactory.*
+import org.gradle.internal.os.OperatingSystem
 
 class CommandLineActionFactoryTest extends Specification {
     @Rule
     public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties();
+    @Rule
+    TemporaryFolder tmpDir = new TemporaryFolder();
     final ExecutionListener buildCompleter = Mock()
     final CommandLineConverter<StartParameter> startParameterConverter = Mock()
     final GradleLauncherFactory gradleLauncherFactory = Mock()
@@ -232,5 +237,20 @@ class CommandLineActionFactoryTest extends Specification {
         action.action instanceof ExceptionReportingAction
         action.action.action instanceof ActionAdapter
         action.action.action.action instanceof DaemonMain
+    }
+
+    def executesBuildWithSingleUseDaemonIfJavaHomeIsNotCurrent() {
+        when:
+        def javaHome = tmpDir.createDir("javahome")
+        javaHome.createFile(OperatingSystem.current().getExecutableName("bin/java"))
+
+        System.properties['org.gradle.java.home'] = javaHome.canonicalPath
+        def action = factory.convert([])
+
+        then:
+        action instanceof WithLoggingAction
+        action.action instanceof ExceptionReportingAction
+        action.action.action instanceof ActionAdapter
+        action.action.action.action instanceof DaemonBuildAction
     }
 }

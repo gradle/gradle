@@ -31,7 +31,6 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.*;
 import org.jmock.Expectations;
@@ -41,7 +40,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import spock.lang.Issue;
 
-import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.util.Matchers.dependsOn;
@@ -94,7 +92,6 @@ public abstract class AbstractTaskTest {
         assertNull(getTask().getDescription());
         assertSame(project, getTask().getProject());
         assertNotNull(getTask().getStandardOutputCapture());
-        assertEquals(new HashMap(), getTask().getAdditionalProperties());
         assertNotNull(getTask().getInputs());
         assertNotNull(getTask().getOutputs());
         assertNotNull(getTask().getOnlyIf());
@@ -170,19 +167,6 @@ public abstract class AbstractTaskTest {
 
     public void setProject(AbstractProject project) {
         this.project = project;
-    }
-
-    @Test
-    public void disableStandardOutCapture() {
-        getTask().disableStandardOutputCapture();
-        assertFalse(getTask().getLogging().isStandardOutputCaptureEnabled());
-    }
-
-    @Test
-    public void captureStandardOut() {
-        getTask().captureStandardOutput(LogLevel.DEBUG);
-        assertTrue(getTask().getLogging().isStandardOutputCaptureEnabled());
-        assertEquals(LogLevel.DEBUG, getTask().getLogging().getStandardOutputCaptureLevel());
     }
 
     @Test

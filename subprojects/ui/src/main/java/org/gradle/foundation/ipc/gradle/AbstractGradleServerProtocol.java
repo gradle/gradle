@@ -25,7 +25,7 @@ import org.gradle.foundation.ipc.basic.ExecutionInfo;
 import org.gradle.foundation.ipc.basic.MessageObject;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.util.Jvm;
 
@@ -251,7 +251,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
         CommandLineAssistant commandLineAssistant = new CommandLineAssistant();
 
         //add whatever the user ran
-        String[] individualCommandLineArguments = commandLineAssistant.breakUpCommandLine(commandLine);
+        String[] individualCommandLineArguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         executionCommandLine.addAll(Arrays.asList(individualCommandLineArguments));
 
         File initStriptPath = getInitScriptFile();

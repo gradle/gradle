@@ -17,7 +17,10 @@
 package org.gradle.logging.internal;
 
 
+import org.gradle.internal.nativeplatform.NoOpTerminalDetector
+import org.gradle.internal.nativeplatform.WindowsTerminalDetector
 import org.gradle.internal.nativeplatform.jna.JnaBootPathConfigurer
+import org.gradle.internal.nativeplatform.jna.LibCBackedTerminalDetector
 import org.gradle.util.Requires
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
@@ -30,7 +33,7 @@ import spock.lang.Specification
  */
 public class TerminalDetectorFactoryTest extends Specification {
     @Rule
-    public def temp = new TemporaryFolder()
+    TemporaryFolder temp = new TemporaryFolder()
 
     @Requires([TestPrecondition.JNA, TestPrecondition.NOT_WINDOWS])
     def "should configure JNA library"() {
@@ -38,7 +41,7 @@ public class TerminalDetectorFactoryTest extends Specification {
         def spec = new TerminalDetectorFactory().create(new JnaBootPathConfigurer(temp.dir))
 
         then:
-        spec instanceof PosixBackedTerminalDetector
+        spec instanceof LibCBackedTerminalDetector
     }
 
     @Requires([TestPrecondition.JNA, TestPrecondition.WINDOWS])
@@ -57,7 +60,6 @@ public class TerminalDetectorFactoryTest extends Specification {
         def spec = new TerminalDetectorFactory().create(new JnaBootPathConfigurer(temp.dir))
 
         then:
-        !spec.isSatisfiedBy(FileDescriptor.out)
-        !spec.isSatisfiedBy(FileDescriptor.err)
+        spec instanceof NoOpTerminalDetector
     }
 }

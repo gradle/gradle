@@ -20,24 +20,25 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
-import org.gradle.api.internal.tasks.compile.JavaCompiler;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.scala.*;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.api.internal.tasks.compile.Compiler;
 
 /**
  * Compiles Scala source files, and optionally, Java source files.
  */
 public class ScalaCompile extends AbstractCompile {
     private FileCollection scalaClasspath;
-
-    private ScalaJavaJointCompiler compiler;
+    private Compiler<ScalaJavaJointCompileSpec> compiler;
+    private final ScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();
 
     public ScalaCompile() {
-        ScalaCompiler scalaCompiler = new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
-        JavaCompiler javaCompiler = new AntJavaCompiler(getServices().getFactory(AntBuilder.class));
+        Compiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
+        Compiler<JavaCompileSpec> javaCompiler = new AntJavaCompiler(getServices().getFactory(AntBuilder.class));
         compiler = new IncrementalScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler), getOutputs());
     }
 
@@ -53,11 +54,11 @@ public class ScalaCompile extends AbstractCompile {
         this.scalaClasspath = scalaClasspath;
     }
 
-    public ScalaJavaJointCompiler getCompiler() {
+    public Compiler<ScalaJavaJointCompileSpec> getCompiler() {
         return compiler;
     }
 
-    public void setCompiler(ScalaJavaJointCompiler compiler) {
+    public void setCompiler(Compiler<ScalaJavaJointCompileSpec> compiler) {
         this.compiler = compiler;
     }
 
@@ -66,7 +67,7 @@ public class ScalaCompile extends AbstractCompile {
      */
     @Nested
     public ScalaCompileOptions getScalaCompileOptions() {
-        return compiler.getScalaCompileOptions();
+        return spec.getScalaCompileOptions();
     }
 
     /**
@@ -74,18 +75,18 @@ public class ScalaCompile extends AbstractCompile {
      */
     @Nested
     public CompileOptions getOptions() {
-        return compiler.getCompileOptions();
+        return spec.getCompileOptions();
     }
 
     @Override
     protected void compile() {
         FileTree source = getSource();
-        compiler.setSource(source);
-        compiler.setDestinationDir(getDestinationDir());
-        compiler.setClasspath(getClasspath());
-        compiler.setScalaClasspath(getScalaClasspath());
-        compiler.setSourceCompatibility(getSourceCompatibility());
-        compiler.setTargetCompatibility(getTargetCompatibility());
-        compiler.execute();
+        spec.setSource(source);
+        spec.setDestinationDir(getDestinationDir());
+        spec.setClasspath(getClasspath());
+        spec.setScalaClasspath(getScalaClasspath());
+        spec.setSourceCompatibility(getSourceCompatibility());
+        spec.setTargetCompatibility(getTargetCompatibility());
+        compiler.execute(spec);
     }
 }

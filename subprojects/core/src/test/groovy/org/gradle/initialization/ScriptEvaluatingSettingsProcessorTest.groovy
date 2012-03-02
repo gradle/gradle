@@ -45,10 +45,12 @@ class ScriptEvaluatingSettingsProcessorTest {
     Map expectedGradleProperties
     URLClassLoader urlClassLoader
     GradleInternal gradleMock
+    SettingsLocation settingsLocation
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     @Before public void setUp() {
+        settingsLocation = context.mock(SettingsLocation)
         configurerFactoryMock = context.mock(ScriptPluginFactory)
         settingsFactory = context.mock(SettingsFactory)
         propertiesLoaderMock = context.mock(IGradlePropertiesLoader)
@@ -72,6 +74,11 @@ class ScriptEvaluatingSettingsProcessorTest {
         context.checking {
             one(settingsFactory).createSettings(gradleMock, TEST_ROOT_DIR, scriptSourceMock, expectedGradleProperties, expectedStartParameter, urlClassLoader)
             will(returnValue(expectedSettings))
+            
+            one(settingsLocation).getSettingsDir()
+            will(returnValue(TEST_ROOT_DIR))
+            allowing(settingsLocation).getSettingsScriptSource()
+            will(returnValue(scriptSourceMock))
         }
     }
 
@@ -88,8 +95,7 @@ class ScriptEvaluatingSettingsProcessorTest {
             one(configurerMock).setScriptBaseClass(SettingsScript)
             one(configurerMock).apply(expectedSettings)
         }
-        
-        SettingsLocation settingsLocation = new SettingsLocation(TEST_ROOT_DIR, scriptSourceMock)
+
         assertSame(expectedSettings, settingsProcessor.process(gradleMock, settingsLocation, urlClassLoader, expectedStartParameter))
     }
 }

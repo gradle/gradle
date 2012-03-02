@@ -15,6 +15,8 @@
  */
 package org.gradle.api;
 
+import org.gradle.util.SystemProperties;
+
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -58,6 +60,15 @@ public enum JavaVersion {
             return values()[Integer.parseInt(matcher.group(1)) - 1];
         }
         throw new IllegalArgumentException(String.format("Could not determine java version from '%s'.", name));
+    }
+
+    /**
+     * Provides the JavaVersion of the current used JVM  {@code JavaVersion}.
+     *
+     * @return The version of the current JVM.
+     */
+    public static JavaVersion current() {
+        return toVersion(SystemProperties.getJavaVersion());
     }
 
     @Override

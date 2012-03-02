@@ -21,6 +21,10 @@ task anotherCopyTask(type: Copy) {
     from 'src/main/webapp'
     // Copy a single file
     from 'src/staging/index.html'
+    // Copy the output of a task
+    from copyTask
+    // Copy the output of a task using Task outputs explicitly.
+    from copyTaskWithPatterns.outputs
     // Copy the contents of a Zip file
     from zipTree('src/main/assets.zip')
     // Determine the destination directory later

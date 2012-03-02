@@ -58,6 +58,10 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         return delegate.getId();
     }
 
+    public String getName() {
+        return delegate.getName();
+    }
+
     @Override
     public String toString() {
         return "Caching " + delegate.toString();

@@ -18,7 +18,6 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import org.gradle.api.specs.Spec;
 
-import java.util.Set;
 import java.util.Collection;
 
 /**
@@ -33,24 +32,6 @@ import java.util.Collection;
  * @param <T> The type of domain objects in this collection.
  */
 public interface DomainObjectCollection<T> extends Collection<T> {
-    /**
-     * Returns a snapshot of the objects in this collection (i.e. changes to this collection will not be reflected in the returned collection).
-     *
-     * @return The objects. Returns an empty set if this collection is empty.
-     * @deprecated as DomainObjectCollection implementations are now Collection implementations.
-     */
-    @Deprecated
-    Set<T> getAll();
-
-    /**
-     * Returns a snapshot of the objects in this collection which meet the given specification.
-     *
-     * @param spec The specification to use.
-     * @return The matching objects. Returns an empty set if there are no such objects in this collection.
-     * @deprecated Use {@link #matching(Spec)} instead.
-     */
-    @Deprecated
-    Set<T> findAll(Spec<? super T> spec);
 
     /**
      * Returns a collection containing the objects in this collection of the given type.  The returned collection is
@@ -135,26 +116,6 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param action The closure to be called
      */
     void whenObjectRemoved(Closure action);
-
-    /**
-     * Executes the given action against all objects in this collection, and any objects subsequently added to this
-     * collection.
-     *
-     * @param action The action to be executed
-     * @deprecated Use {@link #all(Action)} instead.
-     */
-    @Deprecated
-    void allObjects(Action<? super T> action);
-
-    /**
-     * Executes the given closure against all objects in this collection, and any objects subsequently added to this
-     * collection.
-     *
-     * @param action The closure to be called
-     * @deprecated Use {@link #all(groovy.lang.Closure)} instead.
-     */
-    @Deprecated
-    void allObjects(Closure action);
 
     /**
      * Executes the given action against all objects in this collection, and any objects subsequently added to this

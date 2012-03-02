@@ -18,10 +18,10 @@ package org.gradle.plugins.binaries.model;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
- * An library
+ * A library
  */
 public interface Library extends Binary {
+    LibraryCompileSpec getSpec();
 
     SourceDirectorySet getHeaders();
-
 }

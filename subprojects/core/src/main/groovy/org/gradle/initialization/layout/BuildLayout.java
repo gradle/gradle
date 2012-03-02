@@ -15,7 +15,6 @@
  */
 package org.gradle.initialization.layout;
 
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.SettingsLocation;
 
 import java.io.File;
@@ -23,8 +22,8 @@ import java.io.File;
 public class BuildLayout extends SettingsLocation {
     private final File rootDirectory;
 
-    public BuildLayout(File rootDirectory, File settingsDir, ScriptSource settingsScript) {
-        super(settingsDir, settingsScript);
+    public BuildLayout(File rootDirectory, File settingsDir, File settingsFile) {
+        super(settingsDir, settingsFile);
         this.rootDirectory = rootDirectory;
     }
 

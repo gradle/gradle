@@ -33,17 +33,27 @@ dependencies {
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
+import org.gradle.api.internal.ConventionTask
 
 class SomePlugin implements Plugin<Project> {
     void apply(Project p) {
         p.tasks.add('do-stuff', CustomTask)
+        p.tasks.add('customConventionTask', CustomConventionTask)
+        p.tasks.add('customSourceTask', CustomSourceTask)
     }
 }
 
 class CustomTask extends DefaultTask {
     @TaskAction void go() { }
 }
+
+// ConventionTask leaks a lot of internal API so test for compatibility
+class CustomConventionTask extends ConventionTask {}
+
+// Same reason here, but less direct
+class CustomSourceTask extends SourceTask {}
+
 """
 
         buildFile << """

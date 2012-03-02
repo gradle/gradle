@@ -42,7 +42,7 @@ public class Tar extends AbstractArchiveTask {
         action = new TarCopyActionImpl(getServices().get(FileResolver.class));
         getConventionMapping().map("extension", new Callable<Object>(){
             public Object call() throws Exception {
-                return getCompression().getExtension();
+                return getCompression().getDefaultExtension();
             }
         });
     }

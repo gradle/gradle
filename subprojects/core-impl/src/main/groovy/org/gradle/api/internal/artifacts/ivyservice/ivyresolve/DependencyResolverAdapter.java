@@ -44,7 +44,11 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
     }
 
     public String getId() {
-        return identifier.getId();
+        return identifier.getUniqueId();
+    }
+
+    public String getName() {
+        return identifier.getName();
     }
 
     @Override
@@ -83,7 +87,7 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
             }
             return new DefaultModuleVersionDescriptor(revision.getDescriptor(), isChanging(revision));
         } catch (ParseException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

@@ -82,7 +82,7 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
         try {
             return new SocketInetAddress(InetAddress.getByName("233.253.17.122"), 7912);
         } catch (UnknownHostException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

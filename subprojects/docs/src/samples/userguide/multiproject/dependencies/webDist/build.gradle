@@ -1,5 +1,3 @@
-dependsOnChildren()
-
 allprojects {
     apply plugin: 'java'
     group = 'org.gradle.sample'
@@ -17,7 +15,7 @@ subprojects {
 }
 
 task explodedDist(dependsOn: assemble) << {
-    File explodedDist = mkdir(buildDir, 'explodedDist')
+    File explodedDist = mkdir("$buildDir/explodedDist")
     subprojects.each {project ->
         project.tasks.withType(Jar).each {archiveTask ->
             copy {

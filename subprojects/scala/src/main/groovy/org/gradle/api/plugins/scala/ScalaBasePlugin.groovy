@@ -55,7 +55,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
             scalaCompile.dependsOn sourceSet.compileJavaTaskName
             javaPlugin.configureForSourceSet(sourceSet, scalaCompile);
             scalaCompile.description = "Compiles the $sourceSet.scala.";
-            scalaCompile.conventionMapping.defaultSource = { sourceSet.scala }
+            scalaCompile.source = sourceSet.scala
 
             project.tasks[sourceSet.classesTaskName].dependsOn(taskName)
         }

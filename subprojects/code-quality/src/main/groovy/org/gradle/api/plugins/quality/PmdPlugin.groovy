@@ -46,8 +46,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     @Override
     protected CodeQualityExtension createExtension() {
-        extension = instantiator.newInstance(PmdExtension, project)
-        project.extensions.pmd = extension
+        extension = project.extensions.create("pmd", PmdExtension, project)
         extension.with {
             toolVersion = "4.3"
             ruleSets = ["basic"]
@@ -86,8 +85,6 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         task.with {
             description = "Run PMD analysis for ${sourceSet.name} classes"
         }
-        task.conventionMapping.with {
-            defaultSource = { sourceSet.allJava }
-        }
+        task.setSource(sourceSet.allJava)
     }
 }

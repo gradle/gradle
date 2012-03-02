@@ -18,16 +18,18 @@ package org.gradle.api.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
+import org.gradle.util.DeprecationLogger
 
 /**
  * Creates a directory.
- *
- * @author Hans Dockter
+ * @deprecated Use {@link org.gradle.api.Project#mkdir(java.lang.Object)} to create directories in Gradle.
  */
+@Deprecated
 public class Directory extends DefaultTask {
     File dir
     
     Directory() {
+        DeprecationLogger.nagUserOfReplacedTask("Directory", "Project.mkdir(java.lang.Object)");
         if (new File(name).isAbsolute()) { throw new InvalidUserDataException('Path must not be absolute.')}
         dir = project.file(name)
     }

@@ -16,10 +16,6 @@
                 <td>outputFile</td>
                 <td><filename><replaceable>${project.projectDir}</replaceable>/.settings/org.eclipse.wst.common.project.facet.core.xml</filename></td>
             </tr>
-            <tr>
-                <td>facets</td>
-                <td>Java and web facets.</td>
-            </tr>
         </table>
     </section>
     <section>
@@ -30,9 +26,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>facet</td>
-            </tr>
         </table>
     </section>
 </section>

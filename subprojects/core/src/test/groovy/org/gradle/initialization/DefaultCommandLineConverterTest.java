@@ -21,9 +21,7 @@ import org.gradle.RefreshOptions;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.logging.ShowStacktrace;
-import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.junit.Rule;
@@ -31,16 +29,11 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -83,7 +76,11 @@ public class DefaultCommandLineConverterTest {
     }
 
     private void checkConversion(String... args) {
-        checkConversion(false, args);
+        actualStartParameter = new StartParameter();
+        actualStartParameter.setCurrentDir(currentDir);
+        commandLineConverter.convert(asList(args), actualStartParameter);
+        // We check the params passed to the build factory
+        checkStartParameter(actualStartParameter);
     }
 
     private void checkStartParameter(StartParameter startParameter) {
@@ -107,19 +104,6 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedOffline, startParameter.isOffline());
         assertEquals(expectedRefreshOptions, startParameter.getRefreshOptions());
         assertEquals(expectedProjectCacheDir, startParameter.getProjectCacheDir());
-    }
-
-    private void checkConversion(final boolean embedded, String... args) {
-        actualStartParameter = new StartParameter();
-        actualStartParameter.setCurrentDir(currentDir);
-        commandLineConverter.convert(asList(args), actualStartParameter);
-        // We check the params passed to the build factory
-        checkStartParameter(actualStartParameter);
-        if (embedded) {
-            assertThat(actualStartParameter.getBuildScriptSource().getResource().getText(), equalTo(expectedEmbeddedScript));
-        } else {
-            assert !GUtil.isTrue(actualStartParameter.getBuildScriptSource());
-        }
     }
 
     @Test
@@ -164,8 +148,7 @@ public class DefaultCommandLineConverterTest {
 
         checkConversion("-c", "somesettings");
 
-        assertThat(actualStartParameter.getSettingsScriptSource(), instanceOf(UriScriptSource.class));
-        assertThat(actualStartParameter.getSettingsScriptSource().getResource().getFile(), equalTo(expectedSettingsFile));
+        assertThat(actualStartParameter.getSettingsFile(), equalTo(expectedSettingsFile));
     }
 
     @Test
@@ -278,12 +261,6 @@ public class DefaultCommandLineConverterTest {
         checkConversion("-x", "excluded", "-x", "excluded2");
     }
 
-    @Test
-    public void withEmbeddedScript() {
-        expectedSearchUpwards = false;
-        checkConversion(true, "-e", expectedEmbeddedScript);
-    }
-
     @Test(expected = CommandLineArgumentException.class)
     public void withEmbeddedScriptAndConflictingNoSearchUpwardsOption() {
         checkConversion("-e", "someScript", "-u", "clean");
@@ -327,37 +304,6 @@ public class DefaultCommandLineConverterTest {
     public void withNoColor() {
         expectedColorOutput = false;
         checkConversion("--no-color");
-    }
-
-    @Test
-    public void withShowTasks() {
-        expectedTaskNames = toList("tasks");
-        checkConversion(false, "-t");
-    }
-
-    @Test
-    public void withShowAllTasks() {
-        expectedTaskNames = toList("tasks", "--all");
-        checkConversion(false, "-t", "--all");
-    }
-
-    @Test
-    public void withShowTasksAndEmbeddedScript() {
-        expectedSearchUpwards = false;
-        expectedTaskNames = toList("tasks");
-        checkConversion(true, "-e", expectedEmbeddedScript, "-t");
-    }
-
-    @Test
-    public void withShowProperties() {
-        expectedTaskNames = toList("properties");
-        checkConversion(false, "-r");
-    }
-
-    @Test
-    public void withShowDependencies() {
-        expectedTaskNames = toList("dependencies");
-        checkConversion(false, "-n");
     }
 
     @Test(expected = CommandLineArgumentException.class)

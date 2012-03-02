@@ -18,7 +18,7 @@ package org.gradle.util;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.nativeplatform.OperatingSystem;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.jvm.JavaInfo;
 
 import java.io.File;

@@ -19,33 +19,23 @@ import java.security.Principal
 import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import org.junit.rules.MethodRule
-import org.junit.runners.model.FrameworkMethod
-import org.junit.runners.model.Statement
-import org.mortbay.jetty.Handler
-import org.mortbay.jetty.HttpHeaders
-import org.mortbay.jetty.HttpStatus
-import org.mortbay.jetty.MimeTypes
-import org.mortbay.jetty.Request
-import org.mortbay.jetty.Server
+import org.junit.rules.ExternalResource
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.handler.HandlerCollection
-import org.mortbay.jetty.security.BasicAuthenticator
-import org.mortbay.jetty.security.Constraint
-import org.mortbay.jetty.security.ConstraintMapping
-import org.mortbay.jetty.security.SecurityHandler
-import org.mortbay.jetty.security.UserRealm
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.mortbay.jetty.*
+import org.mortbay.jetty.security.*
 
-class HttpServer implements MethodRule {
-    private Logger logger = LoggerFactory.getLogger(HttpServer.class)
+class HttpServer extends ExternalResource {
+    private static Logger logger = LoggerFactory.getLogger(HttpServer.class)
+
     private final Server server = new Server(0)
     private final HandlerCollection collection = new HandlerCollection()
     private Throwable failure
     private TestUserRealm realm
 
-    def HttpServer() {
+    HttpServer() {
         HandlerCollection handlers = new HandlerCollection()
         handlers.addHandler(new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
@@ -71,7 +61,7 @@ class HttpServer implements MethodRule {
     }
 
     void stop() {
-        server.stop()
+        server?.stop()
     }
 
     void resetExpectations() {
@@ -81,20 +71,9 @@ class HttpServer implements MethodRule {
         collection.setHandlers()
     }
 
-    Statement apply(Statement base, FrameworkMethod method, Object target) {
-        return new Statement() {
-            @Override
-            void evaluate() {
-                try {
-                    base.evaluate()
-                } finally {
-                    stop()
-                }
-                if (failure != null) {
-                    throw failure
-                }
-            }
-        }
+    @Override
+    protected void after() {
+        stop()
     }
 
     /**
