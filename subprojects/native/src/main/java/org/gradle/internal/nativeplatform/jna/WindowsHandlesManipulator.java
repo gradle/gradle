@@ -26,14 +26,14 @@ import static org.gradle.internal.nativeplatform.jna.Kernel32.*;
  * Without that, if the process was spawning child processes on windows (for example gradle build daemon) it waited until the child has completed.
  * This is undesired because sometimes the child process is a long-running process but the parent process is a short-running process.
  */
-public class WindowsProcessInitializer {
+public class WindowsHandlesManipulator {
 
     /**
      * Makes the standard streams handles 'uninheritable' for the current process.
      *
      * @throws ProcessInitializationException when the operation fails
      */
-    public void initialize() throws ProcessInitializationException {
+    public void uninheritStandardStreams() throws ProcessInitializationException {
         Kernel32 kernel32 = INSTANCE;
 
         try {

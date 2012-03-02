@@ -226,6 +226,7 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     public ExecHandle start() {
+        ProcessParentingInitializer.intitialize();
         lock.lock();
         try {
             if (!stateIn(ExecHandleState.INIT)) {

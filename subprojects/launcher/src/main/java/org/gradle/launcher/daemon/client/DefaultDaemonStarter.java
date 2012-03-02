@@ -19,12 +19,11 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.nativeplatform.jna.WindowsProcessInitializer;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.logging.DaemonGreeter;
 import org.gradle.launcher.daemon.registry.DaemonDir;
+import org.gradle.process.internal.ProcessParentingInitializer;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
@@ -88,9 +87,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         LOGGER.info("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
         try {
             workingDir.mkdirs();
-            if (OperatingSystem.current().isWindows()) {
-                new WindowsProcessInitializer().initialize();
-            }
+            ProcessParentingInitializer.intitialize();
             Process process = new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();
             new DaemonGreeter().verifyGreetingReceived(process);
 

@@ -20,7 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeplatform.jna.WindowsProcessInitializer;
+import org.gradle.internal.nativeplatform.jna.WindowsHandlesManipulator;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
@@ -196,7 +196,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             builder.environment("GRADLE_EXIT_CONSOLE", "true");
 
             LOG.info("Initializing windows process so that child process will be fully detached...");
-            new WindowsProcessInitializer().initialize();
+            new WindowsHandlesManipulator().uninheritStandardStreams();
         }
     }
 
