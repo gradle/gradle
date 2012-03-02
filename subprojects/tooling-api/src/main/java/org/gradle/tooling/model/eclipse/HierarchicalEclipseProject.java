@@ -17,7 +17,6 @@ package org.gradle.tooling.model.eclipse;
 
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
-import org.gradle.tooling.model.HierarchicalProject;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
 import java.io.File;
@@ -25,7 +24,7 @@ import java.io.File;
 /**
  * Represents the basic information about an Eclipse project.
  */
-public interface HierarchicalEclipseProject extends HierarchicalProject, HierarchicalElement {
+public interface HierarchicalEclipseProject extends HierarchicalElement {
     /**
      * {@inheritDoc}
      */
