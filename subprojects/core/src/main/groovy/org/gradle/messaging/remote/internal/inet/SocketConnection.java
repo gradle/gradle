@@ -32,8 +32,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
-//TODO SF this implementation is not thread safe and apparently this is the contract of Connection
-//It is certainly a problem for the dispatch method.
 public class SocketConnection<T> implements Connection<T> {
     private final SocketChannel socket;
     private final Address localAddress;
@@ -112,7 +110,6 @@ public class SocketConnection<T> implements Connection<T> {
     }
 
     public void requestStop() {
-        //TODO SF - why doesn't it stop the outstr and socket?
         new CompositeStoppable(instr).stop();
     }
 
