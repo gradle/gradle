@@ -15,8 +15,6 @@
  */
 package org.gradle.java.compile
 
-import org.hamcrest.Matchers
-
 abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationSpec {
     def compileWithLongClasspath() {
         given:
@@ -73,7 +71,7 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         file("build/classes/main/compile/test/Person2.class").exists()
     }
 
-    def nonJavaSourceFilesAreNotTolerated() {
+    def nonJavaSourceFilesAreAutomaticallyExcluded() {
         given:
         goodCode()
 
@@ -82,7 +80,8 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         buildFile << 'compileJava.source += files("src/main/java/resource.txt")'
 
         expect:
-        fails("compileJava")
-        failure.assertThatCause(Matchers.startsWith("Cannot compile non-Java source file"))
+        succeeds("compileJava")
+        file("build/classes/main/compile/test/Person.class").exists()
+        file("build/classes/main/compile/test/Person2.class").exists()
     }
 }
