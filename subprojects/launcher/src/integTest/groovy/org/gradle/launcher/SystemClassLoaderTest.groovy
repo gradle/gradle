@@ -28,7 +28,7 @@ import static org.gradle.integtests.fixtures.GradleDistributionExecuter.getSyste
  * When running without the daemon, success is dependant on the start scripts doing the right thing.
  * When running with the daemon, success is dependent on DaemonConnector forking the daemon process with the right classpath.
  * 
- * This test is not meaningfull when running the embedded integration test mode, so we ignore it in that case.
+ * This test is not meaningful when running the embedded integration test mode, so we ignore it in that case.
  */
 class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
