@@ -33,26 +33,43 @@ import static org.gradle.integtests.fixtures.GradleDistributionExecuter.getSyste
 class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
     static heading = "systemClassLoader info"
+    static noInfoHeading = "no systemClassLoader info"
 
-    @IgnoreIf({Jvm.current().ibmJvm || !getSystemPropertyExecuter().forks })
+    @IgnoreIf({ !getSystemPropertyExecuter().forks })
     def "daemon bootstrap classpath is bare bones"() {
         given:
         buildFile << """
-            task echo << {
-                def loader = ClassLoader.systemClassLoader
-                assert loader instanceof java.net.URLClassLoader : 'This test is not supported on certain vms.'
-                def systemLoaderUrls = loader.URLs
-                println "$heading"
-                println systemLoaderUrls.size()
-                println systemLoaderUrls[0]
+            task loadClasses << {
+                def systemLoader = ClassLoader.systemClassLoader
+
+                systemLoader.loadClass(GradleMain.name) // this should be on the classpath, it's from the launcher package
+
+                try {
+                    systemLoader.loadClass(Project.class.name)
+                    assert false : "ClassNotFoundException should have been thrown trying to load a “core” class from the system classloader"
+                } catch (ClassNotFoundException e) {
+                    //
+                }
+                
+                
+                if (systemLoader instanceof java.net.URLClassLoader) {
+                    def systemLoaderUrls = loader.URLs
+                    println "$heading"
+                    println systemLoaderUrls.size()
+                    println systemLoaderUrls[0]                
+                } else {
+                    println "$noInfoHeading"
+                }
             }
         """
         
         when:
-        run "echo"
-        
+        succeeds loadClasses
+
         then:
         def lines = output.readLines()
+        if (lines.find { it == noInfoHeading }) return
+
         lines.find { it == heading } // here for nicer output if the output isn't what we expect
         def headingIndex = lines.indexOf(heading)
         lines[headingIndex + 1] == "1"
