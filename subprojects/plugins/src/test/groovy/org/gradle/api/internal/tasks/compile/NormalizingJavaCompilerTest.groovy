@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.tasks.compile
 
-import spock.lang.Specification
 import org.gradle.api.tasks.WorkResult
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+
+import groovy.transform.InheritConstructors
+
+import spock.lang.Specification
 
 class NormalizingJavaCompilerTest extends Specification {
     Compiler<JavaCompileSpec> target = Mock()
@@ -26,33 +28,37 @@ class NormalizingJavaCompilerTest extends Specification {
     NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
 
     def setup() {
-        spec.source = new SimpleFileCollection(new File("source.java"))
-        spec.classpath = new SimpleFileCollection(new File("dependency.jar"))
+        spec.source = files("Source1.java", "Source2.java", "Source3.java")
+        spec.classpath = files("Dep1.jar", "Dep2.jar", "Dep3.jar")
     }
 
     def "delegates to target compiler after resolving source and classpath"() {
         WorkResult workResult = Mock()
-        target.execute(spec) >> workResult
 
         when:
         def result = compiler.execute(spec)
 
         then:
+        1 * target.execute(spec) >> {
+            assert spec.source.getClass() == SimpleFileCollection
+            assert spec.source.files == old(spec.source.files)
+            assert spec.classpath.getClass() == SimpleFileCollection
+            assert spec.classpath.files == old(spec.classpath.files)
+            workResult
+        }
         result == workResult
-        !spec.source.is(old(spec.source))
-        !spec.classpath.is(old(spec.classpath))
     }
 
-    def "fails when a non-Java source file provided"() {
-        spec.source = files(new File("source.txt"))
+    def "silently excludes source files not ending in .java"() {
+        spec.source = files("House.scala", "Person1.java", "package.html", "Person2.java")
 
         when:
         compiler.execute(spec)
 
         then:
-        0 * target._
-        InvalidUserDataException e = thrown()
-        e.message == 'Cannot compile non-Java source file \'source.txt\'.'
+        1 * target.execute(spec) >> {
+            assert spec.source.files == files("Person1.java", "Person2.java").files
+        }
     }
 
     def "propagates compile failure when failOnError is true"() {
@@ -94,7 +100,11 @@ class NormalizingJavaCompilerTest extends Specification {
         e == failure
     }
 
-    def "resolves any GStrings that make it into custom compiler args"() {
+    def "resolves any non-strings that make it into custom compiler args"() {
+        spec.compileOptions.compilerArgs << "a dreaded ${"GString"}"
+        spec.compileOptions.compilerArgs << 42
+        assert !spec.compileOptions.compilerArgs.any { it instanceof String }
+
         when:
         compiler.execute(spec)
 
@@ -103,4 +113,12 @@ class NormalizingJavaCompilerTest extends Specification {
             assert spec.compileOptions.compilerArgs.every { it instanceof String }
         }
     }
+
+    private files(String... paths) {
+        new TestFileCollection(paths.collect { new File(it) })
+    }
+
+    // file collection whose type is distinguishable from SimpleFileCollection
+    @InheritConstructors
+    static class TestFileCollection extends SimpleFileCollection {}
 }

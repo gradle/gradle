@@ -34,7 +34,7 @@ public class CommandLineJavaCompilerArgumentsGenerator {
     }
 
     public Iterable<String> generate(JavaCompileSpec spec) {
-        JavaCompilerArgumentsBuilder builder = new JavaCompilerArgumentsBuilder(spec).logArguments(false);
+        JavaCompilerArgumentsBuilder builder = new JavaCompilerArgumentsBuilder(spec);
         List<String> launcherOptions = builder.includeLauncherOptions(true).includeMainOptions(false).includeSourceFiles(false).build();
         List<String> remainingArgs = builder.includeLauncherOptions(false).includeMainOptions(true).includeSourceFiles(true).build();
         Iterable<String> allArgs = Iterables.concat(launcherOptions, remainingArgs);

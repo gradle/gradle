@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
 
@@ -31,14 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JavaCompilerArgumentsBuilder {
-    private static final Logger LOGGER = Logging.getLogger(JavaCompilerArgumentsBuilder.class);
-
     private final JavaCompileSpec spec;
 
     private boolean includeLauncherOptions;
     private boolean includeMainOptions = true;
     private boolean includeSourceFiles;
-    private boolean logArguments = true;
 
     private List<String> args;
 
@@ -61,18 +55,12 @@ public class JavaCompilerArgumentsBuilder {
         return this;
     }
 
-    public JavaCompilerArgumentsBuilder logArguments(boolean flag) {
-        logArguments = flag;
-        return this;
-    }
-
     public List<String> build() {
         args = new ArrayList<String>();
 
         addLauncherOptions();
         addMainOptions();
         addSourceFiles();
-        logArguments();
 
         return args;
     }
@@ -150,12 +138,6 @@ public class JavaCompilerArgumentsBuilder {
 
         for (File file : spec.getSource()) {
             args.add(file.getPath());
-        }
-    }
-
-    private void logArguments() {
-        if (logArguments && LOGGER.isInfoEnabled()) {
-            LOGGER.info("Invoking Java compiler with arguments '{}'", Joiner.on(' ').join(args));
         }
     }
 
