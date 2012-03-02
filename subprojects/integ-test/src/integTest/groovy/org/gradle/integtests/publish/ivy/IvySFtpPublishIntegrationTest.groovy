@@ -20,12 +20,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.SFTPServer
 import org.junit.Rule
 
-class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
+class IvySftpPublishIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final SFTPServer sftpServer = new SFTPServer(2022, "127.0.0.1")
 
-    public void "can publish using SFTResolver"() {
+    public void "can publish using SftpResolver"() {
         given:
         file("settings.gradle") << 'rootProject.name = "publish"'
 
@@ -49,6 +49,7 @@ class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "uploadArchives"
         then:
+        true
         sftpServer.hasFile("repos/libs/org.gradle/publish/publish-2.jar")
         sftpServer.hasFile("repos/libs/org.gradle/publish/ivy-2.xml");
         sftpServer.file("repos/libs/org.gradle/publish/publish-2.jar").assertIsCopyOf(file('build/libs/publish-2.jar'))

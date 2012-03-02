@@ -36,11 +36,8 @@ class IvySFtpResolverIntegrationTest extends AbstractIntegrationSpec {
     public void "can resolve and cache dependencies from an SFTP Ivy repository"() {
         given:
         def repo = ivyRepo()
-        
         def module = repo.module('group', 'projectA', '1.2')
-        def ivyModule =  module.publish()
-        println ivyModule.ivyFile.absolutePath
-        println ivyModule.jarFile.absolutePath
+        module.publish()
 
         and:
         buildFile << """
@@ -68,10 +65,10 @@ task listJars << {
         then:
         server.fileRequests == ["repos/libs/group/projectA/1.2/ivy-1.2.xml",
                                 "repos/libs/group/projectA/1.2/projectA-1.2.jar"
-                               ]
+                               ] as Set
 
         when:
-        server.fileRequests.clear()
+        server.clearRequests()
         succeeds 'listJars'
 
         then:
