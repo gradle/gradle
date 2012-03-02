@@ -54,8 +54,6 @@ public class MavenPluginTest {
 
         MavenPluginConvention convention = project.getConvention().getPlugin(MavenPluginConvention.class);
         assertThat(convention.getMavenPomDir(), equalTo(new File(project.getBuildDir(), "poms")));
-        assertThat(convention.getPomDir(), equalTo(new File(project.getBuildDir(), "poms")));
-        assertThat(convention.getPomDirName(), equalTo("poms"));
         assertThat(convention.getConf2ScopeMappings(), notNullValue());
     }
 

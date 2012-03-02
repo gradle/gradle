@@ -17,13 +17,14 @@ package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.maven.*;
-import org.gradle.internal.Factory;
-import org.gradle.api.publication.maven.internal.MavenPomMetaInfoProvider;
+import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publication.maven.internal.MavenFactory;
+import org.gradle.api.publication.maven.internal.MavenPomMetaInfoProvider;
+import org.gradle.internal.Factory;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -45,25 +46,6 @@ public class MavenPluginConvention implements MavenPomMetaInfoProvider {
         conf2ScopeMappings = mavenFactory.createConf2ScopeMappingContainer(Collections.<Configuration, Conf2ScopeMapping>emptyMap());
     }
 
-    /**
-     * Returns the name of the directory to generate Maven POMs into, relative to the build directory.
-     * @deprecated Use {@link #getMavenPomDir()} instead. 
-     */
-    @Deprecated
-    public String getPomDirName() {
-        DeprecationLogger.nagUserOfReplacedMethod("MavenPluginConvention.getPomDirName()", "getMavenPomDir()");
-        return project.getFileResolver().withBaseDir(project.getBuildDir()).resolveAsRelativePath(getPomDir());
-    }
-
-    /**
-     * Sets the name of the directory to generate Maven POMs into, relative to the build directory.
-     * @deprecated Use {@link #setMavenPomDir} instead.
-     */
-    @Deprecated
-    public void setPomDirName(String pomDirName) {
-        DeprecationLogger.nagUserOfReplacedMethod("MavenPluginConvention.setPomDirName()", "setMavenPomDir()");
-        pomDir = project.getFileResolver().withBaseDir(project.getBuildDir()).resolve(pomDirName);
-    }
 
     /**
      * Returns the set of rules for how to map Gradle dependencies to Maven scopes.
@@ -76,16 +58,6 @@ public class MavenPluginConvention implements MavenPomMetaInfoProvider {
 
     public void setConf2ScopeMappings(Conf2ScopeMappingContainer conf2ScopeMappings) {
         this.conf2ScopeMappings = conf2ScopeMappings;
-    }
-
-    /**
-     * Returns the directory to generate Maven POMs into.
-     * @deprecated Use {@link #getMavenPomDir()} instead.
-     */
-    @Deprecated
-    public File getPomDir() {
-        DeprecationLogger.nagUserOfReplacedMethod("MavenPluginConvention.getPomDir()", "getMavenPomDir()");
-        return getMavenPomDir();
     }
 
     /**
