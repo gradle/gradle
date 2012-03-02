@@ -56,24 +56,6 @@ class Project extends XmlPersistableConfigurationObject {
      */
     Set<Link> linkedResources = new LinkedHashSet<Link>()
 
-    /**
-     * The links to be added to this Eclipse project.
-     * <p>
-     * @deprecated Please use linkedResources
-     */
-    @Deprecated
-    Set<Link> getLinks() {
-        this.linkedResources
-    }
-
-    /**
-     * @deprecated Please use linkedResources
-     */
-    @Deprecated
-    void setLinks(Set<Link> links) {
-        this.linkedResources(links)
-    }
-
     def Project(XmlTransformer xmlTransformer) {
         super(xmlTransformer)
     }

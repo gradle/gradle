@@ -130,12 +130,6 @@ class EclipsePluginTest extends Specification {
         GenerateEclipseProject eclipseProjectTask = project.eclipseProject
         assert eclipseProjectTask instanceof GenerateEclipseProject
         assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseProjectTask)
-        assert eclipseProjectTask.buildCommands == buildCommands
-        assert eclipseProjectTask.natures == natures
-        assert eclipseProjectTask.links == [] as Set
-        assert eclipseProjectTask.referencedProjects == [] as Set
-        assert eclipseProjectTask.comment == null
-        assert eclipseProjectTask.projectName == project.name
         assert eclipseProjectTask.outputFile == project.file('.project')
     }
 
@@ -154,8 +148,6 @@ class EclipsePluginTest extends Specification {
     private void checkEclipseJdt() {
         GenerateEclipseJdt eclipseJdt = project.eclipseJdt
         assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseJdt)
-        assert eclipseJdt.sourceCompatibility == project.sourceCompatibility
-        assert eclipseJdt.targetCompatibility == project.targetCompatibility
         assert eclipseJdt.outputFile == project.file('.settings/org.eclipse.jdt.core.prefs')
     }
 
