@@ -16,7 +16,6 @@
 package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Jvm
 import spock.lang.IgnoreIf
 import static org.gradle.integtests.fixtures.GradleDistributionExecuter.getSystemPropertyExecuter
 
@@ -68,7 +67,7 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
         then:
         def lines = output.readLines()
-        if (lines.find { it == noInfoHeading }) return
+        if (lines.find { it == noInfoHeading }) { return }
 
         lines.find { it == heading } // here for nicer output if the output isn't what we expect
         def headingIndex = lines.indexOf(heading)
