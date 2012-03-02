@@ -34,67 +34,68 @@ class TestNativeFileSystemView implements FileSystemView {
     private String userName;
 
     private boolean caseInsensitive = false;
-        
+
     List<FileRequestLogger> logger
 
     /**
-         * Constructor - internal do not use directly, use {@link NativeFileSystemFactory} instead
-         */
-        public TestNativeFileSystemView(String rootpath, String userName, List<FileRequestLogger> requestLoggerList, boolean caseInsensitive) {
-            if (!rootpath) {
-                throw new IllegalArgumentException("rootPath must be set");
-            }
-
-            if (!userName) {
-                throw new IllegalArgumentException("user can not be null");
-            }
-
-            this.logger = requestLoggerList;
-            this.caseInsensitive = caseInsensitive;
-
-            currDir = rootpath;
-            this.userName = userName;
+     * Constructor - internal do not use directly, use {@link NativeFileSystemFactory} instead
+     */
+    public TestNativeFileSystemView(String rootpath, String userName, List<FileRequestLogger> requestLoggerList, boolean caseInsensitive) {
+        if (!rootpath) {
+            throw new IllegalArgumentException("rootPath must be set");
         }
 
-        /**
-         * Get file object.
-         */
-        public SshFile getFile(String file) {
-            return getFile(currDir, file);
+        if (!userName) {
+            throw new IllegalArgumentException("user can not be null");
         }
 
-        public SshFile getFile(SshFile baseDir, String file) {
-            return getFile(baseDir.getAbsolutePath(), file);
-        }
+        this.logger = requestLoggerList;
+        this.caseInsensitive = caseInsensitive;
 
-        protected SshFile getFile(String dir, String file) {
-            logFileRequest(file);
-            // get actual file object
-            String physicalName = NativeSshFile.getPhysicalName("/", dir, file, caseInsensitive);
-            File fileObj = new File(physicalName);
+        currDir = rootpath;
+        this.userName = userName;
+    }
 
-            // strip the root directory and return
-            String userFileName = physicalName.substring("/".length() - 1);
-            return new NativeSshFile(userFileName, fileObj, userName);
-        }
+    /**
+     * Get file object.
+     */
+    public SshFile getFile(String file) {
+        return getFile(currDir, file);
+    }
 
-    void logFileRequest(String s) {
+    public SshFile getFile(SshFile baseDir, String file) {
+        return getFile(baseDir.getAbsolutePath(), file);
+    }
+
+    protected SshFile getFile(String dir, String file) {
+        // get actual file object
+
+        String physicalName = NativeSshFile.getPhysicalName("/", dir, file, caseInsensitive);
+        File fileObj = new File(physicalName);
+        logFileRequest(dir, fileObj.absolutePath);
+        // strip the root directory and return
+        String userFileName = physicalName.substring("/".length() - 1);
+        return new NativeSshFile(userFileName, fileObj, userName);
+    }
+
+    void logFileRequest(String dir, String file) {
         //log xml and jar requests only
-        if(s.endsWith("xml") || s.endsWith(".jar")){
-            String relativeFilePath = s - "$currDir/";
-            logger.each{
-                it.logRequest(relativeFilePath)
+        if (file.endsWith("xml") || file.endsWith(".jar")) {
+            String normalizedPath = (file - dir).replaceAll("\\\\", '/') - "/"
+            logger.each {
+                it.logRequest(normalizedPath)
             }
         }
     }
 }
 
-class TestNativeFileSystemFactory extends NativeFileSystemFactory{
+class TestNativeFileSystemFactory extends NativeFileSystemFactory {
 
     String rootPath
 
     List<FileRequestLogger> logger
-    public TestNativeFileSystemFactory(String rootPath, FileRequestLogger... logger){
+
+    public TestNativeFileSystemFactory(String rootPath, FileRequestLogger... logger) {
         this.rootPath = rootPath
         this.logger = Arrays.asList(logger)
     }
