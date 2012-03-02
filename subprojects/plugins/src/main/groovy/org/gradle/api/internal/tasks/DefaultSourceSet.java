@@ -26,10 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
-
-import java.io.File;
 
 public class DefaultSourceSet implements SourceSet {
     private final String name;
@@ -119,21 +116,6 @@ public class DefaultSourceSet implements SourceSet {
 
     public String getRuntimeConfigurationName() {
         return StringUtils.uncapitalize(String.format("%sRuntime", getTaskBaseName()));
-    }
-
-    public File getClassesDir() {
-        DeprecationLogger.nagUserOfReplacedMethod("SourceSet.getClassesDir()", "getOutput().getClassesDir()");
-        return output.getClassesDir();
-    }
-
-    public void setClassesDir(File classesDir) {
-        DeprecationLogger.nagUserOfReplacedMethod("SourceSet.setClassesDir()", "getOutput().setClassesDir()");
-        this.output.setClassesDir(classesDir);
-    }
-
-    public SourceSetOutput getClasses() {
-        DeprecationLogger.nagUserOfReplacedMethod("SourceSet.getClasses()", "getOutput()");
-        return getOutput();
     }
 
     public SourceSetOutput getOutput() {

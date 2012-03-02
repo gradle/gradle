@@ -68,7 +68,7 @@ class JavaPluginConventionTest {
         File dir = new File('classes-dir')
         convention.sourceSets {
             main {
-                classesDir = dir
+                output.classesDir = dir
             }
         }
         assertThat(convention.sourceSets.main.output.classesDir, equalTo(project.file(dir)))
