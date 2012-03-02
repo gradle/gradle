@@ -45,8 +45,7 @@
         <para>
             In general, snappy behavior of the build tool is always handy.
             If you try using the daemon for your local builds it's going to be hard
-            for you to go back to regular use of Gradle. At the moment, we marked the
-            Gradle build daemon as experimental because there are still many aspects of the daemon we'd like to improve.
+            for you to go back to regular use of Gradle.
         </para>
         <para>
             The Tooling API (see <xref linkend="embedding"/>)
