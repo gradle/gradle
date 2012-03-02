@@ -98,8 +98,6 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
      * @throws org.gradle.launcher.exec.ReportedException On failure, when the failure has already been logged/reported.
      */
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
-        LOGGER.warn("Note: the Gradle build daemon is an experimental feature.");
-        LOGGER.warn("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.");
         Build build = new Build(action, parameters);
         int saneNumberOfAttempts = 100; //is it sane enough?
         for(int i=1; i<saneNumberOfAttempts; i++) {
