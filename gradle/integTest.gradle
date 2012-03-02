@@ -120,7 +120,7 @@ class IntegTestConvention {
         if (project.isCIBuild() || project.isReleaseBuild() ) {
             return 'forking'
         }
-        return 'embedded'
+        return System.getProperty("org.gradle.integtest.executer") ?: 'embedded'
     }
 
     File getIntegTestUserDir() {
