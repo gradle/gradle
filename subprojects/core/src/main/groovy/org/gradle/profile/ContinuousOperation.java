@@ -30,6 +30,10 @@ public class ContinuousOperation extends Operation {
         this.finish = finish;
     }
 
+    public long getStartTime() {
+        return start;
+    }
+
     public long getElapsedTime() {
         return finish - start;
     }
