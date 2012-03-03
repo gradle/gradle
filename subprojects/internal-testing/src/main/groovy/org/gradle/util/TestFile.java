@@ -391,8 +391,13 @@ public class TestFile extends File implements TestFileContext {
     }
 
     public TestFile createDir() {
-        assertTrue(isDirectory() || mkdirs());
-        return this;
+        if (isDirectory()) {
+            return this;
+        }
+        if (mkdirs()) {
+            return this;
+        }
+        throw new AssertionError("Problems creating dir: " + this);
     }
 
     public TestFile createDir(Object path) {
