@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal.launcher;
 
+import org.gradle.util.internal.GradleJvmSystem;
+
 import java.io.ObjectInputStream;
 import java.util.concurrent.Callable;
 
@@ -32,11 +34,12 @@ public class GradleWorkerMain {
 
     public static void main(String[] args) {
         try {
+            GradleJvmSystem.installSecurity();
             new GradleWorkerMain().run();
-            System.exit(0);
+            GradleJvmSystem.exit(0);
         } catch (Throwable throwable) {
             throwable.printStackTrace(System.err);
-            System.exit(1);
+            GradleJvmSystem.exit(1);
         }
     }
 }

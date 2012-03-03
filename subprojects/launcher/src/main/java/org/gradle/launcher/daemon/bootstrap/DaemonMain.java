@@ -32,6 +32,7 @@ import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
+import org.gradle.util.internal.GradleJvmSystem;
 
 import java.io.*;
 import java.util.LinkedList;
@@ -51,6 +52,8 @@ public class DaemonMain extends EntryPoint {
     private final DaemonServerConfiguration configuration;
 
     public static void main(String[] args) {
+        GradleJvmSystem.installSecurity();
+
         //The first argument is not really used but it is very useful in diagnosing, i.e. running 'jps -m'
         if (args.length < 4) {
             invalidArgs("Following arguments are required: <gradle-version> <daemon-dir> <timeout-millis> <daemonUid> <optional startup jvm opts>");
@@ -82,7 +85,7 @@ public class DaemonMain extends EntryPoint {
     private static void invalidArgs(String message) {
         System.out.println("USAGE: <gradle version> <path to registry base dir> <idle timeout in milliseconds>");
         System.out.println(message);
-        System.exit(1);
+        GradleJvmSystem.exit(1);
     }
 
     public DaemonMain(DaemonServerConfiguration configuration) {

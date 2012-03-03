@@ -15,12 +15,14 @@
  */
 package org.gradle.launcher.exec;
 
+import org.gradle.util.internal.GradleJvmSystem;
+
 public class ProcessCompleter implements ExecutionCompleter {
     public void complete() {
-        System.exit(0);
+        GradleJvmSystem.exit(0);
     }
 
     public void completeWithFailure(Throwable t) {
-        System.exit(1);
+        GradleJvmSystem.exit(1);
     }
 }

@@ -91,7 +91,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
                     while(!file("stop").exists()) {
                         sleep 100
                         if (file("exit").exists()) {
-                            System.exit(1)
+                            org.gradle.util.internal.GradleJvmSystem.exit(1)
                         }
                         if (System.currentTimeMillis() > sanityCheck) {
                             throw new RuntimeException("It seems the stop file was never created")

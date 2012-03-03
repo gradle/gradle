@@ -18,11 +18,14 @@ package org.gradle.launcher;
 import org.gradle.launcher.cli.CommandLineActionFactory;
 import org.gradle.launcher.exec.EntryPoint;
 import org.gradle.launcher.exec.ExecutionListener;
+import org.gradle.util.internal.GradleJvmSystem;
 
 import java.util.Arrays;
 
 /**
  * The main command-line entry-point for Gradle.
+ * <p>
+ * This class is sometimes useful on its own, for example for running gradle from IDE against some build dir.
  *
  * @author Hans Dockter
  */
@@ -36,11 +39,12 @@ public class Main extends EntryPoint {
 
     public static void main(String[] args) {
         try {
+            GradleJvmSystem.installSecurity();
             new Main(args).run();
-            System.exit(0);
+            GradleJvmSystem.exit(0);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
-            System.exit(1);
+            GradleJvmSystem.exit(1);
         }
     }
 

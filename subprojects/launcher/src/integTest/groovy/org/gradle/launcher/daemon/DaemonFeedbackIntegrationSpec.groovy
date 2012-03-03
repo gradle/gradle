@@ -184,7 +184,7 @@ task sleep << {
         given:
         def baseDir = distribution.file("daemonBaseDir").createDir()
         executer.withDaemonBaseDir(baseDir)
-        distribution.file("build.gradle") << "System.exit(0)"
+        distribution.file("build.gradle") << "org.gradle.util.internal.GradleJvmSystem.exit(0)"
 
         when:
         def failure = executer.withArguments("-q").runWithFailure()

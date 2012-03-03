@@ -23,17 +23,19 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.DefaultClassLoaderFactory;
 import org.gradle.util.MutableURLClassLoader;
+import org.gradle.util.internal.GradleJvmSystem;
 
 import java.lang.reflect.Method;
 
 public class ProcessBootstrap {
     public void run(String mainClassName, String[] args) {
         try {
+            GradleJvmSystem.installSecurity();
             runNoExit(mainClassName, args);
-            System.exit(0);
+            GradleJvmSystem.exit(0);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
-            System.exit(1);
+            GradleJvmSystem.exit(1);
         }
     }
 
