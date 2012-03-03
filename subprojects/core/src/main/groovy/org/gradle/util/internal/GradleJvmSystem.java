@@ -29,6 +29,8 @@ import java.security.Permission;
  * Uses System.out for warnings instead of Logger because most operations happen (or may happen) very early, before we initialize the logging.
  * This should be fine because the warnings cover true edge cases.
  * <p>
+ * The implementation is not thread-safe.
+ * <p>
  * by Szczepan Faber, created at: 3/2/12
  */
 public class GradleJvmSystem {
@@ -37,10 +39,11 @@ public class GradleJvmSystem {
      * Installs a SecurityManager that adds some extra protection.
      * If already installed this method does nothing.
      */
-    public static synchronized void installSecurity() {
-        if (System.getSecurityManager() instanceof GradleSecurityManager) {
+    public static void installSecurity() {
+        if (isGradleSecurityManager(System.getSecurityManager())) {
             return;
         }
+
         try {
             System.setSecurityManager(new GradleSecurityManager());
         } catch (SecurityException e) {
@@ -50,11 +53,11 @@ public class GradleJvmSystem {
             System.out.println("Warning: Unable to install Gradle security. Some protection may be disabled. Problem: " + e);
         }
     }
-    
+
     public static void exit(int exitValue) {
         SecurityManager current = System.getSecurityManager();
-        if (current instanceof GradleSecurityManager) {
-            ((GradleSecurityManager) current).active = false;
+        if (isGradleSecurityManager(current)) {
+            System.setSecurityManager(null);
         } else {
             System.out.println("Warning: System.exit() requested but Gradle security manager was not installed or was replaced. "
                     + "Gradle does not know if the request is a legitimate one.");
@@ -62,26 +65,24 @@ public class GradleJvmSystem {
         System.exit(exitValue);
     }
 
-    private static class GradleSecurityManager extends SecurityManager {
+    private static boolean isGradleSecurityManager(SecurityManager manager) {
+        //not using instanceof to avoid problems when isolated classloaders are involved.
+        return manager != null && manager.getClass().getName().equals(GradleSecurityManager.class.getName());
+    }
 
-        private boolean active = true;
+    public static class GradleSecurityManager extends SecurityManager {
+
+        private static final String SYSTEM_EXIT_NOT_PERMITTED =
+                "System.exit() detected. Gradle does not permit 3rd party plugins or client builds to perform the vm exit.\n"
+                + "The reason is that disappearing vm leads to problems that are very hard to diagnose, "
+                + "especially when running with the gradle build daemon.";
 
         public void checkPermission(Permission permission) {
-            //this security manager allows replacing the security manager
-            //in case someone (who knows what he's doing) needs to work around the protection.
-            if (permission.getName().equals("setSecurityManager")) {
-                System.out.println("Warning: Detected an attempt to override Gradle's security manager. Consequently, some protection might be disabled.");
-            }
             //by default we allow everything because the default security manager is null.
         }
 
         public void checkExit(int i) {
-            if (active) {
-                throw new SecurityException(
-                    "System.exit() detected. Gradle does not permit 3rd party or client builds to perform the vm exit.\n"
-                    + "The reason is that disappearing vm leads to problems that are very hard to diagnose, "
-                    + "especially when running with the gradle build daemon.\n");
-            }
+            throw new SecurityException(SYSTEM_EXIT_NOT_PERMITTED);
         }
 
     }
