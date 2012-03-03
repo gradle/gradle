@@ -41,6 +41,7 @@ import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.util.ClassLoaderFactory;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.MultiParentClassLoader;
@@ -229,6 +230,15 @@ public class TopLevelBuildServiceRegistryTest {
 
         assertThat(registry.get(BuildLoader.class), instanceOf(ProjectPropertySettingBuildLoader.class));
         assertThat(registry.get(BuildLoader.class), sameInstance(registry.get(BuildLoader.class)));
+    }
+
+    @Test
+    public void providesAProfileEventAdapter() {
+        expectParentServiceLocated(BuildRequestMetaData.class);
+        expectListenerManagerCreated();
+
+        assertThat(registry.get(ProfileEventAdapter.class), instanceOf(ProfileEventAdapter.class));
+        assertThat(registry.get(ProfileEventAdapter.class), sameInstance(registry.get(ProfileEventAdapter.class)));
     }
 
     private <T> T expectParentServiceLocated(final Class<T> type) {

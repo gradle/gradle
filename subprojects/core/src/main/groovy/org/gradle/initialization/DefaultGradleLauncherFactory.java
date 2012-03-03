@@ -35,7 +35,8 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.profile.ProfileListener;
+import org.gradle.profile.ProfileEventAdapter;
+import org.gradle.profile.ReportGeneratingProfileListener;
 
 import java.util.Arrays;
 
@@ -118,8 +119,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.addListener(tracker);
         listenerManager.addListener(new BuildCleanupListener(serviceRegistry));
 
+        listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
         if (startParameter.isProfile()) {
-            listenerManager.addListener(new ProfileListener(requestMetaData.getBuildTimeClock().getStartTime()));
+            listenerManager.addListener(new ReportGeneratingProfileListener());
         }
 
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry);

@@ -8,6 +8,7 @@ dependencies {
     integTestCompile project(':coreImpl')
     integTestCompile libraries.ant
     integTestCompile libraries.xmlunit
+    integTestCompile libraries.nekohtml
 
     integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }

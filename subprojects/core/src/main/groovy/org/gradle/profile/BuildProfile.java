@@ -189,7 +189,7 @@ public class BuildProfile {
      * @return
      */
     public long getElapsedTotal() { 
-    return buildFinished - profilingStarted;
+        return buildFinished - profilingStarted;
     }
 
     /**
