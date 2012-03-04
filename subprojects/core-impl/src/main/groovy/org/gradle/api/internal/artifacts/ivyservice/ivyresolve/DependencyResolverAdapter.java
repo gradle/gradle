@@ -26,6 +26,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
 import org.gradle.internal.UncheckedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.text.ParseException;
@@ -34,6 +36,8 @@ import java.text.ParseException;
  * A {@link ModuleVersionRepository} wrapper around an Ivy {@link DependencyResolver}.
  */
 public class DependencyResolverAdapter implements ModuleVersionRepository {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyResolverAdapter.class);
+
     private final DependencyResolverIdentifier identifier;
     private final DependencyResolver resolver;
     private final DownloadOptions downloadOptions = new DownloadOptions();
@@ -83,8 +87,10 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
         try {
             ResolvedModuleRevision revision = resolver.getDependency(dd, resolveData);
             if (revision == null) {
+                LOGGER.debug("Performed resolved of module '{}' in repository '{}': not found", dd.getDependencyRevisionId(), getName());
                 return null;
             }
+            LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dd.getDependencyRevisionId(), getName());
             return new DefaultModuleVersionDescriptor(revision.getDescriptor(), isChanging(revision));
         } catch (ParseException e) {
             throw UncheckedException.throwAsUncheckedException(e);

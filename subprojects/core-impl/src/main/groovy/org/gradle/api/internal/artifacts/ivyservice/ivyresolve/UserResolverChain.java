@@ -37,6 +37,7 @@ public class UserResolverChain implements DependencyToModuleResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserResolverChain.class);
 
     private final List<ModuleVersionRepository> moduleVersionRepositories = new ArrayList<ModuleVersionRepository>();
+    private final List<String> moduleVersionRepositoryNames = new ArrayList<String>();
     private ResolverSettings settings;
 
     public void setSettings(ResolverSettings settings) {
@@ -45,14 +46,16 @@ public class UserResolverChain implements DependencyToModuleResolver {
 
     public void add(ModuleVersionRepository repository) {
         moduleVersionRepositories.add(repository);
+        moduleVersionRepositoryNames.add(repository.getName());
     }
 
     public ModuleVersionResolveResult resolve(DependencyDescriptor dependencyDescriptor) {
+        LOGGER.debug("Attempting to resolve module '{}' using repositories '{}'", dependencyDescriptor.getDependencyRevisionId(), moduleVersionRepositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
         final ModuleResolution latestResolved = findLatestModule(dependencyDescriptor, errors);
         if (latestResolved != null) {
             final ModuleVersionDescriptor downloadedModule = latestResolved.module;
-            LOGGER.debug("Found module {} using repository {}", downloadedModule.getId(), latestResolved.repository.getName());
+            LOGGER.debug("Using module '{}' from repository '{}'", downloadedModule.getId(), latestResolved.repository.getName());
             return latestResolved;
         }
         if (!errors.isEmpty()) {

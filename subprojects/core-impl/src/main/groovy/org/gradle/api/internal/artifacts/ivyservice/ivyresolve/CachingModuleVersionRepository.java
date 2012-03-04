@@ -81,7 +81,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
 
     public ModuleVersionDescriptor findModule(DependencyDescriptor requestedDependencyDescriptor) {
         DependencyDescriptor resolvedDependencyDescriptor = maybeUseCachedDynamicVersion(delegate, requestedDependencyDescriptor);
-        CachedModuleLookup lookup = lookupModuleInCache(resolvedDependencyDescriptor);
+        CachedModuleLookup lookup = lookupModuleInCache(delegate, resolvedDependencyDescriptor);
         if (lookup.wasFound) {
             return lookup.module;
         }
@@ -95,46 +95,47 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
             ModuleVersionSelector selector = createModuleVersionSelector(originalId);
             ModuleVersionIdentifier resolvedVersion = cachedModuleResolution.getResolvedModule() == null ? null : cachedModuleResolution.getResolvedModule().getId();
             if (cachePolicy.mustRefreshDynamicVersion(selector, resolvedVersion, cachedModuleResolution.getAgeMillis())) {
-                LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}'", selector);
+                LOGGER.debug("Resolved revision in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", selector, repository.getName());
                 return original;
             } else {
-                LOGGER.debug("Found resolved revision in dynamic revision cache: Using '{}' for '{}'", cachedModuleResolution.getResolvedVersion(), originalId);
+                LOGGER.debug("Found resolved revision in dynamic revision cache of '{}': Using '{}' for '{}'",
+                        new Object[] {repository.getName(), cachedModuleResolution.getResolvedVersion(), originalId});
                 return original.clone(cachedModuleResolution.getResolvedVersion());
             }
         }
         return original;
     }
 
-    public CachedModuleLookup lookupModuleInCache(DependencyDescriptor resolvedDependencyDescriptor) {
+    public CachedModuleLookup lookupModuleInCache(ModuleVersionRepository repository, DependencyDescriptor resolvedDependencyDescriptor) {
         ModuleRevisionId resolvedModuleVersionId = resolvedDependencyDescriptor.getDependencyRevisionId();
         ModuleVersionIdentifier moduleVersionIdentifier = createModuleVersionIdentifier(resolvedModuleVersionId);
-        ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(delegate, resolvedModuleVersionId);
+        ModuleDescriptorCache.CachedModuleDescriptor cachedModuleDescriptor = moduleDescriptorCache.getCachedModuleDescriptor(repository, resolvedModuleVersionId);
         if (cachedModuleDescriptor == null) {
             return notFound();
         }
         if (cachedModuleDescriptor.isMissing()) {
             if (cachePolicy.mustRefreshModule(moduleVersionIdentifier, null, cachedModuleDescriptor.getAgeMillis())) {
-                LOGGER.debug("Cached meta-data for missing module is expired: will perform fresh resolve of '{}'", resolvedModuleVersionId);
+                LOGGER.debug("Cached meta-data for missing module is expired: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
                 return notFound();
             }
-            LOGGER.debug("Detected non-existence of module '{}' in resolver cache", resolvedModuleVersionId);
+            LOGGER.debug("Detected non-existence of module '{}' in resolver cache '{}'", resolvedModuleVersionId, repository.getName());
             return found(null);
         }
         if (cachedModuleDescriptor.isChangingModule() || resolvedDependencyDescriptor.isChanging()) {
             if (cachePolicy.mustRefreshChangingModule(moduleVersionIdentifier, cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
-                expireArtifactsForChangingModule(delegate, cachedModuleDescriptor.getModuleDescriptor());
-                LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}'", resolvedModuleVersionId);
+                expireArtifactsForChangingModule(repository, cachedModuleDescriptor.getModuleDescriptor());
+                LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
                 return notFound();
             }
-            LOGGER.debug("Found cached version of changing module: '{}'", resolvedModuleVersionId);
+            LOGGER.debug("Found cached version of changing module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
         } else {
             if (cachePolicy.mustRefreshModule(moduleVersionIdentifier, cachedModuleDescriptor.getModuleVersion(), cachedModuleDescriptor.getAgeMillis())) {
-                LOGGER.debug("Cached meta-data for module must be refreshed: will perform fresh resolve of '{}'", resolvedModuleVersionId);
+                LOGGER.debug("Cached meta-data for module must be refreshed: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
                 return notFound();
             }
         }
 
-        LOGGER.debug("Using cached module metadata for '{}'", resolvedModuleVersionId);
+        LOGGER.debug("Using cached module metadata for module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
         // TODO:DAZ Could provide artifact metadata and file here from artifactFileStore (it's not needed currently)
         ModuleVersionDescriptor cachedModule = new DefaultModuleVersionDescriptor(cachedModuleDescriptor.getModuleDescriptor(), cachedModuleDescriptor.isChangingModule());
         return found(cachedModule);
