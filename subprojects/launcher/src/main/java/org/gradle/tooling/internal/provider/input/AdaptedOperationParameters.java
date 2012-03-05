@@ -25,6 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -126,5 +127,9 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
 
     public ProgressListenerVersion1 getProgressListener() {
         return delegate.getProgressListener();
+    }
+
+    public List<String> getArguments() {
+        return maybeGet(Arrays.<String>asList(), "getArguments");
     }
 }

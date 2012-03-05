@@ -68,7 +68,8 @@ public class DefaultConnection implements InternalConnection {
 
     public void executeBuild(final BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 parameters) {
         logTargetVersion();
-        run(new ExecuteBuildAction(buildParameters.getTasks()), new AdaptedOperationParameters(parameters));
+        AdaptedOperationParameters adapterdParams = new AdaptedOperationParameters(parameters);
+        run(new ExecuteBuildAction(buildParameters.getTasks(), adapterdParams.getArguments()), adapterdParams);
     }
 
     private void logTargetVersion() {

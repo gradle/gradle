@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.exec.InitializationAware;
 
@@ -26,9 +27,12 @@ import java.util.List;
 
 class ExecuteBuildAction implements GradleLauncherAction<Void>, InitializationAware, Serializable {
     private final List<String> tasks;
+    private final List<String> arguments;
 
-    public ExecuteBuildAction(List<String> tasks) {
+    public ExecuteBuildAction(List<String> tasks, List<String> arguments) {
+        //TODO some overlap with the other ExecuteBuildAction
         this.tasks = tasks;
+        this.arguments = arguments;
     }
 
     public Void getResult() {
@@ -36,6 +40,8 @@ class ExecuteBuildAction implements GradleLauncherAction<Void>, InitializationAw
     }
 
     public void configureStartParameter(StartParameter startParameter) {
+        DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
+        converter.convert(arguments, startParameter);
         startParameter.setTaskNames(tasks);
     }
 

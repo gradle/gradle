@@ -61,4 +61,6 @@ public interface ProviderOperationParameters {
     ProgressListenerVersion1 getProgressListener();
 
     TimeUnit getDaemonMaxIdleTimeUnits();
+
+    List<String> getArguments();
 }

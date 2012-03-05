@@ -15,13 +15,13 @@
  */
 package org.gradle.tooling.internal.provider
 
-import spock.lang.Specification
-import org.gradle.StartParameter
-import org.gradle.GradleLauncher
 import org.gradle.BuildResult
+import org.gradle.GradleLauncher
+import org.gradle.StartParameter
+import spock.lang.Specification
 
 class ExecuteBuildActionTest extends Specification {
-    final ExecuteBuildAction action = new ExecuteBuildAction(['a', 'b'])
+    final ExecuteBuildAction action = new ExecuteBuildAction(['a', 'b'], [])
 
     def setsTaskNamesOnStartParameter() {
         StartParameter startParameter = Mock()

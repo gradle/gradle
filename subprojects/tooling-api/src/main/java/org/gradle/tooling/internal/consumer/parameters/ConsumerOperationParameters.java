@@ -43,9 +43,15 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     private File javaHome;
     private List<String> jvmArguments;
+    private List<String> arguments;
 
     public ConsumerOperationParameters(ConnectionParameters parameters) {
         this.parameters = parameters;
+    }
+
+    public void setArguments(String[] arguments) {
+        //TODO SF rationalize
+        this.arguments = arguments != null && arguments.length > 0 ? Arrays.asList(arguments) : null;
     }
 
     public void setStandardOutput(OutputStream outputStream) {
@@ -136,5 +142,9 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     public List<String> getJvmArguments() {
         return jvmArguments;
+    }
+
+    public List<String> getArguments() {
+        return arguments;
     }
 }

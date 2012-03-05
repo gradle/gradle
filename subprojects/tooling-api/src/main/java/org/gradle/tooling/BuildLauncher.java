@@ -92,6 +92,14 @@ public interface BuildLauncher extends LongRunningOperation {
     BuildLauncher forTasks(Iterable<? extends Task> tasks);
 
     /**
+     * TODO SF - add more documenation, examples and user guide content
+     *
+     * @param arguments gradle command line arguments
+     * @return this
+     */
+    BuildLauncher withArguments(String ... arguments);
+
+    /**
      * {@inheritDoc}
      */
     BuildLauncher setStandardOutput(OutputStream outputStream);

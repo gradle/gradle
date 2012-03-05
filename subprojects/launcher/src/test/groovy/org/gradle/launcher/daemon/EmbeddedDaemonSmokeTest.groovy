@@ -43,7 +43,7 @@ class EmbeddedDaemonSmokeTest extends Specification {
         given:
         def dotGradle = temp.createDir('.gradle')
 
-        def action = new ConfiguringBuildAction(dotGradle, temp.testDir, false, LogLevel.LIFECYCLE, new ExecuteBuildAction(["echo"]))
+        def action = new ConfiguringBuildAction(dotGradle, temp.testDir, false, LogLevel.LIFECYCLE, new ExecuteBuildAction(["echo"], []))
         def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties, System.getenv(), temp.dir)
         
         and:

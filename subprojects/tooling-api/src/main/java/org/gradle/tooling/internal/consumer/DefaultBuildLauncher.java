@@ -59,6 +59,11 @@ class DefaultBuildLauncher implements BuildLauncher {
         return this;
     }
 
+    public BuildLauncher withArguments(String... arguments) {
+        operationParameters.setArguments(arguments);
+        return this;
+    }
+
     public DefaultBuildLauncher setStandardError(OutputStream outputStream) {
         operationParameters.setStandardError(outputStream);
         return this;
