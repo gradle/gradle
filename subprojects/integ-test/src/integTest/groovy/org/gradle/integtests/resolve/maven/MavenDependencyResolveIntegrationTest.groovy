@@ -15,25 +15,20 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class MavenDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
-    def "setup"() {
-        requireOwnUserHomeDir()
-    }
-
+class MavenDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def "dependency includes main artifact and runtime dependencies of referenced module"() {
         given:
-        def module = repo.module("org.gradle", "test", "1.45")
+        def module = mavenRepo().module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
         module.artifact(classifier: 'classifier')
         module.publish()
-        repo.module("org.gradle", "other", "preview-1").publish()
+        mavenRepo().module("org.gradle", "other", "preview-1").publish()
 
         and:
         buildFile << """
-repositories { maven { url "${repo.uri}" } }
+repositories { maven { url "${mavenRepo().uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45"
@@ -50,16 +45,16 @@ task check << {
 
     def "dependency that references a classifier includes the matching artifact only plus the runtime dependencies of referenced module"() {
         given:
-        def module = repo.module("org.gradle", "test", "1.45")
+        def module = mavenRepo().module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
         module.artifact(classifier: 'classifier')
         module.artifact(classifier: 'some-other')
         module.publish()
-        repo.module("org.gradle", "other", "preview-1").publish()
+        mavenRepo().module("org.gradle", "other", "preview-1").publish()
 
         and:
         buildFile << """
-repositories { maven { url "${repo.uri}" } }
+repositories { maven { url "${mavenRepo().uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45:classifier"
@@ -76,15 +71,15 @@ task check << {
 
     def "dependency that references an artifact includes the matching artifact only plus the runtime dependencies of referenced module"() {
         given:
-        def module = repo.module("org.gradle", "test", "1.45")
+        def module = mavenRepo().module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
         module.artifact(classifier: 'classifier')
         module.publish()
-        repo.module("org.gradle", "other", "preview-1").publish()
+        mavenRepo().module("org.gradle", "other", "preview-1").publish()
 
         and:
         buildFile << """
-repositories { maven { url "${repo.uri}" } }
+repositories { maven { url "${mavenRepo().uri}" } }
 configurations { compile }
 dependencies {
     compile ("org.gradle:test:1.45") {
@@ -176,9 +171,5 @@ task check << {
 
         expect:
         succeeds "check"
-    }
-
-    def getRepo() {
-        return new MavenRepository(file("repo"))
     }
 }

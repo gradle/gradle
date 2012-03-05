@@ -15,27 +15,19 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.MavenRepository
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import org.gradle.util.SetSystemProperties
 import org.hamcrest.Matchers
 import org.junit.Rule
 
-class ResolutionOverrideIntegrationTest extends AbstractIntegrationSpec {
-    @Rule
-    public final HttpServer server = new HttpServer()
+class ResolutionOverrideIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule
     public SetSystemProperties systemProperties = new SetSystemProperties()
-
-    def "setup"() {
-        requireOwnUserHomeDir()
-    }
 
     public void "will non-changing module when run with --refresh dependencies"() {
         given:
         server.start()
-        def module = repo().module('org.name', 'projectA', '1.2').publish()
+        def module = mavenRepo().module('org.name', 'projectA', '1.2').publish()
 
         and:
         buildFile << """
@@ -50,7 +42,7 @@ task retrieve(type: Sync) {
 }
 """
         and:
-        server.allowGet('/repo', repo().rootDir)
+        server.allowGet('/repo', mavenRepo().rootDir)
 
         when:
         succeeds 'retrieve'
@@ -74,7 +66,7 @@ task retrieve(type: Sync) {
         server.start()
 
         given:
-        def module = repo().module('org.name', 'projectA', '1.2').publish()
+        def module = mavenRepo().module('org.name', 'projectA', '1.2').publish()
 
         buildFile << """
 repositories {
@@ -127,7 +119,7 @@ task retrieve(type: Sync) {
 """
 
         and:
-        def module = repo().module('org.name', 'projectA', '1.2').publish()
+        def module = mavenRepo().module('org.name', 'projectA', '1.2').publish()
 
         when:
         server.expectGet('/org/name/projectA/1.2/projectA-1.2.pom', module.pomFile)
@@ -151,7 +143,7 @@ task retrieve(type: Sync) {
 
         given:
         server.start()
-        def module = repo().module("org.name", "unique", "1.0-SNAPSHOT").publish()
+        def module = mavenRepo().module("org.name", "unique", "1.0-SNAPSHOT").publish()
 
         and:
         buildFile << """
@@ -172,7 +164,7 @@ task retrieve(type: Sync) {
 """
 
         when:  "Server handles requests"
-        server.allowGet("/repo", repo().rootDir)
+        server.allowGet("/repo", mavenRepo().rootDir)
 
         and: "We resolve dependencies"
         run 'retrieve'
@@ -220,9 +212,5 @@ task listJars << {
         failure.assertHasDescription('Execution failed for task \':listJars\'.')
         failure.assertHasCause('Could not resolve all dependencies for configuration \':compile\'.')
         failure.assertThatCause(Matchers.containsString('No cached version available for offline mode'))
-    }
-
-    MavenRepository repo() {
-        return new MavenRepository(file('repo'))
     }
 }

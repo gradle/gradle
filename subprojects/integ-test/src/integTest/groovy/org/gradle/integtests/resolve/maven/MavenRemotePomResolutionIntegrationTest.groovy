@@ -15,25 +15,15 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.junit.Rule
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class MavenRemotePomResolutionIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final HttpServer server = new HttpServer()
-    @Rule public final TestResources resources = new TestResources();
-
-    def "setup"() {
-        requireOwnUserHomeDir()
-    }
+class MavenRemotePomResolutionIntegrationTest extends AbstractDependencyResolutionTest {
 
     def "looks for jar artifact for pom with packing of type 'pom' in the same repository only"() {
         given:
         server.start()
 
-        def projectA = repo().module('group', 'projectA')
+        def projectA = mavenRepo().module('group', 'projectA')
         projectA.type = 'pom'
         projectA.publish()
 
@@ -80,15 +70,15 @@ task retrieve(type: Sync) {
         given:
         server.start()
 
-        def parentDep = repo().module("org", "parent_dep").publish()
-        def childDep = repo().module("org", "child_dep").publish()
+        def parentDep = mavenRepo().module("org", "parent_dep").publish()
+        def childDep = mavenRepo().module("org", "child_dep").publish()
 
-        def parent = repo().module("org", "parent")
+        def parent = mavenRepo().module("org", "parent")
         parent.type = 'pom'
         parent.dependsOn("parent_dep")
         parent.publish()
 
-        def child = repo().module("org", "child")
+        def child = mavenRepo().module("org", "child")
         child.dependsOn("child_dep")
         child.parentPomSection = """
 <parent>
@@ -140,11 +130,11 @@ task retrieve(type: Sync) {
         given:
         server.start()
 
-        def parent = repo().module("org", "parent")
+        def parent = mavenRepo().module("org", "parent")
         parent.type = 'pom'
         parent.publish()
 
-        def child = repo().module("org", "child")
+        def child = mavenRepo().module("org", "child")
         child.parentPomSection = """
 <parent>
   <groupId>org</groupId>
@@ -185,9 +175,5 @@ task retrieve(type: Sync) {
 
         then:
         file('libs').assertHasDescendants('child-1.0.jar')
-    }
-
-    MavenRepository repo() {
-        return new MavenRepository(file('repo'))
     }
 }

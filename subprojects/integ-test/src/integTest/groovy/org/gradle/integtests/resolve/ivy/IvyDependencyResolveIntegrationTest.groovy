@@ -15,16 +15,13 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class IvyDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
-    def "setup"() {
-        requireOwnUserHomeDir()
-    }
+class IvyDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def "dependency includes all artifacts and transitive dependencies of referenced configuration"() {
         given:
+        def repo = ivyRepo()
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
         module.artifact(classifier: "classifier")
@@ -51,11 +48,12 @@ task check << {
 
     def "dependency that references a classifier includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
         given:
-        def module = repo.module("org.gradle", "test", "1.45")
-        module.dependsOn("org.gradle", "other", "preview-1")
-        module.artifact(classifier: "classifier")
-        module.artifact(name: "test-extra")
-        module.publish()
+        def repo = ivyRepo()
+        repo.module("org.gradle", "test", "1.45")
+                .dependsOn("org.gradle", "other", "preview-1")
+                .artifact(classifier: "classifier")
+                .artifact(name: "test-extra")
+                .publish()
         repo.module("org.gradle", "other", "preview-1").publish()
 
         and:
@@ -77,6 +75,7 @@ task check << {
 
     def "dependency that references an artifact includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
         given:
+        def repo = ivyRepo()
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
         module.artifact(classifier: "classifier")
@@ -108,6 +107,7 @@ task check << {
 
     def "transitive flag of referenced configuration affects its transitive dependencies only"() {
         given:
+        def repo = ivyRepo()
         def module = repo.module("org.gradle", "test", "1.45")
         module.dependsOn("org.gradle", "other", "preview-1")
         module.nonTransitive('default')
@@ -140,9 +140,5 @@ task check << {
 
         expect:
         succeeds "check"
-    }
-
-    def getRepo() {
-        return new IvyRepository(file("ivy-repo"))
     }
 }

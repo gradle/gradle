@@ -16,18 +16,12 @@
 package org.gradle.integtests.resolve;
 
 
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.junit.Rule
 import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
-public class ClientModuleDependenciesResolveIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final HttpServer server = new HttpServer()
-
+public class ClientModuleDependenciesResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @Test
     public void testResolve() {
         when:
@@ -86,9 +80,4 @@ task listJars << {
 //        expect:
         succeeds('listJars')
     }
-
-    IvyRepository ivyRepo() {
-        return new IvyRepository(file('ivy-repo'))
-    }
-
 }

@@ -15,18 +15,9 @@
  */
 package org.gradle.integtests.resolve.custom
 
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.junit.Rule
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class IvyUrlResolverIntegrationTest extends AbstractIntegrationSpec {
-    @Rule
-    public final HttpServer server = new HttpServer()
-
-    def "setup"() {
-        requireOwnUserHomeDir()
-    }
+class IvyUrlResolverIntegrationTest extends AbstractDependencyResolutionTest {
 
     public void "can resolve and cache dependencies from an HTTP Ivy repository"() {
         server.start()
@@ -123,9 +114,5 @@ task retrieve(type: Sync) {
         def changedJarFile = file('libs/projectA-1.2-SNAPSHOT.jar')
         changedJarFile.assertHasChangedSince(snapshot)
         changedJarFile.assertIsCopyOf(module.jarFile)
-    }
-
-    IvyRepository ivyRepo() {
-        return new IvyRepository(file('ivy-repo'))
     }
 }

@@ -16,24 +16,20 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class MavenLocalDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
-    def "setup"() {
-        requireOwnUserHomeDir()
-    }
-
+class MavenLocalDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     public void "can resolve snapshots uncached from local Maven repository"() {
         given:
-        def moduleA = repo().module('group', 'projectA', '1.2-SNAPSHOT')
-        def moduleB = repo().module('group', 'projectB', '9.1')
+        def moduleA = mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT')
+        def moduleB = mavenRepo().module('group', 'projectB', '9.1')
         moduleA.publish()
         moduleB.publish()
 
         and:
         buildFile << """
 configurations { compile }
-repositories { maven { url "${repo().uri}" } }
+repositories { maven { url "${mavenRepo().uri}" } }
 dependencies { compile 'group:projectA:1.2-SNAPSHOT' }
 task retrieve(type: Sync) {
     from configurations.compile
@@ -62,15 +58,15 @@ task retrieve(type: Sync) {
 
     public void "does not cache artifacts and metadata from local Maven repository"() {
         given:
-        def moduleA = repo().module('group', 'projectA', '1.2')
-        def moduleB = repo().module('group', 'projectB', '9.1')
+        def moduleA = mavenRepo().module('group', 'projectA', '1.2')
+        def moduleB = mavenRepo().module('group', 'projectB', '9.1')
         moduleA.publish()
         moduleB.publish()
 
         and:
         buildFile << """
 configurations { compile }
-repositories { maven { url "${repo().uri}" } }
+repositories { maven { url "${mavenRepo().uri}" } }
 dependencies { compile 'group:projectA:1.2' }
 task retrieve(type: Sync) {
     from configurations.compile
@@ -99,8 +95,8 @@ task retrieve(type: Sync) {
 
     public void "uses artifactUrls to resolve artifacts"() {
         given:
-        def moduleA = repo().module('group', 'projectA', '1.2')
-        def moduleB = repo().module('group', 'projectB', '9.1')
+        def moduleA = mavenRepo().module('group', 'projectA', '1.2')
+        def moduleB = mavenRepo().module('group', 'projectB', '9.1')
         moduleA.publish()
         moduleB.publish()
 
@@ -113,7 +109,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     maven {
-        url "${repo().uri}"
+        url "${mavenRepo().uri}"
         artifactUrls "${artifactsRepo.uri}"
     }
 }
@@ -137,9 +133,5 @@ task retrieve(type: Sync) {
         buildDir.assertHasDescendants('projectA-1.2.jar', 'projectB-9.1.jar')
         buildDir.file('projectA-1.2.jar').assertIsCopyOf(artifactsModuleA.artifactFile)
         buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
-    }
-
-    MavenRepository repo() {
-        return new MavenRepository(distribution.testFile('repo'))
     }
 }

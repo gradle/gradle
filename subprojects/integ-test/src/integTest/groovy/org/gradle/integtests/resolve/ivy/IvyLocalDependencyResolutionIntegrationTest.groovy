@@ -15,14 +15,9 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.IvyRepository
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class IvyLocalDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
-    def "setup"() {
-        requireOwnUserHomeDir()
-    }
-
+class IvyLocalDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     public void "does not cache local artifacts or metadata"() {
         given:
         def repo = ivyRepo()
@@ -126,9 +121,5 @@ task retrieve(type: Sync) {
         def jarC1 = file('libs/projectC-1.0.jar')
         jarC1.assertIsCopyOf(projectC1.jarFile)
         jarC1.assertHasChangedSince(jarCsnapshot)
-    }
-
-    IvyRepository ivyRepo() {
-        return new IvyRepository(file('ivy-repo'))
     }
 }

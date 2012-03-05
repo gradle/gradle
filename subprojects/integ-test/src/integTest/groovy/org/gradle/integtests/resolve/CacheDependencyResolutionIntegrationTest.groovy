@@ -16,25 +16,14 @@
 package org.gradle.integtests.resolve;
 
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.IvyRepository
-import org.junit.Rule
-
-public class CacheDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
-    @Rule
-    public final HttpServer server = new HttpServer()
-
-    def "setup"() {
-        requireOwnUserHomeDir()
-    }
+public class CacheDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     // TODO:DAZ Ensure that "cache handles manual deletion of cached artifacts()" isn't lost during merge back from release branch
 
     public void "cache handles manual deletion of cached artifacts"() {
         server.start()
 
         given:
-        def repo = new IvyRepository(file('ivy-repo'))
+        def repo = ivyRepo()
         def module = repo.module('group', 'projectA', '1.2')
         module.publish()
 
@@ -74,9 +63,9 @@ task deleteCacheFiles(type: Delete) {
     public void "cache entries are segregated between different repositories"() {
         server.start()
         given:
-        def repo1 = new IvyRepository(file('ivy-repo-a'))
+        def repo1 = ivyRepo('ivy-repo-a')
         def module1 = repo1.module('org.gradle', 'testproject', '1.0').publish()
-        def repo2 = new IvyRepository(file('ivy-repo-b'))
+        def repo2 = ivyRepo('ivy-repo-b')
         def module2 = repo2.module('org.gradle', 'testproject', '1.0').publish()
         module2.jarFile << "Some extra content"
 

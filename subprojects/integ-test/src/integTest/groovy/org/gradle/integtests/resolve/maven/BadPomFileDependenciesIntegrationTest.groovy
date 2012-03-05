@@ -15,11 +15,10 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.MavenRepository
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import spock.lang.Issue
 
-class BadPomFileDependenciesIntegrationTest extends AbstractIntegrationSpec {
+class BadPomFileDependenciesIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Issue("http://issues.gradle.org/browse/GRADLE-1005")
     def "can handle self referencing dependency"() {
@@ -27,12 +26,12 @@ class BadPomFileDependenciesIntegrationTest extends AbstractIntegrationSpec {
         file("settings.gradle") << "include 'client'"
 
         and:
-        mavenRepo.module('group', 'artifact', '1.0').dependsOn('group', 'artifact', '1.0').publish()
+        mavenRepo().module('group', 'artifact', '1.0').dependsOn('group', 'artifact', '1.0').publish()
 
         and:
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url "${mavenRepo().uri}" }
             }
             configurations { compile }
             dependencies {
@@ -43,9 +42,5 @@ class BadPomFileDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds ":libs"
-    }
-
-    MavenRepository getMavenRepo() {
-        return new MavenRepository(file('repo'))
     }
 }

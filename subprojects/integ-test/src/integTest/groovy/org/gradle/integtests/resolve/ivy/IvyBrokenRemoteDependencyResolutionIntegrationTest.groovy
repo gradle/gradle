@@ -15,21 +15,13 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.integtests.fixtures.IvyRepository
 import org.hamcrest.Matchers
-import org.junit.Rule
+
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
-class IvyBrokenRemoteDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
-    @Rule
-    public final HttpServer server = new HttpServer()
-
-    def "setup"() {
-        requireOwnUserHomeDir()
-    }
+class IvyBrokenRemoteDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
 
     public void "reports and caches missing module"() {
         server.start()
@@ -197,9 +189,5 @@ task retrieve(type: Sync) {
         then:
         succeeds "retrieve"
         file('libs').assertHasDescendants('projectA-1.2.jar')
-    }
-
-    IvyRepository ivyRepo() {
-        return new IvyRepository(file('ivy-repo'))
     }
 }

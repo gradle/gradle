@@ -15,22 +15,22 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.IvyModule
+import org.gradle.integtests.fixtures.MavenModule
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 import org.junit.Rule
 import spock.lang.Ignore
-import org.gradle.integtests.fixtures.*
 
-class AliasedArtifactResolutionIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final HttpServer server = new HttpServer()
+class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule public final TestResources resources = new TestResources();
 
     MavenModule projectB
     IvyModule ivyProjectB
 
     def "setup"() {
-        requireOwnUserHomeDir()
         init()
-        projectB = repo().module('org.name', 'projectB').publish()
+        projectB = mavenRepo().module('org.name', 'projectB').publish()
         ivyProjectB = ivyRepo().module('org.name', 'projectB').publish()
     }
 
@@ -161,7 +161,7 @@ repositories {
     } else if (project.hasProperty('ivyRepository2')) {
         ivy { url 'http://localhost:${server.port}/ivyRepo2' }
     } else if (project.hasProperty('fileRepository')) {
-        maven { url '${repo().uri}' }
+        maven { url '${mavenRepo().uri}' }
     }
 }
 configurations { compile }
@@ -182,13 +182,5 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectB-1.0.jar')
         server.resetExpectations()
         return result
-    }
-
-    MavenRepository repo() {
-        return new MavenRepository(file('repo'))
-    }
-
-    IvyRepository ivyRepo() {
-        return new IvyRepository(file('ivyRepo'))
     }
 }

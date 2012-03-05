@@ -15,24 +15,13 @@
  */
 package org.gradle.integtests.resolve;
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
-import org.gradle.integtests.fixtures.HttpServer;
-import org.junit.Rule
-import org.gradle.integtests.fixtures.IvyRepository;
 
-public class HttpEncodingDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
-    @Rule
-    public final HttpServer server = new HttpServer()
-
-    def "setup"() {
-        requireOwnUserHomeDir()
-    }
-
+public class HttpEncodingDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     public void "handles gzip encoded content"() {
         server.start()
 
         given:
-        def repo = new IvyRepository(file('ivy-repo'))
+        def repo = ivyRepo()
         def module = repo.module('group', 'projectA', '1.2')
         module.publish()
 
