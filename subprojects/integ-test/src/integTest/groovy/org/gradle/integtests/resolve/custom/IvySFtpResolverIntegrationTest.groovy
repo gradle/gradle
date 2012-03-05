@@ -34,7 +34,7 @@ class IvySFtpResolverIntegrationTest extends AbstractIntegrationSpec {
         given:
         def repo = ivyRepo()
         def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
+        module.publish();
 
         and:
         buildFile << """
@@ -57,6 +57,8 @@ task listJars << {
 }
 """
         when:
+        withDebugLogging()
+
         succeeds 'listJars'
 
         then:

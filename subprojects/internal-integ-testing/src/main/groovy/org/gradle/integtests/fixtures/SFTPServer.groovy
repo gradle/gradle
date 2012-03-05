@@ -67,14 +67,20 @@ class SFTPServer extends ExternalResource {
         try {
             session?.disconnect();
             sshd?.stop();
-        } catch (Throwable e) {}
+        } catch (Throwable e) {
+            e.printStackTrace()
+        }
         try {
             configDir.delete();
-        } catch (Throwable e) {}
+        } catch (Throwable e) {
+            e.printStackTrace()
+        }
 
         try {
             baseDir.delete();
-        } catch (Throwable e) {}
+        } catch (Throwable e) {
+            e.printStackTrace()
+        }
     }
 
 

@@ -71,7 +71,11 @@ class AbstractIntegrationSpec extends Specification {
     protected ExecutionResult run(String... tasks) {
         succeeds(*tasks)
     }
-    
+
+    protected GradleExecuter withDebugLogging() {
+        executer.withArguments("-d")
+    }
+
     protected ExecutionResult succeeds(String... tasks) {
         if (settingsFile.exists()) {
             executer.usingSettingsFile(settingsFile)
