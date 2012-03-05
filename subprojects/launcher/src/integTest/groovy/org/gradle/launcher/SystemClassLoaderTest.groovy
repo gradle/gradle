@@ -50,7 +50,7 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
                 try {
                     systemLoader.loadClass(nonLauncherOrCoreClass.name)
-                    assert false : "ClassNotFoundException should have been thrown trying to load a “\$nonLauncherOrCoreClass.name” class from the system classloader as its not a launcher or core class"
+                    assert false : "ClassNotFoundException should have been thrown trying to load a “\${nonLauncherOrCoreClass.name}” class from the system classloader as its not a launcher or core class"
                 } catch (ClassNotFoundException e) {
                     //
                 }
