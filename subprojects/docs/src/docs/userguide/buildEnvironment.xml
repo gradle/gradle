@@ -27,8 +27,8 @@
             The configuration is applied in following order
             (in case an option is configured in multiple locations the last one wins):
             <itemizedlist>
-                <listitem>from <filename>gradle.properties</filename> located in <literal>gradle user home</literal>.</listitem>
                 <listitem>from <filename>gradle.properties</filename> located in project build dir.</listitem>
+                <listitem>from <filename>gradle.properties</filename> located in <literal>gradle user home</literal>.</listitem>
                 <listitem>from system properties, e.g. when <literal>-Dsome.property</literal> is used in the command line.</listitem>
             </itemizedlist>
         </para>
