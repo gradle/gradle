@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.util;
 
 import java.io.File;
 import java.net.URI;

@@ -17,7 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClassPath;
+import org.gradle.util.ClassPath;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;

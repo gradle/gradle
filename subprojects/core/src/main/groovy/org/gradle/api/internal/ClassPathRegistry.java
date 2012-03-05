@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.util.ClassPath;
+
 public interface ClassPathRegistry {
     ClassPath getClassPath(String name);
 }

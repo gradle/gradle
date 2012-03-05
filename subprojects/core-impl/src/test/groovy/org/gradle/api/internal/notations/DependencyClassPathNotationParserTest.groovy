@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDepend
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
-import org.gradle.api.internal.ClassPath
+import org.gradle.util.ClassPath
 
 public class DependencyClassPathNotationParserTest extends Specification {
     def instantiator = Mock(Instantiator.class)

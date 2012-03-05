@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.api.internal.ClassPath;
+import org.gradle.util.ClassPath;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.util.ClassPath;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

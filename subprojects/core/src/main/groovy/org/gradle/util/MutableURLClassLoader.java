@@ -16,8 +16,6 @@
 
 package org.gradle.util;
 
-import org.gradle.api.internal.ClassPath;
-
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;

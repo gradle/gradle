@@ -15,8 +15,6 @@
  */
 package org.gradle.util;
 
-import org.gradle.api.internal.ClassPath;
-
 import java.net.URI;
 
 public interface ClassLoaderFactory {

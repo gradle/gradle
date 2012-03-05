@@ -15,7 +15,6 @@
  */
 package org.gradle.util;
 
-import org.gradle.api.internal.ClassPath;
 import org.gradle.internal.UncheckedException;
 
 import javax.xml.datatype.DatatypeFactory;
