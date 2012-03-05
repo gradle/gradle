@@ -195,7 +195,7 @@ repositories {
 configurations { compile }
 
 
-if (project.hasProperty('noDynamicRevisionCache')) {
+if (project.hasProperty('doNotCacheChangingModules')) {
     configurations.all {
         resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
     }
@@ -212,8 +212,7 @@ task retrieve(type: Copy) {
 """
 
         when: "Version 1.1 is published"
-        def module = ivyRepo().module("group", "projectA", "1.1")
-        module.publish()
+        def module = ivyRepo().module("group", "projectA", "1.1").publish()
 
         and: "Server handles requests"
         server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
@@ -235,10 +234,7 @@ task retrieve(type: Copy) {
         and: "We request 1.1 (changing), with module meta-data cached. No server requests."
         run 'retrieve'
 
-        then: "Original module meta-data is used"
-        file('build').assertHasDescendants('projectA-1.1.jar')
-
-        // and: "Original artifacts are used"
+        then: "Original module meta-data and artifacts are used"
         file('build').assertHasDescendants('projectA-1.1.jar')
         jarFile.assertHasNotChangedSince(snapshot)
 
@@ -252,11 +248,88 @@ task retrieve(type: Copy) {
         server.expectGet('/repo/group/projectA/1.1/other-1.1.jar', module.moduleDir.file('other-1.1.jar'))
 
         and: "We request 1.1 (changing) again, with zero expiry for dynamic revision cache"
-        executer.withArguments("-PnoDynamicRevisionCache")
+        executer.withArguments("-PdoNotCacheChangingModules")
         run 'retrieve'
 
         then: "We get new artifacts based on the new meta-data"
         file('build').assertHasDescendants('projectA-1.1.jar', 'other-1.1.jar')
+        jarFile.assertHasChangedSince(snapshot)
+        jarFile.assertIsCopyOf(module.jarFile)
+    }
+
+    def "can use cache-control DSL to mimic changing pattern for ivy repository"() {
+        server.start()
+
+        given:
+        buildFile << """
+repositories {
+    ivy { url "http://localhost:${server.port}/repo" }
+}
+
+configurations { compile }
+
+import static java.util.concurrent.TimeUnit.SECONDS
+configurations.all {
+    resolutionStrategy.resolutionRules.with {
+        eachModule({ moduleResolve ->
+            if (moduleResolve.request.version.endsWith('-CHANGING')) {
+                moduleResolve.cacheFor(0, SECONDS)
+            }
+        } as Action)
+
+        eachArtifact({ artifactResolve ->
+            if (artifactResolve.request.moduleVersionIdentifier.version.endsWith('-CHANGING')) {
+                artifactResolve.cacheFor(0, SECONDS)
+            }
+        } as Action)
+    }
+}
+
+dependencies {
+    compile group: "group", name: "projectA", version: "1-CHANGING"
+}
+
+task retrieve(type: Copy) {
+    into 'build'
+    from configurations.compile
+}
+"""
+
+        when: "Version 1-CHANGING is published"
+        def module = ivyRepo().module("group", "projectA", "1-CHANGING").publish()
+
+        and: "Server handles requests"
+        server.expectGet('/repo/group/projectA/1-CHANGING/ivy-1-CHANGING.xml', module.ivyFile)
+        server.expectGet('/repo/group/projectA/1-CHANGING/projectA-1-CHANGING.jar', module.jarFile)
+
+        and: "We request 1-CHANGING"
+        run 'retrieve'
+
+        then: "Version 1-CHANGING jar is used"
+        file('build').assertHasDescendants('projectA-1-CHANGING.jar')
+        def jarFile = file('build/projectA-1-CHANGING.jar')
+        jarFile.assertIsCopyOf(module.jarFile)
+        def snapshot = jarFile.snapshot()
+
+        when: "Module meta-data is changed and artifacts are modified"
+        module.artifact([name: 'other'])
+        module.publishWithChangedContent()
+
+        and: "Server handles requests"
+        server.resetExpectations()
+        // Server will be hit to get updated versions
+        server.expectGet('/repo/group/projectA/1-CHANGING/ivy-1-CHANGING.xml.sha1', module.sha1File(module.ivyFile))
+        server.expectGet('/repo/group/projectA/1-CHANGING/ivy-1-CHANGING.xml', module.ivyFile)
+        server.expectGet('/repo/group/projectA/1-CHANGING/projectA-1-CHANGING.jar.sha1', module.sha1File(module.jarFile))
+        server.expectGet('/repo/group/projectA/1-CHANGING/projectA-1-CHANGING.jar', module.jarFile)
+        server.expectGet('/repo/group/projectA/1-CHANGING/other-1-CHANGING.jar', module.moduleDir.file('other-1-CHANGING.jar'))
+
+        and: "We request 1-CHANGING again"
+        executer.withArguments()
+        run 'retrieve'
+
+        then: "We get new artifacts based on the new meta-data"
+        file('build').assertHasDescendants('projectA-1-CHANGING.jar', 'other-1-CHANGING.jar')
         jarFile.assertHasChangedSince(snapshot)
         jarFile.assertIsCopyOf(module.jarFile)
     }
