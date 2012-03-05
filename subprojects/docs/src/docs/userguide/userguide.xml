@@ -50,6 +50,7 @@
     <xi:include href='guiTutorial.xml'/>
     <xi:include href='gradleDaemon.xml'/>
     <xi:include href='thisAndThat.xml'/>
+    <xi:include href='buildEnvironment.xml'/>
     <xi:include href='writingBuildScripts.xml'/>
     <xi:include href='tasks.xml'/>
     <xi:include href='workingWithFiles.xml'/>
