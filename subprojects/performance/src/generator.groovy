@@ -164,4 +164,4 @@ class ProjectGeneratorTask extends DefaultTask {
 }
 
 //workaround for referring to task types defined in plugin scripts
-project.setProperty('ProjectGeneratorTask', ProjectGeneratorTask)
+project.ext.set('ProjectGeneratorTask', ProjectGeneratorTask)

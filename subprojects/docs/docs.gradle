@@ -21,7 +21,7 @@ import org.gradle.build.docs.Docbook2Xhtml
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
 import org.gradle.build.docs.dsl.ExtractDslMetaDataTask
 import org.gradle.build.GenerateReleasesXml
-import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 
 apply plugin: 'base'
 
@@ -40,18 +40,20 @@ dependencies {
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
 }
 
-srcDocsDir = file('src/docs')
-userguideSrcDir = new File(srcDocsDir, 'userguide')
-cssSrcDir = new File(srcDocsDir, 'css')
-dslSrcDir = new File(srcDocsDir, 'dsl')
-docsDir = file("$buildDir/docs")
-userguideDir = new File(docsDir, 'userguide')
-distDocsDir = new File(buildDir, 'distDocs')
-samplesDir = file("$buildDir/samples")
-docbookSrc = new File(project.buildDir, 'src')
-samplesSrcDir = file('src/samples')
+ext {
+    srcDocsDir = file('src/docs')
+    userguideSrcDir = new File(srcDocsDir, 'userguide')
+    cssSrcDir = new File(srcDocsDir, 'css')
+    dslSrcDir = new File(srcDocsDir, 'dsl')
+    docsDir = file("$buildDir/docs")
+    userguideDir = new File(docsDir, 'userguide')
+    distDocsDir = new File(buildDir, 'distDocs')
+    samplesDir = file("$buildDir/samples")
+    docbookSrc = new File(project.buildDir, 'src')
+    samplesSrcDir = file('src/samples')
+}
 
-outputs = [:]
+ext.outputs = [:]
 outputs.samples = files(samplesDir) {
     builtBy 'samples'
 }
@@ -224,7 +226,7 @@ def javaApiUrl = "http://docs.oracle.com/javase/1.5.0/docs/api/"
 def groovyApiUrl = "http://groovy.codehaus.org/gapi/"
 
 task javadoc(type: Javadoc) {
-    stylesheetFile = file("src/docs/css/javadoc.css")
+    ext.stylesheetFile = file("src/docs/css/javadoc.css")
     inputs.file stylesheetFile
 
     group = 'documentation'

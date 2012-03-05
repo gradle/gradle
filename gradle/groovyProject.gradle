@@ -37,7 +37,7 @@ tasks.withType(Jar).each { jar ->
     ])
 }
 
-generatedResourcesDir = file("$buildDir/generated-resources/main")
+ext.generatedResourcesDir = file("$buildDir/generated-resources/main")
 
 task classpathManifest(type: ClasspathManifest)
 sourceSets.main.output.dir generatedResourcesDir, builtBy: classpathManifest

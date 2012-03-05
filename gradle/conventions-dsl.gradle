@@ -4,7 +4,7 @@
 
 // Configures the project to use the test fixtures from another project, which by default is core.
 // Note this is not used to provide test fixtures, see gradle/testFixtures.gradle for that
-useTestFixtures = { params = [:] ->
+ext.useTestFixtures = { params = [:] ->
     def projectPath = params.project ?: ":core"
     def sourceSet = params.sourceSet ?: "test"
     def compileConfiguration = sourceSet == "main" ? "compile" : "${sourceSet}Compile"

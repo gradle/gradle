@@ -59,7 +59,7 @@ public class TypeNameResolver {
         try {
             getClass().getClassLoader().loadClass("groovy.lang.Closure");
         } catch (ClassNotFoundException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

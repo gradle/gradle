@@ -38,7 +38,7 @@ task uploadDistributions(type: S3DistributionFileUpload) {
 }
 
 task generateReleasesXml() {
-    outputFile = file("$buildDir/releases.xml")
+    ext.outputFile = file("$buildDir/releases.xml")
     outputs.file outputFile
     outputs.upToDateWhen { false }
 
@@ -118,7 +118,7 @@ task generateReleasesXml() {
 }
 
 task checkoutRepo(type: Exec) {
-    checkoutDir = file("$buildDir/repo-master")
+    ext.checkoutDir = file("$buildDir/repo-master")
     onlyIf { !checkoutDir.exists() }
     executable "git"
     args "clone", "git@github.com:gradleware/web.git", checkoutDir
@@ -127,7 +127,7 @@ task checkoutRepo(type: Exec) {
 task pushReleasesXml {
     dependsOn checkoutRepo, generateReleasesXml
     outputs.upToDateWhen { false }
-    repo = project.file("$project.buildDir/repo-$name")
+    ext.repo = project.file("$project.buildDir/repo-$name")
 
     doLast {
         def masterCheckout = project.checkoutRepo.checkoutDir

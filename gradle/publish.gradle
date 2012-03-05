@@ -14,7 +14,7 @@ task sourceJar(type: Jar) {
 }
 
 task generatePom {
-    pomFile = new File(temporaryDir, 'pom.xml')
+    ext.pomFile = new File(temporaryDir, 'pom.xml')
     doLast {
         dependencies {
             configurations.publishCompile.allDependencies.withType(ProjectDependency).each {

@@ -148,7 +148,7 @@ class JavadocScanner {
                 builder.append("\n");
             }
         } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         input.insert(pos, builder.toString().trim());
     }

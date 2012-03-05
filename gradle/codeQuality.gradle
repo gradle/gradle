@@ -3,7 +3,7 @@ apply plugin: 'codenarc'
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
 
-checkstyleConfigDir = "$configDir/checkstyle"
+ext.checkstyleConfigDir = "$configDir/checkstyle"
 
 checkstyle {
     configFile = new File(checkstyleConfigDir, "checkstyle.xml")

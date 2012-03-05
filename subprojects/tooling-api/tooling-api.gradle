@@ -1,4 +1,4 @@
-import org.gradle.internal.nativeplatform.OperatingSystem
+import org.gradle.internal.os.OperatingSystem
 
 dependencies {
     groovy libraries.groovy

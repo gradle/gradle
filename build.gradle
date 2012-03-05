@@ -29,7 +29,7 @@ import org.gradle.build.Releases
  * Using the build to create a new distribution and install it on the local machine: gradle_installPath
  */
 
-releases = new Releases(project(':core').file('src/releases.xml'), project)
+ext.releases = new Releases(project(':core').file('src/releases.xml'), project)
 version = Version.forProject(project)
 
 defaultTasks 'assemble'
@@ -38,23 +38,26 @@ apply plugin: 'java-base'
 
 archivesBaseName = 'gradle'
 
-versions = [
-    commons_io: 'commons-io:commons-io:1.4'
-]
-libraries = [
-    ant: dependencies.module('org.apache.ant:ant:1.8.2') {
-        dependency 'org.apache.ant:ant-launcher:1.8.2@jar'
-    },
-    asm: 'asm:asm-all:3.3.1@jar',
-    commons_cli: 'commons-cli:commons-cli:1.2@jar',
-    commons_io: dependencies.module(versions.commons_io),
-    commons_lang: 'commons-lang:commons-lang:2.6@jar',
-    commons_collections: 'commons-collections:commons-collections:3.2.1@jar',
-    ivy: dependencies.module('org.apache.ivy:ivy:2.2.0'){
-        dependency "com.jcraft:jsch:0.1.46"
-    },
-    jcip: "net.jcip:jcip-annotations:1.0@jar",
-]
+ext {
+    versions = [
+        commons_io: 'commons-io:commons-io:1.4'
+    ]
+    libraries = [
+        ant: dependencies.module('org.apache.ant:ant:1.8.2') {
+            dependency 'org.apache.ant:ant-launcher:1.8.2@jar'
+        },
+        asm: 'asm:asm-all:3.3.1@jar',
+        commons_cli: 'commons-cli:commons-cli:1.2@jar',
+        commons_io: dependencies.module(versions.commons_io),
+        commons_lang: 'commons-lang:commons-lang:2.6@jar',
+        commons_collections: 'commons-collections:commons-collections:3.2.1@jar',
+        ivy: dependencies.module('org.apache.ivy:ivy:2.2.0'){
+            dependency "com.jcraft:jsch:0.1.46"
+        },
+        jcip: "net.jcip:jcip-annotations:1.0@jar",
+    ]
+    
+}
 
 // Logging
 libraries.slf4j_api = 'org.slf4j:slf4j-api:1.6.4@jar'
@@ -150,34 +153,35 @@ allprojects {
 
     apply from: "$rootDir/gradle/conventions-dsl.gradle"
     
-    isDevBuild = {
-        gradle.taskGraph.hasTask(developerBuild)
-    }
+    ext {
+        isDevBuild = {
+            gradle.taskGraph.hasTask(developerBuild)
+        }
 
-    isCIBuild = {
-        gradle.taskGraph.hasTask(ciBuild)
-    }
+        isCIBuild = {
+            gradle.taskGraph.hasTask(ciBuild)
+        }
 
-    isCommitBuild = {
-        gradle.taskGraph.hasTask(commitBuild)
-    }
+        isCommitBuild = {
+            gradle.taskGraph.hasTask(commitBuild)
+        }
 
-    isFinalReleaseBuild = {
-        gradle.taskGraph.hasTask(releaseVersion)
-    }
+        isFinalReleaseBuild = {
+            gradle.taskGraph.hasTask(releaseVersion)
+        }
 
-    isRcBuild = {
-        gradle.taskGraph.hasTask(rcVersion)
-    }
+        isRcBuild = {
+            gradle.taskGraph.hasTask(rcVersion)
+        }
 
-    isNightlyBuild = {
-        gradle.taskGraph.hasTask(nightlyVersion)
-    }
+        isNightlyBuild = {
+            gradle.taskGraph.hasTask(nightlyVersion)
+        }
 
-    isReleaseBuild = { // Are we doing any kind of “release”? i.e. final, nightly or rc
-        isFinalReleaseBuild() || isNightlyBuild() || isRcBuild()
+        isReleaseBuild = { // Are we doing any kind of “release”? i.e. final, nightly or rc
+            isFinalReleaseBuild() || isNightlyBuild() || isRcBuild()
+        }
     }
-    
 }
 
 configure(groovyProjects()) {
@@ -237,9 +241,9 @@ task aggregateTestReports(type: TestReportAggregator) {
     projects = subprojects
 }
 
-zipRootFolder = "$archivesBaseName-${-> version}"
+ext.zipRootFolder = "$archivesBaseName-${-> version}"
 
-binDistImage = copySpec {
+ext.binDistImage = copySpec {
     from('src/toplevel') {
         exclude 'media/**'
         expand(version: version)
@@ -260,7 +264,7 @@ binDistImage = copySpec {
     }
 }
 
-allDistImage = copySpec {
+ext.allDistImage = copySpec {
     with binDistImage
     into('src') {
         from groovyProjects().collect {project -> project.sourceSets.main.allSource }
@@ -318,7 +322,7 @@ artifacts {
 task intTestImage(type: Sync) {
     dependsOn "launcher:startScripts"
     with binDistImage
-    integTestGradleHome = file("$buildDir/integ test")
+    ext.integTestGradleHome = file("$buildDir/integ test")
     into integTestGradleHome
     doLast { task ->
         ant.chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")

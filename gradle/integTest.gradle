@@ -44,7 +44,7 @@ plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plug
     }
 }
 
-integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
+ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
 
 integTestTasks.all {
     dependsOn ':intTestImage', project(":docs").tasks.matching { it.name == "samples" } // lazy as doc not eval'd yet
