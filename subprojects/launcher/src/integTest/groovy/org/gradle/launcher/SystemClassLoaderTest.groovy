@@ -34,6 +34,11 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
     static heading = "systemClassLoader info"
     static noInfoHeading = "no systemClassLoader info"
 
+    /*
+        Note: The IBM ClassLoader.systemClassLoader does not throw ClassNotFoundException like it should when you ask
+        for a class it doesn't have, it simply returns null. I've not been able to find any official documentation
+        explaining why this is.
+    */
     @IgnoreIf({ !getSystemPropertyExecuter().forks })
     def "daemon bootstrap classpath is bare bones"() {
         given:
@@ -43,14 +48,14 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
                 systemLoader.loadClass(org.gradle.launcher.GradleMain.name) // this should be on the classpath, it's from the launcher package
 
-                def nonLauncherOrCoreClass = org.slf4j.Logger
+                def nonLauncherOrCoreClass = "org.apache.commons.lang.WordUtils"
 
                 // Check that this is a dependency (somewhat redundant, but for good measure)
-                getClass().classLoader.loadClass(nonLauncherOrCoreClass.name)
+                assert Project.classLoader.loadClass(nonLauncherOrCoreClass) != null
 
                 try {
-                    systemLoader.loadClass(nonLauncherOrCoreClass.name)
-                    assert false : "ClassNotFoundException should have been thrown trying to load a “\${nonLauncherOrCoreClass.name}” class from the system classloader as its not a launcher or core class"
+                    def clazz = systemLoader.loadClass(nonLauncherOrCoreClass)
+                    assert clazz == null : "ClassNotFoundException should have been thrown trying to load a “\${nonLauncherOrCoreClass}” class from the system classloader as its not a launcher or core class (loaded class: \$clazz)"
                 } catch (ClassNotFoundException e) {
                     //
                 }
