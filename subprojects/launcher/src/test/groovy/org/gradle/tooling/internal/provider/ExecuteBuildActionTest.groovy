@@ -21,7 +21,7 @@ import org.gradle.StartParameter
 import spock.lang.Specification
 
 class ExecuteBuildActionTest extends Specification {
-    final ExecuteBuildAction action = new ExecuteBuildAction(['a', 'b'], [])
+    final ExecuteBuildAction action = new ExecuteBuildAction(['a', 'b'])
 
     def setsTaskNamesOnStartParameter() {
         StartParameter startParameter = Mock()
