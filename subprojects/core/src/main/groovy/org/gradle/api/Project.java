@@ -495,6 +495,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     /**
      * <p>Declares that this project has an execution dependency on the project with the given path.</p>
      *
+     * @deprecated Use {@link Task#dependsOn(Object...)} instead.
      * @param path The path of the project which this project depends on.
      * @throws UnknownProjectException If no project with the given path exists.
      */
@@ -504,6 +505,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     /**
      * <p>Declares that this project has an execution dependency on the project with the given path.</p>
      *
+     * @deprecated Use {@link Task#dependsOn(Object...)} instead.
      * @param path The path of the project which this project depends on.
      * @param evaluateDependsOnProject If true, adds an evaluation dependency.
      * @throws UnknownProjectException If no project with the given path exists.
@@ -529,6 +531,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     /**
      * <p>Declares that all child projects of this project have an execution dependency on this project.</p>
      *
+     * @deprecated Use {@link Task#dependsOn(Object...)} instead.
      * @return this project.
      */
     @Deprecated
@@ -537,6 +540,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     /**
      * <p>Declares that this project has an execution dependency on each of its child projects.</p>
      *
+     * @deprecated Use {@link Task#dependsOn(Object...)} instead.
      * @return this project.
      */
     @Deprecated
@@ -545,6 +549,9 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     /**
      * <p>Declares that this project has an execution dependency on each of its child projects.</p>
      *
+     * @deprecated To definde task dependencies use {@link Task#dependsOn(Object...)} instead. 
+     * For declaring evaluation dependencies to child projects, use evaluation dependencies
+     * use {@link #evaluationDependsOnChildren()}.
      * @param evaluateDependsOnProject If true, adds an evaluation dependency.
      * @return this project.
      */
