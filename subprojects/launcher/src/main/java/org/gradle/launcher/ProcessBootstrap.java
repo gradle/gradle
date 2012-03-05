@@ -15,27 +15,25 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.util.ClassPath;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.util.ClassLoaderFactory;
+import org.gradle.util.ClassPath;
 import org.gradle.util.DefaultClassLoaderFactory;
 import org.gradle.util.MutableURLClassLoader;
-import org.gradle.util.internal.GradleJvmSystem;
 
 import java.lang.reflect.Method;
 
 public class ProcessBootstrap {
     public void run(String mainClassName, String[] args) {
         try {
-            GradleJvmSystem.installSecurity();
             runNoExit(mainClassName, args);
-            GradleJvmSystem.exit(0);
+            System.exit(0);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
-            GradleJvmSystem.exit(1);
+            System.exit(1);
         }
     }
 
