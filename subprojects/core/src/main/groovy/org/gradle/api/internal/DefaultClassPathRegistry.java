@@ -17,12 +17,9 @@
 package org.gradle.api.internal;
 
 import org.gradle.util.ClassPath;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.DefaultClassPath;
 
 import java.io.File;
-import java.io.Serializable;
-import java.net.URI;
-import java.net.URL;
 import java.util.*;
 
 public class DefaultClassPathRegistry implements ClassPathRegistry {
@@ -47,27 +44,4 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
         throw new IllegalArgumentException(String.format("unknown classpath '%s' requested.", name));
     }
 
-    private static class DefaultClassPath implements ClassPath, Serializable {
-        private final List<File> files;
-
-        public DefaultClassPath(List<File> files) {
-            this.files = files;
-        }
-
-        public Collection<URI> getAsURIs() {
-            return GFileUtils.toURIs(files);
-        }
-
-        public Collection<File> getAsFiles() {
-            return files;
-        }
-
-        public URL[] getAsURLArray() {
-            return GFileUtils.toURLArray(files);
-        }
-
-        public Collection<URL> getAsURLs() {
-            return GFileUtils.toURLs(files);
-        }
-    }
 }
