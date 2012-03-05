@@ -25,7 +25,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 
 public class PosixUtil {
-    private static final POSIX POSIX = POSIXFactory.getPOSIX(new POSIXHandlerImpl(), true);
+    private static final POSIX POSIX = PosixFactoryWrapper.wrap(POSIXFactory.getPOSIX(new POSIXHandlerImpl(), true));
 
     public static POSIX current() {
         return POSIX;
