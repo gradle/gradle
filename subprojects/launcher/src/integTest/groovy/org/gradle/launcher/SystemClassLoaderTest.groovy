@@ -44,10 +44,13 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
                 systemLoader.loadClass(org.gradle.launcher.GradleMain.name) // this should be on the classpath, it's from the launcher package
 
                 def nonLauncherOrCoreClass = org.slf4j.Logger
+
+                // Check that this is a dependency (somewhat redundant, but for good measure)
                 getClass().classLoader.loadClass(nonLauncherOrCoreClass.name)
+
                 try {
                     systemLoader.loadClass(nonLauncherOrCoreClass.name)
-                    assert false : "ClassNotFoundException should have been thrown trying to load a “core” class from the system classloader"
+                    assert false : "ClassNotFoundException should have been thrown trying to load a “\$nonLauncherOrCoreClass.name” class from the system classloader as its not a launcher or core class"
                 } catch (ClassNotFoundException e) {
                     //
                 }
