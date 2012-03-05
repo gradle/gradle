@@ -18,6 +18,8 @@ package org.gradle.api.internal;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
+import org.gradle.util.ClassPath;
+import org.gradle.util.DefaultClassPath;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -32,16 +34,16 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
         this.pluginModuleRegistry = pluginModuleRegistry;
     }
 
-    public Set<File> findClassPath(String name) {
+    public ClassPath findClassPath(String name) {
         if (name.equals("GRADLE_PLUGINS")) {
             Set<File> classpath = new LinkedHashSet<File>();
             for (Module pluginModule : pluginModuleRegistry.getPluginModules()) {
                 classpath.addAll(pluginModule.getClasspath());
             }
-            return classpath;
+            return new DefaultClassPath(classpath);
         }
         if (name.equals("GRADLE_CORE_IMPL")) {
-            return moduleRegistry.getModule("gradle-core-impl").getClasspath();
+            return new DefaultClassPath(moduleRegistry.getModule("gradle-core-impl").getClasspath());
         }
 
         return null;

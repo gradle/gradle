@@ -20,6 +20,8 @@ import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.classpath.UnknownModuleException;
+import org.gradle.util.ClassPath;
+import org.gradle.util.DefaultClassPath;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -37,7 +39,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         this.pluginModuleRegistry = pluginModuleRegistry;
     }
 
-    public Set<File> findClassPath(String name) {
+    public ClassPath findClassPath(String name) {
         if (name.equals(GRADLE_API.name())) {
             Set<File> classpath = new LinkedHashSet<File>();
             Module core = moduleRegistry.getModule("gradle-core");
@@ -53,10 +55,10 @@ public class DependencyClassPathProvider implements ClassPathProvider {
             for (Module pluginModule : pluginModuleRegistry.getPluginModules()) {
                 classpath.addAll(pluginModule.getClasspath());
             }
-            return classpath;
+            return new DefaultClassPath(classpath);
         }
         if (name.equals(LOCAL_GROOVY.name())) {
-            return moduleRegistry.getExternalModule("groovy-all").getClasspath();
+            return new DefaultClassPath(moduleRegistry.getExternalModule("groovy-all").getClasspath());
         }
 
         return null;

@@ -17,14 +17,17 @@
 package org.gradle.api.internal
 
 import spock.lang.Specification
+import org.gradle.util.ClassPath
 
 class DefaultClassPathRegistryTest extends Specification {
-    final ClassPathProvider provider = Mock()
-    final DefaultClassPathRegistry registry = new DefaultClassPathRegistry(provider)
+    final ClassPathProvider provider1 = Mock()
+    final ClassPathProvider provider2 = Mock()
+    final DefaultClassPathRegistry registry = new DefaultClassPathRegistry(provider1, provider2)
 
     def "fails for unknown classpath"() {
         given:
-        provider.findClassPath("name") >> null
+        provider1.findClassPath(_) >> null
+        provider2.findClassPath(_) >> null
 
         when:
         registry.getClassPath("name")
@@ -34,19 +37,14 @@ class DefaultClassPathRegistryTest extends Specification {
         e.message == 'unknown classpath \'name\' requested.'
     }
 
-    def "converts classpath to collection of file and uri and url"() {
-        def files = [new File("a.jar"), new File("with a space.jar")]
+    def "delegates to providers to find classpath"() {
+        def classpath = Mock(ClassPath)
 
         given:
-        provider.findClassPath("name") >> (files as LinkedHashSet)
+        provider1.findClassPath(_) >> null
+        provider2.findClassPath("name") >> classpath
 
-        when:
-        def classpath = registry.getClassPath("name")
-
-        then:
-        classpath.asFiles == files
-        classpath.asURIs == files.collect { it.toURI() }
-        classpath.asURLs == files.collect { it.toURI().toURL() }
-        classpath.asURLArray == files.collect { it.toURI().toURL() } as URL[]
+        expect:
+        registry.getClassPath("name") == classpath
     }
 }

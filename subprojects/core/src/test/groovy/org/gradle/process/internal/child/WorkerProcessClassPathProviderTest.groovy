@@ -52,7 +52,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
         1 * cacheBuilder.open() >> { initializer.execute(cache); return cache }
         _ * cache.getBaseDir() >> cacheDir
         0 * cache._
-        classpath == [classesDir] as Set
+        classpath.asFiles == [classesDir]
         classesDir.listFiles().length != 0
     }
 
@@ -71,6 +71,6 @@ class WorkerProcessClassPathProviderTest extends Specification {
         1 * cacheBuilder.open() >> cache
         _ * cache.getBaseDir() >> cacheDir
         0 * cache._
-        classpath == [classesDir] as Set
+        classpath.asFiles == [classesDir]
     }
 }

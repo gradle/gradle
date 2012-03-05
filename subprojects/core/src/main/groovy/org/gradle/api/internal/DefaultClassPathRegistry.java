@@ -17,10 +17,10 @@
 package org.gradle.api.internal;
 
 import org.gradle.util.ClassPath;
-import org.gradle.util.DefaultClassPath;
 
-import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class DefaultClassPathRegistry implements ClassPathRegistry {
     private final List<ClassPathProvider> providers = new ArrayList<ClassPathProvider>();
@@ -30,18 +30,12 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
     }
 
     public ClassPath getClassPath(String name) {
-        List<File> files = getClassPathFiles(name);
-        return new DefaultClassPath(files);
-    }
-
-    private List<File> getClassPathFiles(String name) {
         for (ClassPathProvider provider : providers) {
-            Set<File> classpath = provider.findClassPath(name);
+            ClassPath classpath = provider.findClassPath(name);
             if (classpath != null) {
-                return new ArrayList<File>(classpath);
+                return classpath;
             }
         }
         throw new IllegalArgumentException(String.format("unknown classpath '%s' requested.", name));
     }
-
 }

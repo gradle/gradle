@@ -23,6 +23,8 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
+import org.gradle.util.ClassPath;
+import org.gradle.util.DefaultClassPath;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -35,14 +37,14 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
     private final CacheRepository cacheRepository;
     private final ModuleRegistry moduleRegistry;
     private final Object lock = new Object();
-    private Set<File> workerClassPath;
+    private ClassPath workerClassPath;
 
     public WorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
         this.cacheRepository = cacheRepository;
         this.moduleRegistry = moduleRegistry;
     }
 
-    public Set<File> findClassPath(String name) {
+    public ClassPath findClassPath(String name) {
         if (name.equals("WORKER_PROCESS")) {
             // TODO - split out a logging project and use its classpath, instead of hardcoding logging dependencies here
             Set<File> classpath = new LinkedHashSet<File>();
@@ -54,13 +56,13 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
             classpath.addAll(moduleRegistry.getExternalModule("logback-classic").getClasspath());
             classpath.addAll(moduleRegistry.getExternalModule("logback-core").getClasspath());
             classpath.addAll(moduleRegistry.getExternalModule("jul-to-slf4j").getClasspath());
-            return classpath;
+            return new DefaultClassPath(classpath);
         }
         if (name.equals("WORKER_MAIN")) {
             synchronized (lock) {
                 if (workerClassPath == null) {
                     PersistentCache cache = cacheRepository.cache("workerMain").withInitializer(new CacheInitializer()).open();
-                    workerClassPath = Collections.singleton(classesDir(cache));
+                    workerClassPath = new DefaultClassPath(Collections.singleton(classesDir(cache)));
                 }
                 return workerClassPath;
             }

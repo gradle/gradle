@@ -17,6 +17,8 @@ package org.gradle.api.internal;
 
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.util.ClassPath;
+import org.gradle.util.DefaultClassPath;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -29,28 +31,28 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         this.moduleRegistry = moduleRegistry;
     }
 
-    public Set<File> findClassPath(String name) {
+    public ClassPath findClassPath(String name) {
         if (name.equals("GRADLE_RUNTIME")) {
             Set<File> classpath = new LinkedHashSet<File>();
             for (Module module : moduleRegistry.getModule("gradle-launcher").getAllRequiredModules()) {
                 classpath.addAll(module.getClasspath());
             }
-            return classpath;
+            return new DefaultClassPath(classpath);
         }
         if (name.equals("GRADLE_CORE")) {
-            return moduleRegistry.getModule("gradle-core").getImplementationClasspath();
+            return new DefaultClassPath(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
         }
         if (name.equals("COMMONS_CLI")) {
-            return moduleRegistry.getExternalModule("commons-cli").getClasspath();
+            return new DefaultClassPath(moduleRegistry.getExternalModule("commons-cli").getClasspath());
         }
         if (name.equals("ANT")) {
             Set<File> classpath = new LinkedHashSet<File>();
             classpath.addAll(moduleRegistry.getExternalModule("ant").getClasspath());
             classpath.addAll(moduleRegistry.getExternalModule("ant-launcher").getClasspath());
-            return classpath;
+            return new DefaultClassPath(classpath);
         }
         if (name.equals("GROOVY")) {
-            return moduleRegistry.getExternalModule("groovy-all").getClasspath();
+            return new DefaultClassPath(moduleRegistry.getExternalModule("groovy-all").getClasspath());
         }
 
         return null;

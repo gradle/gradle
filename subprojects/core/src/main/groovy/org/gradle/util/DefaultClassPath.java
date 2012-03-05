@@ -26,8 +26,8 @@ import java.util.List;
 public class DefaultClassPath implements ClassPath, Serializable {
     private final List<File> files;
 
-    public DefaultClassPath(List<File> files) {
-        this.files = files;
+    public DefaultClassPath(Iterable<File> files) {
+        this.files = GUtil.toList(files);
     }
 
     public Collection<URI> getAsURIs() {
