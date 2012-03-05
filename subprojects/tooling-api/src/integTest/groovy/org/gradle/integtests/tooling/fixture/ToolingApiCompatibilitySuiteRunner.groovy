@@ -106,7 +106,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         }
 
         private GradleVersion extractVersion(annotation) {
-            if (GradleVersion.current().isSnapshot() && GradleVersion.current().version.startsWith(annotation.value())) {
+            if (GradleVersion.current().isSnapshot()) {
                 return GradleVersion.current()
             }
             return GradleVersion.version(annotation.value())
