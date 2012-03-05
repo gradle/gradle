@@ -274,7 +274,8 @@ task groovydoc(type: Groovydoc, dependsOn: configureGroovyDoc) {
     includes = javadoc.includes
     excludes = javadoc.excludes
     doFirst {
-        title = "Gradle API $version"
+        windowTitle = "Gradle API $version"
+        docTitle = windowTitle
     }
     groovyClasspath = project(':core').configurations.groovy
     doLast {
