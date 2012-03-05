@@ -19,6 +19,7 @@ import org.gradle.api.internal.classpath.Module
 import org.gradle.api.internal.classpath.ModuleRegistry
 import spock.lang.Specification
 import org.gradle.api.internal.classpath.PluginModuleRegistry
+import org.gradle.util.DefaultClassPath
 
 class DependencyClassPathProviderTest extends Specification {
     final ModuleRegistry moduleRegistry = Mock()
@@ -41,8 +42,8 @@ class DependencyClassPathProviderTest extends Specification {
 
     def module(String name, Module ... requiredModules) {
         Module module = Mock()
-        _ * module.classpath >> ([new File("$name-runtime")] as Set)
-        _ * module.implementationClasspath >> ([new File("$name-impl")] as Set)
+        _ * module.classpath >> new DefaultClassPath(new File("$name-runtime"))
+        _ * module.implementationClasspath >> new DefaultClassPath(new File("$name-impl"))
         _ * module.allRequiredModules >> (([module] + (requiredModules as List)) as LinkedHashSet)
         return module
     }

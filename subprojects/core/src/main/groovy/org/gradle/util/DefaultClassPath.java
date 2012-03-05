@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -28,6 +29,14 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
     public DefaultClassPath(Iterable<File> files) {
         this.files = GUtil.toList(files);
+    }
+    
+    public DefaultClassPath(File... files) {
+        this.files = Arrays.asList(files);
+    }
+
+    public boolean isEmpty() {
+        return files.isEmpty();
     }
 
     public Collection<URI> getAsURIs() {
@@ -44,5 +53,22 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
     public Collection<URL> getAsURLs() {
         return GFileUtils.toURLs(files);
+    }
+
+    public ClassPath plus(ClassPath other) {
+        if (files.isEmpty()) {
+            return other;
+        }
+        if (other.isEmpty()) {
+            return this;
+        }
+        return new DefaultClassPath(GUtil.addLists(files, other.getAsFiles()));
+    }
+
+    public ClassPath plus(Collection<File> other) {
+        if (other.isEmpty()) {
+            return this;
+        }
+        return new DefaultClassPath(GUtil.addLists(files, other));
     }
 }

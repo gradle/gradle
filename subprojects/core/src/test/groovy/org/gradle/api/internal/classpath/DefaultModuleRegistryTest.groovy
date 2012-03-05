@@ -51,8 +51,8 @@ class DefaultModuleRegistryTest extends Specification {
 
         expect:
         def module = registry.getModule("gradle-some-module")
-        module.implementationClasspath as List == [jarFile]
-        module.runtimeClasspath as List == [runtimeDep]
+        module.implementationClasspath.asFiles == [jarFile]
+        module.runtimeClasspath.asFiles == [runtimeDep]
     }
 
     def "uses manifest from classpath when run from IDEA"() {
@@ -65,8 +65,8 @@ class DefaultModuleRegistryTest extends Specification {
 
         expect:
         def module = registry.getModule("gradle-some-module")
-        module.implementationClasspath as List == [classesDir, staticResourcesDir, resourcesDir]
-        module.runtimeClasspath as List == [runtimeDep]
+        module.implementationClasspath.asFiles == [classesDir, staticResourcesDir, resourcesDir]
+        module.runtimeClasspath.asFiles == [runtimeDep]
     }
 
     def "uses manifest from classpath when run from Eclipse"() {
@@ -78,8 +78,8 @@ class DefaultModuleRegistryTest extends Specification {
 
         expect:
         def module = registry.getModule("gradle-some-module")
-        module.implementationClasspath as List == [classesDir, staticResourcesDir, resourcesDir]
-        module.runtimeClasspath as List == [runtimeDep]
+        module.implementationClasspath.asFiles == [classesDir, staticResourcesDir, resourcesDir]
+        module.runtimeClasspath.asFiles == [runtimeDep]
     }
 
     def "uses manifest from classpath when run from build"() {
@@ -91,8 +91,8 @@ class DefaultModuleRegistryTest extends Specification {
 
         expect:
         def module = registry.getModule("gradle-some-module")
-        module.implementationClasspath as List == [classesDir, staticResourcesDir, resourcesDir]
-        module.runtimeClasspath as List == [runtimeDep]
+        module.implementationClasspath.asFiles == [classesDir, staticResourcesDir, resourcesDir]
+        module.runtimeClasspath.asFiles == [runtimeDep]
     }
 
     def "uses manifest from a jar on the classpath"() {
@@ -102,8 +102,8 @@ class DefaultModuleRegistryTest extends Specification {
 
         expect:
         def module = registry.getModule("gradle-some-module")
-        module.implementationClasspath as List == [jarFile]
-        module.runtimeClasspath as List == [runtimeDep]
+        module.implementationClasspath.asFiles == [jarFile]
+        module.runtimeClasspath.asFiles == [runtimeDep]
     }
 
     def "handles empty classpaths in manifest"() {
@@ -194,7 +194,7 @@ class DefaultModuleRegistryTest extends Specification {
 
         expect:
         def module = registry.getExternalModule("dep")
-        module.implementationClasspath as List == [runtimeDep]
+        module.implementationClasspath.asFiles == [runtimeDep]
         module.runtimeClasspath.empty
     }
 
@@ -205,7 +205,7 @@ class DefaultModuleRegistryTest extends Specification {
 
         expect:
         def module = registry.getExternalModule("dep")
-        module.implementationClasspath as List == [runtimeDep]
+        module.implementationClasspath.asFiles == [runtimeDep]
         module.runtimeClasspath.empty
     }
 
@@ -231,7 +231,7 @@ class DefaultModuleRegistryTest extends Specification {
 
         expect:
         def module = registry.getExternalModule("dep")
-        module.implementationClasspath as List == [runtimeDep]
+        module.implementationClasspath.asFiles == [runtimeDep]
         module.runtimeClasspath.empty
     }
 }

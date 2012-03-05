@@ -29,9 +29,6 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class WorkerProcessClassPathProvider implements ClassPathProvider {
     private final CacheRepository cacheRepository;
@@ -47,22 +44,22 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
     public ClassPath findClassPath(String name) {
         if (name.equals("WORKER_PROCESS")) {
             // TODO - split out a logging project and use its classpath, instead of hardcoding logging dependencies here
-            Set<File> classpath = new LinkedHashSet<File>();
-            classpath.addAll(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
-            classpath.addAll(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
-            classpath.addAll(moduleRegistry.getModule("gradle-cli").getImplementationClasspath());
-            classpath.addAll(moduleRegistry.getModule("gradle-native").getImplementationClasspath());
-            classpath.addAll(moduleRegistry.getExternalModule("slf4j-api").getClasspath());
-            classpath.addAll(moduleRegistry.getExternalModule("logback-classic").getClasspath());
-            classpath.addAll(moduleRegistry.getExternalModule("logback-core").getClasspath());
-            classpath.addAll(moduleRegistry.getExternalModule("jul-to-slf4j").getClasspath());
-            return new DefaultClassPath(classpath);
+            ClassPath classpath = new DefaultClassPath();
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-cli").getImplementationClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-native").getImplementationClasspath());
+            classpath = classpath.plus(moduleRegistry.getExternalModule("slf4j-api").getClasspath());
+            classpath = classpath.plus(moduleRegistry.getExternalModule("logback-classic").getClasspath());
+            classpath = classpath.plus(moduleRegistry.getExternalModule("logback-core").getClasspath());
+            classpath = classpath.plus(moduleRegistry.getExternalModule("jul-to-slf4j").getClasspath());
+            return classpath;
         }
         if (name.equals("WORKER_MAIN")) {
             synchronized (lock) {
                 if (workerClassPath == null) {
                     PersistentCache cache = cacheRepository.cache("workerMain").withInitializer(new CacheInitializer()).open();
-                    workerClassPath = new DefaultClassPath(Collections.singleton(classesDir(cache)));
+                    workerClassPath = new DefaultClassPath(classesDir(cache));
                 }
                 return workerClassPath;
             }

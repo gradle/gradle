@@ -20,10 +20,6 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.util.ClassPath;
 import org.gradle.util.DefaultClassPath;
 
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public class DefaultClassPathProvider implements ClassPathProvider {
     private final ModuleRegistry moduleRegistry;
 
@@ -33,26 +29,26 @@ public class DefaultClassPathProvider implements ClassPathProvider {
 
     public ClassPath findClassPath(String name) {
         if (name.equals("GRADLE_RUNTIME")) {
-            Set<File> classpath = new LinkedHashSet<File>();
+            ClassPath classpath = new DefaultClassPath();
             for (Module module : moduleRegistry.getModule("gradle-launcher").getAllRequiredModules()) {
-                classpath.addAll(module.getClasspath());
+                classpath = classpath.plus(module.getClasspath());
             }
-            return new DefaultClassPath(classpath);
+            return classpath;
         }
         if (name.equals("GRADLE_CORE")) {
-            return new DefaultClassPath(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
+            return moduleRegistry.getModule("gradle-core").getImplementationClasspath();
         }
         if (name.equals("COMMONS_CLI")) {
-            return new DefaultClassPath(moduleRegistry.getExternalModule("commons-cli").getClasspath());
+            return moduleRegistry.getExternalModule("commons-cli").getClasspath();
         }
         if (name.equals("ANT")) {
-            Set<File> classpath = new LinkedHashSet<File>();
-            classpath.addAll(moduleRegistry.getExternalModule("ant").getClasspath());
-            classpath.addAll(moduleRegistry.getExternalModule("ant-launcher").getClasspath());
-            return new DefaultClassPath(classpath);
+            ClassPath classpath = new DefaultClassPath();
+            classpath = classpath.plus(moduleRegistry.getExternalModule("ant").getClasspath());
+            classpath = classpath.plus(moduleRegistry.getExternalModule("ant-launcher").getClasspath());
+            return classpath;
         }
         if (name.equals("GROOVY")) {
-            return new DefaultClassPath(moduleRegistry.getExternalModule("groovy-all").getClasspath());
+            return moduleRegistry.getExternalModule("groovy-all").getClasspath();
         }
 
         return null;

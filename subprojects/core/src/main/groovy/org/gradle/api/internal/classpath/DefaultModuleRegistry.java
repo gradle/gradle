@@ -17,7 +17,9 @@ package org.gradle.api.internal.classpath;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.GradleDistributionLocator;
+import org.gradle.util.ClassPath;
 import org.gradle.util.ClasspathUtil;
+import org.gradle.util.DefaultClassPath;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -269,17 +271,17 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
 
     private static class DefaultModule implements Module {
         private final String name;
-        private final Set<File> implementationClasspath;
-        private final Set<File> runtimeClasspath;
+        private final ClassPath implementationClasspath;
+        private final ClassPath runtimeClasspath;
         private final Set<Module> modules;
-        private final Set<File> classpath;
+        private final ClassPath classpath;
 
         public DefaultModule(String name, Set<File> implementationClasspath, Set<File> runtimeClasspath, Set<Module> modules) {
             this.name = name;
-            this.implementationClasspath = implementationClasspath;
-            this.runtimeClasspath = runtimeClasspath;
+            this.implementationClasspath = new DefaultClassPath(implementationClasspath);
+            this.runtimeClasspath = new DefaultClassPath(runtimeClasspath);
             this.modules = modules;
-            this.classpath = GUtil.addSets(implementationClasspath, runtimeClasspath);
+            this.classpath = new DefaultClassPath(GUtil.addSets(implementationClasspath, runtimeClasspath));
         }
 
         @Override
@@ -291,15 +293,15 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
             return modules;
         }
 
-        public Set<File> getImplementationClasspath() {
+        public ClassPath getImplementationClasspath() {
             return implementationClasspath;
         }
 
-        public Set<File> getRuntimeClasspath() {
+        public ClassPath getRuntimeClasspath() {
             return runtimeClasspath;
         }
 
-        public Set<File> getClasspath() {
+        public ClassPath getClasspath() {
             return classpath;
         }
 

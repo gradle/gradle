@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.classpath;
 
-import java.io.File;
+import org.gradle.util.ClassPath;
+
 import java.util.Set;
 
 /**
@@ -25,17 +26,17 @@ public interface Module {
     /**
      * Returns the classpath for the module implementation. This the classpath of the module itself.
      */
-    Set<File> getImplementationClasspath();
+    ClassPath getImplementationClasspath();
 
     /**
      * Returns the classpath containing the runtime dependencies of the module.
      */
-    Set<File> getRuntimeClasspath();
+    ClassPath getRuntimeClasspath();
 
     /**
      * Returns implementation + runtime
      */
-    Set<File> getClasspath();
+    ClassPath getClasspath();
 
     /**
      * Returns the modules required by this module.
