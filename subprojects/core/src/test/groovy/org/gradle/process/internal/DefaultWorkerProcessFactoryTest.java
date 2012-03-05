@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.ClassPath;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
@@ -58,9 +59,12 @@ public class DefaultWorkerProcessFactoryTest {
     @Test
     public void createsAndConfiguresAWorkerProcess() throws Exception {
         final Set<File> processClassPath = Collections.singleton(new File("something.jar"));
+        final ClassPath classPath = context.mock(ClassPath.class);
 
         context.checking(new Expectations() {{
-            one(classPathRegistry).getClassPathFiles("WORKER_PROCESS");
+            one(classPathRegistry).getClassPath("WORKER_PROCESS");
+            will(returnValue(classPath));
+            allowing(classPath).getAsFiles();
             will(returnValue(processClassPath));
             allowing(fileResolver).resolveLater(".");
             allowing(fileResolver).resolveFiles(with(Matchers.<Object>notNullValue()));

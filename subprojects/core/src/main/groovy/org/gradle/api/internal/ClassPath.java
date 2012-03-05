@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,17 @@
 
 package org.gradle.api.internal;
 
-public interface ClassPathRegistry {
-    ClassPath getClassPath(String name);
+import java.io.File;
+import java.net.URI;
+import java.net.URL;
+import java.util.Collection;
+
+public interface ClassPath {
+    Collection<URI> getAsURIs();
+
+    Collection<File> getAsFiles();
+
+    Collection<URL> getAsURLs();
+
+    URL[] getAsURLArray();
 }

@@ -24,6 +24,7 @@ import org.gradle.util.internal.LimitedDescription;
 
 import java.io.*;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.*;
 import java.util.zip.Checksum;
@@ -118,6 +119,14 @@ public class GFileUtils {
             paths.add(file.getAbsolutePath());
         }
         return paths;
+    }
+
+    public static List<URI> toURIs(Iterable<File> files) {
+        List<URI> urls = new ArrayList<URI>();
+        for (File file : files) {
+            urls.add(file.toURI());
+        }
+        return urls;
     }
 
     public static List<URL> toURLs(Iterable<File> files) {

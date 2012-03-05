@@ -69,7 +69,7 @@ public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements Wor
     }
 
     public Collection<File> getSystemClasspath() {
-        return classPathRegistry.getClassPathFiles("WORKER_PROCESS");
+        return classPathRegistry.getClassPath("WORKER_PROCESS").getAsFiles();
     }
 
     public Callable<?> create() {

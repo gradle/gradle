@@ -31,7 +31,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     def DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
         this.classPathRegistry = classPathRegistry
         this.classLoaderFactory = classLoaderFactory
-        groovyClasspath = classPathRegistry.getClassPathFiles("GROOVY")
+        groovyClasspath = classPathRegistry.getClassPath("GROOVY").asFiles
     }
 
     private DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> groovyClasspath, Iterable<File> libClasspath) {
@@ -55,7 +55,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         Closure converter = {File file -> file.toURI().toURL() }
 
         List<File> baseClasspath = []
-        baseClasspath.addAll(classPathRegistry.getClassPathFiles("ANT"))
+        baseClasspath.addAll(classPathRegistry.getClassPath("ANT").asFiles)
         baseClasspath.addAll(groovyClasspath as List)
 
         ClassLoader baseLoader = baseClassloaders[baseClasspath]
@@ -82,7 +82,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             gradleLoader = classloadersForPath.gradleLoader
         } else {
             // Need gradle core to pick up ant logging adapter, AntBuilder and such
-            URL[] gradleCoreUrls = classPathRegistry.getClassPathUrls("GRADLE_CORE")
+            URL[] gradleCoreUrls = classPathRegistry.getClassPath("GRADLE_CORE").asURLArray
 
             FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().classLoader)
             loggingLoader.allowPackage('org.slf4j')

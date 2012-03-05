@@ -44,11 +44,11 @@ class DefaultIsolatedAntBuilderTest {
     private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory())
     private final TestAppender appender = new TestAppender()
     private final LoggingTestHelper helper = new LoggingTestHelper(appender)
-    private Collection classpath
+    private Collection<File> classpath
 
     @Before
     public void attachAppender() {
-        classpath = registry.getClassPathFiles("GROOVY")
+        classpath = registry.getClassPath("GROOVY").asFiles
         helper.attachAppender()
         helper.setLevel(Level.INFO);
     }

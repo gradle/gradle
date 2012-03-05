@@ -41,11 +41,11 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
 
         // Core impl
-        URL[] coreImplClassPath = classPathRegistry.getClassPathUrls("GRADLE_CORE_IMPL");
+        URL[] coreImplClassPath = classPathRegistry.getClassPath("GRADLE_CORE_IMPL").getAsURLArray();
         coreImplClassLoader = new URLClassLoader(coreImplClassPath, runtimeClassLoader);
 
         // Add in libs for plugins
-        URL[] pluginsClassPath = classPathRegistry.getClassPathUrls("GRADLE_PLUGINS");
+        URL[] pluginsClassPath = classPathRegistry.getClassPath("GRADLE_PLUGINS").getAsURLArray();
         MultiParentClassLoader pluginsImports = new MultiParentClassLoader(runtimeClassLoader, coreImplClassLoader);
         pluginsClassLoader = new URLClassLoader(pluginsClassPath, pluginsImports);
 

@@ -48,7 +48,7 @@ class AntGroovyCompiler implements org.gradle.api.internal.tasks.compile.Compile
         int numFilesCompiled;
 
         // Add in commons-cli, as the Groovy POM does not (for some versions of Groovy)
-        Collection antBuilderClasspath = (spec.groovyClasspath as List) + classPathRegistry.getClassPathFiles("COMMONS_CLI")
+        Collection antBuilderClasspath = (spec.groovyClasspath as List) + classPathRegistry.getClassPath("COMMONS_CLI").asFiles
         
         ant.withGroovy(antBuilderClasspath).execute {
             taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')

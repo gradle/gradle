@@ -206,7 +206,7 @@ public class WorkerProcessIntegrationTest {
 
         public void start() {
             WorkerProcessBuilder builder = workerFactory.create();
-            builder.applicationClasspath(classPathRegistry.getClassPathFiles("ANT"));
+            builder.applicationClasspath(classPathRegistry.getClassPath("ANT").getAsFiles());
             builder.sharedPackages("org.apache.tools.ant");
             builder.getJavaCommand().systemProperty("test.system.property", "value");
             builder.getJavaCommand().environment("TEST_ENV_VAR", "value");

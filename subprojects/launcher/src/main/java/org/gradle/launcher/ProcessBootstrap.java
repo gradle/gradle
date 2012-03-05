@@ -25,7 +25,7 @@ import org.gradle.util.DefaultClassLoaderFactory;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Set;
+import java.util.Collection;
 
 public class ProcessBootstrap {
     public void run(String mainClassName, String[] args) {
@@ -41,8 +41,8 @@ public class ProcessBootstrap {
     private void runNoExit(String mainClassName, String[] args) throws Exception {
         ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(new DefaultModuleRegistry()));
         ClassLoaderFactory classLoaderFactory = new DefaultClassLoaderFactory();
-        Set<URL> antClasspath = classPathRegistry.getClassPath("ANT");
-        URL[] runtimeClasspath = classPathRegistry.getClassPathUrls("GRADLE_RUNTIME");
+        Collection<URL> antClasspath = classPathRegistry.getClassPath("ANT").getAsURLs();
+        URL[] runtimeClasspath = classPathRegistry.getClassPath("GRADLE_RUNTIME").getAsURLArray();
         ClassLoader antClassLoader = classLoaderFactory.createIsolatedClassLoader(antClasspath);
         ClassLoader runtimeClassLoader = new URLClassLoader(runtimeClasspath, antClassLoader);
         Thread.currentThread().setContextClassLoader(runtimeClassLoader);

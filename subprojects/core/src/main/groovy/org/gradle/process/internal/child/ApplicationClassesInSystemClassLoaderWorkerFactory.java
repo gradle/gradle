@@ -71,7 +71,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
     }
 
     public Collection<File> getSystemClasspath() {
-        return classPathRegistry.getClassPathFiles("WORKER_MAIN");
+        return classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles();
     }
 
     public Callable<?> create() {
@@ -81,6 +81,6 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
                 implementationClassPath, injectedWorker);
         byte[] serializedWorker = GUtil.serialize(worker);
 
-        return new BootstrapClassLoaderWorker(classPathRegistry.getClassPath("WORKER_PROCESS"), processBuilder.getApplicationClasspath(), serializedWorker);
+        return new BootstrapClassLoaderWorker(classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs(), processBuilder.getApplicationClasspath(), serializedWorker);
     }
 }

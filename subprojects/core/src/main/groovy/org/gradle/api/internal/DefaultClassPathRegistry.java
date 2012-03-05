@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.net.MalformedURLException;
+import java.io.Serializable;
+import java.net.URI;
 import java.net.URL;
 import java.util.*;
 
@@ -30,45 +31,42 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
         this.providers.addAll(Arrays.asList(providers));
     }
 
-    public URL[] getClassPathUrls(String name) {
-        return toURLArray(getClassPathFiles(name));
+    public ClassPath getClassPath(String name) {
+        List<File> files = getClassPathFiles(name);
+        return new DefaultClassPath(files);
     }
 
-    public Set<URL> getClassPath(String name) {
-        return toUrlSet(getClassPathFiles(name));
-    }
-
-    public Set<File> getClassPathFiles(String name) {
+    private List<File> getClassPathFiles(String name) {
         for (ClassPathProvider provider : providers) {
             Set<File> classpath = provider.findClassPath(name);
             if (classpath != null) {
-                return classpath;
+                return new ArrayList<File>(classpath);
             }
         }
         throw new IllegalArgumentException(String.format("unknown classpath '%s' requested.", name));
     }
 
-    private Set<URL> toUrlSet(Set<File> classPathFiles) {
-        Set<URL> urls = new LinkedHashSet<URL>();
-        for (File file : classPathFiles) {
-            try {
-                urls.add(file.toURI().toURL());
-            } catch (MalformedURLException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
-        return urls;
-    }
+    private static class DefaultClassPath implements ClassPath, Serializable {
+        private final List<File> files;
 
-    private URL[] toURLArray(Collection<File> files) {
-        List<URL> urls = new ArrayList<URL>(files.size());
-        for (File file : files) {
-            try {
-                urls.add(file.toURI().toURL());
-            } catch (MalformedURLException e) {
-                throw new UncheckedIOException(e);
-            }
+        public DefaultClassPath(List<File> files) {
+            this.files = files;
         }
-        return urls.toArray(new URL[urls.size()]);
+
+        public Collection<URI> getAsURIs() {
+            return GFileUtils.toURIs(files);
+        }
+
+        public Collection<File> getAsFiles() {
+            return files;
+        }
+
+        public URL[] getAsURLArray() {
+            return GFileUtils.toURLArray(files);
+        }
+
+        public Collection<URL> getAsURLs() {
+            return GFileUtils.toURLs(files);
+        }
     }
 }
