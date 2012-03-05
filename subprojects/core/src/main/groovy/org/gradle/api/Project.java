@@ -690,6 +690,8 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * <li>An Object. Its {@code toString()} value is treated the same way as a String, as for {@link
      * #file(Object)}.</li> </ul>
      *
+     * <li>A {@link Task}. Converted to the task's output files.</li>
+     *
      * <li>A {@link org.gradle.api.tasks.TaskOutputs}. Converted to the output files the related task.</li>
      *
      * <li>A Closure. May return any of the types listed here. The return value of the closure is recursively converted
