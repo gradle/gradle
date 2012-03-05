@@ -141,6 +141,18 @@ public class GFileUtils {
         return urls;
     }
 
+    public static List<URL> urisToUrls(Iterable<URI> uris) {
+        List<URL> urls = new ArrayList<URL>();
+        for (URI uri : uris) {
+            try {
+                urls.add(uri.toURL());
+            } catch (MalformedURLException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return urls;
+    }
+
     public static URL[] toURLArray(Collection<File> files) {
         return toURLs(files.toArray(new File[files.size()]));
     }

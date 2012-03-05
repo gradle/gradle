@@ -15,19 +15,25 @@
  */
 package org.gradle.util;
 
+import org.gradle.api.internal.ClassPath;
 import org.gradle.internal.UncheckedException;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParserFactory;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
 
 public class DefaultClassLoaderFactory implements ClassLoaderFactory {
-    public ClassLoader createIsolatedClassLoader(Iterable<URL> urls) {
-        List<URL> classpath = GUtil.addLists(urls);
+    public ClassLoader createIsolatedClassLoader(ClassPath classPath) {
+        return createIsolatedClassLoader(classPath.getAsURIs());
+    }
+
+    public ClassLoader createIsolatedClassLoader(Iterable<URI> uris) {
+        List<URL> classpath = GFileUtils.urisToUrls(uris);
 
         // This piece of ugliness copies the JAXP (ie XML API) provider, if any, from the system ClassLoader. Here's why:
         //

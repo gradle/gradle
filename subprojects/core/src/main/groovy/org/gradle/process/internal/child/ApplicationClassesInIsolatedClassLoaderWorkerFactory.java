@@ -22,6 +22,7 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
@@ -73,7 +74,7 @@ public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements Wor
     }
 
     public Callable<?> create() {
-        List<URL> applicationClassPath = GFileUtils.toURLs(processBuilder.getApplicationClasspath());
+        List<URI> applicationClassPath = GFileUtils.toURIs(processBuilder.getApplicationClasspath());
         ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId,
                 displayName, serverAddress);
         ImplementationClassLoaderWorker worker = new ImplementationClassLoaderWorker(processBuilder.getLogLevel(),

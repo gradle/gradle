@@ -17,11 +17,11 @@
 package org.gradle.initialization;
 
 import org.apache.tools.ant.Project;
+import org.gradle.api.internal.ClassPath;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.util.*;
 
 import java.io.File;
-import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collections;
 
@@ -41,13 +41,13 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
 
         // Core impl
-        URL[] coreImplClassPath = classPathRegistry.getClassPath("GRADLE_CORE_IMPL").getAsURLArray();
-        coreImplClassLoader = new URLClassLoader(coreImplClassPath, runtimeClassLoader);
+        ClassPath coreImplClassPath = classPathRegistry.getClassPath("GRADLE_CORE_IMPL");
+        coreImplClassLoader = new MutableURLClassLoader(runtimeClassLoader, coreImplClassPath);
 
         // Add in libs for plugins
-        URL[] pluginsClassPath = classPathRegistry.getClassPath("GRADLE_PLUGINS").getAsURLArray();
+        ClassPath pluginsClassPath = classPathRegistry.getClassPath("GRADLE_PLUGINS");
         MultiParentClassLoader pluginsImports = new MultiParentClassLoader(runtimeClassLoader, coreImplClassLoader);
-        pluginsClassLoader = new URLClassLoader(pluginsClassPath, pluginsImports);
+        pluginsClassLoader = new MutableURLClassLoader(pluginsImports, pluginsClassPath);
 
         rootClassLoader = classLoaderFactory.createFilteringClassLoader(pluginsClassLoader);
         rootClassLoader.allowPackage("org.gradle");

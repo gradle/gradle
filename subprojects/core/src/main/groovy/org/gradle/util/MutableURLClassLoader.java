@@ -16,6 +16,8 @@
 
 package org.gradle.util;
 
+import org.gradle.api.internal.ClassPath;
+
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
@@ -27,6 +29,10 @@ public class MutableURLClassLoader extends URLClassLoader {
 
     public MutableURLClassLoader(ClassLoader parent, Collection<URL> urls) {
         super(urls.toArray(new URL[urls.size()]), parent);
+    }
+
+    public MutableURLClassLoader(ClassLoader parent, ClassPath classPath) {
+        super(classPath.getAsURLArray(), parent);
     }
 
     @Override

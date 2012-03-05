@@ -52,8 +52,6 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     }
 
     void execute(Closure antClosure) {
-        Closure converter = {File file -> file.toURI().toURL() }
-
         List<File> baseClasspath = []
         baseClasspath.addAll(classPathRegistry.getClassPath("ANT").asFiles)
         baseClasspath.addAll(groovyClasspath as List)
@@ -66,7 +64,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             if (toolsJar) {
                 fullClasspath += toolsJar
             }
-            List<URL> classpathUrls = fullClasspath.collect(converter)
+            List<URI> classpathUrls = fullClasspath.collect { it.toURI() }
             baseLoader = classLoaderFactory.createIsolatedClassLoader(classpathUrls)
             baseClassloaders[baseClasspath] = baseLoader
         }
@@ -82,7 +80,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             gradleLoader = classloadersForPath.gradleLoader
         } else {
             // Need gradle core to pick up ant logging adapter, AntBuilder and such
-            URL[] gradleCoreUrls = classPathRegistry.getClassPath("GRADLE_CORE").asURLArray
+            def gradleCoreUrls = classPathRegistry.getClassPath("GRADLE_CORE")
 
             FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().classLoader)
             loggingLoader.allowPackage('org.slf4j')
@@ -90,9 +88,9 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             loggingLoader.allowPackage('org.apache.log4j')
             ClassLoader parent = new MultiParentClassLoader(baseLoader, loggingLoader)
 
-            List<URL> classpathUrls = normalisedClasspath.collect(converter)
+            List<URL> classpathUrls = normalisedClasspath.collect { it.toURI().toURL() }
             antLoader = new URLClassLoader(classpathUrls as URL[], parent)
-            gradleLoader = new URLClassLoader(gradleCoreUrls, parent)
+            gradleLoader = new MutableURLClassLoader(parent, gradleCoreUrls)
 
             classloaders[normalisedClasspath] = [antLoader: antLoader, gradleLoader: gradleLoader]
         }
