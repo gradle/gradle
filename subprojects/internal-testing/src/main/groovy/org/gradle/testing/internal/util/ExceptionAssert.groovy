@@ -22,7 +22,7 @@ package org.gradle.testing.internal.util
  * <p>
  * by Szczepan Faber, created at: 3/6/12
  */
-class ExceptionAssert {
+public class ExceptionAssert {
 
     private final Throwable target
 
@@ -30,7 +30,7 @@ class ExceptionAssert {
         this.target = target
     }
 
-    public static exception(Throwable t) {
+    public static assertThat(Throwable t) {
         return new ExceptionAssert(t);
     }
 
@@ -40,7 +40,7 @@ class ExceptionAssert {
      *
      * @param information wanted substring
      */
-    void contains(String information) {
+    void containsInfo(String information) {
         def ex = target
         def checked = []
         while(ex != null) {
