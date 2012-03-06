@@ -64,8 +64,7 @@ public class Jvm implements JavaInfo {
         if (suppliedJavaBase == null) {
             //discover based on what's in the sys. property
             this.javaBase = GFileUtils.canonicalise(new File(System.getProperty("java.home")));
-            File toolsJar = findToolsJar(javaBase);
-            this.javaHome = toolsJar == null ? javaBase : toolsJar.getParentFile().getParentFile();
+            this.javaHome = findJavaHome(javaBase);
             this.userSupplied = false;
         } else {
             //precisely use what the user wants and validate strictly further on
@@ -173,6 +172,17 @@ public class Jvm implements JavaInfo {
      */
     public File getJavaHome() {
         return javaHome;
+    }
+
+    private File findJavaHome(File javaBase) {
+        File toolsJar = findToolsJar(javaBase);
+        if (toolsJar != null) {
+            return toolsJar.getParentFile().getParentFile();
+        } else if (javaBase.getName().equalsIgnoreCase("jre") && new File(javaBase.getParentFile(), "bin/java").exists()) {
+            return javaBase.getParentFile();
+        } else {
+            return javaBase;
+        }
     }
 
     /**
