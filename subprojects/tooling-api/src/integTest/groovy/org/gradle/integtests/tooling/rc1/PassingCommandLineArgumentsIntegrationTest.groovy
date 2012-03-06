@@ -24,15 +24,15 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import static org.gradle.testing.internal.util.ExceptionAssert.exception
 
-@MinToolingApiVersion('1.0-rc-1')
-@MinTargetGradleVersion('1.0-rc-1')
+@MinToolingApiVersion('current')
+@MinTargetGradleVersion('current')
 class PassingCommandLineArgumentsIntegrationTest extends ToolingApiSpecification {
 
 //    def setup() {
 //        toolingApi.isEmbedded = false
 //    }
 
-    //We don't want to validate *all* command line options here, just enough to make sure passing through works.
+//    We don't want to validate *all* command line options here, just enough to make sure passing through works.
 
     def "understands project properties"() {
         given:
