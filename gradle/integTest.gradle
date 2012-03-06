@@ -56,7 +56,7 @@ integTestTasks.all {
 
     testResultsDir = file("${project.testResultsDir}/$name")
 
-    systemProperties['org.gradle.integtest.versions'] = 'latest'
+    systemProperties['org.gradle.integtest.versions'] = project.hasProperty("testAllVersions") ? 'all' : 'latest'
 
     doFirst {
         testReportDir = file("${project.reporting.baseDir}/$name")
