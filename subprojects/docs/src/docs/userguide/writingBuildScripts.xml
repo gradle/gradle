@@ -146,7 +146,7 @@
         </section>
         <section id='sec:extra_properties'>
             <title>Extra properties</title>
-            <para>All enhanced objects in Gradle's domain model can hold extra user-defined properties. This includes (but is not limited to) projects, tasks,
+            <para>All enhanced objects in Gradle's domain model can hold extra user-defined properties. This includes, but is not limited to, projects, tasks,
                 and source sets. Extra properties can be added, read and set via the owning object's <literal>ext</literal> property.
             </para>
             <sample id="extraProperties" dir="userguide/tutorial/extraProperties" title="Adding extra properties to a task">
@@ -155,7 +155,7 @@
             </sample>
             <para>Setting <literal>ext.myProperty</literal> adds <literal>myProperty</literal> to the enhanced object's extra properties.
                 (<literal>null</literal> is a permissible value.) Once the property has been added, it can be read and set as if it was
-                a predefined property. (However, <literal>ext</literal> can still be used for clarity.)
+                a predefined property. (However, <literal>ext.</literal> can still be used for clarity.)
             </para>
             <para>By requiring special syntax for adding a property, Gradle can fail fast when an attempt is made to set a (predefined or extra) property
                 but the property is misspelled or does not exist.
@@ -164,7 +164,7 @@
                         extra property. Therefore, Gradle will not fail when an unknown property is set. However, it will print a warning.
                     </para>
                 </footnote>
-                Extra properties can be accessed from anywhere their owning object can be accessed, giving them a much wider scope than local variables.
+                Extra properties can be accessed from anywhere their owning object can be accessed, giving them a wider scope than local variables.
             </para>
             <para>For further details on extra properties and the API surrounding them, see <apilink class="org.gradle.api.plugins.ExtraPropertiesExtension"/> in the DSL reference.</para>
         </section>
