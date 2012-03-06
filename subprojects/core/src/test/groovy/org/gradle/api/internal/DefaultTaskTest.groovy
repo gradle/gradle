@@ -113,13 +113,13 @@ class DefaultTaskTest extends AbstractTaskTest {
         context.checking {
             one(testAction).execute(defaultTask)
             will {
-                assert Thread.currentThread().contextClassLoader == getClass().classLoader
+                assert Thread.currentThread().contextClassLoader == testAction.getClass().classLoader
             }
         }
 
         defaultTask.doFirst(testAction)
 
-        Thread.currentThread().contextClassLoader = context.mock(ClassLoader)
+        Thread.currentThread().contextClassLoader = new ClassLoader(getClass().classLoader) {}
         defaultTask.actions[0].execute(defaultTask)
     }
 
@@ -139,7 +139,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
         defaultTask.doFirst(testAction)
 
-        Thread.currentThread().contextClassLoader = context.mock(ClassLoader)
+        Thread.currentThread().contextClassLoader = new ClassLoader(getClass().classLoader) {}
         defaultTask.actions[0].execute(defaultTask)
     }
 
