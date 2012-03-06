@@ -158,14 +158,16 @@
         <para>This enables very readable code, especially when using the out of the box tasks provided by the plugins
             (e.g. <literal>compile</literal>).</para>
     </section>
-    <section id='sec:dynamic_properties'>
-        <title>Dynamic task properties</title>
-        <para>You can assign arbitrary <emphasis>new</emphasis> properties to any task.
+    <section id='sec:extra_task_properties'>
+        <title>Extra task properties</title>
+        <para>You can add your own properties to a task. A property is added by setting it via the task's <literal>ext</literal> namespace.
+            From that point on, the property can be read and set like a predefined task property.
         </para>
-        <sample id="dynamicProperties" dir="userguide/tutorial/dynamicProperties" title="Assigning properties to a task">
+        <sample id="extraProperties" dir="userguide/tutorial/extraProperties" title="Adding extra properties to a task">
             <sourcefile file="build.gradle"/>
             <output args="-q showProps"/>
         </sample>
+        Extra properties aren't limited to tasks. You can learn more about them in <xref linkend='sec:extra_properties'/>.
     </section>
     <section>
         <title>Using Ant Tasks</title>
