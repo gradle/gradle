@@ -90,7 +90,7 @@ class PosixWrapperTest extends Specification {
         def mode = filestat.mode();
 
         then:
-        mode == 755
+        mode == FileSystem.DEFAULT_DIR_MODE
     }
 
     def "FallbackFileStat mode() returns 644 for non directories"() {
@@ -103,6 +103,6 @@ class PosixWrapperTest extends Specification {
         def mode = filestat.mode();
 
         then:
-        mode == 664
+        mode == FileSystem.DEFAULT_FILE_MODE
     }
 }
