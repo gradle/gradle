@@ -64,7 +64,7 @@ public class Jvm implements JavaInfo {
         if (suppliedJavaBase == null) {
             //discover based on what's in the sys. property
             this.javaBase = GFileUtils.canonicalise(new File(System.getProperty("java.home")));
-            File toolsJar = getToolsJar(javaBase);
+            File toolsJar = findToolsJar(javaBase);
             this.javaHome = toolsJar == null ? javaBase : toolsJar.getParentFile().getParentFile();
             this.userSupplied = false;
         } else {
@@ -187,10 +187,10 @@ public class Jvm implements JavaInfo {
      * {@inheritDoc}
      */
     public File getToolsJar() {
-        return getToolsJar(javaBase);
+        return findToolsJar(javaBase);
     }
 
-    private File getToolsJar(File javaHome) {
+    private File findToolsJar(File javaHome) {
         File toolsJar = new File(javaHome, "lib/tools.jar");
         if (toolsJar.exists()) {
             return toolsJar;
