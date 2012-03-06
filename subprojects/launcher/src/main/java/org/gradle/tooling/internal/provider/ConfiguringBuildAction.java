@@ -19,6 +19,7 @@ import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.exec.InitializationAware;
@@ -61,7 +62,16 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
         }
 
         DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
-        converter.convert(arguments, startParameter);
+        try {
+            converter.convert(arguments, startParameter);
+        } catch (CommandLineArgumentException e) {
+            throw new UnsupportedOperationException(
+                e.getMessage()
+                + "\nEither it is not a valid build option or it is not supported in the target Gradle version."
+                + "\nNot all of the Gradle command line options are supported build arguments."
+                + "\nExamples of supported build arguments: '--info', '-u', '-p'."
+                + "\nExamples of unsupported build options: '--daemon', '-?', '-v'.", e);
+        }
 
         //TODO SF those are for now overrides what the build args might configure
         startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
