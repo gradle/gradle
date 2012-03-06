@@ -95,7 +95,7 @@ public interface ExtensionContainer {
     /**
      * The extra properties extension in this extension container.
      *
-     * This extension is always present in the container, with the name {@value ExtraPropertiesExtension#EXTENSION_NAME}.
+     * This extension is always present in the container, with the name “ext”.
      *
      * @return The extra properties extension in this extension container.
      */
