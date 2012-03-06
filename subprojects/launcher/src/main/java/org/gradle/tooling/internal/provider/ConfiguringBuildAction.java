@@ -73,7 +73,6 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
                 + "\nExamples of unsupported build options: '--daemon', '-?', '-v'.", e);
         }
 
-        //TODO SF those are for now overrides what the build args might configure
         startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
         startParameter.setLogLevel(buildLogLevel);
     }

@@ -17,6 +17,8 @@
 package org.gradle.tooling.internal.provider.input;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.logging.LoggingConfiguration;
+import org.gradle.logging.internal.LoggingCommandLineConverter;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.internal.reflect.CompatibleIntrospector;
@@ -35,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 public class AdaptedOperationParameters implements ProviderOperationParameters {
 
     private final BuildOperationParametersVersion1 delegate;
-    private CompatibleIntrospector introspector;
+    CompatibleIntrospector introspector;
 
     public AdaptedOperationParameters(BuildOperationParametersVersion1 delegate) {
         this.delegate = delegate;
@@ -64,8 +66,8 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
         if (verbose) {
             return LogLevel.DEBUG;
         } else {
-            //by default, the build logs with:
-            return LogLevel.LIFECYCLE;
+            LoggingConfiguration loggingConfiguration = new LoggingCommandLineConverter().convert(getArguments());
+            return loggingConfiguration.getLogLevel();
         }
     }
 

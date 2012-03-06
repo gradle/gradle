@@ -18,6 +18,7 @@
 
 package org.gradle.integtests.tooling.rc1
 
+import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -82,6 +83,42 @@ class PassingCommandLineArgumentsIntegrationTest extends ToolingApiSpecification
         then:
         noExceptionThrown()
 
+    }
+
+    def "can use custom log level"() {
+        //logging infrastructure is not installed when running in-process to avoid issues
+        toolingApi.isEmbedded = false
+        toolingApi.verboseLogging = false
+
+        given:
+        dist.file("build.gradle") << """
+        logger.debug("debugging stuff")
+        logger.info("infoing stuff")
+"""
+
+        when:
+        def debug = withConnection {
+            def build = it.newBuild().withArguments('-d')
+            def op = new ConfigurableOperation(build)
+            build.run()
+            op.standardOutput
+        }
+
+        and:
+        def info = withConnection {
+            def build = it.newBuild().withArguments('-i')
+            def op = new ConfigurableOperation(build)
+            build.run()
+            op.standardOutput
+        }
+
+        then:
+        debug.count("debugging stuff") == 1
+        debug.count("infoing stuff") == 1
+
+        and:
+        info.count("debugging stuff") == 0
+        info.count("infoing stuff") == 1
     }
 
     def "gives decent feedback for invalid option"() {
