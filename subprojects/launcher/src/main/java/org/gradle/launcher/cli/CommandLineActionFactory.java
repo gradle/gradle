@@ -200,7 +200,6 @@ public class CommandLineActionFactory {
         DaemonClientServices clientServices = new SingleUseDaemonClientServices(loggingServices, daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
         return daemonBuildAction(commandLine, daemonParameters, client);
-        // TODO:DAZ Need to display message informing users that we forked the process, and they would be better off switching to the daemon
     }
 
     private Action<ExecutionListener> daemonBuildAction(ParsedCommandLine commandLine, DaemonParameters daemonParameters, DaemonClient client) {
