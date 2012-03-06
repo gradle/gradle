@@ -24,10 +24,10 @@ import org.jruby.ext.posix.Passwd;
 import java.io.FileDescriptor;
 import java.io.IOException;
 
-public class WrappedJavaPOSIX implements POSIX {
+public class WrappedPOSIX implements POSIX {
     private POSIX delegate;
 
-    public WrappedJavaPOSIX(POSIX posix) {
+    public WrappedPOSIX(POSIX posix) {
         this.delegate = posix;
     }
 

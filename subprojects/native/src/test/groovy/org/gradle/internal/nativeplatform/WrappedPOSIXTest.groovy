@@ -14,21 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform;
+package org.gradle.internal.nativeplatform
 
-import org.jruby.ext.posix.JavaPOSIX;
-import org.jruby.ext.posix.POSIX;
+import org.jruby.ext.posix.POSIX
+import spock.lang.Specification
 
-/**
- * Util class to wrap / modify results of calls to the {@link org.jruby.ext.posix.POSIXFactory#getPOSIX(org.jruby.ext.posix.POSIXHandler, boolean)}
- * */
-public class PosixFactoryWrapper {
+class WrappedPOSIXTest extends Specification {
+    
+    POSIX delegatePosix = Mock()
+    WrappedPOSIX posix = new WrappedPOSIX(delegatePosix)
 
-    public static POSIX wrap(POSIX posix) {
-        if(posix instanceof JavaPOSIX){
-            return new WrappedPOSIX(posix);
-        }else{
-            return posix;
-        }
+    def "chmod calls are not delegated"() {
+        when:
+            posix.chmod("filepath", 755)
+        then:
+            0 * delegatePosix.chmod(_,_)
+    }
+
+    def "chmod returns input value"() {
+        expect:
+            644 == posix.chmod("filepath", 644)
+            755 == posix.chmod("filepath", 755)
+            777 == posix.chmod("filepath", 777)
     }
 }
