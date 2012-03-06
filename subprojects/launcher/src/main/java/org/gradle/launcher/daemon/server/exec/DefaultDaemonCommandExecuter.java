@@ -73,6 +73,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
             new ForwardClientInput(executorFactory),
             new ReturnResult(),
+            new StartStopIfBuildAndStop(),
             new ResetDeprecationLogger(),
             new WatchForDisconnection(),
             new ExecuteBuild(launcherFactory)
