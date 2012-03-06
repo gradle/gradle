@@ -411,9 +411,9 @@ public class PosixWrapper {
 
         public int mode() {
             if(isDirectory()){
-                return 755;
+                return FileSystem.DEFAULT_DIR_MODE;
             }else{
-                return 664;
+                return FileSystem.DEFAULT_FILE_MODE;
             }
         }
 
