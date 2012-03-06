@@ -22,17 +22,14 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
-import static org.gradle.testing.internal.util.ExceptionAssert.assertThat
 
-@MinToolingApiVersion('current')
-@MinTargetGradleVersion('current')
+@MinToolingApiVersion('1.0-milestone-9')
+@MinTargetGradleVersion('1.0-milestone-9')
 class PassingCommandLineArgumentsIntegrationTest extends ToolingApiSpecification {
 
-//    def setup() {
-//        toolingApi.isEmbedded = false
-//    }
-
-//    We don't want to validate *all* command line options here, just enough to make sure passing through works.
+    def setup() {
+        toolingApi.isEmbedded = false
+    }
 
     def "understands project properties"() {
         given:
@@ -81,16 +78,5 @@ class PassingCommandLineArgumentsIntegrationTest extends ToolingApiSpecification
 
         then:
         noExceptionThrown()
-
-    }
-
-    def "gives decent feedback for invalid option"() {
-        when:
-        def ex = maybeFailWithConnection { ProjectConnection it ->
-            it.newBuild().withArguments('--foreground').run()
-        }
-
-        then:
-        assertThat(ex).containsInfo('--foreground')
     }
 }
