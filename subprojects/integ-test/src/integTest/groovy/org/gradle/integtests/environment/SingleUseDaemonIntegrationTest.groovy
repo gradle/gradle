@@ -55,6 +55,8 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         wasForked()
+        failureHasCause "bad"
+
         and:
         executer.getDaemonRegistry().all.empty
     }
