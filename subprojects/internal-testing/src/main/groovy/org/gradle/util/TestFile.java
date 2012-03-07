@@ -397,7 +397,8 @@ public class TestFile extends File implements TestFileContext {
         if (mkdirs()) {
             return this;
         }
-        throw new AssertionError("Problems creating dir: " + this);
+        throw new AssertionError("Problems creating dir: " + this
+                + ". Diagnostics: exists=" + this.exists() + ", isFile=" + this.isFile() + ", isDirectory=" + this.isDirectory());
     }
 
     public TestFile createDir(Object path) {
