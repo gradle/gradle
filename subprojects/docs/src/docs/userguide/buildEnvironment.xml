@@ -72,15 +72,12 @@
 
     <section id='sec:accessing_the_web_via_a_proxy'>
         <title>Accessing the web via a proxy</title>
-        <para>Setting a proxy for web access (for example for downloading dependencies) is easy. Gradle does not need to
-            provide special functionality for this. The JVM can be instructed to go via proxy by setting certain system
-            properties. You could set these system properties directly in your build script with <literal>
-                System.properties['proxy.proxyUser'] = 'userid'</literal>. Alternatively, you can specify these system properties in a gradle.properties file,
-            either in the project build directory or in you gradle home directory.
+        <para>Configuring an HTTP proxy (for example for downloading dependencies) is done via standard JVM system properties. These properties can be set directly in the build script; for example <literal>
+                System.setProperty('http.proxyHost', 'www.somehost.org')</literal> for the proxy host. Alternatively, the properties can be specified in a gradle.properties file,
+            either in the build's root directory or in the Gradle home directory.
         </para>
-        <para>You gradle.properties file could look something like:</para>
         <example>
-            <title>Accessing the web via a proxy</title>
+            <title>Configuring an HTTP proxy</title>
             <para><filename>gradle.properties</filename></para>
             <programlisting><![CDATA[
 systemProp.http.proxyHost=www.somehost.org
@@ -90,14 +87,26 @@ systemProp.http.proxyPassword=password
 systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost	
 ]]></programlisting>
         </example>
+        <para>There are separate settings for HTTPS.</para>
+        <example>
+            <title>Configuring an HTTPS proxy</title>
+            <para><filename>gradle.properties</filename></para>
+            <programlisting><![CDATA[
+systemProp.https.proxyHost=www.somehost.org
+systemProp.https.proxyPort=8080
+systemProp.https.proxyUser=userid
+systemProp.https.proxyPassword=password
+systemProp.https.nonProxyHosts=*.nonproxyrepos.com|localhost
+]]></programlisting>
+        </example>
         <para>We could not find a good overview for all possible proxy settings. One place to look are the constants
-            in a file from the ant project. Here a
+            in a file from the Ant project. Here a
             <ulink url='http://svn.apache.org/viewvc/ant/core/trunk/src/main/org/apache/tools/ant/util/ProxySetup.java?view=markup&amp;pathrev=556977'>
                 link
-            </ulink> to the svn view. The other is a
+            </ulink> to the Subversion view. The other is a
             <ulink url='http://download.oracle.com/javase/6/docs/technotes/guides/net/properties.html'>
                 Networking Properties page
-            </ulink> from the JDK docs. If anyone knows a better overview please let us know via the mailing list.
+            </ulink> from the JDK docs. If anyone knows a better overview, please let us know via the mailing list.
         </para>
         <section id='sub:ntlm_authentication'>
             <title>NTLM Authentication</title>
