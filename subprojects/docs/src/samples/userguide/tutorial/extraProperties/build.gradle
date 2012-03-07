@@ -1,6 +1,30 @@
+// START SNIPPET taskProperty
 task myTask
 myTask.ext.myProperty = 'myCustomPropValue'
 
 task showProps << {
     println myTask.myProperty
 }
+// END SNIPPET taskProperty
+
+// START SNIPPET sourceSetProperty
+apply plugin: "java"
+
+sourceSets {
+    main {
+        ext.purpose = "production"
+    }
+    test {
+        ext.purpose = "test"
+    }
+    plugin {
+        ext.purpose = null
+    }
+}
+
+sourceSets.plugin.purpose = "production"
+
+task printProductionSourceDirs << {
+    sourceSets.matching { it.purpose == "production" }.each { println it.java.srcDirs }
+}
+// END SNIPPET sourceSetProperty
