@@ -41,7 +41,7 @@ public class ReturnResult implements DaemonCommandAction {
             result = new Success(execution.getResult());
         }
 
-        LOGGER.info("Daemon is dispatching the build result: " + result);
+        LOGGER.debug("Daemon is dispatching the build result: " + result);
         execution.getConnection().dispatch(result);
     }
 
