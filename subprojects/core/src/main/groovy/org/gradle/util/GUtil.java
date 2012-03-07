@@ -21,6 +21,7 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.*;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -213,7 +214,9 @@ public class GUtil {
 
     public static Properties loadProperties(URL url) {
         try {
-            return loadProperties(url.openStream());
+            URLConnection uc = url.openConnection();
+            uc.setUseCaches(false);
+            return loadProperties(uc.getInputStream());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
