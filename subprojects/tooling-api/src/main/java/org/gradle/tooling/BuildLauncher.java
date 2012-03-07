@@ -46,6 +46,9 @@ import java.io.OutputStream;
  *    //select tasks to run:
  *    build.forTasks("clean", "test");
  *
+ *    //include some build arguments:
+ *    build.withArguments("--no-search-upward", "-i", "--project-dir", "someProjectDir");
+ *
  *    //configure the standard input:
  *    build.setStandardInput(new ByteArrayInputStream("consume this!".getBytes()));
  *
@@ -103,6 +106,11 @@ public interface BuildLauncher extends LongRunningOperation {
      * <p>
      * If you specify unknown or unsupported command line option the {@link UnsupportedBuildArgumentException}
      * will be thrown but only at the time when you run the build, i.e. execute {@link #run()}.
+     * <p>
+     * For the list of all Gradle command line options please refer to the user guide
+     * or take a look at the output of the 'gradle -?' command.
+     * <p>
+     * See the example in the docs for {@link BuildLauncher}
      *
      * @param arguments gradle command line arguments
      * @return this
