@@ -66,10 +66,11 @@ public class DefaultConnection implements InternalConnection {
     public void stop() {
     }
 
-    public void executeBuild(final BuildParametersVersion1 buildParameters, BuildOperationParametersVersion1 parameters) {
+    public void executeBuild(final BuildParametersVersion1 buildParameters,
+                             BuildOperationParametersVersion1 operationParameters) {
         logTargetVersion();
-        AdaptedOperationParameters adapterdParams = new AdaptedOperationParameters(parameters);
-        run(new ExecuteBuildAction(buildParameters.getTasks()), adapterdParams);
+        AdaptedOperationParameters adapterdParams = new AdaptedOperationParameters(operationParameters, buildParameters);
+        run(new ExecuteBuildAction(), adapterdParams);
     }
 
     private void logTargetVersion() {
@@ -101,9 +102,7 @@ public class DefaultConnection implements InternalConnection {
 
     private <T> T run(GradleLauncherAction<T> action, ProviderOperationParameters operationParameters) {
         GradleLauncherActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters);
-        ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters.getGradleUserHomeDir(),
-                operationParameters.getProjectDir(), operationParameters.isSearchUpwards(),
-                operationParameters.getBuildLogLevel(), operationParameters.getArguments(), action);
+        ConfiguringBuildAction<T> configuringAction = new ConfiguringBuildAction<T>(operationParameters, action);
         return executer.execute(configuringAction, operationParameters);
     }
 

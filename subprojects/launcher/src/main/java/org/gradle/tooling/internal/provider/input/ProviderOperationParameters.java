@@ -63,4 +63,6 @@ public interface ProviderOperationParameters {
     TimeUnit getDaemonMaxIdleTimeUnits();
 
     List<String> getArguments();
+
+    List<String> getTasks();
 }
