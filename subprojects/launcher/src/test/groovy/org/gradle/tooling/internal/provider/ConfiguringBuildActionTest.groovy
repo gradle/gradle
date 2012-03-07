@@ -19,6 +19,8 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.StartParameter
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
 import spock.lang.Specification
 
 /**
@@ -26,6 +28,7 @@ import spock.lang.Specification
  */
 class ConfiguringBuildActionTest extends Specification {
 
+    @Rule TemporaryFolder temp
     def action = new ConfiguringBuildAction(null, null, null, null, [], null)
     def start = new StartParameter()
 
@@ -41,5 +44,39 @@ class ConfiguringBuildActionTest extends Specification {
         then:
         start.projectProperties['extraProperty'] == 'foo'
         start.dryRun
+    }
+
+    def "can overwrite project dir via build arguments"() {
+        given:
+        def projectDir = temp.createDir('projectDir')
+
+        when:
+        action = new ConfiguringBuildAction(null, projectDir, null, null, ['-p', 'otherDir'], null)
+        action.configureStartParameter(start)
+
+        then:
+        start.projectDir == new File(projectDir, "otherDir")
+    }
+
+    def "can overwrite gradle user home via build arguments"() {
+        given:
+        def dotGradle = temp.createDir('.gradle')
+        def projectDir = temp.createDir('projectDir')
+
+        when:
+        action = new ConfiguringBuildAction(dotGradle, projectDir, null, null, ['-g', 'otherDir'], null)
+        action.configureStartParameter(start)
+
+        then:
+        start.gradleUserHomeDir == new File(projectDir, "otherDir")
+    }
+
+    def "can overwrite searchUpwards via build arguments"() {
+        when:
+        action = new ConfiguringBuildAction(null, null, true, null, ['-u'], null)
+        action.configureStartParameter(start)
+
+        then:
+        !start.isSearchUpwards()
     }
 }

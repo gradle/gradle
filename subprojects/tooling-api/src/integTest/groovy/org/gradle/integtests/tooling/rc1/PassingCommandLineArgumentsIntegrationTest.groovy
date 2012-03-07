@@ -29,10 +29,6 @@ import static org.gradle.testing.internal.util.ExceptionAssert.assertThat
 @MinTargetGradleVersion('current')
 class PassingCommandLineArgumentsIntegrationTest extends ToolingApiSpecification {
 
-//    def setup() {
-//        toolingApi.isEmbedded = false
-//    }
-
 //    We don't want to validate *all* command line options here, just enough to make sure passing through works.
 
     def "understands project properties"() {
@@ -129,5 +125,47 @@ class PassingCommandLineArgumentsIntegrationTest extends ToolingApiSpecification
 
         then:
         assertThat(ex).containsInfo('--foreground')
+    }
+
+    def "can overwrite project dir via build arguments"() {
+        given:
+        dist.file('otherDir').createDir()
+        dist.file('build.gradle') << "assert projectDir.name.endsWith('otherDir')"
+
+        when:
+        withConnection { 
+            it.newBuild().withArguments('-p', 'otherDir').run()
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can overwrite gradle user home via build arguments"() {
+        given:
+        dist.file('.myGradle').createDir()
+        dist.file('build.gradle') << "assert gradle.gradleUserHomeDir.name.endsWith('.myGradle')"
+
+        when:
+        withConnection {
+            it.newBuild().withArguments('-p', '.myGradle').run()
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can overwrite searchUpwards via build arguments"() {
+        given:
+        dist.file('build.gradle') << "assert !gradle.startParameter.searchUpwards"
+
+        when:
+        toolingApi.withConnector { it.searchUpwards(true) }
+        withConnection {
+            it.newBuild().withArguments('-u').run()
+        }
+
+        then:
+        noExceptionThrown()
     }
 }
