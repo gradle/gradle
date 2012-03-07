@@ -169,4 +169,20 @@ class PassingCommandLineArgumentsIntegrationTest extends ToolingApiSpecification
         then:
         noExceptionThrown()
     }
+
+    def "can overwrite task names via build arguments"() {
+        given:
+        dist.file('build.gradle') << """
+task foo << { assert false }
+task bar << { assert true }
+"""
+
+        when:
+        withConnection {
+            it.newBuild().forTasks('foo').withArguments('bar').run()
+        }
+
+        then:
+        noExceptionThrown()
+    }
 }
