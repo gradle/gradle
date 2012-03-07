@@ -160,14 +160,15 @@
     </section>
     <section id='sec:extra_task_properties'>
         <title>Extra task properties</title>
-        <para>You can add your own properties to a task. A property is added by setting it via the task's <literal>ext</literal> namespace.
-            From that point on, the property can be read and set like a predefined task property.
+        <para>You can add your own properties to a task. To add a property named <literal>myProperty</literal>,
+            set <literal>ext.myProperty</literal> to an initial value. From that point on, the property can be read
+            and set like a predefined task property.
         </para>
-        <sample id="extraProperties" dir="userguide/tutorial/extraProperties" title="Adding extra properties to a task">
-            <sourcefile file="build.gradle"/>
+        <sample id="extraTaskProperties" dir="userguide/tutorial/extraProperties" title="Adding extra properties to a task">
+            <sourcefile file="build.gradle" snippet="taskProperty"/>
             <output args="-q showProps"/>
         </sample>
-        Extra properties aren't limited to tasks. You can learn more about them in <xref linkend='sec:extra_properties'/>.
+        Extra properties aren't limited to tasks. You can read more about them in <xref linkend='sec:extra_properties'/>.
     </section>
     <section>
         <title>Using Ant Tasks</title>

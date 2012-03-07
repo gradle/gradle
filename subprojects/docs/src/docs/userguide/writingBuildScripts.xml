@@ -136,35 +136,38 @@
     </section>
     <section>
         <title>Declaring variables</title>
-        <para>There are two kinds of variables that can be declared and used in a build script: local variables and extra properties.
+        <para>There are two kinds of variables that can be declared in a build script: local variables and extra properties.
         </para>
         <section>
             <title>Local variables</title>
-            <para>Local variables are declared with the <literal>def</literal> keyword. The are only visible in the scope where they have been declared.
-                Local variables are provided by the underlying Groovy language.
+            <para>Local variables are declared with the <literal>def</literal> keyword. They are only visible in the scope where they have been declared.
+                Local variables are a feature of the underlying Groovy language.
             </para>
+            <sample id="localVariables" dir="userguide/tutorial/localVariables" title="Using local variables">
+                <sourcefile file="build.gradle"/>
+            </sample>
         </section>
         <section id='sec:extra_properties'>
             <title>Extra properties</title>
             <para>All enhanced objects in Gradle's domain model can hold extra user-defined properties. This includes, but is not limited to, projects, tasks,
                 and source sets. Extra properties can be added, read and set via the owning object's <literal>ext</literal> property.
             </para>
-            <sample id="extraProperties" dir="userguide/tutorial/extraProperties" title="Adding extra properties to a task">
-                <sourcefile file="build.gradle"/>
-                <output args="-q showProps"/>
+            <sample id="extraProperties" dir="userguide/tutorial/extraProperties" title="Using extra properties">
+                <sourcefile file="build.gradle" snippet="sourceSetProperty"/>
             </sample>
-            <para>Setting <literal>ext.myProperty</literal> adds <literal>myProperty</literal> to the enhanced object's extra properties.
-                (<literal>null</literal> is a permissible value.) Once the property has been added, it can be read and set as if it was
-                a predefined property. (However, <literal>ext.</literal> can still be used for clarity.)
+            <para>In this example, a property named <literal>purpose</literal> is added to all source sets by setting <literal>ext.purpose</literal>.
+                (<literal>null</literal> is a permissible value.) Once the property has been added, it can be read and set like a predefined property,
+                although <literal>ext.</literal> can be used as well.
             </para>
             <para>By requiring special syntax for adding a property, Gradle can fail fast when an attempt is made to set a (predefined or extra) property
                 but the property is misspelled or does not exist.
                 <footnote>
-                    <para>As of Gradle 1.0 milestone 9, it is strongly encouraged but not yet mandatory to use <literal>ext</literal> for adding an
-                        extra property. Therefore, Gradle will not fail when an unknown property is set. However, it will print a warning.
+                    <para>As of Gradle 1.0 milestone 9, using <literal>ext</literal> to add extra properties is strongly encouraged but not yet enforced.
+                        Therefore, Gradle will not fail when an unknown property is set. However, it will print a warning.
                     </para>
                 </footnote>
                 Extra properties can be accessed from anywhere their owning object can be accessed, giving them a wider scope than local variables.
+                Extra properties on a parent project are visible from subprojects.
             </para>
             <para>For further details on extra properties and the API surrounding them, see <apilink class="org.gradle.api.plugins.ExtraPropertiesExtension"/> in the DSL reference.</para>
         </section>
