@@ -155,9 +155,9 @@
             <sample id="extraProperties" dir="userguide/tutorial/extraProperties" title="Using extra properties">
                 <sourcefile file="build.gradle" snippet="sourceSetProperty"/>
             </sample>
-            <para>In this example, a property named <literal>purpose</literal> is added to all source sets by setting <literal>ext.purpose</literal>.
-                (<literal>null</literal> is a permissible value.) Once the property has been added, it can be read and set like a predefined property,
-                although <literal>ext.</literal> can be used as well.
+            <para>In this example, a property named <literal>purpose</literal> is added to all source sets by setting <literal>ext.purpose</literal> to
+                <literal>null</literal> (<literal>null</literal> is a permissible value). Once the property has been added, it can be read and set like
+                a predefined property. Alternatively, <literal>ext.</literal> can be used as well.
             </para>
             <para>By requiring special syntax for adding a property, Gradle can fail fast when an attempt is made to set a (predefined or extra) property
                 but the property is misspelled or does not exist.
@@ -169,7 +169,7 @@
                 Extra properties can be accessed from anywhere their owning object can be accessed, giving them a wider scope than local variables.
                 Extra properties on a parent project are visible from subprojects.
             </para>
-            <para>For further details on extra properties and the API surrounding them, see <apilink class="org.gradle.api.plugins.ExtraPropertiesExtension"/> in the DSL reference.</para>
+            <para>For further details on extra properties and their API, see <apilink class="org.gradle.api.plugins.ExtraPropertiesExtension"/>.</para>
         </section>
     </section>
     <section>
