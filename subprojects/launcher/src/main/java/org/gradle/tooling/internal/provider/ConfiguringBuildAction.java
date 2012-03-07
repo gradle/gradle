@@ -70,7 +70,7 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
             try {
                 converter.convert(arguments, startParameter);
             } catch (CommandLineArgumentException e) {
-                throw new InternalUnsupportedBuildArgumentException (
+                throw new InternalUnsupportedBuildArgumentException(
                     "Problem with provided build arguments: " + arguments + ". "
                     + "\n" + e.getMessage()
                     + "\nEither it is not a valid build option or it is not supported in the target Gradle version."
