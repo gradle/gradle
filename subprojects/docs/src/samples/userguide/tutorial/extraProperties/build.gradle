@@ -10,19 +10,19 @@ task showProps << {
 // START SNIPPET sourceSetProperty
 apply plugin: "java"
 
+sourceSets.all { ext.purpose = null }
+
 sourceSets {
     main {
-        ext.purpose = "production"
+        purpose = "production"
     }
     test {
-        ext.purpose = "test"
+        purpose = "test"
     }
     plugin {
-        ext.purpose = null
+        ext.purpose = "production"
     }
 }
-
-sourceSets.plugin.purpose = "production"
 
 task printProductionSourceDirs << {
     sourceSets.matching { it.purpose == "production" }.each { println it.java.srcDirs }
