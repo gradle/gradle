@@ -24,6 +24,7 @@ import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.launcher.exec.InitializationAware;
 import org.gradle.logging.ShowStacktrace;
+import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.input.ProviderOperationParameters;
 
 import java.io.File;
@@ -69,12 +70,14 @@ class ConfiguringBuildAction<T> implements GradleLauncherAction<T>, Initializati
             try {
                 converter.convert(arguments, startParameter);
             } catch (CommandLineArgumentException e) {
-                throw new UnsupportedOperationException(
-                    e.getMessage()
+                throw new InternalUnsupportedBuildArgumentException (
+                    "Problem with provided build arguments: " + arguments + ". "
+                    + "\n" + e.getMessage()
                     + "\nEither it is not a valid build option or it is not supported in the target Gradle version."
                     + "\nNot all of the Gradle command line options are supported build arguments."
                     + "\nExamples of supported build arguments: '--info', '-u', '-p'."
-                    + "\nExamples of unsupported build options: '--daemon', '-?', '-v'.", e);
+                    + "\nExamples of unsupported build options: '--daemon', '-?', '-v'."
+                    + "\nPlease find more information in the javadoc for the BuildLauncher class.", e);
             }
         }
 

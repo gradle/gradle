@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
 import org.gradle.tooling.model.Task;
 
 import java.io.File;
@@ -92,7 +93,16 @@ public interface BuildLauncher extends LongRunningOperation {
     BuildLauncher forTasks(Iterable<? extends Task> tasks);
 
     /**
-     * TODO SF - add more documenation, examples and user guide content
+     * Specify the command line build arguments.
+     * <p>
+     * Be aware that not all of the Gradle command line options are supported!
+     * Only the build arguments that configure the build execution are supported.
+     * Examples of supported build arguments: '--info', '-u', '-p'.
+     * The command line instructions that are actually separate commands (like '-?', '-v') are not supported.
+     * Some other instructions like '--daemon' are also not supported - the tooling API always runs with the daemon.
+     * <p>
+     * If you specify unknown or unsupported command line option the {@link UnsupportedBuildArgumentException}
+     * will be thrown but only at the time when you run the build, i.e. execute {@link #run()}.
      *
      * @param arguments gradle command line arguments
      * @return this
@@ -138,9 +148,11 @@ public interface BuildLauncher extends LongRunningOperation {
      *  but those settings are not supported on the target Gradle.
      * @throws BuildException On some failure executing the Gradle build.
      * @throws GradleConnectionException On some other failure using the connection.
+     * @throws UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}
      * @throws IllegalStateException When the connection has been closed or is closing.
      */
-    void run() throws GradleConnectionException;
+    void run() throws GradleConnectionException, UnsupportedBuildArgumentException, IllegalStateException,
+            BuildException, UnsupportedVersionException;
 
     /**
      * Launchers the build. This method returns immediately, and the result is later passed to the given handler.

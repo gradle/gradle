@@ -23,7 +23,7 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
-import static org.gradle.testing.internal.util.ExceptionAssert.assertThat
+import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 
 @MinToolingApiVersion('current')
 @MinTargetGradleVersion('current')
@@ -124,7 +124,8 @@ class PassingCommandLineArgumentsIntegrationTest extends ToolingApiSpecification
         }
 
         then:
-        assertThat(ex).containsInfo('--foreground')
+        ex instanceof UnsupportedBuildArgumentException
+        ex.message.contains('--foreground')
     }
 
     def "can overwrite project dir via build arguments"() {
