@@ -29,8 +29,8 @@ class DaemonStateCoordinatorTest extends Specification {
     def "requesting stop lifecycle"() {
         coordinator.asyncStop = Mock(Runnable)
 
-        given:
-        assert !coordinator.stopped
+        expect:
+        coordinator.stopped
 
         when: "requested first time"
         def passOne = coordinator.requestStop()
@@ -56,8 +56,8 @@ class DaemonStateCoordinatorTest extends Specification {
     def "stopping lifecycle"() {
         coordinator.condition = Mock(Condition)
 
-        given:
-        assert !coordinator.stopped
+        expect:
+        !coordinator.stopped
 
         when: "stopped first time"
         coordinator.stop()
