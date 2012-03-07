@@ -151,7 +151,7 @@
             <section id='ssub:filtering_by_properties'>
                 <title>Filtering by properties</title>
                 <para>Using the project name for filtering is one option. Using extra project properties is another.
-                    (See <xref linkend='sec:extra_properties'/> for more on extra properties.)
+                    (See <xref linkend='sec:extra_properties'/> for more information on extra properties.)
                 </para>
                 <sample id="multiprojectTropicalWithProperties" dir="userguide/multiproject/tropicalWithProperties/water" includeLocation="true" title="Adding custom behaviour to some projects (filtered by project properties)">
                     <layout>
