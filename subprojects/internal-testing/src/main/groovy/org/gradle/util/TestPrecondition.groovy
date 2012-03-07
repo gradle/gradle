@@ -72,6 +72,9 @@ enum TestPrecondition {
     }),
     JDK6({
         System.getProperty("java.version").startsWith("1.6")
+    }),
+    JDK7({
+        System.getProperty("java.version").startsWith("1.7")
     });
 
     /**
