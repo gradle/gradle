@@ -18,14 +18,14 @@
 
     <section id='sec:Introduction'>
         <title>Introduction to the Tooling API</title>
-        <para>The 1.0-milestone-3 release brought a new API, called the tooling API,
+        <para>The 1.0 milestone 3 release brought a new API called the tooling API,
             which you can use for embedding Gradle. This API allows you to execute and monitor builds,
             and to query Gradle about the details of a build.
             The main audience for this API is IDE, CI server, other UI authors, or integration testing of your Gradle plugins.
             However, it is open for anyone who needs to embed Gradle in their application.
         </para>
 
-        <para>A fundamental characteristic of the Tooling API is that it operates in a version independent way.
+        <para>A fundamental characteristic of the tooling API is that it operates in a version independent way.
             This means that you can use the same API to work with different target versions of Gradle.
             The tooling API is Gradle wrapper aware and, by default,
             uses the same target Gradle version as that used by the wrapper-powered project.
@@ -42,10 +42,10 @@
                     (e.g. the stuff shown in the 'status bar' when you run on the command line).
                 </listitem>
                 <listitem>Tooling API can download and install the appropriate Gradle version, similar to the wrapper.
-                    Bear in mind that the tooling API is wrapper aware so you should not need to configure gradle distribution directly.
+                    Bear in mind that the tooling API is wrapper aware so you should not need to configure a Gradle distribution directly.
                 </listitem>
                 <listitem>The implementation is lightweight, with only a small number of dependencies.
-                    It is also a well-behaved library, and makes no assumptions about your classloader structure or logging configuration.
+                    It is also a well-behaved library, and makes no assumptions about your class loader structure or logging configuration.
                     This makes the API easy to bundle in your application.
                 </listitem>
             </itemizedlist>
@@ -79,20 +79,20 @@
 
     <section id='sec:Quickstart'>
         <title>Quickstart</title>
-        <para>Since the Tooling API is an interface for a programmer most of the documentation lives in the javadocs/groovydocs.
+        <para>Since the tooling API is an interface for a programmer most of the documentation lives in Javadoc/Groovydoc.
             This is exactly our intention - we don't expect this chapter to grow very much.
-            Instead we will increase code samples and improve the documentation in the javadocs.
-            The main entry point to the Tooling API is the
+            Instead we will add more code samples and improve the Javadoc documentation.
+            The main entry point to the tooling API is the
             <apilink class="org.gradle.tooling.GradleConnector"/>.
             You can navigate from there and find code samples and other instructions.
-            Pretty effective way of learning how to use the Tooling API is checking out and running
+            Pretty effective way of learning how to use the tooling API is checking out and running
             the <emphasis>samples</emphasis> that live in <filename>$gradleHome/samples/toolingApi</filename>.
         </para>
         <para>
-            If you're embedding gradle and you're looking for exact set of dependencies the tooling api jar requires
-            please look at one of the samples at <filename>$gradleHome/samples/toolingApi</filename>.
-            The dependencies are declared in the gradle build scripts.
-            You can also find the repository declarations where the jars are obtained from.
+            If you're embedding Gradle and you're looking for exact set of dependencies the tooling API Jar requires
+            please look at one of the samples in <filename>$gradleHome/samples/toolingApi</filename>.
+            The dependencies are declared in the Gradle build scripts.
+            You can also find the repository declarations where the Jars are obtained from.
         </para>
     </section>
 

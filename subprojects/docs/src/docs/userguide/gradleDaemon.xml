@@ -111,8 +111,8 @@
                     (you can pass the command line switch <literal>--no-daemon</literal>).</listitem>
                 <listitem>Occasionally, you may want to stop the daemons either via the <literal>--stop</literal>
                     command line option or in a more forceful way.</listitem>
-                <listitem>There is a daemon log file, which is located by default in the
-                    Gradle user home.</listitem>
+                <listitem>There is a daemon log file, which by default is located in the
+                    Gradle user home directory.</listitem>
                 <listitem>You may want to start the daemon in <literal>--foreground</literal>
                     mode to observe how the build is executed.</listitem>
             </itemizedlist>
