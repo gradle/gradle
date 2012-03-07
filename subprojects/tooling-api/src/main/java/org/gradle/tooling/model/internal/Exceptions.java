@@ -27,11 +27,11 @@ public class Exceptions {
             "Most likely the model of that type is not supported in the target Gradle version."
             + "\nTo resolve the problem you can change/upgrade the Gradle version the tooling api connects to.";
 
-    public static UnsupportedMethodException unsupportedModelMethod(String method, Throwable cause) {
+    public static UnsupportedMethodException unsupportedMethod(String method, Throwable cause) {
         return new UnsupportedMethodException(formatUnsupportedModelMethod(method), cause);
     }
 
-    public static UnsupportedMethodException unsupportedModelMethod(String method) {
+    public static UnsupportedMethodException unsupportedMethod(String method) {
         return new UnsupportedMethodException(formatUnsupportedModelMethod(method));
     }
 

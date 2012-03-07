@@ -140,7 +140,7 @@ public class ProtocolToModelAdapter {
                 match = delegate.getClass().getMethod(method.getName(), method.getParameterTypes());
             } catch (NoSuchMethodException e) {
                 String methodName = method.getDeclaringClass().getSimpleName() + "." + method.getName() + "()";
-                throw Exceptions.unsupportedModelMethod(methodName, e);
+                throw Exceptions.unsupportedMethod(methodName, e);
             }
 
             LinkedList<Class<?>> queue = new LinkedList<Class<?>>();

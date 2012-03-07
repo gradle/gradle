@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.reflect;
 
-import org.gradle.tooling.model.UnsupportedMethodException;
-
 import java.lang.reflect.Method;
 
 /**
@@ -33,12 +31,8 @@ public class CompatibleIntrospector {
         this.target = target;
     }
 
-    private Method getMethod(String methodName) {
-        try {
-            return target.getClass().getDeclaredMethod(methodName, new Class[0]);
-        } catch (NoSuchMethodException e) {
-            throw new UnsupportedMethodException("The method: " + methodName + " is not supported on instance: " + target + ".\n", e);
-        }
+    private Method getMethod(String methodName) throws NoSuchMethodException {
+        return target.getClass().getDeclaredMethod(methodName, new Class[0]);
     }
 
     public <T> T getSafely(T defaultValue, String methodName) {
@@ -46,7 +40,7 @@ public class CompatibleIntrospector {
             Method method = getMethod(methodName);
             method.setAccessible(true);
             return (T) method.invoke(target);
-        } catch (UnsupportedMethodException e) {
+        } catch (NoSuchMethodException e) {
             return defaultValue;
         } catch (Exception e) {
             throw new RuntimeException("Unable to get value reflectively", e);

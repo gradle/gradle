@@ -81,7 +81,6 @@ public interface LongRunningOperation {
      * @return this
      * @since 1.0-milestone-8
      * @throws IllegalArgumentException when supplied javaHome is not a valid folder.
-     *          Also when javaHome does not seem to be a valid jdk or jre folder.
      */
     LongRunningOperation setJavaHome(File javaHome) throws IllegalArgumentException;
 

@@ -29,6 +29,6 @@ public class VersionOnlyBuildEnvironment extends DefaultBuildEnvironment {
     }
 
     public JavaEnvironment getJava() {
-        throw Exceptions.unsupportedModelMethod("getJava()");
+        throw Exceptions.unsupportedMethod("getJava()");
     }
 }
