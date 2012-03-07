@@ -82,11 +82,11 @@
                 <listitem>If the daemon process is currently busy running some job, a brand new daemon process will be started.</listitem>
                 <listitem>We fork a separate daemon process per java home. So even if there is some idle daemon waiting
                     for build requests but you happen to run build with a different java home then a brand new daemon will be forked.</listitem>
-                <listitem>At the moment daemon is coupled with particular version of gradle.
+                <listitem>At the moment daemon is coupled with particular version of Gradle.
                     This means that even if some daemon is idle but you are running the build
                     with a different version of Gradle, a new daemon will be started.
                     This also have a consequence for the <literal>--stop</literal> command line instruction:
-                    You can only stop daemons that were started with the gradle version you use when running <literal>--stop</literal>.
+                    You can only stop daemons that were started with the Gradle version you use when running <literal>--stop</literal>.
                 </listitem>
             </itemizedlist>
             We plan to improve the ways of managing / pooling the daemons in future.
@@ -105,14 +105,14 @@
             As mentioned earlier we are actively improving the daemon. At the moment the daemon
             is marked as 'experimental' in the user interface. We encourage everyone to try the
             daemon out and get back to us with feedback (or even better: the pull requests).
-            Some ways of troubleshooting the gradle daemon:
+            Some ways of troubleshooting the Gradle daemon:
             <itemizedlist>
                 <listitem>If you have a problem with your build, try temporarily disabling the daemon
                     (you can pass the command line switch <literal>--no-daemon</literal>).</listitem>
                 <listitem>Occasionally, you may want to stop the daemons either via the <literal>--stop</literal>
                     command line option or in a more forceful way.</listitem>
                 <listitem>There is a daemon log file, which is located by default in the
-                    <literal>gradle user home</literal>.</listitem>
+                    Gradle user home.</listitem>
                 <listitem>You may want to start the daemon in <literal>--foreground</literal>
                     mode to observe how the build is executed.</listitem>
             </itemizedlist>

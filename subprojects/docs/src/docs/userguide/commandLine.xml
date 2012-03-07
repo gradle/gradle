@@ -205,13 +205,13 @@
             <varlistentry>
                 <term><option>--no-daemon</option></term>
                 <listitem><para>Do not use the Gradle daemon to run the build.
-                    Useful occasionally if you have configured gradle to always run with the daemon by default.</para></listitem>
+                    Useful occasionally if you have configured Gradle to always run with the daemon by default.</para></listitem>
             </varlistentry>
             <varlistentry>
                 <term><option>--stop</option></term>
                 <listitem><para>Stops the Gradle daemon if it is running.
                     You can only stop daemons that were started with
-                    the gradle version you use when running <literal>--stop</literal>.</para></listitem>
+                    the Gradle version you use when running <literal>--stop</literal>.</para></listitem>
             </varlistentry>
         </variablelist>
     </section>
@@ -226,7 +226,7 @@
             <listitem><para>Specifies the Gradle user home directory.</para> </listitem>
         </varlistentry>
         <para>The <xref linkend="sec:gradle_configuration_properties"/> contains specific information about
-            gradle configuration available via system properties.</para>
+            Gradle configuration available via system properties.</para>
     </section>
 
     <section>

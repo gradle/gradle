@@ -33,16 +33,16 @@
             </itemizedlist>
         </para>
         <para>
-            The following properties can be used to configure the gradle build environment:
+            The following properties can be used to configure the Gradle build environment:
             <varlistentry>
                 <term><literal>org.gradle.daemon</literal></term>
-                <listitem><para>When set to <literal>true</literal> the gradle daemon is to run the build.
-                    This is our favorite property because we nearly always run gradle jobs with the daemon.</para>
+                <listitem><para>When set to <literal>true</literal> the Gradle daemon is to run the build.
+                    This is our favorite property because we nearly always run Gradle jobs with the daemon.</para>
                 </listitem>
             </varlistentry>
             <varlistentry>
                 <term><literal>org.gradle.java.home</literal></term>
-                <listitem><para>Specifies the java home for the gradle build process.
+                <listitem><para>Specifies the java home for the Gradle build process.
                     The value can be set to either <literal>jdk</literal> or <literal>jre</literal> location,
                     however, depending on what does your build do, <literal>jdk</literal> is safer.
                     Reasonable default is used if the setting is unspecified.</para>
@@ -62,7 +62,7 @@
                 must launch a separate JVM process to execute the build after parsing the various <filename>gradle.properties</filename> files.
                 When running with the daemon, a JVM with the correct parameters is started once and reused for each daemon build execution.
                 When Gradle is executed without the daemon, then a new JVM must be launched for every build execution,
-                unless the JVM launched by the gradle start script happens to have the same parameters.
+                unless the JVM launched by the Gradle start script happens to have the same parameters.
             </para>
             <para>
             This launching of an extra JVM on every build execution is quite expensive, which is why we highly recommend that you use the Gradle Daemon if you are

@@ -224,7 +224,7 @@
                 <orderedlist>
                     <listitem>The file is read; or a default version provided by Gradle is used if it does not exist</listitem>
                     <listitem>The <code>beforeMerged</code> hook is executed with a domain object representing the existing file</listitem>
-                    <listitem>The existing content is merged with the configuration inferred from the gradle build or defined explicitly in the eclipse DSL</listitem>
+                    <listitem>The existing content is merged with the configuration inferred from the Gradle build or defined explicitly in the eclipse DSL</listitem>
                     <listitem>The <code>whenMerged</code> hook is executed with a domain object representing contents of the file to be persisted</listitem>
                     <listitem>The <code>withXml</code> hook is executed with a raw representation of the xml that will be persisted</listitem>
                     <listitem>The final XML is persisted</listitem>

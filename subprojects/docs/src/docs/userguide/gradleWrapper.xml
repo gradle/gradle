@@ -74,7 +74,7 @@
         </sample>
         <para>
             You can specify the download URL of the wrapper distribution. You can also specify where the wrapper distribution
-            should be stored and unpacked (either within the project or within the gradle user home dir). If the wrapper
+            should be stored and unpacked (either within the project or within the Gradle user home dir). If the wrapper
             is run and there is local archive of the wrapper distribution Gradle tries to download it and stores it at
             the specified place. If there is no unpacked wrapper distribution Gradle unpacks the local archive of the
             wrapper distribution at the specified place. All the configuration options have defaults except the version of the wrapper distribution.</para>

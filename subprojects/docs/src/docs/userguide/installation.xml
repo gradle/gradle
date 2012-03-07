@@ -78,7 +78,7 @@ some zip front ends for Mac OS X don't restore the file permissions properly.
 <title>Running and testing your installation</title>
 
 <para>You run Gradle via the <command>gradle</command> command. To check if Gradle is properly installed just type
-<command>gradle -v</command>. The output shows gradle version and also local environment configuration (groovy and jvm version, etc.).
+<command>gradle -v</command>. The output shows Gradle version and also local environment configuration (groovy and jvm version, etc.).
     The displayed gradle version should match the distribution you have downloaded.
 </para>
 

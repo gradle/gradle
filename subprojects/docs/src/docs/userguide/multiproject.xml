@@ -546,7 +546,7 @@
         <section id="disable_dependency_projects">
             <title>Disabling the build of dependency projects</title>
             <para>Sometimes you don't want depended on projects to be built when doing a partial build.
-                To disable the build of the depended on projects you can run gradle with the <code>-a</code> option.
+                To disable the build of the depended on projects you can run Gradle with the <code>-a</code> option.
             </para>
         </section>
     </section>
@@ -573,7 +573,7 @@
         <para>While you are working in a typical development cycle repeatedly building and testing changes to
             the :api project (knowing that you are only changing files in this one project), you may not want to
             even suffer the expense of :shared:compile checking to see what has changed in the :shared project.
-            Adding the <literal>-a</literal> option will cause gradle to use cached jars to resolve any project lib
+            Adding the <literal>-a</literal> option will cause Gradle to use cached jars to resolve any project lib
             dependencies and not try to re-build the depended on projects.
         </para>
         <sample id="multitestingBuildDashA" dir="userguide/multiproject/dependencies/java" title="Partial Build and Test Single Project">

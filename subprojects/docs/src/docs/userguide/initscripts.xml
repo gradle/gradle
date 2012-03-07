@@ -81,7 +81,7 @@
             If more than one init script is found they will all be executed, in the order specified above. Scripts in a given directory are executed
             in alphabetical order.
             This allows, for example, a tool to specify an init script on the command line and the user to put one in their home directory for defining
-            the environment and both scripts will run when gradle is executed.
+            the environment and both scripts will run when Gradle is executed.
         </para>
     </section>
     <section>
