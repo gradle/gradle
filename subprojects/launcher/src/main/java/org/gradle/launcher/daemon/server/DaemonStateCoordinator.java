@@ -42,6 +42,7 @@ public class DaemonStateCoordinator implements Stoppable {
     private final Lock lock = new ReentrantLock();
     Condition condition = lock.newCondition();
 
+    private boolean stoppingOrStopped;
     private boolean stopped;
     private long lastActivityAt = -1;
     private DaemonCommandExecution currentCommandExecution;
@@ -141,11 +142,12 @@ public class DaemonStateCoordinator implements Stoppable {
         lock.lock();
         try {
             LOGGER.debug("Stop requested. The daemon is running a build: " + isBusy());
-            if (!stopped) {
+            if (!isStoppingOrStopped()) {
                 onStopRequested.run();
             }
-            stopped = true;
+            stoppingOrStopped = true;
             onStop.run();
+            stopped = true;
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -168,10 +170,10 @@ public class DaemonStateCoordinator implements Stoppable {
     public boolean requestStop() {
         lock.lock();
         try {
-            if (stopped) {
+            if (stoppingOrStopped) {
                 return false;
             }
-            stopped = true;
+            stoppingOrStopped = true;
             onStopRequested.run(); //blocking
             asyncStop.run(); //not blocking
             return true;
@@ -285,6 +287,10 @@ public class DaemonStateCoordinator implements Stoppable {
 
     public boolean isStopped() {
         return stopped;
+    }
+
+    public boolean isStoppingOrStopped() {
+        return stoppingOrStopped;
     }
 
     public boolean isIdle() {
