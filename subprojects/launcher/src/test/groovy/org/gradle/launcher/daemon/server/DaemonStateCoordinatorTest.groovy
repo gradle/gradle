@@ -30,7 +30,7 @@ class DaemonStateCoordinatorTest extends Specification {
         coordinator.asyncStop = Mock(Runnable)
 
         expect:
-        coordinator.stopped
+        !coordinator.stopped
 
         when: "requested first time"
         def passOne = coordinator.requestStop()
