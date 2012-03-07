@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.server
 
 import java.util.concurrent.locks.Condition
 import spock.lang.Specification
+import org.gradle.launcher.daemon.server.exec.DaemonCommandExecution
 
 /**
  * by Szczepan Faber, created at: 2/6/12
@@ -38,7 +39,8 @@ class DaemonStateCoordinatorTest extends Specification {
         passOne == true
         1 * coordinator.asyncStop.run()
         1 * coordinator.onStopRequested.run()
-        coordinator.stopped
+        coordinator.stoppingOrStopped
+        !coordinator.stopped
 
         when: "requested again"
         def passTwo = coordinator.requestStop()
@@ -47,7 +49,8 @@ class DaemonStateCoordinatorTest extends Specification {
         passTwo == false
         0 * coordinator.asyncStop.run()
         0 * coordinator.onStopRequested.run()
-        coordinator.stopped
+        coordinator.stoppingOrStopped
+        !coordinator.stopped
     }
 
     def "stopping lifecycle"() {
@@ -73,5 +76,50 @@ class DaemonStateCoordinatorTest extends Specification {
         1 * coordinator.onStop.run()
         1 * coordinator.condition.signalAll()
         coordinator.stopped
+    }
+
+    def "stopAsSoonAsIdle when idle"() {
+        given:
+        coordinator.start()
+
+        expect:
+        coordinator.idle
+
+        when:
+        coordinator.stopAsSoonAsIdle()
+
+        then:
+        coordinator.stopped
+        coordinator.stoppingOrStopped
+
+        and:
+        1 * coordinator.onStopRequested.run()
+        1 * coordinator.onStop.run()
+    }
+
+    def "stopAsSoonAsIdle when busy"() {
+        given:
+        coordinator.start()
+        coordinator.onStartCommand(Mock(DaemonCommandExecution))
+
+        expect:
+        coordinator.busy
+
+        when:
+        coordinator.stopAsSoonAsIdle()
+
+        then:
+        !coordinator.stopped
+        coordinator.stoppingOrStopped
+
+        and:
+        1 * coordinator.onStopRequested.run()
+
+        when:
+        coordinator.onFinishCommand()
+
+        then:
+        coordinator.stopped
+        1 * coordinator.onStop.run()
     }
 }

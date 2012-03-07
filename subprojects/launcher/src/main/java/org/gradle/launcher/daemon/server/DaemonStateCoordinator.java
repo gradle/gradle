@@ -138,6 +138,38 @@ public class DaemonStateCoordinator implements Stoppable {
         }
     }
 
+    /**
+     * Perform a stop, but wait until the daemon is idle to cut any open connections.
+     *
+     * The daemon will be removed from the registry upon calling this regardless of whether it is busy or not.
+     * If it is idle, this method will block until the daemon fully stops.
+     *
+     * If the daemon is busy, this method will return after removing the daemon from the registry but before the
+     * daemon is fully stopped. In this case, the daemon will stop as soon as {@link #onFinishCommand()} is called.
+     */
+    public void stopAsSoonAsIdle() {
+        lock.lock();
+        try {
+            LOGGER.debug("Stop as soon as idle requested. The daemon is busy: " + isBusy());
+            if (isBusy()) {
+                onStopRequested.run();
+                stoppingOrStopped = true;
+            } else {
+               stop();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Forcibly stops the daemon, even if it is busy.
+     *
+     * If the daemon is busy and the client is waiting for a response, it may receive “null” from the daemon
+     * as the connection may be closed by this method before the result is sent back.
+     *
+     * @see #stopAsSoonAsIdle()
+     */
     public void stop() {
         lock.lock();
         try {
@@ -218,6 +250,8 @@ public class DaemonStateCoordinator implements Stoppable {
      * <p>
      * If the daemon is currently idle, this method will return {@code null}. If it is busy, it will return what was the
      * current execution which will considered to be complete (putting the daemon back in idle state).
+     * <p>
+     * If {@link #stopAsSoonAsIdle()} was previously called, this method will block while the daemon {@link #stop() stops}
      */
     public DaemonCommandExecution onFinishCommand() {
         lock.lock();
@@ -229,8 +263,12 @@ public class DaemonStateCoordinator implements Stoppable {
                 LOGGER.debug("onFinishCommand() called while execution = {}", execution);
                 currentCommandExecution = null;
                 updateActivityTimestamp();
-                onFinishCommand.run();
-                condition.signalAll();
+                if (isStoppingOrStopped()) {
+                    stop();
+                } else {
+                    onFinishCommand.run();
+                    condition.signalAll();
+                }
             }
 
             return execution;

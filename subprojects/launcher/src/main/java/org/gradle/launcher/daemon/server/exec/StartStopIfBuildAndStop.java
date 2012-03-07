@@ -16,15 +16,23 @@
 
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.protocol.BuildAndStop;
 
 public class StartStopIfBuildAndStop implements DaemonCommandAction {
 
+    private static final Logger LOGGER = Logging.getLogger(StopConnectionAfterExecution.class);
+    
     public void execute(DaemonCommandExecution execution) {
         execution.proceed();
 
         if (execution.getCommand() instanceof BuildAndStop) {
-            execution.getDaemonStateCoordinator().requestStop();
+            LOGGER.debug("Requesting daemon stop after processing {}", execution.getCommand());
+            
+            // This will cause the daemon to be removed from the registry, but no close the connection
+            // to the client until we've sent back the result.
+            execution.getDaemonStateCoordinator().stopAsSoonAsIdle();
         }
     }
 }
