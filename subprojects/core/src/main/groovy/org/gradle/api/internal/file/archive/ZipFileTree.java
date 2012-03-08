@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.internal.nativeplatform.FileSystem;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.hash.HashUtil;
 
@@ -150,7 +151,16 @@ public class ZipFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         public int getMode() {
-            return entry.getUnixMode() & 0777;
+            int unixMode = entry.getUnixMode() & 0777;
+            if(unixMode == 0){
+                //no mode infos available - fall back to defaults
+                if(isDirectory()){
+                    unixMode = FileSystem.DEFAULT_DIR_MODE;
+                }else{
+                    unixMode = FileSystem.DEFAULT_FILE_MODE;
+                }
+            }
+            return unixMode;
         }
     }
 }

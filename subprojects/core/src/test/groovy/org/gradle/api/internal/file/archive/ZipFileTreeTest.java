@@ -105,4 +105,15 @@ public class ZipFileTreeTest {
 
         assertVisitsPermissions(tree, expected);
     }
+
+    @Test
+    public void expectedDefaultForNoModeZips() {
+        resources.findResource("nomodeinfos.zip").copyTo(zipFile);
+
+        final Map<String, Integer> expected = new HashMap<String, Integer>();
+        expected.put("file.txt", 0644);
+        expected.put("folder", 0755);
+
+        assertVisitsPermissions(tree, expected);
+    }
 }
