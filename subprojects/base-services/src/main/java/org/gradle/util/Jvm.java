@@ -16,7 +16,7 @@
 
 package org.gradle.util;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.jvm.JavaInfo;
 import org.slf4j.Logger;
@@ -68,7 +68,7 @@ public class Jvm implements JavaInfo {
             try {
                 this.javaBase = new File(System.getProperty("java.home")).getCanonicalFile();
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw new UncheckedException(e);
             }
             this.javaHome = findJavaHome(javaBase);
             this.userSupplied = false;
