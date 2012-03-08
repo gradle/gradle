@@ -15,14 +15,10 @@
  */
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.ExecutionFailure
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.integtests.fixtures.JUnitTestExecutionResult
-import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
+import org.gradle.integtests.fixtures.*
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
@@ -130,15 +126,15 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         failure.assertHasDescription("Execution failed for task ':test'.");
         failure.assertThatCause(startsWith('There were failing tests.'));
 
-        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenTest FAILED'));
-        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenBefore FAILED'));
-        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenAfter FAILED'));
-        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenBeforeAndAfter FAILED'));
-        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenBeforeClass FAILED'));
-        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenAfterClass FAILED'));
-        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenConstructor FAILED'));
-        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenException FAILED'));
-        assertThat(failure.getError(), containsLine('Test org.gradle.Unloadable FAILED'));
+        assert containsLine(failure.getError(), 'Test org.gradle.BrokenTest FAILED');
+        assert containsLine(failure.getError(), 'Test org.gradle.BrokenBefore FAILED');
+        assert containsLine(failure.getError(), 'Test org.gradle.BrokenAfter FAILED');
+        assert containsLine(failure.getError(), 'Test org.gradle.BrokenBeforeAndAfter FAILED');
+        assert containsLine(failure.getError(), 'Test org.gradle.BrokenBeforeClass FAILED');
+        assert containsLine(failure.getError(), 'Test org.gradle.BrokenAfterClass FAILED');
+        assert containsLine(failure.getError(), 'Test org.gradle.BrokenConstructor FAILED');
+        assert containsLine(failure.getError(), 'Test org.gradle.BrokenException FAILED');
+        assert containsLine(failure.getError(), 'Test org.gradle.Unloadable FAILED');
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted(
@@ -355,25 +351,25 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         '''
 
         ExecutionResult result = executer.withTasks("test").run();
-        assertThat(result.getOutput(), containsLine("START [tests] []"));
-        assertThat(result.getOutput(), containsLine("FINISH [tests] [] [FAILURE] [4]"));
+        assert containsLine(result.getOutput(), "START [tests] []");
+        assert containsLine(result.getOutput(), "FINISH [tests] [] [FAILURE] [4]");
 
-        assertThat(result.getOutput(), containsLine("START [test process 'Gradle Worker 1'] [Gradle Worker 1]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test process 'Gradle Worker 1'] [Gradle Worker 1] [FAILURE] [4]"));
+        assert containsLine(result.getOutput(), "START [test process 'Gradle Worker 1'] [Gradle Worker 1]");
+        assert containsLine(result.getOutput(), "FINISH [test process 'Gradle Worker 1'] [Gradle Worker 1] [FAILURE] [4]");
 
-        assertThat(result.getOutput(), containsLine("START [test class SomeOtherTest] [SomeOtherTest]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test class SomeOtherTest] [SomeOtherTest] [SUCCESS] [1]"));
-        assertThat(result.getOutput(), containsLine("START [test pass(SomeOtherTest)] [pass]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test pass(SomeOtherTest)] [pass] [SUCCESS] [1] [null]"));
+        assert containsLine(result.getOutput(), "START [test class SomeOtherTest] [SomeOtherTest]");
+        assert containsLine(result.getOutput(), "FINISH [test class SomeOtherTest] [SomeOtherTest] [SUCCESS] [1]");
+        assert containsLine(result.getOutput(), "START [test pass(SomeOtherTest)] [pass]");
+        assert containsLine(result.getOutput(), "FINISH [test pass(SomeOtherTest)] [pass] [SUCCESS] [1] [null]");
 
-        assertThat(result.getOutput(), containsLine("START [test class SomeTest] [SomeTest]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test class SomeTest] [SomeTest] [FAILURE] [3]"));
-        assertThat(result.getOutput(), containsLine("START [test fail(SomeTest)] [fail]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test fail(SomeTest)] [fail] [FAILURE] [1] [java.lang.AssertionError: message]"));
-        assertThat(result.getOutput(), containsLine("START [test knownError(SomeTest)] [knownError]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test knownError(SomeTest)] [knownError] [FAILURE] [1] [java.lang.RuntimeException: message]"));
-        assertThat(result.getOutput(), containsLine("START [test unknownError(SomeTest)] [unknownError]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test unknownError(SomeTest)] [unknownError] [FAILURE] [1] [AppException: null]"));
+        assert containsLine(result.getOutput(), "START [test class SomeTest] [SomeTest]");
+        assert containsLine(result.getOutput(), "FINISH [test class SomeTest] [SomeTest] [FAILURE] [3]");
+        assert containsLine(result.getOutput(), "START [test fail(SomeTest)] [fail]");
+        assert containsLine(result.getOutput(), "FINISH [test fail(SomeTest)] [fail] [FAILURE] [1] [java.lang.AssertionError: message]");
+        assert containsLine(result.getOutput(), "START [test knownError(SomeTest)] [knownError]");
+        assert containsLine(result.getOutput(), "FINISH [test knownError(SomeTest)] [knownError] [FAILURE] [1] [java.lang.RuntimeException: message]");
+        assert containsLine(result.getOutput(), "START [test unknownError(SomeTest)] [unknownError]");
+        assert containsLine(result.getOutput(), "FINISH [test unknownError(SomeTest)] [unknownError] [FAILURE] [1] [AppException: null]");
     }
 
     @Test
@@ -402,14 +398,14 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         '''
 
         ExecutionResult result = executer.withTasks("test").run();
-        assertThat(result.getOutput(), containsLine("START [test class SomeTest] [SomeTest]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test class SomeTest] [SomeTest]"));
-        assertThat(result.getOutput(), containsLine("START [test testPass(SomeTest)] [testPass]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test testPass(SomeTest)] [testPass] [null]"));
-        assertThat(result.getOutput(), containsLine("START [test testFail(SomeTest)] [testFail]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test testFail(SomeTest)] [testFail] [junit.framework.AssertionFailedError: message]"));
-        assertThat(result.getOutput(), containsLine("START [test testError(SomeTest)] [testError]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test testError(SomeTest)] [testError] [java.lang.RuntimeException: message]"));
+        assert containsLine(result.getOutput(), "START [test class SomeTest] [SomeTest]");
+        assert containsLine(result.getOutput(), "FINISH [test class SomeTest] [SomeTest]");
+        assert containsLine(result.getOutput(), "START [test testPass(SomeTest)] [testPass]");
+        assert containsLine(result.getOutput(), "FINISH [test testPass(SomeTest)] [testPass] [null]");
+        assert containsLine(result.getOutput(), "START [test testFail(SomeTest)] [testFail]");
+        assert containsLine(result.getOutput(), "FINISH [test testFail(SomeTest)] [testFail] [junit.framework.AssertionFailedError: message]");
+        assert containsLine(result.getOutput(), "START [test testError(SomeTest)] [testError]");
+        assert containsLine(result.getOutput(), "FINISH [test testError(SomeTest)] [testError] [java.lang.RuntimeException: message]");
     }
 
     @Test

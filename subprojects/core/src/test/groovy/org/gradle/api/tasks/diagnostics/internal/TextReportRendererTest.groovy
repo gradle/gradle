@@ -15,25 +15,22 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.gradle.api.Project;
-import org.gradle.logging.internal.StreamingStyledTextOutput;
-import org.gradle.logging.internal.TestStyledTextOutput;
-import org.gradle.util.TemporaryFolder;
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import java.io.File;
-import java.io.IOException;
-
-import static org.gradle.util.Matchers.containsLine;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import org.gradle.api.Project
+import org.gradle.logging.internal.StreamingStyledTextOutput
+import org.gradle.logging.internal.TestStyledTextOutput
+import org.gradle.util.TemporaryFolder
+import org.jmock.Expectations
+import org.jmock.integration.junit4.JMock
+import org.jmock.integration.junit4.JUnit4Mockery
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.gradle.util.Matchers.containsLine
+import static org.hamcrest.Matchers.instanceOf
+import static org.hamcrest.Matchers.nullValue
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
 
 @RunWith(JMock.class)
 public class TextReportRendererTest {
@@ -71,7 +68,7 @@ public class TextReportRendererTest {
         renderer.completeProject(project);
         renderer.complete();
 
-        assertThat(textOutput.toString(), containsLine("Root project"));
+        assert containsLine(textOutput.toString(), "Root project");
     }
 
     @Test
@@ -93,7 +90,7 @@ public class TextReportRendererTest {
         renderer.completeProject(project);
         renderer.complete();
 
-        assertThat(textOutput.toString(), containsLine("Project <path>"));
+        assert containsLine(textOutput.toString(), "Project <path>");
     }
 
     @Test
@@ -113,6 +110,6 @@ public class TextReportRendererTest {
         renderer.completeProject(project);
         renderer.complete();
 
-        assertThat(textOutput.toString(), containsLine("Root project - this is the root project"));
+        assert containsLine(textOutput.toString(), "Root project - this is the root project");
     }
 }

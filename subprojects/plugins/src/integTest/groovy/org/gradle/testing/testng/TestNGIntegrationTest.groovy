@@ -46,20 +46,20 @@ class TestNGIntegrationTest {
     void canListenForTestResults() {
         ExecutionResult result = executer.withTasks("test").run();
 
-        assertThat(result.getOutput(), containsLine("START [tests] []"));
-        assertThat(result.getOutput(), containsLine("FINISH [tests] []"));
-        assertThat(result.getOutput(), containsLine("START [test process 'Gradle Worker 1'] [Gradle Worker 1]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test process 'Gradle Worker 1'] [Gradle Worker 1]"));
-        assertThat(result.getOutput(), containsLine("START [test 'Gradle test'] [Gradle test]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test 'Gradle test'] [Gradle test]"));
-        assertThat(result.getOutput(), containsLine("START [test method pass(SomeTest)] [pass]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test method pass(SomeTest)] [pass] [null]"));
-        assertThat(result.getOutput(), containsLine("START [test method fail(SomeTest)] [fail]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test method fail(SomeTest)] [fail] [java.lang.AssertionError]"));
-        assertThat(result.getOutput(), containsLine("START [test method knownError(SomeTest)] [knownError]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test method knownError(SomeTest)] [knownError] [java.lang.RuntimeException: message]"));
-        assertThat(result.getOutput(), containsLine("START [test method unknownError(SomeTest)] [unknownError]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test method unknownError(SomeTest)] [unknownError] [AppException: null]"));
+        assert containsLine(result.getOutput(), "START [tests] []");
+        assert containsLine(result.getOutput(), "FINISH [tests] []");
+        assert containsLine(result.getOutput(), "START [test process 'Gradle Worker 1'] [Gradle Worker 1]");
+        assert containsLine(result.getOutput(), "FINISH [test process 'Gradle Worker 1'] [Gradle Worker 1]");
+        assert containsLine(result.getOutput(), "START [test 'Gradle test'] [Gradle test]");
+        assert containsLine(result.getOutput(), "FINISH [test 'Gradle test'] [Gradle test]");
+        assert containsLine(result.getOutput(), "START [test method pass(SomeTest)] [pass]");
+        assert containsLine(result.getOutput(), "FINISH [test method pass(SomeTest)] [pass] [null]");
+        assert containsLine(result.getOutput(), "START [test method fail(SomeTest)] [fail]");
+        assert containsLine(result.getOutput(), "FINISH [test method fail(SomeTest)] [fail] [java.lang.AssertionError]");
+        assert containsLine(result.getOutput(), "START [test method knownError(SomeTest)] [knownError]");
+        assert containsLine(result.getOutput(), "FINISH [test method knownError(SomeTest)] [knownError] [java.lang.RuntimeException: message]");
+        assert containsLine(result.getOutput(), "START [test method unknownError(SomeTest)] [unknownError]");
+        assert containsLine(result.getOutput(), "FINISH [test method unknownError(SomeTest)] [unknownError] [AppException: null]");
     }
 
     @Test

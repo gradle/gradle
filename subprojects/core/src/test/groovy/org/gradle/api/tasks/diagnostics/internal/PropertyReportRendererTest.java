@@ -19,7 +19,6 @@ import org.gradle.logging.internal.TestStyledTextOutput;
 import org.junit.Test;
 
 import static org.gradle.util.Matchers.containsLine;
-import static org.junit.Assert.assertThat;
 
 public class PropertyReportRendererTest {
     private final TestStyledTextOutput out = new TestStyledTextOutput();
@@ -31,6 +30,6 @@ public class PropertyReportRendererTest {
     public void writesProperty() {
         renderer.addProperty("prop", "value");
 
-        assertThat(out.toString(), containsLine("prop: value"));
+        assert containsLine(out.toString(), "prop: value");
     }
 }
