@@ -19,6 +19,7 @@ import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
+import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
@@ -43,6 +44,9 @@ abstract class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
         if (failure instanceof InternalUnsupportedBuildArgumentException) {
             handler.onFailure(new UnsupportedBuildArgumentException(connectionFailureMessage(failure)
                     + "\n" + failure.getMessage(), failure));
+        } else if (failure instanceof UnsupportedOperationConfigurationException) {
+            handler.onFailure(new UnsupportedOperationConfigurationException(connectionFailureMessage(failure)
+                    + "\n" + failure.getMessage(), failure.getCause()));
         } else if (failure instanceof GradleConnectionException) {
             handler.onFailure((GradleConnectionException) failure);
         } else if (failure instanceof BuildExceptionVersion1) {

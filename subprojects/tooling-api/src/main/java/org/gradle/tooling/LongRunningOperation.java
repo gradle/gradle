@@ -28,6 +28,10 @@ import java.io.OutputStream;
  * Allows providing standard output streams that will receive output if the gradle operation writes to standard streams.
  * <p>
  * Allows providing standard input that can be consumed by the gradle operation (useful for interactive builds).
+ * <p>
+ * Enables configuring the build run / model request with options like the java home or jvm arguments.
+ * Those settings might not be supported by the target Gradle version. Refer to javadoc for those methods
+ * to understand what kind of exception throw and when is it thrown.
  */
 public interface LongRunningOperation {
 
@@ -55,7 +59,7 @@ public interface LongRunningOperation {
      * Useful when the tooling api drives interactive builds.
      * <p>
      * If the target gradle version does not support it the long running operation will fail eagerly with
-     * {@link org.gradle.tooling.model.UnsupportedMethodException} when the operation is started.
+     * {@link org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException} when the operation is started.
      * <p>
      * If not configured or null passed the dummy input stream with zero bytes is used to avoid the build hanging problems.
      *
@@ -70,7 +74,7 @@ public interface LongRunningOperation {
      * to specify the java home directory to use for the long running operation.
      * <p>
      * If the target gradle version does not support it the long running operation will fail eagerly with
-     * {@link org.gradle.tooling.model.UnsupportedMethodException} when the operation is started.
+     * {@link org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException} when the operation is started.
      * <p>
      * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as java or gradle environment.
      * If you want to get hold of this information you can ask tooling API to build this model.
@@ -89,7 +93,7 @@ public interface LongRunningOperation {
      * to specify the java vm arguments to use for the long running operation.
      * <p>
      * If the target gradle version does not support it the long running operation will fail eagerly with
-     * {@link org.gradle.tooling.model.UnsupportedMethodException} when the operation is started.
+     * {@link org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException} when the operation is started.
      * <p>
      * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as java or gradle environment.
      * If you want to get hold of this information you can ask tooling API to build this model.

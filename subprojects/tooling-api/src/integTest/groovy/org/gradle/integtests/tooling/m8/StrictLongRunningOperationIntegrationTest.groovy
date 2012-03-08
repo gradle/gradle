@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.internal.Exceptions
@@ -29,7 +30,7 @@ import spock.lang.IgnoreIf
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-3')
-@MaxTargetGradleVersion('1.0-milestone-7')
+@MaxTargetGradleVersion('1.0-milestone-7') //the configuration was not supported for old versions
 class StrictLongRunningOperationIntegrationTest extends ToolingApiSpecification {
 
     def setup() {
@@ -88,13 +89,16 @@ class StrictLongRunningOperationIntegrationTest extends ToolingApiSpecification 
 
         then:
         assertExceptionInformative(e, "setStandardInput()")
-        e.printStackTrace()
     }
 
     void assertExceptionInformative(Exception actual, String expectedMessageSubstring) {
         assert actual instanceof GradleConnectionException
+        assert actual instanceof UnsupportedOperationConfigurationException
         assert !actual.message.contains(Exceptions.INCOMPATIBLE_VERSION_HINT) //no need for hint, the message is already good
+        assert actual.message.contains(expectedMessageSubstring)
+
+        //we don't really need that exception as a cause
+        //but one of the versions was released with it as a cause so to keep things compatible
         assert actual.cause instanceof UnsupportedMethodException
-        assert actual.cause.message.contains(expectedMessageSubstring)
     }
 }

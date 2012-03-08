@@ -22,4 +22,8 @@ public class UnsupportedVersionException extends GradleConnectionException {
     public UnsupportedVersionException(String message) {
         super(message);
     }
+
+    public UnsupportedVersionException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

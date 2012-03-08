@@ -99,9 +99,10 @@ public interface ModelBuilder<T extends Model> extends LongRunningOperation {
      *
      * @return The model.
      * @throws UnsupportedVersionException When the target Gradle version does not support the features required to build this model.
-     *  For example, when you have configured the long running operation with a settings
-     *  like: {@link #setStandardInput(java.io.InputStream)}, {@link #setJavaHome(java.io.File)}, {@link #setJvmArguments(String...)}
-     *  but those settings are not supported on the target Gradle.
+     * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
+     *          when you have configured the long running operation with a settings
+     *          like: {@link #setStandardInput(java.io.InputStream)}, {@link #setJavaHome(java.io.File)},
+     *          {@link #setJvmArguments(String...)} but those settings are not supported on the target Gradle.
      * @throws BuildException On some failure executing the Gradle build.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When the connection has been closed or is closing.
