@@ -23,6 +23,23 @@ import org.gradle.api.tasks.Optional
  * @author Hans Dockter
  */
 class DebugOptions extends AbstractOptions {
+    /**
+     * Tells which debugging information will be generated. The value is a comma-separated
+     * list of any of the following keywords (without spaces in between):
+     *
+     * <dl>
+     *     <dt>{@code source}
+     *     <dd>Source file debugging information
+     *     <dt>{@code lines}
+     *     <dd>Line number debugging information
+     *     <dt>{@code vars}
+     *     <dd>Local variable debugging information
+     * </dl>
+     *
+     * By default, only source and line debugging information will be generated.
+     *
+     * <p>This option only takes effect if {@link CompileOptions#debug} is set to {@code true}.
+     */
     @Input @Optional
     String debugLevel = null
 

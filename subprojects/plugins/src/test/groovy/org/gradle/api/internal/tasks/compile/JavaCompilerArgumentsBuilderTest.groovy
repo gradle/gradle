@@ -105,14 +105,16 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         then:
         builder.build() == ["-nowarn"]
     }
-
-    def "generates -g:none option"() {
+    
+    def "generates -g option"() {
+        spec.compileOptions.debugOptions.debugLevel = "source,vars"
+        
         when:
         spec.compileOptions.debug = true
-
+        
         then:
-        builder.build() == []
-
+        builder.build() == ["-g:source,vars"]
+        
         when:
         spec.compileOptions.debug = false
 

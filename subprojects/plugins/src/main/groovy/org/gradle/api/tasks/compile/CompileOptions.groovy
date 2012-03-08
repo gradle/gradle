@@ -66,13 +66,13 @@ class CompileOptions extends AbstractOptions {
 
     /**
      * Specifies whether debugging information should be included in the generated {@code .class} files. The default
-     * is {@code true}.
+     * is {@code true}. See {@link DebugOptions#debugLevel} for which debugging information will be generated.
      */
     @Input
     boolean debug = true
 
     /**
-     * The options for debugging information generation.
+     * Options for generating debugging information.
      */
     @Nested
     DebugOptions debugOptions = new DebugOptions()

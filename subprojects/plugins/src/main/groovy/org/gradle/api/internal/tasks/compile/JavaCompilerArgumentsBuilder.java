@@ -108,7 +108,11 @@ public class JavaCompilerArgumentsBuilder {
         if (!compileOptions.isWarnings()) {
             args.add("-nowarn");
         }
-        if (!compileOptions.isDebug()) {
+        if (compileOptions.isDebug()) {
+            if (compileOptions.getDebugOptions().getDebugLevel() != null) {
+                args.add("-g:" + compileOptions.getDebugOptions().getDebugLevel().trim());
+            }    
+        } else {
             args.add("-g:none");
         }
         if (compileOptions.getEncoding() != null) {
