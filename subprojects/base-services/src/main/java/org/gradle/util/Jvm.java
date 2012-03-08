@@ -16,18 +16,20 @@
 
 package org.gradle.util;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.jvm.JavaInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Jvm implements JavaInfo {
     
-    private final static Logger LOGGER = Logging.getLogger(Jvm.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
     
     private final OperatingSystem os;
     //supplied java location
@@ -63,7 +65,11 @@ public class Jvm implements JavaInfo {
         this.os = os;
         if (suppliedJavaBase == null) {
             //discover based on what's in the sys. property
-            this.javaBase = GFileUtils.canonicalise(new File(System.getProperty("java.home")));
+            try {
+                this.javaBase = new File(System.getProperty("java.home")).getCanonicalFile();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
             this.javaHome = findJavaHome(javaBase);
             this.userSupplied = false;
         } else {
@@ -115,8 +121,8 @@ public class Jvm implements JavaInfo {
 
         File pathExecutable = os.findInPath(command);
         if (pathExecutable != null) {
-            LOGGER.info("Unable to find the '{}' executable using home: {}. We found it on the PATH: {}.",
-                    command, getJavaHome(), pathExecutable);
+            LOGGER.info(String.format("Unable to find the '%s' executable using home: %s. We found it on the PATH: %s.",
+                    command, getJavaHome(), pathExecutable));
             return pathExecutable;
         }
 
@@ -313,5 +319,9 @@ public class Jvm implements JavaInfo {
         public boolean getSupportsAppleScript() {
             return true;
         }
+    }
+
+    private static String getJavaVersion() {
+        return System.getProperty("java.version");
     }
 }

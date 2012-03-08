@@ -16,12 +16,10 @@
 
 package org.gradle.util;
 
-import org.gradle.api.GradleException;
-
 /**
  * by Szczepan Faber, created at: 1/23/12
  */
-public class JavaHomeException extends GradleException {
+public class JavaHomeException extends RuntimeException {
     public JavaHomeException(String message) {
         super(message);
     }
