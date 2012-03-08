@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.internal.nativeplatform
 
 import spock.lang.Specification

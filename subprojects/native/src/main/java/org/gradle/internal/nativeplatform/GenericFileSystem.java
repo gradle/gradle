@@ -32,7 +32,7 @@ class GenericFileSystem implements FileSystem {
     final boolean caseSensitive;
     final boolean canCreateSymbolicLink;
 
-    FilePermissionHandler filePermissionHandler;
+    final FilePermissionHandler filePermissionHandler;
 
     public boolean isCaseSensitive() {
         return caseSensitive;
@@ -81,7 +81,7 @@ class GenericFileSystem implements FileSystem {
     }
 
     GenericFileSystem() {
-        this(FilePermissionHandlerFactory.getDefault());
+        this(FilePermissionHandlerFactory.createDefaultFilePermissionHandler());
     }
 
     GenericFileSystem(FilePermissionHandler handler) {

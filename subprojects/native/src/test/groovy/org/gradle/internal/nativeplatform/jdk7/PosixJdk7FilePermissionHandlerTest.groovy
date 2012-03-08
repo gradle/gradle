@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform;
+package org.gradle.internal.nativeplatform.jdk7
 
-import java.io.File;
-import java.io.IOException;
+import spock.lang.Specification
 
-public interface FilePermissionHandler {
-    public int getUnixMode(File f) throws IOException;
-    public void chmod(File f, int mode) throws IOException;
+
+class PosixJdk7FilePermissionHandlerTest extends Specification{
+    
+    def "convert oct to dec"(){
+        expect:
+            (0755 & 0400) == 0400
+            (0755 & 040) == 040
+    }
 }

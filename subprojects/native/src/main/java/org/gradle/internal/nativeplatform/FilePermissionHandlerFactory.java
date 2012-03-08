@@ -17,20 +17,27 @@
 package org.gradle.internal.nativeplatform;
 
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.util.Jvm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FilePermissionHandlerFactory {
 
-    public static FilePermissionHandler getDefault() {
-        return OperatingSystem.current().isWindows()
-                ? DefaultWindowsFilePermissionHandler.INSTANCE
-                : DefaultFilePermissionHandler.INSTANCE;
-    }
+    private static final Logger LOGGER = LoggerFactory.getLogger(FilePermissionHandlerFactory.class);
 
-    private static class DefaultFilePermissionHandler {
-        static final FilePermissionHandler INSTANCE = new PosixFilePermissionHandler();
-    }
-
-    private static final class DefaultWindowsFilePermissionHandler {
-        static final FilePermissionHandler INSTANCE = new WindowsFilePermissionHandler();
+    public static FilePermissionHandler createDefaultFilePermissionHandler() {
+        if (OperatingSystem.current().isWindows()) {
+            return new WindowsFilePermissionHandler();
+        } else if (Jvm.current().isJava7()) {
+            try {
+                String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.jdk7.PosixJdk7FilePermissionHandler";
+                FilePermissionHandler jdk7FilePermissionHandler =
+                        (FilePermissionHandler) FilePermissionHandler.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
+                return jdk7FilePermissionHandler;
+            } catch (Exception e) {
+                LOGGER.warn("Unable to load Jdk7FilePermissionHandler", e);
+            }
+        }
+        return new PosixFilePermissionHandler();
     }
 }
