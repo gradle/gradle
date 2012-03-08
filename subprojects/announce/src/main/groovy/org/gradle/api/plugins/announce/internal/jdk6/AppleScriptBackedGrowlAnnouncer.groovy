@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.announce.internal
+package org.gradle.api.plugins.announce.internal.jdk6
 
 import javax.script.ScriptEngine
 import javax.script.ScriptEngineManager
+import org.gradle.api.plugins.announce.internal.Growl
+import org.gradle.api.plugins.announce.internal.IconProvider
+import org.gradle.api.plugins.announce.internal.AnnouncerUnavailableException
 
 class AppleScriptBackedGrowlAnnouncer extends Growl {
     private final IconProvider iconProvider

@@ -62,7 +62,7 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
             case "growl":
                 if (Jvm.current().java6Compatible && Jvm.current().supportsAppleScript) {
                     try {
-                        return getClass().getClassLoader().loadClass("org.gradle.api.plugins.announce.internal.AppleScriptBackedGrowlAnnouncer").newInstance(iconProvider)
+                        return getClass().getClassLoader().loadClass("org.gradle.api.plugins.announce.internal.jdk6.AppleScriptBackedGrowlAnnouncer").newInstance(iconProvider)
                     } catch (ClassNotFoundException e) {
                         // Ignore and fall back to growl notify
                     }

@@ -22,7 +22,7 @@ dependencies {
 }
 
 if (!Jvm.current().java6Compatible) {
-    sourceSets.main.groovy.exclude '**/AppleScriptBackedGrowlAnnouncer.*'
+    sourceSets.main.groovy.exclude '**/jdk6/**'
 }
 
 useTestFixtures()
