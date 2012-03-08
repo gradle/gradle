@@ -32,6 +32,8 @@ class GenericFileSystem implements FileSystem {
     final boolean caseSensitive;
     final boolean canCreateSymbolicLink;
 
+    FilePermissionHandler filePermissionHandler;
+
     public boolean isCaseSensitive() {
         return caseSensitive;
     }
@@ -54,12 +56,12 @@ class GenericFileSystem implements FileSystem {
 
     public int getUnixMode(File f) throws IOException {
         assertFileExists(f);
-        return PosixUtil.current().stat(f.getAbsolutePath()).mode() & 0777;
+        return filePermissionHandler.getUnixMode(f);
     }
 
     public void chmod(File f, int mode) throws IOException {
         assertFileExists(f);
-        PosixUtil.current().chmod(f.getAbsolutePath(), mode & 0777);
+        filePermissionHandler.chmod(f, mode);
     }
 
     private int doCreateSymbolicLink(File link, File target) {
@@ -79,6 +81,10 @@ class GenericFileSystem implements FileSystem {
     }
 
     GenericFileSystem() {
+        this(FilePermissionHandlerFactory.getDefault());
+    }
+
+    GenericFileSystem(FilePermissionHandler handler) {
         String content = generateUniqueContent();
         File file = null;
         try {
@@ -86,6 +92,7 @@ class GenericFileSystem implements FileSystem {
             file = createFile(content);
             caseSensitive = probeCaseSensitive(file, content);
             canCreateSymbolicLink = probeCanCreateSymbolicLink(file, content);
+            filePermissionHandler = handler;
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
@@ -137,7 +144,7 @@ class GenericFileSystem implements FileSystem {
     private File generateUniqueTempFileName() throws IOException {
         return new File(System.getProperty("java.io.tmpdir"), "gradle_unique_file_name" + UUID.randomUUID().toString());
     }
-    
+
     private void checkJavaIoTmpDirExists() throws IOException {
         File dir = new File(System.getProperty("java.io.tmpdir"));
         if (!dir.exists()) {

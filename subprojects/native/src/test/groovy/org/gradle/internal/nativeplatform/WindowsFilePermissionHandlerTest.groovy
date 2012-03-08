@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.nativeplatform
 
-import com.google.common.io.Files;
 import spock.lang.Specification
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import com.google.common.io.Files
 
-@Requires(TestPrecondition.WINDOWS)
-class WindowsFileSystemTest extends Specification {
-    def fs = FileSystems.default
-
-    def "is case insensitive"() {
-        expect:
-        !fs.caseSensitive
-    }
-
-    def "cannot create symbolic link"() {
-        expect:
-        !fs.canCreateSymbolicLink()
-    }
+class WindowsFilePermissionHandlerTest extends Specification {
+    FilePermissionHandler handler = new WindowsFilePermissionHandler();
 
     def "default values are used to emulate unix permissions"() {
         setup:
@@ -41,8 +29,8 @@ class WindowsFileSystemTest extends Specification {
         Files.touch(file)
 
         expect:
-        fs.getUnixMode(file) == FileSystem.DEFAULT_FILE_MODE
-        fs.getUnixMode(dir) == FileSystem.DEFAULT_DIR_MODE
+        handler.getUnixMode(file) == FileSystem.DEFAULT_FILE_MODE
+        handler.getUnixMode(dir) == FileSystem.DEFAULT_DIR_MODE
 
         cleanup:
         assert file.delete()
@@ -54,9 +42,10 @@ class WindowsFileSystemTest extends Specification {
         def File f = Files.createTempDir();
 
         when:
-        fs.chmod(f, 0123)
+        handler.chmod(f, 0123)
 
         then:
-        fs.getUnixMode(f) == FileSystem.DEFAULT_DIR_MODE
+        handler.getUnixMode(f) == FileSystem.DEFAULT_DIR_MODE
     }
+
 }

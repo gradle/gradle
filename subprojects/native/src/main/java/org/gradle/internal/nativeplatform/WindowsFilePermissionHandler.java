@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.nativeplatform;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 
-class WindowsFileSystem extends GenericFileSystem {
-    public int getUnixMode(File f) throws FileNotFoundException {
-        assertFileExists(f);
-        return f.isDirectory() ? DEFAULT_DIR_MODE : DEFAULT_FILE_MODE;
+public class WindowsFilePermissionHandler implements FilePermissionHandler {
+    public int getUnixMode(File f) throws IOException {
+        return f.isDirectory() ? FileSystem.DEFAULT_DIR_MODE : FileSystem.DEFAULT_FILE_MODE;
     }
 
     public void chmod(File f, int mode) {
-        // not supported
     }
 }
