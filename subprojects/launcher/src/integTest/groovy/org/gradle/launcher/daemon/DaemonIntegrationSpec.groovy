@@ -43,6 +43,6 @@ class DaemonIntegrationSpec extends Specification {
 
     void buildSucceeds(String script) {
         distribution.file('build.gradle') << script
-        executer.withoutSettingJvmArgs().withArguments("--info").run()
+        executer.withArguments("--info", "-Dorg.gradle.jvmargs=").run()
     }
 }

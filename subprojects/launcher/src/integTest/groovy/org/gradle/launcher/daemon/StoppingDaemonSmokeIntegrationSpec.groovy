@@ -63,14 +63,14 @@ class StoppingDaemonSmokeIntegrationSpec extends DaemonIntegrationSpec {
     ExecutionResult stopDaemon(dirName) {
         def dist = new GradleDistribution()
         def dir = dist.file(dirName).createDir()
-        return new GradleDistributionExecuter(daemon, dist).withDaemonBaseDir(temp.testDir).inDirectory(dir).withoutSettingJvmArgs()
-                .withArguments("--stop", "--info").run()
+        return new GradleDistributionExecuter(daemon, dist).withDaemonBaseDir(temp.testDir).inDirectory(dir)
+                .withArguments("-Dorg.gradle.jvmargs=", "--stop", "--info").run()
     }
 
     ExecutionResult runBuild(idx) {
         def dist = new GradleDistribution()
         def dir = dist.file("dir$idx").createDir()
-        return new GradleDistributionExecuter(daemon, dist).withDaemonBaseDir(temp.testDir).inDirectory(dir).withoutSettingJvmArgs()
-                .withArguments("help", "--info").run()
+        return new GradleDistributionExecuter(daemon, dist).withDaemonBaseDir(temp.testDir).inDirectory(dir)
+                .withArguments("-Dorg.gradle.jvmargs=", "help", "--info").run()
     }
 }
