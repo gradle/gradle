@@ -221,7 +221,7 @@ eclipse {
         runEclipseTask """
 apply plugin: 'java'
 apply plugin: 'war'
-apply plugin: 'eclipse'
+apply plugin: 'eclipse-wtp'
 
 configurations {
   configOne
@@ -235,14 +235,18 @@ dependencies {
 
 eclipse {
   wtp {
-    plusConfigurations += configurations.configOne
-    minusConfigurations += configurations.configTwo
+    component {
+        plusConfigurations += configurations.configOne
+        minusConfigurations += configurations.configTwo
+    }
   }
 }
         """
 
         def component = getFile([:], '.settings/org.eclipse.wst.common.component').text
-        //then build assertions - at the moment the test blows up
+        assert component.contains('foo.txt')
+        assert component.contains('bar.txt')
+        assert !component.contains('baz.txt')
     }
 
     @Test
@@ -256,25 +260,25 @@ eclipse {
 project(':impl') {
   apply plugin: 'java'
   apply plugin: 'war'
-  apply plugin: 'eclipse'
+  apply plugin: 'eclipse-wtp'
 
   dependencies { compile project(':contrib') }
 }
 
 project(':contrib') {
   apply plugin: 'java'
-  apply plugin: 'eclipse'
+  apply plugin: 'eclipse-wtp'
 }
 """
         //when
         executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
 
         //then
-        getComponentFile(project: 'impl')
-        getFacetFile(project: 'impl')
+        assert getComponentFile(project: 'impl').exists()
+        assert getFacetFile(project: 'impl').exists()
 
-        getComponentFile(project: 'contrib')
-        getFacetFile(project: 'contrib')
+        assert getComponentFile(project: 'contrib').exists()
+        assert getFacetFile(project: 'contrib').exists()
     }
 
     protected def contains(String ... contents) {
