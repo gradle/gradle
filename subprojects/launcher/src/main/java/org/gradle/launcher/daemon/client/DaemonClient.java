@@ -100,38 +100,43 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
         Build build = new Build(action, parameters);
         int saneNumberOfAttempts = 100; //is it sane enough?
-        for(int i=1; i<saneNumberOfAttempts; i++) {
+        for (int i = 1; i < saneNumberOfAttempts; i++) {
             DaemonConnection daemonConnection = connector.connect(compatibilitySpec);
             Connection<Object> connection = daemonConnection.getConnection();
 
-            Object firstResult;
             try {
-                LOGGER.info("Connected to the daemon. Dispatching {} request.", build);
-                connection.dispatch(build);
-                firstResult = connection.receive();
-            } catch (Exception e) {
-                LOGGER.info("Exception when attempted to send and receive first result from the daemon. I will try a different daemon... The exception was:", e);
-                continue;
-            }
-
-            if (firstResult instanceof BuildStarted) {
-                DaemonDiagnostics diagnostics = ((BuildStarted) firstResult).getDiagnostics();
-                return (T) monitorBuild(build, diagnostics, connection).getValue();
-            } else if (firstResult instanceof DaemonBusy) {
-                LOGGER.info("The daemon we connected to was busy. Trying a different daemon...");
-            } else if (firstResult instanceof Failure) {
-                // Could potentially distinguish between CommandFailure and DaemonFailure here.
-                throw UncheckedException.throwAsUncheckedException(((Failure) firstResult).getValue());
-            } else if (firstResult == null) {
-                LOGGER.info("The first result from the daemon was empty. Most likely the daemon has died. Trying a different daemon...");
-            } else {
-                throw new IllegalStateException(String.format(
-                    "The first result from the Daemon: %s is a Result of a type we don't have a strategy to handle."
-                    + "Earlier, %s request was sent to the daemon.", firstResult, build));
+                return executeBuild(build, connection);
+            } catch (DaemonInitialConnectException e) {
+                LOGGER.info(e.getMessage() + " Trying a different daemon...", e.getCause());
             }
         }
         throw new NoUsableDaemonFoundException("Unable to find a usable idle daemon. I have connected to "
                 + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build + ".");
+    }
+
+    protected <T> T executeBuild(Build build, Connection<Object> connection) throws DaemonInitialConnectException {
+        Object firstResult;
+        try {
+            LOGGER.info("Connected to the daemon. Dispatching {} request.", build);
+            connection.dispatch(build);
+            firstResult = connection.receive();
+        } catch (Exception e) {
+            throw new DaemonInitialConnectException("Exception when attempted to send and receive first result from the daemon.", e);
+        }
+
+        if (firstResult instanceof BuildStarted) {
+            DaemonDiagnostics diagnostics = ((BuildStarted) firstResult).getDiagnostics();
+            return (T) monitorBuild(build, diagnostics, connection).getValue();
+        } else if (firstResult instanceof Failure) {
+            // Could potentially distinguish between CommandFailure and DaemonFailure here.
+            throw UncheckedException.throwAsUncheckedException(((Failure) firstResult).getValue());
+        } else if (firstResult instanceof DaemonBusy) {
+            throw new DaemonInitialConnectException("The daemon we connected to was busy.");
+        } else if (firstResult == null) {
+            throw new DaemonInitialConnectException("The first result from the daemon was empty. Most likely the process died immediately after connection.");
+        } else {
+            throw invalidResponse(firstResult, build);
+        }
     }
 
     protected Result monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection) {
@@ -154,7 +159,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 } else if (object instanceof Result) {
                     return (Result) object;
                 } else {
-                    throw new IllegalStateException(String.format("Daemon returned %s (type: %s) as for which there is no strategy to handle", object, object.getClass()));
+                    throw invalidResponse(object, build);
                 }
             }
         } finally {
@@ -184,5 +189,11 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         }
 
         throw new DaemonDisappearedException();
+    }
+
+    private IllegalStateException invalidResponse(Object response, Build command) {
+        return new IllegalStateException(String.format(
+                "Received invalid response from the daemon: '%s' is a result of a type we don't have a strategy to handle."
+                        + "Earlier, '%s' request was sent to the daemon.", response, command));
     }
 }

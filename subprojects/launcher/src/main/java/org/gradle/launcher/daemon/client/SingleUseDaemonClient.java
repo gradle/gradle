@@ -16,13 +16,12 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.protocol.*;
+import org.gradle.launcher.daemon.protocol.Build;
+import org.gradle.launcher.daemon.protocol.BuildAndStop;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
@@ -41,30 +40,12 @@ public class SingleUseDaemonClient extends DaemonClient {
     @Override
     public <T> T execute(GradleLauncherAction<T> action, BuildActionParameters parameters) {
         LOGGER.warn("Note: in order to honour the org.gradle.jvmargs and/or org.gradle.java.home values specified for this build, it is necessary to fork a new JVM.");
-        LOGGER.warn("In order to avoid the slowdown associated with this extra process, you might want to consider running Gradle with --daemon.");
+        LOGGER.warn("This forked JVM is effectively a single-use daemon process. In order to avoid the slowdown associated with this extra process, you might want to consider running Gradle with --daemon.");
         Build build = new BuildAndStop(action, parameters);
 
         DaemonConnection daemonConnection = connector.createConnection();
         Connection<Object> connection = daemonConnection.getConnection();
 
-        Object firstResult;
-        LOGGER.info("Connected to the remote build process. Dispatching {} request.", build);
-        connection.dispatch(build);
-        firstResult = connection.receive();
-
-        if (firstResult instanceof BuildStarted) {
-            return (T) monitorBuild(build, ((BuildStarted) firstResult).getDiagnostics(), connection).getValue();
-        } else if (firstResult instanceof Failure) {
-            // Could potentially distinguish between CommandFailure and DaemonFailure here.
-            throw UncheckedException.throwAsUncheckedException(((Failure) firstResult).getValue());
-        } else if (firstResult instanceof DaemonBusy) {
-            throw new GradleException("Single use daemon process responded as busy: this should never happen.");
-        } else if (firstResult == null) {
-            throw new GradleException("Could not connect to remote build process. The process probably died immediately after connection.");
-        } else {
-            throw new IllegalStateException(String.format(
-                "The first result from the remote build process: %s is a Result of a type we don't have a strategy to handle."
-                + "Earlier, %s request was sent to the process.", firstResult, build));
-        }
+        return executeBuild(build, connection);
     }
 }
