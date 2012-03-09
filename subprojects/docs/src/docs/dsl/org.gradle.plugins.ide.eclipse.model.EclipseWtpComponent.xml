@@ -31,8 +31,8 @@
             </tr>
             <tr>
                 <td>deployName</td>
-                <td><literal>project.name</literal></td>
-                <td><literal>project.name</literal></td>
+                <td><literal>eclipse.project.name</literal></td>
+                <td><literal>eclipse.project.name</literal></td>
             </tr>
             <tr>
                 <td>resources</td>
