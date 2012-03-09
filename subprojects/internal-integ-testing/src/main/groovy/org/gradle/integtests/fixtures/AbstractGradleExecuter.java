@@ -44,6 +44,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File settingsFile;
     private InputStream stdin;
     private String defaultCharacterEncoding;
+    private boolean useDefaultJvmArgs;
     //gradle opts make sense only for forking executer but having them here makes more sense
     protected final List<String> gradleOpts = new ArrayList<String>();
 
@@ -115,6 +116,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (defaultCharacterEncoding != null) {
             executer.withDefaultCharacterEncoding(defaultCharacterEncoding);
+        }
+        if (useDefaultJvmArgs) {
+            executer.withoutSettingJvmArgs();
         }
         executer.withGradleOpts(gradleOpts.toArray(new String[gradleOpts.size()]));
     }
@@ -248,7 +252,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withoutSettingJvmArgs() {
-        // Only matters for daemon executer
+        this.useDefaultJvmArgs = false;
         return this;
     }
 
