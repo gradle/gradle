@@ -12,7 +12,7 @@
             <tr>
                 <td>sourceDirs</td>
                 <td>source dirs from <literal>project.sourceSets.main.allSource</literal></td>
-                <td>(same)</td>
+                <td>The same unless <literal>java</literal> plugin not applied, then: <literal>[project.appDirName]</literal></td>
             </tr>
             <tr>
                 <td>rootConfigurations</td>
