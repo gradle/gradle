@@ -60,6 +60,12 @@ public interface GradleExecuter {
     GradleExecuter withArguments(List<String> args);
 
     /**
+     * Specifies if default jvmargs should be set on the forked process; default is <code>TRUE</code>.
+     * The daemon sets some sensible defaults, but certain tests require that this NOT happen.
+     */
+    GradleExecuter withoutSettingJvmArgs();
+
+    /**
      * Sets the environment variables to use when executing the build. Defaults to the environment of this process.
      */
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);

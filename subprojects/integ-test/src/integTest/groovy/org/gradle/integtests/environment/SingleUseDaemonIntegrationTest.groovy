@@ -26,8 +26,7 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         // Need forking executer
-        // '-ea' is always set on the forked process. So I've added it explicitly here. // TODO:DAZ Clean this up
-        executer.withForkingExecuter().withEnvironmentVars(["JAVA_OPTS": "-ea"])
+        executer.withForkingExecuter()
         distribution.requireIsolatedDaemons()
     }
 
@@ -115,7 +114,7 @@ assert System.getProperty('some-prop') == 'some-value'
     }
 
     private def runWithJvmArg(String jvmArg) {
-        executer.withEnvironmentVars(["JAVA_OPTS": "$jvmArg -ea"])
+        executer.withEnvironmentVars(["JAVA_OPTS": "$jvmArg"])
     }
 
     private def wasForked() {

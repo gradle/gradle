@@ -29,6 +29,7 @@ public class
     private final GradleDistribution distribution;
     private final File daemonBaseDir;
     private final boolean allowExtraLogging;
+    private boolean useDefaultJvmArgs = true;
 
     public DaemonGradleExecuter(GradleDistribution distribution, File daemonBaseDir, boolean allowExtraLogging) {
         super(distribution.getGradleHomeDir());
@@ -45,14 +46,11 @@ public class
         args.add("--daemon");
 
         args.addAll(originalArgs);
-
         String daemonRegistryBase = getDaemonRegistryBase();
         if (daemonRegistryBase != null) {
             args.add("-Dorg.gradle.daemon.registry.base=" + daemonRegistryBase);
-            configureJvmArgs(args, daemonRegistryBase);
-        } else {
-            configureJvmArgs(args, distribution.getUserHomeDir().getAbsolutePath());
         }
+        configureDefaultJvmArgs(args);
 
         if (!args.toString().contains("-Dorg.gradle.daemon.idletimeout=")) {
             //isolated daemons/daemon with custom base dir cannot be connected again
@@ -78,12 +76,9 @@ public class
         }
     }
 
-    private void configureJvmArgs(List<String> args, String registryBase) {
-        // TODO - clean this up. It's a workaround to provide some way for the client of this executer to
-        // specify that no jvm args should be provided
-        if(!args.remove("-Dorg.gradle.jvmargs=")){
-            args.add(0, "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m"
-                    + " -XX:+HeapDumpOnOutOfMemoryError");
+    private void configureDefaultJvmArgs(List<String> args) {
+        if (useDefaultJvmArgs) {
+            args.add(0, "-Dorg.gradle.jvmargs=-ea -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError");
         }
     }
 
@@ -98,5 +93,10 @@ public class
         }
 
         return null;
+    }
+
+    public GradleExecuter withoutSettingJvmArgs() {
+        this.useDefaultJvmArgs = false;
+        return this;
     }
 }

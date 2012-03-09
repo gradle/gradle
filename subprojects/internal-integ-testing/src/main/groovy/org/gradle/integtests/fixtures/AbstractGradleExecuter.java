@@ -247,6 +247,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return environmentVars;
     }
 
+    public GradleExecuter withoutSettingJvmArgs() {
+        // Only matters for daemon executer
+        return this;
+    }
+
     public GradleExecuter withTasks(String... names) {
         return withTasks(Arrays.asList(names));
     }

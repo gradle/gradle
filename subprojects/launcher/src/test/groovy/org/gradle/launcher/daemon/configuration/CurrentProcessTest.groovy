@@ -48,13 +48,28 @@ public class CurrentProcessTest extends Specification {
 
         then:
         currentProcess.configureForBuild(buildParameters([]))
-        currentProcess.configureForBuild(buildParameters(['-Dfoo=bar']))
+        // We don't currently have any 'mutable' jvm args (although -ea is in theory mutable)
 
         and:
         !currentProcess.configureForBuild(buildParameters(["-Xms10m"]))
         !currentProcess.configureForBuild(buildParameters(["-XX:SomethingElse"]))
         !currentProcess.configureForBuild(buildParameters(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"]))
+    }
+
+    def "can only run build when no immutable system properties"() {
+        when:
+        currentJvmOptions.setAllJvmArgs(["-Dfoo=bar", "-Dbaz"])
+        CurrentProcess currentProcess = new CurrentProcess(currentJavaHome, currentJvmOptions)
+
+        then:
+        currentProcess.configureForBuild(buildParameters([]))
+        currentProcess.configureForBuild(buildParameters(['-Dfoo=bar']))
+        currentProcess.configureForBuild(buildParameters(['-Dfile.separator=:']))
+        currentProcess.configureForBuild(buildParameters(['-Dfile.separator=:', '-Dfoo=bar', '-Dbaz']))
+
+        and:
         !currentProcess.configureForBuild(buildParameters(['-Dfile.encoding=UTF8']))
+        !currentProcess.configureForBuild(buildParameters(['-Dfile.encoding=UTF8', '-Dfoo=bar', '-Dbaz']))
     }
 
     def "sets all mutable system properties before running build"() {
