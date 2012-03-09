@@ -105,7 +105,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
             Connection<Object> connection = daemonConnection.getConnection();
 
             try {
-                return executeBuild(build, connection);
+                return (T) executeBuild(build, connection);
             } catch (DaemonInitialConnectException e) {
                 LOGGER.info(e.getMessage() + " Trying a different daemon...", e.getCause());
             }
@@ -114,7 +114,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
                 + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build + ".");
     }
 
-    protected <T> T executeBuild(Build build, Connection<Object> connection) throws DaemonInitialConnectException {
+    protected Object executeBuild(Build build, Connection<Object> connection) throws DaemonInitialConnectException {
         Object firstResult;
         try {
             LOGGER.info("Connected to the daemon. Dispatching {} request.", build);
@@ -126,7 +126,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
 
         if (firstResult instanceof BuildStarted) {
             DaemonDiagnostics diagnostics = ((BuildStarted) firstResult).getDiagnostics();
-            return (T) monitorBuild(build, diagnostics, connection).getValue();
+            return monitorBuild(build, diagnostics, connection).getValue();
         } else if (firstResult instanceof Failure) {
             // Could potentially distinguish between CommandFailure and DaemonFailure here.
             throw UncheckedException.throwAsUncheckedException(((Failure) firstResult).getValue());
@@ -139,7 +139,7 @@ public class DaemonClient implements GradleLauncherActionExecuter<BuildActionPar
         }
     }
 
-    protected Result monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection) {
+    private Result monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection) {
         DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, build.getClientMetaData(), connection);
         try {
             inputForwarder.start();

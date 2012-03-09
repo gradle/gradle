@@ -46,6 +46,6 @@ public class SingleUseDaemonClient extends DaemonClient {
         DaemonConnection daemonConnection = connector.createConnection();
         Connection<Object> connection = daemonConnection.getConnection();
 
-        return executeBuild(build, connection);
+        return (T) executeBuild(build, connection);
     }
 }
