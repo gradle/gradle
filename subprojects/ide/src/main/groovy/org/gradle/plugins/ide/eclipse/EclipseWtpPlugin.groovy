@@ -91,7 +91,7 @@ class EclipseWtpPlugin extends IdePlugin {
                 //model properties:
                 eclipseWtpModel.component = component
 
-                component.deployName = project.name
+                component.conventionMapping.deployName = { project.eclipse.project.name }
 
                 if (WarPlugin.class.isAssignableFrom(type)) {
                     component.libConfigurations = [project.configurations.runtime]
@@ -126,7 +126,7 @@ class EclipseWtpPlugin extends IdePlugin {
                         //model properties:
                         eclipseWtpPlugin.eclipseWtpModel.component = component
 
-                        component.deployName = otherProject.name
+                        component.conventionMapping.deployName = { otherProject.eclipse.project.name }
                         component.conventionMapping.resources = {
                             getMainSourceDirs(otherProject).collect { new WbResource("/", otherProject.relativePath(it)) }
                         }

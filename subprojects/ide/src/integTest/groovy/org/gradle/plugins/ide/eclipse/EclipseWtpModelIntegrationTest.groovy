@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 
 /**
  * @author Szczepan Faber, created at: 4/19/11
@@ -279,6 +280,74 @@ project(':contrib') {
 
         assert getComponentFile(project: 'contrib').exists()
         assert getFacetFile(project: 'contrib').exists()
+    }
+
+    @Test
+    @Issue("GRADLE-1881")
+    void "uses eclipse project name for wtp module dependencies"() {
+        //given
+        def settings = file('settings.gradle')
+        settings << "include 'impl', 'contrib'"
+
+        def build = file('build.gradle')
+        build << """
+project(':impl') {
+  apply plugin: 'java'
+  apply plugin: 'war'
+  apply plugin: 'eclipse-wtp'
+
+  dependencies { compile project(':contrib') }
+
+  eclipse.project.name = 'cool-impl'
+}
+
+project(':contrib') {
+  apply plugin: 'java'
+  apply plugin: 'eclipse-wtp'
+  //should not have war nor ear applied
+
+  eclipse.project.name = 'cool-contrib'
+}
+"""
+        //when
+        executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
+
+        //then
+        //the deploy name is correct:
+        assert getComponentFile(project: 'impl').text.contains('deploy-name="cool-impl"')
+        //the dependent-module name is correct:
+        assert getComponentFile(project: 'impl').text.contains('handle="module:/resource/cool-contrib/cool-contrib"')
+        //the submodule name is correct:
+        assert getComponentFile(project: 'contrib').text.contains('deploy-name="cool-contrib"')
+    }
+
+    @Test
+    @Issue("GRADLE-1881")
+    void "does not explode if dependent project does not have eclipse plugin"() {
+        //given
+        def settings = file('settings.gradle')
+        settings << "include 'impl', 'contrib'"
+
+        def build = file('build.gradle')
+        build << """
+project(':impl') {
+  apply plugin: 'java'
+  apply plugin: 'war'
+  apply plugin: 'eclipse-wtp'
+
+  dependencies { compile project(':contrib') }
+
+  eclipse.project.name = 'cool-impl'
+}
+
+project(':contrib') {
+  apply plugin: 'java'
+}
+"""
+        //when
+        executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
+
+        //then no exception thrown
     }
 
     protected def contains(String ... contents) {

@@ -15,14 +15,15 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.SelfResolvingDependency
+import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.plugins.ide.eclipse.model.WtpComponent
-import org.gradle.api.artifacts.Configuration
 
 /**
  * @author Hans Dockter
@@ -65,7 +66,8 @@ class WtpComponentFactory {
         }
 
         allProjects.collect { project ->
-            new WbDependentModule(deployPath, "module:/resource/" + project.name + "/" + project.name)
+            def moduleName = project.plugins.hasPlugin(EclipsePlugin) ? project.eclipse.project.name : project.name
+            new WbDependentModule(deployPath, "module:/resource/" + moduleName + "/" + moduleName)
         }
     }
 
