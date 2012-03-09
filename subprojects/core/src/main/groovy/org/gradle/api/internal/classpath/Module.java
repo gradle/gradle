@@ -24,7 +24,7 @@ import java.util.Set;
  */
 public interface Module {
     /**
-     * Returns the classpath for the module implementation. This the classpath of the module itself.
+     * Returns the classpath for the module implementation. This is the classpath of the module itself.
      */
     ClassPath getImplementationClasspath();
 
