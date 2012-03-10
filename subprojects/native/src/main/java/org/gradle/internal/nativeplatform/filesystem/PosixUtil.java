@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform;
+package org.gradle.internal.nativeplatform.filesystem;
 
 import org.jruby.ext.posix.POSIX;
 import org.jruby.ext.posix.POSIXFactory;

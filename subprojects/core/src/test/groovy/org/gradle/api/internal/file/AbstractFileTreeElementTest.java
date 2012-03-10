@@ -16,8 +16,8 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.RelativePath;
-import org.gradle.internal.nativeplatform.FileSystems;
-import org.gradle.internal.nativeplatform.FileSystem;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;

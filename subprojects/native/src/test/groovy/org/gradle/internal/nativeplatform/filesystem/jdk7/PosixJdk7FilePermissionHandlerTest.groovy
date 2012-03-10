@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.nativeplatform
+
+package org.gradle.internal.nativeplatform.filesystem.jdk7
 
 import spock.lang.Specification
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.MAC_OS_X)
-class MacOsFileSystemTest extends Specification {
-    def fs = FileSystems.default
 
-    def "is not case sensitive"() {
+class PosixJdk7FilePermissionHandlerTest extends Specification{
+    
+    def "convert oct to dec"(){
         expect:
-        !fs.caseSensitive
-    }
-
-    def "can create symbolic link"() {
-        expect:
-        fs.canCreateSymbolicLink()
+            (0755 & 0400) == 0400
+            (0755 & 040) == 040
     }
 }

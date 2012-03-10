@@ -15,12 +15,12 @@
  */
 package org.gradle.internal.nativeplatform.services
 
-import org.gradle.internal.nativeplatform.FileSystem
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.internal.nativeplatform.TerminalDetector
+import org.gradle.internal.nativeplatform.filesystem.FileSystem
+import org.gradle.internal.os.OperatingSystem
 import org.jruby.ext.posix.POSIX
 import spock.lang.Specification
-import org.gradle.internal.nativeplatform.TerminalDetector
 
 class NativeServicesTest extends Specification {
     final NativeServices services = new NativeServices()

@@ -15,7 +15,9 @@
  */
 package org.gradle.internal.nativeplatform.jna;
 
-import org.gradle.internal.nativeplatform.*;
+import org.gradle.internal.nativeplatform.NativeIntegrationException;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.ReflectiveEnvironment;
 
 import java.io.File;
 import java.util.LinkedList;

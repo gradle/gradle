@@ -19,7 +19,7 @@ package org.gradle.integtests.environment
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.internal.nativeplatform.FileSystems
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Jvm
 import org.gradle.util.TextUtil

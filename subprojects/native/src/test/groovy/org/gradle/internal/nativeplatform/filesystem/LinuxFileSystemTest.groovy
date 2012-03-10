@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.nativeplatform.jna;
+package org.gradle.internal.nativeplatform.filesystem
 
-import com.sun.jna.Library;
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Specification
 
-public interface LibC extends Library {
-    //CHECKSTYLE:OFF
-    public int setenv(String name, String value, int overwrite);
-    public int unsetenv(String name);
-    public String getcwd(byte[] out, int size);
-    public int chdir(String dirAbsolutePath);
-    public int errno();
-    public int getpid();
-    public int isatty(int fdes);
-    public int chmod(String filename, int mode);
-    //CHECKSTYLE:ON
+@Requires(TestPrecondition.LINUX)
+class LinuxFileSystemTest extends Specification {
+    def fs = FileSystems.default
+
+    def "is case sensitive"() {
+        expect:
+        fs.caseSensitive
+    }
+
+    def "can create symbolic link"() {
+        expect:
+        fs.canCreateSymbolicLink()
+    }
 }

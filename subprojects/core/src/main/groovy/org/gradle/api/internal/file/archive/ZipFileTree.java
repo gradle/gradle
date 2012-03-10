@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
-import org.gradle.internal.nativeplatform.FileSystem;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.hash.HashUtil;
 

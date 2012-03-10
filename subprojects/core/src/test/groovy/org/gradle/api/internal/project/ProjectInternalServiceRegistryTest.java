@@ -40,7 +40,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeplatform.FileSystem;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.JUnit4GroovyMockery;

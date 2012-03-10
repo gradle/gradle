@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform;
+package org.gradle.internal.nativeplatform.filesystem;
 
 import java.io.File;
 import java.io.IOException;

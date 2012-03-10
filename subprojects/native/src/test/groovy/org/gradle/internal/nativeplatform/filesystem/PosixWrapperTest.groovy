@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform
+package org.gradle.internal.nativeplatform.filesystem
 
 import spock.lang.Specification
-import org.jruby.ext.posix.JavaPOSIX
-import org.jruby.ext.posix.WindowsPOSIX
-
-import org.jruby.ext.posix.SolarisPOSIX
-import org.jruby.ext.posix.BaseNativePOSIX
-import org.jruby.ext.posix.POSIX
-import org.jruby.ext.posix.FileStat
+import org.jruby.ext.posix.*
 
 class PosixWrapperTest extends Specification {
 

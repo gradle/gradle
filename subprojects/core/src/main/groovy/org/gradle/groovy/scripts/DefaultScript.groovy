@@ -32,7 +32,7 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.internal.nativeplatform.FileSystems
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.process.ExecResult
 import org.gradle.util.ConfigureUtil

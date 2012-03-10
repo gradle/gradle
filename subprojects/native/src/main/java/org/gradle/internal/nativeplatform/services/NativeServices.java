@@ -17,6 +17,10 @@ package org.gradle.internal.nativeplatform.services;
 
 import com.sun.jna.Native;
 import org.gradle.internal.nativeplatform.*;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
+import org.gradle.internal.nativeplatform.filesystem.PosixUtil;
 import org.gradle.internal.nativeplatform.jna.*;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;

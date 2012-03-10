@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform
+package org.gradle.internal.nativeplatform.filesystem
 
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -35,6 +35,6 @@ class FilePermissionHandlerFactoryTest extends Specification{
         when:
         def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
         then:
-        handler.getClass().name == "org.gradle.internal.nativeplatform.jdk7.PosixJdk7FilePermissionHandler"
+        handler.getClass().name == "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler"
     }
 }

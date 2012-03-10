@@ -38,7 +38,7 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Specification
-import org.gradle.internal.nativeplatform.FileSystems
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
 
 public class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock()

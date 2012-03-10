@@ -16,7 +16,10 @@
 
 package org.gradle.internal.nativeplatform.jna;
 
-import com.sun.jna.*;
+import com.sun.jna.Library;
+import com.sun.jna.Native;
+import com.sun.jna.Pointer;
+import com.sun.jna.PointerType;
 import com.sun.jna.win32.W32APIOptions;
 
 /**

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform.jdk7;
+package org.gradle.internal.nativeplatform.filesystem.jdk7;
 
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.EnumSet;

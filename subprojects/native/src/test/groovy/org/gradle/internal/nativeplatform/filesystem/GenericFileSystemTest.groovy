@@ -16,12 +16,12 @@
 
 
 
-package org.gradle.internal.nativeplatform
+package org.gradle.internal.nativeplatform.filesystem
 
-import spock.lang.Specification
 import com.google.common.io.Files
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Specification
 
 class GenericFileSystemTest extends Specification {
 

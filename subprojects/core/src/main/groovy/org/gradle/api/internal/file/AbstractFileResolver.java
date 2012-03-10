@@ -23,7 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.resources.ReadableResource;
-import org.gradle.internal.nativeplatform.FileSystem;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.GUtil;
 

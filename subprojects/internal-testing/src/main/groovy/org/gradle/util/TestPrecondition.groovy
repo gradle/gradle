@@ -16,7 +16,7 @@
 package org.gradle.util
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.nativeplatform.FileSystems
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
 
 enum TestPrecondition {
     SWING({

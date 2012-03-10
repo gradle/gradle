@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform.jdk7;
-
-import org.gradle.internal.nativeplatform.FilePermissionHandler;
-import org.gradle.internal.nativeplatform.NativeIntegrationException;
+package org.gradle.internal.nativeplatform.filesystem.jdk7;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,10 +22,14 @@ import java.nio.file.Files;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 
-import static org.gradle.internal.nativeplatform.jdk7.PosixFilePermissionConverter.convertToInt;
-import static org.gradle.internal.nativeplatform.jdk7.PosixFilePermissionConverter.convertToPermissionsSet;
 
-public class PosixJdk7FilePermissionHandler implements FilePermissionHandler{
+import org.gradle.internal.nativeplatform.NativeIntegrationException;
+import org.gradle.internal.nativeplatform.filesystem.FilePermissionHandler;
+
+import static org.gradle.internal.nativeplatform.filesystem.jdk7.PosixFilePermissionConverter.convertToInt;
+import static org.gradle.internal.nativeplatform.filesystem.jdk7.PosixFilePermissionConverter.convertToPermissionsSet;
+
+public class PosixJdk7FilePermissionHandler implements FilePermissionHandler {
 
     public int getUnixMode(File file) {
         try {

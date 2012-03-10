@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.nativeplatform
+package org.gradle.internal.nativeplatform.filesystem
 
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TemporaryFolder
-
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform;
+package org.gradle.internal.nativeplatform.filesystem;
 
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.Jvm;
@@ -30,7 +30,7 @@ public class FilePermissionHandlerFactory {
             return new WindowsFilePermissionHandler();
         } else if (Jvm.current().isJava7()) {
             try {
-                String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.jdk7.PosixJdk7FilePermissionHandler";
+                String jdkFilePermissionclass = "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler";
                 FilePermissionHandler jdk7FilePermissionHandler =
                         (FilePermissionHandler) FilePermissionHandler.class.getClassLoader().loadClass(jdkFilePermissionclass).newInstance();
                 return jdk7FilePermissionHandler;
@@ -38,6 +38,11 @@ public class FilePermissionHandlerFactory {
                 LOGGER.warn("Unable to load Jdk7FilePermissionHandler", e);
             }
         }
-        return new PosixFilePermissionHandler();
+        return createNativePermissionHandler();
+    }
+
+    private static FilePermissionHandler createNativePermissionHandler() {
+        PosixFilePermissionHandler fallbackFilePermissionHandler = new PosixFilePermissionHandler(PosixUtil.current());
+        return new NativeFilePermissionHandler(fallbackFilePermissionHandler);
     }
 }

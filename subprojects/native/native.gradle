@@ -25,8 +25,8 @@ if (!Jvm.current().isJava7()) {
     sourceSets.test.groovy.exclude '**/jdk7/**'
     idea{
         module{
-            excludeDirs += file('src/main/java/org/gradle/internal/nativeplatform/jdk7')
-            excludeDirs += file('src/test/groovy/org/gradle/internal/nativeplatform/jdk7')
+            excludeDirs += file('src/main/java/org/gradle/internal/nativeplatform/filesystem/jdk7')
+            excludeDirs += file('src/test/groovy/org/gradle/internal/nativeplatform/filesystem/jdk7')
         }
     }
 }

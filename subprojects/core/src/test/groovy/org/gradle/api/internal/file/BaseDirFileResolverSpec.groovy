@@ -18,7 +18,7 @@ package org.gradle.api.internal.file
 import org.gradle.util.Requires
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
-import org.gradle.internal.nativeplatform.FileSystems
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
 
 import org.junit.Rule
 import spock.lang.Specification

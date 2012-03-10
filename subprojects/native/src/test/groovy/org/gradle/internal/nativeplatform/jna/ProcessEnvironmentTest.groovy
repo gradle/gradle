@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.nativeplatform.jna
 
-import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TemporaryFolder

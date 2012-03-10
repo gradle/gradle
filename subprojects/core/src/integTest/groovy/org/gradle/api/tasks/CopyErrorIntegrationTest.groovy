@@ -24,7 +24,7 @@ import org.gradle.util.PreconditionVerifier
 import org.junit.Assert
 import org.junit.Test
 import org.junit.Rule
-import org.gradle.internal.nativeplatform.FileSystems
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
 
 class CopyErrorIntegrationTest extends AbstractIntegrationTest {
     @Rule public PreconditionVerifier verifier = new PreconditionVerifier()

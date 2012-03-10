@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.internal.nativeplatform.FileSystems
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.internal.os.OperatingSystem
 import org.junit.Rule
 import org.junit.Test

@@ -14,38 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform
+package org.gradle.internal.nativeplatform.filesystem
 
-import spock.lang.Specification
 import com.google.common.io.Files
 
-class WindowsFilePermissionHandlerTest extends Specification {
-    FilePermissionHandler handler = new WindowsFilePermissionHandler();
+import spock.lang.Specification
 
-    def "default values are used to emulate unix permissions"() {
+class NativeFilePermissionHandlerTest extends Specification {
+    def "changing files permissions"(){
         setup:
         def File dir = Files.createTempDir();
         def File file = new File(dir, "f")
         Files.touch(file)
 
-        expect:
-        handler.getUnixMode(file) == FileSystem.DEFAULT_FILE_MODE
-        handler.getUnixMode(dir) == FileSystem.DEFAULT_DIR_MODE
-
-        cleanup:
-        assert file.delete()
-        assert dir.delete()
-    }
-
-    def "unix permissions cannot be changed"() {
-        setup:
-        def File f = Files.createTempDir();
-
+        NativeFilePermissionHandler handler = new NativeFilePermissionHandler(null)
         when:
-        handler.chmod(f, 0123)
-
+        handler.chmod(file, mode);
         then:
-        handler.getUnixMode(f) == FileSystem.DEFAULT_DIR_MODE
+        mode == (PosixUtil.current().stat(file.getAbsolutePath()).mode() & 0777);
+        where:
+        mode << [0722, 0644, 0744, 0755]
     }
-
 }

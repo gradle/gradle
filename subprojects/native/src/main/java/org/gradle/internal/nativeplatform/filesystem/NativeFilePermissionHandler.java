@@ -14,17 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform;
+package org.gradle.internal.nativeplatform.filesystem;
+
+import com.sun.jna.Native;
+import org.gradle.internal.nativeplatform.jna.LibC;
 
 import java.io.File;
 import java.io.IOException;
 
-public class PosixFilePermissionHandler implements FilePermissionHandler {
-    public int getUnixMode(File f) throws IOException {
-        return PosixUtil.current().stat(f.getAbsolutePath()).mode() & 0777;
+public class NativeFilePermissionHandler implements FilePermissionHandler {
+    private final LibC libc;
+    private FilePermissionHandler delegateHandler;
+
+    public NativeFilePermissionHandler(FilePermissionHandler filePermissionHandler) {
+        this.delegateHandler = filePermissionHandler;
+        libc = (LibC) Native.loadLibrary("c", LibC.class);
     }
 
-    public void chmod(File f, int mode) {
-        PosixUtil.current().chmod(f.getAbsolutePath(), mode & 0777);
+    public int getUnixMode(File f) throws IOException {
+        return delegateHandler.getUnixMode(f);
+    }
+
+    public void chmod(File f, int mode) throws IOException {
+        libc.chmod(f.getAbsolutePath(), mode);
     }
 }

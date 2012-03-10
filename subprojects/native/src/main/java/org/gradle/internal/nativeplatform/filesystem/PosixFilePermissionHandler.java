@@ -14,16 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeplatform.jdk7
+package org.gradle.internal.nativeplatform.filesystem;
 
-import spock.lang.Specification
+import org.jruby.ext.posix.POSIX;
 
+import java.io.File;
+import java.io.IOException;
 
-class PosixJdk7FilePermissionHandlerTest extends Specification{
-    
-    def "convert oct to dec"(){
-        expect:
-            (0755 & 0400) == 0400
-            (0755 & 040) == 040
+public class PosixFilePermissionHandler implements FilePermissionHandler {
+    private POSIX posix;
+
+    public PosixFilePermissionHandler(POSIX posix) {
+        this.posix = posix;
+    }
+
+    public int getUnixMode(File f) throws IOException {
+        return posix.stat(f.getAbsolutePath()).mode() & 0777;
+    }
+
+    public void chmod(File f, int mode) throws IOException {
+        posix.chmod(f.getAbsolutePath(), mode & 0777);
     }
 }

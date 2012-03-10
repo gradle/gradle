@@ -17,7 +17,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.RelativePath;
-import org.gradle.internal.nativeplatform.FileSystems;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

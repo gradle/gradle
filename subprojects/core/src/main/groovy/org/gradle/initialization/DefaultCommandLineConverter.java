@@ -23,7 +23,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cli.*;
-import org.gradle.internal.nativeplatform.FileSystems;
+import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 

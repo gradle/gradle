@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.nativeplatform
+package org.gradle.internal.nativeplatform.filesystem
 
-import spock.lang.Specification
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Specification
 
-@Requires(TestPrecondition.LINUX)
-class LinuxFileSystemTest extends Specification {
+@Requires(TestPrecondition.MAC_OS_X)
+class MacOsFileSystemTest extends Specification {
     def fs = FileSystems.default
 
-    def "is case sensitive"() {
+    def "is not case sensitive"() {
         expect:
-        fs.caseSensitive
+        !fs.caseSensitive
     }
 
     def "can create symbolic link"() {

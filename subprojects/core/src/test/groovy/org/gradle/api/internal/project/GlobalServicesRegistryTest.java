@@ -30,6 +30,7 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.internal.nativeplatform.*;
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
