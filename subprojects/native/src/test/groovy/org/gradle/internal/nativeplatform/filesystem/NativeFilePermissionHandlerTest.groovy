@@ -17,9 +17,11 @@
 package org.gradle.internal.nativeplatform.filesystem
 
 import com.google.common.io.Files
-
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
+@Requires(TestPrecondition.NOT_WINDOWS)
 class NativeFilePermissionHandlerTest extends Specification {
     def "changing files permissions"(){
         setup:
