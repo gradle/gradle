@@ -265,7 +265,6 @@ task configureGroovyDoc {
     }
 }
 
-//TODO SF - generates for java as well, rename to codedoc?
 task groovydoc(type: Groovydoc, dependsOn: configureGroovyDoc) {
     group = 'documentation'
     source groovyProjects().collect {project -> project.sourceSets.main.groovy + project.sourceSets.main.java }
