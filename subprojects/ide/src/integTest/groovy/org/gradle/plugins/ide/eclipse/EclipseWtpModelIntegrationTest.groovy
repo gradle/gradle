@@ -355,8 +355,6 @@ project(':contrib') {
     @Issue("GRADLE-2030")
     void "component for war plugin does not contain non-existing source and resource dirs"() {
         //TODO SF we need similar for ear
-        //TODO SF this needs to be tested differently, e.g. we need to make sure the folders are not created even if we don't run any tasks
-
         //given
         file('xxxSource').createDir()
         file('xxxResource').createDir()

@@ -162,20 +162,17 @@ class EclipseWtpComponent {
      */
     String deployName
 
-    List<WbResource> resources = []
-
     /**
      * {@link ConventionProperty} for additional wb-resource elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      * <p>
-     * Only resources that link to an existing directory ({@code WbResource#sourcePath}) are returned.
-     * Consequently, only resources to existing directories will be added to the wtp component file.
-     * The reason is that non-existing resource declarations lead to errors when project is imported into Eclipse.
+     * Only resources that link to an existing directory ({@code WbResource#sourcePath})
+     * will be added to the wtp component file.
+     * The reason is that non-existing resource directory declarations
+     * lead to errors when project is imported into Eclipse.
      */
-    List<WbResource> getResources() {
-        resources.findAll { project.file(it.sourcePath).isDirectory() }
-    }
+    List<WbResource> resources = []
 
     /**
      * Adds a wb-resource.

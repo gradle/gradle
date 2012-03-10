@@ -31,7 +31,7 @@ import org.gradle.plugins.ide.eclipse.model.WtpComponent
 class WtpComponentFactory {
     void configure(EclipseWtpComponent wtp, WtpComponent component) {
         def entries = getEntriesFromSourceDirs(wtp)
-        entries.addAll(wtp.resources)
+        entries.addAll(wtp.resources.findAll { wtp.project.file(it.sourcePath).isDirectory() } )
         entries.addAll(wtp.properties)
         // for ear files root deps are NOT transitive; wars don't use root deps so this doesn't hurt them
         // TODO: maybe do this in a more explicit way, via config or something

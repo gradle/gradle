@@ -43,14 +43,9 @@ public class GenerateEclipseWtpComponentTest extends AbstractSpockTaskTest {
     }
 
     def "resource should add"() {
-        given:
-        project.file("sourcepath1").mkdirs()
-        project.file("sourcepath2").mkdirs()
-
         when:
         eclipseComponent.resource deployPath: 'path1', sourcePath: 'sourcepath1'
         eclipseComponent.resource deployPath: 'path2', sourcePath: 'sourcepath2'
-        eclipseComponent.resource deployPath: 'path2', sourcePath: 'doesNotExist'
 
         then:
         eclipseComponent.resources == [new WbResource('path1', 'sourcepath1'), new WbResource('path2', 'sourcepath2')]
