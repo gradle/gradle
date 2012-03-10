@@ -354,7 +354,6 @@ project(':contrib') {
     @Test
     @Issue("GRADLE-2030")
     void "component for war plugin does not contain non-existing source and resource dirs"() {
-        //TODO SF we need similar for ear
         //given
         file('xxxSource').createDir()
         file('xxxResource').createDir()
@@ -373,13 +372,66 @@ project(':contrib') {
           }
 """
         //then
-        def component = getComponentFile([:]).text
+        def component = getComponentFile().text
 
         assert component.contains('xxxSource')
         assert !component.contains('yyySource')
 
         assert component.contains('xxxResource')
         assert !component.contains('yyyResource')
+    }
+
+    @Test
+    @Issue("GRADLE-2030")
+    void "component for ear plugin does not contain non-existing source and resource dirs"() {
+        //given
+        file('xxxSource').createDir()
+        file('xxxResource').createDir()
+
+        //when
+        runEclipseTask """
+          apply plugin: 'java'
+          apply plugin: 'ear'
+          apply plugin: 'eclipse-wtp'
+
+          sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
+
+          appDirName = 'nonExistingAppDir'
+
+          eclipse.wtp.component {
+            resource sourcePath: 'xxxResource', deployPath: 'deploy-xxx'
+            resource sourcePath: 'yyyResource', deployPath: 'deploy-yyy'
+          }
+"""
+        //then
+        def component = getComponentFile().text
+
+        assert component.contains('xxxSource')
+        assert !component.contains('yyySource')
+
+        assert component.contains('xxxResource')
+        assert !component.contains('yyyResource')
+        
+        assert !component.contains('nonExistingAppDir')
+    }
+
+    @Test
+    void "component for ear plugin contains the app dir"() {
+        //given
+        file('coolAppDir').createDir()
+
+        //when
+        runEclipseTask """
+          apply plugin: 'java'
+          apply plugin: 'ear'
+          apply plugin: 'eclipse-wtp'
+
+          appDirName = 'coolAppDir'
+"""
+        //then
+        def component = getComponentFile().text
+
+        assert component.contains('coolAppDir')
     }
 
     protected def contains(String ... contents) {

@@ -53,6 +53,7 @@ import org.gradle.util.ConfigureUtil
  *       deployName = 'killerApp'
  *
  *       //you can alter the wb-resource elements. sourceDirs is a ConventionProperty.
+ *       //non-existing source dirs won't be added to the component file.
  *       sourceDirs += file('someExtraFolder')
  *
  *       //you can alter the files are to be transformed into dependent-module elements:
@@ -121,6 +122,9 @@ class EclipseWtpComponent {
      * {@link ConventionProperty} for the source directories to be transformed into wb-resource elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}
+     * <p>
+     * Only source dirs that exist will be added to the wtp component file.
+     * Non-existing resource directory declarations lead to errors when project is imported into Eclipse.
      */
     Set<File> sourceDirs
 
