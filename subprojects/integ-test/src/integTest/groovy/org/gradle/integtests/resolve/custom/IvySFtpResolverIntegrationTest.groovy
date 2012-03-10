@@ -24,7 +24,7 @@ import org.junit.Rule
 class IvySFtpResolverIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    public final SFTPServer server = new SFTPServer(2022, "127.0.0.1")
+    public final SFTPServer server = new SFTPServer(2023, "127.0.0.1")
 
     def "setup"() {
         requireOwnUserHomeDir()
