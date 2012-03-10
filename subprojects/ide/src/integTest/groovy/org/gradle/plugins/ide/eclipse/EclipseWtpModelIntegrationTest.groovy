@@ -36,6 +36,7 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
     void allowsConfiguringEclipseWtp() {
         //given
         file('someExtraSourceDir').mkdirs()
+        file('src/foo/bar').mkdirs()
 
         def repoDir = file("repo")
         maven(repoDir).module("gradle", "foo").publish()
@@ -348,6 +349,39 @@ project(':contrib') {
         executer.usingSettingsFile(settings).usingBuildScript(build).withTasks('eclipse').run()
 
         //then no exception thrown
+    }
+
+    @Test
+    @Issue("GRADLE-2030")
+    void "component for war plugin does not contain non-existing source and resource dirs"() {
+        //TODO SF we need similar for ear
+        //TODO SF this needs to be tested differently, e.g. we need to make sure the folders are not created even if we don't run any tasks
+
+        //given
+        file('xxxSource').createDir()
+        file('xxxResource').createDir()
+
+        //when
+        runEclipseTask """
+          apply plugin: 'java'
+          apply plugin: 'war'
+          apply plugin: 'eclipse-wtp'
+          
+          sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
+
+          eclipse.wtp.component {
+            resource sourcePath: 'xxxResource', deployPath: 'deploy-xxx'
+            resource sourcePath: 'yyyResource', deployPath: 'deploy-yyy'
+          }
+"""
+        //then
+        def component = getComponentFile([:]).text
+
+        assert component.contains('xxxSource')
+        assert !component.contains('yyySource')
+
+        assert component.contains('xxxResource')
+        assert !component.contains('yyyResource')
     }
 
     protected def contains(String ... contents) {

@@ -19,9 +19,9 @@ package org.gradle.plugins.ide.eclipse.model
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
 import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory
 import org.gradle.util.ConfigureUtil
-import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 
 /**
  * Enables fine-tuning wtp component details of the Eclipse plugin
@@ -62,6 +62,7 @@ import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
  *       minusConfigurations += configurations.anotherConfiguration
  *
  *       //you can add a wb-resource elements; mandatory keys: 'sourcePath', 'deployPath':
+ *       //if sourcePath points to non-existing folder it will *not* be added.
  *       resource sourcePath: 'extra/resource', deployPath: 'deployment/resource'
  *
  *       //you can add a wb-property elements; mandatory keys: 'name', 'value':
@@ -161,12 +162,20 @@ class EclipseWtpComponent {
      */
     String deployName
 
+    List<WbResource> resources = []
+
     /**
      * {@link ConventionProperty} for additional wb-resource elements.
      * <p>
      * For examples see docs for {@link EclipseWtp}
+     * <p>
+     * Only resources that link to an existing directory ({@code WbResource#sourcePath}) are returned.
+     * Consequently, only resources to existing directories will be added to the wtp component file.
+     * The reason is that non-existing resource declarations lead to errors when project is imported into Eclipse.
      */
-    List<WbResource> resources = []
+    List<WbResource> getResources() {
+        resources.findAll { project.file(it.sourcePath).isDirectory() }
+    }
 
     /**
      * Adds a wb-resource.
