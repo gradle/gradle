@@ -37,20 +37,21 @@ import java.security.PublicKey
 import org.apache.sshd.server.session.ServerSession
 
 class SFTPServer extends ExternalResource {
-    final int port;
     final String hostAddress;
+    int port
 
-    private TemporaryFolder baseDir = new TemporaryFolder();
-    private TemporaryFolder configDir = new TemporaryFolder();
+    private TemporaryFolder baseDir = new TemporaryFolder()
+    private TemporaryFolder configDir = new TemporaryFolder()
 
     private SshServer sshd;
     private com.jcraft.jsch.Session session
 
     def fileRequests = [] as Set
 
-    public SFTPServer(int port, String hostAddress) {
-        this.port = port
-        this.hostAddress = hostAddress
+    public SFTPServer() {
+        def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
+        port = portFinder.nextAvailable
+        this.hostAddress = "127.0.0.1"
     }
 
     protected void before() throws Throwable {
@@ -66,7 +67,11 @@ class SFTPServer extends ExternalResource {
     public void after() {
         try {
             session?.disconnect();
-            sshd?.stop();
+        } catch (Throwable e) {
+            e.printStackTrace()
+        }
+        try {
+            sshd?.stop()
         } catch (Throwable e) {
             e.printStackTrace()
         }
@@ -153,7 +158,6 @@ class SFTPServer extends ExternalResource {
     public void clearRequests() {
         fileRequests.clear();
     }
-
 }
 
 abstract class FileRequestLogger {

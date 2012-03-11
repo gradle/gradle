@@ -23,7 +23,7 @@ import org.junit.Rule
 class IvySftpPublishIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    public final SFTPServer sftpServer = new SFTPServer(2022, "127.0.0.1")
+    public final SFTPServer sftpServer = new SFTPServer()
 
     public void "can publish using SftpResolver"() {
         given:
