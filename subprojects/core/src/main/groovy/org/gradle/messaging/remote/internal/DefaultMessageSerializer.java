@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.internal.inet.InetEndpoint;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -27,7 +27,7 @@ public class DefaultMessageSerializer<T> implements MessageSerializer<T> {
         this.classLoader = classLoader;
     }
 
-    public T read(DataInputStream inputStream, Address localAddress, Address remoteAddress) throws Exception {
+    public T read(DataInputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) throws Exception {
         return (T) Message.receive(inputStream, classLoader);
     }
 

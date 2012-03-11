@@ -20,11 +20,14 @@ import org.gradle.util.UUIDGenerator
 import spock.lang.Shared
 import spock.lang.Specification
 import org.gradle.messaging.remote.internal.MessageOriginator
+import org.gradle.messaging.remote.internal.inet.SocketInetAddress
 
 class DiscoveryProcotolSerializerTest extends Specification {
     final DiscoveryProtocolSerializer serializer = new DiscoveryProtocolSerializer()
     @Shared def uuidGenerator = new UUIDGenerator()
     @Shared MessageOriginator messageOriginator = new MessageOriginator(uuidGenerator.generateId(), "source display name")
+    @Shared InetAddress address = InetAddress.getByName(null)
+    final InetAddress receivedAddress = Mock()
 
     def "writes and reads message types"() {
         when:
@@ -36,9 +39,20 @@ class DiscoveryProcotolSerializerTest extends Specification {
         where:
         original << [
                 new LookupRequest(messageOriginator, "group", "channel"),
-                new ChannelAvailable(messageOriginator, "group", "channel", new MultiChoiceAddress(UUID.randomUUID(), 8091, [InetAddress.getByName("127.0.0.1")])),
-                new ChannelUnavailable(messageOriginator, "group", "channel", new MultiChoiceAddress(UUID.randomUUID(), 8091, [InetAddress.getByName("127.0.0.1")]))
+                new ChannelUnavailable(messageOriginator, "group", "channel", new MultiChoiceAddress(UUID.randomUUID(), 8091, [address]))
         ]
+    }
+
+    def "mixes in remote address to received ChannelAvailable message"() {
+        def originatorId = UUID.randomUUID()
+        def original = new ChannelAvailable(messageOriginator, "group", "channel", new MultiChoiceAddress(originatorId, 8091, [address]))
+        def expected = new ChannelAvailable(messageOriginator, "group", "channel", new MultiChoiceAddress(originatorId, 8091, [receivedAddress, address]))
+
+        when:
+        def result = send(original)
+
+        then:
+        result == expected
     }
 
     def "can read message for unknown protocol version"() {
@@ -67,7 +81,7 @@ class DiscoveryProcotolSerializerTest extends Specification {
         outstr.close()
 
         def bytesIn = new ByteArrayInputStream(bytesOut.toByteArray())
-        return serializer.read(new DataInputStream(bytesIn), null, null)
+        return serializer.read(new DataInputStream(bytesIn), null, new SocketInetAddress(receivedAddress, 9122))
     }
 
     def send(DiscoveryMessage message) {
@@ -77,6 +91,6 @@ class DiscoveryProcotolSerializerTest extends Specification {
         outstr.close()
 
         def bytesIn = new ByteArrayInputStream(bytesOut.toByteArray())
-        return serializer.read(new DataInputStream(bytesIn), null, null)
+        return serializer.read(new DataInputStream(bytesIn), null, new SocketInetAddress(receivedAddress, 9122))
     }
 }

@@ -34,8 +34,8 @@ import java.nio.channels.SocketChannel;
 
 public class SocketConnection<T> implements Connection<T> {
     private final SocketChannel socket;
-    private final Address localAddress;
-    private final Address remoteAddress;
+    private final SocketInetAddress localAddress;
+    private final SocketInetAddress remoteAddress;
     private final MessageSerializer<T> serializer;
     private final DataInputStream instr;
     private final DataOutputStream outstr;

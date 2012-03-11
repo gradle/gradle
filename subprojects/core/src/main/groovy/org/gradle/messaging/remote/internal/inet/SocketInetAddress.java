@@ -15,11 +15,11 @@
  */
 package org.gradle.messaging.remote.internal.inet;
 
-import org.gradle.messaging.remote.Address;
-
 import java.net.InetAddress;
+import java.util.Collections;
+import java.util.List;
 
-public class SocketInetAddress implements Address {
+public class SocketInetAddress implements InetEndpoint {
     private final InetAddress address;
     private final int port;
 
@@ -52,6 +52,10 @@ public class SocketInetAddress implements Address {
     @Override
     public int hashCode() {
         return address.hashCode() ^ port;
+    }
+
+    public List<InetAddress> getCandidates() {
+        return Collections.singletonList(address);
     }
 
     public InetAddress getAddress() {

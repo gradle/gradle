@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.messaging.remote;
 
-import java.io.Serializable;
+package org.gradle.messaging.remote.internal.inet;
+
+import org.gradle.messaging.remote.Address;
+
+import java.net.InetAddress;
+import java.util.List;
 
 /**
- * The address for a communication endpoint. Addresses are immutable.
+ * A Inet-based route. Has a port and a set of potential inet addresses.
  */
-public interface Address extends Serializable {
-    /**
-     * Returns the display name for this address. Implementations should also override toString() to return the display name.
-     *
-     * @return The display name.
-     */
-    String getDisplayName();
+public interface InetEndpoint extends Address {
+    int getPort();
+
+    List<InetAddress> getCandidates();
 }

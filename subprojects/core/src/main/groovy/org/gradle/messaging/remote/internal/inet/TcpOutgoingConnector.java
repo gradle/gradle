@@ -40,10 +40,10 @@ public class TcpOutgoingConnector<T> implements OutgoingConnector<T> {
     }
 
     public Connection<T> connect(Address destinationAddress) {
-        if (!(destinationAddress instanceof MultiChoiceAddress)) {
+        if (!(destinationAddress instanceof InetEndpoint)) {
             throw new IllegalArgumentException(String.format("Cannot create a connection to address of unknown type: %s.", destinationAddress));
         }
-        MultiChoiceAddress address = (MultiChoiceAddress) destinationAddress;
+        InetEndpoint address = (InetEndpoint) destinationAddress;
         LOGGER.debug("Attempting to connect to {}.", address);
 
         // Try each address in turn. Not all of them are necessarily reachable (eg when socket option IPV6_V6ONLY

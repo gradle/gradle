@@ -16,8 +16,9 @@
 package org.gradle.messaging.remote.internal.protocol;
 
 import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.MessageOriginator;
+import org.gradle.messaging.remote.internal.MessageSerializer;
+import org.gradle.messaging.remote.internal.inet.InetEndpoint;
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
 
 import java.io.DataInputStream;
@@ -34,7 +35,7 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
     public static final byte CHANNEL_AVAILABLE = 2;
     public static final byte CHANNEL_UNAVAILABLE = 3;
 
-    public DiscoveryMessage read(DataInputStream inputStream, Address localAddress, Address remoteAddress) throws Exception {
+    public DiscoveryMessage read(DataInputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) throws Exception {
         byte protocolVersion = inputStream.readByte();
         if (protocolVersion != PROTOCOL_VERSION) {
             return new UnknownMessage(String.format("unknown protocol version %s", protocolVersion));
@@ -44,7 +45,7 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
             case LOOKUP_REQUEST:
                 return readLookupRequest(inputStream);
             case CHANNEL_AVAILABLE:
-                return readChannelAvailable(inputStream);
+                return readChannelAvailable(inputStream, remoteAddress);
             case CHANNEL_UNAVAILABLE:
                 return readChannelUnavailable(inputStream);
         }
@@ -59,11 +60,12 @@ public class DiscoveryProtocolSerializer implements MessageSerializer<DiscoveryM
         return new ChannelUnavailable(originator, group, channel, address);
     }
 
-    private DiscoveryMessage readChannelAvailable(DataInputStream inputStream) throws IOException {
+    private DiscoveryMessage readChannelAvailable(DataInputStream inputStream, InetEndpoint remoteAddress) throws IOException {
         MessageOriginator originator = readMessageOriginator(inputStream);
         String group = inputStream.readUTF();
         String channel = inputStream.readUTF();
-        Address address = readAddress(inputStream);
+        MultiChoiceAddress address = readAddress(inputStream);
+        address = address.addAddresses(remoteAddress.getCandidates());
         return new ChannelAvailable(originator, group, channel, address);
     }
 

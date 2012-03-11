@@ -15,13 +15,13 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.internal.inet.InetEndpoint;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
 public interface MessageSerializer<T> {
-    T read(DataInputStream inputStream, Address localAddress, Address remoteAddress) throws Exception;
+    T read(DataInputStream inputStream, InetEndpoint localAddress, InetEndpoint remoteAddress) throws Exception;
 
     void write(T message, DataOutputStream outputStream) throws Exception;
 }

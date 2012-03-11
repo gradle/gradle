@@ -15,13 +15,14 @@
  */
 package org.gradle.messaging.remote.internal.inet;
 
-import org.gradle.messaging.remote.Address;
+import org.gradle.util.GUtil;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-public class MultiChoiceAddress implements Address {
+public class MultiChoiceAddress implements InetEndpoint {
     private final Object canonicalAddress;
     private final int port;
     private final List<InetAddress> candidates;
@@ -68,5 +69,9 @@ public class MultiChoiceAddress implements Address {
     @Override
     public int hashCode() {
         return canonicalAddress.hashCode();
+    }
+
+    public MultiChoiceAddress addAddresses(Collection<InetAddress> candidates) {
+        return new MultiChoiceAddress(canonicalAddress, port, GUtil.addLists(candidates, this.candidates));
     }
 }
