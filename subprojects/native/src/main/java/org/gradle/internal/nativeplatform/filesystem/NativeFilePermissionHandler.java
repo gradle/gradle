@@ -23,12 +23,17 @@ import java.io.File;
 import java.io.IOException;
 
 public class NativeFilePermissionHandler implements FilePermissionHandler {
-    private final LibC libc;
     private FilePermissionHandler delegateHandler;
+    private Chmod chmod;
 
     public NativeFilePermissionHandler(FilePermissionHandler filePermissionHandler) {
         this.delegateHandler = filePermissionHandler;
-        libc = (LibC) Native.loadLibrary("c", LibC.class);
+        try{
+            LibC libc = (LibC) Native.loadLibrary("c", LibC.class);
+            chmod = new LibcChmod(libc);
+        }catch (Throwable e){
+            chmod = new EmptyChmod();
+        }
     }
 
     public int getUnixMode(File f) throws IOException {
@@ -36,6 +41,26 @@ public class NativeFilePermissionHandler implements FilePermissionHandler {
     }
 
     public void chmod(File f, int mode) throws IOException {
-        libc.chmod(f.getAbsolutePath(), mode);
+        chmod.chmod(f, mode);
+    }
+
+    private static interface Chmod {
+        public void chmod(File f, int mode) throws IOException;
+    }
+
+    private class LibcChmod implements Chmod {
+        private final LibC libc;
+
+        public LibcChmod(LibC libc){
+            this.libc = libc;
+        }
+        public void chmod(File f, int mode) {
+            libc.chmod(f.getAbsolutePath(), mode);
+        }
+    }
+
+    private class EmptyChmod implements Chmod {
+        public void chmod(File f, int mode) throws IOException {
+        }
     }
 }

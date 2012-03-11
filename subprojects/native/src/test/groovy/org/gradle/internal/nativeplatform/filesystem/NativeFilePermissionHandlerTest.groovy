@@ -23,6 +23,8 @@ import spock.lang.Specification
 
 @Requires(TestPrecondition.NOT_WINDOWS)
 class NativeFilePermissionHandlerTest extends Specification {
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "changing files permissions"(){
         setup:
         def File dir = Files.createTempDir();
@@ -34,6 +36,23 @@ class NativeFilePermissionHandlerTest extends Specification {
         handler.chmod(file, mode);
         then:
         mode == (PosixUtil.current().stat(file.getAbsolutePath()).mode() & 0777);
+        where:
+        mode << [0722, 0644, 0744, 0755]
+    }
+
+    @Requires(TestPrecondition.UNKNOWN_OS)
+    def "changing files permissions not supported for unknown os"(){
+        setup:
+        def File dir = Files.createTempDir();
+        def File file = new File(dir, "f")
+        Files.touch(file)
+        NativeFilePermissionHandler handler = new NativeFilePermissionHandler(null)
+        def originMode = (PosixUtil.current().stat(file.getAbsolutePath()).mode() & 0777);
+
+        when:
+        handler.chmod(file, mode);
+        then:
+        originMode == (PosixUtil.current().stat(file.getAbsolutePath()).mode() & 0777);
         where:
         mode << [0722, 0644, 0744, 0755]
     }
