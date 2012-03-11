@@ -16,10 +16,15 @@
 
 package org.gradle.internal.nativeplatform.filesystem;
 
+import com.sun.jna.Native;
+import org.gradle.internal.nativeplatform.jna.LibC;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.Jvm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
 
 public class FilePermissionHandlerFactory {
 
@@ -38,11 +43,37 @@ public class FilePermissionHandlerFactory {
                 LOGGER.warn("Unable to load Jdk7FilePermissionHandler", e);
             }
         }
-        return createNativePermissionHandler();
+        return createComposedFilePermissionHandler();
     }
 
-    private static FilePermissionHandler createNativePermissionHandler() {
-        PosixFilePermissionHandler fallbackFilePermissionHandler = new PosixFilePermissionHandler(PosixUtil.current());
-        return new NativeFilePermissionHandler(fallbackFilePermissionHandler);
+    private static FilePermissionHandler createComposedFilePermissionHandler() {
+        ComposableFilePermissionHandler.Chmod chmod = createChmod();
+        return new ComposableFilePermissionHandler(chmod);
+    }
+
+    static ComposableFilePermissionHandler.Chmod createChmod() {
+        try {
+            LibC libc = (LibC) Native.loadLibrary("c", LibC.class);
+            return new LibcChmod(libc);
+        } catch (Throwable e) {
+            return new EmptyChmod();
+        }
+    }
+
+    private static class LibcChmod implements ComposableFilePermissionHandler.Chmod {
+        private final LibC libc;
+
+        public LibcChmod(LibC libc) {
+            this.libc = libc;
+        }
+
+        public void chmod(File f, int mode) {
+            libc.chmod(f.getAbsolutePath(), mode);
+        }
+    }
+
+    private static class EmptyChmod implements ComposableFilePermissionHandler.Chmod {
+        public void chmod(File f, int mode) throws IOException {
+        }
     }
 }

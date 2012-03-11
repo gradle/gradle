@@ -17,13 +17,27 @@
 package org.gradle.internal.nativeplatform.filesystem.jdk7
 
 import spock.lang.Specification
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import com.google.common.io.Files
+import org.gradle.internal.nativeplatform.filesystem.FilePermissionHandlerFactory
 
 
-class PosixJdk7FilePermissionHandlerTest extends Specification{
-    
-    def "convert oct to dec"(){
-        expect:
-            (0755 & 0400) == 0400
-            (0755 & 040) == 040
+class PosixJdk7FilePermissionHandlerTest extends Specification {
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "test chmod on non windows platforms with JDK7"() {
+        setup:
+        def File dir = Files.createTempDir();
+        def File file = new File(dir, "f")
+        Files.touch(file)
+        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
+        when:
+        handler.chmod(file, mode);
+        then:
+        mode == handler.getUnixMode(file);
+        where:
+        mode << [0722, 0644, 0744, 0755]
     }
+
 }

@@ -19,8 +19,10 @@ package org.gradle.internal.nativeplatform.filesystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
+import com.google.common.io.Files
 
-class FilePermissionHandlerFactoryTest extends Specification{
+@Requires(TestPrecondition.JDK7)
+class FilePermissionHandlerFactoryOnJdk7Test extends Specification{
 
     @Requires(TestPrecondition.WINDOWS)
     def "createDefaultFilePermissionHandler creates WindowsFilePermissionHandler on Windows OS"(){
@@ -30,11 +32,28 @@ class FilePermissionHandlerFactoryTest extends Specification{
         handler instanceof WindowsFilePermissionHandler
     }
 
-    @Requires(TestPrecondition.JDK7_POSIX)
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "createDefaultFilePermissionHandler creates Jdk7PosixFilePermissionHandler on JDK7 with Posix Fs"(){
         when:
         def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
         then:
         handler.getClass().name == "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler"
     }
+
+    @Requires(TestPrecondition.UNKNOWN_OS)
+        def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Unknown OS"() {
+            setup:
+            def File dir = Files.createTempDir();
+            def File file = new File(dir, "f")
+            Files.touch(file)
+            def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
+            def originalMode = handler.getUnixMode(file);
+            when:
+            handler.chmod(file, mode);
+            then:
+            originalMode == handler.getUnixMode(file);
+            where:
+            mode << [0722, 0644, 0744, 0755]
+        }
+
 }

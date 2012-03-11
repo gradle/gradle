@@ -22,37 +22,35 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
 @Requires(TestPrecondition.NOT_WINDOWS)
-class NativeFilePermissionHandlerTest extends Specification {
+class ComposableFilePermissionHandlerTest extends Specification {
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "changing files permissions"(){
+    def "chmod calls are delegated to Chmod"(){
         setup:
         def File dir = Files.createTempDir();
         def File file = new File(dir, "f")
         Files.touch(file)
-
-        NativeFilePermissionHandler handler = new NativeFilePermissionHandler(null)
+        ComposableFilePermissionHandler.Chmod chmod = Mock()
+        ComposableFilePermissionHandler handler = new ComposableFilePermissionHandler(chmod)
         when:
-        handler.chmod(file, mode);
+        handler.chmod(file, 0744);
         then:
-        mode == (PosixUtil.current().stat(file.getAbsolutePath()).mode() & 0777);
-        where:
-        mode << [0722, 0644, 0744, 0755]
+        1 * chmod.chmod(file, 0744)
     }
 
-    @Requires(TestPrecondition.UNKNOWN_OS)
-    def "changing files permissions not supported for unknown os"(){
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "test getUnixMode"(){
         setup:
         def File dir = Files.createTempDir();
         def File file = new File(dir, "f")
         Files.touch(file)
-        NativeFilePermissionHandler handler = new NativeFilePermissionHandler(null)
-        def originMode = (PosixUtil.current().stat(file.getAbsolutePath()).mode() & 0777);
 
+        ComposableFilePermissionHandler handler = new ComposableFilePermissionHandler(null)
         when:
-        handler.chmod(file, mode);
+        PosixUtil.current().chmod(file.absolutePath, mode);
+
         then:
-        originMode == (PosixUtil.current().stat(file.getAbsolutePath()).mode() & 0777);
+        handler.getUnixMode(file) == mode;
+
         where:
         mode << [0722, 0644, 0744, 0755]
     }
