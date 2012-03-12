@@ -50,8 +50,11 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     }
 
     public void setArguments(String[] arguments) {
-        //TODO SF rationalize
-        this.arguments = arguments != null && arguments.length > 0 ? Arrays.asList(arguments) : null;
+        this.arguments = rationalizeInput(arguments);
+    }
+
+    private List<String> rationalizeInput(String[] arguments) {
+        return arguments != null && arguments.length > 0 ? Arrays.asList(arguments) : null;
     }
 
     public void setStandardOutput(OutputStream outputStream) {
@@ -85,7 +88,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     }
 
     public void setJvmArguments(String... jvmArguments) {
-        this.jvmArguments = jvmArguments != null && jvmArguments.length > 0 ? Arrays.asList(jvmArguments) : null;
+        this.jvmArguments = rationalizeInput(jvmArguments);
     }
 
     public long getStartTime() {
