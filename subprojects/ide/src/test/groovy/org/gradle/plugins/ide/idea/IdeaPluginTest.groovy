@@ -29,7 +29,6 @@ import spock.lang.Specification
 class IdeaPluginTest extends Specification {
     private final DefaultProject project = HelperUtil.createRootProject()
     private final Project childProject = HelperUtil.createChildProject(project, "child", new File("."))
-    //TODO SF - fix deprecation warnings
 
     def "adds 'ideaProject' task to root project"() {
         when:
