@@ -17,8 +17,9 @@
 package org.gradle.util;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.jvm.JavaHomeException;
+import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.util.jvm.JavaInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +87,7 @@ public class Jvm implements JavaInfo {
      * @param javaHome - location of your jdk or jre (jdk is safer), cannot be null
      * @return jvm for given java home
      *
-     * @throws org.gradle.util.JavaHomeException when supplied javaHome does not seem to be a valid jdk or jre location
+     * @throws org.gradle.internal.jvm.JavaHomeException when supplied javaHome does not seem to be a valid jdk or jre location
      * @throws IllegalArgumentException when supplied javaHome is not a valid folder
      */
     public static JavaInfo forHome(File javaHome) throws JavaHomeException, IllegalArgumentException {

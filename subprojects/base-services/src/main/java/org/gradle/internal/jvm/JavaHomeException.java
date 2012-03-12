@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.internal.jvm;
 
 /**
  * by Szczepan Faber, created at: 1/23/12

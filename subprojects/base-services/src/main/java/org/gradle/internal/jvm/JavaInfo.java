@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.util.jvm;
-
-import org.gradle.util.JavaHomeException;
+package org.gradle.internal.jvm;
 
 import java.io.File;
 import java.util.Map;
@@ -27,19 +25,19 @@ import java.util.Map;
 public interface JavaInfo {
     /**
      * @return the executable
-     * @throws org.gradle.util.JavaHomeException when executable cannot be found
+     * @throws JavaHomeException when executable cannot be found
      */
     File getJavaExecutable() throws JavaHomeException;
 
     /**
      * @return the executable
-     * @throws org.gradle.util.JavaHomeException when executable cannot be found
+     * @throws JavaHomeException when executable cannot be found
      */
     File getJavadocExecutable() throws JavaHomeException;
 
     /**
      * @return the executable
-     * @throws org.gradle.util.JavaHomeException when executable cannot be found
+     * @throws JavaHomeException when executable cannot be found
      */
     File getExecutable(String name) throws JavaHomeException;
 

@@ -16,6 +16,7 @@
 
 package org.gradle.util
 
+import org.gradle.internal.jvm.JavaHomeException
 import org.gradle.internal.os.OperatingSystem
 import org.junit.Rule
 import spock.lang.Specification

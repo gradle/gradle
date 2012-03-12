@@ -15,6 +15,7 @@
  */
 package org.gradle.util
 
+import org.gradle.internal.jvm.JavaHomeException
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Jvm.AppleJvm
 import org.junit.Rule

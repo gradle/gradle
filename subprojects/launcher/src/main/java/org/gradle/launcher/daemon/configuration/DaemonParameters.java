@@ -22,10 +22,10 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
-import org.gradle.util.JavaHomeException;
 import org.gradle.util.Jvm;
 
 import java.io.File;
