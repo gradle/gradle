@@ -299,7 +299,7 @@ class IdeaModule {
      * @return dependencies
      */
     Set<Dependency> resolveDependencies() {
-        return new IdeaDependenciesProvider().provide(this, getPathFactory())
+        return new IdeaDependenciesProvider().provide(this)
     }
 
     /**
