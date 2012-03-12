@@ -690,17 +690,6 @@
                 <td>an empty manifest</td>
                 <td>The manifest to include in all JAR files.</td>
             </tr>
-            <tr>
-                <td>
-                    <literal>metaInf</literal>
-                </td>
-                <td>
-                    <classname>List</classname>
-                </td>
-                <td><literal>[]</literal></td>
-                <td>A set of <link linkend="sec:file_collections">file collections</link> which specify the files to
-                    include in the <filename>META-INF</filename> directory or all JAR files.</td>
-            </tr>
         </table>
 
         <para>
