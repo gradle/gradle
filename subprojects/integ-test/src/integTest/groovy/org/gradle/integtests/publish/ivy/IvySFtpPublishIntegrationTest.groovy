@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.SFTPServer
 import org.junit.Rule
 
-class IvySftpPublishIntegrationTest extends AbstractIntegrationSpec {
+class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final SFTPServer sftpServer = new SFTPServer()

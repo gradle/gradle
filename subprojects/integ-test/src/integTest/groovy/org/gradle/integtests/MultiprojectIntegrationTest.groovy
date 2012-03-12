@@ -18,7 +18,7 @@ package org.gradle.integtests
 import org.junit.Test
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 
-class MultiProjectIntegrationTest extends AbstractIntegrationTest {
+class MultiprojectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canInjectConfigurationFromParentProject() {
         testFile('settings.gradle') << 'include "a", "b"'
