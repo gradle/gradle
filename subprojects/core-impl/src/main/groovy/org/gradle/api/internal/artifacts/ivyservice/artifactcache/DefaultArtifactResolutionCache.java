@@ -34,7 +34,7 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
     private final TimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
-    private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> byRepositoryCache;
+    private PersistentIndexedCache<ArtifactAtRepositoryKey, ArtifactResolutionCacheEntry> byRepositoryCache;
 
     public DefaultArtifactResolutionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
@@ -42,16 +42,16 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
         this.cacheMetadata = cacheMetadata;
     }
     
-    private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> getByRepositoryCache() {
+    private PersistentIndexedCache<ArtifactAtRepositoryKey, ArtifactResolutionCacheEntry> getByRepositoryCache() {
         if (byRepositoryCache == null) {
             byRepositoryCache = initByRepositoryCache();
         }
         return byRepositoryCache;
     }
 
-    private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> initByRepositoryCache() {
+    private PersistentIndexedCache<ArtifactAtRepositoryKey, ArtifactResolutionCacheEntry> initByRepositoryCache() {
         File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), getByRepositoryFileName());
-        return cacheLockingManager.createCache(artifactResolutionCacheFile, RevisionKey.class, ArtifactResolutionCacheEntry.class);
+        return cacheLockingManager.createCache(artifactResolutionCacheFile, ArtifactAtRepositoryKey.class, ArtifactResolutionCacheEntry.class);
     }
 
     private String getByRepositoryFileName() {
@@ -76,9 +76,9 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
         getByRepositoryCache().remove(createKey(repository, artifact));
     }
 
-    private RevisionKey createKey(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
+    private ArtifactAtRepositoryKey createKey(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
         String artifactPath = getArtifactKey(artifactId);
-        return new RevisionKey(repository, artifactPath);
+        return new ArtifactAtRepositoryKey(repository, artifactPath);
     }
 
     private String getArtifactKey(ArtifactRevisionId artifactId) {
@@ -91,11 +91,11 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
         return new ArtifactResolutionCacheEntry(artifactFile, timeProvider, lastModified == null ? -1 : lastModified.getTime());
     }
 
-    private static class RevisionKey implements Serializable {
+    private static class ArtifactAtRepositoryKey implements Serializable {
         private final String resolverId;
         private final String artifactId;
 
-        private RevisionKey(ModuleVersionRepository repository, String artifactPath) {
+        private ArtifactAtRepositoryKey(ModuleVersionRepository repository, String artifactPath) {
             this.resolverId = repository.getId();
             this.artifactId = artifactPath;
         }
@@ -107,10 +107,10 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
 
         @Override
         public boolean equals(Object o) {
-            if (o == null || !(o instanceof RevisionKey)) {
+            if (o == null || !(o instanceof ArtifactAtRepositoryKey)) {
                 return false;
             }
-            RevisionKey other = (RevisionKey) o;
+            ArtifactAtRepositoryKey other = (ArtifactAtRepositoryKey) o;
             return toString().equals(other.toString());
         }
 
