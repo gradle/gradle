@@ -17,13 +17,13 @@ package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 
 class HttpResponseResource extends AbstractHttpResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResponseResource.class);
@@ -53,7 +53,7 @@ class HttpResponseResource extends AbstractHttpResource {
             return 0;
         }
         try {
-            return Date.parse(responseHeader.getValue());
+            return DateUtils.parseDate(responseHeader.getValue()).getTime();
         } catch (Exception e) {
             return 0;
         }
