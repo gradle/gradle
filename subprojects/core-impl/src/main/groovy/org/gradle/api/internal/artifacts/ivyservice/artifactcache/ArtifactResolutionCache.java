@@ -19,10 +19,11 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Date;
 
 public interface ArtifactResolutionCache {
-    File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifact, File artifactFile, Date lastModified);
+    File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifact, File artifactFile, Date lastModified, URL artifactUrl);
 
     void expireCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifact);
 
@@ -41,5 +42,12 @@ public interface ArtifactResolutionCache {
          * @return The last modified date, or null if it was unknown.
          */
         Date getArtifactLastModified();
+
+        /**
+         * The URL that the artifact advertised when we cached it.
+         *
+         * @return The URL, or null if it was unknown.
+         */
+        URL getArtifactUrl();
     }
 }

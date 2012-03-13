@@ -210,7 +210,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
 
         File artifactFile = delegate.download(artifact);
         LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), artifactFile);
-        return artifactResolutionCache.storeArtifactFile(delegate, artifact.getId(), artifactFile, artifact.getPublicationDate());
+        return artifactResolutionCache.storeArtifactFile(delegate, artifact.getId(), artifactFile, artifact.getPublicationDate(), artifact.getUrl());
     }
 
     private ModuleVersionSelector createModuleVersionSelector(ModuleRevisionId moduleRevisionId) {

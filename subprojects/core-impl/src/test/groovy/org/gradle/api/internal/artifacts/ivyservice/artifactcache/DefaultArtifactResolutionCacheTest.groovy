@@ -71,9 +71,10 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         ModuleVersionRepository repo = repo()
         ArtifactRevisionId arid = arid()
         File artifactFile = tmp.createFile("artifact") << "content"
+        URL artifactUrl = new File("remote-artifact").toURL()
         
         when:
-        cache.storeArtifactFile(repo, arid, artifactFile, lastModified)
+        cache.storeArtifactFile(repo, arid, artifactFile, lastModified, artifactUrl)
         
         then:
         ArtifactResolutionCache.CachedArtifactResolution resolution = cache.getCachedArtifactResolution(repo, arid)
@@ -81,6 +82,7 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         and:
         resolution != null
         resolution.getArtifactLastModified() == lastModified
+        resolution.getArtifactUrl() == artifactUrl
         
         where:
         lastModified << [new Date(), null]

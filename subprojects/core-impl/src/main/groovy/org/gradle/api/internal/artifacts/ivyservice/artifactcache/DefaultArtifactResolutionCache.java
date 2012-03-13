@@ -27,6 +27,7 @@ import org.gradle.util.TimeProvider;
 
 import java.io.File;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.Date;
 
 public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
@@ -64,11 +65,11 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
             return null;
         }
         Date lastModified = artifactResolutionCacheEntry.artifactLastModifiedTimestamp < 0 ? null : new Date(artifactResolutionCacheEntry.artifactLastModifiedTimestamp);
-        return new DefaultCachedArtifactResolution(artifactId, artifactResolutionCacheEntry, timeProvider, lastModified);
+        return new DefaultCachedArtifactResolution(artifactId, artifactResolutionCacheEntry, timeProvider, lastModified, artifactResolutionCacheEntry.artifactUrl);
     }
 
-    public File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File artifactFile, Date lastModified) {
-        getByRepositoryCache().put(createKey(repository, artifactId), createEntry(artifactFile, lastModified));
+    public File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File artifactFile, Date lastModified, URL artifactUrl) {
+        getByRepositoryCache().put(createKey(repository, artifactId), createEntry(artifactFile, lastModified, artifactUrl));
         return artifactFile;
     }
 
@@ -87,8 +88,8 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
         return IvyPatternHelper.substitute(format, dummyArtifact);
     }
 
-    private ArtifactResolutionCacheEntry createEntry(File artifactFile, Date lastModified) {
-        return new ArtifactResolutionCacheEntry(artifactFile, timeProvider, lastModified == null ? -1 : lastModified.getTime());
+    private ArtifactResolutionCacheEntry createEntry(File artifactFile, Date lastModified, URL artifactUrl) {
+        return new ArtifactResolutionCacheEntry(artifactFile, timeProvider, lastModified == null ? -1 : lastModified.getTime(), artifactUrl);
     }
 
     private static class ArtifactAtRepositoryKey implements Serializable {

@@ -20,6 +20,7 @@ import org.gradle.util.TimeProvider;
 
 import java.io.File;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.Date;
 
 class DefaultCachedArtifactResolution implements ArtifactResolutionCache.CachedArtifactResolution, Serializable {
@@ -27,13 +28,15 @@ class DefaultCachedArtifactResolution implements ArtifactResolutionCache.CachedA
     private final File artifactFile;
     private final long ageMillis;
     private final Date artifactLastModified;
+    private final URL artifactUrl;
 
     public DefaultCachedArtifactResolution(ArtifactRevisionId artifactId, ArtifactResolutionCacheEntry entry, TimeProvider timeProvider,
-            Date artifactLastModified) {
+                                           Date artifactLastModified, URL artifactUrl) {
         this.artifactId = artifactId;
         this.artifactFile = entry.artifactFile;
         ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
         this.artifactLastModified = artifactLastModified;
+        this.artifactUrl = artifactUrl;
     }
 
     public ArtifactRevisionId getArtifactId() {
@@ -50,5 +53,9 @@ class DefaultCachedArtifactResolution implements ArtifactResolutionCache.CachedA
 
     public Date getArtifactLastModified() {
         return artifactLastModified;
+    }
+
+    public URL getArtifactUrl() {
+        return artifactUrl;
     }
 }
