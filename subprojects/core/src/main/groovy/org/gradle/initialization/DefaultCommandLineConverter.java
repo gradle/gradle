@@ -48,6 +48,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String CONTINUE = "continue";
     private static final String OFFLINE = "offline";
     private static final String REFRESH = "refresh";
+    private static final String REFRESH_DEPENDENCIES = "refresh-dependencies";
     private static final String PROJECT_CACHE_DIR = "project-cache-dir";
 
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
@@ -74,7 +75,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
         parser.option(CONTINUE).hasDescription("Continues task execution after a task failure.").experimental();
         parser.option(OFFLINE).hasDescription("The build should operate without accessing network resources.");
-        parser.option(REFRESH).hasArguments().hasDescription("Refresh the state of resources of the type(s) specified. Currently only 'dependencies' is supported.");
+        parser.option(REFRESH).hasArguments().hasDescription("Refresh the state of resources of the type(s) specified. Currently only 'dependencies' is supported.").deprecated("Use '--refresh-dependencies' instead.");
+        parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
     }
 
     @Override
@@ -156,10 +158,15 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         if (options.hasOption(OFFLINE)) {
             startParameter.setOffline(true);
         }
-        
+
         if (options.hasOption(REFRESH)) {
             RefreshOptions refreshOptions = RefreshOptions.fromCommandLineOptions(options.option(REFRESH).getValues());
             startParameter.setRefreshOptions(refreshOptions);
+        }
+
+        if (options.hasOption(REFRESH_DEPENDENCIES)) {
+            RefreshOptions refreshOptions = RefreshOptions.fromCommandLineOptions(options.option(REFRESH).getValues());
+            startParameter.setRefreshDependencies(true);
         }
 
         return startParameter;
@@ -168,7 +175,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     void convertCommandLineSystemProperties(Map<String, String> systemProperties, StartParameter startParameter, FileResolver resolver) {
         startParameter.getSystemPropertiesArgs().putAll(systemProperties);
         String gradleUserHomeProp = "gradle.user.home";
-        if(systemProperties.containsKey(gradleUserHomeProp)){
+        if (systemProperties.containsKey(gradleUserHomeProp)) {
             startParameter.setGradleUserHomeDir(resolver.resolve(systemProperties.get(gradleUserHomeProp)));
         }
     }
