@@ -70,13 +70,8 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
     }
 
     public File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File artifactFile, Date lastModified) {
-        if (artifactFile == null) {
-            getCache().put(createKey(repository, artifactId), createEntry(null, lastModified));
-            return null;
-        } else {
-            getCache().put(createKey(repository, artifactId), createEntry(artifactFile, lastModified));
-            return artifactFile;
-        }
+        getCache().put(createKey(repository, artifactId), createEntry(artifactFile, lastModified));
+        return artifactFile;
     }
 
     public void expireCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifact) {
