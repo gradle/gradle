@@ -122,7 +122,6 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         new ArtifactRevisionId(
                 new ArtifactId(mid, mid.name, attrs.type, attrs.ext),
                 new ModuleRevisionId(mid, attrs.revision)
-                
         ) 
     }
 }
