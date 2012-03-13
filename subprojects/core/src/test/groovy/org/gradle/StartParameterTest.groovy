@@ -51,6 +51,8 @@ class StartParameterTest {
         testObj.colorOutput = false
         testObj.continueOnFailure = true
         testObj.refreshOptions = RefreshOptions.fromCommandLineOptions(['dependencies'])
+        testObj.rerunTasks = true;
+        testObj.refreshDependencies = true;
 
         StartParameter startParameter = testObj.newInstance()
         assertEquals(testObj, startParameter)

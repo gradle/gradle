@@ -43,6 +43,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String CACHE = "C";
     private static final String DRY_RUN = "m";
     private static final String NO_OPT = "no-opt";
+    private static final String RERUN_TASKS = "rerun-tasks";
     private static final String EXCLUDE_TASK = "x";
     private static final String PROFILE = "profile";
     private static final String CONTINUE = "continue";
@@ -70,7 +71,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specifies the settings file.");
         parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specifies the build file.");
         parser.option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
-        parser.option(NO_OPT).hasDescription("Ignore any task optimization.");
+        parser.option(NO_OPT).hasDescription("Ignore any task optimization.").deprecated("Use '--rerun-tasks' instead");
+        parser.option(RERUN_TASKS).hasDescription("Ignore previously cached task results.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
         parser.option(CONTINUE).hasDescription("Continues task execution after a task failure.").experimental();
@@ -141,6 +143,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         if (options.hasOption(NO_OPT)) {
             startParameter.setNoOpt(true);
+        }
+
+        if (options.hasOption(RERUN_TASKS)) {
+            startParameter.setRerunTasks(true);
         }
 
         if (options.hasOption(EXCLUDE_TASK)) {
