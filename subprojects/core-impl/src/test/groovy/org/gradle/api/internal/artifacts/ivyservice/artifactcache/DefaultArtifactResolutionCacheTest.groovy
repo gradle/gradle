@@ -66,36 +66,73 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         )
     }
 
-    @Unroll "stores last modified - date = #lastModified"() {
+    @Unroll "stores entry - lastModified = #lastModified, artifactUrl = #artifactUrl"() {
         given:
-        ModuleVersionRepository repo = repo()
-        ArtifactRevisionId arid = arid()
-        File artifactFile = tmp.createFile("artifact") << "content"
-        URL artifactUrl = new File("remote-artifact").toURL()
+        def repo = repo()
+        def arid = arid()
+        def artifactFile = tmp.createFile("artifact") << "content"
         
         when:
         cache.storeArtifactFile(repo, arid, artifactFile, lastModified, artifactUrl)
         
         then:
-        ArtifactResolutionCache.CachedArtifactResolution resolution = cache.getCachedArtifactResolution(repo, arid)
+        def resolution = cache.getCachedArtifactResolution(repo, arid)
         
         and:
         resolution != null
-        resolution.getArtifactLastModified() == lastModified
-        resolution.getArtifactUrl() == artifactUrl
+        resolution.artifactLastModified == lastModified
+        resolution.artifactUrl == artifactUrl
+        resolution.artifactFile == artifactFile
         
+        when:
+        def noUrl = artifactUrl == null
+        def byUrlResolution = noUrl ? null : cache.getCachedArtifactResolution(artifactUrl)
+
+        then:
+        noUrl == (byUrlResolution == null)
+        noUrl || byUrlResolution.artifactLastModified == resolution.artifactLastModified
+        noUrl || byUrlResolution.artifactFile == resolution.artifactFile
+        noUrl || byUrlResolution.artifactUrl == resolution.artifactUrl
+
+
         where:
-        lastModified << [new Date(), null]
+        lastModified | artifactUrl
+        new Date()   | null
+        null         | new File("abc").toURL()
+        null         | null
+        new Date()   | new File("abc").toURL()
     }
-    
-    ModuleVersionRepository repo(id = "repo", name = "repo") {
+
+    def "storing with a different repo but same url overwrites the previous"() {
+        given:
+        def repo1 = repo("repo1")
+        def repo2 = repo("repo2")
+
+        def date1 = new Date()
+        def date2 = date1 + 1
+
+        def url = new File("remote-artifact").toURL()
+        File artifactFile = tmp.createFile("artifact") << "content"
+
+        when:
+        cache.storeArtifactFile(repo1, arid(name: "foo"), artifactFile, date1, url)
+        cache.storeArtifactFile(repo2, arid(name:  "bar"), artifactFile, date2, url)
+        
+        then:
+        def cached = cache.getCachedArtifactResolution(url)
+
+        and:
+        cached.artifactLastModified == date2
+    }
+
+    ModuleVersionRepository repo(id = "repo") {
         new ModuleVersionRepository() {
             String getId() {
                 id            
             }
 
             String getName() {
-                name
+                id
             }
 
             ModuleVersionDescriptor getDependency(DependencyDescriptor dd) {

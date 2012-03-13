@@ -29,9 +29,9 @@ public interface ArtifactResolutionCache {
 
     CachedArtifactResolution getCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifact);
 
+    CachedArtifactResolution getCachedArtifactResolution(URL artifactUrl);
+
     interface CachedArtifactResolution {
-        ArtifactRevisionId getArtifactId();
-        
         File getArtifactFile();
 
         long getAgeMillis();

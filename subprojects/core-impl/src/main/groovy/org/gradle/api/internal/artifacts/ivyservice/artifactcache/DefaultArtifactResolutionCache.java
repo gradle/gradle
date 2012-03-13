@@ -36,6 +36,7 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
     private PersistentIndexedCache<ArtifactAtRepositoryKey, ArtifactResolutionCacheEntry> byRepositoryCache;
+    private PersistentIndexedCache<String, ArtifactResolutionCacheEntry> byUrlCache;
 
     public DefaultArtifactResolutionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
@@ -59,17 +60,45 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
         return "artifacts-by-repository.bin";
     }
 
+    private PersistentIndexedCache<String, ArtifactResolutionCacheEntry> getByUrlCache() {
+        if (byUrlCache == null) {
+            byUrlCache = initByUrlCache();
+        }
+        return byUrlCache;
+    }
+
+    private PersistentIndexedCache<String, ArtifactResolutionCacheEntry> initByUrlCache() {
+        File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), getByUrlFileName());
+        return cacheLockingManager.createCache(artifactResolutionCacheFile, String.class, ArtifactResolutionCacheEntry.class);
+    }
+
+    private String getByUrlFileName() {
+        return "artifacts-by-url.bin";
+    }
+
     public CachedArtifactResolution getCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
-         ArtifactResolutionCacheEntry artifactResolutionCacheEntry = getByRepositoryCache().get(createKey(repository, artifactId));
-        if (artifactResolutionCacheEntry == null) {
+        return toCachedArtifactResolution(getByRepositoryCache().get(createKey(repository, artifactId)));
+    }
+
+    public CachedArtifactResolution getCachedArtifactResolution(URL artifactUrl) {
+        return toCachedArtifactResolution(getByUrlCache().get(artifactUrl.toString()));
+    }
+
+    private CachedArtifactResolution toCachedArtifactResolution(ArtifactResolutionCacheEntry entry) {
+        if (entry == null) {
             return null;
         }
-        Date lastModified = artifactResolutionCacheEntry.artifactLastModifiedTimestamp < 0 ? null : new Date(artifactResolutionCacheEntry.artifactLastModifiedTimestamp);
-        return new DefaultCachedArtifactResolution(artifactId, artifactResolutionCacheEntry, timeProvider, lastModified, artifactResolutionCacheEntry.artifactUrl);
+        Date lastModified = entry.artifactLastModifiedTimestamp < 0 ? null : new Date(entry.artifactLastModifiedTimestamp);
+        return new DefaultCachedArtifactResolution(entry, timeProvider, lastModified, entry.artifactUrl);
     }
 
     public File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File artifactFile, Date lastModified, URL artifactUrl) {
-        getByRepositoryCache().put(createKey(repository, artifactId), createEntry(artifactFile, lastModified, artifactUrl));
+        ArtifactResolutionCacheEntry entry = createEntry(artifactFile, lastModified, artifactUrl);
+        getByRepositoryCache().put(createKey(repository, artifactId), entry);
+        if (artifactUrl != null) {
+            // May overwrite existing entry from a different repository, but that's ok, must be newer
+            getByUrlCache().put(artifactUrl.toString(), entry);
+        }
         return artifactFile;
     }
 
@@ -120,5 +149,6 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
             return toString().hashCode();
         }
     }
+
 
 }

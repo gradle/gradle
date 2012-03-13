@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.artifactcache;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.util.TimeProvider;
 
 import java.io.File;
@@ -24,23 +23,17 @@ import java.net.URL;
 import java.util.Date;
 
 class DefaultCachedArtifactResolution implements ArtifactResolutionCache.CachedArtifactResolution, Serializable {
-    private final ArtifactRevisionId artifactId;
     private final File artifactFile;
     private final long ageMillis;
     private final Date artifactLastModified;
     private final URL artifactUrl;
 
-    public DefaultCachedArtifactResolution(ArtifactRevisionId artifactId, ArtifactResolutionCacheEntry entry, TimeProvider timeProvider,
+    public DefaultCachedArtifactResolution(ArtifactResolutionCacheEntry entry, TimeProvider timeProvider,
                                            Date artifactLastModified, URL artifactUrl) {
-        this.artifactId = artifactId;
         this.artifactFile = entry.artifactFile;
         ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
         this.artifactLastModified = artifactLastModified;
         this.artifactUrl = artifactUrl;
-    }
-
-    public ArtifactRevisionId getArtifactId() {
-        return artifactId;
     }
 
     public File getArtifactFile() {
