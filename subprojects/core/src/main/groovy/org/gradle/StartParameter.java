@@ -28,13 +28,10 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * <p>{@code StartParameter} defines the configuration used by a {@link GradleLauncher} instance to execute a build. The
- * properties of {@code StartParameter} generally correspond to the command-line options of Gradle. You pass a {@code
- * StartParameter} instance to {@link GradleLauncher#newInstance(StartParameter)} when you create a new {@code Gradle}
- * instance.</p>
+ * <p>{@code StartParameter} defines the configuration used by a {@link GradleLauncher} instance to execute a build. The properties of {@code StartParameter} generally correspond to the command-line
+ * options of Gradle. You pass a {@code StartParameter} instance to {@link GradleLauncher#newInstance(StartParameter)} when you create a new {@code Gradle} instance.</p>
  *
- * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing
- * one using {@link #newInstance} or {@link #newBuild}.</p>
+ * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
  *
  * @author Hans Dockter
  * @see GradleLauncher
@@ -62,6 +59,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private List<File> initScripts = new ArrayList<File>();
     private boolean dryRun;
     private boolean noOpt;
+    private boolean rerunTasks;
     private boolean profile;
     private boolean continueOnFailure;
     private boolean offline;
@@ -86,8 +84,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
-     * command-line with no arguments.
+     * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the command-line with no arguments.
      */
     public StartParameter() {
         String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
@@ -127,18 +124,19 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.setShowStacktrace(getShowStacktrace());
         startParameter.dryRun = dryRun;
         startParameter.noOpt = noOpt;
+        startParameter.rerunTasks = rerunTasks;
         startParameter.profile = profile;
         startParameter.projectCacheDir = projectCacheDir;
         startParameter.continueOnFailure = continueOnFailure;
         startParameter.offline = offline;
         startParameter.refreshOptions = refreshOptions;
+        startParameter.refreshDependencies = refreshDependencies;
         return startParameter;
     }
 
     /**
-     * <p>Creates the parameters for a new build, using these parameters as a template. Copies the environmental
-     * properties from this parameter (eg gradle user home dir, etc), but does not copy the build specific properties
-     * (eg task names).</p>
+     * <p>Creates the parameters for a new build, using these parameters as a template. Copies the environmental properties from this parameter (eg gradle user home dir, etc), but does not copy the
+     * build specific properties (eg task names).</p>
      *
      * @return The new parameters.
      */
@@ -166,8 +164,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Returns the build file to use to select the default project. Returns null when the build file is not used to
-     * select the default project.
+     * Returns the build file to use to select the default project. Returns null when the build file is not used to select the default project.
      *
      * @return The build file. May be null.
      */
@@ -176,8 +173,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Sets the build file to use to select the default project. Use null to disable selecting the default project using
-     * the build file.
+     * Sets the build file to use to select the default project. Use null to disable selecting the default project using the build file.
      *
      * @param buildFile The build file. May be null.
      */
@@ -194,9 +190,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     /**
      * Specifies that an empty settings script should be used.
      *
-     * This means that even if a settings file exists in the conventional location,
-     * or has been previously specified by {@link #setSettingsFile(java.io.File)}, it
-     * will not be used.
+     * This means that even if a settings file exists in the conventional location, or has been previously specified by {@link #setSettingsFile(java.io.File)}, it will not be used.
      *
      * If {@link #setSettingsFile(java.io.File)} is called after this, it will supersede calling this method.
      *
@@ -222,15 +216,14 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     /**
      * Returns whether an empty settings script will be used regardless of whether one exists in the default location.
      *
-     * @return  Whether to use empty settings or not.
+     * @return Whether to use empty settings or not.
      */
     public boolean isUseEmptySettings() {
         return useEmptySettings;
     }
 
     /**
-     * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be
-     * executed.
+     * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be executed.
      *
      * @return the names of the tasks to execute in this build. Never returns null.
      */
@@ -239,8 +232,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * <p>Sets the tasks to execute in this build. Set to an empty list, or null, to execute the default tasks for the
-     * project. The tasks are executed in the order provided, subject to dependency between the tasks.</p>
+     * <p>Sets the tasks to execute in this build. Set to an empty list, or null, to execute the default tasks for the project. The tasks are executed in the order provided, subject to dependency
+     * between the tasks.</p>
      *
      * @param taskNames the names of the tasks to execute in this build.
      */
@@ -276,8 +269,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Sets the directory to use to select the default project, and to search for the settings file. Set to null to use
-     * the default current directory.
+     * Sets the directory to use to select the default project, and to search for the settings file. Set to null to use the default current directory.
      *
      * @param currentDir The directory. Should not be null.
      */
@@ -314,9 +306,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Returns a newly constructed map that is the JVM system properties merged with the system property args.
-     * <p>
-     * System property args take precedency overy JVM system properties.
+     * Returns a newly constructed map that is the JVM system properties merged with the system property args. <p> System property args take precedency overy JVM system properties.
      *
      * @return The merged system properties
      */
@@ -351,7 +341,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     public boolean isBuildProjectDependencies() {
         return buildProjectDependencies;
     }
-    
+
     /**
      * Specifies whether project dependencies should be built. Defaults to true.
      *
@@ -404,19 +394,17 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     /**
      * Returns the explicit settings file to use for the build, or null.
      *
-     * Will return null if the default settings file is to be used. However, if {@link #isUseEmptySettings()}
-     * returns true, then no settings file at all will be used.
+     * Will return null if the default settings file is to be used. However, if {@link #isUseEmptySettings()} returns true, then no settings file at all will be used.
      *
-     * @see #isUseEmptySettings()
      * @return The settings file. May be null.
+     * @see #isUseEmptySettings()
      */
     public File getSettingsFile() {
         return settingsFile;
     }
 
     /**
-     * Adds the given file to the list of init scripts that are run before the build starts.  This list is in
-     * addition to the default init scripts.
+     * Adds the given file to the list of init scripts that are run before the build starts.  This list is in addition to the default init scripts.
      *
      * @param initScriptFile The init scripts.
      */
@@ -434,9 +422,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Returns all explicitly added init scripts that will be run before the build starts.  This list does not
-     * contain the user init script located in ${user.home}/.gradle/init.gradle, even though that init script
-     * will also be run.
+     * Returns all explicitly added init scripts that will be run before the build starts.  This list does not contain the user init script located in ${user.home}/.gradle/init.gradle, even though
+     * that init script will also be run.
      *
      * @return list of all explicitly added init scripts.
      */
@@ -445,8 +432,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Sets the project directory to use to select the default project. Use null to use the default criteria for
-     * selecting the default project.
+     * Sets the project directory to use to select the default project. Use null to use the default criteria for selecting the default project.
      *
      * @param projectDir The project directory. May be null.
      */
@@ -510,8 +496,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-      * Specifies whether the build should be performed offline (ie without network access).
-      */
+     * Specifies whether the build should be performed offline (ie without network access).
+     */
     public void setOffline(boolean offline) {
         this.offline = offline;
     }
@@ -530,12 +516,23 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         return refreshOptions;
     }
 
-    public boolean isRefreshDependencies(){
+    public boolean isRefreshDependencies() {
         return refreshDependencies;
     }
+
     public void setRefreshDependencies(boolean refreshDependencies) {
-            this.refreshDependencies = refreshDependencies;
-        }
+        this.refreshDependencies = refreshDependencies;
+    }
+
+
+    public boolean isRerunTasks() {
+        return rerunTasks;
+    }
+
+    public void setRerunTasks(boolean rerunTasks) {
+        this.rerunTasks = rerunTasks;
+    }
+
 
     @Override
     public String toString() {
@@ -554,6 +551,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", initScripts=" + initScripts
                 + ", dryRun=" + dryRun
                 + ", noOpt=" + noOpt
+                + ", rerunTasks=" + rerunTasks
                 + ", offline=" + offline
                 + ", refreshDependencies=" + refreshDependencies
                 + '}';
