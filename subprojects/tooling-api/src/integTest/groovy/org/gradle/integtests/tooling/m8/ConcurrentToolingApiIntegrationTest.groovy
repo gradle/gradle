@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
-import org.gradle.integtests.fixtures.ReleasedVersions
+import org.gradle.integtests.fixtures.versions.ReleasedVersions
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion

@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.integtests.fixtures.versions.ReleasedVersions;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.Jvm;
 
