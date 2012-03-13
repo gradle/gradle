@@ -165,7 +165,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         if (options.hasOption(REFRESH_DEPENDENCIES)) {
-            RefreshOptions refreshOptions = RefreshOptions.fromCommandLineOptions(options.option(REFRESH).getValues());
             startParameter.setRefreshDependencies(true);
         }
 
