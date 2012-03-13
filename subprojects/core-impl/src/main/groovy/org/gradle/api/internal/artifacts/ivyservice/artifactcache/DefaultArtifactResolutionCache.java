@@ -29,6 +29,9 @@ import java.io.File;
 import java.io.Serializable;
 
 public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
+
+    public static final int VERSION = 2;
+    
     private final TimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
@@ -48,8 +51,12 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
     }
 
     private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> initCache() {
-        File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), "artifacts.bin");
+        File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), getFileName());
         return cacheLockingManager.createCache(artifactResolutionCacheFile, RevisionKey.class, ArtifactResolutionCacheEntry.class);
+    }
+
+    private String getFileName() {
+        return String.format("artifacts-%d.bin", VERSION);
     }
 
     public CachedArtifactResolution getCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
@@ -86,7 +93,7 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
     }
 
     private ArtifactResolutionCacheEntry createEntry(File artifactFile) {
-        return new ArtifactResolutionCacheEntry(artifactFile, timeProvider);
+        return new ArtifactResolutionCacheEntry(artifactFile, timeProvider, -1);
     }
 
     private static class RevisionKey implements Serializable {

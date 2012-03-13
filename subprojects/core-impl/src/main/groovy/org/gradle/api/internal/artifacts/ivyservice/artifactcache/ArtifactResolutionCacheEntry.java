@@ -23,9 +23,11 @@ import java.io.Serializable;
 class ArtifactResolutionCacheEntry implements Serializable {
     public File artifactFile;
     public long createTimestamp;
+    public long artifactLastModifiedTimestamp; // < 0 means unknown
 
-    ArtifactResolutionCacheEntry(File artifactFile, TimeProvider timeProvider) {
+    ArtifactResolutionCacheEntry(File artifactFile, TimeProvider timeProvider, long artifactLastModifiedTimestamp) {
         this.artifactFile = artifactFile;
         this.createTimestamp = timeProvider.getCurrentTime();
+        this.artifactLastModifiedTimestamp = artifactLastModifiedTimestamp;
     }
 }
