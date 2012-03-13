@@ -24,8 +24,10 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.util.hash.HashValue;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
 
 public class PatternBasedExternalArtifactCache implements ExternalArtifactCache {
@@ -37,15 +39,36 @@ public class PatternBasedExternalArtifactCache implements ExternalArtifactCache 
         this.pattern = pattern;
     }
 
-    public void addMatchingCachedArtifacts(ArtifactRevisionId artifactId, final List<CachedArtifact> cachedArtifactList) {
-        if (artifactId == null) {
-            return;
+    public CachedArtifactCandidates findCandidates(final ArtifactRevisionId artifactId) {
+        final List<CachedArtifact> cachedArtifacts = new LinkedList<CachedArtifact>();
+
+        if (artifactId != null) {
+            getMatchingFiles(artifactId).visit(new EmptyFileVisitor() {
+                public void visitFile(FileVisitDetails fileDetails) {
+                    cachedArtifacts.add(new DefaultCachedArtifact(fileDetails.getFile()));
+                }
+            });
         }
-        getMatchingFiles(artifactId).visit(new EmptyFileVisitor() {
-            public void visitFile(FileVisitDetails fileDetails) {
-                cachedArtifactList.add(new DefaultCachedArtifact(fileDetails.getFile()));
+
+        return new CachedArtifactCandidates() {
+            public ArtifactRevisionId getArtifactId() {
+                return artifactId;
             }
-        });
+
+            public boolean isMightFindBySha1() {
+                return !cachedArtifacts.isEmpty();
+            }
+
+            public CachedArtifact findBySha1(HashValue sha1) {
+                for (CachedArtifact cachedArtifact : cachedArtifacts) {
+                    if (cachedArtifact.getSha1().equals(sha1)) {
+                        return cachedArtifact;
+                    }
+                }
+
+                return null;
+            }
+        };
     }
 
     private DirectoryFileTree getMatchingFiles(ArtifactRevisionId artifact) {

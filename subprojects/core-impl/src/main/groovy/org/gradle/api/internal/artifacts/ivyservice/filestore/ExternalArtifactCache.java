@@ -16,9 +16,29 @@
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
-
-import java.util.List;
+import org.gradle.util.hash.HashValue;
 
 public interface ExternalArtifactCache {
-    void addMatchingCachedArtifacts(ArtifactRevisionId artifactId, List<CachedArtifact> cachedArtifactList);
+    CachedArtifactCandidates findCandidates(ArtifactRevisionId artifactId);
+
+    interface CachedArtifactCandidates {
+        ArtifactRevisionId getArtifactId();
+
+        /**
+         * Indicates whether there is any chance that a match may be found by sha1.
+         *
+         * This allows clients to avoid obtaining the sha1 if it's not going to be useful.
+         *
+         * @return Whether there's any chance a match can be found by sha1.
+         */
+        boolean isMightFindBySha1();
+
+        /**
+         * Finds the best/first cached artifact within the candidates that matches the given sha1
+         *
+         * @param sha1 The sha1 to use to search
+         * @return A cached artifact if there is one matching the checksum, otherwise null
+         */
+        CachedArtifact findBySha1(HashValue sha1);
+    }
 }

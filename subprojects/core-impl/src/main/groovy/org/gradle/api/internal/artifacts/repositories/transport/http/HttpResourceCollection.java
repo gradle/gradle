@@ -107,11 +107,11 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         LOGGER.debug("Constructing GET resource: {}", source);
         
         List<CachedArtifact> candidateArtifacts = new ArrayList<CachedArtifact>();
-        externalArtifactCache.addMatchingCachedArtifacts(artifactId, candidateArtifacts);
+        ExternalArtifactCache.CachedArtifactCandidates cachedCandidates = externalArtifactCache.findCandidates(artifactId);
 
         // First see if we can use any of the candidates directly.
-        if (candidateArtifacts.size() > 0) {
-            CachedHttpResource cachedResource = findCachedResource(source, candidateArtifacts);
+        if (cachedCandidates.isMightFindBySha1()) {
+            CachedHttpResource cachedResource = findCachedResourceBySha1(source, cachedCandidates);
             if (cachedResource != null) {
                 return cachedResource;
             }
@@ -155,7 +155,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         };
     }
 
-    private CachedHttpResource findCachedResource(String source, List<CachedArtifact> candidates) {
+    private CachedHttpResource findCachedResourceBySha1(String source, ExternalArtifactCache.CachedArtifactCandidates candidates) {
         String checksumType = "SHA-1";
         String checksumUrl = source + ".sha1";
 
@@ -163,12 +163,12 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         if (sha1 == null) {
             LOGGER.info("Checksum {} unavailable. [HTTP GET: {}]", checksumType, checksumUrl);
         } else {
-            for (CachedArtifact candidate : candidates) {
-                if (candidate.getSha1().equals(sha1)) {
-                    LOGGER.info("Checksum {} matched cached resource: [HTTP GET: {}]", checksumType, checksumUrl);
-                    return new CachedHttpResource(source, candidate, HttpResourceCollection.this);
-                }
+            CachedArtifact cached = candidates.findBySha1(sha1);
+            if (cached != null) {
+                LOGGER.info("Checksum {} matched cached resource: [HTTP GET: {}]", checksumType, checksumUrl);
+                return new CachedHttpResource(source, cached, HttpResourceCollection.this);
             }
+
             LOGGER.info("Checksum {} did not match cached resources: [HTTP GET: {}]", checksumType, checksumUrl);
         }
         return null;

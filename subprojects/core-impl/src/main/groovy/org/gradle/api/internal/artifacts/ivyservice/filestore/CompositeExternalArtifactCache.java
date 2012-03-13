@@ -16,8 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.gradle.util.hash.HashValue;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class CompositeExternalArtifactCache implements ExternalArtifactCache {
@@ -27,9 +29,39 @@ public class CompositeExternalArtifactCache implements ExternalArtifactCache {
         delegates.add(externalArtifactCache);
     }
     
-    public void addMatchingCachedArtifacts(ArtifactRevisionId artifactId, List<CachedArtifact> cachedArtifactList) {
+    public CachedArtifactCandidates findCandidates(final ArtifactRevisionId artifactId) {
+        final List<CachedArtifactCandidates> allCandidates = new LinkedList<CachedArtifactCandidates>();
+        
         for (ExternalArtifactCache delegate : delegates) {
-            delegate.addMatchingCachedArtifacts(artifactId, cachedArtifactList);
+            allCandidates.add(delegate.findCandidates(artifactId));
         }
+
+        return new CachedArtifactCandidates() {
+            public ArtifactRevisionId getArtifactId() {
+                return artifactId;
+            }
+
+            public boolean isMightFindBySha1() {
+                for (CachedArtifactCandidates candidates : allCandidates) {
+                    if (candidates.isMightFindBySha1()) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            public CachedArtifact findBySha1(HashValue sha1) {
+                CachedArtifact found;
+                for (CachedArtifactCandidates candidates : allCandidates) {
+                    found = candidates.findBySha1(sha1);
+                    if (found != null) {
+                        return found;
+                    }
+                }
+
+                return null;
+            }
+        };
     }
 }
