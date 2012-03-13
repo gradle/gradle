@@ -17,11 +17,7 @@
 package org.gradle.peformance.fixture
 
 import org.gradle.api.logging.Logging
-import org.gradle.integtests.fixtures.BasicGradleDistribution
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.GradleExecuter
-import org.gradle.integtests.fixtures.versions.ReleasedVersions
+import org.gradle.integtests.fixtures.*
 
 public class PerformanceTestRunner {
     
