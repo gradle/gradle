@@ -27,6 +27,7 @@ import org.gradle.util.TimeProvider;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Date;
 
 public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
 
@@ -64,15 +65,16 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
         if (artifactResolutionCacheEntry == null) {
             return null;
         }
-        return new DefaultCachedArtifactResolution(artifactId, artifactResolutionCacheEntry, timeProvider);
+        Date lastModified = artifactResolutionCacheEntry.artifactLastModifiedTimestamp < 0 ? null : new Date(artifactResolutionCacheEntry.artifactLastModifiedTimestamp);
+        return new DefaultCachedArtifactResolution(artifactId, artifactResolutionCacheEntry, timeProvider, lastModified);
     }
 
-    public File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File artifactFile) {
+    public File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File artifactFile, Date lastModified) {
         if (artifactFile == null) {
-            getCache().put(createKey(repository, artifactId), createEntry(null));
+            getCache().put(createKey(repository, artifactId), createEntry(null, lastModified));
             return null;
         } else {
-            getCache().put(createKey(repository, artifactId), createEntry(artifactFile));
+            getCache().put(createKey(repository, artifactId), createEntry(artifactFile, lastModified));
             return artifactFile;
         }
     }
@@ -92,8 +94,8 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
         return IvyPatternHelper.substitute(format, dummyArtifact);
     }
 
-    private ArtifactResolutionCacheEntry createEntry(File artifactFile) {
-        return new ArtifactResolutionCacheEntry(artifactFile, timeProvider, -1);
+    private ArtifactResolutionCacheEntry createEntry(File artifactFile, Date lastModified) {
+        return new ArtifactResolutionCacheEntry(artifactFile, timeProvider, lastModified == null ? -1 : lastModified.getTime());
     }
 
     private static class RevisionKey implements Serializable {

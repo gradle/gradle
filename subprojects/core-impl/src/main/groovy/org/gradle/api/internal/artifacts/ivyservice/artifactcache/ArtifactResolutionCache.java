@@ -19,9 +19,10 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 
 import java.io.File;
+import java.util.Date;
 
 public interface ArtifactResolutionCache {
-    File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifact, File artifactFile);
+    File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifact, File artifactFile, Date lastModified);
 
     void expireCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifact);
 
@@ -33,5 +34,12 @@ public interface ArtifactResolutionCache {
         File getArtifactFile();
 
         long getAgeMillis();
+
+        /**
+         * The last modified date that the artifact advertised when we cached it.
+         *
+         * @return The last modified date, or null if it was unknown.
+         */
+        Date getArtifactLastModified();
     }
 }
