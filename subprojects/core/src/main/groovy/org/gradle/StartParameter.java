@@ -67,6 +67,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean offline;
     private RefreshOptions refreshOptions = RefreshOptions.NONE;
     private File projectCacheDir;
+    private boolean refreshDependencies;
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -152,6 +153,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.continueOnFailure = continueOnFailure;
         startParameter.offline = offline;
         startParameter.refreshOptions = refreshOptions;
+        startParameter.refreshDependencies = refreshDependencies;
         return startParameter;
     }
 
@@ -528,6 +530,13 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         return refreshOptions;
     }
 
+    public boolean isRefreshDependencies(){
+        return refreshDependencies;
+    }
+    public void setRefreshDependencies(boolean refreshDependencies) {
+            this.refreshDependencies = refreshDependencies;
+        }
+
     @Override
     public String toString() {
         return "StartParameter{"
@@ -545,7 +554,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", initScripts=" + initScripts
                 + ", dryRun=" + dryRun
                 + ", noOpt=" + noOpt
-                + ", profile=" + profile
+                + ", offline=" + offline
+                + ", refreshDependencies=" + refreshDependencies
                 + '}';
     }
 }

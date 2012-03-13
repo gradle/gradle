@@ -52,7 +52,7 @@ public class StartParameterResolutionOverride {
                     artifactResolutionControl.useCachedResult();
                 }
             });
-        } else if (startParameter.getRefreshOptions().refreshDependencies()) {
+        } else if (startParameter.isRefreshDependencies() || startParameter.getRefreshOptions().refreshDependencies()) {
             resolutionRules.eachDependency(new Action<DependencyResolutionControl>() {
                 public void execute(DependencyResolutionControl dependencyResolutionControl) {
                     dependencyResolutionControl.cacheFor(0, TimeUnit.SECONDS);

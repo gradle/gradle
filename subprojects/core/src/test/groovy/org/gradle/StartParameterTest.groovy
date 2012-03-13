@@ -73,6 +73,7 @@ class StartParameterTest {
         assertFalse(parameter.dryRun)
         assertFalse(parameter.continueOnFailure)
         assertThat(parameter.refreshOptions, equalTo(RefreshOptions.NONE))
+        assertFalse(parameter.refreshDependencies)
         assertThat(parameter, isSerializable())
     }
 
@@ -181,6 +182,8 @@ class StartParameterTest {
         parameter.excludedTaskNames = ['excluded1']
         parameter.dryRun = true
         parameter.continueOnFailure = true
+        parameter.refreshDependencies = true
+
         assertThat(parameter, isSerializable())
 
         StartParameter newParameter = parameter.newBuild();
@@ -192,6 +195,7 @@ class StartParameterTest {
         assertThat(newParameter.logLevel, equalTo(parameter.logLevel));
         assertThat(newParameter.colorOutput, equalTo(parameter.colorOutput));
         assertThat(newParameter.continueOnFailure, equalTo(parameter.continueOnFailure))
+        assertThat(newParameter.refreshDependencies, equalTo(parameter.refreshDependencies))
 
         assertThat(newParameter.buildFile, nullValue())
         assertThat(newParameter.taskNames, isEmpty())
