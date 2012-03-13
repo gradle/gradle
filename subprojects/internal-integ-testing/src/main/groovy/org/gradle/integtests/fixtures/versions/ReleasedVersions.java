@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures;
+package org.gradle.integtests.fixtures.versions;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
-import org.gradle.integtests.fixtures.versions.VersionsInfo;
+import org.gradle.integtests.fixtures.BasicGradleDistribution;
+import org.gradle.integtests.fixtures.GradleDistribution;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 

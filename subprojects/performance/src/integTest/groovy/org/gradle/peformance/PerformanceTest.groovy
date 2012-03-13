@@ -17,7 +17,7 @@
 package org.gradle.peformance
 
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.ReleasedVersions
+import org.gradle.integtests.fixtures.versions.ReleasedVersions
 import org.gradle.peformance.fixture.PerformanceTestRunner
 import spock.lang.Specification
 import spock.lang.Unroll
