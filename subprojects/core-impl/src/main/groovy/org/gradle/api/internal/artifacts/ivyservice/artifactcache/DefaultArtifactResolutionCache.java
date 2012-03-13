@@ -30,13 +30,11 @@ import java.io.Serializable;
 import java.util.Date;
 
 public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
-
-    public static final int VERSION = 2;
     
     private final TimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
-    private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> cache;
+    private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> byRepositoryCache;
 
     public DefaultArtifactResolutionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
@@ -44,24 +42,24 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
         this.cacheMetadata = cacheMetadata;
     }
     
-    private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> getCache() {
-        if (cache == null) {
-            cache = initCache();
+    private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> getByRepositoryCache() {
+        if (byRepositoryCache == null) {
+            byRepositoryCache = initByRepositoryCache();
         }
-        return cache;
+        return byRepositoryCache;
     }
 
-    private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> initCache() {
-        File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), getFileName());
+    private PersistentIndexedCache<RevisionKey, ArtifactResolutionCacheEntry> initByRepositoryCache() {
+        File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), getByRepositoryFileName());
         return cacheLockingManager.createCache(artifactResolutionCacheFile, RevisionKey.class, ArtifactResolutionCacheEntry.class);
     }
 
-    private String getFileName() {
-        return String.format("artifacts-%d.bin", VERSION);
+    private String getByRepositoryFileName() {
+        return "artifacts-by-repository.bin";
     }
 
     public CachedArtifactResolution getCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
-         ArtifactResolutionCacheEntry artifactResolutionCacheEntry = getCache().get(createKey(repository, artifactId));
+         ArtifactResolutionCacheEntry artifactResolutionCacheEntry = getByRepositoryCache().get(createKey(repository, artifactId));
         if (artifactResolutionCacheEntry == null) {
             return null;
         }
@@ -70,12 +68,12 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
     }
 
     public File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File artifactFile, Date lastModified) {
-        getCache().put(createKey(repository, artifactId), createEntry(artifactFile, lastModified));
+        getByRepositoryCache().put(createKey(repository, artifactId), createEntry(artifactFile, lastModified));
         return artifactFile;
     }
 
     public void expireCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifact) {
-        getCache().remove(createKey(repository, artifact));
+        getByRepositoryCache().remove(createKey(repository, artifact));
     }
 
     private RevisionKey createKey(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
