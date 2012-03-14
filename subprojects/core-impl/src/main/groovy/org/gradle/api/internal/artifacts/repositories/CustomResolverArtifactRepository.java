@@ -27,31 +27,34 @@ public class CustomResolverArtifactRepository extends FixedResolverArtifactRepos
     public CustomResolverArtifactRepository(DependencyResolver resolver, RepositoryTransportFactory repositoryTransportFactory) {
         super(resolver);
         this.repositoryTransportFactory = repositoryTransportFactory;
-        attachListener(resolver);
-        configureCacheManager(resolver);
+        configureResolver(resolver, true);
     }
 
-    private void configureCacheManager(DependencyResolver resolver) {
-        if (resolver instanceof AbstractResolver) {
-            ((AbstractResolver) resolver).setRepositoryCacheManager(repositoryTransportFactory.getDownloadingCacheManager());
+    private void configureResolver(DependencyResolver dependencyResolver, boolean isTopLevel) {
+        if (isTopLevel) {
+            if (resolver instanceof AbstractResolver && !(resolver instanceof FileSystemResolver)) {
+                ((AbstractResolver) resolver).setRepositoryCacheManager(repositoryTransportFactory.getDownloadingCacheManager());
+            }
         }
-    }
-
-    private void attachListener(DependencyResolver dependencyResolver) {
+        
+        if (dependencyResolver instanceof FileSystemResolver) {
+            ((FileSystemResolver) dependencyResolver).setLocal(true);
+            ((FileSystemResolver) dependencyResolver).setRepositoryCacheManager(repositoryTransportFactory.getLocalCacheManager());
+        }
         if (dependencyResolver instanceof RepositoryResolver) {
             Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
             repositoryTransportFactory.attachListener(repository);
         }
         if (dependencyResolver instanceof DualResolver) {
             DualResolver dualResolver = (DualResolver) dependencyResolver;
-            attachListener(dualResolver.getIvyResolver());
-            attachListener(dualResolver.getArtifactResolver());
+            configureResolver(dualResolver.getIvyResolver(), false);
+            configureResolver(dualResolver.getArtifactResolver(), false);
         }
         if (dependencyResolver instanceof ChainResolver) {
             ChainResolver chainResolver = (ChainResolver) dependencyResolver;
-            List<DependencyResolver> resolvers = chainResolver.getResolvers();
+            @SuppressWarnings("unchecked") List<DependencyResolver> resolvers = chainResolver.getResolvers();
             for (DependencyResolver resolver : resolvers) {
-                attachListener(resolver);
+                configureResolver(resolver, false);
             }
         }
     }
