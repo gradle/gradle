@@ -27,7 +27,6 @@ import org.gradle.util.TimeProvider;
 
 import java.io.File;
 import java.io.Serializable;
-import java.net.URL;
 import java.util.Date;
 
 public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
@@ -80,8 +79,8 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
         return toCachedArtifactResolution(getByRepositoryCache().get(createKey(repository, artifactId)));
     }
 
-    public CachedArtifactResolution getCachedArtifactResolution(URL artifactUrl) {
-        return toCachedArtifactResolution(getByUrlCache().get(artifactUrl.toString()));
+    public CachedArtifactResolution getCachedArtifactResolution(String artifactUrl) {
+        return toCachedArtifactResolution(getByUrlCache().get(artifactUrl));
     }
 
     private CachedArtifactResolution toCachedArtifactResolution(ArtifactResolutionCacheEntry entry) {
@@ -92,7 +91,7 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
         return new DefaultCachedArtifactResolution(entry, timeProvider, lastModified, entry.artifactUrl);
     }
 
-    public File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File artifactFile, Date lastModified, URL artifactUrl) {
+    public File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifactId, File artifactFile, Date lastModified, String artifactUrl) {
         ArtifactResolutionCacheEntry entry = createEntry(artifactFile, lastModified, artifactUrl);
         getByRepositoryCache().put(createKey(repository, artifactId), entry);
         if (artifactUrl != null) {
@@ -117,7 +116,7 @@ public class DefaultArtifactResolutionCache implements ArtifactResolutionCache {
         return IvyPatternHelper.substitute(format, dummyArtifact);
     }
 
-    private ArtifactResolutionCacheEntry createEntry(File artifactFile, Date lastModified, URL artifactUrl) {
+    private ArtifactResolutionCacheEntry createEntry(File artifactFile, Date lastModified, String artifactUrl) {
         return new ArtifactResolutionCacheEntry(artifactFile, timeProvider, lastModified == null ? -1 : lastModified.getTime(), artifactUrl);
     }
 

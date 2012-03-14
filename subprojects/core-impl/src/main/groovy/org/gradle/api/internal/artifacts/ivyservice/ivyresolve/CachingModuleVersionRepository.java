@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.artifactcache.CachedArtifactResolution;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
@@ -191,7 +192,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         }
 
         // Look in the cache for this resolver
-        ArtifactResolutionCache.CachedArtifactResolution cachedArtifactResolution = artifactResolutionCache.getCachedArtifactResolution(delegate, artifact.getId());
+        CachedArtifactResolution cachedArtifactResolution = artifactResolutionCache.getCachedArtifactResolution(delegate, artifact.getId());
         if (cachedArtifactResolution != null) {
             ArtifactIdentifier artifactIdentifier = createArtifactIdentifier(artifact);
             File cachedArtifactFile = cachedArtifactResolution.getArtifactFile();

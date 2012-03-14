@@ -19,15 +19,14 @@ import org.gradle.util.TimeProvider;
 
 import java.io.File;
 import java.io.Serializable;
-import java.net.URL;
 
 class ArtifactResolutionCacheEntry implements Serializable {
     public File artifactFile;
     public long createTimestamp;
     public long artifactLastModifiedTimestamp; // < 0 means unknown
-    public URL artifactUrl; // null means unknown
+    public String artifactUrl; // null means unknown
 
-    ArtifactResolutionCacheEntry(File artifactFile, TimeProvider timeProvider, long artifactLastModifiedTimestamp, URL artifactUrl) {
+    ArtifactResolutionCacheEntry(File artifactFile, TimeProvider timeProvider, long artifactLastModifiedTimestamp, String artifactUrl) {
         this.artifactFile = artifactFile;
         this.createTimestamp = timeProvider.getCurrentTime();
         this.artifactLastModifiedTimestamp = artifactLastModifiedTimestamp;
