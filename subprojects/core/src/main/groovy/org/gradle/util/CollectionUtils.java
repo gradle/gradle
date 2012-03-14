@@ -51,7 +51,7 @@ public abstract class CollectionUtils {
     }
 
     public static <R, I> List<R> collect(List<? extends I> list, Transformer<R, I> transformer) {
-        return collect(list, new LinkedList<R>(), transformer);
+        return collect(list, new ArrayList<R>(list.size()), transformer);
     }
 
     public static <R, I> Set<R> collect(Set<? extends I> set, Transformer<R, I> transformer) {
