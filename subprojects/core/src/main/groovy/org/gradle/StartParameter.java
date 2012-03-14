@@ -67,7 +67,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private File projectCacheDir;
     private boolean refreshDependencies;
     private boolean recompileScripts;
-    
+
     /**
      * Sets the project's cache location. Set to null to use the default location.
      */
@@ -520,27 +520,44 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         return refreshOptions;
     }
 
+    /**
+     * Specifies whether the depencendies should be refreshed..
+     */
     public boolean isRefreshDependencies() {
         return refreshDependencies;
     }
 
+    /**
+     * Specifies whether the depencendies should be refreshed..
+     */
     public void setRefreshDependencies(boolean refreshDependencies) {
         this.refreshDependencies = refreshDependencies;
     }
 
-
+    /**
+     * Specifies whether the cached task results should be ignored and each task should be forced to be executed.
+     */
     public boolean isRerunTasks() {
         return rerunTasks;
     }
 
+    /**
+     * Specifies whether the cached task results should be ignored and each task should be forced to be executed.
+     */
     public void setRerunTasks(boolean rerunTasks) {
         this.rerunTasks = rerunTasks;
     }
 
+    /**
+     * Specifies whether the build scripts should be recompiled.
+     */
     public boolean isRecompileScripts() {
         return recompileScripts;
     }
 
+    /**
+     * Specifies whether the build scripts should be recompiled.
+     */
     public void setRecompileScripts(boolean recompileScripts) {
         this.recompileScripts = recompileScripts;
     }
