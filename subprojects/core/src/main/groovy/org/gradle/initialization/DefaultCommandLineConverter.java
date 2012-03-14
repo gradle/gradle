@@ -51,6 +51,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String REFRESH = "refresh";
     private static final String REFRESH_DEPENDENCIES = "refresh-dependencies";
     private static final String PROJECT_CACHE_DIR = "project-cache-dir";
+    private static final String RECOMPILE_SCRIPTS = "recompile-scripts";
 
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
@@ -62,7 +63,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         projectPropertiesCommandLineConverter.configure(parser);
         parser.allowMixedSubcommandsAndOptions();
         parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
-        parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
+        parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'")
+                    .deprecated("Use '--rerun-tasks' and 'recompile-scripts' instead");
         parser.option(PROJECT_CACHE_DIR).hasArgument().hasDescription("Specifies the project-specific cache directory. Defaults to .gradle in the root project directory.");
         parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
         parser.option(PROJECT_DIR, "project-dir").hasArgument().hasDescription("Specifies the start directory for Gradle. Defaults to current directory.");
@@ -73,6 +75,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
         parser.option(NO_OPT).hasDescription("Ignore any task optimization.").deprecated("Use '--rerun-tasks' instead");
         parser.option(RERUN_TASKS).hasDescription("Ignore previously cached task results.");
+        parser.option(RECOMPILE_SCRIPTS).hasDescription("Force build script recompiling.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
         parser.option(CONTINUE).hasDescription("Continues task execution after a task failure.").experimental();
@@ -147,6 +150,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         if (options.hasOption(RERUN_TASKS)) {
             startParameter.setRerunTasks(true);
+        }
+
+        if (options.hasOption(RECOMPILE_SCRIPTS)) {
+            startParameter.setRecompileScripts(true);
         }
 
         if (options.hasOption(EXCLUDE_TASK)) {

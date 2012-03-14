@@ -66,7 +66,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private RefreshOptions refreshOptions = RefreshOptions.NONE;
     private File projectCacheDir;
     private boolean refreshDependencies;
-
+    private boolean recompileScripts;
+    
     /**
      * Sets the project's cache location. Set to null to use the default location.
      */
@@ -125,6 +126,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.dryRun = dryRun;
         startParameter.noOpt = noOpt;
         startParameter.rerunTasks = rerunTasks;
+        startParameter.recompileScripts = recompileScripts;
         startParameter.profile = profile;
         startParameter.projectCacheDir = projectCacheDir;
         startParameter.continueOnFailure = continueOnFailure;
@@ -151,6 +153,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         startParameter.continueOnFailure = continueOnFailure;
         startParameter.offline = offline;
         startParameter.refreshOptions = refreshOptions;
+        startParameter.rerunTasks = rerunTasks;
+        startParameter.recompileScripts = recompileScripts;
         startParameter.refreshDependencies = refreshDependencies;
         return startParameter;
     }
@@ -533,6 +537,13 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         this.rerunTasks = rerunTasks;
     }
 
+    public boolean isRecompileScripts() {
+        return recompileScripts;
+    }
+
+    public void setRecompileScripts(boolean recompileScripts) {
+        this.recompileScripts = recompileScripts;
+    }
 
     @Override
     public String toString() {
@@ -552,6 +563,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", dryRun=" + dryRun
                 + ", noOpt=" + noOpt
                 + ", rerunTasks=" + rerunTasks
+                + ", recompileScripts=" + recompileScripts
                 + ", offline=" + offline
                 + ", refreshDependencies=" + refreshDependencies
                 + '}';

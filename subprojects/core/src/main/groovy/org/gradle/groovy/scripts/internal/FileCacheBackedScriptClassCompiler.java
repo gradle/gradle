@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts.internal;
 import groovy.lang.Script;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
@@ -33,9 +34,11 @@ import java.util.Map;
 public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final CacheRepository cacheRepository;
+    private final CacheValidator validator;
 
-    public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, ScriptCompilationHandler scriptCompilationHandler) {
+    public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler) {
         this.cacheRepository = cacheRepository;
+        this.validator = validator;
         this.scriptCompilationHandler = scriptCompilationHandler;
     }
 
@@ -47,6 +50,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
         String cacheName = String.format("scripts/%s/%s/%s", source.getClassName(), scriptBaseClass.getSimpleName(), transformer.getId());
         PersistentCache cache = cacheRepository.cache(cacheName)
                 .withProperties(properties)
+                .withValidator(validator)
                 .withDisplayName(String.format("%s class cache for %s", transformer.getId(), source.getDisplayName()))
                 .withInitializer(new CacheInitializer(source, classLoader, transformer, scriptBaseClass)).open();
 

@@ -53,6 +53,7 @@ class StartParameterTest {
         testObj.refreshOptions = RefreshOptions.fromCommandLineOptions(['dependencies'])
         testObj.rerunTasks = true;
         testObj.refreshDependencies = true;
+        testObj.recompileScripts = true;
 
         StartParameter startParameter = testObj.newInstance()
         assertEquals(testObj, startParameter)
@@ -75,6 +76,8 @@ class StartParameterTest {
         assertFalse(parameter.dryRun)
         assertFalse(parameter.continueOnFailure)
         assertThat(parameter.refreshOptions, equalTo(RefreshOptions.NONE))
+        assertThat(parameter.rerunTasks, equalTo(false))
+        assertThat(parameter.recompileScripts, equalTo(false))
         assertFalse(parameter.refreshDependencies)
         assertThat(parameter, isSerializable())
     }
@@ -184,6 +187,8 @@ class StartParameterTest {
         parameter.excludedTaskNames = ['excluded1']
         parameter.dryRun = true
         parameter.continueOnFailure = true
+        parameter.recompileScripts = true
+        parameter.rerunTasks = true
         parameter.refreshDependencies = true
 
         assertThat(parameter, isSerializable())
@@ -198,6 +203,8 @@ class StartParameterTest {
         assertThat(newParameter.colorOutput, equalTo(parameter.colorOutput));
         assertThat(newParameter.continueOnFailure, equalTo(parameter.continueOnFailure))
         assertThat(newParameter.refreshDependencies, equalTo(parameter.refreshDependencies))
+        assertThat(newParameter.rerunTasks, equalTo(parameter.rerunTasks))
+        assertThat(newParameter.recompileScripts, equalTo(parameter.recompileScripts))
 
         assertThat(newParameter.buildFile, nullValue())
         assertThat(newParameter.taskNames, isEmpty())

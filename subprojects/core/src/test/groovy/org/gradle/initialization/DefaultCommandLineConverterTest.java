@@ -340,6 +340,21 @@ public class DefaultCommandLineConverterTest {
     }
 
     @Test
+    public void withRefreshDependencies() {
+        checkConversion("--refresh-dependencies");
+    }
+
+    @Test
+    public void withRerunTasks() {
+        checkConversion("--rerun-tasks");
+    }
+
+    @Test
+    public void withRecompileScripts() {
+        checkConversion("--recompile-scripts");
+    }
+
+    @Test
     public void withRefreshDependenciesSet() {
         expectedRefreshOptions = new RefreshOptions(asList(RefreshOptions.Option.DEPENDENCIES));
         checkConversion("--refresh", "dependencies");
@@ -360,5 +375,4 @@ public class DefaultCommandLineConverterTest {
         expectedTaskNames = toList("someTask", "--some-task-option");
         checkConversion("someTask", "--some-task-option");
     }
-    
 }

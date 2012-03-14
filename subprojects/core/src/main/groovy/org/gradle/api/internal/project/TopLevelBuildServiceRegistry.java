@@ -34,6 +34,7 @@ import org.gradle.api.internal.project.taskfactory.DependencyAutoWireTaskFactory
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CacheValidator;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
 import org.gradle.configuration.*;
@@ -143,11 +144,17 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected ScriptCompilerFactory createScriptCompileFactory() {
         ScriptExecutionListener scriptExecutionListener = get(ListenerManager.class).getBroadcaster(ScriptExecutionListener.class);
         EmptyScriptGenerator emptyScriptGenerator = new AsmBackedEmptyScriptGenerator();
+        CacheValidator scriptCacheInvalidator =  new CacheValidator() {
+            public boolean isValid() {
+                return !get(StartParameter.class).isRecompileScripts();
+            }
+        };
         return new DefaultScriptCompilerFactory(
                 new CachingScriptClassCompiler(
                         new ShortCircuitEmptyScriptCompiler(
                                 new FileCacheBackedScriptClassCompiler(
                                         get(CacheRepository.class),
+                                        scriptCacheInvalidator,
                                         new DefaultScriptCompilationHandler(
                                                 emptyScriptGenerator)),
                                 emptyScriptGenerator)),
