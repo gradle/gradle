@@ -38,6 +38,7 @@ import org.gradle.api.internal.artifacts.ivyservice.artifactcache.DefaultArtifac
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactResolutionCacheArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.DefaultArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCacheBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
@@ -219,6 +220,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         cacheBuilder.addMilestone6();
         cacheBuilder.addMilestone3();
         cacheBuilder.addMavenLocal();
+        cacheBuilder.setUrlCache(new ArtifactResolutionCacheArtifactCache(get(ArtifactResolutionCache.class), get(CacheLockingManager.class)));
         return new RepositoryTransportFactory(cacheBuilder.getExternalArtifactCache(), get(ProgressLoggerFactory.class), get(ArtifactFileStore.class));
     }
 
