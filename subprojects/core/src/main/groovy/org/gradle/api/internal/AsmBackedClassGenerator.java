@@ -510,13 +510,23 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             visitor.visitField(Opcodes.ACC_PRIVATE, flagName, Type.BOOLEAN_TYPE.getDescriptor(), null, null);
 
             addConventionGetter(getter.getName(), flagName, property);
+    
+            String getterName = getter.getName();
+            Class<?> returnType = getter.getReturnType();
 
-            Set<? extends Class> booleanTypes = Sets.newHashSet(Boolean.class, Boolean.TYPE);
-            // Groovy will not give us a getter for get<Property> for a boolean bean
-            if (booleanTypes.contains(getter.getReturnType()) && getter.getName().startsWith("is")) {
-                // Via the spec, it gave us is<Property>, and we need get<Property>
-                String altGetterName = String.format("get%s", getter.getName().substring(2));
-                addConventionGetter(altGetterName, flagName, property);
+            // If it's a boolean property, there can be get or is type variants.
+            // If this class has both, decorate both.
+            if (returnType.equals(Boolean.TYPE)) {
+                boolean getterIsIsMethod = getterName.startsWith("is");
+                String propertyNameComponent = getterName.substring(getterIsIsMethod ? 2 : 3);
+                String alternativeGetterName = String.format("%s%s", getterIsIsMethod ? "get" : "is", propertyNameComponent);
+
+                try {
+                    type.getMethod(alternativeGetterName);
+                    addConventionGetter(alternativeGetterName, flagName, property);
+                } catch (NoSuchMethodException e) {
+                    // ignore, no method to override
+                }
             }
         }
 
