@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 
 class DynamicObjectIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
@@ -427,5 +428,27 @@ assert 'overridden value' == global
         """
         
         executer.withTasks("run")
+    }
+
+    @Issue("GRADLE-2163")
+    @Test void canDecorateBooleanPrimitiveProperties() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file("build.gradle") << """
+            class CustomBean {
+                boolean b
+            }
+
+            // best way to decorate right now
+            extensions.create('bean', CustomBean)
+
+            task run << {
+                assert bean.b == false
+                bean.b.conventionMapping.map('b') { true }
+                assert bean.b == true
+            }
+        """
+
+        executer.withTasks("run")
+
     }
 }
