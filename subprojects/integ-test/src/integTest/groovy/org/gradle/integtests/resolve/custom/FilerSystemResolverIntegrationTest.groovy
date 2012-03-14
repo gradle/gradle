@@ -18,6 +18,8 @@ package org.gradle.integtests.resolve.custom
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.IvyRepository
+import org.gradle.util.TextUtil
+import org.gradle.util.GFileUtils
 
 class FilerSystemResolverIntegrationTest extends AbstractIntegrationSpec {
 
@@ -25,6 +27,7 @@ class FilerSystemResolverIntegrationTest extends AbstractIntegrationSpec {
         when:
         def repoDir = testDir.createDir("repo")
         def repo = new IvyRepository(repoDir)
+        def repoDirPath = TextUtil.escapeString(repoDir.absolutePath)
         def module = repo.module("group", "projectA", "1.2")
         module.publish()
         def jar = module.jarFile
@@ -34,8 +37,8 @@ class FilerSystemResolverIntegrationTest extends AbstractIntegrationSpec {
             repositories {
                 add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
                     name = "repo"
-                    addIvyPattern("$repoDir/[organization]/[module]/[revision]/ivy-[module]-[revision].xml")
-                    addArtifactPattern("$repoDir/[organization]/[module]/[revision]/[module]-[revision].[ext]")
+                    addIvyPattern("$repoDirPath/[organization]/[module]/[revision]/ivy-[module]-[revision].xml")
+                    addArtifactPattern("$repoDirPath/[organization]/[module]/[revision]/[module]-[revision].[ext]")
                 }
             }
             configurations { compile }
