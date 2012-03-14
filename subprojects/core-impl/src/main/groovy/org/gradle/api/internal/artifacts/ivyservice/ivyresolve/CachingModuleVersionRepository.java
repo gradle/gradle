@@ -186,7 +186,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         }
     }
 
-    public File download(Artifact artifact) {
+    public DownloadedArtifact download(Artifact artifact) {
         if (isLocal()) {
             return delegate.download(artifact);
         }
@@ -204,14 +204,16 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
             } else if (cachedArtifactFile.exists()) {
                 if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, cachedArtifactResolution.getAgeMillis())) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
-                    return cachedArtifactFile;
+                    return new DownloadedArtifact(cachedArtifactFile, cachedArtifactResolution.getArtifactLastModified(), cachedArtifactResolution.getArtifactUrl());
                 }
             }
         }
 
-        File artifactFile = delegate.download(artifact);
-        LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), artifactFile);
-        return artifactResolutionCache.storeArtifactFile(delegate, artifact.getId(), artifactFile, artifact.getPublicationDate(), artifact.getUrl());
+        DownloadedArtifact downloadedArtifact = delegate.download(artifact);
+        LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), downloadedArtifact.getLocalFile());
+        artifactResolutionCache.storeArtifactFile(delegate, artifact.getId(), downloadedArtifact.getLocalFile(), downloadedArtifact.getLastModified(), downloadedArtifact.getSource());
+
+        return downloadedArtifact;
     }
 
     private ModuleVersionSelector createModuleVersionSelector(ModuleRevisionId moduleRevisionId) {

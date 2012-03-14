@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.text.ParseException;
+import java.util.Date;
 
 /**
  * A {@link ModuleVersionRepository} wrapper around an Ivy {@link DependencyResolver}.
@@ -64,7 +66,7 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
         return resolver.getRepositoryCacheManager() instanceof LocalFileRepositoryCacheManager;
     }
 
-    public File download(Artifact artifact) {
+    public DownloadedArtifact download(Artifact artifact) {
         ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{artifact}, downloadOptions).getArtifactReport(artifact);
         if (downloadFailed(artifactDownloadReport)) {
             if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
@@ -73,7 +75,17 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
             }
             throw new ArtifactResolveException(artifactDownloadReport.getArtifact(), artifactDownloadReport.getDownloadDetails());
         }
-        return artifactDownloadReport.getLocalFile();
+
+        ArtifactOrigin artifactOrigin = artifactDownloadReport.getArtifactOrigin();
+
+        File localFile = artifactDownloadReport.getLocalFile();
+        String source = artifactOrigin.getLocation();
+        Date lastModified = null;
+        if (artifactOrigin instanceof ArtifactOriginWithLastModified) {
+            lastModified = ((ArtifactOriginWithLastModified) artifactOrigin).getLastModified();
+        }
+
+        return new DownloadedArtifact(localFile, lastModified, source);
     }
 
     private boolean downloadFailed(ArtifactDownloadReport artifactReport) {

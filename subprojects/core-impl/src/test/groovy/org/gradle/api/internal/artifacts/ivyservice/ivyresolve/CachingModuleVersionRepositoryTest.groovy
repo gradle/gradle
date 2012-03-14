@@ -37,22 +37,19 @@ class CachingModuleVersionRepositoryTest extends Specification {
     
     @Unroll "last modified date is cached - lastModified = #lastModified"(Date lastModified) {
         given:
-        File artifactFile = new File("artifact")
-        URL url = new File("remoteArtifact").toURL()
+        DownloadedArtifact downloadedArtifact = new DownloadedArtifact(new File("artifact"), lastModified, "remote url")
         Artifact artifact = Mock()
         ArtifactRevisionId id = Mock()
         _ * realRepo.isLocal() >> false
         _ * artifactResolutionCache.getCachedArtifactResolution(_, _) >> null
-        _ * realRepo.download(artifact) >> artifactFile
+        _ * realRepo.download(artifact) >> downloadedArtifact
         _ * artifact.getId() >> id
-        _ * artifact.getPublicationDate() >> lastModified
-        _ * artifact.getUrl() >> url
-        
+
         when:
         repo.download(artifact)
         
         then:
-        1 * artifactResolutionCache.storeArtifactFile(realRepo, id, artifactFile, lastModified, url)
+        1 * artifactResolutionCache.storeArtifactFile(realRepo, id, downloadedArtifact.localFile, downloadedArtifact.lastModified, downloadedArtifact.source)
         
         where:
         lastModified << [new Date(), null]

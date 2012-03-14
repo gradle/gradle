@@ -32,6 +32,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithLastModified;
 import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
 
 import java.io.File;
@@ -62,7 +63,9 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         try {
             ResolvedResource artifactRef = resourceResolver.resolve(artifact);
             if (artifactRef != null) {
-                ArtifactOrigin origin = new ArtifactOrigin(artifact, artifactRef.getResource().isLocal(), artifactRef.getResource().getName());
+                ArtifactOrigin origin = new ArtifactOriginWithLastModified(
+                        artifact, artifactRef.getResource().isLocal(), artifactRef.getResource().getName(), artifactRef.getLastModified()
+                );
                 if (listener != null) {
                     listener.startArtifactDownload(this, artifactRef, artifact, origin);
                 }

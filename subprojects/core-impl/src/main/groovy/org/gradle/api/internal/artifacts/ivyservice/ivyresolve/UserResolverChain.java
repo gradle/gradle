@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -159,16 +158,16 @@ public class UserResolverChain implements DependencyToModuleResolver {
 
         public ArtifactResolveResult resolve(Artifact artifact) {
             LOGGER.debug("Attempting to download {} using repository '{}'", artifact, repository.getName());
-            File file;
+            DownloadedArtifact downloadedArtifact;
             try {
-                file = repository.download(artifact);
+                downloadedArtifact = repository.download(artifact);
             } catch (ArtifactResolveException e) {
                 return new BrokenArtifactResolveResult(e);
             }
-            if (file == null) {
+            if (downloadedArtifact == null) {
                 return new BrokenArtifactResolveResult(new ArtifactNotFoundException(artifact));
             }
-            return new FileBackedArtifactResolveResult(file);
+            return new FileBackedArtifactResolveResult(downloadedArtifact.getLocalFile());
         }
     }
 }

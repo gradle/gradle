@@ -35,6 +35,7 @@ import org.gradle.util.TimeProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DownloadedArtifact
 
 class DefaultArtifactResolutionCacheTest extends Specification {
 
@@ -98,9 +99,9 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         where:
         lastModified | artifactUrl
         new Date()   | null
-        null         | new File("abc").toURL()
+        null         | "abc"
         null         | null
-        new Date()   | new File("abc").toURL()
+        new Date()   | "abc"
     }
 
     def "storing with a different repo but same url overwrites the previous"() {
@@ -111,7 +112,7 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         def date1 = new Date()
         def date2 = date1 + 1
 
-        def url = new File("remote-artifact").toURL()
+        def url = "remote-artifact"
         File artifactFile = tmp.createFile("artifact") << "content"
 
         when:
@@ -139,7 +140,7 @@ class DefaultArtifactResolutionCacheTest extends Specification {
                 throw new UnsupportedOperationException("getDependency")
             }
 
-            File download(Artifact artifact) {
+            DownloadedArtifact download(Artifact artifact) {
                 throw new UnsupportedOperationException("download")
             }
 
