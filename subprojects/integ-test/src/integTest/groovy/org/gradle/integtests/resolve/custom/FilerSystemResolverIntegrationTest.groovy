@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.custom
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.util.TextUtil
-import org.gradle.util.GFileUtils
 
 class FilerSystemResolverIntegrationTest extends AbstractIntegrationSpec {
 
