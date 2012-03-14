@@ -40,6 +40,7 @@ task prepareVersionsInfo {
 
         def json = new URL("http://services.gradle.org/versions/all").text
         def destFile = new File(ext.destDir, "all-released-versions.json")
+        assert destDir.mkdirs() || destDir.exists()
         destFile.text = json
 
         logger.info "Saved released versions information in: $destFile"
