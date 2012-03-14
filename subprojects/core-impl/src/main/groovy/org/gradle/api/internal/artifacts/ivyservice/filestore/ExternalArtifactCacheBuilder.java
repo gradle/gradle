@@ -15,13 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 
 import java.io.File;
+import java.util.LinkedList;
 
 public class ExternalArtifactCacheBuilder {
-    private final CompositeExternalArtifactCache composite = new CompositeExternalArtifactCache();
+    private final LinkedList<ArtifactCache<ArtifactRevisionId>> hashCaches = new LinkedList<ArtifactCache<ArtifactRevisionId>>();
+    private ArtifactCache<String> urlCache = new NoopArtifactCache<String>();
     private final File rootCachesDirectory;
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
 
@@ -31,7 +34,7 @@ public class ExternalArtifactCacheBuilder {
     }
 
     public void addCurrent(ArtifactFileStore artifactFileStore) {
-        composite.addExternalArtifactCache(artifactFileStore.asExternalArtifactCache());
+        hashCaches.add(artifactFileStore.asArtifactCache());
     }
 
     public void addMilestone7() {
@@ -50,17 +53,21 @@ public class ExternalArtifactCacheBuilder {
     public void addMavenLocal() {
         File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
         if (localMavenRepository.exists()) {
-            composite.addExternalArtifactCache(new PatternBasedExternalArtifactCache(localMavenRepository, "[organisation-path]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"));
+            hashCaches.add(new PatternBasedExternalArtifactCache(localMavenRepository, "[organisation-path]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"));
         }
     }
 
     private void addExternalCache(File baseDir, String pattern) {
         if (baseDir.exists()) {
-            composite.addExternalArtifactCache(new PatternBasedExternalArtifactCache(baseDir, pattern));
+            hashCaches.add(new PatternBasedExternalArtifactCache(baseDir, pattern));
         }
     }
 
-    public ExternalArtifactCache getExternalArtifactCache() {
-        return composite;
+    public ArtifactCaches getExternalArtifactCache() {
+        return new DefaultArtifactCaches(new CompositeArtifactCache<ArtifactRevisionId>(hashCaches), urlCache);
+    }
+
+    public void setUrlCache(ArtifactCache<String> urlCache) {
+        this.urlCache = urlCache;
     }
 }

@@ -17,12 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 
-import java.io.File;
+public interface ArtifactCaches {
+    
+    ArtifactCache<ArtifactRevisionId> getArtifactIdCache();
+    ArtifactCache<String> getUrlCache();
 
-public interface ArtifactFileStore {
-    File add(ArtifactRevisionId artifactId, File contentFile);
-
-    File getTempFile();
-
-    ArtifactCache<ArtifactRevisionId> asArtifactCache();
 }
