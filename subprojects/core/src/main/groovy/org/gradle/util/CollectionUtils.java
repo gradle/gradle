@@ -23,6 +23,16 @@ import java.util.*;
 
 public abstract class CollectionUtils {
 
+    public static <T> T findFirst(Iterable<T> source, Spec<? super T> filter) {
+        for (T item : source) {
+            if (filter.isSatisfiedBy(item)) {
+                return item;
+            }
+        }
+
+        return null;
+    }
+    
     public static <T> Set<T> filter(Set<T> set, Spec<? super T> filter) {
         return filter(set, new LinkedHashSet<T>(), filter);
     }
