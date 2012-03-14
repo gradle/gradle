@@ -28,6 +28,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import com.google.common.collect.Sets;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
     @Override
@@ -507,11 +509,24 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             String flagName = String.format("%sSet", property.getName());
             visitor.visitField(Opcodes.ACC_PRIVATE, flagName, Type.BOOLEAN_TYPE.getDescriptor(), null, null);
 
+            addConventionGetter(getter.getName(), flagName, property);
+
+            Set<? extends Class> booleanTypes = Sets.newHashSet(Boolean.class, Boolean.TYPE);
+            // Groovy will not give us a getter for get<Property> for a boolean bean
+            if (booleanTypes.contains(getter.getReturnType()) && getter.getName().startsWith("is")) {
+                // Via the spec, it gave us is<Property>, and we need get<Property>
+                String altGetterName = String.format("get%s", getter.getName().substring(2));
+                addConventionGetter(altGetterName, flagName, property);
+            }
+        }
+
+        private void addConventionGetter(String getterName, String flagName, MetaBeanProperty property) throws Exception {
             // GENERATE public <type> <getter>() { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', <prop>Set); }
+            MetaMethod getter = property.getGetter();
 
             Type returnType = Type.getType(getter.getReturnType());
             String methodDescriptor = Type.getMethodDescriptor(returnType, new Type[0]);
-            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, getter.getName(), methodDescriptor,
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, getterName, methodDescriptor,
                     null, new String[0]);
             methodVisitor.visitCode();
 
@@ -520,7 +535,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     "getConventionMapping", Type.getMethodDescriptor(conventionMappingType, new Type[0]));
 
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), getter.getName(),
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), getterName,
                     methodDescriptor);
 
             Type boxedType = null;
@@ -651,7 +666,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         public void addActionMethod(MetaMethod method) throws Exception {
             Type actionImplType = Type.getType(ClosureBackedAction.class);
             Type closureType = Type.getType(Closure.class);
-            
+
             String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{closureType});
 
             // GENERATE public void <method>(Closure v) { <method>(new ClosureBackedAction(v)); }
