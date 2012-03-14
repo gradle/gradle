@@ -28,6 +28,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import com.google.common.collect.Sets;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
     @Override
@@ -507,11 +509,34 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             String flagName = String.format("%sSet", property.getName());
             visitor.visitField(Opcodes.ACC_PRIVATE, flagName, Type.BOOLEAN_TYPE.getDescriptor(), null, null);
 
+            addConventionGetter(getter.getName(), flagName, property);
+    
+            String getterName = getter.getName();
+            Class<?> returnType = getter.getReturnType();
+
+            // If it's a boolean property, there can be get or is type variants.
+            // If this class has both, decorate both.
+            if (returnType.equals(Boolean.TYPE)) {
+                boolean getterIsIsMethod = getterName.startsWith("is");
+                String propertyNameComponent = getterName.substring(getterIsIsMethod ? 2 : 3);
+                String alternativeGetterName = String.format("%s%s", getterIsIsMethod ? "get" : "is", propertyNameComponent);
+
+                try {
+                    type.getMethod(alternativeGetterName);
+                    addConventionGetter(alternativeGetterName, flagName, property);
+                } catch (NoSuchMethodException e) {
+                    // ignore, no method to override
+                }
+            }
+        }
+
+        private void addConventionGetter(String getterName, String flagName, MetaBeanProperty property) throws Exception {
             // GENERATE public <type> <getter>() { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', <prop>Set); }
+            MetaMethod getter = property.getGetter();
 
             Type returnType = Type.getType(getter.getReturnType());
             String methodDescriptor = Type.getMethodDescriptor(returnType, new Type[0]);
-            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, getter.getName(), methodDescriptor,
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, getterName, methodDescriptor,
                     null, new String[0]);
             methodVisitor.visitCode();
 
@@ -520,7 +545,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     "getConventionMapping", Type.getMethodDescriptor(conventionMappingType, new Type[0]));
 
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), getter.getName(),
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), getterName,
                     methodDescriptor);
 
             Type boxedType = null;
@@ -651,7 +676,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         public void addActionMethod(MetaMethod method) throws Exception {
             Type actionImplType = Type.getType(ClosureBackedAction.class);
             Type closureType = Type.getType(Closure.class);
-            
+
             String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{closureType});
 
             // GENERATE public void <method>(Closure v) { <method>(new ClosureBackedAction(v)); }

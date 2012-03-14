@@ -26,6 +26,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.junit.Before;
 import org.junit.Test;
+import spock.lang.Issue;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -36,6 +37,8 @@ import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+
+import static org.gradle.api.internal.AbstractClassGeneratorTestGroovy.*;
 
 public abstract class AbstractClassGeneratorTest {
     private AbstractClassGenerator generator;
@@ -183,6 +186,41 @@ public abstract class AbstractClassGeneratorTest {
 
         bean.setProp(null);
         assertThat(bean.getProp(), nullValue());
+    }
+
+    @Test
+    @Issue("GRADLE-2163")
+    public void appliesConventionMappingToGroovyBoolean() throws Exception {
+        BeanWithGroovyBoolean bean = generator.generate(BeanWithGroovyBoolean.class).newInstance();
+
+        assertTrue(bean instanceof IConventionAware);
+        assertThat(bean.getSmallB(), equalTo(false));
+        assertThat(bean.getBigB(), nullValue());
+
+        IConventionAware conventionAware = (IConventionAware) bean;
+
+        conventionAware.getConventionMapping().map("smallB", new Callable<Object>() {
+            public Object call() throws Exception {
+                return true;
+            }
+        });
+
+        assertThat(bean.isSmallB(), equalTo(true));
+        assertThat(bean.getSmallB(), equalTo(true));
+
+        bean.setSmallB(false);
+        assertThat(bean.isSmallB(), equalTo(false));
+        assertThat(bean.getSmallB(), equalTo(false));
+
+        conventionAware.getConventionMapping().map("bigB", new Callable<Object>() {
+            public Object call() throws Exception {
+                return Boolean.TRUE;
+            }
+        });
+
+        assertThat(bean.getBigB(), equalTo(Boolean.TRUE));
+        bean.setBigB(Boolean.FALSE);
+        assertThat(bean.getBigB(), equalTo(Boolean.FALSE));
     }
 
     @Test
