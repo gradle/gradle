@@ -48,8 +48,6 @@ import java.util.Properties;
  */
 public class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
-    public static final String DEFAULT_ARCHIVE_NAME = "gradle";
-    public static final String DEFAULT_ARCHIVE_CLASSIFIER = "bin";
 
     private String distributionUrl;
 
@@ -69,13 +67,7 @@ public class Wrapper extends DefaultTask {
     @Input
     private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
 
-    private String archiveName;
-
-    private String archiveClassifier;
-
     private GradleVersion gradleVersion;
-
-    private String urlRoot;
 
     @Input
     private String archivePath;
@@ -89,8 +81,6 @@ public class Wrapper extends DefaultTask {
         scriptFile = "gradlew";
         jarFile = "gradle/wrapper/gradle-wrapper.jar";
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
-        archiveName = DEFAULT_ARCHIVE_NAME;
-        archiveClassifier = DEFAULT_ARCHIVE_CLASSIFIER;
         archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         gradleVersion = GradleVersion.current();
     }
