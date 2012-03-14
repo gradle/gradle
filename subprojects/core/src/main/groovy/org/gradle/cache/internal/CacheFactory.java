@@ -26,9 +26,9 @@ import java.util.Map;
 public interface CacheFactory {
     PersistentCache openStore(File storeDir, String displayName, LockMode lockMode, Action<? super PersistentCache> initializer) throws CacheOpenException;
 
-    PersistentCache open(File cacheDir, String displayName, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initializer) throws CacheOpenException;
+    PersistentCache open(File cacheDir, String displayName, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initializer) throws CacheOpenException;
 
-    <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Serializer<E> serializer) throws CacheOpenException;
+    <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockMode lockMode, Serializer<E> serializer) throws CacheOpenException;
 
-    <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, Map<String, ?> properties, LockMode lockMode, Serializer<V> serializer) throws CacheOpenException;
+    <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockMode lockMode, Serializer<V> serializer) throws CacheOpenException;
 }

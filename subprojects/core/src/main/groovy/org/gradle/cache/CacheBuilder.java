@@ -61,6 +61,14 @@ public interface CacheBuilder<T> {
     CacheBuilder<T> withVersionStrategy(VersionStrategy strategy);
 
     /**
+     * Specifies a cache validator for this cache. If {@link CacheValidator#isValid()} results in false, the Cache is considered as invalid.
+     *
+     * @param validator The validator
+     * @return this
+     */
+    CacheBuilder<T> withValidator(CacheValidator validator);
+
+    /**
      * Opens the cache.
      *
      * @return The cache.

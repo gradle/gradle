@@ -17,6 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
+import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
@@ -36,12 +37,14 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
     private final Properties properties = new Properties();
     private final CacheUsage cacheUsage;
     private final Action<? super PersistentCache> initAction;
+    private final CacheValidator validator;
 
-    public DefaultPersistentDirectoryCache(File dir, String displayName, CacheUsage cacheUsage, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initAction, FileLockManager lockManager) {
+    public DefaultPersistentDirectoryCache(File dir, String displayName, CacheUsage cacheUsage, CacheValidator validator, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initAction, FileLockManager lockManager) {
         super(dir, displayName, lockMode, lockManager);
         if (lockMode == LockMode.None) {
             throw new UnsupportedOperationException("Locking mode None is not supported.");
         }
+        this.validator = validator;
         this.cacheUsage = cacheUsage;
         this.initAction = initAction;
         propertiesFile = new File(dir, "cache.properties");
@@ -84,6 +87,11 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
             LOGGER.debug("Invalidating {} as cache usage is set to rebuild.", this);
             return false;
         }
+        if (validator!=null && !validator.isValid()) {
+            LOGGER.debug("Invalidating {} as cache validator return false.", this);
+            return false;
+        }
+
         if (!lock.getUnlockedCleanly()) {
             LOGGER.debug("Invalidating {} as it was not closed cleanly.", this);
             return false;

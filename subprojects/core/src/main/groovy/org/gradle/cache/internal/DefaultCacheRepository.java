@@ -63,6 +63,7 @@ public class DefaultCacheRepository implements CacheRepository {
         private Map<String, ?> properties = Collections.emptyMap();
         private Object target;
         private VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
+        private CacheValidator validator;
 
         protected AbstractCacheBuilder(String key) {
             this.key = key;
@@ -80,6 +81,11 @@ public class DefaultCacheRepository implements CacheRepository {
 
         public CacheBuilder<T> forObject(Object target) {
             this.target = target;
+            return this;
+        }
+
+        public CacheBuilder<T> withValidator(CacheValidator validator) {
+            this.validator = validator;
             return this;
         }
 
@@ -110,10 +116,10 @@ public class DefaultCacheRepository implements CacheRepository {
                     properties.put("gradle.version", version.getVersion());
                     break;
             }
-            return doOpen(new File(cacheBaseDir, key), properties);
+            return doOpen(new File(cacheBaseDir, key), properties, validator);
         }
 
-        protected abstract T doOpen(File cacheDir, Map<String, ?> properties);
+        protected abstract T doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator);
 
         private File maybeProjectCacheDir(File potentialParentDir) {
             if (projectCacheDir != null) {
@@ -150,6 +156,12 @@ public class DefaultCacheRepository implements CacheRepository {
             return this;
         }
 
+        @Override
+        public DirectoryCacheBuilder withValidator(CacheValidator validator) {
+            super.withValidator(validator);
+            return this;
+        }
+
         public DirectoryCacheBuilder withInitializer(Action<? super PersistentCache> initializer) {
             this.initializer = initializer;
             return this;
@@ -166,8 +178,8 @@ public class DefaultCacheRepository implements CacheRepository {
         }
 
         @Override
-        protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties) {
-            return factory.open(cacheDir, displayName, cacheUsage, properties, lockMode, initializer);
+        protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
+            return factory.open(cacheDir, displayName, cacheUsage, validator, properties, lockMode, initializer);
         }
     }
 
@@ -177,7 +189,7 @@ public class DefaultCacheRepository implements CacheRepository {
         }
 
         @Override
-        protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties) {
+        protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
             if (!properties.isEmpty()) {
                 throw new UnsupportedOperationException("Properties are not supported for stores.");
             }
@@ -222,8 +234,8 @@ public class DefaultCacheRepository implements CacheRepository {
         }
 
         @Override
-        protected PersistentStateCache<E> doOpen(File cacheDir, Map<String, ?> properties) {
-            return factory.openStateCache(cacheDir, cacheUsage, properties, LockMode.Exclusive, serializer);
+        protected PersistentStateCache<E> doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
+            return factory.openStateCache(cacheDir, cacheUsage, validator, properties, LockMode.Exclusive, serializer);
         }
     }
 
@@ -233,8 +245,8 @@ public class DefaultCacheRepository implements CacheRepository {
         }
 
         @Override
-        protected PersistentIndexedCache<K, V> doOpen(File cacheDir, Map<String, ?> properties) {
-            return factory.openIndexedCache(cacheDir, cacheUsage, properties, LockMode.Exclusive, serializer);
+        protected PersistentIndexedCache<K, V> doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
+            return factory.openIndexedCache(cacheDir, cacheUsage, validator, properties, LockMode.Exclusive, serializer);
         }
     }
 }
