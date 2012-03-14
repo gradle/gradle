@@ -41,7 +41,16 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
 task wrapper(type: Wrapper) {
     gradleVersion = '$executionVersion.version'
-    urlRoot = '${executionVersion.binDistribution.parentFile.toURI()}'
+}
+
+//(SF) not sure if we want to keep coverage for old 'urlRoot' that was already removed
+//I'm keeping it so that old versions are tested via the urlRoot.
+if (wrapper.hasProperty('urlRoot')) {
+    println "configuring the wrapper using the old way: 'urlRoot'..."
+    wrapper.urlRoot = '${executionVersion.binDistribution.parentFile.toURI()}'
+} else {
+    println "configuring the wrapper using the new way: 'distributionUrl'..."
+    wrapper.distributionUrl = '${executionVersion.binDistribution.toURI()}'
 }
 
 println "using Java version \${System.getProperty('java.version')}"
@@ -50,7 +59,6 @@ task hello {
     doLast { println "hello from \$gradle.gradleVersion" }
 }
 """
-
         version(wrapperGenVersion).withTasks('wrapper').run()
         def result = version(wrapperGenVersion).usingExecutable('gradlew').withTasks('hello').run()
         assert result.output.contains("hello from $executionVersion.version")
