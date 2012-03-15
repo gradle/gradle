@@ -64,7 +64,6 @@ integTestTasks.all {
         systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
         systemProperties['integTest.samplesdir'] = project(":docs").samplesDir.absolutePath
         if (isCIBuild()) {
-            systemProperties['org.gradle.integtest.versions'] = 'all'
             maxParallelForks = 4
         }
     }
