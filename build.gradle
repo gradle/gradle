@@ -416,9 +416,14 @@ task releaseVersion
 // A marker task which indicates that we are building an rc of some sort
 task rcVersion
 
+task checkJavaVersion << {
+    assert Jvm.current().isJava7 : "Must use a Java 7 compatible JVM to perform the release. Current JVM is ${Jvm.current()}"
+}
+
+//TODO RG - we depend here on the alphabetical order of dependent task execution. We Should change that to fail early if javaversion is inappropriate
 task rc {
     description "Builds a release candidate for the next release"
-    dependsOn rcVersion, testedDists, "uploadAll"
+    dependsOn checkJavaVersion, rcVersion, testedDists, "uploadAll"
 }
 
 task tag(type: Tag)
@@ -432,10 +437,7 @@ task releaseArtifacts {
     dependsOn releaseVersion, assemble
 }
 
-task checkJavaVersion << {
-    assert Jvm.current().java6Compatible : "Must use a Java 6 compatible JVM to perform the release. Current JVM is ${Jvm.current()}"
-}
-
+//TODO RG - we depend here on the alphabetical order of dependent task execution. We Should change that to fail early if javaversion is inappropriate
 task release {
     description = 'Builds, tests and uploads the release artifacts'
     group = 'release'
