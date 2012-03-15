@@ -479,19 +479,20 @@ project(':contrib') {
     }
 
     @Test
-    void "the web container can be renamed and is used only once"() {
+    void "the web container can be renamed and is referenced only once"() {
         //given
         file("build.gradle") << """
             apply plugin: 'war'
             apply plugin: 'eclipse-wtp'
 
             eclipse {
+              //say the container is mentioned here as well for some reason
               classpath.containers 'the.webcontainer'
 
               wtp.librariesContainer {
                 enabled = true
                 container = 'the.webcontainer'
-//                exported = false
+                exported = false
               }
             }
         """
@@ -499,9 +500,10 @@ project(':contrib') {
         //when
         executer.withTasks("eclipse").run()
 
-        //then
-        assert getClasspathFile().text.count('<classpathentry kind="con" path="the.webcontainer"') == 1
-//        assert getClasspathFile().text.count('<classpathentry kind="con" path="the.webcontainer" exported="false"') == 1
+        //then container is added only once:
+        assert getClasspathFile().text.count('the.webcontainer') == 1
+        //and it is 'unexported' as requested:
+        assert getClasspathFile().text.contains('<classpathentry kind="con" path="the.webcontainer"/>')
     }
 
     @Test

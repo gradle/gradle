@@ -34,16 +34,19 @@ class ClasspathFactory {
 
     private final ClasspathEntryBuilder containersCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
-            eclipseClasspath.containers.each { container ->
-                Container entry = new Container(container)
-                entry.exported = true
-                entries << entry
-            }
             if (eclipseClasspath.librariesContainer?.enabled) {
                 def webApp = eclipseClasspath.librariesContainer
                 Container entry = new Container(webApp.container)
                 entry.exported = webApp.exported
                 entries << entry
+            }
+            eclipseClasspath.containers.each { container ->
+                //don't re-add any container
+                if (!entries.find { it.path.equals(container) }) {
+                    Container entry = new Container(container)
+                    entry.exported = true
+                    entries << entry
+                }
             }
         }
     }
