@@ -25,7 +25,7 @@ import spock.lang.Timeout
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
-class ConsumingStandardInputIntegrationTest extends ToolingApiSpecification {
+class ConsumingStandardInputCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         //since this test treats with standard input I will not run it for embedded daemon for safety.

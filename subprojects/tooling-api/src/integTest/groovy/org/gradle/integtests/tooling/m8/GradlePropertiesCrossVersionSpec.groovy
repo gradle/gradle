@@ -26,7 +26,7 @@ import spock.lang.IgnoreIf
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
-class GradlePropertiesIntegrationTest extends ToolingApiSpecification {
+class GradlePropertiesCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         //this test does not make any sense in embedded mode

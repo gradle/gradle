@@ -23,7 +23,7 @@ import org.gradle.util.TestFile
 import spock.lang.Issue
 
 @MinTargetGradleVersion('1.0-milestone-5')
-class EclipseModelWithFlatRepoIntegrationTest extends ToolingApiSpecification {
+class EclipseModelWithFlatRepoCrossVersionSpec extends ToolingApiSpecification {
     TestFile projectDir = dist.testDir
 
     @Issue("GRADLE-1621")

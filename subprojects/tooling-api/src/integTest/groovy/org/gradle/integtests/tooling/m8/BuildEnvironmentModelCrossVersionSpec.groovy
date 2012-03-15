@@ -24,7 +24,7 @@ import org.gradle.tooling.model.build.BuildEnvironment
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
-class BuildEnvironmentModelIntegrationTest extends ToolingApiSpecification {
+class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "informs about build environment"() {
         when:
