@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.eclipse.model
-
-import org.gradle.plugins.ide.eclipse.model.internal.Warnings
+package org.gradle.plugins.ide.eclipse.model.internal
 
 /**
- * Configures
+ * by Szczepan Faber, created at: 3/15/12
  */
-class EclipseLibrariesContainer {
+class Warnings {
 
-    boolean enabled = false
-    String container = Warnings.CONTAINER_NOT_CONFIGURED
-    boolean exported = false
-    boolean replacesClasspath = false
-
-    protected boolean shouldReplaceClasspath() {
-        enabled && replacesClasspath
-    }
+    static final CONTAINER_NOT_CONFIGURED = '*misconfigured container, see Gradle docs on eclipse.wtp.librariesContainer*'
 }

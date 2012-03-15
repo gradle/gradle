@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.plugins.ide.eclipse.model.internal.Warnings
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -507,21 +508,20 @@ project(':contrib') {
     }
 
     @Test
-    @Ignore
-    void "attempting to configure the web container for non-war project results in sensible error"() {
+    void "handles gracefully attempts to configure the web container for non-war"() {
         //given
         file("build.gradle") << """
-            apply plugin: 'jar'
+            apply plugin: 'java'
             apply plugin: 'eclipse-wtp'
 
             eclipse.wtp.librariesContainer.enabled = true
         """
 
         //when
-        def failure = executer.withTasks("eclipse").runWithFailure()
+        executer.withTasks("eclipse").run()
 
         //then
-        assert failure.assertHasDescription("cannot configure")
+        getClasspathFile().text.contains(Warnings.CONTAINER_NOT_CONFIGURED)
     }
 
     protected def contains(String ... contents) {

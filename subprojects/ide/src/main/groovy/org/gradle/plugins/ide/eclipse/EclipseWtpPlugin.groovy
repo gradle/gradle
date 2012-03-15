@@ -44,6 +44,10 @@ class EclipseWtpPlugin extends IdePlugin {
         EclipsePlugin delegatePlugin = project.getPlugins().apply(EclipsePlugin.class);
         eclipseWtpModel = delegatePlugin.model.wtp
 
+        def container = new EclipseLibrariesContainer()
+        eclipseWtpModel.librariesContainer = container
+        project.eclipse.classpath.librariesContainer = container
+
         lifecycleTask.description = 'Generates Eclipse wtp configuration files.'
         cleanTask.description = 'Cleans Eclipse wtp configuration files.'
 
@@ -60,9 +64,12 @@ class EclipseWtpPlugin extends IdePlugin {
 
     private void configureEclipseClasspathForWarPlugin(Project project) {
         project.plugins.withType(WarPlugin) {
-            def container = new EclipseLibrariesContainer()
-            eclipseWtpModel.librariesContainer = container
-            project.eclipse.classpath.librariesContainer = container
+            eclipseWtpModel.librariesContainer {
+                enabled = false
+                container = 'org.eclipse.jst.j2ee.internal.web.container'
+                exported = true
+                replacesClasspath = true
+            }
 
             doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
                 otherProject.tasks.withType(GenerateEclipseClasspath) {
