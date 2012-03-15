@@ -23,7 +23,7 @@ import spock.lang.Ignore
 
 @Ignore
 @Requires(TestPrecondition.FILE_PERMISSIONS)
-class CopyTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
+class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     def "fileMode can be modified in copy task"() {
         given:
