@@ -19,15 +19,36 @@ package org.gradle.plugins.ide.eclipse.model
 import org.gradle.plugins.ide.eclipse.model.internal.Warnings
 
 /**
- * Configures
+ * Configures the libraries container for the wtp plugin
  */
 class EclipseLibrariesContainer {
 
+    /**
+     * Whether the container behavior is enabled. False by default.
+     */
     boolean enabled = false
+
+    /**
+     * The name of the container. The 'war' + 'eclipse-wtp' combo configures it so that it will
+     * enable 'Web app libraries' container in Eclipse WTP.
+     */
     String container = Warnings.CONTAINER_NOT_CONFIGURED
+
+    /**
+     * Whether the container should be exported.
+     */
     boolean exported = false
+
+    /**
+     * Whether the container should replace explicit classpath entries from the .classpath.
+     * 'true' means that no jar/project dependencies will be configured in the .classpath,
+     * only the containers (java, web, etc.).
+     */
     boolean replacesClasspath = false
 
+    /**
+     * @return if the .classpath should be cleared
+     */
     protected boolean shouldReplaceClasspath() {
         enabled && replacesClasspath
     }
