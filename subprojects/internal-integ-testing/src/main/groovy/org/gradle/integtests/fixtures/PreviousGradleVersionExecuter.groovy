@@ -119,11 +119,18 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
 
     boolean wrapperCanExecute(String version) {
         if (version == '0.8' || this.version == GradleVersion.version('0.8')) {
+            // There was a breaking change after 0.8
             return false
         }
         if (this.version == GradleVersion.version('0.9.1')) {
             // 0.9.1 couldn't handle anything with a timestamp whose timezone was behind GMT
             return version.matches('.*+\\d{4}')
+        }
+        if (this.version >= GradleVersion.version('0.9.2') && this.version <= GradleVersion.version('1.0-milestone-2')) {
+            // These versions couldn't handle milestone patches
+            if (version.matches('1.0-milestone-\\d+[a-z]-.+')) {
+                return false
+            }
         }
         return true
     }

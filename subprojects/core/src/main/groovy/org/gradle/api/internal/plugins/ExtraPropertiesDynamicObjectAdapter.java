@@ -51,11 +51,8 @@ public class ExtraPropertiesDynamicObjectAdapter extends BeanDynamicObject {
 
             DeprecationLogger.nagUserWith(
                     String.format(
-                            "Adding dynamic properties by assignment has been deprecated. "
-                                    + "An attempt was made to create a dynamic property named '%s' on the object '%s' (class: %s) with the value '%s'. "
-                                    + "You should set the property on the target's 'ext' object. "
-                                    + "e.g. <target>.ext.<property> = <value> (see '%s' in the Gradle DSL reference for more information)",
-                            name, delegate, delegate.getClass().getSimpleName(), value, ExtraPropertiesExtension.class.getSimpleName())
+                            "Dynamic properties have been deprecated (property \"%s\" on the object \"%s\" with value \"%s\" created).\nSee: %s",
+                            name, delegate, value, "http://gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html")
             );
         }
 
