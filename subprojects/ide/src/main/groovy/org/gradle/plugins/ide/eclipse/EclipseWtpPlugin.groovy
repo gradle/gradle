@@ -60,6 +60,10 @@ class EclipseWtpPlugin extends IdePlugin {
 
     private void configureEclipseClasspathForWarPlugin(Project project) {
         project.plugins.withType(WarPlugin) {
+            def container = new EclipseLibrariesContainer()
+            eclipseWtpModel.librariesContainer = container
+            project.eclipse.classpath.librariesContainer = container
+
             doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
                 otherProject.tasks.withType(GenerateEclipseClasspath) {
                     classpath.file.whenMerged { Classpath classpath ->

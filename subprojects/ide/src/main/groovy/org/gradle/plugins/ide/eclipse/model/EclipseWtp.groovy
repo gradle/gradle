@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse.model
 
+import org.gradle.api.GradleException
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -73,6 +74,19 @@ class EclipseWtp {
      */
     void component(Closure action) {
         ConfigureUtil.configure(action, component)
+    }
+
+    EclipseLibrariesContainer librariesContainer
+
+    EclipseLibrariesContainer getLibrariesContainer() {
+        if(librariesContainer == null) {
+            throw new GradleException("Only projects that have the war plugin applied can configure the libraries container.");
+        }
+        librariesContainer
+    }
+
+    void librariesContainer(Closure action) {
+        ConfigureUtil.configure(action, librariesContainer)
     }
 
     /**

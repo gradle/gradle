@@ -160,4 +160,15 @@ class EclipseWtpPluginTest extends Specification {
         then:
         project.eclipseWtpComponent.sourceDirs == [project.file(project.appDirName)] as Set
     }
+
+    def "war plugin enables the libraries container"() {
+        when:
+        project.apply(plugin: 'war')
+        wtpPlugin.apply(project)
+
+        then:
+        def container = project.eclipse.wtp.librariesContainer
+        container != null
+        container.is(project.eclipse.classpath.librariesContainer)
+    }
 }

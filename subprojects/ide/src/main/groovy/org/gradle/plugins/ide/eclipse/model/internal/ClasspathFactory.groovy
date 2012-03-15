@@ -39,6 +39,12 @@ class ClasspathFactory {
                 entry.exported = true
                 entries << entry
             }
+            if (eclipseClasspath.librariesContainer?.enabled) {
+                def webApp = eclipseClasspath.librariesContainer
+                Container entry = new Container(webApp.container)
+                entry.exported = webApp.exported
+                entries << entry
+            }
         }
     }
 
@@ -75,6 +81,10 @@ class ClasspathFactory {
         outputCreator.update(entries, classpath)
         sourceFoldersCreator.populateForClasspath(entries, classpath)
         containersCreator.update(entries, classpath)
+        if (classpath.librariesContainer?.shouldReplaceClasspath()) {
+            return entries
+        }
+
         if (classpath.projectDependenciesOnly) {
             projectDependenciesCreator.update(entries, classpath)
         } else {

@@ -20,8 +20,8 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
 import org.gradle.plugins.ide.eclipse.model.internal.ExportedEntriesUpdater
-import org.gradle.util.ConfigureUtil
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
+import org.gradle.util.ConfigureUtil
 
 /**
  * Enables fine-tuning classpath details (.classpath file) of the Eclipse plugin
@@ -204,6 +204,16 @@ class EclipseClasspath {
 
     EclipseClasspath(org.gradle.api.Project project) {
         this.project = project
+    }
+
+    private EclipseLibrariesContainer librariesContainer
+
+    protected EclipseLibrariesContainer getLibrariesContainer() {
+        librariesContainer
+    }
+
+    protected EclipseLibrariesContainer setLibrariesContainer(EclipseLibrariesContainer librariesContainer) {
+        this.librariesContainer = librariesContainer
     }
 
     /**

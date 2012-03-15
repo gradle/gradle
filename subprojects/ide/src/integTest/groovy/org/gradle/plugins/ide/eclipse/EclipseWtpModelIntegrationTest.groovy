@@ -434,6 +434,94 @@ project(':contrib') {
         assert component.contains('coolAppDir')
     }
 
+    @Test
+    void "manages dependencies using the classpath container"() {
+        //given
+        file("src/main/webapp/index.jsp") << "<html>Hey!</html>"
+        file("settings.gradle") << "include 'someCoolLib'"
+
+        file("build.gradle") << """
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
+
+            project(':someCoolLib') {
+              apply plugin: 'java'
+              apply plugin: 'eclipse-wtp'
+            }
+
+            eclipse.wtp {
+              librariesContainer {
+                enabled = true
+              }
+            }
+
+            repositories { mavenCentral() }
+
+            dependencies {
+              compile 'commons-io:commons-io:1.4'
+              compile project(':someCoolLib')
+            }
+        """
+
+        //when
+        executer.withTasks("eclipse").run()
+
+        //then the container is configured
+        assert getClasspathFile().text.contains('<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container" exported="true"/>')
+
+        //the jar dependency is configured in the WTP component file but not in the .classpath
+        assert getComponentFile().text.contains('commons-io')
+        assert !getClasspathFile().text.contains('commons-io')
+
+        //the project dependency is configured in the WTP component file but not in the .classpath
+        assert getComponentFile().text.contains('someCoolLib')
+        assert !getClasspathFile().text.contains('someCoolLib')
+    }
+
+    @Test
+    void "the web container can be renamed and is used only once"() {
+        //given
+        file("build.gradle") << """
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
+
+            eclipse {
+              classpath.containers 'the.webcontainer'
+
+              wtp.librariesContainer {
+                enabled = true
+                container = 'the.webcontainer'
+//                exported = false
+              }
+            }
+        """
+
+        //when
+        executer.withTasks("eclipse").run()
+
+        //then
+        assert getClasspathFile().text.count('<classpathentry kind="con" path="the.webcontainer"') == 1
+//        assert getClasspathFile().text.count('<classpathentry kind="con" path="the.webcontainer" exported="false"') == 1
+    }
+
+    @Test
+    @Ignore
+    void "attempting to configure the web container for non-war project results in sensible error"() {
+        //given
+        file("build.gradle") << """
+            apply plugin: 'jar'
+            apply plugin: 'eclipse-wtp'
+
+            eclipse.wtp.librariesContainer.enabled = true
+        """
+
+        //when
+        def failure = executer.withTasks("eclipse").runWithFailure()
+
+        //then
+        assert failure.assertHasDescription("cannot configure")
+    }
+
     protected def contains(String ... contents) {
         contents.each { assert component.contains(it)}
     }
