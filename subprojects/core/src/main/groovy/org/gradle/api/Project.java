@@ -95,21 +95,19 @@ import java.util.Set;
  * <p>Projects are arranged into a hierarchy of projects. A project has a name, and a fully qualified path which
  * uniquely identifies it in the hierarchy.</p>
  *
- * <h3>Build scripts</h3>
+ * <a name="properties"/> <h3>Properties</h3>
  *
  * <p>Gradle executes the project's build file against the <code>Project</code> instance to configure the project. Any
- * property or method which your script uses which is not defined in the script is delegated through to the associated
- * <code>Project</code> object.  This means, that you can use any of the methods and properties on the
- * <code>Project</code> interface directly in your script.</p><p>For example:
+ * property or method which your script uses is delegated through to the associated <code>Project</code> object.  This
+ * means, that you can use any of the methods and properties on the <code>Project</code> interface directly in your script.
+ * </p><p>For example:
  * <pre>
  * defaultTasks('some-task')  // Delegates to Project.defaultTasks()
- * reportDir = file('reports') // Delegates to Project.file() and Project.setProperty()
+ * reportsDir = file('reports') // Delegates to Project.file() and the Java Plugin
  * </pre>
  * <p>You can also access the <code>Project</code> instance using the <code>project</code> property. This can make the
  * script clearer in some cases. For example, you could use <code>project.name</code> rather than <code>name</code> to
  * access the project's name.</p>
- *
- * <a name="properties"/> <h4>Dynamic Properties</h4>
  *
  * <p>A project has 5 property 'scopes', which it searches for properties. You can access these properties by name in
  * your build file, or by calling the project's {@link #property(String)} method. The scopes are:</p>
@@ -141,8 +139,33 @@ import java.util.Set;
  * scope it finds the property in.  See {@link #property(String)} for more details.</p>
  *
  * <p>When writing a property, the project searches the above scopes in order, and sets the property in the first scope
- * it finds the property in. If not found, the project adds the property to its map of additional properties. See {@link
- * #setProperty(String, Object)} for more details.</p>
+ * it finds the property in. If not found, the project adds the property to its map of additional properties.  For the
+ * next few releases a deprecation warning will be issued when trying to set a property that does not exist. Dynamic
+ * properties will eventually be removed entirely, meaning that this will be a fatal error in future versions of Gradle.
+ * See Extra Properties to learn how to add properties dynamically. </p>
+ *
+ * <a name="extraproperties"/> <h4>Extra Properties</h4>
+ *
+ * All extra properties must be created through the &quot;ext&quot; namespace. Once extra properties have been created,
+ * they are available on the owning object (in the below case the Project, Task, and sub-projects respectively) and can
+ * be read and changed. It's only the initial declaration that needs to be done via the namespace.
+ *
+ * <pre>
+ * project.ext.prop1 = "foo"
+ * task doStuff {
+ *     ext.prop2 = "bar"
+ * }
+ * subprojects { ext.${prop3} = false }
+ * </pre>
+ *
+ * Reading extra properties is done through the &quot;ext&quot; or through the owning object.
+ *
+ * <pre>
+ * ext.isSnapshot = version.endsWith("-SNAPSHOT")
+ * if (isSnapshot) {
+ *     // do snapshot stuff
+ * }
+ * </pre>
  *
  * <h4>Dynamic Methods</h4>
  *
@@ -549,7 +572,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     /**
      * <p>Declares that this project has an execution dependency on each of its child projects.</p>
      *
-     * @deprecated To definde task dependencies use {@link Task#dependsOn(Object...)} instead. 
+     * @deprecated To definde task dependencies use {@link Task#dependsOn(Object...)} instead.
      * For declaring evaluation dependencies to child projects, use evaluation dependencies
      * use {@link #evaluationDependsOnChildren()}.
      * @param evaluateDependsOnProject If true, adds an evaluation dependency.
@@ -757,7 +780,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
-     * as for {@link #file(Object)}. The closure will be used to configure the new file tree. 
+     * as for {@link #file(Object)}. The closure will be used to configure the new file tree.
      * The file tree is passed to the closure as its delegate.  Example:</p>
      *
      * <pre>
@@ -775,7 +798,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
      * @return the configured file tree. Never returns null.
      */
     ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
-    
+
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
      * properties on the new file tree.  Example:</p>
@@ -1398,7 +1421,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
 
     /**
      * <p>Creates a container for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.<p>
-     * 
+     *
      * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
      *
      * @param type The type of objects for the container to contain.
@@ -1409,7 +1432,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
 
     /**
      * <p>Creates a container for managing named objects of the specified type. The given factory is used to create object instances.</p>
-     * 
+     *
      * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
      *
      * @param type The type of objects for the container to contain.
@@ -1422,7 +1445,7 @@ public interface Project extends Comparable<Project>, ExtensionAware {
     /**
      * <p>Creates a container for managing named objects of the specified type. The given closure is used to create object instances. The name of the instance to be created is passed as a parameter to
      * the closure.</p>
-     * 
+     *
      * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
      *
      * @param type The type of objects for the container to contain.
