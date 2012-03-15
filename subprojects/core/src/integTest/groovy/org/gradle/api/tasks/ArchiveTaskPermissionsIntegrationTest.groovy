@@ -21,7 +21,7 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.gradle.util.TextUtil
 
-class CopyTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
+class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
     @Rule TemporaryFolder tmpDir = new TemporaryFolder()
 
     def "permissions are preserved, overridden by type, and overridden by copy action"() {
