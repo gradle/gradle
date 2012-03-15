@@ -31,7 +31,7 @@ import spock.lang.IgnoreIf
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-3')
 @MaxTargetGradleVersion('1.0-milestone-7') //the configuration was not supported for old versions
-class StrictLongRunningOperationIntegrationTest extends ToolingApiSpecification {
+class StrictLongRunningOperationCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         //this test does not make any sense in embedded mode

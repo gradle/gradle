@@ -15,14 +15,14 @@
  */
 package org.gradle.integtests.tooling.m5
 
+import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 
 @MinToolingApiVersion('1.0-milestone-5')
 @MinTargetGradleVersion('1.0-milestone-5')
-class ToolingApiEclipseModelIntegrationTest extends ToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     def "eclipse project has access to gradle project and its tasks"() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = """

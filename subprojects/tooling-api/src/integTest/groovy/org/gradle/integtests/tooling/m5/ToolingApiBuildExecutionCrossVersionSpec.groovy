@@ -15,18 +15,18 @@
  */
 package org.gradle.integtests.tooling.m5
 
+import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 
 @MinToolingApiVersion('1.0-milestone-5')
 @MinTargetGradleVersion('1.0-milestone-5')
-class ToolingApiBuildExecutionIntegrationTest extends ToolingApiSpecification {
+class ToolingApiBuildExecutionCrossVersionSpec extends ToolingApiSpecification {
     def "can build the set of tasks for a project"() {
         dist.testFile('build.gradle') << '''
 task a {

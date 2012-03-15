@@ -23,7 +23,7 @@ import org.gradle.tooling.model.idea.*
 
 @MinToolingApiVersion('1.0-milestone-5')
 @MinTargetGradleVersion('1.0-milestone-5')
-class ToolingApiIdeaModelIntegrationTest extends ToolingApiSpecification {
+class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "builds the model even if idea plugin not applied"() {
         def projectDir = dist.testDir

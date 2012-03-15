@@ -23,7 +23,7 @@ import org.gradle.tooling.internal.consumer.ConnectorServices
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
-class ToolingApiLoggingIntegrationTest extends ToolingApiSpecification {
+class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         //for embedded tests we don't mess with global logging. Run with forks only.

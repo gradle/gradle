@@ -15,16 +15,16 @@
  */
 package org.gradle.integtests.tooling.m5
 
+import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProgressListener
 import org.gradle.tooling.model.GradleProject
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 
 @MinToolingApiVersion('1.0-milestone-5')
 @MinTargetGradleVersion('1.0-milestone-5')
-class ToolingApiModelIntegrationTest extends ToolingApiSpecification {
+class ToolingApiModelCrossVersionSpec extends ToolingApiSpecification {
     def "receives progress while the model is building"() {
         dist.testFile('build.gradle') << '''
 System.out.println 'this is stdout'

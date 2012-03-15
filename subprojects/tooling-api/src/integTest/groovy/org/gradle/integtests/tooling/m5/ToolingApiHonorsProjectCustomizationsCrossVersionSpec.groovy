@@ -15,15 +15,15 @@
  */
 package org.gradle.integtests.tooling.m5
 
+import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
+import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 
 @MinToolingApiVersion('1.0-milestone-5')
 @MinTargetGradleVersion('1.0-milestone-5')
-class ToolingApiHonorsProjectCustomizationsIntegrationTest extends ToolingApiSpecification {
+class ToolingApiHonorsProjectCustomizationsCrossVersionSpec extends ToolingApiSpecification {
 
     def "should honour reconfigured project names"() {
         def projectDir = dist.testDir

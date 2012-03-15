@@ -36,7 +36,7 @@ import spock.lang.Issue
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
 @Issue("GRADLE-1933")
-class ConcurrentToolingApiIntegrationTest extends ToolingApiSpecification {
+class ConcurrentToolingApiCrossVersionSpec extends ToolingApiSpecification {
     @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
     int threads = 3
 

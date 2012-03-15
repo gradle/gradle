@@ -31,7 +31,7 @@ import spock.lang.Timeout
 
 @MinToolingApiVersion('1.0-milestone-9')
 @MinTargetGradleVersion('1.0-milestone-8')
-class M9JavaConfigurabilityIntegrationTest extends ToolingApiSpecification {
+class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         //this test does not make any sense in embedded mode

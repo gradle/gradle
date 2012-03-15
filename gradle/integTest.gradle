@@ -57,6 +57,9 @@ integTestTasks.all {
     testResultsDir = file("${project.testResultsDir}/$name")
 
     systemProperties['org.gradle.integtest.versions'] = project.hasProperty("testAllVersions") ? 'all' : 'latest'
+    if (project.hasProperty('crossVersionTestsOnly')) {
+        include '**/*CrossVersion*'
+    }
 
     doFirst {
         testReportDir = file("${project.reporting.baseDir}/$name")

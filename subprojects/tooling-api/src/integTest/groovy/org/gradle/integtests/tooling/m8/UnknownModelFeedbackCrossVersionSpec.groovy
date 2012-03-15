@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,33 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
 import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.UnknownModelException
+import org.gradle.tooling.UnsupportedVersionException
 
-@MinToolingApiVersion('1.0-milestone-3')
-@MinTargetGradleVersion('1.0-milestone-8')
-class ToolingApiEclipseModelIntegrationTest extends ToolingApiSpecification {
-    def "can customise model late in the configuration phase"() {
-        def projectDir = dist.testDir
-        projectDir.file('build.gradle').text = """
-apply plugin: 'java'
+@MinToolingApiVersion('1.0-milestone-8')
+@MinTargetGradleVersion('1.0-milestone-3')
+class UnknownModelFeedbackCrossVersionSpec extends ToolingApiSpecification {
 
-gradle.projectsEvaluated {
-    repositories { mavenCentral() }
-}
-dependencies {
-    compile 'commons-lang:commons-lang:2.5'
-}
-"""
+    class UnknownModel {}
+
+    def "fails gracefully when building unknown model"() {
+        //this test exposes a daemon issue that appears in M5 and M6
+        //basically when we ask to build a model for a an unknown type for given provider
+        //the daemon breaks and does not return anything to the client making the client waiting forever.
 
         when:
-        EclipseProject project = withConnection { it.getModel(EclipseProject.class) }
+        def e = maybeFailWithConnection { it.getModel(UnknownModel.class) }
 
         then:
-        project.classpath[0].file.name == 'commons-lang-2.5.jar'
+        e instanceof UnsupportedVersionException
+        e instanceof UnknownModelException
     }
 }
