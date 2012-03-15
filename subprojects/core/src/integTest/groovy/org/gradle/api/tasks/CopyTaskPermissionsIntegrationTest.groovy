@@ -17,14 +17,15 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 @Ignore
 @Requires(TestPrecondition.FILE_PERMISSIONS)
 class CopyTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
-    def "file permission set fileMode overwrites existing permissions"() {
+
+    def "fileMode can be modified in copy task"() {
         given:
         file("reference.txt") << 'test file"'
 
@@ -37,11 +38,7 @@ class CopyTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
             fileMode = $mode
         }
 
-        task verifyPermissions(dependsOn: copy) << {
-            fileTree("build/tmp").visit{
-                assert toOctalString($mode) == toOctalString(it.mode)
-            }
-        }
+        ${verifyPermissionsTask(mode)}
         """
 
         when:
@@ -54,4 +51,43 @@ class CopyTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         mode << [0644, 0755, 0777]
 
     }
+
+    def "fileMode can be modified in copy action"() {
+            given:
+            file("reference.txt") << 'test file"'
+
+            and:
+            buildFile << """
+            import static java.lang.Integer.toOctalString
+            task copy << {
+                copy {
+                    from 'reference.txt'
+                    into 'build/tmp'
+                    fileMode = $mode
+                }
+            }
+
+            ${verifyPermissionsTask(mode)}
+            """
+
+            when:
+            run "verifyPermissions"
+
+            then:
+            noExceptionThrown()
+
+            where:
+            mode << [0644, 0755, 0777]
+
+        }
+    
+    String verifyPermissionsTask(int mode){
+        """task verifyPermissions(dependsOn: copy) << {
+                fileTree("build/tmp").visit{
+                    assert toOctalString($mode) == toOctalString(it.mode)
+                }
+           }
+        """
+    }
+
 }
