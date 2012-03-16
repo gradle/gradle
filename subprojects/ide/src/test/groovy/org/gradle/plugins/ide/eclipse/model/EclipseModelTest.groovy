@@ -23,11 +23,11 @@ import spock.lang.Specification
  */
 class EclipseModelTest extends Specification {
 
-    EclipseModel model = new EclipseModel(classpath: new EclipseClasspath(null), wtp: new EclipseWtp(component: new EclipseWtpComponent(null, null)))
+    EclipseModel model = new EclipseModel(classpath: new EclipseClasspath(null))
 
     def "enables setting path variables even if wtp is not configured"() {
         given:
-        model.wtp.component = null
+        model.wtp = null
 
         when:
         model.pathVariables(one: new File('.'))
@@ -38,6 +38,10 @@ class EclipseModelTest extends Specification {
     }
 
     def "enables setting path variables"() {
+        given:
+        model.wtp = new EclipseWtp(model.classpath)
+        model.wtp.component = new EclipseWtpComponent(null, null)
+        
         when:
         model.pathVariables(one: new File('.'))
         model.pathVariables(two: new File('.'))
