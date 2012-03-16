@@ -43,7 +43,6 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
     private final CachedArtifactResolutionIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
-    private final CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex;
     
     private final CachePolicy cachePolicy;
 
@@ -51,13 +50,11 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
 
     public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
                                           CachedArtifactResolutionIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
-                                          CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex,
                                           CachePolicy cachePolicy) {
         this.delegate = delegate;
         this.moduleDescriptorCache = moduleDescriptorCache;
         this.moduleResolutionCache = moduleResolutionCache;
         this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
-        this.artifactUrlCachedResolutionIndex = artifactUrlCachedResolutionIndex;
 
         this.cachePolicy = cachePolicy;
     }
@@ -224,11 +221,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         String artifactUrl = downloadedArtifact.getSource();
         File artifactFile = downloadedArtifact.getLocalFile();
         Date artifactLastModified = downloadedArtifact.getLastModified();
-
         artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, artifactFile, artifactLastModified, artifactUrl);
-        if (artifactUrl != null) {
-            artifactUrlCachedResolutionIndex.store(artifactUrl, artifactFile, artifactLastModified, artifactUrl);
-        }
 
         return downloadedArtifact;
     }

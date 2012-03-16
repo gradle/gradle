@@ -17,40 +17,27 @@
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolution;
 import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolutionIndex;
-import org.gradle.internal.Factory;
 
 import java.util.Collections;
 import java.util.List;
 
 public class ArtifactResolutionCacheArtifactCache extends AbstractArtifactCache<String> {
 
-    public ArtifactResolutionCacheArtifactCache(CachedArtifactResolutionIndex<String> resolutionCache, CacheLockingManager cacheLockingManager) {
-        super(createProducer(resolutionCache, cacheLockingManager));
+    public ArtifactResolutionCacheArtifactCache(CachedArtifactResolutionIndex<String> resolutionCache) {
+        super(createProducer(resolutionCache));
     }
 
-    private static Transformer<List<CachedArtifact>, String> createProducer(final CachedArtifactResolutionIndex<String> resolutionCache, final CacheLockingManager cacheLockingManager) {
+    private static Transformer<List<CachedArtifact>, String> createProducer(final CachedArtifactResolutionIndex<String> resolutionCache) {
         return new Transformer<List<CachedArtifact>, String>() {
             public List<CachedArtifact> transform(final String url) {
-
-                return cacheLockingManager.useCache(
-                        String.format("find cached artifacts for url %s", url),
-                        new Factory<List<CachedArtifact>>() {
-
-                            public List<CachedArtifact> create() {
-                                CachedArtifactResolution match = resolutionCache.lookup(url);
-                                if (match == null) {
-                                    return Collections.emptyList();
-                                } else {
-                                    return Collections.singletonList((CachedArtifact) new DefaultCachedArtifact(match.getArtifactFile(), match.getArtifactLastModified()));
-                                }
-                            }
-
-                        }
-                );
-
+                CachedArtifactResolution match = resolutionCache.lookup(url);
+                if (match == null) {
+                    return Collections.emptyList();
+                } else {
+                    return Collections.singletonList((CachedArtifact) new DefaultCachedArtifact(match.getArtifactFile(), match.getArtifactLastModified()));
+                }
             }
         };
     }

@@ -367,47 +367,53 @@ task retrieve(type: Copy) {
         // There are lots of dates floating around in a resolution and we want to make
         // sure we use this.
         module.jarFile.setLastModified(2000)
-        
-        def returnedLastModified = new Date(module.jarFile.lastModified())
+        module.ivyFile.setLastModified(6000)
+
+        def base = "/repo/group/projectA/1.1"
+        def ivyPath = "$base/$module.ivyFile.name"
+        def ivySha1Path = "${ivyPath}.sha1"
+        def originalIvyLastMod = new Date(module.ivyFile.lastModified())
+        def jarPath = "$base/$module.jarFile.name"
+        def jarSha1Path = "${jarPath}.sha1"
+        def originalJarLastMod = new Date(module.jarFile.lastModified())
 
         when:
-        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
-        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
+        server.expectGet(ivyPath, module.ivyFile)
+        server.expectGet(jarPath, module.jarFile)
 
         run 'retrieve'
 
         then:
-        def jarFile = file('build/projectA-1.1.jar')
-        jarFile.assertIsCopyOf(module.jarFile)
-        def snapshot = jarFile.snapshot()
+        def downloadedJar = file('build/projectA-1.1.jar')
+        downloadedJar.assertIsCopyOf(module.jarFile)
+        def snapshot = downloadedJar.snapshot()
 
         // Do change the jar, so we can check that the new version wasn't downloaded
         module.publishWithChangedContent()
 
         when:
         server.resetExpectations()
-        server.expectGetMissing('/repo/group/projectA/1.1/ivy-1.1.xml.sha1')
-        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
-        server.expectGetMissing('/repo/group/projectA/1.1/projectA-1.1.jar.sha1')
-        server.expectGetIfNotModifiedSince('/repo/group/projectA/1.1/projectA-1.1.jar', returnedLastModified, module.jarFile, UNMODIFIED)
+        server.expectGetMissing(ivySha1Path)
+        server.expectGetIfNotModifiedSince(ivyPath, originalIvyLastMod, module.ivyFile, UNMODIFIED)
+        server.expectGetMissing(jarSha1Path)
+        server.expectGetIfNotModifiedSince(jarPath, originalJarLastMod, module.jarFile, UNMODIFIED)
 
         run 'retrieve'
 
         then:
-        def changedJarFile = file('build/projectA-1.1.jar')
-        changedJarFile.assertHasNotChangedSince(snapshot)
+        downloadedJar.assertHasNotChangedSince(snapshot)
 
         when:
         server.resetExpectations()
-        server.expectGetMissing('/repo/group/projectA/1.1/ivy-1.1.xml.sha1')
-        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
-        server.expectGetMissing('/repo/group/projectA/1.1/projectA-1.1.jar.sha1')
-        server.expectGetIfNotModifiedSince('/repo/group/projectA/1.1/projectA-1.1.jar', returnedLastModified, module.jarFile, MODIFIED)
+        server.expectGetMissing(ivySha1Path)
+        server.expectGetIfNotModifiedSince(ivyPath, originalIvyLastMod, module.ivyFile, MODIFIED)
+        server.expectGetMissing(jarSha1Path)
+        server.expectGetIfNotModifiedSince(jarPath, originalJarLastMod, module.jarFile, MODIFIED)
 
         run 'retrieve'
 
         then:
-        changedJarFile.assertHasChangedSince(snapshot)
-        changedJarFile.assertIsCopyOf(module.jarFile)
+        downloadedJar.assertHasChangedSince(snapshot)
+        downloadedJar.assertIsCopyOf(module.jarFile)
     }
 }

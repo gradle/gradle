@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.resolutioncache;
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.Factory;
 import org.gradle.util.TimeProvider;
 
 import java.io.File;
@@ -65,16 +66,32 @@ public abstract class AbstractCachedArtifactResolutionIndex<K, P extends Seriali
 
     protected abstract P createKey(K publicKey);
     
-    public void store(K key, File artifactFile, Date lastModified, String sourceUrl) {
-        getPersistentCache().put(createKey(key), createEntry(artifactFile, lastModified, sourceUrl));
+    private String operationName(String action) {
+        return String.format("%s from artifact resolution cache '%s'", action, persistentCacheFile.getName());        
+    }    
+    
+    public void store(final K key, final File artifactFile, final Date lastModified, final String sourceUrl) {
+        cacheLockingManager.useCache(operationName("store"), new Runnable() {
+            public void run() {
+                getPersistentCache().put(createKey(key), createEntry(artifactFile, lastModified, sourceUrl));
+            }
+        });
     }
 
-    public CachedArtifactResolution lookup(K index) {
-        return toCachedArtifactResolution(getPersistentCache().get(createKey(index)));
+    public CachedArtifactResolution lookup(final K key) {
+        return cacheLockingManager.useCache(operationName("store"), new Factory<CachedArtifactResolution>() {
+            public CachedArtifactResolution create() {
+                return toCachedArtifactResolution(getPersistentCache().get(createKey(key)));
+            }
+        });
     }
 
-    public void clear(K key) {
-        getPersistentCache().remove(createKey(key));
+    public void clear(final K key) {
+        cacheLockingManager.useCache(operationName("store"), new Runnable() {
+            public void run() {
+                getPersistentCache().remove(createKey(key));
+            }
+        });
     }
 
 }

@@ -229,8 +229,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         cacheBuilder.addMilestone6();
         cacheBuilder.addMilestone3();
         cacheBuilder.addMavenLocal();
-        cacheBuilder.setUrlCache(new ArtifactResolutionCacheArtifactCache(get(ArtifactUrlCachedResolutionIndex.class), get(CacheLockingManager.class)));
-        return new RepositoryTransportFactory(cacheBuilder.getExternalArtifactCache(), get(ProgressLoggerFactory.class), get(ArtifactFileStore.class));
+        cacheBuilder.setUrlCache(new ArtifactResolutionCacheArtifactCache(get(ArtifactUrlCachedResolutionIndex.class)));
+        return new RepositoryTransportFactory(cacheBuilder.getExternalArtifactCache(), get(ProgressLoggerFactory.class), 
+                get(ArtifactFileStore.class), get(ArtifactUrlCachedResolutionIndex.class));
     }
 
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
@@ -316,7 +317,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(ModuleResolutionCache.class),
                     get(ModuleDescriptorCache.class),
                     get(ArtifactAtRepositoryCachedResolutionIndex.class),
-                    get(ArtifactUrlCachedResolutionIndex.class),
                     get(CacheLockingManager.class),
                     startParameterResolutionOverride
             );

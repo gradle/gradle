@@ -458,14 +458,16 @@ project('resolve') {
         // There are lots of dates floating around in a resolution and we want to make
         // sure we use this.
         module.artifactFile.setLastModified(2000)
-        def returnedLastModified = new Date(module.artifactFile.lastModified())
+        module.pomFile.setLastModified(6000)
 
         def base = "/repo/group/projectA/1.1-SNAPSHOT"
         def metaDataPath = "$base/maven-metadata.xml"
         def pomPath = "$base/$module.pomFile.name"
         def pomSha1Path = "${pomPath}.sha1"
+        def originalPomLastMod = new Date(module.pomFile.lastModified())
         def jarPath = "$base/$module.artifactFile.name"
         def jarSha1Path = "${jarPath}.sha1"
+        def originalJarLastMod = new Date(module.artifactFile.lastModified())
 
         when:
         server.expectGet(metaDataPath, module.mavenMetaDataFile)
@@ -478,7 +480,7 @@ project('resolve') {
         then:
         def downloadedJarFile = file("build/projectA-1.1-SNAPSHOT.jar")
         downloadedJarFile.assertIsCopyOf(module.artifactFile)
-        def firstDownloadedJarFile = downloadedJarFile.snapshot()
+        def initialDownloadJarFileSnapshot = downloadedJarFile.snapshot()
 
         // Do change the jar, so we can check that the new version wasn't downloaded
         module.publishWithChangedContent()
@@ -487,29 +489,29 @@ project('resolve') {
         server.resetExpectations()
         server.expectGet(metaDataPath, module.mavenMetaDataFile)
         server.expectGetMissing(pomSha1Path)
-        server.expectGet(pomPath, module.pomFile)
+        server.expectGetIfNotModifiedSince(pomPath, originalPomLastMod, module.pomFile, UNMODIFIED)
         server.expectGet(metaDataPath, module.mavenMetaDataFile)
         server.expectGetMissing(jarSha1Path)
-        server.expectGetIfNotModifiedSince(jarPath, returnedLastModified, module.artifactFile, UNMODIFIED)
+        server.expectGetIfNotModifiedSince(jarPath, originalJarLastMod, module.artifactFile, UNMODIFIED)
 
         run "retrieve"
 
         then:
-        downloadedJarFile.assertHasNotChangedSince(firstDownloadedJarFile)
+        downloadedJarFile.assertHasNotChangedSince(initialDownloadJarFileSnapshot)
 
         when:
         server.resetExpectations()
         server.expectGet(metaDataPath, module.mavenMetaDataFile)
         server.expectGetMissing(pomSha1Path)
-        server.expectGet(pomPath, module.pomFile)
+        server.expectGetIfNotModifiedSince(pomPath, originalPomLastMod, module.pomFile, MODIFIED)
         server.expectGet(metaDataPath, module.mavenMetaDataFile)
         server.expectGetMissing(jarSha1Path)
-        server.expectGetIfNotModifiedSince(jarPath, returnedLastModified, module.artifactFile, MODIFIED)
+        server.expectGetIfNotModifiedSince(jarPath, originalJarLastMod, module.artifactFile, MODIFIED)
 
         run "retrieve"
 
         then:
-        downloadedJarFile.assertHasChangedSince(firstDownloadedJarFile)
+        downloadedJarFile.assertHasChangedSince(initialDownloadJarFileSnapshot)
         downloadedJarFile.assertIsCopyOf(module.artifactFile)
     }
 

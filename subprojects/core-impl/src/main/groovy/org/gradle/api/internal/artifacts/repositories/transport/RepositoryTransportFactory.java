@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRe
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport;
+import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolutionIndex;
 import org.gradle.logging.ProgressLoggerFactory;
 
 import java.net.URI;
@@ -37,10 +38,11 @@ public class RepositoryTransportFactory {
     private final RepositoryCacheManager downloadingCacheManager;
     private final RepositoryCacheManager localCacheManager;
 
-    public RepositoryTransportFactory(ArtifactCaches artifactCaches, ProgressLoggerFactory progressLoggerFactory, ArtifactFileStore fileStore) {
+    public RepositoryTransportFactory(ArtifactCaches artifactCaches, ProgressLoggerFactory progressLoggerFactory, ArtifactFileStore fileStore,
+                                      CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex) {
         this.artifactCaches = artifactCaches;
         this.transferListener = new ProgressLoggingTransferListener(progressLoggerFactory, RepositoryTransport.class);
-        this.downloadingCacheManager = new DownloadingRepositoryCacheManager("downloading", fileStore);
+        this.downloadingCacheManager = new DownloadingRepositoryCacheManager("downloading", fileStore, artifactUrlCachedResolutionIndex);
         this.localCacheManager = new LocalFileRepositoryCacheManager("local");
     }
 

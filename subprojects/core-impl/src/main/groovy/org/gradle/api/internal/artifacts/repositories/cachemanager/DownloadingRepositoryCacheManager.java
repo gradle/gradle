@@ -34,20 +34,24 @@ import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithLastModified;
 import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
+import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolutionIndex;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Date;
 
 /**
  * A cache manager for remote repositories, that downloads files and stores them in the FileStore provided.
  */
 public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheManager {
     private final ArtifactFileStore fileStore;
+    private final CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex;
 
-    public DownloadingRepositoryCacheManager(String name, ArtifactFileStore fileStore) {
+    public DownloadingRepositoryCacheManager(String name, ArtifactFileStore fileStore, CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex) {
         super(name);
         this.fileStore = fileStore;
+        this.artifactUrlCachedResolutionIndex = artifactUrlCachedResolutionIndex;
     }
 
     public ArtifactDownloadReport download(Artifact artifact, ArtifactResourceResolver resourceResolver,
@@ -95,7 +99,15 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
     private File downloadArtifactFile(Artifact artifact, ResourceDownloader resourceDownloader, ResolvedResource artifactRef) throws IOException {
         File tempFile = fileStore.getTempFile();
         resourceDownloader.download(artifact, artifactRef.getResource(), tempFile);
-        return fileStore.add(artifact.getId(), tempFile);
+
+        File fileInFileStore = fileStore.add(artifact.getId(), tempFile);
+        
+        String url = artifactRef.getResource().getName();
+        long lastModifiedTimestamp = artifactRef.getResource().getLastModified();
+        Date lastModified = lastModifiedTimestamp > 0 ? new Date(lastModifiedTimestamp) : null;
+        artifactUrlCachedResolutionIndex.store(artifactRef.getResource().getName(), fileInFileStore, lastModified, url);
+
+        return fileInFileStore;
     }
 
     public ResolvedModuleRevision cacheModuleDescriptor(DependencyResolver resolver, final ResolvedResource resolvedResource, DependencyDescriptor dd, Artifact moduleArtifact, ResourceDownloader downloader, CacheMetadataOptions options) throws ParseException {

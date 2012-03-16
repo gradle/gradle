@@ -535,5 +535,9 @@ public class TestFile extends File implements TestFileContext {
             modTime = lastModified();
             hash = getHash("MD5");
         }
+
+        public long lastModified() {
+            return modTime;
+        }
     }
 }
