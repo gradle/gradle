@@ -206,16 +206,6 @@ class EclipseClasspath {
         this.project = project
     }
 
-    private EclipseLibrariesContainer librariesContainer
-
-    protected EclipseLibrariesContainer getLibrariesContainer() {
-        librariesContainer
-    }
-
-    protected EclipseLibrariesContainer setLibrariesContainer(EclipseLibrariesContainer librariesContainer) {
-        this.librariesContainer = librariesContainer
-    }
-
     /**
      * Calculates, resolves & returns dependency entries of this classpath
      */

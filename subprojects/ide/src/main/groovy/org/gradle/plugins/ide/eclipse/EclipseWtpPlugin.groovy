@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.Instantiator
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.plugins.ear.EarPlugin
@@ -42,11 +43,8 @@ class EclipseWtpPlugin extends IdePlugin {
 
     @Override protected void onApply(Project project) {
         EclipsePlugin delegatePlugin = project.getPlugins().apply(EclipsePlugin.class);
+        delegatePlugin.model.wtp = project.services.get(Instantiator).newInstance(EclipseWtp, delegatePlugin.model.classpath)
         eclipseWtpModel = delegatePlugin.model.wtp
-
-        def container = new EclipseLibrariesContainer()
-        eclipseWtpModel.librariesContainer = container
-        project.eclipse.classpath.librariesContainer = container
 
         lifecycleTask.description = 'Generates Eclipse wtp configuration files.'
         cleanTask.description = 'Cleans Eclipse wtp configuration files.'
@@ -64,21 +62,25 @@ class EclipseWtpPlugin extends IdePlugin {
 
     private void configureEclipseClasspathForWarPlugin(Project project) {
         project.plugins.withType(WarPlugin) {
-            eclipseWtpModel.librariesContainer {
-                enabled = false
-                container = 'org.eclipse.jst.j2ee.internal.web.container'
-                exported = true
-                replacesClasspath = true
+            project.eclipse.classpath.file.whenMerged { Classpath classpath ->
+                for (entry in classpath.entries) {
+                    if (entry instanceof Library) {
+                        //this is necessary to avoid annoying warnings upon import to Eclipse
+                        //the .classpath entries can be marked all as non-deployable dependencies
+                        //because the wtp component file declares the deployable dependencies
+                        entry.entryAttributes[AbstractClasspathEntry.NON_DEPENDENCY_ATTRIBUTE] = ''
+                    }
+                }
             }
 
             doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
-                otherProject.tasks.withType(GenerateEclipseClasspath) {
-                    classpath.file.whenMerged { Classpath classpath ->
-                        for (entry in classpath.entries) {
-                            if (entry instanceof Library) {
-                                // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
-                                entry.entryAttributes['org.eclipse.jst.component.dependency'] = '../'
-                            }
+                otherProject.eclipse.classpath.file.whenMerged { Classpath classpath ->
+                    for (entry in classpath.entries) {
+                        if (entry instanceof Library) {
+                            // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
+                            //this is necessary so that the depended upon projects will have their dependencies
+                            // deployed to WEB-INF/lib of the main project.
+                            entry.entryAttributes['org.eclipse.jst.component.dependency'] = '../'
                         }
                     }
                 }

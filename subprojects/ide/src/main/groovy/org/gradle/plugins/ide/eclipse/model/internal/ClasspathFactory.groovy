@@ -34,19 +34,10 @@ class ClasspathFactory {
 
     private final ClasspathEntryBuilder containersCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
-            if (eclipseClasspath.librariesContainer?.enabled) {
-                def webApp = eclipseClasspath.librariesContainer
-                Container entry = new Container(webApp.container)
-                entry.exported = webApp.exported
-                entries << entry
-            }
             eclipseClasspath.containers.each { container ->
-                //don't re-add any container
-                if (!entries.find { it.path.equals(container) }) {
-                    Container entry = new Container(container)
-                    entry.exported = true
-                    entries << entry
-                }
+                Container entry = new Container(container)
+                entry.exported = true
+                entries << entry
             }
         }
     }
@@ -60,17 +51,15 @@ class ClasspathFactory {
 
     private final ClasspathEntryBuilder librariesCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath classpath) {
-            def referenceFactory = classpath.fileReferenceFactory
-
             dependenciesExtractor.extractRepoFileDependencies(
                     classpath.project.configurations, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
             .each { IdeRepoFileDependency it ->
-                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, referenceFactory)
+                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath)
             }
 
             dependenciesExtractor.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
             .each { IdeLocalFileDependency it ->
-                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, referenceFactory)
+                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, classpath)
             }
         }
     }
@@ -84,9 +73,6 @@ class ClasspathFactory {
         outputCreator.update(entries, classpath)
         sourceFoldersCreator.populateForClasspath(entries, classpath)
         containersCreator.update(entries, classpath)
-        if (classpath.librariesContainer?.shouldReplaceClasspath()) {
-            return entries
-        }
 
         if (classpath.projectDependenciesOnly) {
             projectDependenciesCreator.update(entries, classpath)
@@ -98,7 +84,9 @@ class ClasspathFactory {
         return entries
     }
 
-    private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, String declaredConfigurationName, FileReferenceFactory referenceFactory) {
+    private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, String declaredConfigurationName, EclipseClasspath classpath) {
+        def referenceFactory = classpath.fileReferenceFactory
+        
         def binaryRef = referenceFactory.fromFile(binary)
         def sourceRef = referenceFactory.fromFile(source)
         def javadocRef = referenceFactory.fromFile(javadoc);

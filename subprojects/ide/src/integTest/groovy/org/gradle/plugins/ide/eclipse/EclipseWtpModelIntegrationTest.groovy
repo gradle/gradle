@@ -17,7 +17,8 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.plugins.ide.eclipse.model.internal.Warnings
+import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
+import org.gradle.plugins.ide.eclipse.model.EclipseWtp
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -437,6 +438,7 @@ project(':contrib') {
 
     @Test
     void "manages dependencies using the classpath container"() {
+        //TODO SF split
         //given
         file("src/main/webapp/index.jsp") << "<html>Hey!</html>"
         file("settings.gradle") << "include 'someCoolLib'"
@@ -450,11 +452,7 @@ project(':contrib') {
               apply plugin: 'eclipse-wtp'
             }
 
-            eclipse.wtp {
-              librariesContainer {
-                enabled = true
-              }
-            }
+            eclipse.wtp.useLibrariesContainer()
 
             repositories { mavenCentral() }
 
@@ -468,60 +466,30 @@ project(':contrib') {
         executer.withTasks("eclipse").run()
 
         //then the container is configured
-        assert getClasspathFile().text.contains('<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container" exported="true"/>')
+        assert getClasspathFile().text.contains(EclipseWtp.WEB_LIBS_CONTAINER)
 
-        //the jar dependency is configured in the WTP component file but not in the .classpath
+        //the jar dependency is configured in the WTP component file
         assert getComponentFile().text.contains('commons-io')
-        assert !getClasspathFile().text.contains('commons-io')
 
-        //the project dependency is configured in the WTP component file but not in the .classpath
-        assert getComponentFile().text.contains('someCoolLib')
-        assert !getClasspathFile().text.contains('someCoolLib')
+        //the jar dependency is configured as non-dependency in the .classpath
+        def commonsIo = classpath.entries.find { it.@path?.contains('commons-io') }
+        assert commonsIo
+        assert commonsIo.attributes.attribute.@name == [AbstractClasspathEntry.NON_DEPENDENCY_ATTRIBUTE]
     }
 
     @Test
-    void "the web container can be renamed and is referenced only once"() {
+    void "the web container is not present by default"() {
         //given
         file("build.gradle") << """
             apply plugin: 'war'
             apply plugin: 'eclipse-wtp'
-
-            eclipse {
-              //say the container is mentioned here as well for some reason
-              classpath.containers 'the.webcontainer'
-
-              wtp.librariesContainer {
-                enabled = true
-                container = 'the.webcontainer'
-                exported = false
-              }
-            }
         """
 
         //when
         executer.withTasks("eclipse").run()
 
         //then container is added only once:
-        assert getClasspathFile().text.count('the.webcontainer') == 1
-        //and it is 'unexported' as requested:
-        assert getClasspathFile().text.contains('<classpathentry kind="con" path="the.webcontainer"/>')
-    }
-
-    @Test
-    void "handles gracefully attempts to configure the web container for non-war"() {
-        //given
-        file("build.gradle") << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse-wtp'
-
-            eclipse.wtp.librariesContainer.enabled = true
-        """
-
-        //when
-        executer.withTasks("eclipse").run()
-
-        //then
-        getClasspathFile().text.contains(Warnings.CONTAINER_NOT_CONFIGURED)
+        assert !getClasspathFile().text.contains(EclipseWtp.WEB_LIBS_CONTAINER)
     }
 
     protected def contains(String ... contents) {

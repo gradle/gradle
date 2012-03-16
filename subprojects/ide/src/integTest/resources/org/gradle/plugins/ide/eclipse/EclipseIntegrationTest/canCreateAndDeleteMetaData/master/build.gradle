@@ -1,9 +1,10 @@
+import java.util.regex.Pattern
 import junit.framework.AssertionFailedError
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
+import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 import org.junit.ComparisonFailure
-import java.util.regex.Pattern
 
 buildscript {
     repositories {
@@ -39,20 +40,29 @@ allprojects {
     afterEvaluate { p ->
         configure(p) {
             eclipseProject.doLast {
-                compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}Project.xml")),
-                        getActualXml(file(".project")))
+                compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/${project.name}Project.xml"),
+                        file(".project"))
             }
 
             if (p.hasProperty('eclipseClasspath')) {
                 eclipse {
                     classpath {
                         downloadJavadoc = true
+                        //this hack is it avoid getting mad with xmlunit failures for whitespace
+                        //and with futile attempts to resolve them properly.
+                        file.whenMerged { classpath ->
+                            classpath.entries.each { entry ->
+                                if (entry instanceof AbstractClasspathEntry) {
+                                    entry.entryAttributes.remove(AbstractClasspathEntry.NON_DEPENDENCY_ATTRIBUTE)
+                                }
+                            }
+                        }
                     }
                 }
                 eclipseClasspath {
                     doLast {
-                        compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}Classpath.xml")),
-                                getActualXml(file(".classpath")))
+                        compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/${project.name}Classpath.xml"),
+                                file(".classpath"))
                     }
                 }
             }
@@ -69,16 +79,16 @@ allprojects {
             if (p.hasProperty('eclipseWtpComponent')) {
                 eclipseWtpComponent {
                     doLast {
-                        compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}WtpComponent.xml")),
-                                getActualXml(file(".settings/org.eclipse.wst.common.component")))
+                        compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/${project.name}WtpComponent.xml"),
+                                file(".settings/org.eclipse.wst.common.component"))
                     }
                 }
             }
             if (p.hasProperty('eclipseWtpFacet')) {
                 eclipseWtpFacet {
                     doLast {
-                        compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}WtpFacet.xml")),
-                                getActualXml(file(".settings/org.eclipse.wst.common.project.facet.core.xml")))
+                        compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/${project.name}WtpFacet.xml"),
+                                file(".settings/org.eclipse.wst.common.project.facet.core.xml"))
                     }
                 }
             }
@@ -99,7 +109,9 @@ void compareProperties(String expectedProperties, String actualProperties) {
     assert expected == actual
 }
 
-void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
+void compareXmlWithIgnoringOrder(File expectedFile, File actualFile) {
+    String expectedXml = getExpectedXml(expectedFile)
+    String actualXml = getActualXml(actualFile)
     Diff diff = new Diff(expectedXml, actualXml)
     diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
     try {
@@ -107,7 +119,8 @@ void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
     } catch (AssertionFailedError error) {
         println "EXPECTED:\n${expectedXml}"
         println "ACTUAL:\n${actualXml}"
-        throw new ComparisonFailure("Unexpected content for generated file: ${error.message}", expectedXml, actualXml).initCause(error)
+        throw new ComparisonFailure("Comparison filure: expected: $expectedFile, actual: $actualFile"
+            + "\nUnexpected content for generated file: ${error.message}", expectedXml, actualXml).initCause(error)
     }
 }
 
