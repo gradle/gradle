@@ -32,7 +32,13 @@ public class CompatibleIntrospector {
     }
 
     private Method getMethod(String methodName) throws NoSuchMethodException {
-        return target.getClass().getDeclaredMethod(methodName, new Class[0]);
+        Method[] methods = target.getClass().getDeclaredMethods();
+        for (Method m : methods) {
+            if (m.getName().equals(methodName)) {
+                return m;
+            }
+        }
+        throw new NoSuchMethodException("No such method: '" + methodName + "' on type: '" + target.getClass().getSimpleName() + "'.");
     }
 
     public <T> T getSafely(T defaultValue, String methodName) {
@@ -44,6 +50,22 @@ public class CompatibleIntrospector {
             return defaultValue;
         } catch (Exception e) {
             throw new RuntimeException("Unable to get value reflectively", e);
+        }
+    }
+
+    public void callSafely(String methodName, Object ... params) {
+        Method method;
+        try {
+            method = getMethod(methodName);
+        } catch (NoSuchMethodException e) {
+            return; // ignore
+        }
+
+        method.setAccessible(true);
+        try {
+            method.invoke(target, params);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to call method reflectively", e);
         }
     }
 }

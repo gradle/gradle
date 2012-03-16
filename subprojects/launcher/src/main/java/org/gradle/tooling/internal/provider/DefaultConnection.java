@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.GradleLauncherAction;
 import org.gradle.internal.Factory;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -25,7 +26,6 @@ import org.gradle.launcher.exec.GradleLauncherActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
-import org.gradle.logging.internal.SingleOpLoggingConfigurer;
 import org.gradle.logging.internal.slf4j.SimpleSlf4jLoggingConfigurer;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.protocol.*;
@@ -42,13 +42,18 @@ import java.util.List;
 public class DefaultConnection implements InternalConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final EmbeddedExecuterSupport embeddedExecuterSupport;
-    private final SingleOpLoggingConfigurer slf4jLoggingConfigurer = new SingleOpLoggingConfigurer(new SimpleSlf4jLoggingConfigurer());
+    private final SimpleSlf4jLoggingConfigurer loggingConfigurer = new SimpleSlf4jLoggingConfigurer();
 
     public DefaultConnection() {
         LOGGER.debug("Provider implementation created.");
         //embedded use of the tooling api is not supported publicly so we don't care about its thread safety
         //we can keep still keep this state:
         embeddedExecuterSupport = new EmbeddedExecuterSupport();
+    }
+
+    public void configureLogging(boolean verboseLogging) {
+        LogLevel providerLogLevel = verboseLogging? LogLevel.DEBUG : LogLevel.INFO;
+        loggingConfigurer.configure(providerLogLevel);
     }
 
     public ConnectionMetaDataVersion1 getMetaData() {
@@ -126,8 +131,6 @@ public class DefaultConnection implements InternalConnection {
     }
 
     private DaemonParameters init(ProviderOperationParameters operationParameters) {
-        slf4jLoggingConfigurer.configure(operationParameters.getProviderLogLevel());
-
         File gradleUserHomeDir = GUtil.elvis(operationParameters.getGradleUserHomeDir(), StartParameter.DEFAULT_GRADLE_USER_HOME);
         DaemonParameters daemonParams = new DaemonParameters();
 

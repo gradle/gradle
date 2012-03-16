@@ -37,19 +37,23 @@ public class LazyConnection implements ConsumerConnection {
     private final Distribution distribution;
     private final ToolingImplementationLoader implementationLoader;
     private final LoggingProvider loggingProvider;
+
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private Set<Thread> executing = new HashSet<Thread>();
     private boolean stopped;
     private ConsumerConnection connection;
 
+    boolean verboseLogging;
+
     ModelProvider modelProvider = new ModelProvider();
     FeatureValidator featureValidator = new FeatureValidator();
 
-    public LazyConnection(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider) {
+    public LazyConnection(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, boolean verboseLogging) {
         this.distribution = distribution;
         this.implementationLoader = implementationLoader;
         this.loggingProvider = loggingProvider;
+        this.verboseLogging = verboseLogging;
     }
 
     public void stop() {
@@ -116,7 +120,7 @@ public class LazyConnection implements ConsumerConnection {
             if (connection == null) {
                 // Hold the lock while creating the connection. Not generally good form.
                 // In this instance, blocks other threads from creating the connection at the same time
-                connection = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory());
+                connection = implementationLoader.create(distribution, loggingProvider.getProgressLoggerFactory(), verboseLogging);
             }
             return connection;
         } finally {

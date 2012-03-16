@@ -20,5 +20,5 @@ import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 
 public interface ToolingImplementationLoader {
-    ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory);
+    ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, boolean verboseLogging);
 }

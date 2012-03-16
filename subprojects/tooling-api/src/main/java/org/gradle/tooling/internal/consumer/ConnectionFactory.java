@@ -36,7 +36,7 @@ public class ConnectionFactory {
 
     public ProjectConnection create(Distribution distribution, ConnectionParameters parameters) {
         SynchronizedLogging synchronizedLogging = new SynchronizedLogging();
-        ConsumerConnection lazyConnection = new LazyConnection(distribution, toolingImplementationLoader, synchronizedLogging);
+        ConsumerConnection lazyConnection = new LazyConnection(distribution, toolingImplementationLoader, synchronizedLogging, parameters.getVerboseLogging());
         ConsumerConnection progressLoggingConnection = new ProgressLoggingConnection(lazyConnection, synchronizedLogging);
         ConsumerConnection initializingConnection = new LoggingInitializerConnection(progressLoggingConnection, synchronizedLogging);
         AsyncConnection asyncConnection = new DefaultAsyncConnection(initializingConnection, executorFactory);

@@ -33,12 +33,12 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
         this.loader = loader;
     }
 
-    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory) {
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, boolean verboseLogging) {
         Set<File> classpath = new LinkedHashSet<File>(distribution.getToolingImplementationClasspath(progressLoggerFactory));
 
         ConsumerConnection connection = connections.get(classpath);
         if (connection == null) {
-            connection = loader.create(distribution, progressLoggerFactory);
+            connection = loader.create(distribution, progressLoggerFactory, verboseLogging);
             connections.put(classpath, connection);
         }
 

@@ -64,16 +64,6 @@ public class AdaptedOperationParameters implements ProviderOperationParameters {
         return maybeGet(safeDummy, "getStandardInput");
     }
 
-    public LogLevel getProviderLogLevel() {
-        boolean verbose = getVerboseLogging();
-        if (verbose) {
-            return LogLevel.DEBUG;
-        } else {
-            //by default, tooling api provider infrastructure logs with:
-            return LogLevel.INFO;
-        }
-    }
-    
     public LogLevel getBuildLogLevel() {
         boolean verbose = getVerboseLogging();
         if (verbose) {

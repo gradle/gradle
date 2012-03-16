@@ -36,10 +36,10 @@ public class SynchronizedToolingImplementationLoader implements ToolingImplement
         this.delegate = delegate;
     }
 
-    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory) {
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, boolean verboseLogging) {
         if (lock.tryLock()) {
             try {
-                return delegate.create(distribution, progressLoggerFactory);
+                return delegate.create(distribution, progressLoggerFactory, verboseLogging);
             } finally {
                 lock.unlock();
             }
@@ -49,7 +49,7 @@ public class SynchronizedToolingImplementationLoader implements ToolingImplement
         logger.started();
         lock.lock();
         try {
-            return delegate.create(distribution, progressLoggerFactory);
+            return delegate.create(distribution, progressLoggerFactory, verboseLogging);
         } finally {
             lock.unlock();
             logger.completed();

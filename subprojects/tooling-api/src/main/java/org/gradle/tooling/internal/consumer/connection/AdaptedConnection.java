@@ -20,6 +20,7 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalConnection;
+import org.gradle.tooling.internal.reflect.CompatibleIntrospector;
 
 /**
  * An implementation that wraps a protocol instance that has rigid compatibility policy.
@@ -56,5 +57,9 @@ public class AdaptedConnection implements ConsumerConnection {
 
     public ConnectionVersion4 getDelegate() {
         return delegate;
+    }
+
+    public void configureLogging(boolean verboseLogging) {
+        new CompatibleIntrospector(delegate).callSafely("configureLogging", verboseLogging);
     }
 }

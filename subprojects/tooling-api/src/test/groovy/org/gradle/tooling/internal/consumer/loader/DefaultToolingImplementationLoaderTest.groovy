@@ -44,7 +44,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         ] as Set)
 
         when:
-        def adaptedConnection = loader.create(distribution, loggerFactory)
+        def adaptedConnection = loader.create(distribution, loggerFactory, true)
 
         then:
         adaptedConnection.delegate.class != TestConnection.class //different classloaders
@@ -65,7 +65,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader(cl)
 
         when:
-        loader.create(distribution, loggerFactory)
+        loader.create(distribution, loggerFactory, true)
 
         then:
         UnsupportedVersionException e = thrown()

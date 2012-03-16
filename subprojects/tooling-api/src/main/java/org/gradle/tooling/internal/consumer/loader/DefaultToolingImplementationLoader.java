@@ -44,7 +44,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         this.classLoader = classLoader;
     }
 
-    public AdaptedConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory) {
+    public AdaptedConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, boolean verboseLogging) {
         LOGGER.debug("Using tooling provider from {}", distribution.getDisplayName());
         ClassLoader classLoader = createImplementationClassLoader(distribution, progressLoggerFactory);
         ServiceLocator serviceLocator = new ServiceLocator(classLoader);
@@ -59,7 +59,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             // ConnectionVersion4 is a part of the protocol and cannot be easily changed.
             ConnectionVersion4 connection = factory.create();
             // Adopting the connection to a refactoring friendly type that the consumer owns
-            return new AdaptedConnection(connection);
+            AdaptedConnection adaptedConnection = new AdaptedConnection(connection);
+            adaptedConnection.configureLogging(verboseLogging);
+            return adaptedConnection;
         } catch (UnsupportedVersionException e) {
             throw e;
         } catch (Throwable t) {
