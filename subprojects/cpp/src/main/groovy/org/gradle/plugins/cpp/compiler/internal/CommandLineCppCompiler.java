@@ -44,11 +44,11 @@ public abstract class CommandLineCppCompiler implements Compiler<GppCompileSpec>
         compiler.executable(OperatingSystem.current().findInPath(getExecutable()));
         compiler.workingDir(workDir);
 
+        configure(compiler, spec);
         // Apply all of the settings
         for (Closure closure : spec.getSettings()) {
             closure.call(compiler);
         }
-        configure(compiler, spec);
 
         compiler.execute();
         return new SimpleWorkResult(true);
