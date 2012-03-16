@@ -33,7 +33,6 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
 
     def "analyze good code"() {
         goodCode()
-        
         expect:
         succeeds("check")
 		file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.Class1"))

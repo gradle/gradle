@@ -15,13 +15,14 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.apache.commons.io.output.NullOutputStream
 import org.gradle.api.GradleException
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.Instantiator
-import org.gradle.api.internal.project.IsolatedAntBuilder
+import org.gradle.api.plugins.quality.internal.FindBugsArgumentBuilder
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl
 import org.gradle.api.reporting.Reporting
+import org.gradle.process.ExecResult
 import org.gradle.api.tasks.*
 
 /**
@@ -78,14 +79,8 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
      * The contained reports can be configured by name and closures. Example:
      *
      * <pre>
-     * findbugsTask {
-     *   reports {
-     *     xml {
-     *       destination "build/findbugs.xml"
-     *     }
-     *   }
-     * }
-     * </pre>
+     * findbugsTask {*   reports {*     xml {*       destination "build/findbugs.xml"
+     *}*}*}* </pre>
      *
      * @param closure The configuration
      * @return The reports container
@@ -96,49 +91,42 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
 
     @TaskAction
     void run() {
-        String errorProp = 'findbugsError'
-		String warningsProp = 'findbugsWarnings'
+        FindBugsArgumentBuilder argumentBuilder = new FindBugsArgumentBuilder(getClasses())
+                .withPluginsList(getPluginClasspath())
+                .withSources(getSource())
+                .withClasspath(getClasspath())
+                .configureReports(reports)
 
-        Map<String, ?> reportArguments = [:]
-        if (reports.enabled) {
-            if (reports.enabled.size() == 1) {
-                reportArguments.outputFile = reports.firstEnabled.destination
-                reportArguments.output = reports.firstEnabled.name
-            } else {
-                throw new InvalidUserDataException("Findbugs tasks can only have one report enabled, however both the xml and html report are enabled. You need to disable one of them.")
-            }
+        ExecResult result = project.javaexec {
+            classpath getFindbugsClasspath()
+            main = "edu.umd.cs.findbugs.FindBugs2"
+            ignoreExitValue = true
+            errorOutput = new NullOutputStream();
+            jvmArgs "-Dfindbugs.debug=${logger.isDebugEnabled()}"
+            args = argumentBuilder.build()
         }
+        evaluateFindbugsExecResult(result)
+    }
 
-        def antBuilder = services.get(IsolatedAntBuilder)
-        antBuilder.withClasspath(getFindbugsClasspath()).execute {
-            ant.taskdef(name: 'findbugs', classname: 'edu.umd.cs.findbugs.anttask.FindBugsTask')
-            ant.findbugs(debug: logger.isDebugEnabled(), errorProperty: errorProp, warningsProperty: warningsProp, *:reportArguments) {
-                getFindbugsClasspath().addToAntBuilder(ant, 'classpath')
-                getPluginClasspath().addToAntBuilder(ant, 'pluginList')
-                getClasses().addToAntBuilder(ant, 'auxAnalyzepath')
-                // FindBugs can't handle either of the following being empty on Windows
-                // leads to strange (parsing?) errors like "file src/main/java/-exitcode not found"
-                addUnlessEmpty(ant, getClasspath(), 'auxClasspath')
-                addUnlessEmpty(ant, getSource(), 'sourcePath')
-            }
-
-            if (ant.project.properties[errorProp]) {
-                throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.")
-            }
-
-            if (ant.project.properties[warningsProp] && !ignoreFailures) {
-                if (reportArguments.outputFile) {
-                    throw new GradleException("FindBugs rule violations were found. See the report at ${reportArguments.outputFile}.")
+    private evaluateFindbugsExecResult(ExecResult result) {
+        int findbugsResultValue = result.exitValue
+        if (findbugsResultValue != 0) {  // warning or error occured while running findbugs
+            if ((findbugsResultValue & 1) == 1 && !ignoreFailures) {
+                if (reports.firstEnabled.destination) {
+                    throw new GradleException("FindBugs rule violations were found. See the report at ${reports.firstEnabled.destination.absolutePath}.")
                 } else {
                     throw new GradleException("FindBugs rule violations were found.")
                 }
+            } else if ((findbugsResultValue & 4) == 4) { // an error occured while running findbugs
+                throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.")
             }
         }
     }
 
+
     protected void addUnlessEmpty(Object ant, FileCollection files, String nodeName) {
         if (!files.empty) {
-          files.addToAntBuilder(ant, nodeName)
+            files.addToAntBuilder(ant, nodeName)
         }
     }
 }
