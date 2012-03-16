@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 
-import java.util.ArrayList;
-import java.util.List;
+public class DefaultArtifactCaches implements ArtifactCaches {
 
-public class CompositeExternalArtifactCache implements ExternalArtifactCache {
-    private final List<ExternalArtifactCache> delegates = new ArrayList<ExternalArtifactCache>();
-    
-    void addExternalArtifactCache(ExternalArtifactCache externalArtifactCache) {
-        delegates.add(externalArtifactCache);
+    private final ArtifactCache<ArtifactRevisionId> artifactIdCache;
+    private final ArtifactCache<String> urlCache;
+
+    public DefaultArtifactCaches(ArtifactCache<ArtifactRevisionId> artifactIdCache, ArtifactCache<String> urlCache) {
+        this.artifactIdCache = artifactIdCache;
+        this.urlCache = urlCache;
     }
-    
-    public void addMatchingCachedArtifacts(ArtifactRevisionId artifactId, List<CachedArtifact> cachedArtifactList) {
-        for (ExternalArtifactCache delegate : delegates) {
-            delegate.addMatchingCachedArtifacts(artifactId, cachedArtifactList);
-        }
+
+    public ArtifactCache<ArtifactRevisionId> getArtifactIdCache() {
+        return artifactIdCache;
+    }
+
+    public ArtifactCache<String> getUrlCache() {
+        return urlCache;
     }
 }

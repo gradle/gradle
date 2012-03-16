@@ -18,6 +18,8 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import static org.gradle.integtests.fixtures.HttpServer.IfModResponse.UNMODIFIED
+import static org.gradle.integtests.fixtures.HttpServer.IfModResponse.MODIFIED
 
 class MavenSnapshotRemoteDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     def "can find and cache snapshots in multiple Maven HTTP repositories"() {
@@ -423,6 +425,92 @@ project('resolve') {
         and:
         file('lock/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifactFile)
         file('resolve/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module2.artifactFile)
+    }
+
+    def "avoid redownload unchanged artifact when no checksum available"() {
+        server.start()
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "http://localhost:${server.port}/repo" }
+            }
+
+            configurations { compile }
+
+            configurations.all {
+                resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+            }
+
+            dependencies {
+                compile group: "group", name: "projectA", version: "1.1-SNAPSHOT"
+            }
+
+            task retrieve(type: Copy) {
+                into 'build'
+                from configurations.compile
+            }
+        """
+        
+        and:
+        def module = mavenRepo().module("group", "projectA", "1.1-SNAPSHOT").withNonUniqueSnapshots().publish()
+        // Set the last modified to something that's not going to be anything “else”.
+        // There are lots of dates floating around in a resolution and we want to make
+        // sure we use this.
+        module.artifactFile.setLastModified(2000)
+        def returnedLastModified = new Date(module.artifactFile.lastModified())
+
+        def base = "/repo/group/projectA/1.1-SNAPSHOT"
+        def metaDataPath = "$base/maven-metadata.xml"
+        def pomPath = "$base/$module.pomFile.name"
+        def pomSha1Path = "${pomPath}.sha1"
+        def jarPath = "$base/$module.artifactFile.name"
+        def jarSha1Path = "${jarPath}.sha1"
+
+        when:
+        server.expectGet(metaDataPath, module.mavenMetaDataFile)
+        server.expectGet(pomPath, module.pomFile)
+        server.expectGet(metaDataPath, module.mavenMetaDataFile)
+        server.expectGet(jarPath, module.artifactFile)
+
+        run "retrieve"
+
+        then:
+        def downloadedJarFile = file("build/projectA-1.1-SNAPSHOT.jar")
+        downloadedJarFile.assertIsCopyOf(module.artifactFile)
+        def firstDownloadedJarFile = downloadedJarFile.snapshot()
+
+        // Do change the jar, so we can check that the new version wasn't downloaded
+        module.publishWithChangedContent()
+
+        when:
+        server.resetExpectations()
+        server.expectGet(metaDataPath, module.mavenMetaDataFile)
+        server.expectGetMissing(pomSha1Path)
+        server.expectGet(pomPath, module.pomFile)
+        server.expectGet(metaDataPath, module.mavenMetaDataFile)
+        server.expectGetMissing(jarSha1Path)
+        server.expectGetIfNotModifiedSince(jarPath, returnedLastModified, module.artifactFile, UNMODIFIED)
+
+        run "retrieve"
+
+        then:
+        downloadedJarFile.assertHasNotChangedSince(firstDownloadedJarFile)
+
+        when:
+        server.resetExpectations()
+        server.expectGet(metaDataPath, module.mavenMetaDataFile)
+        server.expectGetMissing(pomSha1Path)
+        server.expectGet(pomPath, module.pomFile)
+        server.expectGet(metaDataPath, module.mavenMetaDataFile)
+        server.expectGetMissing(jarSha1Path)
+        server.expectGetIfNotModifiedSince(jarPath, returnedLastModified, module.artifactFile, MODIFIED)
+
+        run "retrieve"
+
+        then:
+        downloadedJarFile.assertHasChangedSince(firstDownloadedJarFile)
+        downloadedJarFile.assertIsCopyOf(module.artifactFile)
     }
 
     private expectModuleServed(MavenModule module, def prefix, boolean sha1requests = false) {

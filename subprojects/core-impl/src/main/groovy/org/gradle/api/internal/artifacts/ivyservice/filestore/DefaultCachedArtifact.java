@@ -19,6 +19,7 @@ import org.gradle.util.hash.HashUtil;
 import org.gradle.util.hash.HashValue;
 
 import java.io.File;
+import java.util.Date;
 
 public class DefaultCachedArtifact implements CachedArtifact {
     private final File origin;
@@ -27,10 +28,14 @@ public class DefaultCachedArtifact implements CachedArtifact {
     private final long lastModified;
 
     public DefaultCachedArtifact(File origin) {
+        this(origin, null);
+    }
+
+    public DefaultCachedArtifact(File origin, Date lastModified) {
         this.origin = origin;
         this.sha1 = getChecksum(origin);
-        contentLength = origin.length();
-        lastModified = origin.lastModified();
+        this.contentLength = origin.length();
+        this.lastModified = (lastModified == null) ? origin.lastModified() : lastModified.getTime();
     }
 
     public HashValue getSha1() {

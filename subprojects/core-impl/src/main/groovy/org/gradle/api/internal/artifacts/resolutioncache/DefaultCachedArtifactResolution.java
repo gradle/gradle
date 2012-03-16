@@ -13,27 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.artifactcache;
+package org.gradle.api.internal.artifacts.resolutioncache;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.util.TimeProvider;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Date;
 
-class DefaultCachedArtifactResolution implements ArtifactResolutionCache.CachedArtifactResolution, Serializable {
-    private final ArtifactRevisionId artifactId;
+class DefaultCachedArtifactResolution implements CachedArtifactResolution, Serializable {
     private final File artifactFile;
     private final long ageMillis;
+    private final Date artifactLastModified;
+    private final String artifactUrl;
 
-    public DefaultCachedArtifactResolution(ArtifactRevisionId artifactId, ArtifactResolutionCacheEntry entry, TimeProvider timeProvider) {
-        this.artifactId = artifactId;
+    public DefaultCachedArtifactResolution(CachedArtifactResolutionIndexEntry entry, TimeProvider timeProvider,
+                                           Date artifactLastModified, String artifactUrl) {
         this.artifactFile = entry.artifactFile;
         ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
-    }
-
-    public ArtifactRevisionId getArtifactId() {
-        return artifactId;
+        this.artifactLastModified = artifactLastModified;
+        this.artifactUrl = artifactUrl;
     }
 
     public File getArtifactFile() {
@@ -42,5 +41,13 @@ class DefaultCachedArtifactResolution implements ArtifactResolutionCache.CachedA
 
     public long getAgeMillis() {
         return ageMillis;
+    }
+
+    public Date getArtifactLastModified() {
+        return artifactLastModified;
+    }
+
+    public String getArtifactUrl() {
+        return artifactUrl;
     }
 }

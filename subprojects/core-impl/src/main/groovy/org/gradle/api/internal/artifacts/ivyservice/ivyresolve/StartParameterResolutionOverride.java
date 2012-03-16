@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.cache.ModuleResolutionControl;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
-import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 public class StartParameterResolutionOverride {
@@ -101,7 +100,7 @@ public class StartParameterResolutionOverride {
             throw new ModuleVersionResolveException("No cached version available for offline mode");
         }
 
-        public File download(Artifact artifact) {
+        public DownloadedArtifact download(Artifact artifact) {
             throw new ArtifactResolveException(artifact, "No cached version available for offline mode");
         }
     }

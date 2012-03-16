@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.transport.http;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactCaches;
 import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 
@@ -27,19 +27,19 @@ import java.net.URI;
 public class HttpTransport implements RepositoryTransport {
     private final String name;
     private final PasswordCredentials credentials;
-    private final ExternalArtifactCache externalArtifactCache;
+    private final ArtifactCaches artifactCaches;
     private final RepositoryCacheManager repositoryCacheManager;
 
-    public HttpTransport(String name, PasswordCredentials credentials, ExternalArtifactCache externalArtifactCache, RepositoryCacheManager repositoryCacheManager) {
+    public HttpTransport(String name, PasswordCredentials credentials, ArtifactCaches artifactCaches, RepositoryCacheManager repositoryCacheManager) {
         this.name = name;
         this.credentials = credentials;
-        this.externalArtifactCache = externalArtifactCache;
+        this.artifactCaches = artifactCaches;
         this.repositoryCacheManager = repositoryCacheManager;
     }
 
     public ResourceCollection getRepositoryAccessor() {
         HttpSettings httpSettings = new DefaultHttpSettings(credentials);
-        HttpResourceCollection repository = new HttpResourceCollection(httpSettings, externalArtifactCache);
+        HttpResourceCollection repository = new HttpResourceCollection(httpSettings, artifactCaches);
         repository.setName(name);
         return repository;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.gradle.util.hash.HashValue;
 
-import java.io.File;
+import java.util.List;
 
-public interface ArtifactFileStore {
-    File add(ArtifactRevisionId artifactId, File contentFile);
+public interface CachedArtifactCandidates extends Iterable<CachedArtifact> {
 
-    File getTempFile();
+    boolean isEmpty();
 
-    ArtifactCache<ArtifactRevisionId> asArtifactCache();
+    CachedArtifact getMostRecent();
+
+    List<CachedArtifact> getAll();
+
+    CachedArtifact findByHashValue(HashValue hashValue);
+
 }

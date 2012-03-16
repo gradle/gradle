@@ -79,7 +79,7 @@ public class DefaultArtifactFileStore implements ArtifactFileStore {
         return new File(baseDir, "temp/" + tempLong);
     }
 
-    public ExternalArtifactCache asExternalArtifactCache() {
+    public ArtifactCache<ArtifactRevisionId> asArtifactCache() {
         return new PatternBasedExternalArtifactCache(baseDir, EXTERNAL_VIEW_PATTERN);
     }
 }

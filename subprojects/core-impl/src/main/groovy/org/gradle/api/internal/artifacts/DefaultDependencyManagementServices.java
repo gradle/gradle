@@ -33,8 +33,8 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandl
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.DefaultArtifactResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactResolutionCacheArtifactCache;
+import org.gradle.api.internal.artifacts.resolutioncache.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
@@ -67,6 +67,7 @@ import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.SystemProperties;
 import org.gradle.util.WrapUtil;
 
+import java.io.File;
 import java.util.List;
 
 public class DefaultDependencyManagementServices extends DefaultServiceRegistry implements DependencyManagementServices {
@@ -184,9 +185,17 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         );
     }
 
-    protected ArtifactResolutionCache createArtifactResolutionCache() {
-        return new DefaultArtifactResolutionCache(
-                get(ArtifactCacheMetaData.class),
+    protected ArtifactAtRepositoryCachedResolutionIndex createArtifactAtRepositoryCachedResolutionIndex() {
+        return new ArtifactAtRepositoryCachedResolutionIndex(
+                new File(get(ArtifactCacheMetaData.class).getCacheDir(), "artifact-at-repository.bin"),
+                get(BuildCommencedTimeProvider.class),
+                get(CacheLockingManager.class)
+        );
+    }
+
+    protected ArtifactUrlCachedResolutionIndex createArtifactUrlCachedResolutionIndex() {
+        return new ArtifactUrlCachedResolutionIndex(
+                new File(get(ArtifactCacheMetaData.class).getCacheDir(), "artifact-at-url.bin"),
                 get(BuildCommencedTimeProvider.class),
                 get(CacheLockingManager.class)
         );
@@ -215,10 +224,12 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
         ExternalArtifactCacheBuilder cacheBuilder = new ExternalArtifactCacheBuilder(get(ArtifactCacheMetaData.class), get(LocalMavenRepositoryLocator.class));
         cacheBuilder.addCurrent(get(ArtifactFileStore.class));
+        cacheBuilder.addMilestone8and9();
         cacheBuilder.addMilestone7();
         cacheBuilder.addMilestone6();
         cacheBuilder.addMilestone3();
         cacheBuilder.addMavenLocal();
+        cacheBuilder.setUrlCache(new ArtifactResolutionCacheArtifactCache(get(ArtifactUrlCachedResolutionIndex.class), get(CacheLockingManager.class)));
         return new RepositoryTransportFactory(cacheBuilder.getExternalArtifactCache(), get(ProgressLoggerFactory.class), get(ArtifactFileStore.class));
     }
 
@@ -304,7 +315,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(SettingsConverter.class),
                     get(ModuleResolutionCache.class),
                     get(ModuleDescriptorCache.class),
-                    get(ArtifactResolutionCache.class),
+                    get(ArtifactAtRepositoryCachedResolutionIndex.class),
+                    get(ArtifactUrlCachedResolutionIndex.class),
                     get(CacheLockingManager.class),
                     startParameterResolutionOverride
             );

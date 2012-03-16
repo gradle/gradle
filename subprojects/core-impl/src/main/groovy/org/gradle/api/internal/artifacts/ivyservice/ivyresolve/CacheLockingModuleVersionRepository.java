@@ -21,8 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.internal.Factory;
 
-import java.io.File;
-
 /**
  * A wrapper around a {@link ModuleVersionRepository} that handles locking/unlocking the cache.
  */
@@ -55,9 +53,9 @@ public class CacheLockingModuleVersionRepository implements ModuleVersionReposit
         });
     }
 
-    public File download(final Artifact artifact) throws ArtifactResolveException {
-        return cacheLockingManager.longRunningOperation(String.format("Download %s using repository %s", artifact, getId()), new Factory<File>() {
-            public File create() {
+    public DownloadedArtifact download(final Artifact artifact) throws ArtifactResolveException {
+        return cacheLockingManager.longRunningOperation(String.format("Download %s using repository %s", artifact, getId()), new Factory<DownloadedArtifact>() {
+            public DownloadedArtifact create() {
                 return repository.download(artifact);
             }
         });

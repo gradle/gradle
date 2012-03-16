@@ -25,7 +25,9 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
+import org.gradle.api.internal.artifacts.resolutioncache.ArtifactAtRepositoryKey;
+import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolutionIndex;
+import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolution;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
@@ -33,24 +35,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Date;
 
 public class CachingModuleVersionRepository implements ModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(CachingModuleVersionRepository.class);
 
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
-    private final ArtifactResolutionCache artifactResolutionCache;
-
+    private final CachedArtifactResolutionIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
+    private final CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex;
+    
     private final CachePolicy cachePolicy;
 
     private final ModuleVersionRepository delegate;
 
     public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
-                                          ArtifactResolutionCache artifactResolutionCache, CachePolicy cachePolicy) {
+                                          CachedArtifactResolutionIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
+                                          CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex,
+                                          CachePolicy cachePolicy) {
         this.delegate = delegate;
         this.moduleDescriptorCache = moduleDescriptorCache;
         this.moduleResolutionCache = moduleResolutionCache;
-        this.artifactResolutionCache = artifactResolutionCache;
+        this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
+        this.artifactUrlCachedResolutionIndex = artifactUrlCachedResolutionIndex;
+
         this.cachePolicy = cachePolicy;
     }
 
@@ -143,7 +151,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
 
     private void expireArtifactsForChangingModule(ModuleVersionRepository repository, ModuleDescriptor descriptor) {
         for (Artifact artifact : descriptor.getAllArtifacts()) {
-            artifactResolutionCache.expireCachedArtifactResolution(repository, artifact.getId());
+            artifactAtRepositoryCachedResolutionIndex.clear(new ArtifactAtRepositoryKey(repository, artifact.getId()));
         }
     }
     
@@ -185,13 +193,15 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         }
     }
 
-    public File download(Artifact artifact) {
+    public DownloadedArtifact download(Artifact artifact) {
         if (isLocal()) {
             return delegate.download(artifact);
         }
 
+        ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate, artifact.getId());
+
         // Look in the cache for this resolver
-        ArtifactResolutionCache.CachedArtifactResolution cachedArtifactResolution = artifactResolutionCache.getCachedArtifactResolution(delegate, artifact.getId());
+        CachedArtifactResolution cachedArtifactResolution = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
         if (cachedArtifactResolution != null) {
             ArtifactIdentifier artifactIdentifier = createArtifactIdentifier(artifact);
             File cachedArtifactFile = cachedArtifactResolution.getArtifactFile();
@@ -203,14 +213,24 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
             } else if (cachedArtifactFile.exists()) {
                 if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, cachedArtifactResolution.getAgeMillis())) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
-                    return cachedArtifactFile;
+                    return new DownloadedArtifact(cachedArtifactFile, cachedArtifactResolution.getArtifactLastModified(), cachedArtifactResolution.getArtifactUrl());
                 }
             }
         }
 
-        File artifactFile = delegate.download(artifact);
-        LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), artifactFile);
-        return artifactResolutionCache.storeArtifactFile(delegate, artifact.getId(), artifactFile);
+        DownloadedArtifact downloadedArtifact = delegate.download(artifact);
+        LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), downloadedArtifact.getLocalFile());
+        
+        String artifactUrl = downloadedArtifact.getSource();
+        File artifactFile = downloadedArtifact.getLocalFile();
+        Date artifactLastModified = downloadedArtifact.getLastModified();
+
+        artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, artifactFile, artifactLastModified, artifactUrl);
+        if (artifactUrl != null) {
+            artifactUrlCachedResolutionIndex.store(artifactUrl, artifactFile, artifactLastModified, artifactUrl);
+        }
+
+        return downloadedArtifact;
     }
 
     private ModuleVersionSelector createModuleVersionSelector(ModuleRevisionId moduleRevisionId) {

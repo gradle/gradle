@@ -37,6 +37,7 @@ import org.apache.ivy.plugins.version.VersionMatcher;
 import org.apache.ivy.util.ChecksumHelper;
 import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.Message;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithLastModified;
 import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
 import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResource;
 import org.slf4j.Logger;
@@ -106,10 +107,12 @@ public class ResourceCollectionResolver extends BasicResolver {
     public ArtifactOrigin locate(Artifact artifact) {
         ResolvedResource artifactRef = getArtifactRef(artifact, null, false);
         if (artifactRef != null && artifactRef.getResource().exists()) {
-            return new ArtifactOrigin(
+            return new ArtifactOriginWithLastModified(
                     artifact,
                     artifactRef.getResource().isLocal(),
-                    artifactRef.getResource().getName());
+                    artifactRef.getResource().getName(),
+                    artifactRef.getLastModified()
+            );
         }
         return null;
     }

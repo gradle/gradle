@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories
 import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactCaches
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport
 import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport
@@ -57,7 +57,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * credentials.getUsername() >> 'username'
         _ * credentials.getPassword() >> 'password'
-        transportFactory.createHttpTransport('repo', credentials) >> new HttpTransport('repo', credentials, Mock(ExternalArtifactCache), cacheManager)
+        transportFactory.createHttpTransport('repo', credentials) >> new HttpTransport('repo', credentials, Mock(ArtifactCaches), cacheManager)
         cacheManager.name >> 'cache'
         0 * _._
 
@@ -81,7 +81,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
         _ * resolver.resolveUri('repo2') >> uri2
-        transportFactory.createHttpTransport('repo', credentials) >> new HttpTransport('repo', credentials, Mock(ExternalArtifactCache), cacheManager)
+        transportFactory.createHttpTransport('repo', credentials) >> new HttpTransport('repo', credentials, Mock(ArtifactCaches), cacheManager)
 
         and:
         repository.name = 'repo'

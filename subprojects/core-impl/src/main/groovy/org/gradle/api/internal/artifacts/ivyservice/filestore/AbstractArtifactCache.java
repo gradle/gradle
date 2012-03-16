@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.gradle.api.Transformer;
 
 import java.util.List;
 
-public interface ExternalArtifactCache {
-    void addMatchingCachedArtifacts(ArtifactRevisionId artifactId, List<CachedArtifact> cachedArtifactList);
+public class AbstractArtifactCache<T> implements ArtifactCache<T> {
+
+    private final Transformer<List<CachedArtifact>, T> producer;
+
+    public AbstractArtifactCache(Transformer<List<CachedArtifact>, T> producer) {
+        this.producer = producer;
+    }
+
+    public CachedArtifactCandidates findCandidates(T index) {
+        return new DefaultCachedArtifactCandidates(producer.transform(index));
+    }
+
 }

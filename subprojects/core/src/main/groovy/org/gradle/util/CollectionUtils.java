@@ -23,6 +23,16 @@ import java.util.*;
 
 public abstract class CollectionUtils {
 
+    public static <T> T findFirst(Iterable<T> source, Spec<? super T> filter) {
+        for (T item : source) {
+            if (filter.isSatisfiedBy(item)) {
+                return item;
+            }
+        }
+
+        return null;
+    }
+    
     public static <T> Set<T> filter(Set<T> set, Spec<? super T> filter) {
         return filter(set, new LinkedHashSet<T>(), filter);
     }
@@ -41,7 +51,7 @@ public abstract class CollectionUtils {
     }
 
     public static <R, I> List<R> collect(List<? extends I> list, Transformer<R, I> transformer) {
-        return collect(list, new LinkedList<R>(), transformer);
+        return collect(list, new ArrayList<R>(list.size()), transformer);
     }
 
     public static <R, I> Set<R> collect(Set<? extends I> set, Transformer<R, I> transformer) {

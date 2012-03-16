@@ -28,6 +28,11 @@ import org.mortbay.jetty.*
 import org.mortbay.jetty.security.*
 
 class HttpServer extends ExternalResource {
+    
+    static enum IfModResponse {
+        UNMODIFIED, MODIFIED
+    }
+    
     private static Logger logger = LoggerFactory.getLogger(HttpServer.class)
 
     private final Server server = new Server(0)
@@ -312,6 +317,35 @@ class HttpServer extends ExternalResource {
         return server.connectors[0].localPort
     }
 
+    void expectGetIfNotModifiedSince(String path, File file, IfModResponse ifModResponse) {
+        expectGetIfNotModifiedSince(path, new Date(file.lastModified()), file, ifModResponse)
+    }
+
+    void expectGetIfNotModifiedSince(String path, Date date, File file, IfModResponse ifModResponse) {
+        expect(path, false, ["GET"], new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                long ifModifiedSinceLong = request.getDateHeader("If-Modified-Since")
+                if (ifModifiedSinceLong < 0) {
+                    throw new AssertionError("Expected request to have If-Modified-Since header")
+                }
+                Date ifModifiedSince = new Date(ifModifiedSinceLong)
+                if (ifModifiedSince != date) {
+                    throw new AssertionError("Expected request to have If-Modified-Since of '$date' (got: $ifModifiedSince")
+                }
+                handleIfModified(response, file, ifModResponse)
+            }
+        })
+    }
+
+    private void handleIfModified(HttpServletResponse response, File file, IfModResponse ifModResponse) {
+        if (ifModResponse == IfModResponse.UNMODIFIED) {
+            response.sendError(304, "Unmodified")
+        } else if (ifModResponse == IfModResponse.MODIFIED) {
+            sendFile(response, file)
+        } else {
+            throw new IllegalStateException("Can't handle IfModResponse $ifModResponse")
+        }
+    }
     static class TestUserRealm implements UserRealm {
         String username
         String password

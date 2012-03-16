@@ -20,8 +20,8 @@ import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactCaches;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.ProgressLoggingTransferListener;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
@@ -32,20 +32,20 @@ import org.gradle.logging.ProgressLoggerFactory;
 import java.net.URI;
 
 public class RepositoryTransportFactory {
-    private final ExternalArtifactCache externalArtifactCache;
+    private final ArtifactCaches artifactCaches;
     private final TransferListener transferListener;
     private final RepositoryCacheManager downloadingCacheManager;
     private final RepositoryCacheManager localCacheManager;
 
-    public RepositoryTransportFactory(ExternalArtifactCache externalArtifactCache, ProgressLoggerFactory progressLoggerFactory, ArtifactFileStore fileStore) {
-        this.externalArtifactCache = externalArtifactCache;
+    public RepositoryTransportFactory(ArtifactCaches artifactCaches, ProgressLoggerFactory progressLoggerFactory, ArtifactFileStore fileStore) {
+        this.artifactCaches = artifactCaches;
         this.transferListener = new ProgressLoggingTransferListener(progressLoggerFactory, RepositoryTransport.class);
         this.downloadingCacheManager = new DownloadingRepositoryCacheManager("downloading", fileStore);
         this.localCacheManager = new LocalFileRepositoryCacheManager("local");
     }
 
     public RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
-        return decorate(new HttpTransport(name, credentials, externalArtifactCache, downloadingCacheManager));
+        return decorate(new HttpTransport(name, credentials, artifactCaches, downloadingCacheManager));
     }
 
     public RepositoryTransport createFileTransport(String name) {

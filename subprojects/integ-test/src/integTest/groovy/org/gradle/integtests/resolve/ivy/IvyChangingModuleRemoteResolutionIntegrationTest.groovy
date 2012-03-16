@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
+import static org.gradle.integtests.fixtures.HttpServer.IfModResponse.*
 
 class IvyChangingModuleRemoteResolutionIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -332,5 +333,81 @@ task retrieve(type: Copy) {
         file('build').assertHasDescendants('projectA-1-CHANGING.jar', 'other-1-CHANGING.jar')
         jarFile.assertHasChangedSince(snapshot)
         jarFile.assertIsCopyOf(module.jarFile)
+    }
+
+    def "avoid redownload unchanged artifact when no checksum available"() {
+        server.start()
+
+        given:
+        buildFile << """
+            repositories {
+                ivy { url "http://localhost:${server.port}/repo" }
+            }
+
+            configurations { compile }
+
+            configurations.all {
+                resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+            }
+
+            dependencies {
+                compile group: "group", name: "projectA", version: "1.1", changing: true
+            }
+
+            task retrieve(type: Copy) {
+                into 'build'
+                from configurations.compile
+            }
+        """
+
+        and:
+        def module = ivyRepo().module("group", "projectA", "1.1").publish()
+        
+        // Set the last modified to something that's not going to be anything “else”.
+        // There are lots of dates floating around in a resolution and we want to make
+        // sure we use this.
+        module.jarFile.setLastModified(2000)
+        
+        def returnedLastModified = new Date(module.jarFile.lastModified())
+
+        when:
+        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
+        server.expectGet('/repo/group/projectA/1.1/projectA-1.1.jar', module.jarFile)
+
+        run 'retrieve'
+
+        then:
+        def jarFile = file('build/projectA-1.1.jar')
+        jarFile.assertIsCopyOf(module.jarFile)
+        def snapshot = jarFile.snapshot()
+
+        // Do change the jar, so we can check that the new version wasn't downloaded
+        module.publishWithChangedContent()
+
+        when:
+        server.resetExpectations()
+        server.expectGetMissing('/repo/group/projectA/1.1/ivy-1.1.xml.sha1')
+        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
+        server.expectGetMissing('/repo/group/projectA/1.1/projectA-1.1.jar.sha1')
+        server.expectGetIfNotModifiedSince('/repo/group/projectA/1.1/projectA-1.1.jar', returnedLastModified, module.jarFile, UNMODIFIED)
+
+        run 'retrieve'
+
+        then:
+        def changedJarFile = file('build/projectA-1.1.jar')
+        changedJarFile.assertHasNotChangedSince(snapshot)
+
+        when:
+        server.resetExpectations()
+        server.expectGetMissing('/repo/group/projectA/1.1/ivy-1.1.xml.sha1')
+        server.expectGet('/repo/group/projectA/1.1/ivy-1.1.xml', module.ivyFile)
+        server.expectGetMissing('/repo/group/projectA/1.1/projectA-1.1.jar.sha1')
+        server.expectGetIfNotModifiedSince('/repo/group/projectA/1.1/projectA-1.1.jar', returnedLastModified, module.jarFile, MODIFIED)
+
+        run 'retrieve'
+
+        then:
+        changedJarFile.assertHasChangedSince(snapshot)
+        changedJarFile.assertIsCopyOf(module.jarFile)
     }
 }

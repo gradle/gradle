@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve;
 
 
 public class CacheDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
-    // TODO:DAZ Ensure that "cache handles manual deletion of cached artifacts()" isn't lost during merge back from release branch
 
     public void "cache handles manual deletion of cached artifacts"() {
         server.start()

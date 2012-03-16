@@ -19,6 +19,7 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
@@ -26,44 +27,51 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
 
-public class PatternBasedExternalArtifactCache implements ExternalArtifactCache {
-    private final DirectoryFileTree fileTree;
-    private final String pattern;
+public class PatternBasedExternalArtifactCache extends AbstractArtifactCache<ArtifactRevisionId> {
 
     public PatternBasedExternalArtifactCache(File baseDir, String pattern) {
-        fileTree = new DirectoryFileTree(baseDir);
-        this.pattern = pattern;
+        super(createProducer(baseDir, pattern));
     }
 
-    public void addMatchingCachedArtifacts(ArtifactRevisionId artifactId, final List<CachedArtifact> cachedArtifactList) {
-        if (artifactId == null) {
-            return;
-        }
-        getMatchingFiles(artifactId).visit(new EmptyFileVisitor() {
-            public void visitFile(FileVisitDetails fileDetails) {
-                cachedArtifactList.add(new DefaultCachedArtifact(fileDetails.getFile()));
+    private static Transformer<List<CachedArtifact>, ArtifactRevisionId> createProducer(final File baseDir, final String pattern) {
+        return new Transformer<List<CachedArtifact>, ArtifactRevisionId>() {
+            DirectoryFileTree fileTree = new DirectoryFileTree(baseDir);
+
+            private String getArtifactPattern(ArtifactRevisionId artifactId) {
+                String substitute = pattern;
+                // Need to handle organisation values that have been munged for m2compatible
+                substitute = IvyPatternHelper.substituteToken(substitute, "organisation", artifactId.getModuleRevisionId().getOrganisation().replace('/', '.'));
+                substitute = IvyPatternHelper.substituteToken(substitute, "organisation-path", artifactId.getModuleRevisionId().getOrganisation().replace('.', '/'));
+
+                Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
+                substitute = IvyPatternHelper.substitute(substitute, dummyArtifact);
+                return substitute;
             }
-        });
+
+            private DirectoryFileTree getMatchingFiles(ArtifactRevisionId artifact) {
+                String patternString = getArtifactPattern(artifact);
+                PatternFilterable pattern = new PatternSet();
+                pattern.include(patternString);
+                return fileTree.filter(pattern);
+            }
+
+            public List<CachedArtifact> transform(ArtifactRevisionId artifactId) {
+                final List<CachedArtifact> cachedArtifacts = new LinkedList<CachedArtifact>();
+
+                if (artifactId != null) {
+                    getMatchingFiles(artifactId).visit(new EmptyFileVisitor() {
+                        public void visitFile(FileVisitDetails fileDetails) {
+                            cachedArtifacts.add(new DefaultCachedArtifact(fileDetails.getFile()));
+                        }
+                    });
+                }
+
+                return cachedArtifacts;
+            }
+        };
     }
 
-    private DirectoryFileTree getMatchingFiles(ArtifactRevisionId artifact) {
-        String patternString = getArtifactPattern(artifact);
-        PatternFilterable pattern = new PatternSet();
-        pattern.include(patternString);
-        return fileTree.filter(pattern);
-    }
-
-    private String getArtifactPattern(ArtifactRevisionId artifactId) {
-        String substitute = pattern;
-        // Need to handle organisation values that have been munged for m2compatible
-        substitute = IvyPatternHelper.substituteToken(substitute, "organisation", artifactId.getModuleRevisionId().getOrganisation().replace('/', '.'));
-        substitute = IvyPatternHelper.substituteToken(substitute, "organisation-path", artifactId.getModuleRevisionId().getOrganisation().replace('.', '/'));
-
-        Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
-        substitute = IvyPatternHelper.substitute(substitute, dummyArtifact);
-        return substitute;
-    }
-    
 }

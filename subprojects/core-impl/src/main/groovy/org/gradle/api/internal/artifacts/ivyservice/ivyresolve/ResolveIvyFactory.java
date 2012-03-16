@@ -26,7 +26,8 @@ import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
+import org.gradle.api.internal.artifacts.resolutioncache.ArtifactAtRepositoryKey;
+import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolutionIndex;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.util.WrapUtil;
@@ -39,20 +40,24 @@ public class ResolveIvyFactory {
     private final SettingsConverter settingsConverter;
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
-    private final ArtifactResolutionCache artifactResolutionCache;
+    private final CachedArtifactResolutionIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
+    private final CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex;
     private final CacheLockingManager cacheLockingManager;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
 
+
     public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter,
                              ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
-                             ArtifactResolutionCache artifactResolutionCache,
+                             CachedArtifactResolutionIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
+                             CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex,
                              CacheLockingManager cacheLockingManager, StartParameterResolutionOverride startParameterResolutionOverride) {
         this.ivyFactory = ivyFactory;
         this.resolverProvider = resolverProvider;
         this.settingsConverter = settingsConverter;
         this.moduleResolutionCache = moduleResolutionCache;
         this.moduleDescriptorCache = moduleDescriptorCache;
-        this.artifactResolutionCache = artifactResolutionCache;
+        this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
+        this.artifactUrlCachedResolutionIndex = artifactUrlCachedResolutionIndex;
         this.cacheLockingManager = cacheLockingManager;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
     }
@@ -78,8 +83,8 @@ public class ResolveIvyFactory {
             moduleVersionRepository = new CacheLockingModuleVersionRepository(moduleVersionRepository, cacheLockingManager);
             moduleVersionRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
             ModuleVersionRepository cachingRepository =
-                    new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactResolutionCache,
-                                                       configuration.getResolutionStrategy().getCachePolicy());
+                    new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCachedResolutionIndex,
+                                                       artifactUrlCachedResolutionIndex, configuration.getResolutionStrategy().getCachePolicy());
             // Need to contextualise outside of caching, since parsing of module descriptors in the cache requires ivy settings, which is provided via the context atm
             ModuleVersionRepository ivyContextualisedRepository = contextualiser.contextualise(ModuleVersionRepository.class, cachingRepository);
             userResolverChain.add(ivyContextualisedRepository);
