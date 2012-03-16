@@ -199,15 +199,16 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
 
         // Look in the cache for this resolver
         CachedArtifactResolution cachedArtifactResolution = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
+
         if (cachedArtifactResolution != null) {
             ArtifactIdentifier artifactIdentifier = createArtifactIdentifier(artifact);
-            File cachedArtifactFile = cachedArtifactResolution.getArtifactFile();
-            if (cachedArtifactFile == null) {
+            if (cachedArtifactResolution.isMissing()) {
                 if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, cachedArtifactResolution.getAgeMillis())) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
                     return null;
                 }
-            } else if (cachedArtifactFile.exists()) {
+            } else {
+                File cachedArtifactFile = cachedArtifactResolution.getArtifactFile();
                 if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, cachedArtifactResolution.getAgeMillis())) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
                     return new DownloadedArtifact(cachedArtifactFile, cachedArtifactResolution.getArtifactLastModified(), cachedArtifactResolution.getArtifactUrl());
@@ -216,12 +217,16 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         }
 
         DownloadedArtifact downloadedArtifact = delegate.download(artifact);
-        LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), downloadedArtifact.getLocalFile());
-        
-        String artifactUrl = downloadedArtifact.getSource();
-        File artifactFile = downloadedArtifact.getLocalFile();
-        Date artifactLastModified = downloadedArtifact.getLastModified();
-        artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, artifactFile, artifactLastModified, artifactUrl);
+        LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact.getId(), delegate);
+
+        if (downloadedArtifact == null) {
+            artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey);
+        } else {
+            String artifactUrl = downloadedArtifact.getSource();
+            File artifactFile = downloadedArtifact.getLocalFile();
+            Date artifactLastModified = downloadedArtifact.getLastModified();
+            artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, artifactFile, artifactLastModified, artifactUrl);
+        }
 
         return downloadedArtifact;
     }

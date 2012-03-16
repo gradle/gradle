@@ -142,7 +142,6 @@ task retrieve(type: Sync) {
         server.expectGetMissing('/group/projectA/1.2/projectA-1.2.jar')
 
         then:
-        executer.withArguments("-s")
         fails "retrieve"
 
         failure.assertThatCause(containsString("Artifact 'group:projectA:1.2@jar' not found"))

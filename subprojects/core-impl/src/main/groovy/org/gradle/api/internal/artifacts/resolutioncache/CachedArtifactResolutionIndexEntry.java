@@ -26,6 +26,10 @@ class CachedArtifactResolutionIndexEntry implements Serializable {
     public long artifactLastModifiedTimestamp; // < 0 means unknown
     public String artifactUrl; // null means unknown
 
+    CachedArtifactResolutionIndexEntry(TimeProvider timeProvider) {
+        this.createTimestamp = timeProvider.getCurrentTime();
+    }
+
     CachedArtifactResolutionIndexEntry(File artifactFile, TimeProvider timeProvider, long artifactLastModifiedTimestamp, String artifactUrl) {
         this.artifactFile = artifactFile;
         this.createTimestamp = timeProvider.getCurrentTime();

@@ -20,12 +20,35 @@ import java.io.File;
 import java.util.Date;
 
 public interface CachedArtifactResolution {
+
+    /**
+     * A “missing” resolution is a record of the fact that
+     *
+     * @return whether this is a “missing” resolution or not.
+     */
+    boolean isMissing();
+
+    /**
+     * The file in the persistent file store.
+     *
+     * Will be null if this is a “missing” resolution. Will never be null
+     * if this is not a “missing” resolution.
+     *
+     * @return The file in the persistent file store.
+     */
     File getArtifactFile();
 
+    /**
+     * How long ago this resolution was cached
+     *
+     * @return How long ago this resolution was cached
+     */
     long getAgeMillis();
 
     /**
      * The last modified date that the artifact advertised when we cached it.
+     *
+     * Will be null if this is a “missing” resolution.
      *
      * @return The last modified date, or null if it was unknown.
      */
@@ -34,7 +57,10 @@ public interface CachedArtifactResolution {
     /**
      * The URL that the artifact advertised when we cached it.
      *
+     * Will be null if this is a “missing” resolution.
+     *
      * @return The URL, or null if it was unknown.
      */
     String getArtifactUrl();
+
 }

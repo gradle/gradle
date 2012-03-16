@@ -19,10 +19,9 @@ import java.io.File;
 import java.util.Date;
 
 /**
- * Provides an indexed view into cached artifacts.
+ * Provides an indexed view into cached artifacts and a record of resolution attempts, successful or not.
  *
  * Maintains references to the location of files in the persistent filestore. Does not deal with moving files into the filestore.
- * <p>
  * 
  * @param <K> The type of the key to the index
  */
@@ -32,16 +31,28 @@ public interface CachedArtifactResolutionIndex<K> {
      * Adds a resolution to the index.
      * 
      * The incoming file is expected to be in the persistent filestore. This method will not move/copy the file there.
-     * 
-     * @param key The key to cache this resolution under in the index.
-     * @param artifactFile The artifact file in the persistent file store
+     * <p>
+     *
+     * @param key The key to cache this resolution under in the index. Cannot be null.
+     * @param artifactFile The artifact file in the persistent file store. Cannot be null
      * @param lastModified The date that the artifact was last modified <b>at the source</b> if known. May be null.
      * @param sourceUrl The URL that this artifact was resolved from, if known. May be null.
+     * @see #storeMissing(Object)
      */
     void store(K key, File artifactFile, Date lastModified, String sourceUrl);
 
     /**
+     * Record that the artifact with the given key was missing.
+     *
+     * @param key The key to cache this resolution under in the index.
+     */
+    void storeMissing(K key);
+
+    /**
      * Lookup a cached resolution.
+     *
+     * The {@link org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolution#getArtifactFile()} is guaranteed
+     * to exist at the time that the entry is returned from this method.
      *
      * @param key The key to search the index for
      * @return The cached artifact resolution if one exists, otherwise null.

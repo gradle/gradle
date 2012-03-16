@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.resolutioncache;
 
-import org.gradle.util.TimeProvider;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.Date;
@@ -27,12 +25,24 @@ class DefaultCachedArtifactResolution implements CachedArtifactResolution, Seria
     private final Date artifactLastModified;
     private final String artifactUrl;
 
-    public DefaultCachedArtifactResolution(CachedArtifactResolutionIndexEntry entry, TimeProvider timeProvider,
+    public DefaultCachedArtifactResolution(CachedArtifactResolutionIndexEntry entry, long ageMillis,
                                            Date artifactLastModified, String artifactUrl) {
         this.artifactFile = entry.artifactFile;
-        ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
+        this.ageMillis = ageMillis;
         this.artifactLastModified = artifactLastModified;
         this.artifactUrl = artifactUrl;
+    }
+
+    DefaultCachedArtifactResolution(long ageMillis) {
+        this.ageMillis = ageMillis;
+
+        this.artifactFile = null;
+        this.artifactLastModified = null;
+        this.artifactUrl = null;
+    }
+
+    public boolean isMissing() {
+        return artifactFile == null;
     }
 
     public File getArtifactFile() {
