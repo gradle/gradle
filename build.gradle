@@ -400,7 +400,7 @@ task nightlyVersion
 
 task nightlyBuild {
     description = 'Nightly build performed by the CI server'
-    dependsOn nightlyVersion, testedDists, "uploadAll"
+    dependsOn checkJavaVersion, nightlyVersion, testedDists, "uploadAll"
 }
 
 gradle.taskGraph.whenReady {graph ->
