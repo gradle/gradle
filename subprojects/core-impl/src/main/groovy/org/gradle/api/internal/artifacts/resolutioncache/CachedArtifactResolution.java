@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.artifactcache;
+package org.gradle.api.internal.artifacts.resolutioncache;
 
 import java.io.File;
 import java.util.Date;

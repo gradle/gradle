@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache
+import org.gradle.api.internal.artifacts.resolutioncache.ArtifactResolutionCache
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache
 import spock.lang.Specification

@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.CachedArtifactResolution;
+import org.gradle.api.internal.artifacts.resolutioncache.ArtifactResolutionCache;
+import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolution;
 import org.gradle.internal.Factory;
 
 import java.util.Collections;

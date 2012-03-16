@@ -33,8 +33,8 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandl
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.ArtifactResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.artifactcache.DefaultArtifactResolutionCache;
+import org.gradle.api.internal.artifacts.resolutioncache.ArtifactResolutionCache;
+import org.gradle.api.internal.artifacts.resolutioncache.DefaultArtifactResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
