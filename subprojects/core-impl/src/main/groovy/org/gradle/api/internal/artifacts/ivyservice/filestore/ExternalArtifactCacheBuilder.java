@@ -37,6 +37,10 @@ public class ExternalArtifactCacheBuilder {
         hashCaches.add(artifactFileStore.asArtifactCache());
     }
 
+    public void addMilestone8and9() {
+        addExternalCache(new File(rootCachesDirectory, "artifacts-8"), "filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+    }
+
     public void addMilestone7() {
         addExternalCache(new File(rootCachesDirectory, "artifacts-7"), "artifacts/*/[organisation]/[module](/[branch])/[revision]/[type]/[artifact]-[revision](-[classifier])(.[ext])");
     }
