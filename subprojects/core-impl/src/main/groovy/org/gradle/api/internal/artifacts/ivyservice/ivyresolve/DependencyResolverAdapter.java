@@ -79,13 +79,16 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
         ArtifactOrigin artifactOrigin = artifactDownloadReport.getArtifactOrigin();
 
         File localFile = artifactDownloadReport.getLocalFile();
-        String source = artifactOrigin.getLocation();
-        Date lastModified = null;
-        if (artifactOrigin instanceof ArtifactOriginWithLastModified) {
-            lastModified = ((ArtifactOriginWithLastModified) artifactOrigin).getLastModified();
+        if (localFile != null) {
+            String source = artifactOrigin.getLocation();
+            Date lastModified = null;
+            if (artifactOrigin instanceof ArtifactOriginWithLastModified) {
+                lastModified = ((ArtifactOriginWithLastModified) artifactOrigin).getLastModified();
+            }
+            return new DownloadedArtifact(localFile, lastModified, source);
+        } else {
+            return null;
         }
-
-        return new DownloadedArtifact(localFile, lastModified, source);
     }
 
     private boolean downloadFailed(ArtifactDownloadReport artifactReport) {
