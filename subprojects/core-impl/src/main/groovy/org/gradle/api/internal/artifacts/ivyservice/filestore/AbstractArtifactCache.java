@@ -20,16 +20,16 @@ import org.gradle.api.Transformer;
 
 import java.util.List;
 
-public class AbstractArtifactCache<T> implements ArtifactCache<T> {
+public class AbstractArtifactCache<C> implements ArtifactCache<C> {
 
-    private final Transformer<List<CachedArtifact>, T> producer;
+    private final Transformer<List<CachedArtifact>, C> producer;
 
-    public AbstractArtifactCache(Transformer<List<CachedArtifact>, T> producer) {
+    public AbstractArtifactCache(Transformer<List<CachedArtifact>, C> producer) {
         this.producer = producer;
     }
 
-    public CachedArtifactCandidates findCandidates(T index) {
-        return new DefaultCachedArtifactCandidates(producer.transform(index));
+    public CachedArtifactCandidates findCandidates(C criterion) {
+        return new DefaultCachedArtifactCandidates(producer.transform(criterion));
     }
 
 }

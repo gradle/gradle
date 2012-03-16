@@ -19,18 +19,18 @@ package org.gradle.api.internal.artifacts.ivyservice.filestore;
 import java.util.LinkedList;
 import java.util.List;
 
-public class CompositeArtifactCache<T> implements ArtifactCache<T> {
+public class CompositeArtifactCache<C> implements ArtifactCache<C> {
 
-    private final List<ArtifactCache<T>> composites;
+    private final List<ArtifactCache<C>> composites;
 
-    public CompositeArtifactCache(List<ArtifactCache<T>> composites) {
+    public CompositeArtifactCache(List<ArtifactCache<C>> composites) {
         this.composites = composites;
     }
 
-    public CachedArtifactCandidates findCandidates(T index) {
+    public CachedArtifactCandidates findCandidates(C criterion) {
         List<CachedArtifact> cachedArtifacts = new LinkedList<CachedArtifact>();
-        for (ArtifactCache<T> cache : composites) {
-            cachedArtifacts.addAll(cache.findCandidates(index).getAll());
+        for (ArtifactCache<C> cache : composites) {
+            cachedArtifacts.addAll(cache.findCandidates(criterion).getAll());
         }
         return new DefaultCachedArtifactCandidates(cachedArtifacts);
     }

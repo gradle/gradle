@@ -16,6 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
-public interface ArtifactCache<T> {
-    CachedArtifactCandidates findCandidates(T index);
+/**
+ * Provides a view into the filestore for finding artifacts that match a given criterion.
+ *
+ * It's intended to be used before searching/fetching from repositories using the given criteria in some way, which may be expensive.
+ * Because of this, you ask the cache for candidates if there are any and only then use the criterion in the search.
+ *
+ * @param <C>
+ */
+public interface ArtifactCache<C> {
+
+    CachedArtifactCandidates findCandidates(C criterion);
+
 }

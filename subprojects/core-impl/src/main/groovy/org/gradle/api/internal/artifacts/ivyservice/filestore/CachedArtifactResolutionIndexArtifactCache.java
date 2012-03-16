@@ -23,9 +23,9 @@ import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolutio
 import java.util.Collections;
 import java.util.List;
 
-public class ArtifactResolutionCacheArtifactCache extends AbstractArtifactCache<String> {
+public class CachedArtifactResolutionIndexArtifactCache extends AbstractArtifactCache<String> {
 
-    public ArtifactResolutionCacheArtifactCache(CachedArtifactResolutionIndex<String> resolutionCache) {
+    public CachedArtifactResolutionIndexArtifactCache(CachedArtifactResolutionIndex<String> resolutionCache) {
         super(createProducer(resolutionCache));
     }
 
