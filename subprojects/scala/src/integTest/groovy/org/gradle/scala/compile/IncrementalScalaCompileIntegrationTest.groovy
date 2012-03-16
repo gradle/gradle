@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests
+package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ExecutionFailure
+
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.integtests.fixtures.ExecutionFailure
 
 class IncrementalScalaCompileIntegrationTest {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
