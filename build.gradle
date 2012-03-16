@@ -398,6 +398,10 @@ task commitBuild {
 
 task nightlyVersion
 
+task checkJavaVersion << {
+    assert Jvm.current().isJava7 : "Must use a Java 7 compatible JVM to perform the release. Current JVM is ${Jvm.current()}"
+}
+
 task nightlyBuild {
     description = 'Nightly build performed by the CI server'
     dependsOn checkJavaVersion, nightlyVersion, testedDists, "uploadAll"
@@ -415,10 +419,6 @@ task releaseVersion
 
 // A marker task which indicates that we are building an rc of some sort
 task rcVersion
-
-task checkJavaVersion << {
-    assert Jvm.current().isJava7 : "Must use a Java 7 compatible JVM to perform the release. Current JVM is ${Jvm.current()}"
-}
 
 //TODO RG - we depend here on the alphabetical order of dependent task execution. We Should change that to fail early if javaversion is inappropriate
 task rc {
