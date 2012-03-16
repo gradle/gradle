@@ -399,7 +399,7 @@ task commitBuild {
 task nightlyVersion
 
 task checkJavaVersion << {
-    assert Jvm.current().isJava7 : "Must use a Java 7 compatible JVM to perform the release. Current JVM is ${Jvm.current()}"
+    assert Jvm.current().isJava7() : "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${Jvm.current()}"
 }
 
 task nightlyBuild {
