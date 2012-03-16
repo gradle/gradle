@@ -19,9 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
-@Ignore
 @Requires(TestPrecondition.FILE_PERMISSIONS)
 class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -46,18 +44,18 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
-        
+
         where:
-        mode << [0644, 0755, 0777]
+        mode << [0755, 0777]
 
     }
 
     def "fileMode can be modified in copy action"() {
-            given:
-            file("reference.txt") << 'test file"'
+        given:
+        file("reference.txt") << 'test file"'
 
-            and:
-            buildFile << """
+        and:
+        buildFile << """
             import static java.lang.Integer.toOctalString
             task copy << {
                 copy {
@@ -70,18 +68,18 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
             ${verifyPermissionsTask(mode)}
             """
 
-            when:
-            run "verifyPermissions"
+        when:
+        run "verifyPermissions"
 
-            then:
-            noExceptionThrown()
+        then:
+        noExceptionThrown()
 
-            where:
-            mode << [0644, 0755, 0777]
+        where:
+        mode << [0755, 0777]
 
-        }
-    
-    String verifyPermissionsTask(int mode){
+    }
+
+    String verifyPermissionsTask(int mode) {
         """task verifyPermissions(dependsOn: copy) << {
                 fileTree("build/tmp").visit{
                     assert toOctalString($mode) == toOctalString(it.mode)
