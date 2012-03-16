@@ -474,7 +474,7 @@ project(':contrib') {
         //the jar dependency is configured as non-dependency in the .classpath
         def commonsIo = classpath.entries.find { it.@path?.contains('commons-io') }
         assert commonsIo
-        assert commonsIo.attributes.attribute.@name == [AbstractClasspathEntry.NON_DEPENDENCY_ATTRIBUTE]
+        assert commonsIo.attributes.attribute.@name == [AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE]
     }
 
     @Test
@@ -490,6 +490,43 @@ project(':contrib') {
 
         //then container is added only once:
         assert !getClasspathFile().text.contains(EclipseWtp.WEB_LIBS_CONTAINER)
+    }
+
+    @Test
+    void "classpath entries are protected from conflicting wtp attributes"() {
+        //given
+        file("build.gradle") << """
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
+
+            repositories { mavenCentral() }
+
+            dependencies {
+              compile 'commons-io:commons-io:1.4'
+            }
+
+            import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
+
+            eclipse.classpath.file.whenMerged { cp ->
+              cp.entries.each {
+                if(it instanceof AbstractClasspathEntry) {
+                  //some people have workarounds in their builds and configure the component dependency,
+                  //just like here:
+                  it.entryAttributes[AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE] = 'WEB-INF/lib'
+                }
+              }
+            }
+        """
+
+        //when
+        executer.withTasks("eclipse").run()
+
+        //then
+        def classpath = getClasspathFile(print: true).text
+        //component dependency wins:
+        assert classpath.contains(AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE)
+        //non-dependency (our default) loses:
+        assert !classpath.contains(AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE)
     }
 
     protected def contains(String ... contents) {

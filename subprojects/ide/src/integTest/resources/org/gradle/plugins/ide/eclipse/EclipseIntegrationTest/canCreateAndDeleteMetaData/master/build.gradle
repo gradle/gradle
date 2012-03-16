@@ -53,7 +53,7 @@ allprojects {
                         file.whenMerged { classpath ->
                             classpath.entries.each { entry ->
                                 if (entry instanceof AbstractClasspathEntry) {
-                                    entry.entryAttributes.remove(AbstractClasspathEntry.NON_DEPENDENCY_ATTRIBUTE)
+                                    entry.entryAttributes.remove(AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE)
                                 }
                             }
                         }

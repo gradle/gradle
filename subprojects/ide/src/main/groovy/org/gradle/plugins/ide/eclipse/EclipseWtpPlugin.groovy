@@ -68,7 +68,7 @@ class EclipseWtpPlugin extends IdePlugin {
                         //this is necessary to avoid annoying warnings upon import to Eclipse
                         //the .classpath entries can be marked all as non-deployable dependencies
                         //because the wtp component file declares the deployable dependencies
-                        entry.entryAttributes[AbstractClasspathEntry.NON_DEPENDENCY_ATTRIBUTE] = ''
+                        entry.entryAttributes[AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE] = ''
                     }
                 }
             }
@@ -80,7 +80,7 @@ class EclipseWtpPlugin extends IdePlugin {
                             // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
                             //this is necessary so that the depended upon projects will have their dependencies
                             // deployed to WEB-INF/lib of the main project.
-                            entry.entryAttributes['org.eclipse.jst.component.dependency'] = '../'
+                            entry.entryAttributes[AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE] = '../'
                         }
                     }
                 }
