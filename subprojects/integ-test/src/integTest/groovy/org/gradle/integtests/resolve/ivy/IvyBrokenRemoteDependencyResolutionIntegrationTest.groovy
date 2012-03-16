@@ -23,6 +23,10 @@ import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class IvyBrokenRemoteDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
 
+    def cleanup() {
+        server.resetExpectations()
+    }
+
     public void "reports and caches missing module"() {
         server.start()
 
@@ -138,7 +142,9 @@ task retrieve(type: Sync) {
         server.expectGetMissing('/group/projectA/1.2/projectA-1.2.jar')
 
         then:
+        executer.withArguments("-s")
         fails "retrieve"
+
         failure.assertThatCause(containsString("Artifact 'group:projectA:1.2@jar' not found"))
 
         when:
