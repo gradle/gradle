@@ -18,7 +18,7 @@ dependencies {
 apply from: "$rootDir/gradle/compile.gradle"
 
 test {
-    maxParallelForks = guessMaxForks()
+    maxParallelForks = guessMaxForks(project)
     doFirst {
         if (isCIBuild()) {
             maxParallelForks = 2
