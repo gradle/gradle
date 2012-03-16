@@ -27,7 +27,7 @@ class DefaultCachedArtifactResolution implements CachedArtifactResolution, Seria
     private final Date artifactLastModified;
     private final String artifactUrl;
 
-    public DefaultCachedArtifactResolution(ArtifactResolutionCacheEntry entry, TimeProvider timeProvider,
+    public DefaultCachedArtifactResolution(CachedArtifactResolutionIndexEntry entry, TimeProvider timeProvider,
                                            Date artifactLastModified, String artifactUrl) {
         this.artifactFile = entry.artifactFile;
         ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;

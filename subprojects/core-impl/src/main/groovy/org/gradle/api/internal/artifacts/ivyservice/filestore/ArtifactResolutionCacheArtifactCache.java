@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.resolutioncache.ArtifactResolutionCache;
 import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolution;
+import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolutionIndex;
 import org.gradle.internal.Factory;
 
 import java.util.Collections;
@@ -27,11 +27,11 @@ import java.util.List;
 
 public class ArtifactResolutionCacheArtifactCache extends AbstractArtifactCache<String> {
 
-    public ArtifactResolutionCacheArtifactCache(ArtifactResolutionCache resolutionCache, CacheLockingManager cacheLockingManager) {
+    public ArtifactResolutionCacheArtifactCache(CachedArtifactResolutionIndex<String> resolutionCache, CacheLockingManager cacheLockingManager) {
         super(createProducer(resolutionCache, cacheLockingManager));
     }
 
-    private static Transformer<List<CachedArtifact>, String> createProducer(final ArtifactResolutionCache resolutionCache, final CacheLockingManager cacheLockingManager) {
+    private static Transformer<List<CachedArtifact>, String> createProducer(final CachedArtifactResolutionIndex<String> resolutionCache, final CacheLockingManager cacheLockingManager) {
         return new Transformer<List<CachedArtifact>, String>() {
             public List<CachedArtifact> transform(final String url) {
 
@@ -40,7 +40,7 @@ public class ArtifactResolutionCacheArtifactCache extends AbstractArtifactCache<
                         new Factory<List<CachedArtifact>>() {
 
                             public List<CachedArtifact> create() {
-                                CachedArtifactResolution match = resolutionCache.getCachedArtifactResolution(url);
+                                CachedArtifactResolution match = resolutionCache.lookup(url);
                                 if (match == null) {
                                     return Collections.emptyList();
                                 } else {

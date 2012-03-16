@@ -15,19 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.resolutioncache;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
+import org.gradle.util.TimeProvider;
 
 import java.io.File;
-import java.util.Date;
+import java.io.Serializable;
 
-public interface ArtifactResolutionCache {
-    File storeArtifactFile(ModuleVersionRepository repository, ArtifactRevisionId artifact, File artifactFile, Date lastModified, String artifactUrl);
+class CachedArtifactResolutionIndexEntry implements Serializable {
+    public File artifactFile;
+    public long createTimestamp;
+    public long artifactLastModifiedTimestamp; // < 0 means unknown
+    public String artifactUrl; // null means unknown
 
-    void expireCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifact);
-
-    CachedArtifactResolution getCachedArtifactResolution(ModuleVersionRepository repository, ArtifactRevisionId artifact);
-
-    CachedArtifactResolution getCachedArtifactResolution(String artifactUrl);
-
+    CachedArtifactResolutionIndexEntry(File artifactFile, TimeProvider timeProvider, long artifactLastModifiedTimestamp, String artifactUrl) {
+        this.artifactFile = artifactFile;
+        this.createTimestamp = timeProvider.getCurrentTime();
+        this.artifactLastModifiedTimestamp = artifactLastModifiedTimestamp;
+        this.artifactUrl = artifactUrl;
+    }
 }

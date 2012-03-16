@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.resolutioncache;
 
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.util.TimeProvider;
 
 import java.io.File;
-import java.io.Serializable;
 
-class ArtifactResolutionCacheEntry implements Serializable {
-    public File artifactFile;
-    public long createTimestamp;
-    public long artifactLastModifiedTimestamp; // < 0 means unknown
-    public String artifactUrl; // null means unknown
+public class ArtifactUrlCachedResolutionIndex extends DefaultCachedArtifactResolutionIndex<String> {
 
-    ArtifactResolutionCacheEntry(File artifactFile, TimeProvider timeProvider, long artifactLastModifiedTimestamp, String artifactUrl) {
-        this.artifactFile = artifactFile;
-        this.createTimestamp = timeProvider.getCurrentTime();
-        this.artifactLastModifiedTimestamp = artifactLastModifiedTimestamp;
-        this.artifactUrl = artifactUrl;
+    public ArtifactUrlCachedResolutionIndex(File persistentCacheFile, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+        super(persistentCacheFile, String.class, timeProvider, cacheLockingManager);
     }
+
 }
