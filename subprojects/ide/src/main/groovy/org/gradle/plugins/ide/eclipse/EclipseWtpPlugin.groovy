@@ -64,7 +64,7 @@ class EclipseWtpPlugin extends IdePlugin {
         project.plugins.withType(WarPlugin) {
             project.eclipse.classpath.file.whenMerged { Classpath classpath ->
                 for (entry in classpath.entries) {
-                    if (entry instanceof Library) {
+                    if (entry instanceof AbstractLibrary) {
                         //this is necessary to avoid annoying warnings upon import to Eclipse
                         //the .classpath entries can be marked all as non-deployable dependencies
                         //because the wtp component file declares the deployable dependencies

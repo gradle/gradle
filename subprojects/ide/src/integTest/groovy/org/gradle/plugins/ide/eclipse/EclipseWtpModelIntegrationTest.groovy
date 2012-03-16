@@ -437,9 +437,10 @@ project(':contrib') {
     }
 
     @Test
-    void "manages dependencies using the classpath container"() {
-        //TODO SF split
+    @Issue("GRADLE-1974")
+    void "may use web libraries container"() {
         //given
+        //adding a little bit more stress with a subproject and some web resources:
         file("src/main/webapp/index.jsp") << "<html>Hey!</html>"
         file("settings.gradle") << "include 'someCoolLib'"
 
@@ -467,17 +468,10 @@ project(':contrib') {
 
         //then the container is configured
         assert getClasspathFile().text.contains(EclipseWtp.WEB_LIBS_CONTAINER)
-
-        //the jar dependency is configured in the WTP component file
-        assert getComponentFile().text.contains('commons-io')
-
-        //the jar dependency is configured as non-dependency in the .classpath
-        def commonsIo = classpath.entries.find { it.@path?.contains('commons-io') }
-        assert commonsIo
-        assert commonsIo.attributes.attribute.@name == [AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE]
     }
 
     @Test
+    @Issue("GRADLE-1974")
     void "the web container is not present by default"() {
         //given
         file("build.gradle") << """
@@ -493,7 +487,47 @@ project(':contrib') {
     }
 
     @Test
-    void "classpath entries are protected from conflicting wtp attributes"() {
+    @Issue("GRADLE-1707")
+    void "the library and variable classpath entries are marked as component non-dependency"() {
+        //given
+        file('libs/myFoo.jar').touch()
+
+        file("build.gradle") << """
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
+
+            repositories { mavenCentral() }
+
+            dependencies {
+              compile 'commons-io:commons-io:1.4'
+              compile files('libs/myFoo.jar')
+            }
+
+            eclipse.pathVariables MY_LIBS: file('libs')
+        """
+
+        //when
+        executer.withTasks("eclipse").run()
+
+        //then
+        def classpath = getClasspathFile(print: true).text
+        def component = getComponentFile().text
+
+        //the jar dependency is configured in the WTP component file and in the classpath
+        assert classpath.contains('commons-io')
+        assert component.contains('commons-io')
+
+        assert classpath.contains('kind="var" path="MY_LIBS/myFoo.jar"')
+        assert component.contains('myFoo.jar')
+
+        //the jar dependencies are configured as non-dependency in the .classpath
+        classpath.count(AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE) == 2
+        classpath.count(AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE) == 0
+    }
+
+    @Test
+    @Issue("GRADLE-1707")
+    void "classpath entries are protected from conflicting component dependency attributes"() {
         //given
         file("build.gradle") << """
             apply plugin: 'war'
