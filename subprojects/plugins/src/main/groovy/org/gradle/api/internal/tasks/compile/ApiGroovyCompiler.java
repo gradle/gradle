@@ -27,6 +27,7 @@ import org.gradle.util.FilteringClassLoader;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,8 +65,17 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
         FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(getClass().getClassLoader());
         groovyCompilerClassLoader.allowPackage("groovy");
         groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
-        // for completeness, also get global transform descriptors that ship with Groovy from this class loader
+        // It would seem sensible to also get AST transform descriptors that ship with Groovy from this class loader.
+        // However, this causes problems because AST transform descriptors are found (e.g. for Spock) whose classes cannot
+        // be loaded because they are filtered, resulting in an error during compilation.
         //groovyCompilerClassLoader.allowResources("META-INF/services");
+
+        // Necessary for Groovy compilation to pick up output of regular and joint Java compilation,
+        // and for joint Java compilation to pick up the output of regular Java compilation.
+        // Assumes that output of regular Java compilation (which is not under this task's control) also goes
+        // into spec.getDestinationDir(). We could configure this on source set level, but then spec.getDestinationDir()
+        // would end up on the compile class path of every compile task for that source set, which may not be desirable.
+        spec.setClasspath(Iterables.concat(spec.getClasspath(), Collections.singleton(spec.getDestinationDir())));
 
         GroovyClassLoader compilationUnitClassLoader = new GroovyClassLoader(groovyCompilerClassLoader, null);
         for (File file : spec.getClasspath()) {
