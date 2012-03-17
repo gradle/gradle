@@ -53,7 +53,7 @@ class ForkOptionsTest {
 
     @Test public void testDefine() {
         forkOptions.define(PROPS.keySet().inject([:]) { Map map, String prop ->
-            map[prop] = "${prop}Value"
+            map[prop] = "${prop}Value" as String
             map
         })
         PROPS.keySet().each {assertEquals("${it}Value" as String, forkOptions."${it}")}

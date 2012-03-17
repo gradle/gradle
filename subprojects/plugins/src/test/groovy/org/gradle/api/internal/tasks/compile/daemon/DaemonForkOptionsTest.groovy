@@ -17,25 +17,8 @@
 package org.gradle.api.internal.tasks.compile.daemon
 
 import spock.lang.Specification
-import org.gradle.api.tasks.compile.ForkOptions
 
 class DaemonForkOptionsTest extends Specification {
-    def "can be created from ForkOptions"() {
-        def options = new ForkOptions()
-        options.memoryInitialSize = "128m"
-        options.memoryMaximumSize = "1g"
-        options.jvmArgs = ["-server", "-esa"]
-        options.tempDir = "/tmp" // has no equivalent
-
-        when:
-        def settings = new DaemonForkOptions(options)
-
-        then:
-        settings.minHeapSize == "128m"
-        settings.maxHeapSize == "1g"
-        settings.jvmArgs == ["-server", "-esa"]
-    }
-    
     def "is compatible with itself"() {
         def settings = new DaemonForkOptions("128m", "1g", ["-server", "-esa"])
 
@@ -122,16 +105,6 @@ class DaemonForkOptionsTest extends Specification {
 
         then:
         noExceptionThrown()
-    }
-
-    def "unspecified JVM args are compatible with unspecified and empty JVM args"() {
-        def settings1 = new DaemonForkOptions("128m", "1g", null)
-        def settings2 = new DaemonForkOptions("128m", "1g", null)
-        def settings3 = new DaemonForkOptions("128m", "1g", [])
-
-        expect:
-        settings1.isCompatibleWith(settings2)
-        settings1.isCompatibleWith(settings3)
     }
 
     def "unspecified memory options are only compatible with unspecified memory options"() {

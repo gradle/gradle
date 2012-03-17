@@ -14,15 +14,22 @@
  * limitations under the License.
  */
  
-package org.gradle.api.tasks.compile
+package org.gradle.api.tasks.compile;
 
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
+import com.google.common.collect.ImmutableMap;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
+
+import java.util.Map;
 
 /**
+ * Debug options for Java compilation.
+ *
  * @author Hans Dockter
  */
-class DebugOptions extends AbstractOptions {
+public class DebugOptions extends AbstractOptions {
+    private static final long serialVersionUID = 0;
+
     /**
      * Tells which debugging information will be generated. The value is a comma-separated
      * list of any of the following keywords (without spaces in between):
@@ -41,9 +48,17 @@ class DebugOptions extends AbstractOptions {
      * <p>This option only takes effect if {@link CompileOptions#debug} is set to {@code true}.
      */
     @Input @Optional
-    String debugLevel = null
+    private String debugLevel;
 
-    Map fieldName2AntMap() {
-        [debugLevel: 'debuglevel']
+    public String getDebugLevel() {
+        return debugLevel;
+    }
+
+    public void setDebugLevel(String debugLevel) {
+        this.debugLevel = debugLevel;
+    }
+
+    protected Map<String, String> fieldName2AntMap() {
+        return ImmutableMap.of("debugLevel", "debuglevel");
     }
 }
