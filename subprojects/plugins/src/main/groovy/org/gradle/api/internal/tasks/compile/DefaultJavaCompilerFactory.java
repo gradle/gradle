@@ -31,6 +31,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final TemporaryFileProvider tempFileProvider;
     private final Factory<AntBuilder> antBuilderFactory;
     private final JavaCompilerFactory inProcessCompilerFactory;
+    private boolean groovyJointCompilation;
 
     public DefaultJavaCompilerFactory(ProjectInternal project, TemporaryFileProvider tempFileProvider, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory){
         this.project = project;
@@ -39,13 +40,27 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         this.inProcessCompilerFactory = inProcessCompilerFactory;
     }
 
+    /**
+     * If true, the Java compiler to be created is used for joint compilation
+     * together with a Groovy compiler in the compiler daemon.
+     * In that case, the Groovy normalizing and daemon compilers should be used.
+     */
+    public void setGroovyJointCompilation(boolean flag) {
+        groovyJointCompilation = flag;
+    }
+
     public Compiler<JavaCompileSpec> create(CompileOptions options) {
         fallBackToAntIfNecessary(options);
 
         if (options.isUseAnt()) {
             return new AntJavaCompiler(antBuilderFactory);
         }
-        return new NormalizingJavaCompiler(createTargetCompiler(options));
+
+        Compiler<JavaCompileSpec> result = createTargetCompiler(options);
+        if (!groovyJointCompilation) {
+            result = new NormalizingJavaCompiler(result);
+        }
+        return result;
     }
 
     private void fallBackToAntIfNecessary(CompileOptions options) {
@@ -63,7 +78,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         }
 
         Compiler<JavaCompileSpec> compiler = inProcessCompilerFactory.create(options);
-        if (options.isFork()) {
+        if (options.isFork() && !groovyJointCompilation) {
             return new DaemonJavaCompiler(project, compiler);
         }
 

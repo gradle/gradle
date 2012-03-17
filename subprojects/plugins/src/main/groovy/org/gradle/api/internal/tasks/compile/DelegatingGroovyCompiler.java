@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,17 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-public class CompilationFailedException extends RuntimeException {
-    public CompilationFailedException() {
-        super("Compilation failed; see the compiler error output for details.");
+import org.gradle.api.tasks.WorkResult;
+
+public class DelegatingGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec> {
+    private final GroovyCompilerFactory compilerFactory;
+
+    public DelegatingGroovyCompiler(GroovyCompilerFactory compilerFactory) {
+        this.compilerFactory = compilerFactory;
     }
 
-    public CompilationFailedException(int exitCode) {
-        super(String.format("Compilation failed with exit code %d; see the compiler error output for details.", exitCode));
-    }
-    
-    public CompilationFailedException(String message) {
-        super(message);
+    public WorkResult execute(GroovyJavaJointCompileSpec spec) {
+        Compiler<GroovyJavaJointCompileSpec> delegate = compilerFactory.create(spec.getGroovyCompileOptions(), spec.getCompileOptions());
+        return delegate.execute(spec);
     }
 }
