@@ -136,7 +136,6 @@ allprojects {
     repositories {
         maven { url 'http://repo.gradle.org/gradle/libs' }
         maven { url 'http://repository.codehaus.org/' }
-        maven { url 'https://oss.sonatype.org/content/repositories/releases/' }
     }
 
     configurations {
