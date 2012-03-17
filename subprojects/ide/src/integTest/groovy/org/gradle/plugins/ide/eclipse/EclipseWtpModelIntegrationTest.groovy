@@ -563,6 +563,50 @@ project(':contrib') {
         assert !classpath.contains(AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE)
     }
 
+    @Test
+    @Issue("GRADLE-1412")
+    void "dependent project's library and variable classpath entries contain necessary dependency attribute"() {
+        //given
+        file('libs/myFoo.jar').touch()
+        file('settings.gradle') << "include 'someLib'"
+
+        file("build.gradle") << """
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
+
+            dependencies {
+                compile project(':someLib')
+            }
+
+            project(':someLib') {
+                apply plugin: 'java'
+                apply plugin: 'eclipse-wtp'
+                
+                repositories { mavenCentral() }
+
+                dependencies {
+                  compile 'commons-io:commons-io:1.4'
+                  compile files('libs/myFoo.jar')
+                }
+
+                eclipse.pathVariables MY_LIBS: file('libs')
+            }
+        """
+
+        //when
+        executer.withTasks("eclipse").run()
+
+        //then
+        def classpath = getClasspathFile(project: 'someLib', print: true).text
+
+        //contains both entries
+        assert classpath.contains('kind="var" path="MY_LIBS/myFoo.jar"')
+        assert classpath.contains('commons-io')
+
+        //both var and lib entries have the attribute
+        classpath.count('<attribute name="org.eclipse.jst.component.dependency" value="../"/>') == 2
+    }
+
     protected def contains(String ... contents) {
         contents.each { assert component.contains(it)}
     }

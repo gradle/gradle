@@ -134,7 +134,7 @@ class EclipseModel {
     void pathVariables(Map<String, File> pathVariables) {
         assert pathVariables != null
         classpath.pathVariables.putAll pathVariables
-        if (wtp) {
+        if (wtp && wtp.component) {
             wtp.component.pathVariables.putAll pathVariables
         }
     }

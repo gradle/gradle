@@ -76,7 +76,7 @@ class EclipseWtpPlugin extends IdePlugin {
             doLaterWithEachDependedUponEclipseProject(project) { Project otherProject ->
                 otherProject.eclipse.classpath.file.whenMerged { Classpath classpath ->
                     for (entry in classpath.entries) {
-                        if (entry instanceof Library) {
+                        if (entry instanceof AbstractLibrary) {
                             // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
                             //this is necessary so that the depended upon projects will have their dependencies
                             // deployed to WEB-INF/lib of the main project.
