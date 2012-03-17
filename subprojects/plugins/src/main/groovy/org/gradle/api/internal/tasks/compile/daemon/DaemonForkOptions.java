@@ -15,28 +15,31 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
-import org.gradle.api.tasks.compile.ForkOptions;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class DaemonForkOptions {
     private final String minHeapSize;
     private final String maxHeapSize;
-    private final List<String> jvmArgs;
+    private final Iterable<String> jvmArgs;
+    private final Iterable<File> classpath;
 
-    public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, @Nullable List<String> jvmArgs) {
+    public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs) {
+        this(minHeapSize, maxHeapSize, jvmArgs, Collections.<File>emptyList());
+    }
+    
+    public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs, Iterable<File> classpath) {
         this.minHeapSize = minHeapSize;
         this.maxHeapSize = maxHeapSize;
         this.jvmArgs = jvmArgs;
-    }
-    
-    public DaemonForkOptions(ForkOptions forkOptions) {
-        this(forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs());
+        this.classpath = classpath;
     }
 
     public String getMinHeapSize() {
@@ -47,14 +50,30 @@ public class DaemonForkOptions {
         return maxHeapSize;
     }
 
-    public List<String> getJvmArgs() {
+    public Iterable<String> getJvmArgs() {
         return jvmArgs;
+    }
+
+    public Iterable<File> getClasspath() {
+        return classpath;
     }
 
     public boolean isCompatibleWith(DaemonForkOptions other) {
         return getHeapSizeMb(minHeapSize) >= getHeapSizeMb(other.getMinHeapSize())
                 && getHeapSizeMb(maxHeapSize) >= getHeapSizeMb(other.getMaxHeapSize())
-                && getNormalizedJvmArgs(jvmArgs).equals(getNormalizedJvmArgs(other.getJvmArgs()));
+                && getNormalizedJvmArgs(jvmArgs).containsAll(getNormalizedJvmArgs(other.getJvmArgs()))
+                && getNormalizedClasspath(classpath).containsAll(getNormalizedClasspath(other.getClasspath()));
+    }
+
+    // one way to merge fork options, good for current use case
+    public DaemonForkOptions mergeWith(DaemonForkOptions other) {
+        String mergedMinHeapSize = mergeHeapSize(minHeapSize, other.minHeapSize);
+        String mergedMaxHeapSize = mergeHeapSize(maxHeapSize, other.maxHeapSize);
+        Set<String> mergedJvmArgs = getNormalizedJvmArgs(this.jvmArgs);
+        mergedJvmArgs.addAll(getNormalizedJvmArgs(other.getJvmArgs()));
+        Set<File> mergedClasspath = getNormalizedClasspath(classpath);
+        mergedClasspath.addAll(getNormalizedClasspath(other.classpath));
+        return new DaemonForkOptions(mergedMinHeapSize, mergedMaxHeapSize, mergedJvmArgs, mergedClasspath);
     }
 
     private int getHeapSizeMb(String heapSize) {
@@ -76,15 +95,24 @@ public class DaemonForkOptions {
         throw new InvalidUserDataException("Cannot parse heap size: " + heapSize);
     }
     
-    private Set<String> getNormalizedJvmArgs(List<String> jvmArgs) {
-        if (jvmArgs == null) {
-            return Collections.emptySet();
-        }
-
-        Set<String> normalized = new HashSet<String>(jvmArgs.size());
+    private String mergeHeapSize(String heapSize1, String heapSize2) {
+        int mergedHeapSizeMb = Math.max(getHeapSizeMb(heapSize1), getHeapSizeMb(heapSize2));
+        return mergedHeapSizeMb == -1 ? null : String.valueOf(mergedHeapSizeMb) + "m";
+    }
+    
+    private Set<String> getNormalizedJvmArgs(Iterable<String> jvmArgs) {
+        Set<String> normalized = new HashSet<String>();
         for (String jvmArg : jvmArgs) {
             normalized.add(jvmArg.trim());
         }
         return normalized;
+    }
+    
+    private Set<File> getNormalizedClasspath(Iterable<File> classpath) {
+        return Sets.newHashSet(classpath);
+    }
+    
+    public String toString() {
+        return Objects.toStringHelper(this).add("minHeapSize", minHeapSize).add("maxHeapSize", maxHeapSize).add("jvmArgs", jvmArgs).add("classpath", classpath).toString();
     }
 }

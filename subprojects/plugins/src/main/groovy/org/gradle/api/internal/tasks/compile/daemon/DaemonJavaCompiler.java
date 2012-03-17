@@ -19,7 +19,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.UncheckedException;
 
 public class DaemonJavaCompiler implements Compiler<JavaCompileSpec> {
@@ -32,9 +32,10 @@ public class DaemonJavaCompiler implements Compiler<JavaCompileSpec> {
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
-        CompileOptions compileOptions = spec.getCompileOptions();
-        DaemonForkOptions forkOptions = new DaemonForkOptions(compileOptions.getForkOptions());
-        CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project, forkOptions);
+        ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        DaemonForkOptions daemonForkOptions = new DaemonForkOptions(
+                forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs());
+        CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project, daemonForkOptions);
         CompileResult result = daemon.execute(delegate, spec);
         if (result.isSuccess()) {
             return result;

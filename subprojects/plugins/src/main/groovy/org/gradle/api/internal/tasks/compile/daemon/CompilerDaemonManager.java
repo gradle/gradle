@@ -19,6 +19,7 @@ import net.jcip.annotations.NotThreadSafe;
 
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -61,17 +62,26 @@ public class CompilerDaemonManager {
         }
 
         LOGGER.info("Stopping Gradle compiler daemon.");
+
         client.stop();
         client = null;
         process.waitForStop();
         process = null;
+
         LOGGER.info("Gradle compiler daemon stopped.");
     }
     
     private void startDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
         LOGGER.info("Starting Gradle compiler daemon.");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(forkOptions.toString());
+        }
+
         WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
         builder.setLogLevel(project.getGradle().getStartParameter().getLogLevel()); // NOTE: might make sense to respect per-compile-task log level
+        builder.applicationClasspath(forkOptions.getClasspath());
+        builder.applicationClasspath(project.getServices().get(ClassPathRegistry.class).getClassPath("ANT").getAsFiles());
+        builder.sharedPackages("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant");
         File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
             builder.getApplicationClasspath().add(toolsJar); // for SunJavaCompiler
@@ -79,13 +89,14 @@ public class CompilerDaemonManager {
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setMinHeapSize(forkOptions.getMinHeapSize());
         javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
-        javaCommand.setJvmArgs(forkOptions.getJvmArgs());
+        //javaCommand.setJvmArgs(forkOptions.getJvmArgs());
         javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
         process = builder.worker(new CompilerDaemonServer()).build();
         process.start();
         CompilerDaemonServerProtocol server = process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
         client = new CompilerDaemonClient(forkOptions, server);
         process.getConnection().addIncoming(CompilerDaemonClientProtocol.class, client);
+
         LOGGER.info("Gradle compiler daemon started.");
     }
     
