@@ -81,9 +81,9 @@ public class CommandLineActionFactory {
         parser.option(VERSION, "version").hasDescription("Print version info.");
         parser.option(GUI).hasDescription("Launches the Gradle GUI.");
         parser.option(FOREGROUND).hasDescription("Starts the Gradle daemon in the foreground.").experimental();
-        parser.option(DAEMON).hasDescription("Uses the Gradle daemon to run the build. Starts the daemon if not running.").experimental();
-        parser.option(NO_DAEMON).hasDescription("Do not use the Gradle daemon to run the build.").experimental();
-        parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running.").experimental();
+        parser.option(DAEMON).hasDescription("Uses the Gradle daemon to run the build. Starts the daemon if not running.");
+        parser.option(NO_DAEMON).hasDescription("Do not use the Gradle daemon to run the build.");
+        parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running.");
 
         LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
         ServiceRegistry loggingServices = createLoggingServices();
