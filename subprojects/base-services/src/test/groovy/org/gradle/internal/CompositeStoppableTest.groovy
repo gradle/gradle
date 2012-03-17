@@ -85,6 +85,42 @@ class CompositeStoppableTest extends Specification {
         1 * b.stop()
     }
 
+    def callsACloseMethodOnArbitraryObject() {
+        ClassWithCloseMethod a = Mock()
+
+        stoppable.add(a)
+
+        when:
+        stoppable.stop()
+
+        then:
+        1 * a.close()
+    }
+
+    def callsAStopMethodOnArbitraryObject() {
+        ClassWithStopMethod a = Mock()
+
+        stoppable.add(a)
+
+        when:
+        stoppable.stop()
+
+        then:
+        1 * a.stop()
+    }
+
+    def doesNothingWhenArbitraryObjectDoesNotHaveStopOrCloseMethod() {
+        Runnable r = Mock()
+
+        stoppable.add(r)
+
+        when:
+        stoppable.stop()
+
+        then:
+        0 * r._
+    }
+
     def ignoresNullElements() {
         Stoppable a = Mock()
         stoppable.add([null])
@@ -95,5 +131,15 @@ class CompositeStoppableTest extends Specification {
 
         then:
         1 * a.stop()
+    }
+
+    static class ClassWithCloseMethod {
+        void close() {
+        }
+    }
+
+    static class ClassWithStopMethod {
+        void stop() {
+        }
     }
 }

@@ -79,7 +79,7 @@ public class TcpIncomingConnector<T> implements IncomingConnector<T>, AsyncStopp
     }
 
     public void requestStop() {
-        new CompositeStoppable().addCloseables(serverSockets).stop();
+        new CompositeStoppable().add(serverSockets).stop();
     }
 
     public void stop() {

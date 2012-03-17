@@ -21,7 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Arrays;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -29,56 +30,85 @@ public class CompositeStoppable implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeStoppable.class);
     private final List<Stoppable> elements = new CopyOnWriteArrayList<Stoppable>();
 
-    public CompositeStoppable() {
-    }
-
-    public CompositeStoppable(Stoppable... elements) {
+    public CompositeStoppable(Object... elements) {
         add(elements);
     }
 
-    public CompositeStoppable(Iterable<? extends Stoppable> elements) {
+    public CompositeStoppable(Iterable<?> elements) {
         add(elements);
     }
 
-    public CompositeStoppable(Closeable... elements) {
-        for (Closeable element : elements) {
-            add(element);
-        }
-    }
-
-    public CompositeStoppable add(Iterable<? extends Stoppable> elements) {
-        for (Stoppable element : elements) {
-            if (element != null) {
-                this.elements.add(element);
-            }
+    public CompositeStoppable add(Iterable<?> elements) {
+        for (Object element : elements) {
+            this.elements.add(toStoppable(element));
         }
         return this;
     }
 
-    public CompositeStoppable add(Stoppable... stoppable) {
-        add(Arrays.asList(stoppable));
-        return this;
-    }
-
-    public CompositeStoppable add(Closeable closeable) {
-        elements.add(toStoppable(closeable));
-        return this;
-    }
-
-    public CompositeStoppable addCloseables(Iterable<? extends Closeable> closeables) {
-        for (Closeable closeable : closeables) {
-            add(closeable);
+    public CompositeStoppable add(Object... elements) {
+        for (Object closeable : elements) {
+            this.elements.add(toStoppable(closeable));
         }
         return this;
     }
 
-    private Stoppable toStoppable(final Closeable closeable) {
+    private static Object invoke(Method method, Object target, Object... args) {
+        try {
+            method.setAccessible(true);
+            return method.invoke(target, args);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private static Stoppable toStoppable(final Object object) {
+        if (object == null) {
+            return new Stoppable() {
+                public void stop() {
+                }
+            };
+        }
+        if (object instanceof Iterable) {
+            throw new UnsupportedOperationException("Not implemented yet.");
+        }
+        if (object instanceof Stoppable) {
+            return (Stoppable) object;
+        }
+        if (object instanceof Closeable) {
+            final Closeable closeable = (Closeable) object;
+            return new Stoppable() {
+                @Override
+                public String toString() {
+                    return closeable.toString();
+                }
+
+                public void stop() {
+                    try {
+                        closeable.close();
+                    } catch (IOException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
+            };
+        }
         return new Stoppable() {
+            @Override
+            public String toString() {
+                return object.toString();
+            }
+
             public void stop() {
                 try {
-                    closeable.close();
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
+                    invoke(object.getClass().getMethod("stop"), object);
+                } catch (NoSuchMethodException e) {
+                    // ignore
+                }
+                try {
+                    invoke(object.getClass().getMethod("close"), object);
+                } catch (NoSuchMethodException e) {
+                    // ignore
                 }
             }
         };
