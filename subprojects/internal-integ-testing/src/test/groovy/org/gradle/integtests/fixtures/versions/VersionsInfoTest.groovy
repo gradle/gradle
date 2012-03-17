@@ -35,8 +35,9 @@ class VersionsInfoTest extends Specification {
         info.versions.find { "1.0-milestone-8a" }
     }
 
-    def "versions are ordered"() {
+    def "versions are ordered latest first"() {
         expect:
+        version(info.versions[0]) > version(info.versions[1])
         info.versions == info.versions.sort( { a,b -> version(b).compareTo(version(a)) })
     }
     

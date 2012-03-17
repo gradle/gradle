@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.versions.VersionsInfo;
 import org.gradle.util.CollectionUtils;
@@ -24,12 +23,14 @@ import org.gradle.util.GradleVersion;
 
 import java.util.List;
 
+import static org.gradle.util.GradleVersion.version;
+
 /**
  * by Szczepan Faber, created at: 1/12/12
  */
 public class ReleasedVersions {
 
-    private final static List<String> RELEASED = Lists.reverse(new VersionsInfo().getVersions());
+    private final static List<String> VERSIONS = new VersionsInfo().getVersions();
 
     private final GradleDistribution current;
 
@@ -37,12 +38,20 @@ public class ReleasedVersions {
         this.current = current;
     }
 
+    /**
+     * @return last released version. Never returns the RC.
+     */
     public BasicGradleDistribution getLast() {
-        return current.previousVersion(RELEASED.get(RELEASED.size() - 1));
+        for (String v : VERSIONS) {
+            if (!version(v).isSnapshot()) {
+                return current.previousVersion(v);
+            }
+        }
+        throw new RuntimeException("Unable to get the last version");
     }
 
     public List<BasicGradleDistribution> getAll() {
-        return CollectionUtils.collect(RELEASED, new Transformer<BasicGradleDistribution, String>() {
+        return CollectionUtils.collect(VERSIONS, new Transformer<BasicGradleDistribution, String>() {
             public BasicGradleDistribution transform(String original) {
                 return current.previousVersion(original);
             }
@@ -50,10 +59,10 @@ public class ReleasedVersions {
     }
 
     public BasicGradleDistribution getPreviousOf(BasicGradleDistribution distro) {
-        GradleVersion distroVersion = GradleVersion.version(distro.getVersion());
+        GradleVersion distroVersion = version(distro.getVersion());
 
-        for (String candidate : Lists.reverse(RELEASED)) {
-            GradleVersion candidateVersion = GradleVersion.version(candidate);
+        for (String candidate : VERSIONS) {
+            GradleVersion candidateVersion = version(candidate);
             if (distroVersion.compareTo(candidateVersion) > 0) {
                 return current.previousVersion(candidate);
             }

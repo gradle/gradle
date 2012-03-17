@@ -45,7 +45,8 @@ If you have trouble running tests from your IDE, please run gradlew idea|eclipse
     /**
      * @return the versions we are interested in covering in our cross-compatibility tests.
      * Always contains the current release. May contain the RC. Never contains nightly.
-     * Excludes 'current' version. Excludes certain less-interesting versions.
+     * Excludes 'current' version. Excludes certain less-interesting versions. The list is ordered,
+     * latest version first.
      */
     List<String> getVersions() {
         def json = getVersionsJson()
