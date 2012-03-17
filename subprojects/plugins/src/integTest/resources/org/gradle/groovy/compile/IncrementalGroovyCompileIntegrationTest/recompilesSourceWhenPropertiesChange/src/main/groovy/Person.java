@@ -1,4 +1,3 @@
-
 interface Person {
     String getName();
 }
