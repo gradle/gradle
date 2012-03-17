@@ -20,15 +20,15 @@ import spock.lang.Specification
 
 class DaemonForkOptionsTest extends Specification {
     def "is compatible with itself"() {
-        def settings = new DaemonForkOptions("128m", "1g", ["-server", "-esa"])
+        def settings = new DaemonForkOptions("128m", "1g", ["-server", "-esa"], [new File("lib/lib1.jar"), new File("lib/lib2.jar")], ["foo.bar", "foo.baz"])
 
         expect:
         settings.isCompatibleWith(settings)
     }
 
     def "is compatible with same settings"() {
-        def settings1 = new DaemonForkOptions("128m", "1g", ["-server", "-esa"])
-        def settings2 = new DaemonForkOptions("128m", "1g", ["-server", "-esa"])
+        def settings1 = new DaemonForkOptions("128m", "1g", ["-server", "-esa"], [new File("lib/lib1.jar"), new File("lib/lib2.jar")], ["foo.bar", "foo.baz"])
+        def settings2 = new DaemonForkOptions("128m", "1g", ["-server", "-esa"], [new File("lib/lib1.jar"), new File("lib/lib2.jar")], ["foo.bar", "foo.baz"])
 
         expect:
         settings1.isCompatibleWith(settings2)
@@ -60,16 +60,72 @@ class DaemonForkOptionsTest extends Specification {
     }
 
     def "is compatible with same set of JVM args"() {
-        def settings1 = new DaemonForkOptions("128M", "1g", ["-server", "-esa"])
-        def settings2 = new DaemonForkOptions("128M", "1g", ["-esa", "-server"])
+        def settings1 = new DaemonForkOptions(null, null, ["-server", "-esa"])
+        def settings2 = new DaemonForkOptions(null, null, ["-esa", "-server"])
+
+        expect:
+        settings1.isCompatibleWith(settings2)
+    }
+
+    def "is compatible with subset of JVM args"() {
+        def settings1 = new DaemonForkOptions(null, null, ["-server", "-esa"])
+        def settings2 = new DaemonForkOptions(null, null, ["-server"])
 
         expect:
         settings1.isCompatibleWith(settings2)
     }
 
     def "is not compatible with different set of JVM args"() {
-        def settings1 = new DaemonForkOptions("128M", "1g", ["-server", "-esa"])
-        def settings2 = new DaemonForkOptions("128M", "1g", ["-client", "-esa"])
+        def settings1 = new DaemonForkOptions(null, null, ["-server", "-esa"])
+        def settings2 = new DaemonForkOptions(null, null, ["-client", "-esa"])
+
+        expect:
+        !settings1.isCompatibleWith(settings2)
+    }
+
+    def "is compatible with same class path"() {
+        def settings1 = new DaemonForkOptions(null, null, [], [new File("lib/lib1.jar"), new File("lib/lib2.jar")], [])
+        def settings2 = new DaemonForkOptions(null, null, [], [new File("lib/lib1.jar"), new File("lib/lib2.jar")], [])
+
+        expect:
+        settings1.isCompatibleWith(settings2)
+    }
+
+    def "is compatible with subset of class path"() {
+        def settings1 = new DaemonForkOptions(null, null, [], [new File("lib/lib1.jar"), new File("lib/lib2.jar")], [])
+        def settings2 = new DaemonForkOptions(null, null, [], [new File("lib/lib1.jar")], [])
+
+        expect:
+        settings1.isCompatibleWith(settings2)
+    }
+
+    def "is not compatible with different class path"() {
+        def settings1 = new DaemonForkOptions(null, null, [], [new File("lib/lib1.jar"), new File("lib/lib2.jar")], [])
+        def settings2 = new DaemonForkOptions(null, null, [], [new File("lib/lib1.jar"), new File("lib/lib3.jar")], [])
+
+        expect:
+        !settings1.isCompatibleWith(settings2)
+    }
+
+    def "is compatible with same set of shared packages"() {
+        def settings1 = new DaemonForkOptions(null, null, [], [], ["foo.bar", "foo.baz"])
+        def settings2 = new DaemonForkOptions(null, null, [], [], ["foo.bar", "foo.baz"])
+
+        expect:
+        settings1.isCompatibleWith(settings2)
+    }
+
+    def "is compatible with subset of shared packages"() {
+        def settings1 = new DaemonForkOptions(null, null, [], [], ["foo.bar", "foo.baz"])
+        def settings2 = new DaemonForkOptions(null, null, [], [], ["foo.baz"])
+
+        expect:
+        settings1.isCompatibleWith(settings2)
+    }
+
+    def "is not compatible with different set of shared packages"() {
+        def settings1 = new DaemonForkOptions(null, null, [], [], ["foo.bar", "foo.baz"])
+        def settings2 = new DaemonForkOptions(null, null, [], [], ["foo.pic", "foo.baz"])
 
         expect:
         !settings1.isCompatibleWith(settings2)
@@ -99,12 +155,13 @@ class DaemonForkOptionsTest extends Specification {
         !settings1.isCompatibleWith(settings2)
     }
 
-    def "all options are optional"() {
+    def "unspecified class path and shared packages default to empty list"() {
         when:
-        new DaemonForkOptions(null, null, null)
+        def options = new DaemonForkOptions("128m", "1g", ["-server", "-esa"])
 
         then:
-        noExceptionThrown()
+        options.classpath == []
+        options.sharedPackages == []
     }
 
     def "unspecified memory options are only compatible with unspecified memory options"() {

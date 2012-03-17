@@ -30,16 +30,19 @@ public class DaemonForkOptions {
     private final String maxHeapSize;
     private final Iterable<String> jvmArgs;
     private final Iterable<File> classpath;
+    private final Iterable<String> sharedPackages;
 
     public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs) {
-        this(minHeapSize, maxHeapSize, jvmArgs, Collections.<File>emptyList());
+        this(minHeapSize, maxHeapSize, jvmArgs, Collections.<File>emptyList(), Collections.<String>emptyList());
     }
     
-    public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs, Iterable<File> classpath) {
+    public DaemonForkOptions(@Nullable String minHeapSize, @Nullable String maxHeapSize, Iterable<String> jvmArgs, Iterable<File> classpath,
+                             Iterable<String> sharedPackages) {
         this.minHeapSize = minHeapSize;
         this.maxHeapSize = maxHeapSize;
         this.jvmArgs = jvmArgs;
         this.classpath = classpath;
+        this.sharedPackages = sharedPackages;
     }
 
     public String getMinHeapSize() {
@@ -58,11 +61,16 @@ public class DaemonForkOptions {
         return classpath;
     }
 
+    public Iterable<String> getSharedPackages() {
+        return sharedPackages;
+    }
+
     public boolean isCompatibleWith(DaemonForkOptions other) {
         return getHeapSizeMb(minHeapSize) >= getHeapSizeMb(other.getMinHeapSize())
                 && getHeapSizeMb(maxHeapSize) >= getHeapSizeMb(other.getMaxHeapSize())
                 && getNormalizedJvmArgs(jvmArgs).containsAll(getNormalizedJvmArgs(other.getJvmArgs()))
-                && getNormalizedClasspath(classpath).containsAll(getNormalizedClasspath(other.getClasspath()));
+                && getNormalizedClasspath(classpath).containsAll(getNormalizedClasspath(other.getClasspath()))
+                && getNormalizedSharedPackages(sharedPackages).containsAll(getNormalizedSharedPackages(other.sharedPackages));
     }
 
     // one way to merge fork options, good for current use case
@@ -73,7 +81,9 @@ public class DaemonForkOptions {
         mergedJvmArgs.addAll(getNormalizedJvmArgs(other.getJvmArgs()));
         Set<File> mergedClasspath = getNormalizedClasspath(classpath);
         mergedClasspath.addAll(getNormalizedClasspath(other.classpath));
-        return new DaemonForkOptions(mergedMinHeapSize, mergedMaxHeapSize, mergedJvmArgs, mergedClasspath);
+        Set<String> mergedAllowedPackages = getNormalizedSharedPackages(sharedPackages);
+        mergedAllowedPackages.addAll(getNormalizedSharedPackages(other.sharedPackages));
+        return new DaemonForkOptions(mergedMinHeapSize, mergedMaxHeapSize, mergedJvmArgs, mergedClasspath, mergedAllowedPackages);
     }
 
     private int getHeapSizeMb(String heapSize) {
@@ -110,6 +120,10 @@ public class DaemonForkOptions {
     
     private Set<File> getNormalizedClasspath(Iterable<File> classpath) {
         return Sets.newHashSet(classpath);
+    }
+    
+    private Set<String> getNormalizedSharedPackages(Iterable<String> allowedPackages) {
+        return Sets.newHashSet(allowedPackages);
     }
     
     public String toString() {

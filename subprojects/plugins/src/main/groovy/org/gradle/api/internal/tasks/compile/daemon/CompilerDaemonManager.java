@@ -19,7 +19,6 @@ import net.jcip.annotations.NotThreadSafe;
 
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
-import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -80,8 +79,7 @@ public class CompilerDaemonManager {
         WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
         builder.setLogLevel(project.getGradle().getStartParameter().getLogLevel()); // NOTE: might make sense to respect per-compile-task log level
         builder.applicationClasspath(forkOptions.getClasspath());
-        builder.applicationClasspath(project.getServices().get(ClassPathRegistry.class).getClassPath("ANT").getAsFiles());
-        builder.sharedPackages("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant");
+        builder.sharedPackages(forkOptions.getSharedPackages());
         File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
             builder.getApplicationClasspath().add(toolsJar); // for SunJavaCompiler
@@ -89,7 +87,6 @@ public class CompilerDaemonManager {
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setMinHeapSize(forkOptions.getMinHeapSize());
         javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
-        //javaCommand.setJvmArgs(forkOptions.getJvmArgs());
         javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
         process = builder.worker(new CompilerDaemonServer()).build();
         process.start();

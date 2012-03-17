@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import com.google.common.collect.Iterables;
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
@@ -25,7 +27,10 @@ import org.gradle.api.tasks.compile.GroovyForkOptions;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 public class DaemonGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec> {
     private final ProjectInternal project;
@@ -52,11 +57,18 @@ public class DaemonGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec
     
     private DaemonForkOptions createJavaForkOptions(GroovyJavaJointCompileSpec spec) {
         ForkOptions options = spec.getCompileOptions().getForkOptions();
-        return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(), options.getJvmArgs(), Collections.<File>emptyList());
+        return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(), options.getJvmArgs());
     }
 
     private DaemonForkOptions createGroovyForkOptions(GroovyJavaJointCompileSpec spec) {
         GroovyForkOptions options = spec.getGroovyCompileOptions().getForkOptions();
-        return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(), Collections.<String>emptyList(), spec.getGroovyClasspath());
+        // Ant is optional dependency of groovy(-all) module but mandatory dependency of Groovy compiler;
+        // that's why we add it here. The following assumes that any Groovy compiler version supported by Gradle
+        // is compatible with Gradle's current Ant version.
+        Collection<File> antFiles = project.getServices().get(ClassPathRegistry.class).getClassPath("ANT").getAsFiles();
+        Iterable<File> groovyFiles = Iterables.concat(spec.getGroovyClasspath(), antFiles);
+        List<String> groovyPackages = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant");
+        return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
+                Collections.<String>emptyList(), groovyFiles, groovyPackages);
     }
 }
