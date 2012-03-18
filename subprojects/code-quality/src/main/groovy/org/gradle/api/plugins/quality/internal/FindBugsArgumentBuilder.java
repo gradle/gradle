@@ -33,6 +33,9 @@ public class FindBugsArgumentBuilder {
     private FindBugsReports reports;
 
     public FindBugsArgumentBuilder(FileCollection classes) {
+        if(classes == null || classes.isEmpty()){
+            throw new InvalidUserDataException("Classes must be configured to be analyzed by the Findbugs.");
+        }
         this.classes = classes;
     }
 
@@ -58,21 +61,20 @@ public class FindBugsArgumentBuilder {
 
     public List<String> build() {
         args = new ArrayList<String>();
-
         args.add("-pluginList");
         args.add(pluginsList==null ? "" : pluginsList.getAsPath());
         args.add("-sortByClass");
         args.add("-timestampNow");
         if (reports != null && !reports.getEnabled().isEmpty()) {
-                     if (reports.getEnabled().size() == 1) {
-                         FindBugsReportsImpl reportsImpl = (FindBugsReportsImpl) reports;
-                         args.add("-"+reportsImpl.getFirstEnabled().getName());
-                         args.add("-outputFile");
-                         args.add(reportsImpl.getFirstEnabled().getDestination().getAbsolutePath());
-                     } else {
-                        throw new InvalidUserDataException("Findbugs tasks can only have one report enabled, however both the xml and html report are enabled. You need to disable one of them.");
-                     }
-                }
+            if (reports.getEnabled().size() == 1) {
+                FindBugsReportsImpl reportsImpl = (FindBugsReportsImpl) reports;
+                args.add("-" + reportsImpl.getFirstEnabled().getName());
+                args.add("-outputFile");
+                args.add(reportsImpl.getFirstEnabled().getDestination().getAbsolutePath());
+            } else {
+                throw new InvalidUserDataException("Findbugs tasks can only have one report enabled, however both the xml and html report are enabled. You need to disable one of them.");
+            }
+        }
 
         if (has(sources)) {
             args.add("-sourcepath");
@@ -85,7 +87,6 @@ public class FindBugsArgumentBuilder {
         }
         args.add("-exitcode");
         args.add(classes.getAsPath());
-
         return args;
     }
 

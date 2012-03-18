@@ -123,7 +123,6 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
         }
     }
 
-
     protected void addUnlessEmpty(Object ant, FileCollection files, String nodeName) {
         if (!files.empty) {
             files.addToAntBuilder(ant, nodeName)
