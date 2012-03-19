@@ -24,7 +24,7 @@ class ResolutionOverrideIntegrationTest extends AbstractDependencyResolutionTest
     @Rule
     public SetSystemProperties systemProperties = new SetSystemProperties()
 
-    public void "will non-changing module when run with --refresh dependencies"() {
+    public void "will non-changing module when run with --refresh-dependencies"() {
         given:
         server.start()
         def module = mavenRepo().module('org.name', 'projectA', '1.2').publish()
@@ -55,14 +55,14 @@ task retrieve(type: Sync) {
         module.publishWithChangedContent()
 
         and:
-        executer.withArguments('--refresh', 'dependencies')
+        executer.withArguments('--refresh-dependencies')
         succeeds 'retrieve'
         
         then:
         file('libs/projectA-1.2.jar').assertIsCopyOf(module.artifactFile).assertHasChangedSince(snapshot)
     }
 
-    public void "will recover from missing module when run with --refresh dependencies"() {
+    public void "will recover from missing module when run with --refresh-dependencies"() {
         server.start()
 
         given:
@@ -94,11 +94,11 @@ task showMissing << { println configurations.missing.files }
         server.expectGet('/org/name/projectA/1.2/projectA-1.2.jar', module.artifactFile)
 
         then:
-        executer.withArguments("--refresh", "dependencies")
+        executer.withArguments("--refresh-dependencies")
         succeeds('showMissing')
     }
 
-    public void "will recover from missing artifact when run with --refresh dependencies"() {
+    public void "will recover from missing artifact when run with --refresh-dependencies"() {
         server.start()
 
         given:
@@ -134,7 +134,7 @@ task retrieve(type: Sync) {
         server.expectGet('/org/name/projectA/1.2/projectA-1.2.jar', module.artifactFile)
 
         then:
-        executer.withArguments("--refresh", "dependencies")
+        executer.withArguments("--refresh-dependencies")
         succeeds 'retrieve'
         file('libs').assertHasDescendants('projectA-1.2.jar')
     }
