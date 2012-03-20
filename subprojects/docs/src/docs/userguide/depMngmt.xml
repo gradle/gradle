@@ -772,6 +772,43 @@ someroot/[artifact]-[revision].[ext]
             </para>
         </section>
     </section>
+    <section id='sec:dependency_resolution'>
+        <title>How dependency resolution works</title>
+        <para>Gradle takes your dependency declarations and repository definitions and attempts to download all of your dependencies by a process called <emphasis>dependency resolution</emphasis>.
+        Below is a brief outline of how this process works.</para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Given a required dependency, Gradle first attempts to resolve the <emphasis>module</emphasis> for that dependency. Each repository is inspected in order, searching
+                    first for a <emphasis>module descriptor</emphasis> file (pom or ivy file) that indicates the presence of that module. If no module descriptor is found,
+                    Gradle will search for the presence of the primary <emphasis>module artifact</emphasis> file indicating that the module exists in the repository.
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>If the dependency is declared as a dynamic version (like <literal>1.+</literal>), Gradle will resolve this to the newest available static version (like <literal>1.2</literal>)
+                            in the repository. For maven repositories, this is done using the <literal>maven-metadata.xml</literal> file, while for ivy repositories this is done by directory listing.</para>
+                    </listitem>
+                    <listitem>
+                        <para>If the module descriptor is a <literal>pom</literal> file that has a parent pom declared, Gradle will recursively attempt to resolve each of the parent modules for the pom.</para>
+                    </listitem>
+                </itemizedlist>
+            </listitem>
+            <listitem>
+                <para>Once each repository has been inspected for the module, Gradle will choose the 'best' one to use. This is done using the following criteria:
+                    <itemizedlist>
+                        <listitem>For a dynamic version, a 'higher' static version is preferred over a 'lower' version.</listitem>
+                        <listitem>Modules declared by a module descriptor file (ivy or pom file) are preferred over modules that have an artifact file only.</listitem>
+                        <listitem>Modules from earlier repositories are preferred over modules in later repositories.</listitem>
+                    </itemizedlist>
+                </para>
+                <para>When the dependency is declared by a static version and a module descriptor file is found in a repository, there is no need to continue searching later
+                repositories and the remainder of the process is short-circuited.</para>
+            </listitem>
+            <listitem>
+                <para>All of the artifacts for the module are then requested from the <emphasis>same repository</emphasis> that was chosen in the process above.</para>
+            </listitem>
+        </itemizedlist>
+    </section>
     <section id='sec:dependency_cache'>
         <title>The dependency cache</title>
         <para>Gradle contains a highly sophisticated dependency caching mechanism, which seeks to minimise the number of remote requests made in
