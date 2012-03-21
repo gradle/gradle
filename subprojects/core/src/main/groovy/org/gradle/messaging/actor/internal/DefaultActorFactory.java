@@ -19,6 +19,7 @@ package org.gradle.messaging.actor.internal;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
@@ -28,8 +29,12 @@ import org.gradle.messaging.dispatch.*;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
+/**
+ * A basic {@link ActorFactory} implementation. Currently cannot support creating both a blocking and non-blocking actor for the same target object.
+ */
 public class DefaultActorFactory implements ActorFactory, Stoppable {
-    private final Map<Object, ActorImpl> actors = new IdentityHashMap<Object, ActorImpl>();
+    private final Map<Object, NonBlockingActor> nonBlockingActors = new IdentityHashMap<Object, NonBlockingActor>();
+    private final Map<Object, BlockingActor> blockingActors = new IdentityHashMap<Object, BlockingActor>();
     private final Object lock = new Object();
     private final ExecutorFactory executorFactory;
 
@@ -43,41 +48,94 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
     public void stop() {
         synchronized (lock) {
             try {
-                new CompositeStoppable(actors.values()).stop();
+                new CompositeStoppable().add(nonBlockingActors.values()).add(blockingActors.values()).stop();
             } finally {
-                actors.clear();
+                nonBlockingActors.clear();
             }
         }
     }
 
     public Actor createActor(Object target) {
-        if (target instanceof ActorImpl) {
-            return (ActorImpl) target;
+        if (target instanceof NonBlockingActor) {
+            return (NonBlockingActor) target;
         }
         synchronized (lock) {
-            ActorImpl actor = actors.get(target);
+            if (blockingActors.containsKey(target)) {
+                throw new UnsupportedOperationException("Cannot create a non-blocking and blocking actor for the same object. This is not implemented yet.");
+            }
+            NonBlockingActor actor = nonBlockingActors.get(target);
             if (actor == null) {
-                actor = new ActorImpl(target);
-                actors.put(target, actor);
+                actor = new NonBlockingActor(target);
+                nonBlockingActors.put(target, actor);
             }
             return actor;
         }
     }
 
-    private void stopped(ActorImpl actor) {
+    public Actor createBlockingActor(Object target) {
         synchronized (lock) {
-            actors.values().remove(actor);
+            if (nonBlockingActors.containsKey(target)) {
+                throw new UnsupportedOperationException("Cannot create a non-blocking and blocking actor for the same object. This is not implemented yet.");
+            }
+            BlockingActor actor = blockingActors.get(target);
+            if (actor == null) {
+                actor = new BlockingActor(target);
+                blockingActors.put(target, actor);
+            }
+            return actor;
         }
     }
 
-    private class ActorImpl implements Actor {
+    private void stopped(NonBlockingActor actor) {
+        synchronized (lock) {
+            nonBlockingActors.values().remove(actor);
+        }
+    }
+
+    private void stopped(BlockingActor actor) {
+        synchronized (lock) {
+            blockingActors.values().remove(actor);
+        }
+    }
+
+    private class BlockingActor implements Actor {
+        private final Dispatch<MethodInvocation> dispatch;
+        private final Object lock = new Object();
+        private boolean stopped;
+
+        public BlockingActor(Object target) {
+            dispatch = new ReflectionDispatch(target);
+        }
+
+        public <T> T getProxy(Class<T> type) {
+            return new ProxyDispatchAdapter<T>(this, type, ThreadSafe.class).getSource();
+        }
+
+        public void stop() throws DispatchException {
+            synchronized (lock) {
+                stopped = true;
+            }
+            stopped(this);
+        }
+
+        public void dispatch(MethodInvocation message) {
+            synchronized (lock) {
+                if (stopped) {
+                    throw new IllegalStateException("This actor has been stopped.");
+                }
+                dispatch.dispatch(message);
+            }
+        }
+    }
+
+    private class NonBlockingActor implements Actor {
         private final StoppableDispatch<MethodInvocation> dispatch;
         private final StoppableExecutor executor;
         private final ExceptionTrackingFailureHandler failureHandler;
 
-        public ActorImpl(Object targetObject) {
+        public NonBlockingActor(Object targetObject) {
             executor = executorFactory.create(String.format("Dispatch %s", targetObject));
-            failureHandler = new ExceptionTrackingFailureHandler(Logging.getLogger(ActorImpl.class));
+            failureHandler = new ExceptionTrackingFailureHandler(Logging.getLogger(NonBlockingActor.class));
             dispatch = new AsyncDispatch<MethodInvocation>(executor,
                     new FailureHandlingDispatch<MethodInvocation>(
                             new ReflectionDispatch(targetObject),
@@ -85,7 +143,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
         }
 
         public <T> T getProxy(Class<T> type) {
-            return new ProxyDispatchAdapter<T>(type, this).getSource();
+            return new ProxyDispatchAdapter<T>(this, type, ThreadSafe.class).getSource();
         }
 
         public void stop() {

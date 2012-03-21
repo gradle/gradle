@@ -21,7 +21,7 @@ import static org.gradle.util.Matchers.*
 
 class ProxyDispatchAdapterTest extends Specification {
     private final Dispatch<MethodInvocation> dispatch = Mock()
-    private final ProxyDispatchAdapter<ProxyTest> adapter = new ProxyDispatchAdapter<ProxyTest>(ProxyTest.class, dispatch)
+    private final ProxyDispatchAdapter<ProxyTest> adapter = new ProxyDispatchAdapter<ProxyTest>(dispatch, ProxyTest.class)
 
     def proxyForwardsToDispatch() {
         when:
@@ -32,15 +32,27 @@ class ProxyDispatchAdapterTest extends Specification {
     }
     
     def proxyIsEqualWhenItHasTheSameTypeAndDispatch() {
-        def other = new ProxyDispatchAdapter<ProxyTest>(ProxyTest.class, dispatch)
-        def differentType = new ProxyDispatchAdapter<Runnable>(Runnable.class, dispatch)
-        def differentDispatch = new ProxyDispatchAdapter<ProxyTest>(ProxyTest.class, Mock(Dispatch.class))
+        def other = new ProxyDispatchAdapter<ProxyTest>(dispatch, ProxyTest.class)
+        def differentType = new ProxyDispatchAdapter<Runnable>(dispatch, Runnable.class)
+        def differentDispatch = new ProxyDispatchAdapter<ProxyTest>(Mock(Dispatch.class), ProxyTest.class)
 
         expect:
         ProxyTest proxy = adapter.getSource()
         strictlyEquals(proxy, other.getSource())
         proxy != differentType.getSource()
         proxy != differentDispatch.getSource()
+    }
+    
+    def canProxyMultipleTypesFromMixedClassLoaders() {
+        assert Runnable.classLoader != ProxyTest.classLoader
+        def adapter1 = new ProxyDispatchAdapter<Runnable>(dispatch, Runnable, ProxyTest).source
+        def adapter2 = new ProxyDispatchAdapter<ProxyTest>(dispatch, ProxyTest, Runnable).source
+
+        expect:
+        adapter1 instanceof Runnable
+        adapter1 instanceof ProxyTest
+        adapter2 instanceof Runnable
+        adapter2 instanceof ProxyTest
     }
 }
 

@@ -75,7 +75,7 @@ public class DefaultOutgoingBroadcast implements OutgoingBroadcast, Stoppable {
         } finally {
             lock.unlock();
         }
-        return new ProxyDispatchAdapter<T>(type, hub.addMulticastOutgoing(channelKey)).getSource();
+        return new ProxyDispatchAdapter<T>(hub.addMulticastOutgoing(channelKey), type).getSource();
     }
 
     public void stop() {

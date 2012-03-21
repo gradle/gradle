@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.actor;
+package org.gradle.internal.concurrent;
 
-public interface ActorFactory {
-    /**
-     * Creates an asynchronous actor for the given target object.
-     *
-     * @param target The target object.
-     * @return The actor.
-     */
-    Actor createActor(Object target);
-
-    /**
-     * Creates a synchronous actor for the given target object.
-     *
-     * @param target The target object.
-     * @return The actor.
-     */
-    Actor createBlockingActor(Object target);
+/**
+ * A marker interface to indicate that the implementing class is thread-safe.
+ */
+public interface ThreadSafe {
 }

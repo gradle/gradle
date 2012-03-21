@@ -37,7 +37,7 @@ public class OutgoingMethodInvocationHandler {
         }
 
         Dispatch<Object> dispatch = connection.addOutgoingChannel(type.getName());
-        ProxyDispatchAdapter<T> adapter = new ProxyDispatchAdapter<T>(type, dispatch);
+        ProxyDispatchAdapter<T> adapter = new ProxyDispatchAdapter<T>(dispatch, type);
         outgoing.put(type, adapter);
         return adapter.getSource();
     }

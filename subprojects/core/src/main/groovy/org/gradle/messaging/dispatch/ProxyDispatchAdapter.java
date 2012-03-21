@@ -18,6 +18,8 @@ package org.gradle.messaging.dispatch;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Adapts from interface T to a {@link Dispatch}
@@ -28,9 +30,25 @@ public class ProxyDispatchAdapter<T> {
     private final Class<T> type;
     private final T source;
 
-    public ProxyDispatchAdapter(Class<T> type, Dispatch<? super MethodInvocation> dispatch) {
+    public ProxyDispatchAdapter(Dispatch<? super MethodInvocation> dispatch, Class<T> type, Class<?>... extraTypes) {
         this.type = type;
-        source = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type},
+        List<Class<?>> types = new ArrayList<Class<?>>();
+        ClassLoader classLoader = type.getClassLoader();
+        types.add(type);
+        for (Class<?> extraType : extraTypes) {
+            ClassLoader candidate = extraType.getClassLoader();
+            if (candidate != classLoader && candidate != null) {
+                try {
+                    if (candidate.loadClass(type.getName()) != null) {
+                        classLoader = candidate;
+                    }
+                } catch (ClassNotFoundException e) {
+                    // Ignore
+                }
+            }
+            types.add(extraType);
+        }
+        source = type.cast(Proxy.newProxyInstance(classLoader, types.toArray(new Class<?>[types.size()]),
                 new DispatchingInvocationHandler(type, dispatch)));
     }
 

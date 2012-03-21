@@ -27,6 +27,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import org.gradle.internal.concurrent.ThreadSafe
 
 @RunWith(JMock.class)
 class DefaultActorFactoryTest extends MultithreadedTestCase {
@@ -40,12 +41,13 @@ class DefaultActorFactoryTest extends MultithreadedTestCase {
     }
 
     @Test
-    public void createsAnActorForATargetObject() {
-        factory.createActor(target) != null
+    public void createsANonBlockingActorForATargetObject() {
+        def actor = factory.createActor(target)
+        assertThat(actor, notNullValue())
     }
 
     @Test
-    public void cachesTheActorForATargetObject() {
+    public void cachesTheNonBlockingActorForATargetObject() {
         Actor actor1 = factory.createActor(target)
         Actor actor2 = factory.createActor(target)
         assertThat(actor2, sameInstance(actor1))
@@ -59,7 +61,79 @@ class DefaultActorFactoryTest extends MultithreadedTestCase {
     }
 
     @Test
-    public void actorDispatchesMethodInvocationToTargetObject() {
+    public void nonBlockingActorAndProxyAreBothMarkedAsThreadSafe() {
+        def actor = factory.createActor(target)
+        assertThat(actor, instanceOf(ThreadSafe))
+        assertThat(actor.getProxy(Runnable), instanceOf(ThreadSafe))
+    }
+
+    @Test
+    public void createsABlockingActorForATargetObject() {
+        def actor = factory.createBlockingActor(target)
+        assertThat(actor, notNullValue())
+    }
+
+    @Test
+    public void cachesTheBlockingActorForATargetObject() {
+        Actor actor1 = factory.createBlockingActor(target)
+        Actor actor2 = factory.createBlockingActor(target)
+        assertThat(actor2, sameInstance(actor1))
+    }
+
+    @Test
+    public void blockingActorAndProxyAreBothMarkedAsThreadSafe() {
+        def actor = factory.createBlockingActor(target)
+        assertThat(actor, instanceOf(ThreadSafe))
+        assertThat(actor.getProxy(Runnable), instanceOf(ThreadSafe))
+    }
+
+    @Test
+    public void blockingActorDispatchesMethodInvocationToTargetObjectAndWaitsForResult() {
+        Actor actor = factory.createBlockingActor(target)
+
+        context.checking {
+            one(target).doStuff('param')
+        }
+
+        actor.dispatch(new MethodInvocation(TargetObject.class.getMethod('doStuff', String.class), ['param'] as Object[]))
+    }
+
+    @Test
+    public void blockingActorProxyDispatchesMethodInvocationToTargetObjectAndWaitsForResult() {
+        Actor actor = factory.createBlockingActor(target)
+
+        context.checking {
+            one(target).doStuff('param')
+        }
+
+        actor.getProxy(TargetObject).doStuff('param')
+    }
+
+    @Test
+    public void blockingActorDispatchesMethodInvocationFromOneThreadAtATime() {
+        Actor actor = factory.createBlockingActor(target)
+
+        context.checking {
+            one(target).doStuff('param')
+            will {
+                syncAt(1)
+            }
+            one(target).doStuff('param2')
+        }
+        
+        def proxy = actor.getProxy(TargetObject)
+        start {
+            proxy.doStuff('param')
+        }
+        run {
+            expectBlocksUntil(1) {
+                proxy.doStuff('param2')
+            }
+        }
+    }
+
+    @Test
+    public void nonBlockingActorDispatchesMethodInvocationToTargetObjectAndDoesNotWaitForResult() {
         Actor actor = factory.createActor(target)
 
         context.checking {
@@ -76,7 +150,7 @@ class DefaultActorFactoryTest extends MultithreadedTestCase {
     }
 
     @Test
-    public void actorProxyDispatchesMethodCallToTargetObject() {
+    public void nonBlockingActorProxyDispatchesMethodCallToTargetObjectAndDoesNotWaitForResult() {
         Actor actor = factory.createActor(target)
         TargetObject proxy = actor.getProxy(TargetObject.class)
 
@@ -94,7 +168,7 @@ class DefaultActorFactoryTest extends MultithreadedTestCase {
     }
 
     @Test
-    public void actorStopPropagatesMethodFailure() {
+    public void nonBlockingActorPropagatesMethodFailuresOnStop() {
         Actor actor = factory.createActor(target)
         TargetObject proxy = actor.getProxy(TargetObject.class)
         RuntimeException failure = new RuntimeException()
@@ -119,7 +193,7 @@ class DefaultActorFactoryTest extends MultithreadedTestCase {
     }
 
     @Test
-    public void actorStopBlocksUntilAllMethodCallsComplete() {
+    public void nonBlockingActorStopBlocksUntilAllMethodCallsComplete() {
         Actor actor = factory.createActor(target)
         TargetObject proxy = actor.getProxy(TargetObject.class)
 
@@ -132,6 +206,28 @@ class DefaultActorFactoryTest extends MultithreadedTestCase {
 
         run {
             proxy.doStuff('param')
+            expectBlocksUntil(1) {
+                actor.stop()
+            }
+        }
+    }
+
+    @Test
+    public void blockingActorStopBlocksUntilAllMethodCallsComplete() {
+        Actor actor = factory.createBlockingActor(target)
+        TargetObject proxy = actor.getProxy(TargetObject.class)
+
+        context.checking {
+            one(target).doStuff('param')
+            will {
+                syncAt(1)
+            }
+        }
+
+        start {
+            proxy.doStuff('param')
+        }
+        run {
             expectBlocksUntil(1) {
                 actor.stop()
             }
@@ -155,6 +251,34 @@ class DefaultActorFactoryTest extends MultithreadedTestCase {
             expectBlocksUntil(1) {
                 factory.stop()
             }
+        }
+    }
+    
+    @Test
+    public void cannotDispatchToBlockingActorAfterStopped() {
+        Actor actor = factory.createBlockingActor(target)
+        TargetObject proxy = actor.getProxy(TargetObject.class)
+
+        actor.stop()
+        try {
+            proxy.doStuff('param')
+            fail()
+        } catch (IllegalStateException e) {
+            // Expected
+        }
+    }
+
+    @Test
+    public void cannotDispatchToNonBlockingActorAfterStopped() {
+        Actor actor = factory.createActor(target)
+        TargetObject proxy = actor.getProxy(TargetObject.class)
+
+        actor.stop()
+        try {
+            proxy.doStuff('param')
+            fail()
+        } catch (IllegalStateException e) {
+            // Expected
         }
     }
 }

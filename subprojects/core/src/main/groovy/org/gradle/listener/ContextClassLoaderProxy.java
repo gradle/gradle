@@ -33,7 +33,7 @@ public class ContextClassLoaderProxy<T> {
      * Creates a proxy which dispatches to the given target object.
      */
     public ContextClassLoaderProxy(Class<T> type, T target, ClassLoader contextClassLoader) {
-        adapter = new ProxyDispatchAdapter<T>(type, new ContextClassLoaderDispatch<MethodInvocation>(new ReflectionDispatch(target), contextClassLoader));
+        adapter = new ProxyDispatchAdapter<T>(new ContextClassLoaderDispatch<MethodInvocation>(new ReflectionDispatch(target), contextClassLoader), type);
     }
 
     public T getSource() {

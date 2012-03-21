@@ -48,7 +48,7 @@ public class ListenerBroadcast<T> implements StoppableDispatch<MethodInvocation>
         this.type = type;
         broadcast = new BroadcastDispatch<T>(type);
         dispatch = transformer.transform(broadcast);
-        source = new ProxyDispatchAdapter<T>(type, dispatch);
+        source = new ProxyDispatchAdapter<T>(dispatch, type);
     }
 
     /**
