@@ -22,7 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.GradleVersion
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 import org.gradle.api.plugins.sonar.model.*
 
 /**

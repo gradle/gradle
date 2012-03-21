@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -115,7 +115,7 @@ assert classesDir.directory
     def "java home from environment should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.bestAlternative
 
-        file('build.gradle') << "println 'javaHome=' + org.gradle.util.Jvm.current().javaHome.canonicalPath"
+        file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.canonicalPath"
 
         when:
         def out = executer.run().output
@@ -136,7 +136,7 @@ assert classesDir.directory
 
         file('gradle.properties') << "org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}"
 
-        file('build.gradle') << "println 'javaHome=' + org.gradle.util.Jvm.current().javaHome.absolutePath"
+        file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath"
 
         when:
         // Need the forking executer for this to work. Embedded executer will not fork a new process if jvm doesn't match.

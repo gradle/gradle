@@ -18,7 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.IdentityFileResolver
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 import spock.lang.Specification
 import static java.util.Arrays.asList
 import java.nio.charset.Charset

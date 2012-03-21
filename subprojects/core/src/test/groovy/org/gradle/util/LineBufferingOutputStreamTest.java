@@ -16,6 +16,7 @@
 package org.gradle.util;
 
 import org.gradle.api.Action;
+import org.gradle.internal.SystemProperties;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;

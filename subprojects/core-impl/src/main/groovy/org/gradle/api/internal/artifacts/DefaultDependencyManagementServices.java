@@ -57,6 +57,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
@@ -64,7 +65,6 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
-import org.gradle.util.SystemProperties;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;

@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util
+package org.gradle.internal.jvm
 
-import org.gradle.internal.jvm.JavaHomeException
+import org.gradle.internal.jvm.Jvm.AppleJvm
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.Jvm.AppleJvm
+import org.gradle.util.SetSystemProperties
+import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
 

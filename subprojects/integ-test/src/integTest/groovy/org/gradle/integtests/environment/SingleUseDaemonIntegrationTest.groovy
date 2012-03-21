@@ -67,7 +67,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
 
         file('gradle.properties') << "org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}"
 
-        file('build.gradle') << "println 'javaHome=' + org.gradle.util.Jvm.current().javaHome.absolutePath"
+        file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath"
 
         when:
         executer.withJavaHome(alternateJavaHome)

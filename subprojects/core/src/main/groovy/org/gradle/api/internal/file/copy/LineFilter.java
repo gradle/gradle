@@ -17,7 +17,7 @@ package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
 
-import org.gradle.util.SystemProperties;
+import org.gradle.internal.SystemProperties;
 
 import java.io.BufferedReader;
 import java.io.IOException;

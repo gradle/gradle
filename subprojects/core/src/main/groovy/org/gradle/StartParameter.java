@@ -18,10 +18,10 @@ package org.gradle;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.gradle.internal.SystemProperties;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
-import org.gradle.util.SystemProperties;
 
 import java.io.File;
 import java.io.Serializable;

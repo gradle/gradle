@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon.configuration
 
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification

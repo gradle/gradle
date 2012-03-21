@@ -17,7 +17,7 @@
 
 package org.gradle.java.compile
 
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 
 import spock.lang.IgnoreIf
 import org.gradle.util.TextUtil

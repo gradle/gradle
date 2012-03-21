@@ -17,7 +17,7 @@ package org.gradle.logging.internal
 
 import org.gradle.logging.StyledTextOutput
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.SystemProperties
+import org.gradle.internal.SystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 

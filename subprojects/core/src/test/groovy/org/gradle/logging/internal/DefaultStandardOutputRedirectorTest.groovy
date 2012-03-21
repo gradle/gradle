@@ -16,7 +16,7 @@
 package org.gradle.logging.internal
 
 import org.gradle.api.logging.StandardOutputListener
-import org.gradle.util.SystemProperties
+import org.gradle.internal.SystemProperties
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification

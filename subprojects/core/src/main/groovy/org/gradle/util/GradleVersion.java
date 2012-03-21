@@ -22,6 +22,7 @@ import org.apache.tools.ant.Main;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

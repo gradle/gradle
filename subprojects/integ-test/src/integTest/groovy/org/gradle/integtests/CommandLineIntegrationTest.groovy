@@ -25,6 +25,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.junit.Rule
 import org.junit.Test
 import org.gradle.util.*
+import org.gradle.internal.jvm.Jvm
 
 public class CommandLineIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()

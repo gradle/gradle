@@ -20,7 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.util.SystemProperties;
+import org.gradle.internal.SystemProperties;
 
 import java.io.Flushable;
 import java.io.IOException;

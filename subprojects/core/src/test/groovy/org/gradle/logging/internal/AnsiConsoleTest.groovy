@@ -17,7 +17,7 @@ package org.gradle.logging.internal
 
 import org.fusesource.jansi.Ansi
 import org.fusesource.jansi.Ansi.Color
-import org.gradle.util.SystemProperties
+import org.gradle.internal.SystemProperties
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutput.Style
 import org.gradle.util.JUnit4GroovyMockery

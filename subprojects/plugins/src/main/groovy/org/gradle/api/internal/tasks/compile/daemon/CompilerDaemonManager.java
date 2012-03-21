@@ -22,10 +22,10 @@ import org.gradle.BuildResult;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.util.Jvm;
 
 import java.io.File;
 

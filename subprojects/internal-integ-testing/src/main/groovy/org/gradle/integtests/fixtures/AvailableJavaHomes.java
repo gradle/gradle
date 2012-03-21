@@ -17,7 +17,7 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.Jvm;
+import org.gradle.internal.jvm.Jvm;
 
 import java.io.File;
 

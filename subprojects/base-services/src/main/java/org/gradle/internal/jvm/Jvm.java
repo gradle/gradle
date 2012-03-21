@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.internal.jvm;
 
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.jvm.JavaHomeException;
-import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -25,9 +25,9 @@ import org.gradle.foundation.ipc.basic.ExecutionInfo;
 import org.gradle.foundation.ipc.basic.MessageObject;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.logging.ShowStacktrace;
-import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.io.FileOutputStream;

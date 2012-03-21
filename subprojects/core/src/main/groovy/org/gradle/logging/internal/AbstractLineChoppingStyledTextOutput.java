@@ -15,7 +15,7 @@
  */
 package org.gradle.logging.internal;
 
-import org.gradle.util.SystemProperties;
+import org.gradle.internal.SystemProperties;
 
 /**
  * A {@link org.gradle.logging.StyledTextOutput} that breaks text up into lines.

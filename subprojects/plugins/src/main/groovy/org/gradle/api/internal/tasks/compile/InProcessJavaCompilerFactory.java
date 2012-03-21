@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.util.Jvm;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.ReflectionUtil;
 
 public class InProcessJavaCompilerFactory implements JavaCompilerFactory {

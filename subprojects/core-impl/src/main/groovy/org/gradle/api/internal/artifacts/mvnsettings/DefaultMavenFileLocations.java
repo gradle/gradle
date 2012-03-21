@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.mvnsettings;
 
 import org.gradle.api.Nullable;
-import org.gradle.util.SystemProperties;
+import org.gradle.internal.SystemProperties;
 
 import java.io.File;
 

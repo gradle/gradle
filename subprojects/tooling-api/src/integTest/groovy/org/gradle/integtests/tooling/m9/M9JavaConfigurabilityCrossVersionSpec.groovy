@@ -24,7 +24,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout

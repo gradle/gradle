@@ -22,6 +22,7 @@ import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.internal.os.OperatingSystem
 
 import spock.lang.*
+import org.gradle.internal.jvm.Jvm
 
 /**
  * @author Hans Dockter

@@ -16,8 +16,8 @@
 package org.gradle.reporting;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.SystemProperties;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.SystemProperties;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

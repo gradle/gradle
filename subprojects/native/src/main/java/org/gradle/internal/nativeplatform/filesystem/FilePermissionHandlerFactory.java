@@ -17,9 +17,9 @@
 package org.gradle.internal.nativeplatform.filesystem;
 
 import com.sun.jna.Native;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeplatform.jna.LibC;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.util.Jvm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

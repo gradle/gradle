@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Resources
-import org.gradle.util.SystemProperties
+import org.gradle.internal.SystemProperties
 import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule

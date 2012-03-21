@@ -19,7 +19,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.plugins.announce.AnnouncePluginExtension
 import org.gradle.api.plugins.announce.Announcer
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 import org.gradle.api.internal.ProcessOperations
 
 /**

@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.util.Jvm;
 
 import java.util.ArrayList;
 import java.util.List;

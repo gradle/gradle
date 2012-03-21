@@ -17,7 +17,7 @@
 package org.gradle.external.javadoc.internal;
 
 
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 import org.junit.Test
 import spock.lang.Specification
 import static org.junit.Assert.assertTrue

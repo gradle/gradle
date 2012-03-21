@@ -21,7 +21,7 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import org.gradle.integtests.fixtures.*
-import org.gradle.util.SystemProperties
+import org.gradle.internal.SystemProperties
 
 /**
  * @author Hans Dockter

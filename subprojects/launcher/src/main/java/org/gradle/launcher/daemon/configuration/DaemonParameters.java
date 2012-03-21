@@ -23,10 +23,10 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.jvm.JavaHomeException;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
-import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.io.FileInputStream;

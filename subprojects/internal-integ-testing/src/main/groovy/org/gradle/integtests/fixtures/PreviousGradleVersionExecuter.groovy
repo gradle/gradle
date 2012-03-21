@@ -29,7 +29,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TestFile
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {

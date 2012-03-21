@@ -16,6 +16,7 @@
 package org.gradle.util;
 
 import org.gradle.api.Action;
+import org.gradle.internal.SystemProperties;
 
 import java.io.IOException;
 import java.io.OutputStream;

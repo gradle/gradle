@@ -1,3 +1,5 @@
+import org.gradle.internal.jvm.Jvm
+
 apply plugin: "java"
 
 sourceSets {

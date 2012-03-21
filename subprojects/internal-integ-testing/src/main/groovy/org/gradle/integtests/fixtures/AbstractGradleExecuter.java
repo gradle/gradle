@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.util.Jvm;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.TextUtil;
 
 import java.io.ByteArrayInputStream;

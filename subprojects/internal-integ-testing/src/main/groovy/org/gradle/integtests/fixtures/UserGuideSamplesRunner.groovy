@@ -21,7 +21,7 @@ import groovy.io.PlatformLineWriter
 import junit.framework.AssertionFailedError
 import org.apache.tools.ant.taskdefs.Delete
 import org.gradle.util.AntUtil
-import org.gradle.util.SystemProperties
+import org.gradle.internal.SystemProperties
 import org.junit.Assert
 import org.junit.runner.Description
 import org.junit.runner.Runner

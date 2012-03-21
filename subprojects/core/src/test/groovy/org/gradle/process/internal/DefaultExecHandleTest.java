@@ -17,8 +17,8 @@
 package org.gradle.process.internal;
 
 import org.apache.commons.io.output.CloseShieldOutputStream;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.ExecResult;
-import org.gradle.util.Jvm;
 import org.gradle.util.TemporaryFolder;
 import org.junit.Rule;
 import org.junit.Test;

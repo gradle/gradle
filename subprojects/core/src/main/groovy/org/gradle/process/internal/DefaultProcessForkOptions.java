@@ -17,8 +17,8 @@ package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileSource;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.ProcessForkOptions;
-import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.util.HashMap;

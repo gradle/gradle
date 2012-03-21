@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.configuration;
 
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.process.internal.JvmOptions;
-import org.gradle.util.Jvm;
+import org.gradle.internal.jvm.Jvm;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;

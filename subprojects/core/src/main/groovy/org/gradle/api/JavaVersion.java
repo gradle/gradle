@@ -15,7 +15,7 @@
  */
 package org.gradle.api;
 
-import org.gradle.util.SystemProperties;
+import org.gradle.internal.SystemProperties;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;

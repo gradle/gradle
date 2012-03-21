@@ -17,6 +17,7 @@
 package org.gradle.util;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.gradle.internal.SystemProperties;
 
 public class TextUtil {
     /**

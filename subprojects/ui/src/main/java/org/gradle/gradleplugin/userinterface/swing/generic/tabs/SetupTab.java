@@ -22,9 +22,9 @@ import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 import org.gradle.gradleplugin.userinterface.swing.generic.OutputUILord;
 import org.gradle.gradleplugin.userinterface.swing.generic.Utility;
+import org.gradle.internal.SystemProperties;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
-import org.gradle.util.SystemProperties;
 
 import javax.swing.*;
 import java.awt.*;

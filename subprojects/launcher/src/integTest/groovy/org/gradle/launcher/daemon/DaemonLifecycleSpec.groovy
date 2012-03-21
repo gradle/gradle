@@ -22,7 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.testing.DaemonContextParser
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 import spock.lang.IgnoreIf
 import static org.gradle.tests.fixtures.ConcurrentTestUtil.poll
 

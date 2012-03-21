@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AutoTestedSamplesUtil
-import org.gradle.util.Jvm
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.IgnoreIf
