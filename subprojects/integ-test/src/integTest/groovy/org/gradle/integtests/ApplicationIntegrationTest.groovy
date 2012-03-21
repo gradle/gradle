@@ -26,6 +26,8 @@ import spock.lang.Specification
 
 import static org.hamcrest.Matchers.*
 
+import org.apache.commons.io.IOUtils
+
 class ApplicationIntegrationTest extends Specification {
     @Rule GradleDistribution distribution = new GradleDistribution()
     @Rule GradleDistributionExecuter executer = new GradleDistributionExecuter()
@@ -118,6 +120,30 @@ installApp.destinationDir = buildDir
         result.assertThatCause(startsWith("The specified installation directory '${distribution.testFile('build')}' is neither empty nor does it contain an installation"))
     }
 
+    def "startScripts respects OS dependent line separators"() {
+        distribution.testFile('build.gradle') << '''
+    apply plugin: 'application'
+    applicationName = 'mega-app'
+    mainClassName = 'org.gradle.test.Main'
+    installApp.destinationDir = buildDir
+    '''
+
+        when:
+        executer.withTasks('startScripts').run()
+
+        then:
+        File generatedWindowsStartScript = distribution.testFile("build/scripts/mega-app.bat")
+        generatedWindowsStartScript.exists()
+        assertLineSeparators(generatedWindowsStartScript, IOUtils.LINE_SEPARATOR_WINDOWS, 90);
+
+        File generatedLinuxStartScript = distribution.testFile("build/scripts/mega-app")
+        generatedLinuxStartScript.exists()
+        assertLineSeparators(generatedLinuxStartScript, IOUtils.LINE_SEPARATOR_UNIX, 164);
+        assertLineSeparators(generatedLinuxStartScript, IOUtils.LINE_SEPARATOR_WINDOWS, 1)
+
+        distribution.testFile("build/scripts/mega-app").exists()
+    }
+
     private void checkApplicationImage(TestFile installDir) {
         installDir.file('bin/mega-app').assertIsFile()
         installDir.file('bin/mega-app.bat').assertIsFile()
@@ -131,5 +157,10 @@ installApp.destinationDir = buildDir
 
         def result = builder.run()
         result.assertNormalExitValue()
+    }
+
+    def assertLineSeparators(TestFile testFile, String lineSeparator, expectedLineCount) {
+        assert testFile.text.split(lineSeparator).length == expectedLineCount
+        true
     }
 }
