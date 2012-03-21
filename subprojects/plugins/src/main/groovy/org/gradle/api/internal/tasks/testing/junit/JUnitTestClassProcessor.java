@@ -48,14 +48,13 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
 
     public void startProcessing(TestResultProcessor resultProcessor) {
         ClassLoader applicationClassLoader = Thread.currentThread().getContextClassLoader();
-        ListenerBroadcast<TestResultProcessor> processors = new ListenerBroadcast<TestResultProcessor>(
-                TestResultProcessor.class);
+        ListenerBroadcast<TestResultProcessor> processors = new ListenerBroadcast<TestResultProcessor>(TestResultProcessor.class);
         processors.add(new JUnitXmlReportGenerator(testResultsDir));
         processors.add(resultProcessor);
         TestResultProcessor resultProcessorChain = new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(processors.getSource(), outputRedirector));
-        JUnitTestResultProcessorAdapter listener = new JUnitTestResultProcessorAdapter(resultProcessorChain,
-                timeProvider, idGenerator);
-        executer = new JUnitTestClassExecuter(applicationClassLoader, listener, resultProcessorChain, idGenerator, timeProvider);
+        TestClassExecutionEventGenerator eventGenerator = new TestClassExecutionEventGenerator(resultProcessorChain, idGenerator, timeProvider);
+        JUnitTestEventAdapter junitEventAdapter = new JUnitTestEventAdapter(eventGenerator, timeProvider, idGenerator);
+        executer = new JUnitTestClassExecuter(applicationClassLoader, junitEventAdapter, eventGenerator);
     }
 
     public void processTestClass(TestClassRunInfo testClass) {

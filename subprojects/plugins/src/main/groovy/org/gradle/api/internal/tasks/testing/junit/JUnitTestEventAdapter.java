@@ -29,15 +29,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class JUnitTestResultProcessorAdapter extends RunListener {
+public class JUnitTestEventAdapter extends RunListener {
     private final TestResultProcessor resultProcessor;
     private final TimeProvider timeProvider;
     private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
     private final Map<Description, TestDescriptorInternal> executing = new HashMap<Description, TestDescriptorInternal>();
 
-    public JUnitTestResultProcessorAdapter(TestResultProcessor resultProcessor, TimeProvider timeProvider,
-                                           IdGenerator<?> idGenerator) {
+    public JUnitTestEventAdapter(TestResultProcessor resultProcessor, TimeProvider timeProvider,
+                                 IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
         this.timeProvider = timeProvider;
         this.idGenerator = idGenerator;

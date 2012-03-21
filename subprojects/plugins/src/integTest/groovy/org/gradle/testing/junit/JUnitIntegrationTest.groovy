@@ -138,6 +138,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted(
+                'org.gradle.ClassWithBrokenRunner',
                 'org.gradle.BrokenTest',
                 'org.gradle.BrokenBefore',
                 'org.gradle.BrokenAfter',
@@ -147,6 +148,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
                 'org.gradle.BrokenConstructor',
                 'org.gradle.BrokenException',
                 'org.gradle.Unloadable')
+        result.testClass('org.gradle.ClassWithBrokenRunner').assertTestFailed('initializationError', equalTo('java.lang.UnsupportedOperationException: broken'))
         result.testClass('org.gradle.BrokenTest').assertTestFailed('failure', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenTest').assertTestFailed('broken', equalTo('java.lang.IllegalStateException'))
         result.testClass('org.gradle.BrokenBeforeClass').assertTestFailed('classMethod', equalTo('java.lang.AssertionError: failed'))
