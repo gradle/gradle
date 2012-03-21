@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.integtests.tooling.fixture.MaxTargetGradleVersion
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')
@@ -54,7 +55,14 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "informs about java home as in the build script"() {
         given:
-        dist.file('build.gradle') << "description = Jvm.current().javaHome.toString()"
+        dist.file('build.gradle') << """
+        if(!GradleVersion.current().getVersion().startsWith("1.0-milestone-")){
+            description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
+        }else{
+            description = Jvm.current().javaHome.toString()
+        }
+
+        """
 
         when:
         BuildEnvironment env = withConnection { it.getModel(BuildEnvironment.class) }
