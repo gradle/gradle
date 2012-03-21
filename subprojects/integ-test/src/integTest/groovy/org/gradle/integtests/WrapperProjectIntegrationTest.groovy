@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 import org.gradle.integtests.fixtures.*
@@ -143,5 +144,29 @@ class WrapperProjectIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         assertThat(result.output, containsString("fooD=bar"))
+    }
+
+    public void "generated wrapper scripts use correct line separators"(){
+        given:
+        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
+
+        file("build.gradle") << """
+            import org.gradle.api.tasks.wrapper.Wrapper
+            task wrapper(type: Wrapper) {
+                archiveBase = Wrapper.PathBase.PROJECT
+                archivePath = 'dist'
+                distributionUrl = 'http://localhost:${server.port}/gradlew/dist'
+                distributionBase = Wrapper.PathBase.PROJECT
+                distributionPath = 'dist'
+            }
+        """
+
+        when:
+        run "wrapper"
+        then:
+        assert file("gradlew").text.split(TextUtil.unixLineSeparator).length > 1
+        assert file("gradlew").text.split(TextUtil.windowsLineSeparator).length == 1
+        assert file("gradlew.bat").text.split(TextUtil.windowsLineSeparator).length > 1
+        noExceptionThrown()
     }
 }
