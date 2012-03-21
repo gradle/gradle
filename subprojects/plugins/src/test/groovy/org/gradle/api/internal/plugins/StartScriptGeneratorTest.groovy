@@ -20,6 +20,7 @@ package org.gradle.api.internal.plugins
 
 import spock.lang.Specification
 import org.gradle.util.WrapUtil
+import org.gradle.util.TextUtil
 
 class StartScriptGeneratorTest extends Specification {
 
@@ -27,23 +28,46 @@ class StartScriptGeneratorTest extends Specification {
 
     def "classpath for unix script uses slashes as path separator"() {
         given:
-            generator.applicationName = "TestApp"
-            generator.setClasspath(WrapUtil.toList("path\\to\\Jar.jar"))
-            generator.scriptRelPath = "bin"
+        generator.applicationName = "TestApp"
+        generator.setClasspath(WrapUtil.toList("path\\to\\Jar.jar"))
+        generator.scriptRelPath = "bin"
         when:
-            String unixScriptContent = generator.generateUnixScriptContent()
+        String unixScriptContent = generator.generateUnixScriptContent()
         then:
-            unixScriptContent.contains("CLASSPATH=\$APP_HOME/path/to/Jar.jar")
+        unixScriptContent.contains("CLASSPATH=\$APP_HOME/path/to/Jar.jar")
     }
 
-    def "classpath for windows script uses backslash as path separator"() {
+
+    def "unix script uses unix line separator"() {
         given:
-            generator.applicationName = "TestApp"
-            generator.setClasspath(WrapUtil.toList("path/to/Jar.jar"))
-            generator.scriptRelPath = "bin"
+        generator.applicationName = "TestApp"
+        generator.scriptRelPath = "bin"
         when:
-            String windowsScriptContent = generator.generateWindowsScriptContent()
+        String unixScriptContent = generator.generateUnixScriptContent()
         then:
-            windowsScriptContent.contains("set CLASSPATH=%APP_HOME%\\path\\to\\Jar.jar")
+        unixScriptContent.split(TextUtil.windowsLineSeparator).length == 1
+        unixScriptContent.split(TextUtil.unixLineSeparator).length == 164
+    }
+
+    def "classpath for windows script uses backslash as path separator and windows line separator"() {
+        given:
+        generator.applicationName = "TestApp"
+        generator.setClasspath(WrapUtil.toList("path/to/Jar.jar"))
+        generator.scriptRelPath = "bin"
+        when:
+        String windowsScriptContent = generator.generateWindowsScriptContent()
+        then:
+        windowsScriptContent.contains("set CLASSPATH=%APP_HOME%\\path\\to\\Jar.jar")
+        windowsScriptContent.split(TextUtil.windowsLineSeparator).length == 90
+    }
+
+    def "windows script uses windows line separator"() {
+        given:
+        generator.applicationName = "TestApp"
+        generator.scriptRelPath = "bin"
+        when:
+        String windowsScriptContent = generator.generateWindowsScriptContent()
+        then:
+        windowsScriptContent.split(TextUtil.windowsLineSeparator).length == 90
     }
 }
