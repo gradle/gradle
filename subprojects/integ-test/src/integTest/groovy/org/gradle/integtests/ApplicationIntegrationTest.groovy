@@ -15,30 +15,22 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.TestFile
-import org.junit.Rule
+import org.gradle.util.TextUtil
+import static org.hamcrest.Matchers.startsWith
 
-import spock.lang.Specification
-
-import static org.hamcrest.Matchers.*
-
-import org.apache.commons.io.IOUtils
-
-class ApplicationIntegrationTest extends Specification {
-    @Rule GradleDistribution distribution = new GradleDistribution()
-    @Rule GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class ApplicationIntegrationTest extends AbstractIntegrationSpec{
 
     def canUseEnvironmentVariableToPassMultipleOptionsToJvmWhenRunningScript() {
-        distribution.testFile('build.gradle') << '''
+        file("build.gradle") << '''
 apply plugin: 'application'
 mainClassName = 'org.gradle.test.Main'
 applicationName = 'application'
 '''
-        distribution.testFile('src/main/java/org/gradle/test/Main.java') << '''
+        file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
 
 class Main {
@@ -57,7 +49,7 @@ class Main {
 '''
 
         when:
-        executer.withTasks('install').run()
+        run 'install'
 
         def builder = new ScriptExecuter()
         builder.workingDir distribution.testDir.file('build/install/application/bin')
@@ -75,13 +67,13 @@ class Main {
     }
 
     def "can customize application name"() {
-        distribution.testFile('settings.gradle') << 'rootProject.name = "application"'
-        distribution.testFile('build.gradle') << '''
+        file('settings.gradle') << 'rootProject.name = "application"'
+        file('build.gradle') << '''
 apply plugin: 'application'
 mainClassName = 'org.gradle.test.Main'
 applicationName = 'mega-app'
 '''
-        distribution.testFile('src/main/java/org/gradle/test/Main.java') << '''
+        file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
 
 class Main {
@@ -91,10 +83,10 @@ class Main {
 '''
 
         when:
-        executer.withTasks('install', 'distZip').run()
+        run 'install', 'distZip'
 
         then:
-        def installDir = distribution.testFile('build/install/mega-app')
+        def installDir = file('build/install/mega-app')
         installDir.assertIsDir()
         checkApplicationImage(installDir)
 
@@ -107,21 +99,21 @@ class Main {
     }
 
     def "installApp complains if install directory exists and doesn't look like previous install"() {
-        distribution.testFile('build.gradle') << '''
+        file('build.gradle') << '''
 apply plugin: 'application'
 mainClassName = 'org.gradle.test.Main'
 installApp.destinationDir = buildDir
 '''
 
         when:
-        def result = executer.withTasks('installApp').runWithFailure()
+        runAndFail 'installApp'
 
         then:
         result.assertThatCause(startsWith("The specified installation directory '${distribution.testFile('build')}' is neither empty nor does it contain an installation"))
     }
 
-    def "startScripts respects OS dependent line separators"() {
-        distribution.testFile('build.gradle') << '''
+    def "startScripts respect OS dependent line separators"() {
+        file('build.gradle') << '''
     apply plugin: 'application'
     applicationName = 'mega-app'
     mainClassName = 'org.gradle.test.Main'
@@ -129,17 +121,17 @@ installApp.destinationDir = buildDir
     '''
 
         when:
-        executer.withTasks('startScripts').run()
+        run 'startScripts'
 
         then:
-        File generatedWindowsStartScript = distribution.testFile("build/scripts/mega-app.bat")
+        File generatedWindowsStartScript = file("build/scripts/mega-app.bat")
         generatedWindowsStartScript.exists()
-        assertLineSeparators(generatedWindowsStartScript, IOUtils.LINE_SEPARATOR_WINDOWS, 90);
+        assertLineSeparators(generatedWindowsStartScript, TextUtil.windowsLineSeparator, 90);
 
-        File generatedLinuxStartScript = distribution.testFile("build/scripts/mega-app")
+        File generatedLinuxStartScript = file("build/scripts/mega-app")
         generatedLinuxStartScript.exists()
-        assertLineSeparators(generatedLinuxStartScript, IOUtils.LINE_SEPARATOR_UNIX, 164);
-        assertLineSeparators(generatedLinuxStartScript, IOUtils.LINE_SEPARATOR_WINDOWS, 1)
+        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 164);
+        assertLineSeparators(generatedLinuxStartScript, TextUtil.windowsLineSeparator, 1)
 
         distribution.testFile("build/scripts/mega-app").exists()
     }
