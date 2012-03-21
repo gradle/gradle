@@ -24,6 +24,7 @@ import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -71,7 +72,10 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
     }
 
     public Collection<File> getSystemClasspath() {
-        return classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles();
+        List<File> systemClasspath = new ArrayList<File>();
+        systemClasspath.addAll(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
+        systemClasspath.addAll(processBuilder.getApplicationClasspath());
+        return systemClasspath;
     }
 
     public Callable<?> create() {
