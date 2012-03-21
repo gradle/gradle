@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.internal.concurrent.ThreadSafe;
 import org.junit.runner.Request;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.RunListener;
@@ -27,6 +28,7 @@ public class JUnitTestClassExecuter {
     private final TestClassExecutionListener executionListener;
 
     public JUnitTestClassExecuter(ClassLoader applicationClassLoader, RunListener listener, TestClassExecutionListener executionListener) {
+        assert executionListener instanceof ThreadSafe;
         this.applicationClassLoader = applicationClassLoader;
         this.listener = listener;
         this.executionListener = executionListener;

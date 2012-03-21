@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.TimeProvider;
 import org.junit.runner.Description;
@@ -38,6 +39,7 @@ public class JUnitTestEventAdapter extends RunListener {
 
     public JUnitTestEventAdapter(TestResultProcessor resultProcessor, TimeProvider timeProvider,
                                  IdGenerator<?> idGenerator) {
+        assert resultProcessor instanceof ThreadSafe;
         this.resultProcessor = resultProcessor;
         this.timeProvider = timeProvider;
         this.idGenerator = idGenerator;

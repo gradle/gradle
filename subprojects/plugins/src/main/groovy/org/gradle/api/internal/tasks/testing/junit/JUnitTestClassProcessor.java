@@ -23,6 +23,8 @@ import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestRes
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.StandardOutputRedirector;
+import org.gradle.messaging.actor.Actor;
+import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.TrueTimeProvider;
@@ -35,26 +37,37 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitTestClassProcessor.class);
     private final File testResultsDir;
     private final IdGenerator<?> idGenerator;
+    private final ActorFactory actorFactory;
     private final StandardOutputRedirector outputRedirector;
     private final TimeProvider timeProvider = new TrueTimeProvider();
     private JUnitTestClassExecuter executer;
+    private Actor resultProcessorActor;
 
-    public JUnitTestClassProcessor(File testResultsDir, IdGenerator<?> idGenerator,
+    public JUnitTestClassProcessor(File testResultsDir, IdGenerator<?> idGenerator, ActorFactory actorFactory,
                                    StandardOutputRedirector standardOutputRedirector) {
         this.testResultsDir = testResultsDir;
         this.idGenerator = idGenerator;
+        this.actorFactory = actorFactory;
         this.outputRedirector = standardOutputRedirector;
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
+        // Build a result processor chain
         ClassLoader applicationClassLoader = Thread.currentThread().getContextClassLoader();
         ListenerBroadcast<TestResultProcessor> processors = new ListenerBroadcast<TestResultProcessor>(TestResultProcessor.class);
         processors.add(new JUnitXmlReportGenerator(testResultsDir));
         processors.add(resultProcessor);
         TestResultProcessor resultProcessorChain = new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(processors.getSource(), outputRedirector));
         TestClassExecutionEventGenerator eventGenerator = new TestClassExecutionEventGenerator(resultProcessorChain, idGenerator, timeProvider);
-        JUnitTestEventAdapter junitEventAdapter = new JUnitTestEventAdapter(eventGenerator, timeProvider, idGenerator);
-        executer = new JUnitTestClassExecuter(applicationClassLoader, junitEventAdapter, eventGenerator);
+
+        // Wrap the result processor chain up in a blocking actor, to make the whole thing thread-safe
+        resultProcessorActor = actorFactory.createBlockingActor(eventGenerator);
+        TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
+        TestClassExecutionListener threadSafeTestClassListener = resultProcessorActor.getProxy(TestClassExecutionListener.class);
+
+        // Build the JUnit adaptor stuff
+        JUnitTestEventAdapter junitEventAdapter = new JUnitTestEventAdapter(threadSafeResultProcessor, timeProvider, idGenerator);
+        executer = new JUnitTestClassExecuter(applicationClassLoader, junitEventAdapter, threadSafeTestClassListener);
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
@@ -63,5 +76,6 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
     }
 
     public void stop() {
+        resultProcessorActor.stop();
     }
 }

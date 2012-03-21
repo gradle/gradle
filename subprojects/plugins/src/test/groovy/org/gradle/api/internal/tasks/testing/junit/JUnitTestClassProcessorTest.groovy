@@ -42,13 +42,16 @@ import junit.extensions.TestSetup
 import org.junit.After
 import org.gradle.api.tasks.testing.TestResult
 import junit.framework.TestSuite
+import org.gradle.messaging.actor.ActorFactory
+import org.gradle.messaging.actor.TestActorFactory
 
 @RunWith(JMock.class)
 class JUnitTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
-    private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(tmpDir.dir, new LongIdGenerator(), {} as StandardOutputRedirector);
+    private final ActorFactory actorFactory = new TestActorFactory()
+    private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(tmpDir.dir, new LongIdGenerator(), actorFactory, {} as StandardOutputRedirector);
 
     @Test
     public void executesAJUnit4TestClass() {

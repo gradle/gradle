@@ -23,7 +23,12 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ContextClassLoaderProxy;
+import org.gradle.messaging.actor.ActorFactory;
+import org.gradle.messaging.actor.internal.DefaultActorFactory;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.WorkerProcessContext;
 import org.gradle.util.CompositeIdGenerator;
@@ -48,21 +53,31 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         this.factory = factory;
     }
 
-    public void execute(WorkerProcessContext workerProcessContext) {
+    public void execute(final WorkerProcessContext workerProcessContext) {
         LOGGER.info("{} executing tests.", workerProcessContext.getDisplayName());
 
         completed = new CountDownLatch(1);
 
         System.setProperty(WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
-        
-        ObjectConnection serverConnection = workerProcessContext.getServerConnection();
 
-        IdGenerator<Object> idGenerator = new CompositeIdGenerator(workerProcessContext.getWorkerId(),
-                new LongIdGenerator());
+        DefaultServiceRegistry testServices = new TestFrameworkServiceRegistry(workerProcessContext);
+        startReceivingTests(workerProcessContext, testServices);
 
-        DefaultServiceRegistry testServices = new DefaultServiceRegistry();
-        testServices.add(IdGenerator.class, idGenerator);
+        try {
+            try {
+                completed.await();
+            } catch (InterruptedException e) {
+                throw new UncheckedException(e);
+            }
+        } finally {
+            LOGGER.info("{} finished executing tests.", workerProcessContext.getDisplayName());
+            testServices.close();
+        }
+    }
+
+    private void startReceivingTests(WorkerProcessContext workerProcessContext, ServiceRegistry testServices) {
         TestClassProcessor targetProcessor = factory.create(testServices);
+        IdGenerator<Object> idGenerator = testServices.get(IdGenerator.class);
 
         targetProcessor = new WorkerTestClassProcessor(targetProcessor, idGenerator.generateId(),
                 workerProcessContext.getDisplayName(), new TrueTimeProvider());
@@ -70,16 +85,9 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
                 TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
         processor = proxy.getSource();
 
+        ObjectConnection serverConnection = workerProcessContext.getServerConnection();
         this.resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
-
         serverConnection.addIncoming(RemoteTestClassProcessor.class, this);
-
-        try {
-            completed.await();
-        } catch (InterruptedException e) {
-            throw new UncheckedException(e);
-        }
-        LOGGER.info("{} finished executing tests.", workerProcessContext.getDisplayName());
     }
 
     public void startProcessing() {
@@ -100,6 +108,26 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             processor.stop();
         } finally {
             completed.countDown();
+        }
+    }
+
+    private static class TestFrameworkServiceRegistry extends DefaultServiceRegistry {
+        private final WorkerProcessContext workerProcessContext;
+
+        public TestFrameworkServiceRegistry(WorkerProcessContext workerProcessContext) {
+            this.workerProcessContext = workerProcessContext;
+        }
+
+        protected IdGenerator<Object> createIdGenerator() {
+            return new CompositeIdGenerator(workerProcessContext.getWorkerId(), new LongIdGenerator());
+        }
+
+        protected ExecutorFactory createExecutorFactory() {
+            return new DefaultExecutorFactory();
+        }
+
+        protected ActorFactory createActorFactory() {
+            return new DefaultActorFactory(get(ExecutorFactory.class));
         }
     }
 }

@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.IdGenerator;
 
@@ -100,7 +101,7 @@ public class JUnitTestFramework implements TestFramework {
         }
 
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new JUnitTestClassProcessor(testResultsDir, serviceRegistry.get(IdGenerator.class), new JULRedirector());
+            return new JUnitTestClassProcessor(testResultsDir, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), new JULRedirector());
         }
     }
 }

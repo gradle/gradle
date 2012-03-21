@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.AbstractTestFrameworkTest;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.util.IdGenerator;
 import org.jmock.Expectations;
 import org.junit.Before;
@@ -70,10 +71,12 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
     public void testCreatesTestProcessor() {
         jUnitTestFramework = new JUnitTestFramework(testMock);
         setMocks();
+        final ActorFactory actorFactory = context.mock(ActorFactory.class);
 
         context.checking(new Expectations() {{
             one(testMock).getTestResultsDir(); will(returnValue(testResultsDir));
             one(serviceRegistry).get(IdGenerator.class); will(returnValue(idGenerator));
+            one(serviceRegistry).get(ActorFactory.class); will(returnValue(actorFactory));
         }});
 
         TestClassProcessor testClassProcessor = jUnitTestFramework.getProcessorFactory().create(serviceRegistry);
