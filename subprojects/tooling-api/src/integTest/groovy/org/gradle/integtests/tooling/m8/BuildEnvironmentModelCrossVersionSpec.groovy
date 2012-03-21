@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.integtests.tooling.fixture.MaxTargetGradleVersion
 
 @MinToolingApiVersion('1.0-milestone-8')
 @MinTargetGradleVersion('1.0-milestone-8')

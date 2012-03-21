@@ -24,7 +24,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.internal.jvm.Jvm
+import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -109,7 +109,13 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
     def "tooling api provided java home takes precedence over gradle.properties"() {
         File javaHome = AvailableJavaHomes.bestAlternative
         String javaHomePath = TextUtil.escapeString(javaHome.canonicalPath)
-        File otherJava = Jvm.current().getJavaHome()
+        File otherJava = null;
+        if(GradleVersion.current().getVersion().startsWith("1.0-milestone-")){
+            def jvm = getClass().classLoader.loadClass("org.gradle.util.Jvm").getMethod("current").invoke(null)
+            otherJava = jvm.getJavaHome()
+        }else{
+            otherJava = org.gradle.internal.jvm.Jvm.current().getJavaHome()
+        }
         String otherJavaPath = TextUtil.escapeString(otherJava.canonicalPath)
 
         dist.file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"
