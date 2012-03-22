@@ -111,8 +111,7 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         String javaHomePath = TextUtil.escapeString(javaHome.canonicalPath)
         File otherJava = null;
         if(GradleVersion.current().getVersion().startsWith("1.0-milestone-")){
-            def jvm = getClass().classLoader.loadClass("org.gradle.util.Jvm").getMethod("current").invoke(null)
-            otherJava = jvm.getJavaHome()
+            otherJava = org.gradle.util.Jvm.current().getJavaHome()
         }else{
             otherJava = org.gradle.internal.jvm.Jvm.current().getJavaHome()
         }
