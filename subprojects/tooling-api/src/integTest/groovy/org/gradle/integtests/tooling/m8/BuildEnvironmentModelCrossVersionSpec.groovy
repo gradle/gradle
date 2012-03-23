@@ -55,12 +55,7 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
     def "informs about java home as in the build script"() {
         given:
         dist.file('build.gradle') << """
-        if(!GradleVersion.current().getVersion().startsWith("1.0-milestone-")){
-            description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
-        }else{
-            description = Jvm.current().javaHome.toString()
-        }
-
+        description = Jvm.current().javaHome.toString()
         """
 
         when:
