@@ -54,7 +54,6 @@ public class FindBugsDaemonServer implements Action<WorkerProcessContext>, FindB
         try {
             LOGGER.info("Executing findbugs in daemon.");
             LOGGER.debug("Running findbugs specification {}", spec);
-            //call findbugs here
             String findbugsOutput = runFindbugs(spec);
             LOGGER.debug(findbugsOutput);
             final FindBugsResult findBugsResultFromOutput = createFindBugsResultFromOutput(findbugsOutput);

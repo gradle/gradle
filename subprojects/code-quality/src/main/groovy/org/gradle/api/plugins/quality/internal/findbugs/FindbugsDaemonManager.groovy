@@ -18,8 +18,8 @@ package org.gradle.api.plugins.quality.internal.findbugs
 
 import org.gradle.BuildAdapter
 import org.gradle.BuildResult
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.process.internal.JavaExecHandleBuilder
@@ -38,12 +38,12 @@ class FindBugsDaemonManager {
         return INSTANCE;
     }
 
-    public FindBugsDaemon getDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
+    public FindBugsDaemon getDaemon(ProjectInternal project, findBugsClasspath) {
         if (client != null) {
             stop();
         }
         if (client == null) {
-            startDaemon(project, forkOptions);
+            startDaemon(project, findBugsClasspath);
             stopDaemonOnceBuildFinished(project);
         }
         return client;
@@ -61,23 +61,21 @@ class FindBugsDaemonManager {
         process.waitForStop();
         process = null;
 
-        LOGGER.info("Gradle compiler findbugs stopped.");
+        LOGGER.info("Gradle findbugs daemon stopped.");
     }
 
-    private void startDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
+    private void startDaemon(ProjectInternal project, FileCollection findBugsClasspath) {
         LOGGER.info("Starting Gradle findbugs daemon.");
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(forkOptions.toString());
+            LOGGER.debug(findBugsClasspath);
         }
 
         WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
         builder.setLogLevel(project.getGradle().getStartParameter().getLogLevel());
-        builder.applicationClasspath(forkOptions.getClasspath());   //findbugs classpath
-        builder.sharedPackages(forkOptions.getSharedPackages());
+        builder.applicationClasspath(findBugsClasspath);   //findbugs classpath
+        builder.sharedPackages(Arrays.asList("edu.umd.cs.findbugs"));
 
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-        javaCommand.setMinHeapSize(forkOptions.getMinHeapSize());
-        javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
         javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
         process = builder.worker(new FindBugsDaemonServer()).build();
         process.start();

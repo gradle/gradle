@@ -16,24 +16,16 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.GradleException
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.Instantiator
-
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl
-import org.gradle.api.reporting.Reporting
-import org.gradle.api.tasks.*
-
-import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions
-
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsDaemon
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsDaemonManager
-
-import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
-
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsResult
-
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
+import org.gradle.api.reporting.Reporting
 import org.gradle.api.reporting.SingleFileReport
+import org.gradle.api.tasks.*
 
 /**
  * Analyzes code with <a href="http://findbugs.sourceforge.net">FindBugs</a>.
@@ -107,16 +99,6 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
 
     @TaskAction
     void run() {
-        Map<String, ?> reportArguments = [:]
-        if (reports.enabled) {
-            if (reports.enabled.size() == 1) {
-                reportArguments.outputFile = reports.firstEnabled.destination
-                reportArguments.output = reports.firstEnabled.name
-            } else {
-                throw new InvalidUserDataException("Findbugs tasks can only have one report enabled, however both the xml and html report are enabled. You need to disable one of them.")
-            }
-        }
-
         FindBugsSpecBuilder argumentBuilder = new FindBugsSpecBuilder(getClasses())
                 .withPluginsList(getPluginClasspath())
                 .withSources(getSource())
@@ -125,9 +107,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
                 .configureReports(reports)
 
         FindBugsDaemonManager manager = FindBugsDaemonManager.getInstance();
-        DaemonForkOptions daemonForkOptions = new DaemonForkOptions(null, null, Collections.emptyList(), getFindbugsClasspath(),
-                Arrays.asList("edu.umd.cs.findbugs"));
-        FindBugsDaemon daemon = manager.getDaemon(getProject(), daemonForkOptions)
+        FindBugsDaemon daemon = manager.getDaemon(getProject(), getFindbugsClasspath())
         FindBugsResult findbugsResult = daemon.execute(argumentBuilder.build());
         evaluateResult(findbugsResult);
     }
