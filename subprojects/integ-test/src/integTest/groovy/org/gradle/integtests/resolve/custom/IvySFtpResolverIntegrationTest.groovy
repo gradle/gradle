@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.integtests.resolve.custom
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -24,7 +23,7 @@ import org.junit.Rule
 class IvySFtpResolverIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    public final SFTPServer server = new SFTPServer()
+    public final SFTPServer server = new SFTPServer(distribution.temporaryFolder)
 
     def "setup"() {
         requireOwnUserHomeDir()
@@ -50,7 +49,6 @@ repositories {
     }
 }
 configurations { compile }
-configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 dependencies { compile 'group:projectA:1.2' }
 task listJars << {
     assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']

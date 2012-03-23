@@ -16,78 +16,56 @@
 package org.gradle.integtests.fixtures;
 
 
-import org.apache.commons.io.FileUtils;
-import org.junit.rules.ExternalResource;
-import org.junit.rules.TemporaryFolder;
-
-
-import org.apache.sshd.SshServer
-import org.apache.sshd.server.sftp.SftpSubsystem
-import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
-import org.apache.sshd.server.PublickeyAuthenticator
-import org.apache.sshd.server.PasswordAuthenticator
-import org.apache.sshd.server.Command
-import org.apache.sshd.server.command.ScpCommandFactory
-import org.apache.sshd.common.NamedFactory
 import com.jcraft.jsch.JSch
-
 import com.jcraft.jsch.UserInfo
-import org.gradle.util.TestFile
 import java.security.PublicKey
+import org.apache.commons.io.FileUtils
+import org.apache.sshd.SshServer
+import org.apache.sshd.common.NamedFactory
+import org.apache.sshd.server.Command
+import org.apache.sshd.server.PasswordAuthenticator
+import org.apache.sshd.server.PublickeyAuthenticator
+import org.apache.sshd.server.command.ScpCommandFactory
+import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
 import org.apache.sshd.server.session.ServerSession
+import org.apache.sshd.server.sftp.SftpSubsystem
+import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestFile
+import org.junit.rules.ExternalResource
 
 class SFTPServer extends ExternalResource {
     final String hostAddress;
     int port
 
-    private TemporaryFolder baseDir = new TemporaryFolder()
-    private TemporaryFolder configDir = new TemporaryFolder()
+    private final TemporaryFolder tmpDir
+    private TestFile baseDir
+    private TestFile configDir
 
     private SshServer sshd;
     private com.jcraft.jsch.Session session
 
     def fileRequests = [] as Set
 
-    public SFTPServer() {
+    public SFTPServer(TemporaryFolder tmpDir) {
+        this.tmpDir = tmpDir;
         def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
         port = portFinder.nextAvailable
         this.hostAddress = "127.0.0.1"
     }
 
     protected void before() throws Throwable {
-        baseDir.create()
-        configDir.create()
+        baseDir = tmpDir.createDir("sshd/files")
+        configDir = tmpDir.createDir("sshd/config")
 
         sshd = setupConfiguredTestSshd();
         sshd.start();
         createSshSession();
     }
 
-
-    public void after() {
-        try {
-            session?.disconnect();
-        } catch (Throwable e) {
-            e.printStackTrace()
-        }
-        try {
-            sshd?.stop()
-        } catch (Throwable e) {
-            e.printStackTrace()
-        }
-        try {
-            configDir.delete();
-        } catch (Throwable e) {
-            e.printStackTrace()
-        }
-
-        try {
-            baseDir.delete();
-        } catch (Throwable e) {
-            e.printStackTrace()
-        }
+    protected void after() {
+        session?.disconnect();
+        sshd?.stop()
     }
-
 
     private createSshSession() {
         JSch sch = new JSch();
@@ -122,18 +100,18 @@ class SFTPServer extends ExternalResource {
     private SshServer setupConfiguredTestSshd() {
         //copy dsa key to config directory
         URL fileUrl = ClassLoader.getSystemResource("sshd-config/test-dsa.key");
-        FileUtils.copyURLToFile(fileUrl, new File(configDir.getRoot(), "test-dsa.key"));
+        FileUtils.copyURLToFile(fileUrl, new File(configDir, "test-dsa.key"));
 
         SshServer sshServer = SshServer.setUpDefaultServer();
         sshServer.setPort(port);
-        sshServer.setFileSystemFactory(new TestNativeFileSystemFactory(baseDir.getRoot().absolutePath, new FileRequestLogger() {
+        sshServer.setFileSystemFactory(new TestNativeFileSystemFactory(baseDir.absolutePath, new FileRequestLogger() {
             void logRequest(String message) {
                 fileRequests << message;
             }
         }));
         sshServer.setSubsystemFactories(Arrays.<NamedFactory<Command>> asList(new SftpSubsystem.Factory()));
         sshServer.setCommandFactory(new ScpCommandFactory());
-        sshServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("${configDir.getRoot()}/test-dsa.key"));
+        sshServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("${configDir}/test-dsa.key"));
         sshServer.setPasswordAuthenticator(new DummyPasswordAuthenticator());
         sshServer.setPublickeyAuthenticator(new PublickeyAuthenticator() {
             boolean authenticate(String username, PublicKey key, ServerSession session) {
@@ -144,11 +122,11 @@ class SFTPServer extends ExternalResource {
     }
 
     boolean hasFile(String filePathToCheck) {
-        new File(baseDir.getRoot(), filePathToCheck).exists()
+        new File(baseDir, filePathToCheck).exists()
     }
 
     TestFile file(String expectedPath) {
-        new TestFile(new File(baseDir.getRoot(), expectedPath))
+        new TestFile(new File(baseDir, expectedPath))
     }
 
     public Set<String> getFileRequests() {

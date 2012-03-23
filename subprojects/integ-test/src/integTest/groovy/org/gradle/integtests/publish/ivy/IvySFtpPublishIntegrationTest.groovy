@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -25,7 +22,7 @@ import org.junit.Rule
 class IvySFtpPublishIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    public final SFTPServer sftpServer = new SFTPServer()
+    public final SFTPServer sftpServer = new SFTPServer(distribution.temporaryFolder)
 
     public void "can publish using SftpResolver"() {
         given:
