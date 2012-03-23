@@ -17,41 +17,39 @@
 package org.gradle.internal.nativeplatform.filesystem
 
 import com.google.common.io.Files
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.jruby.ext.posix.FileStat
+import org.jruby.ext.posix.POSIX
 import spock.lang.Specification
 
-@Requires(TestPrecondition.NOT_WINDOWS)
 class ComposableFilePermissionHandlerTest extends Specification {
+    final ComposableFilePermissionHandler.Chmod chmod = Mock()
+    final POSIX posix = Mock()
+    final ComposableFilePermissionHandler handler = new ComposableFilePermissionHandler(chmod, posix)
 
     def "chmod calls are delegated to Chmod"(){
         setup:
         def File dir = Files.createTempDir();
         def File file = new File(dir, "f")
         Files.touch(file)
-        ComposableFilePermissionHandler.Chmod chmod = Mock()
-        ComposableFilePermissionHandler handler = new ComposableFilePermissionHandler(chmod)
+
         when:
         handler.chmod(file, 0744);
+
         then:
         1 * chmod.chmod(file, 0744)
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "test getUnixMode"(){
+    def "getUnixMode calls are delegated to POSIX"(){
         setup:
+        FileStat stat = Mock()
         def File dir = Files.createTempDir();
         def File file = new File(dir, "f")
         Files.touch(file)
 
-        ComposableFilePermissionHandler handler = new ComposableFilePermissionHandler(null)
-        when:
-        PosixUtil.current().chmod(file.absolutePath, mode);
+        posix.stat(file.getAbsolutePath()) >> stat
+        stat.mode() >> 0754
 
-        then:
-        handler.getUnixMode(file) == mode;
-
-        where:
-        mode << [0722, 0644, 0744, 0755]
+        expect:
+        handler.getUnixMode(file) == 0754
     }
 }

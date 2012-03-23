@@ -43,12 +43,8 @@ public class FilePermissionHandlerFactory {
                 LOGGER.warn("Unable to load Jdk7FilePermissionHandler", e);
             }
         }
-        return createComposedFilePermissionHandler();
-    }
-
-    private static FilePermissionHandler createComposedFilePermissionHandler() {
         ComposableFilePermissionHandler.Chmod chmod = createChmod();
-        return new ComposableFilePermissionHandler(chmod);
+        return new ComposableFilePermissionHandler(chmod, PosixUtil.current());
     }
 
     static ComposableFilePermissionHandler.Chmod createChmod() {

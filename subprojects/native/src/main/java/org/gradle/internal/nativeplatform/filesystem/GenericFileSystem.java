@@ -80,10 +80,6 @@ class GenericFileSystem implements FileSystem {
         }
     }
 
-    GenericFileSystem() {
-        this(FilePermissionHandlerFactory.createDefaultFilePermissionHandler());
-    }
-
     GenericFileSystem(FilePermissionHandler handler) {
         String content = generateUniqueContent();
         File file = null;

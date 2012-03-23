@@ -21,6 +21,6 @@ public abstract class FileSystems {
     }
 
     private static class DefaultFileSystem {
-        static final FileSystem INSTANCE = new GenericFileSystem();
+        static final FileSystem INSTANCE = new GenericFileSystem(FilePermissionHandlerFactory.createDefaultFilePermissionHandler());
     }
 }

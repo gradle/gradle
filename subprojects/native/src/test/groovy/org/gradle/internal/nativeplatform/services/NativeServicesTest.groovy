@@ -19,7 +19,6 @@ import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.TerminalDetector
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
-import org.jruby.ext.posix.POSIX
 import spock.lang.Specification
 
 class NativeServicesTest extends Specification {
@@ -33,11 +32,6 @@ class NativeServicesTest extends Specification {
     def "makes an OperatingSystem available"() {
         expect:
         services.get(OperatingSystem) != null
-    }
-
-    def "makes a POSIX available"() {
-        expect:
-        services.get(POSIX) != null
     }
 
     def "makes a FileSystem available"() {
