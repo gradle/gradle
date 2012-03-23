@@ -37,24 +37,28 @@ public class WindowsHandlesManipulator {
         Kernel32 kernel32 = INSTANCE;
 
         try {
-            HANDLE stdin = kernel32.GetStdHandle(Kernel32.STD_INPUT_HANDLE);
-            makeUninheritable(kernel32, stdin);
-        
-            HANDLE stdout = kernel32.GetStdHandle(Kernel32.STD_OUTPUT_HANDLE);
-            makeUninheritable(kernel32, stdout);
-        
-            HANDLE stderr = kernel32.GetStdHandle(Kernel32.STD_ERROR_HANDLE);
-            makeUninheritable(kernel32, stderr);
+            uninheritStream(kernel32, Kernel32.STD_INPUT_HANDLE);
+            uninheritStream(kernel32, Kernel32.STD_OUTPUT_HANDLE);
+            uninheritStream(kernel32, Kernel32.STD_ERROR_HANDLE);
         } catch (Exception e) {
             throw new ProcessInitializationException("Failed to configure the standard stream handles to be 'uninheritable'.", e);
         }
     }
 
-    private void makeUninheritable(Kernel32 kernel32, HANDLE handle) throws IOException {
-        if (handle.equals(INVALID_HANDLE_VALUE)) {
+    private void uninheritStream(Kernel32 kernel32, int stdInputHandle) throws IOException {
+        HANDLE streamHandle = kernel32.GetStdHandle(stdInputHandle);
+        if (streamHandle == null) {
+            // We're not attached to a stdio (eg Desktop application). Ignore.
+            return;
+        }
+        makeUninheritable(kernel32, streamHandle);
+    }
+
+    private void makeUninheritable(Kernel32 kernel32, HANDLE streamHandle) throws IOException {
+        if (streamHandle.equals(INVALID_HANDLE_VALUE)) {
             throw new IOException("Invalid handle. Errno: " + kernel32.GetLastError());
         }
-        boolean ok = kernel32.SetHandleInformation(handle, HANDLE_FLAG_INHERIT, 0);
+        boolean ok = kernel32.SetHandleInformation(streamHandle, HANDLE_FLAG_INHERIT, 0);
         if (!ok && kernel32.GetLastError() != ERROR_INVALID_PARAMETER) {
             throw new IOException("Could not set flag on handle. Errno: " + kernel32.GetLastError());
         }
