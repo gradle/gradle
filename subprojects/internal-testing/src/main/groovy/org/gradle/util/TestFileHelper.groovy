@@ -59,7 +59,7 @@ class TestFileHelper {
         def unzip = new Expand()
         unzip.src = file
         unzip.dest = target
-        
+
         unzip.project = new Project()
         unzip.execute()
     }
@@ -111,18 +111,37 @@ class TestFileHelper {
     }
 
     void setPermissions(String permissions) {
-        def m = [6, 3, 0].inject(0) { mode, pos ->
-            mode |= permissions[9 - pos - 3] == 'r' ? 4 << pos : 0
-            mode |= permissions[9 - pos - 2] == 'w' ? 2 << pos : 0
-            mode |= permissions[9 - pos - 1] == 'x' ? 1 << pos : 0
-            return mode
-        }
+        int m = toMode(permissions)
         def process = ["chmod", Integer.toOctalString(m), file.absolutePath].execute()
         def error = process.errorStream.text
         def retval = process.waitFor()
         if (retval != 0) {
             throw new RuntimeException("Could not set permissions for '$file': $error")
         }
+    }
+
+    private int toMode(String permissions) {
+        int m = [6, 3, 0].inject(0) { mode, pos ->
+            mode |= permissions[9 - pos - 3] == 'r' ? 4 << pos : 0
+            mode |= permissions[9 - pos - 2] == 'w' ? 2 << pos : 0
+            mode |= permissions[9 - pos - 1] == 'x' ? 1 << pos : 0
+            return mode
+        }
+        return m
+    }
+
+    int getMode() {
+        return toMode(getPermissions())
+    }
+
+    String readLink() {
+        def process = ["readlink", file.absolutePath].execute()
+        def error = process.errorStream.text
+        def retval = process.waitFor()
+        if (retval != 0) {
+            throw new RuntimeException("Could not set permissions for '$file': $error")
+        }
+        return process.inputStream.text.trim()
     }
 
     Map<String, ?> exec(Object... args) {

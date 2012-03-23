@@ -16,7 +16,6 @@
 package org.gradle.util
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
 
 enum TestPrecondition {
     SWING({
@@ -29,13 +28,19 @@ enum TestPrecondition {
         UNKNOWN_OS.fulfilled
     }),
     SYMLINKS({
-        FileSystems.default.canCreateSymbolicLink()
+        MAC_OS_X.fulfilled || LINUX.fulfilled
+    }),
+    NO_SYMLINKS({
+        !SYMLINKS.fulfilled
     }),
     CASE_INSENSITIVE_FS({
-        !FileSystems.default.caseSensitive
+        MAC_OS_X.fulfilled || WINDOWS.fulfilled
     }),
     FILE_PERMISSIONS({
         MAC_OS_X.fulfilled || LINUX.fulfilled
+    }),
+    NO_FILE_PERMISSIONS({
+        !FILE_PERMISSIONS.fulfilled
     }),
     SET_ENV_VARIABLE({
         !UNKNOWN_OS.fulfilled

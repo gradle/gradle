@@ -24,11 +24,18 @@ import spock.lang.Specification
 class CommonFileSystemTest extends Specification {
     @Rule TemporaryFolder tmpDir = new TemporaryFolder()
     def fs = FileSystems.default
-    def posix = PosixUtil.current()
-
+    
     def "unix permissions cannot be read on non existing file"() {
         when:
         fs.getUnixMode(tmpDir.file("someFile"))
+
+        then:
+        thrown(FileNotFoundException)
+    }
+
+    def "unix permissions cannot be set on non existing file"() {
+        when:
+        fs.chmod(tmpDir.file("someFile"), 0644)
 
         then:
         thrown(FileNotFoundException)
@@ -43,10 +50,10 @@ class CommonFileSystemTest extends Specification {
 
         then:
         fs.getUnixMode(f) == mode
-        (posix.stat(f.getAbsolutePath()).mode() & 0777) == mode
+        f.mode == mode
 
         where:
-        mode << [0644, 0600]
+        mode << [0644, 0600, 0751]
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
@@ -58,9 +65,47 @@ class CommonFileSystemTest extends Specification {
 
         then:
         fs.getUnixMode(d) == mode
-        (posix.stat(d.getAbsolutePath()).mode() & 0777) == mode
+        d.mode == mode
 
         where:
-        mode << [0755, 0700]
+        mode << [0755, 0700, 0722]
+    }
+
+    @Requires(TestPrecondition.NO_FILE_PERMISSIONS)
+    def "unix permissions have default values on unsupported platforms"() {
+        expect:
+        fs.getUnixMode(tmpDir.createFile("someFile")) == FileSystem.DEFAULT_FILE_MODE
+        fs.getUnixMode(tmpDir.createDir("someDir")) == FileSystem.DEFAULT_DIR_MODE
+    }
+
+    @Requires(TestPrecondition.NO_FILE_PERMISSIONS)
+    def "setting unix permissions does nothing on unsupported platforms"() {
+        expect:
+        fs.chmod(tmpDir.createFile("someFile"), 0644)
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "can create symlink on platforms that support symlinks"() {
+        def target = tmpDir.createFile("target.txt")
+        def link = tmpDir.file("link.txt")
+
+        when:
+        fs.createSymbolicLink(link, target)
+
+        then:
+        link.exists()
+        link.readLink() == target.absolutePath
+    }
+
+    @Requires(TestPrecondition.NO_SYMLINKS)
+    def "cannot create symlinks on platforms that do not support symlinks"() {
+        def target = tmpDir.createFile("target.txt")
+        def link = tmpDir.file("link.txt")
+
+        when:
+        fs.createSymbolicLink(link, target)
+
+        then:
+        thrown(IOException)
     }
 }

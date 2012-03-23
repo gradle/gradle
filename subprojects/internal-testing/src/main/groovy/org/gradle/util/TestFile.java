@@ -335,6 +335,11 @@ public class TestFile extends File implements TestFileContext {
         return this;
     }
 
+    public String readLink() {
+        assertExists();
+        return new TestFileHelper(this).readLink();
+    }
+
     public String getPermissions() {
         assertExists();
         return new TestFileHelper(this).getPermissions();
@@ -344,6 +349,11 @@ public class TestFile extends File implements TestFileContext {
         assertExists();
         new TestFileHelper(this).setPermissions(permissions);
         return this;
+    }
+
+    public int getMode() {
+        assertExists();
+        return new TestFileHelper(this).getMode();
     }
 
     /**
