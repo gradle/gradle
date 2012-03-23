@@ -26,7 +26,7 @@ public class JMockitIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canRunTestsWithJMockitLoadedWithJavaAgent() {
-        executer.withArguments('--debug').withTasks('clean', 'test').run();
+        executer.withTasks('test').run();
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.JMockitTest')

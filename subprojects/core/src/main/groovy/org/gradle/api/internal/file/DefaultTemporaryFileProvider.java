@@ -44,4 +44,19 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
             throw new UncheckedIOException(e.getMessage(), e);
         }
     }
+
+    public File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, @Nullable String... path) {
+        File dir = new File(baseDir.get(), GUtil.join(path, "/"));
+        GFileUtils.createDirectory(dir);
+        try {
+            // TODO: This is not a great paradigm for creating a temporary directory.
+            // See http://guava-libraries.googlecode.com/svn/tags/release08/javadoc/com/google/common/io/Files.html#createTempDir%28%29 for an alternative.
+            File tmpDir = File.createTempFile("gradle", "projectDir", dir);
+            tmpDir.delete();
+            tmpDir.mkdir();
+            return tmpDir;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e.getMessage(), e);
+        }
+    }
 }

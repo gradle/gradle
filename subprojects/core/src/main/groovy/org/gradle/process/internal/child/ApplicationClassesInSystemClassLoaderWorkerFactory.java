@@ -18,6 +18,8 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.messaging.remote.Address;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
@@ -63,6 +65,7 @@ import java.util.jar.Manifest;
 public class ApplicationClassesInSystemClassLoaderWorkerFactory implements WorkerFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationClassesInSystemClassLoaderWorkerFactory.class);
 
+    private final TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
     private final Object workerId;
     private final String displayName;
     private final WorkerProcessBuilder processBuilder;
@@ -85,7 +88,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
 
     private File createClasspathJarFile(WorkerProcessBuilder processBuilder) {
         try {
-            File classpathJarFile = File.createTempFile("GradleWorkerProcess", "classpath.jar");
+            File classpathJarFile = temporaryFileProvider.createTemporaryFile("GradleWorkerProcess", "classpath.jar");
             new ClasspathJarFactory().createClasspathJarFile(classpathJarFile, processBuilder.getApplicationClasspath());
             classpathJarFile.deleteOnExit();
             return classpathJarFile;

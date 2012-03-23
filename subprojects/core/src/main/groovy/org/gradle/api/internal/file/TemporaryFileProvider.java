@@ -35,4 +35,6 @@ public interface TemporaryFileProvider {
      * and path, relative to the temporary file directory.
      */
     File createTemporaryFile(@Nullable String prefix, @Nullable String suffix, @Nullable String... path);
+    
+    File createTemporaryDirectory(@Nullable String prefix, @Nullable String suffix, @Nullable String... path);
 }
