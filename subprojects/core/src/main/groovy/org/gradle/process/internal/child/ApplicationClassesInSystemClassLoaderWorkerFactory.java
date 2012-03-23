@@ -92,7 +92,9 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
     public Collection<File> getSystemClasspath() {
         List<File> systemClasspath = new ArrayList<File>();
         systemClasspath.addAll(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
-        systemClasspath.add(classpathJarFile);
+        // TODO:DAZ Reverted to run test on windows
+//        systemClasspath.add(classpathJarFile);
+        systemClasspath.addAll(processBuilder.getApplicationClasspath());
         return systemClasspath;
     }
 
