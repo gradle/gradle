@@ -78,8 +78,7 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
                 def config = project.configurations['findbugs']
                 if (config.dependencies.empty) {
                     project.dependencies {
-                        findbugs "com.google.code.findbugs:findbugs:$extension.toolVersion"
-                        findbugs "com.google.code.findbugs:findbugs-ant:$extension.toolVersion"
+                        findbugs("com.google.code.findbugs:findbugs:$extension.toolVersion")
                     }
                 }
                 config

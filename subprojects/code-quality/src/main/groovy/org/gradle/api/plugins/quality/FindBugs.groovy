@@ -19,10 +19,21 @@ import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.Instantiator
-import org.gradle.api.internal.project.IsolatedAntBuilder
+
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.tasks.*
+
+import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions
+
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsDaemon
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsDaemonManager
+
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
+
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsResult
+
+import org.gradle.api.reporting.SingleFileReport
 
 /**
  * Analyzes code with <a href="http://findbugs.sourceforge.net">FindBugs</a>.
@@ -96,9 +107,6 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
 
     @TaskAction
     void run() {
-        String errorProp = 'findbugsError'
-		String warningsProp = 'findbugsWarnings'
-
         Map<String, ?> reportArguments = [:]
         if (reports.enabled) {
             if (reports.enabled.size() == 1) {
@@ -109,31 +117,32 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
             }
         }
 
-        def antBuilder = services.get(IsolatedAntBuilder)
-        antBuilder.withClasspath(getFindbugsClasspath()).execute {
-            ant.taskdef(name: 'findbugs', classname: 'edu.umd.cs.findbugs.anttask.FindBugsTask')
-            ant.findbugs(debug: logger.isDebugEnabled(), errorProperty: errorProp, warningsProperty: warningsProp, *:reportArguments) {
-                getFindbugsClasspath().addToAntBuilder(ant, 'classpath')
-                getPluginClasspath().addToAntBuilder(ant, 'pluginList')
-                getClasses().addToAntBuilder(ant, 'auxAnalyzepath')
-                // FindBugs can't handle either of the following being empty on Windows
-                // leads to strange (parsing?) errors like "file src/main/java/-exitcode not found"
-                addUnlessEmpty(ant, getClasspath(), 'auxClasspath')
-                addUnlessEmpty(ant, getSource(), 'sourcePath')
-            }
+        FindBugsSpecBuilder argumentBuilder = new FindBugsSpecBuilder(getClasses())
+                .withPluginsList(getPluginClasspath())
+                .withSources(getSource())
+                .withClasspath(getClasspath())
+                .withDebugging(logger.isDebugEnabled())
+                .configureReports(reports)
 
-            if (ant.project.properties[errorProp]) {
-                throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.")
-            }
+        FindBugsDaemonManager manager = FindBugsDaemonManager.getInstance();
+        DaemonForkOptions daemonForkOptions = new DaemonForkOptions(null, null, Collections.emptyList(), getFindbugsClasspath(),
+                Arrays.asList("edu.umd.cs.findbugs"));
+        FindBugsDaemon daemon = manager.getDaemon(getProject(), daemonForkOptions)
+        FindBugsResult findbugsResult = daemon.execute(argumentBuilder.build());
+        evaluateResult(findbugsResult);
+    }
 
-            if (ant.project.properties[warningsProp] && !ignoreFailures) {
-                if (reportArguments.outputFile) {
-                    throw new GradleException("FindBugs rule violations were found. See the report at ${reportArguments.outputFile}.")
-                } else {
-                    throw new GradleException("FindBugs rule violations were found.")
-                }
+    void evaluateResult(FindBugsResult findbugsResult) {
+        //TODO handle errors in findbugs
+        if (findbugsResult.bugsFound && !ignoreFailures) {
+            SingleFileReport reportSetup = reports.firstEnabled
+            if (reports.firstEnabled) {
+                throw new GradleException("FindBugs rule violations were found. See the report at ${reportSetup.destination}.")
+            } else {
+                throw new GradleException("FindBugs rule violations were found.")
             }
         }
+
     }
 
     protected void addUnlessEmpty(Object ant, FileCollection files, String nodeName) {

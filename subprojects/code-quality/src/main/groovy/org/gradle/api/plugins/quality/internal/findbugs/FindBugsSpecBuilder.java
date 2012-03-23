@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality.internal;
+package org.gradle.api.plugins.quality.internal.findbugs;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.quality.FindBugsReports;
+import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
+import org.gradle.api.specs.Spec;
 
+import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 
-public class FindBugsArgumentBuilder {
+public class FindBugsSpecBuilder {
     private FileCollection pluginsList;
     private FileCollection sources;
     private FileCollection classpath;
@@ -32,39 +34,48 @@ public class FindBugsArgumentBuilder {
     private FileCollection classes;
     private FindBugsReports reports;
 
-    public FindBugsArgumentBuilder(FileCollection classes) {
+    private boolean debugEnabled;
+
+    public FindBugsSpecBuilder(FileCollection classes) {
         if(classes == null || classes.isEmpty()){
             throw new InvalidUserDataException("Classes must be configured to be analyzed by the Findbugs.");
         }
         this.classes = classes;
     }
 
-    public FindBugsArgumentBuilder withPluginsList(FileCollection pluginsClasspath) {
+    public FindBugsSpecBuilder withPluginsList(FileCollection pluginsClasspath) {
         this.pluginsList = pluginsClasspath;
         return this;
     }
 
-    public FindBugsArgumentBuilder withSources(FileCollection sources) {
+    public FindBugsSpecBuilder withSources(FileCollection sources) {
         this.sources = sources;
         return this;
     }
 
-    public FindBugsArgumentBuilder withClasspath(FileCollection classpath) {
+    public FindBugsSpecBuilder withClasspath(FileCollection classpath) {
         this.classpath = classpath;
         return this;
     }
 
-    public FindBugsArgumentBuilder configureReports(FindBugsReports reports){
+    public FindBugsSpecBuilder configureReports(FindBugsReports reports){
         this.reports = reports;
         return this;
     }
 
-    public List<String> build() {
+    public FindBugsSpecBuilder withDebugging(boolean debugEnabled){
+        this.debugEnabled = debugEnabled;
+        return this;
+    }
+
+    public FindBugsSpec build() {
         args = new ArrayList<String>();
         args.add("-pluginList");
         args.add(pluginsList==null ? "" : pluginsList.getAsPath());
         args.add("-sortByClass");
         args.add("-timestampNow");
+        args.add("-progress");
+
         if (reports != null && !reports.getEnabled().isEmpty()) {
             if (reports.getEnabled().size() == 1) {
                 FindBugsReportsImpl reportsImpl = (FindBugsReportsImpl) reports;
@@ -83,11 +94,19 @@ public class FindBugsArgumentBuilder {
 
         if (has(classpath)) {
             args.add("-auxclasspath");
-            args.add(classpath.getAsPath());
+
+            // Filter unexisting files as findbugs can't handle them.
+            args.add(classpath.filter(new Spec<File>() {
+                public boolean isSatisfiedBy(File element) {
+                    return element.exists();
+                }
+            }).getAsPath());
         }
-        args.add("-exitcode");
-        args.add(classes.getAsPath());
-        return args;
+        for (File classFile : classes.getFiles()) {
+            args.add(classFile.getAbsolutePath());
+        }
+        FindBugsSpec spec = new FindBugsSpec(args, debugEnabled);
+        return spec;
     }
 
     private boolean has(FileCollection fileCollection) {

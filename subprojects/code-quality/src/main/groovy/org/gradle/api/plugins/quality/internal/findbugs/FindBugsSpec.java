@@ -1,0 +1,54 @@
+/*
+ * Copyright 2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.plugins.quality.internal.findbugs;
+
+import java.io.Serializable;
+import java.util.List;
+
+public class FindBugsSpec implements Serializable {
+    private boolean debugEnabled;
+
+    private List<String> arguments;
+
+    public FindBugsSpec(List<String> arguments, boolean debugEnabled) {
+        this.debugEnabled = debugEnabled;
+        this.arguments = arguments;
+    }
+
+    public List<String> getArguments() {
+        return arguments;
+    }
+
+    public boolean isDebugEnabled() {
+        return debugEnabled;
+    }
+
+    public String toString() {
+        StringBuffer buffer = new StringBuffer("[FindBugsSpec: \n");
+        buffer.append("  debugEnabled: ").append(debugEnabled).append("\n");
+        if (arguments == null) {
+            buffer.append("  args: null \n");
+        } else {
+            buffer.append("  args: \n    [\n");
+            for (String arg : arguments) {
+                buffer.append("    ").append(arg).append(", \n");
+            }
+            buffer.append("    ]");
+        }
+        return buffer.toString();
+    }
+}

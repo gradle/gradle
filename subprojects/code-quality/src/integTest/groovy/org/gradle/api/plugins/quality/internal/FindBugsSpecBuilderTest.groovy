@@ -21,27 +21,30 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.reporting.SingleFileReport
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
 
-class FindBugsArgumentBuilderTest extends Specification{
+class FindBugsSpecBuilderTest extends Specification {
 
     FileCollection classes = Mock()
-    FindBugsArgumentBuilder builder = new FindBugsArgumentBuilder(classes)
+    FindBugsSpecBuilder builder = new FindBugsSpecBuilder(classes)
 
-    def "fails with empty classes Collection"(){
+    def setup(){
+        _ * classes.getFiles() >> Collections.emptyList()
+    }
+    def "fails with empty classes Collection"() {
         when:
-        new FindBugsArgumentBuilder(null)    
+        new FindBugsSpecBuilder(null)
         then:
         thrown(InvalidUserDataException)
 
         when:
         classes.empty >> true
-        new FindBugsArgumentBuilder(classes)
+        new FindBugsSpecBuilder(classes)
         then:
         thrown(InvalidUserDataException)
     }
-    
-    
-    def "with reports disabled"(){
+
+    def "with reports disabled"() {
         setup:
         NamedDomainObjectSet enabledReportSet = Mock()
         FindBugsReportsImpl report = Mock()
@@ -49,13 +52,24 @@ class FindBugsArgumentBuilderTest extends Specification{
         report.enabled >> enabledReportSet;
         enabledReportSet.empty >> true
         when:
-            builder.configureReports(report)
-            def args = builder.build()
+        builder.configureReports(report)
+        def spec = builder.build()
         then:
-            !args.contains("-outputFile")
+        !spec.arguments.contains("-outputFile")
     }
 
-    def "more than 1 enabled report throws exception"(){
+    def "with debugging"() {
+        when:
+        builder.withDebugging(debug)
+        def spec = builder.build()
+        then:
+        spec.debugEnabled == debug
+
+        where:
+        debug << [false, true]
+    }
+
+    def "more than 1 enabled report throws exception"() {
         setup:
         NamedDomainObjectSet enabledReportSet = Mock()
         FindBugsReportsImpl report = Mock()
@@ -72,7 +86,7 @@ class FindBugsArgumentBuilderTest extends Specification{
         e.message == "Findbugs tasks can only have one report enabled, however both the xml and html report are enabled. You need to disable one of them."
     }
 
-    def "with report configured"(){
+    def "with report configured"() {
         setup:
         SingleFileReport singleReport = Mock()
         File destination = Mock()
@@ -90,13 +104,13 @@ class FindBugsArgumentBuilderTest extends Specification{
 
         when:
         builder.configureReports(report)
-        def args = builder.build()
+        def args = builder.build().arguments
 
         then:
         args.contains("-$reportType".toString())
         args.contains("-outputFile")
         args.contains(destination.absolutePath)
-        
+
         where:
         reportType << ["xml", "html"];
     }
