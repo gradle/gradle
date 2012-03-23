@@ -22,10 +22,13 @@ import org.gradle.messaging.remote.Address;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
 import org.gradle.util.GUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,6 +61,8 @@ import java.util.jar.Manifest;
  * </pre>
  */
 public class ApplicationClassesInSystemClassLoaderWorkerFactory implements WorkerFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationClassesInSystemClassLoaderWorkerFactory.class);
+
     private final Object workerId;
     private final String displayName;
     private final WorkerProcessBuilder processBuilder;
@@ -92,9 +97,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
     public Collection<File> getSystemClasspath() {
         List<File> systemClasspath = new ArrayList<File>();
         systemClasspath.addAll(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
-        // TODO:DAZ Reverted to run test on windows
-//        systemClasspath.add(classpathJarFile);
-        systemClasspath.addAll(processBuilder.getApplicationClasspath());
+        systemClasspath.add(classpathJarFile);
         return systemClasspath;
     }
 
@@ -114,12 +117,33 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
      * Note that the main class must be placed on the classpath explicitly, and cannot be loaded via a classpath jar.
      */
     private static class ClasspathJarFactory {
-        public void createClasspathJarFile(File file, Collection<File> classpath) throws IOException {
+        public void createClasspathJarFile(File jarFile, Collection<File> classpath) throws IOException {
             Manifest manifest = new Manifest();
             Attributes attributes = manifest.getMainAttributes();
             attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-            attributes.putValue("Class-Path", GUtil.join(classpath, " "));
-            writeManifestOnlyJarFile(file, manifest);
+            attributes.putValue("Class-Path", createManifestClasspath(jarFile, classpath));
+            writeManifestOnlyJarFile(jarFile, manifest);
+        }
+
+        private String createManifestClasspath(File jarFile, Collection<File> classpath) throws IOException {
+            List<String> paths = new ArrayList<String>(classpath.size());
+            for (File file : classpath) {
+                String path = constructRelativeClasspathUri(jarFile, file);
+                paths.add(path);
+            }
+
+            String manifestClasspath = GUtil.join(paths, " ");
+            // TODO:DAZ Remove this logging
+            LOGGER.debug("Worker Process manifest classpath: {}", manifestClasspath);
+            return manifestClasspath;
+        }
+
+        // TODO:DAZ The returned URI will only be relative if the file is contained in the jarfile directory. Otherwise, an absolute URI is returned.
+        private String constructRelativeClasspathUri(File jarFile, File file) {
+            URI jarFileUri = jarFile.getParentFile().toURI();
+            URI fileUri = file.toURI();
+            URI relativeUri = jarFileUri.relativize(fileUri);
+            return relativeUri.getRawPath();
         }
 
         private void writeManifestOnlyJarFile(File file, Manifest manifest) throws IOException {
