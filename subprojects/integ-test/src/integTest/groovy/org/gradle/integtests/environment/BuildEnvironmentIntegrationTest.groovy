@@ -19,9 +19,9 @@ package org.gradle.integtests.environment
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.jvm.Jvm
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -31,25 +31,45 @@ import spock.lang.Issue
  */
 class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     def "canonicalizes working directory"() {
-        distribution.testFile("java/multiproject").createDir()
-        def projectDir = distribution.testFile("java/quickstart")
-        projectDir.file('build.gradle') << "assert file('.') == new File(new URI('${projectDir.toURI()}'))"
+        given:
+        testProject()
 
         when:
         def relativeDir = new File(distribution.testDir, 'java/multiproject/../quickstart')
         executer.inDirectory(relativeDir).run()
 
-        if (!FileSystems.default.caseSensitive) {
-            File mixedCaseDir = new File(distribution.testDir, "JAVA/QuickStart")
-            executer.inDirectory(mixedCaseDir).run()
-        }
-        if (OperatingSystem.current().isWindows()) {
-            File shortDir = new File(distribution.testDir, 'java/QUICKS~1')
-            executer.inDirectory(shortDir).run()
-        }
+        then:
+        noExceptionThrown()
+    }
+
+    @Requires(TestPrecondition.CASE_INSENSITIVE_FS)
+    def "canonicalizes working directory on case insensitive file system"() {
+        testProject()
+
+        when:
+        def mixedCaseDir = new File(distribution.testDir, "JAVA/QuickStart")
+        executer.inDirectory(mixedCaseDir).run()
 
         then:
         noExceptionThrown()
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "canonicalizes working directory for short windows path"() {
+        testProject()
+
+        when:
+        def shortDir = new File(distribution.testDir, 'java/QUICKS~1')
+        executer.inDirectory(shortDir).run()
+
+        then:
+        noExceptionThrown()
+    }
+
+    private testProject() {
+        distribution.testFile("java/multiproject").createDir()
+        def projectDir = distribution.testFile("java/quickstart")
+        projectDir.file('build.gradle') << "assert file('.') == new File(new URI('${projectDir.toURI()}'))"
     }
 
     @Issue("GRADLE-1762")
