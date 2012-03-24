@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.internal.SystemProperties;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -24,7 +25,7 @@ public class TmpDirTemporaryFileProvider extends DefaultTemporaryFileProvider {
     public TmpDirTemporaryFileProvider() {
         super(new FileSource() {
             public File get() {
-                return GFileUtils.canonicalise(new File(System.getProperty("java.io.tmpdir"), "gradle"));
+                return GFileUtils.canonicalise(new File(SystemProperties.getJavaIoTmpDir()));
             }
         });
     }
