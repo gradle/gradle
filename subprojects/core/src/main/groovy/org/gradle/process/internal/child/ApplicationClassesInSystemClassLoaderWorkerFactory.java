@@ -111,7 +111,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
                 implementationClassPath, injectedWorker);
         byte[] serializedWorker = GUtil.serialize(worker);
 
-        return new BootstrapClassLoaderWorker(classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs(), processBuilder.getApplicationClasspath(), serializedWorker);
+        return new BootstrapClassLoaderWorker(classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs(), serializedWorker);
     }
 
     /**

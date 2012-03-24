@@ -26,7 +26,7 @@ public class CustomSystemClassLoaderIntegrationTest extends AbstractIntegrationT
 
     @Test
     public void canRunTestsWithCustomSystemClassLoader() {
-        executer.withArguments('--debug').withTasks('clean', 'test').run();
+        executer.withTasks('test').run();
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.JUnitTest')
