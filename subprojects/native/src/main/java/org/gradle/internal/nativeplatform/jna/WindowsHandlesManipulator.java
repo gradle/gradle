@@ -16,6 +16,9 @@
 
 package org.gradle.internal.nativeplatform.jna;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 import static org.gradle.internal.nativeplatform.jna.Kernel32.*;
@@ -27,6 +30,7 @@ import static org.gradle.internal.nativeplatform.jna.Kernel32.*;
  * This is undesired because sometimes the child process is a long-running process but the parent process is a short-running process.
  */
 public class WindowsHandlesManipulator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(WindowsHandlesManipulator.class);
 
     /**
      * Makes the standard streams handles 'uninheritable' for the current process.
@@ -59,7 +63,17 @@ public class WindowsHandlesManipulator {
             throw new IOException("Invalid handle. Errno: " + kernel32.GetLastError());
         }
         boolean ok = kernel32.SetHandleInformation(streamHandle, HANDLE_FLAG_INHERIT, 0);
-        if (!ok && kernel32.GetLastError() != ERROR_INVALID_PARAMETER) {
+        if (!ok) {
+            int setHandleError = kernel32.GetLastError();
+            if (setHandleError == ERROR_INVALID_PARAMETER) {
+                // Didn't get a valid handle: ignore.
+                LOGGER.warn("Invalid parameter attempting to uninherit stream - child process may remain attached.");
+                return;
+            }
+            if (setHandleError == ERROR_INVALID_HANDLE) {
+                LOGGER.warn("Invalid handle attempting to uninherit stream - child process may remain attached.");
+                return;
+            }
             throw new IOException("Could not set flag on handle. Errno: " + kernel32.GetLastError());
         }
     }

@@ -35,6 +35,7 @@ public interface Kernel32 extends Library {
     int STD_OUTPUT_HANDLE = -11;
     int STD_ERROR_HANDLE = -12;
     int HANDLE_FLAG_INHERIT = 1;
+    int ERROR_INVALID_HANDLE = 6;
     int ERROR_INVALID_PARAMETER = 87;
     HANDLE INVALID_HANDLE_VALUE = new HANDLE(new Pointer(-1));
 
