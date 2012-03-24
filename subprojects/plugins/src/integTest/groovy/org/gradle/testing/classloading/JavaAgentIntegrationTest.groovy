@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.testing.jmockit
+package org.gradle.testing.classloading
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.JUnitTestExecutionResult
@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
 
-public class JMockitIntegrationTest extends AbstractIntegrationTest {
+public class JavaAgentIntegrationTest extends AbstractIntegrationTest {
     @Rule public final TestResources resources = new TestResources()
 
     @Test
