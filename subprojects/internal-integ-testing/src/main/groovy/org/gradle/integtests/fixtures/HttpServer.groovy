@@ -28,11 +28,11 @@ import org.mortbay.jetty.*
 import org.mortbay.jetty.security.*
 
 class HttpServer extends ExternalResource {
-    
+
     static enum IfModResponse {
         UNMODIFIED, MODIFIED
     }
-    
+
     private static Logger logger = LoggerFactory.getLogger(HttpServer.class)
 
     private final Server server = new Server(0)
@@ -131,7 +131,6 @@ class HttpServer extends ExternalResource {
         })
     }
 
-
     /**
      * Allows one HEAD request for the given URL, which return 404 status code
      */
@@ -182,6 +181,28 @@ class HttpServer extends ExternalResource {
                 }
             }
         });
+    }
+
+    /**
+     * Allow one GET request for the given URL, responding with a redirect.
+     */
+    void expectGetRedirected(String path, String location) {
+        expectRedirected('GET', path, location)
+    }
+
+    /**
+     * Allow one HEAD request for the given URL, responding with a redirect.
+     */
+    void expectHeadRedirected(String path, String location) {
+        expectRedirected('HEAD', path, location)
+    }
+
+    private void expectRedirected(String method, String path, String location) {
+        expect(path, false, [method], new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                response.sendRedirect(location)
+            }
+        })
     }
 
     /**
@@ -346,6 +367,7 @@ class HttpServer extends ExternalResource {
             throw new IllegalStateException("Can't handle IfModResponse $ifModResponse")
         }
     }
+
     static class TestUserRealm implements UserRealm {
         String username
         String password
