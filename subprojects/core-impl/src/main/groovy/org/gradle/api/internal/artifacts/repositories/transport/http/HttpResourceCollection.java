@@ -20,6 +20,7 @@ import org.apache.http.client.methods.*;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.client.ContentEncodingHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
@@ -132,7 +133,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
 
         HttpResponse response;
         try {
-            response = executeMethod(request);
+            response = executeGetOrHead(request);
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not %s '%s'.", method, source), e);
         }
@@ -183,7 +184,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         HttpGet get = new HttpGet(checksumUrl);
         configurer.configureMethod(get);
         try {
-            HttpResponse httpResponse = executeMethod(get);
+            HttpResponse httpResponse = executeGetOrHead(get);
             if (wasSuccessful(httpResponse)) {
                 String checksumValue = EntityUtils.toString(httpResponse.getEntity());
                 return HashValue.parse(checksumValue);
@@ -249,8 +250,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         HttpPut method = new HttpPut(destination);
         configurer.configureMethod(method);
         method.setEntity(new FileEntity(source, "application/octet-stream"));
-        LOGGER.debug("Performing HTTP PUT: {}", method.getURI());
-        HttpResponse response = client.execute(method, httpContext);
+        HttpResponse response = performHttpRequest(method);
         EntityUtils.consume(response.getEntity());
         if (!wasSuccessful(response)) {
             throw new IOException(String.format("Could not PUT '%s'. Received status code %s from server: %s",
@@ -258,15 +258,22 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         }
     }
 
-    private HttpResponse executeMethod(HttpUriRequest method) throws IOException {
-        LOGGER.debug("Performing HTTP GET: {}", method.getURI());
-        HttpResponse httpResponse = client.execute(method, httpContext);
+    private HttpResponse executeGetOrHead(HttpRequestBase method) throws IOException {
+        HttpResponse httpResponse = performHttpRequest(method);
         // Consume content for non-successful, responses. This avoids the connection being left open.
         if (!wasSuccessful(httpResponse)) {
             EntityUtils.consume(httpResponse.getEntity());
             return httpResponse;
         }
         return httpResponse;
+    }
+
+    private HttpResponse performHttpRequest(HttpRequestBase request) throws IOException {
+        // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
+        httpContext.removeAttribute(DefaultRedirectStrategy.REDIRECT_LOCATIONS);
+
+        LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), request.getURI());
+        return client.execute(request, httpContext);
     }
 
     public List list(String parent) throws IOException {
