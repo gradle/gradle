@@ -21,40 +21,6 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-D</option>, <option>--system-prop</option>
-            </term>
-            <listitem>
-                <para>Sets a system property of the JVM, for example <literal>-Dmyprop=myvalue</literal>.
-                    See <xref linkend="sec:gradle_properties_and_system_properties"/>.
-                </para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
-            <term><option>-I</option>, <option>--init-script</option>
-            </term>
-            <listitem>
-                <para>Specifies an initialization script. See <xref linkend="init_scripts"/>.
-                </para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
-            <term><option>-P</option>, <option>--project-prop</option>
-            </term>
-            <listitem>
-                <para>Sets a project property of the root project, for example
-                    <literal>-Pmyprop=myvalue</literal>. See <xref linkend="sec:gradle_properties_and_system_properties"/>.
-                </para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
-            <term><option>-S</option>, <option>--full-stacktrace</option>
-            </term>
-            <listitem>
-                <para>Print out the full (very verbose) stacktrace for any exceptions. See <xref linkend="logging"/>.
-                </para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
             <term><option>-a</option>, <option>--no-rebuild</option>
             </term>
             <listitem>
@@ -87,18 +53,27 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-d</option>, <option>--debug</option>
+            <term>
+                <option>--continue</option>
             </term>
             <listitem>
-                <para>Log in debug mode (includes normal stacktrace). See <xref linkend="logging"/>.
+                <para>Continues task execution after a task failure.</para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-D</option>, <option>--system-prop</option>
+            </term>
+            <listitem>
+                <para>Sets a system property of the JVM, for example <literal>-Dmyprop=myvalue</literal>.
+                    See <xref linkend="sec:gradle_properties_and_system_properties"/>.
                 </para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-e</option>, <option>--embedded</option>
+            <term><option>-d</option>, <option>--debug</option>
             </term>
             <listitem>
-                <para>Specify an embedded build script.
+                <para>Log in debug mode (includes normal stacktrace). See <xref linkend="logging"/>.
                 </para>
             </listitem>
         </varlistentry>
@@ -118,6 +93,14 @@
             </term>
             <listitem>
                 <para>Launches the Gradle GUI. See <xref linkend="tutorial_gradle_gui"/>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-I</option>, <option>--init-script</option>
+            </term>
+            <listitem>
+                <para>Specifies an initialization script. See <xref linkend="init_scripts"/>.
                 </para>
             </listitem>
         </varlistentry>
@@ -143,6 +126,23 @@
             </term>
             <listitem>
                 <para>Do not use color in the console output.</para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <option>--offline</option>
+            </term>
+            <listitem>
+                <para>Specifies that the build should operate without accessing network resources. See <xref linkend="sec:cache_command_line_options"/>.</para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-P</option>, <option>--project-prop</option>
+            </term>
+            <listitem>
+                <para>Sets a project property of the root project, for example
+                    <literal>-Pmyprop=myvalue</literal>. See <xref linkend="sec:gradle_properties_and_system_properties"/>.
+                </para>
             </listitem>
         </varlistentry>
         <varlistentry>
@@ -186,16 +186,6 @@
         </varlistentry>
         <varlistentry>
             <term>
-                <option>--refresh-dependencies</option>
-            </term>
-            <listitem>
-                <para>Refresh the state of dependencies.
-                    See <xref linkend="sec:cache_command_line_options"/>.
-                </para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
-            <term>
                 <option>--recompile-scripts</option>
             </term>
             <listitem>
@@ -206,10 +196,28 @@
         </varlistentry>
         <varlistentry>
             <term>
+                <option>--refresh-dependencies</option>
+            </term>
+            <listitem>
+                <para>Refresh the state of dependencies.
+                    See <xref linkend="sec:cache_command_line_options"/>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
                 <option>--rerun-tasks</option>
             </term>
             <listitem>
                 <para>Specifies that any task optimization is ignored.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-S</option>, <option>--full-stacktrace</option>
+            </term>
+            <listitem>
+                <para>Print out the full (very verbose) stacktrace for any exceptions. See <xref linkend="logging"/>.
                 </para>
             </listitem>
         </varlistentry>
@@ -245,22 +253,6 @@
             <listitem>
                 <para>Specifies a task to be excluded from execution. See <xref linkend="sec:excluding_tasks_from_the_command_line"/>.
                 </para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
-            <term>
-                <option>--continue</option>
-            </term>
-            <listitem>
-                <para>Continues task execution after a task failure.</para>
-            </listitem>
-        </varlistentry>
-        <varlistentry>
-            <term>
-                <option>--offline</option>
-            </term>
-            <listitem>
-                <para>Specifies that the build should operate without accessing network resources. See <xref linkend="sec:cache_command_line_options"/>.</para>
             </listitem>
         </varlistentry>
     </variablelist>
