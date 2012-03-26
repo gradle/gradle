@@ -16,30 +16,28 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
+
 import java.io.File;
-import java.util.Date;
 
 public class DownloadedArtifact {
 
     private final File localFile;
-    private final Date lastModified;
-    private final String source;
+    private final ExternalResourceMetaData externalResourceMetaData;
 
-    public DownloadedArtifact(File localFile, Date lastModified, String source) {
+    public DownloadedArtifact(File localFile, @Nullable ExternalResourceMetaData externalResourceMetaData) {
         this.localFile = localFile;
-        this.lastModified = lastModified;
-        this.source = source;
+        this.externalResourceMetaData = externalResourceMetaData;
     }
 
     public File getLocalFile() {
         return localFile;
     }
 
-    public Date getLastModified() {
-        return lastModified;
+    @Nullable
+    public ExternalResourceMetaData getExternalResourceMetaData() {
+        return externalResourceMetaData;
     }
 
-    public String getSource() {
-        return source;
-    }
 }

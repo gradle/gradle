@@ -26,6 +26,7 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
+import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +86,7 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
             if (artifactOrigin instanceof ArtifactOriginWithLastModified) {
                 lastModified = ((ArtifactOriginWithLastModified) artifactOrigin).getLastModified();
             }
-            return new DownloadedArtifact(localFile, lastModified, source);
+            return new DownloadedArtifact(localFile, new DefaultExternalResourceMetaData(source, lastModified, -1));
         } else {
             return null;
         }

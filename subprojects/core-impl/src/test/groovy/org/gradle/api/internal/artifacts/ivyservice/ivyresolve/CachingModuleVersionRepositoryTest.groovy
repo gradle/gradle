@@ -31,6 +31,7 @@ import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.externalresource.CachedExternalResourceIndex
 import org.gradle.api.internal.externalresource.ExternalResourceMetaData
+import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData
 
 class CachingModuleVersionRepositoryTest extends Specification {
 
@@ -44,7 +45,8 @@ class CachingModuleVersionRepositoryTest extends Specification {
     
     @Unroll "last modified date is cached - lastModified = #lastModified"(Date lastModified) {
         given:
-        DownloadedArtifact downloadedArtifact = new DownloadedArtifact(new File("artifact"), lastModified, "remote url")
+        ExternalResourceMetaData externalResourceMetaData = new DefaultExternalResourceMetaData("remote url", lastModified, -1)
+        DownloadedArtifact downloadedArtifact = new DownloadedArtifact(new File("artifact"), externalResourceMetaData)
         Artifact artifact = Mock()
         ArtifactRevisionId id = arid()
         ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey(realRepo, id)
@@ -60,10 +62,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
         repo.download(artifact)
         
         then:
-        1 * artifactAtRepositoryCache.store(atRepositoryKey, downloadedArtifact.localFile, { ExternalResourceMetaData md -> 
-            downloadedArtifact.lastModified == md.lastModified 
-            downloadedArtifact.source == md.location
-        })
+        1 * artifactAtRepositoryCache.store(atRepositoryKey, downloadedArtifact.localFile, externalResourceMetaData)
         
         where:
         lastModified << [new Date(), null]

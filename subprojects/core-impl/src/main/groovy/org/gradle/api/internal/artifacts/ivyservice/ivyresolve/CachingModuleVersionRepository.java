@@ -25,19 +25,16 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
-import org.gradle.api.internal.externalresource.CachedExternalResource;
-import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
-import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData;
-import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
+import org.gradle.api.internal.externalresource.CachedExternalResource;
+import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Date;
 
 public class CachingModuleVersionRepository implements ModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(CachingModuleVersionRepository.class);
@@ -213,8 +210,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
                 File cachedArtifactFile = cached.getCachedFile();
                 if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, cached.getCachedAt())) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
-                    ExternalResourceMetaData metaData = cached.getExternalResourceMetaData();
-                    return new DownloadedArtifact(cachedArtifactFile, metaData.getLastModified(), metaData.getLocation());
+                    return new DownloadedArtifact(cachedArtifactFile, cached.getExternalResourceMetaData());
                 }
             }
         }
@@ -225,10 +221,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         if (downloadedArtifact == null) {
             artifactAtRepositoryCachedResolutionIndex.storeMissing(resolutionCacheIndexKey);
         } else {
-            String artifactUrl = downloadedArtifact.getSource();
-            File artifactFile = downloadedArtifact.getLocalFile();
-            Date artifactLastModified = downloadedArtifact.getLastModified();
-            artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, artifactFile, new DefaultExternalResourceMetaData(artifactUrl, artifactLastModified, -1));
+            artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, downloadedArtifact.getLocalFile(), downloadedArtifact.getExternalResourceMetaData());
         }
 
         return downloadedArtifact;
