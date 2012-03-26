@@ -19,13 +19,14 @@ import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.util.EntityUtils;
+import org.gradle.api.internal.externalresource.AbstractExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-class HttpResponseResource extends AbstractHttpResource {
+class HttpResponseResource extends AbstractExternalResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResponseResource.class);
 
     private final String method;

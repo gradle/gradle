@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport.http;
+package org.gradle.api.internal.externalresource;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-class MissingHttpResource extends AbstractHttpResource {
+public class MissingExternalResource extends AbstractExternalResource {
     private final String source;
 
-    public MissingHttpResource(String source) {
+    public MissingExternalResource(String source) {
         this.source = source;
     }
 

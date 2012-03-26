@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport.http;
+package org.gradle.api.internal.externalresource;
 
-import org.gradle.api.internal.externalresource.CachedExternalResource;
+import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResourceCollection;
 import org.gradle.util.hash.HashValue;
 
-class CachedHttpResource extends LocalFileStandInHttpResource {
+public class CachedExternalResourceAdapter extends LocalFileStandInExternalResource {
     private final CachedExternalResource cachedExternalResource;
 
-    public CachedHttpResource(String source, CachedExternalResource cachedExternalResource, HttpResourceCollection resourceCollection) {
+    public CachedExternalResourceAdapter(String source, CachedExternalResource cachedExternalResource, HttpResourceCollection resourceCollection) {
         super(source, cachedExternalResource.getCachedFile(), resourceCollection);
         this.cachedExternalResource = cachedExternalResource;
     }

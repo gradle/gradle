@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport.http;
+package org.gradle.api.internal.externalresource;
 
 
 import org.apache.ivy.util.CopyProgressListener
-import org.gradle.api.internal.externalresource.CachedExternalResource
-import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData
+import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResourceCollection
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.hash.HashUtil
 import org.gradle.util.hash.HashValue
 import org.junit.Rule
 import spock.lang.Specification
 
-public class CachedHttpResourceTest extends Specification {
+public class CachedExternalResourceAdapterTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
 
     HttpResourceCollection httpResourceCollection = Mock()
     CachedExternalResource cachedExternalResource = Mock()
     CopyProgressListener progress = Mock()
-    CachedHttpResource cachedResource
+    CachedExternalResourceAdapter cachedResource
     def origin = tmpDir.file('origin')
     def destination = tmpDir.file('destination')
     def download = tmpDir.file('download')
@@ -39,7 +38,7 @@ public class CachedHttpResourceTest extends Specification {
     def setup() {
         cachedExternalResource.cachedFile >> origin
         cachedExternalResource.sha1 >> { HashUtil.createHash(origin, "SHA1") }
-        cachedResource = new CachedHttpResource("resource-source", cachedExternalResource, httpResourceCollection)
+        cachedResource = new CachedExternalResourceAdapter("resource-source", cachedExternalResource, httpResourceCollection)
     }
 
     def "delegates to cached artifact"() {
@@ -68,7 +67,7 @@ public class CachedHttpResourceTest extends Specification {
         given:
         origin << "some content"
         download << "some other content"
-        HttpResource resource = Mock()
+        ExternalResource resource = Mock()
 
         when:
         cachedResource.writeTo(destination, progress)

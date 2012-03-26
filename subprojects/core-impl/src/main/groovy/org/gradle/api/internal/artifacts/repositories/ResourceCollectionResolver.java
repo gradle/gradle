@@ -39,7 +39,7 @@ import org.apache.ivy.util.FileUtil;
 import org.apache.ivy.util.Message;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithLastModified;
 import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
-import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResource;
+import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.slf4j.Logger;
@@ -277,9 +277,9 @@ public class ResourceCollectionResolver extends BasicResolver {
     }
 
     protected void discardResource(Resource resource) {
-        if (resource instanceof HttpResource) {
+        if (resource instanceof ExternalResource) {
             try {
-                ((HttpResource) resource).close();
+                ((ExternalResource) resource).close();
             } catch (IOException e) {
                 LOGGER.warn("Exception closing resource " + resource.getName(), e);
             }

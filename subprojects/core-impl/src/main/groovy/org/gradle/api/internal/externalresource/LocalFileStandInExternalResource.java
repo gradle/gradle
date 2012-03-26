@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.transport.http;
+package org.gradle.api.internal.externalresource;
 
 import org.apache.ivy.util.CopyProgressListener;
+import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResourceCollection;
 import org.gradle.util.hash.HashUtil;
 import org.gradle.util.hash.HashValue;
 
@@ -25,13 +26,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class LocalFileStandInHttpResource extends AbstractHttpResource {
+public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
     private final File localFile;
     private final String source;
     private final HttpResourceCollection resourceCollection;
 
-    public LocalFileStandInHttpResource(String source, File localFile, HttpResourceCollection resourceCollection) {
+    public LocalFileStandInExternalResource(String source, File localFile, HttpResourceCollection resourceCollection) {
         this.source = source;
         this.localFile = localFile;
         this.resourceCollection = resourceCollection;

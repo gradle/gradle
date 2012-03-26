@@ -16,7 +16,10 @@
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.*;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.client.ContentEncodingHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -28,12 +31,11 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.repository.*;
 import org.apache.ivy.util.url.ApacheURLLister;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
+import org.gradle.api.internal.externalresource.*;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
-import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
-import org.gradle.api.internal.externalresource.CachedExternalResource;
-import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
@@ -53,7 +55,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
     private final DefaultHttpClient client = new ContentEncodingHttpClient();
     private final BasicHttpContext httpContext = new BasicHttpContext();
     private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
-    private final List<HttpResource> openResources = new ArrayList<HttpResource>();
+    private final List<ExternalResource> openResources = new ArrayList<ExternalResource>();
 
 
     private final HttpClientConfigurer configurer;
@@ -70,25 +72,25 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         this.byUrlCachedExternalResourceIndex = byUrlCachedExternalResourceIndex;
     }
 
-    public HttpResource getResource(String source) throws IOException {
+    public ExternalResource getResource(String source) throws IOException {
         return getResource(source, null);
     }
 
-    public HttpResource getResource(final String source, ArtifactRevisionId artifactId) throws IOException {
+    public ExternalResource getResource(final String source, ArtifactRevisionId artifactId) throws IOException {
         return getResource(source, artifactId, true);
     }
 
-    public HttpResource getResource(String source, ArtifactRevisionId artifactId, boolean forDownload) throws IOException {
+    public ExternalResource getResource(String source, ArtifactRevisionId artifactId, boolean forDownload) throws IOException {
         abortOpenResources();
         if (forDownload) {
-            HttpResource httpResource = initGet(source, artifactId);
+            ExternalResource httpResource = initGet(source, artifactId);
             return recordOpenGetResource(httpResource);
         }
         return initHead(source);
     }
 
     private void abortOpenResources() {
-        for (HttpResource openResource : openResources) {
+        for (ExternalResource openResource : openResources) {
             LOGGER.warn("Forcing close on abandoned resource: " + openResource);
             try {
                 openResource.close();
@@ -99,20 +101,20 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         openResources.clear();
     }
 
-    private HttpResource recordOpenGetResource(HttpResource httpResource) {
+    private ExternalResource recordOpenGetResource(ExternalResource httpResource) {
         if (httpResource instanceof HttpResponseResource) {
             openResources.add(httpResource);
         }
         return httpResource;
     }
 
-    private HttpResource initGet(String source, ArtifactRevisionId artifactId) {
+    private ExternalResource initGet(String source, ArtifactRevisionId artifactId) {
         LOGGER.debug("Constructing GET resource: {}", source);
 
         // Do we have any artifacts in the cache with the same checksum
         LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifactId);
         if (!localCandidates.isNone()) {
-            HttpResource cachedResource = findCachedResourceBySha1(source, localCandidates);
+            ExternalResource cachedResource = findCachedResourceBySha1(source, localCandidates);
             if (cachedResource != null) {
                 return cachedResource;
             }
@@ -122,13 +124,13 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         return processHttpRequest(source, request, byUrlCachedExternalResourceIndex.lookup(source));
     }
 
-    private HttpResource initHead(String source) {
+    private ExternalResource initHead(String source) {
         LOGGER.debug("Constructing HEAD resource: {}", source);
         HttpHead request = new HttpHead(source);
         return processHttpRequest(source, request, null);
     }
 
-    private HttpResource processHttpRequest(String source, HttpRequestBase request, CachedExternalResource cachedExternalResource) {
+    private ExternalResource processHttpRequest(String source, HttpRequestBase request, CachedExternalResource cachedExternalResource) {
         String method = request.getMethod();
         configurer.configureMethod(request);
 
@@ -147,11 +149,11 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
 
         if (wasMissing(response)) {
             LOGGER.info("Resource missing. [HTTP {}: {}]", method, source);
-            return new MissingHttpResource(source);
+            return new MissingExternalResource(source);
         }
         if (cachedExternalResource != null && wasUnmodified(response)) {
             LOGGER.info("Resource was unmodified. [HTTP {}: {}]", method, source);
-            return new CachedHttpResource(source, cachedExternalResource, HttpResourceCollection.this);
+            return new CachedExternalResourceAdapter(source, cachedExternalResource, HttpResourceCollection.this);
         }
         if (!wasSuccessful(response)) {
             LOGGER.info("Failed to get resource: {}. [HTTP {}: {}]", new Object[]{method, response.getStatusLine(), source});
@@ -168,7 +170,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         };
     }
 
-    private HttpResource findCachedResourceBySha1(String source, LocallyAvailableResourceCandidates candidates) {
+    private ExternalResource findCachedResourceBySha1(String source, LocallyAvailableResourceCandidates candidates) {
         String checksumType = "SHA-1";
         String checksumUrl = source + ".sha1";
 
@@ -179,7 +181,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
             LocallyAvailableResource locallyAvailable = candidates.findByHashValue(sha1);
             if (locallyAvailable != null) {
                 LOGGER.info("Checksum {} matched cached resource: [HTTP GET: {}]", checksumType, checksumUrl);
-                return new LocallyAvailableResourceHttpResource(source, locallyAvailable, HttpResourceCollection.this);
+                return new LocallyAvailableExternalResource(source, locallyAvailable, HttpResourceCollection.this);
             }
 
             LOGGER.info("Checksum {} did not match cached resources: [HTTP GET: {}]", checksumType, checksumUrl);
@@ -214,10 +216,10 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
     }
 
     public void downloadResource(Resource res, File destination) throws IOException {
-        if (!(res instanceof HttpResource)) {
-            throw new IllegalArgumentException("Can only download HttpResource");
+        if (!(res instanceof ExternalResource)) {
+            throw new IllegalArgumentException("Can only download ExternalResource");
         }
-        HttpResource resource = (HttpResource) res;
+        ExternalResource resource = (ExternalResource) res;
         fireTransferInitiated(resource, TransferEvent.REQUEST_GET);
         try {
             progress.setTotalLength(resource.getContentLength() > 0 ? resource.getContentLength() : null);

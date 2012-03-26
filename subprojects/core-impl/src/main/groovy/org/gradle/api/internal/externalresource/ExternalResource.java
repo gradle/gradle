@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories.transport.http;
+package org.gradle.api.internal.externalresource;
 
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.util.CopyProgressListener;
@@ -21,7 +21,7 @@ import org.apache.ivy.util.CopyProgressListener;
 import java.io.File;
 import java.io.IOException;
 
-public interface HttpResource extends Resource {
+public interface ExternalResource extends Resource {
     void writeTo(File destination, CopyProgressListener progress) throws IOException;
 
     void close() throws IOException;

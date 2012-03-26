@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.transport.http;
+package org.gradle.api.internal.externalresource;
 
+import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResourceCollection;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResource;
 import org.gradle.util.hash.HashValue;
 
-public class LocallyAvailableResourceHttpResource extends LocalFileStandInHttpResource {
+public class LocallyAvailableExternalResource extends LocalFileStandInExternalResource {
 
     private final LocallyAvailableResource locallyAvailableResource;
 
-    public LocallyAvailableResourceHttpResource(String source, LocallyAvailableResource locallyAvailableResource, HttpResourceCollection resourceCollection) {
+    public LocallyAvailableExternalResource(String source, LocallyAvailableResource locallyAvailableResource, HttpResourceCollection resourceCollection) {
         super(source, locallyAvailableResource.getOrigin(), resourceCollection);
         this.locallyAvailableResource = locallyAvailableResource;
     }
