@@ -26,6 +26,8 @@ import org.gradle.util.TimeProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
+import org.gradle.api.internal.externalresource.DefaultCachedExternalResourceIndex
+import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData
 
 class DefaultArtifactResolutionCacheTest extends Specification {
 
@@ -40,12 +42,12 @@ class DefaultArtifactResolutionCacheTest extends Specification {
     DefaultCacheRepository cacheRepository
     DefaultCacheLockingManager cacheLockingManager
     
-    DefaultCachedArtifactResolutionIndex<String> index
+    DefaultCachedExternalResourceIndex<String> index
 
     def setup() {
         cacheRepository = new DefaultCacheRepository(tmp.createDir('user-home'), tmp.createDir('project-cache'), CacheUsage.ON, cacheFactory)
         cacheLockingManager = new DefaultCacheLockingManager(cacheRepository)
-        index = new DefaultCachedArtifactResolutionIndex(tmp.createFile("index"), String, timeProvider, cacheLockingManager)
+        index = new DefaultCachedExternalResourceIndex(tmp.createFile("index"), String, timeProvider, cacheLockingManager)
     }
 
     @Unroll "stores entry - lastModified = #lastModified, artifactUrl = #artifactUrl"() {
@@ -54,16 +56,18 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         def artifactFile = tmp.createFile("artifact") << "content"
         
         when:
-        index.store(key, artifactFile, lastModified, artifactUrl)
+        index.store(key, artifactFile, new DefaultExternalResourceMetaData(artifactUrl, lastModified, 100))
         
         then:
-        def resolution = index.lookup(key)
+        def cached = index.lookup(key)
         
         and:
-        resolution != null
-        resolution.artifactLastModified == lastModified
-        resolution.artifactUrl == artifactUrl
-        resolution.artifactFile == artifactFile
+        cached != null
+        cached.cachedFile == artifactFile
+        cached.externalResourceMetaData != null
+        cached.externalResourceMetaData.lastModified == lastModified
+        cached.externalResourceMetaData.location == artifactUrl
+
 
         where:
         lastModified | artifactUrl

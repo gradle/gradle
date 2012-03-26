@@ -32,10 +32,11 @@ import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
-import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithLastModified;
 import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
-import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolutionIndex;
+import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData;
+import org.gradle.api.internal.filestore.FileStore;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,9 +48,9 @@ import java.util.Date;
  */
 public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheManager {
     private final FileStore<ArtifactRevisionId> fileStore;
-    private final CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex;
+    private final CachedExternalResourceIndex<String> artifactUrlCachedResolutionIndex;
 
-    public DownloadingRepositoryCacheManager(String name, FileStore<ArtifactRevisionId> fileStore, CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex) {
+    public DownloadingRepositoryCacheManager(String name, FileStore<ArtifactRevisionId> fileStore, CachedExternalResourceIndex<String> artifactUrlCachedResolutionIndex) {
         super(name);
         this.fileStore = fileStore;
         this.artifactUrlCachedResolutionIndex = artifactUrlCachedResolutionIndex;
@@ -106,7 +107,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         String url = artifactRef.getResource().getName();
         long lastModifiedTimestamp = artifactRef.getResource().getLastModified();
         Date lastModified = lastModifiedTimestamp > 0 ? new Date(lastModifiedTimestamp) : null;
-        artifactUrlCachedResolutionIndex.store(artifactRef.getResource().getName(), fileInFileStore, lastModified, url);
+        artifactUrlCachedResolutionIndex.store(artifactRef.getResource().getName(), fileInFileStore, new DefaultExternalResourceMetaData(url, lastModified, -1));
 
         return fileInFileStore;
     }

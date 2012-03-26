@@ -24,18 +24,20 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolu
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache
 import spock.lang.Specification
 import spock.lang.Unroll
-import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolutionIndex
+
 import org.gradle.api.internal.artifacts.resolutioncache.ArtifactAtRepositoryKey
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.externalresource.CachedExternalResourceIndex
+import org.gradle.api.internal.externalresource.ExternalResourceMetaData
 
 class CachingModuleVersionRepositoryTest extends Specification {
 
     ModuleVersionRepository realRepo = Mock()
     ModuleResolutionCache moduleResolutionCache = Mock()
     ModuleDescriptorCache moduleDescriptorCache = Mock()
-    CachedArtifactResolutionIndex artifactAtRepositoryCache = Mock()
+    CachedExternalResourceIndex artifactAtRepositoryCache = Mock()
     CachePolicy cachePolicy = Mock()
 
     CachingModuleVersionRepository repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache, cachePolicy)
@@ -46,6 +48,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
         Artifact artifact = Mock()
         ArtifactRevisionId id = arid()
         ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey(realRepo, id)
+        
 
         and:
         _ * realRepo.isLocal() >> false
@@ -57,7 +60,10 @@ class CachingModuleVersionRepositoryTest extends Specification {
         repo.download(artifact)
         
         then:
-        1 * artifactAtRepositoryCache.store(atRepositoryKey, downloadedArtifact.localFile, downloadedArtifact.lastModified, downloadedArtifact.source)
+        1 * artifactAtRepositoryCache.store(atRepositoryKey, downloadedArtifact.localFile, { ExternalResourceMetaData md -> 
+            downloadedArtifact.lastModified == md.lastModified 
+            downloadedArtifact.source == md.location
+        })
         
         where:
         lastModified << [new Date(), null]

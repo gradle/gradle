@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.resolutioncache;
+package org.gradle.api.internal.externalresource;
+
+import org.gradle.api.Nullable;
 
 import java.io.File;
-import java.util.Date;
 
 /**
  * Provides an indexed view into cached artifacts and a record of resolution attempts, successful or not.
@@ -25,7 +26,7 @@ import java.util.Date;
  * 
  * @param <K> The type of the key to the index
  */
-public interface CachedArtifactResolutionIndex<K> {
+public interface CachedExternalResourceIndex<K> {
 
     /**
      * Adds a resolution to the index.
@@ -35,11 +36,10 @@ public interface CachedArtifactResolutionIndex<K> {
      *
      * @param key The key to cache this resolution under in the index. Cannot be null.
      * @param artifactFile The artifact file in the persistent file store. Cannot be null
-     * @param lastModified The date that the artifact was last modified <b>at the source</b> if known. May be null.
-     * @param sourceUrl The URL that this artifact was resolved from, if known. May be null.
+     * @param metaData Information about this resource at its source
      * @see #storeMissing(Object)
      */
-    void store(K key, File artifactFile, Date lastModified, String sourceUrl);
+    void store(K key, File artifactFile, @Nullable ExternalResourceMetaData metaData);
 
     /**
      * Record that the artifact with the given key was missing.
@@ -57,7 +57,8 @@ public interface CachedArtifactResolutionIndex<K> {
      * @param key The key to search the index for
      * @return The cached artifact resolution if one exists, otherwise null.
      */
-    CachedArtifactResolution lookup(K key);
+    @Nullable
+    CachedExternalResource lookup(K key);
 
     /**
      * Remove the entry for the given key if it exists.

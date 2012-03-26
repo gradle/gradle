@@ -17,11 +17,12 @@
 package org.gradle.api.internal.artifacts.resolutioncache;
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.externalresource.DefaultCachedExternalResourceIndex;
 import org.gradle.util.TimeProvider;
 
 import java.io.File;
 
-public class ArtifactAtRepositoryCachedResolutionIndex extends DefaultCachedArtifactResolutionIndex<ArtifactAtRepositoryKey> {
+public class ArtifactAtRepositoryCachedResolutionIndex extends DefaultCachedExternalResourceIndex<ArtifactAtRepositoryKey> {
 
     public ArtifactAtRepositoryCachedResolutionIndex(File persistentCacheFile, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         super(persistentCacheFile, ArtifactAtRepositoryKey.class, timeProvider, cacheLockingManager);

@@ -26,11 +26,13 @@ import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.resolutioncache.ArtifactAtRepositoryKey;
-import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolutionIndex;
-import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolution;
+import org.gradle.api.internal.externalresource.CachedExternalResource;
+import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ForceChangeDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
+import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData;
+import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,14 +44,14 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
 
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
-    private final CachedArtifactResolutionIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
+    private final CachedExternalResourceIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
     
     private final CachePolicy cachePolicy;
 
     private final ModuleVersionRepository delegate;
 
     public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
-                                          CachedArtifactResolutionIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
+                                          CachedExternalResourceIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
                                           CachePolicy cachePolicy) {
         this.delegate = delegate;
         this.moduleDescriptorCache = moduleDescriptorCache;
@@ -198,20 +200,21 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
         ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate, artifact.getId());
 
         // Look in the cache for this resolver
-        CachedArtifactResolution cachedArtifactResolution = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
+        CachedExternalResource cached = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
 
-        if (cachedArtifactResolution != null) {
+        if (cached != null) {
             ArtifactIdentifier artifactIdentifier = createArtifactIdentifier(artifact);
-            if (cachedArtifactResolution.isMissing()) {
-                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, cachedArtifactResolution.getAgeMillis())) {
+            if (cached.isMissing()) {
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, cached.getCachedAt())) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
                     return null;
                 }
             } else {
-                File cachedArtifactFile = cachedArtifactResolution.getArtifactFile();
-                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, cachedArtifactResolution.getAgeMillis())) {
+                File cachedArtifactFile = cached.getCachedFile();
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, cached.getCachedAt())) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
-                    return new DownloadedArtifact(cachedArtifactFile, cachedArtifactResolution.getArtifactLastModified(), cachedArtifactResolution.getArtifactUrl());
+                    ExternalResourceMetaData metaData = cached.getExternalResourceMetaData();
+                    return new DownloadedArtifact(cachedArtifactFile, metaData.getLastModified(), metaData.getLocation());
                 }
             }
         }
@@ -225,7 +228,7 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
             String artifactUrl = downloadedArtifact.getSource();
             File artifactFile = downloadedArtifact.getLocalFile();
             Date artifactLastModified = downloadedArtifact.getLastModified();
-            artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, artifactFile, artifactLastModified, artifactUrl);
+            artifactAtRepositoryCachedResolutionIndex.store(resolutionCacheIndexKey, artifactFile, new DefaultExternalResourceMetaData(artifactUrl, artifactLastModified, -1));
         }
 
         return downloadedArtifact;

@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.resolutioncache;
+package org.gradle.api.internal.externalresource;
 
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.externalresource.DefaultCachedExternalResourceIndex;
-import org.gradle.util.TimeProvider;
+import java.util.Date;
 
-import java.io.File;
+public interface ExternalResourceMetaData {
 
-public class ArtifactUrlCachedResolutionIndex extends DefaultCachedExternalResourceIndex<String> {
+    String getLocation();
 
-    public ArtifactUrlCachedResolutionIndex(File persistentCacheFile, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        super(persistentCacheFile, String.class, timeProvider, cacheLockingManager);
-    }
+    Date getLastModified();
+
+    long getContentLength();
 
 }

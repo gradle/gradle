@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
 import org.gradle.api.internal.artifacts.resolutioncache.ArtifactAtRepositoryKey;
-import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolutionIndex;
+import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
 import org.gradle.util.WrapUtil;
@@ -40,14 +40,14 @@ public class ResolveIvyFactory {
     private final SettingsConverter settingsConverter;
     private final ModuleResolutionCache moduleResolutionCache;
     private final ModuleDescriptorCache moduleDescriptorCache;
-    private final CachedArtifactResolutionIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
+    private final CachedExternalResourceIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
     private final CacheLockingManager cacheLockingManager;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
 
 
     public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter,
                              ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
-                             CachedArtifactResolutionIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
+                             CachedExternalResourceIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
                              CacheLockingManager cacheLockingManager, StartParameterResolutionOverride startParameterResolutionOverride) {
         this.ivyFactory = ivyFactory;
         this.resolverProvider = resolverProvider;

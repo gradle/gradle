@@ -17,26 +17,28 @@
 package org.gradle.api.internal.artifacts.ivyservice.filestore;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolution;
-import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolutionIndex;
+import org.gradle.api.internal.externalresource.CachedExternalResource;
+import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
 
 import java.util.Collections;
 import java.util.List;
 
 public class CachedArtifactResolutionIndexArtifactCache extends AbstractArtifactCache<String> {
 
-    public CachedArtifactResolutionIndexArtifactCache(CachedArtifactResolutionIndex<String> resolutionCache) {
+    public CachedArtifactResolutionIndexArtifactCache(CachedExternalResourceIndex<String> resolutionCache) {
         super(createProducer(resolutionCache));
     }
 
-    private static Transformer<List<CachedArtifact>, String> createProducer(final CachedArtifactResolutionIndex<String> resolutionCache) {
+    private static Transformer<List<CachedArtifact>, String> createProducer(final CachedExternalResourceIndex<String> resolutionCache) {
         return new Transformer<List<CachedArtifact>, String>() {
             public List<CachedArtifact> transform(final String url) {
-                CachedArtifactResolution match = resolutionCache.lookup(url);
+                CachedExternalResource match = resolutionCache.lookup(url);
                 if (match == null) {
                     return Collections.emptyList();
                 } else {
-                    return Collections.singletonList((CachedArtifact) new DefaultCachedArtifact(match.getArtifactFile(), match.getArtifactLastModified()));
+                    ExternalResourceMetaData metaData = match.getExternalResourceMetaData();
+                    return Collections.singletonList((CachedArtifact) new DefaultCachedArtifact(match.getCachedFile(), metaData.getLastModified()));
                 }
             }
         };
