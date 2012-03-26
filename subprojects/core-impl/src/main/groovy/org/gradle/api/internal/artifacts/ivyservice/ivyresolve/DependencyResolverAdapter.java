@@ -26,14 +26,13 @@ import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
-import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData;
+import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.text.ParseException;
-import java.util.Date;
 
 /**
  * A {@link ModuleVersionRepository} wrapper around an Ivy {@link DependencyResolver}.
@@ -81,12 +80,11 @@ public class DependencyResolverAdapter implements ModuleVersionRepository {
 
         File localFile = artifactDownloadReport.getLocalFile();
         if (localFile != null) {
-            String source = artifactOrigin.getLocation();
-            Date lastModified = null;
-            if (artifactOrigin instanceof ArtifactOriginWithLastModified) {
-                lastModified = ((ArtifactOriginWithLastModified) artifactOrigin).getLastModified();
+            ExternalResourceMetaData metaData = null;
+            if (artifactOrigin instanceof ArtifactOriginWithMetaData) {
+                metaData = ((ArtifactOriginWithMetaData) artifactOrigin).getMetaData();
             }
-            return new DownloadedArtifact(localFile, new DefaultExternalResourceMetaData(source, lastModified, -1));
+            return new DownloadedArtifact(localFile, metaData);
         } else {
             return null;
         }
