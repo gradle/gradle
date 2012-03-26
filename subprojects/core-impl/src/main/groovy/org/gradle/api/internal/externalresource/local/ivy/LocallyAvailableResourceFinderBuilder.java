@@ -40,7 +40,7 @@ public class LocallyAvailableResourceFinderBuilder {
     }
 
     public void addMilestone8and9() {
-        addExternalCache(new File(rootCachesDirectory, "artifacts-8"), "local/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addExternalCache(new File(rootCachesDirectory, "artifacts-8"), "filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
     }
 
     public void addMilestone7() {
