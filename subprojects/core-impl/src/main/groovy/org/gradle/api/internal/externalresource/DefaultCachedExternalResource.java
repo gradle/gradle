@@ -28,6 +28,7 @@ public class DefaultCachedExternalResource implements CachedExternalResource, Se
     private final File cachedFile;
     private final long cachedAt;
     private final ExternalResourceMetaData externalResourceMetaData;
+    private HashValue sha1;
 
     public DefaultCachedExternalResource(File cachedFile, long cachedAt, ExternalResourceMetaData externalResourceMetaData) {
         this.cachedFile = cachedFile;
@@ -72,7 +73,14 @@ public class DefaultCachedExternalResource implements CachedExternalResource, Se
     }
 
     public HashValue getSha1() {
-        return isMissing() ? null : HashUtil.createHash(cachedFile, "SHA1");
+        if (isMissing()) {
+            return null;
+        } else {
+            if (sha1 == null) {
+                sha1 = HashUtil.createHash(cachedFile, "SHA1");
+            }
+            return sha1;
+        }
     }
 
 }
