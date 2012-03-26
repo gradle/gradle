@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.filestore;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.filestore.ArtifactRevisionIdFileStore;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -33,8 +34,8 @@ public class ExternalArtifactCacheBuilder {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
     }
 
-    public void addCurrent(ArtifactFileStore artifactFileStore) {
-        hashCaches.add(artifactFileStore.asArtifactCache());
+    public void addCurrent(File baseDir) {
+        hashCaches.add(ArtifactRevisionIdFileStore.asArtifactCache(baseDir));
     }
 
     public void addMilestone8and9() {

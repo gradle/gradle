@@ -16,12 +16,13 @@
 package org.gradle.api.internal.artifacts.repositories.transport;
 
 import org.apache.ivy.core.cache.RepositoryCacheManager;
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.repository.Repository;
 import org.apache.ivy.plugins.repository.TransferListener;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactCaches;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
+import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.api.internal.artifacts.repositories.ProgressLoggingTransferListener;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
@@ -38,7 +39,7 @@ public class RepositoryTransportFactory {
     private final RepositoryCacheManager downloadingCacheManager;
     private final RepositoryCacheManager localCacheManager;
 
-    public RepositoryTransportFactory(ArtifactCaches artifactCaches, ProgressLoggerFactory progressLoggerFactory, ArtifactFileStore fileStore,
+    public RepositoryTransportFactory(ArtifactCaches artifactCaches, ProgressLoggerFactory progressLoggerFactory, FileStore<ArtifactRevisionId> fileStore,
                                       CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex) {
         this.artifactCaches = artifactCaches;
         this.transferListener = new ProgressLoggingTransferListener(progressLoggerFactory, RepositoryTransport.class);

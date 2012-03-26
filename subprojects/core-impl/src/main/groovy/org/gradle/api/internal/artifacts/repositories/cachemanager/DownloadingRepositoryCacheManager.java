@@ -22,6 +22,7 @@ import org.apache.ivy.core.cache.DownloadListener;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
@@ -31,7 +32,7 @@ import org.apache.ivy.plugins.repository.ResourceDownloader;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.ivy.util.Message;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
+import org.gradle.api.internal.filestore.FileStore;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactOriginWithLastModified;
 import org.gradle.api.internal.artifacts.repositories.EnhancedArtifactDownloadReport;
 import org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolutionIndex;
@@ -45,10 +46,10 @@ import java.util.Date;
  * A cache manager for remote repositories, that downloads files and stores them in the FileStore provided.
  */
 public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheManager {
-    private final ArtifactFileStore fileStore;
+    private final FileStore<ArtifactRevisionId> fileStore;
     private final CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex;
 
-    public DownloadingRepositoryCacheManager(String name, ArtifactFileStore fileStore, CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex) {
+    public DownloadingRepositoryCacheManager(String name, FileStore<ArtifactRevisionId> fileStore, CachedArtifactResolutionIndex<String> artifactUrlCachedResolutionIndex) {
         super(name);
         this.fileStore = fileStore;
         this.artifactUrlCachedResolutionIndex = artifactUrlCachedResolutionIndex;

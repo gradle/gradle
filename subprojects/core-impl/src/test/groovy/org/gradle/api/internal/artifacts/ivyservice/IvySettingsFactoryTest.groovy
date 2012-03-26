@@ -16,13 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.ArtifactRepositoryContainer
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore
 import spock.lang.Specification
 
 class IvySettingsFactoryTest extends Specification {
     final File cacheDir = new File('user-dir')
     final ArtifactCacheMetaData cacheMetaData = Mock()
-    final ArtifactFileStore fileStore = Mock()
     final IvySettingsFactory factory = new IvySettingsFactory(cacheMetaData)
 
     def "creates and configures an IvySettings instance"() {

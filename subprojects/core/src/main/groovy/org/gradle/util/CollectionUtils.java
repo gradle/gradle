@@ -58,7 +58,7 @@ public abstract class CollectionUtils {
         return collect(set, new HashSet<R>(), transformer);
     }
 
-    public static <R, I, C extends Collection<R>> C collect(Collection<? extends I> source, C destination, Transformer<R, I> transformer) {
+    public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Transformer<R, I> transformer) {
         for (I item : source) {
             destination.add(transformer.transform(item));
         }

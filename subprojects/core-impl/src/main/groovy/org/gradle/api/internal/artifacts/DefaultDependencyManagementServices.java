@@ -33,12 +33,9 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandl
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifactResolutionIndexArtifactCache;
-import org.gradle.api.internal.artifacts.resolutioncache.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactFileStore;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.DefaultArtifactFileStore;
+import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifactResolutionIndexArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCacheBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
@@ -53,15 +50,19 @@ import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.artifacts.resolutioncache.ArtifactAtRepositoryCachedResolutionIndex;
+import org.gradle.api.internal.artifacts.resolutioncache.ArtifactUrlCachedResolutionIndex;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.filestore.ArtifactRevisionIdFileStore;
+import org.gradle.api.internal.filestore.CentralisedFileStore;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.internal.SystemProperties;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
@@ -131,7 +132,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         Instantiator instantiator = get(Instantiator.class);
 
         ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(get(StartParameter.class).isBuildProjectDependencies());
-        
+
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(
                 projectDependenciesBuildInstruction,
                 instantiator);
@@ -164,7 +165,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                 get(CacheRepository.class)
         );
     }
-    
+
     protected BuildCommencedTimeProvider createBuildTimeProvider() {
         return new BuildCommencedTimeProvider();
     }
@@ -201,8 +202,16 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         );
     }
 
-    protected ArtifactFileStore createArtifactFileStore() {
-        return new DefaultArtifactFileStore(get(ArtifactCacheMetaData.class));
+    private File getCentralisedFileStoreBase() {
+        return new File(get(ArtifactCacheMetaData.class).getCacheDir(), "filestore");
+    }
+
+    protected CentralisedFileStore createCentralisedFileStore() {
+        return new CentralisedFileStore(getCentralisedFileStoreBase());
+    }
+
+    protected ArtifactRevisionIdFileStore createArtifactRevisionIdFileStore() {
+        return new ArtifactRevisionIdFileStore(get(CentralisedFileStore.class));
     }
 
     protected SettingsConverter createSettingsConverter() {
@@ -223,15 +232,15 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
         ExternalArtifactCacheBuilder cacheBuilder = new ExternalArtifactCacheBuilder(get(ArtifactCacheMetaData.class), get(LocalMavenRepositoryLocator.class));
-        cacheBuilder.addCurrent(get(ArtifactFileStore.class));
+        cacheBuilder.addCurrent(getCentralisedFileStoreBase());
         cacheBuilder.addMilestone8and9();
         cacheBuilder.addMilestone7();
         cacheBuilder.addMilestone6();
         cacheBuilder.addMilestone3();
         cacheBuilder.addMavenLocal();
         cacheBuilder.setUrlCache(new CachedArtifactResolutionIndexArtifactCache(get(ArtifactUrlCachedResolutionIndex.class)));
-        return new RepositoryTransportFactory(cacheBuilder.getExternalArtifactCache(), get(ProgressLoggerFactory.class), 
-                get(ArtifactFileStore.class), get(ArtifactUrlCachedResolutionIndex.class));
+        return new RepositoryTransportFactory(cacheBuilder.getExternalArtifactCache(), get(ProgressLoggerFactory.class),
+                get(ArtifactRevisionIdFileStore.class), get(ArtifactUrlCachedResolutionIndex.class));
     }
 
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
@@ -333,11 +342,11 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                             get(PublishModuleDescriptorConverter.class))
             );
             return new ErrorHandlingArtifactDependencyResolver(
-                        new ShortcircuitEmptyConfigsArtifactDependencyResolver(
-                                new SelfResolvingDependencyResolver(
-                                        new CacheLockingArtifactDependencyResolver(
-                                                get(CacheLockingManager.class),
-                                                resolver))));
+                    new ShortcircuitEmptyConfigsArtifactDependencyResolver(
+                            new SelfResolvingDependencyResolver(
+                                    new CacheLockingArtifactDependencyResolver(
+                                            get(CacheLockingManager.class),
+                                            resolver))));
         }
 
         ArtifactPublisher createArtifactPublisher(DefaultRepositoryHandler resolverProvider) {
