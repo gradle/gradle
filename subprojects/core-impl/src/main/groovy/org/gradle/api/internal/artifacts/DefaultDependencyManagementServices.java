@@ -50,11 +50,11 @@ import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.artifacts.resolutioncache.ArtifactAtRepositoryCachedResolutionIndex;
-import org.gradle.api.internal.artifacts.resolutioncache.ArtifactUrlCachedResolutionIndex;
+import org.gradle.api.internal.externalresource.ByUrlCachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedExternalResourceIndex;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.filestore.ArtifactRevisionIdFileStore;
+import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 import org.gradle.api.internal.filestore.CentralisedFileStore;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.notations.api.NotationParser;
@@ -186,16 +186,16 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         );
     }
 
-    protected ArtifactAtRepositoryCachedResolutionIndex createArtifactAtRepositoryCachedResolutionIndex() {
-        return new ArtifactAtRepositoryCachedResolutionIndex(
+    protected ArtifactAtRepositoryCachedExternalResourceIndex createArtifactAtRepositoryCachedResolutionIndex() {
+        return new ArtifactAtRepositoryCachedExternalResourceIndex(
                 new File(get(ArtifactCacheMetaData.class).getCacheDir(), "artifact-at-repository.bin"),
                 get(BuildCommencedTimeProvider.class),
                 get(CacheLockingManager.class)
         );
     }
 
-    protected ArtifactUrlCachedResolutionIndex createArtifactUrlCachedResolutionIndex() {
-        return new ArtifactUrlCachedResolutionIndex(
+    protected ByUrlCachedExternalResourceIndex createArtifactUrlCachedResolutionIndex() {
+        return new ByUrlCachedExternalResourceIndex(
                 new File(get(ArtifactCacheMetaData.class).getCacheDir(), "artifact-at-url.bin"),
                 get(BuildCommencedTimeProvider.class),
                 get(CacheLockingManager.class)
@@ -238,9 +238,9 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         cacheBuilder.addMilestone6();
         cacheBuilder.addMilestone3();
         cacheBuilder.addMavenLocal();
-        cacheBuilder.setUrlCache(new CachedArtifactResolutionIndexArtifactCache(get(ArtifactUrlCachedResolutionIndex.class)));
+        cacheBuilder.setUrlCache(new CachedArtifactResolutionIndexArtifactCache(get(ByUrlCachedExternalResourceIndex.class)));
         return new RepositoryTransportFactory(cacheBuilder.getExternalArtifactCache(), get(ProgressLoggerFactory.class),
-                get(ArtifactRevisionIdFileStore.class), get(ArtifactUrlCachedResolutionIndex.class));
+                get(ArtifactRevisionIdFileStore.class), get(ByUrlCachedExternalResourceIndex.class));
     }
 
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
@@ -325,7 +325,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(SettingsConverter.class),
                     get(ModuleResolutionCache.class),
                     get(ModuleDescriptorCache.class),
-                    get(ArtifactAtRepositoryCachedResolutionIndex.class),
+                    get(ArtifactAtRepositoryCachedExternalResourceIndex.class),
                     get(CacheLockingManager.class),
                     startParameterResolutionOverride
             );

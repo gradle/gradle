@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.filestore;
+package org.gradle.api.internal.filestore.ivy;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
@@ -22,6 +22,8 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.filestore.PatternBasedExternalArtifactCache;
+import org.gradle.api.internal.filestore.CentralisedFileStore;
+import org.gradle.api.internal.filestore.GroupedAndNamedUniqueFileStore;
 
 import java.io.File;
 
@@ -40,10 +42,6 @@ public class ArtifactRevisionIdFileStore extends GroupedAndNamedUniqueFileStore<
                 return IvyPatternHelper.substitute(pattern, new DefaultArtifact(id, null, null, false));
             }
         };
-    }
-
-    public File getTempFile() {
-        return delegate.getTempFile();
     }
 
     public static ArtifactCache<ArtifactRevisionId> asArtifactCache(File baseDir) {

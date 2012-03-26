@@ -23,7 +23,7 @@ import java.util.Set;
 
 public class GroupedAndNamedUniqueFileStore<K> implements SearchableFileStore<K, K> {
 
-    CentralisedFileStore delegate;
+    private CentralisedFileStore delegate;
     private final Transformer<String, K> grouper;
     private final Transformer<String, K> namer;
 

@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptor
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import org.gradle.api.internal.artifacts.resolutioncache.ArtifactAtRepositoryKey
+import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleRevisionId

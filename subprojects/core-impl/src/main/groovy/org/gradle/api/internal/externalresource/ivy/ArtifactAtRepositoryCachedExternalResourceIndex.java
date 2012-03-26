@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.resolutioncache;
+package org.gradle.api.internal.externalresource.ivy;
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.externalresource.DefaultCachedExternalResourceIndex;
@@ -22,10 +22,9 @@ import org.gradle.util.TimeProvider;
 
 import java.io.File;
 
-public class ArtifactUrlCachedResolutionIndex extends DefaultCachedExternalResourceIndex<String> {
+public class ArtifactAtRepositoryCachedExternalResourceIndex extends DefaultCachedExternalResourceIndex<ArtifactAtRepositoryKey> {
 
-    public ArtifactUrlCachedResolutionIndex(File persistentCacheFile, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        super(persistentCacheFile, String.class, timeProvider, cacheLockingManager);
+    public ArtifactAtRepositoryCachedExternalResourceIndex(File persistentCacheFile, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+        super(persistentCacheFile, ArtifactAtRepositoryKey.class, timeProvider, cacheLockingManager);
     }
-
 }

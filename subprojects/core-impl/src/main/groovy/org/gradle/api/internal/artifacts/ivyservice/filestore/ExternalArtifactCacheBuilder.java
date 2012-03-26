@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.filestore;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
-import org.gradle.api.internal.filestore.ArtifactRevisionIdFileStore;
+import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 
 import java.io.File;
 import java.util.LinkedList;
