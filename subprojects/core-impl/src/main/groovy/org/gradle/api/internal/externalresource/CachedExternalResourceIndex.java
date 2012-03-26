@@ -22,7 +22,7 @@ import java.io.File;
 /**
  * Provides an indexed view into cached artifacts and a record of resolution attempts, successful or not.
  *
- * Maintains references to the location of files in the persistent filestore. Does not deal with moving files into the filestore.
+ * Maintains references to the location of files in the persistent local. Does not deal with moving files into the local.
  * 
  * @param <K> The type of the key to the index
  */
@@ -31,7 +31,7 @@ public interface CachedExternalResourceIndex<K> {
     /**
      * Adds a resolution to the index.
      * 
-     * The incoming file is expected to be in the persistent filestore. This method will not move/copy the file there.
+     * The incoming file is expected to be in the persistent local. This method will not move/copy the file there.
      * <p>
      *
      * @param key The key to cache this resolution under in the index. Cannot be null.

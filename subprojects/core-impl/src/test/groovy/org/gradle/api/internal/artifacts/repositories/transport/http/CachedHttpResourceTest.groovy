@@ -17,29 +17,36 @@ package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 
 import org.apache.ivy.util.CopyProgressListener
-import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifact
-
+import org.gradle.api.internal.externalresource.CachedExternalResource
+import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData
 import org.gradle.util.TemporaryFolder
-import org.junit.Rule
-import spock.lang.Specification
 import org.gradle.util.hash.HashUtil
 import org.gradle.util.hash.HashValue
+import org.junit.Rule
+import spock.lang.Specification
 
 public class CachedHttpResourceTest extends Specification {
     @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
 
     HttpResourceCollection httpResourceCollection = Mock()
-    CachedArtifact cachedArtifact = Mock()
+    CachedExternalResource cachedExternalResource = Mock()
     CopyProgressListener progress = Mock()
-    CachedHttpResource cachedResource = new CachedHttpResource("resource-source", cachedArtifact, httpResourceCollection)
+    CachedHttpResource cachedResource
     def origin = tmpDir.file('origin')
     def destination = tmpDir.file('destination')
     def download = tmpDir.file('download')
 
+    def setup() {
+        cachedExternalResource.cachedFile >> origin
+        cachedExternalResource.sha1 >> { HashUtil.createHash(origin, "SHA1") }
+        cachedResource = new CachedHttpResource("resource-source", cachedExternalResource, httpResourceCollection)
+    }
+
     def "delegates to cached artifact"() {
         given:
-        cachedArtifact.contentLength >> 22
-        cachedArtifact.lastModified >> 33
+        cachedExternalResource.contentLength >> 22
+        cachedExternalResource.externalResourceMetaData >> new DefaultExternalResourceMetaData("url", new Date(), 0)
+        cachedExternalResource.externalLastModifiedAsTimestamp >> 33
 
         expect:
         cachedResource.contentLength == 22
@@ -54,10 +61,6 @@ public class CachedHttpResourceTest extends Specification {
         cachedResource.writeTo(destination, progress)
 
         then:
-        cachedArtifact.origin >> origin
-        cachedArtifact.sha1 >> HashUtil.createHash(origin, "SHA1")
-
-        and:
         destination.assertIsCopyOf(origin)
     }
 
@@ -71,8 +74,8 @@ public class CachedHttpResourceTest extends Specification {
         cachedResource.writeTo(destination, progress)
 
         then:
-        cachedArtifact.origin >> origin
-        cachedArtifact.sha1 >> new HashValue("1234")
+        cachedExternalResource.cachedFile >> origin
+        cachedExternalResource.sha1 >> new HashValue("1234")
 
         and:
         httpResourceCollection.getResource("resource-source") >> resource

@@ -18,12 +18,13 @@ package org.gradle.api.internal.artifacts.repositories
 import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactCaches
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport
 import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
+import org.gradle.api.internal.externalresource.CachedExternalResourceIndex
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
@@ -57,7 +58,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * credentials.getUsername() >> 'username'
         _ * credentials.getPassword() >> 'password'
-        transportFactory.createHttpTransport('repo', credentials) >> new HttpTransport('repo', credentials, Mock(ArtifactCaches), cacheManager)
+        transportFactory.createHttpTransport('repo', credentials) >> createHttpTransport("repo", credentials)
         cacheManager.name >> 'cache'
         0 * _._
 
@@ -81,7 +82,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
         _ * resolver.resolveUri('repo2') >> uri2
-        transportFactory.createHttpTransport('repo', credentials) >> new HttpTransport('repo', credentials, Mock(ArtifactCaches), cacheManager)
+        transportFactory.createHttpTransport('repo', credentials) >> createHttpTransport("repo", credentials)
 
         and:
         repository.name = 'repo'
@@ -98,6 +99,10 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repo.artifactPatterns.any { it.startsWith uri.toString() }
         repo.artifactPatterns.any { it.startsWith uri1.toString() }
         repo.artifactPatterns.any { it.startsWith uri2.toString() }
+    }
+
+    private HttpTransport createHttpTransport(String repo, PasswordCredentials credentials) {
+        return new HttpTransport(repo, credentials, Mock(LocallyAvailableResourceFinder), Mock(CachedExternalResourceIndex), cacheManager)
     }
 
     def "fails when no root url specified"() {

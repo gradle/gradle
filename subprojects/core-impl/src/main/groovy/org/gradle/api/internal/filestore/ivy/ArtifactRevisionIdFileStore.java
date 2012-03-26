@@ -20,8 +20,8 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactCache;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.PatternBasedExternalArtifactCache;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
+import org.gradle.api.internal.externalresource.local.PatternBasedLocallyAvailableResourceFinder;
 import org.gradle.api.internal.filestore.CentralisedFileStore;
 import org.gradle.api.internal.filestore.GroupedAndNamedUniqueFileStore;
 
@@ -44,7 +44,7 @@ public class ArtifactRevisionIdFileStore extends GroupedAndNamedUniqueFileStore<
         };
     }
 
-    public static ArtifactCache<ArtifactRevisionId> asArtifactCache(File baseDir) {
-        return new PatternBasedExternalArtifactCache(baseDir, String.format("%s/*/%s", GROUP_PATTERN, NAME_PATTERN));
+    public static LocallyAvailableResourceFinder<ArtifactRevisionId> asArtifactCache(File baseDir) {
+        return new PatternBasedLocallyAvailableResourceFinder(baseDir, String.format("%s/*/%s", GROUP_PATTERN, NAME_PATTERN));
     }
 }

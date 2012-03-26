@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.filestore;
+package org.gradle.api.internal.externalresource.local;
 
 import org.gradle.util.hash.HashUtil;
 import org.gradle.util.hash.HashValue;
@@ -21,17 +21,17 @@ import org.gradle.util.hash.HashValue;
 import java.io.File;
 import java.util.Date;
 
-public class DefaultCachedArtifact implements CachedArtifact {
+public class DefaultLocallyAvailableResource implements LocallyAvailableResource {
     private final File origin;
     private final HashValue sha1;
     private final long contentLength;
     private final long lastModified;
 
-    public DefaultCachedArtifact(File origin) {
+    public DefaultLocallyAvailableResource(File origin) {
         this(origin, null);
     }
 
-    public DefaultCachedArtifact(File origin, Date lastModified) {
+    public DefaultLocallyAvailableResource(File origin, Date lastModified) {
         this.origin = origin;
         this.sha1 = getChecksum(origin);
         this.contentLength = origin.length();

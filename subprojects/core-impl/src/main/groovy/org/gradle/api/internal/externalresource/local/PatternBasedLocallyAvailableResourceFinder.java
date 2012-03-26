@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.filestore;
+package org.gradle.api.internal.externalresource.local;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
@@ -30,14 +30,14 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PatternBasedExternalArtifactCache extends AbstractArtifactCache<ArtifactRevisionId> {
+public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyAvailableResourceFinder<ArtifactRevisionId> {
 
-    public PatternBasedExternalArtifactCache(File baseDir, String pattern) {
+    public PatternBasedLocallyAvailableResourceFinder(File baseDir, String pattern) {
         super(createProducer(baseDir, pattern));
     }
 
-    private static Transformer<List<CachedArtifact>, ArtifactRevisionId> createProducer(final File baseDir, final String pattern) {
-        return new Transformer<List<CachedArtifact>, ArtifactRevisionId>() {
+    private static Transformer<List<LocallyAvailableResource>, ArtifactRevisionId> createProducer(final File baseDir, final String pattern) {
+        return new Transformer<List<LocallyAvailableResource>, ArtifactRevisionId>() {
             DirectoryFileTree fileTree = new DirectoryFileTree(baseDir);
 
             private String getArtifactPattern(ArtifactRevisionId artifactId) {
@@ -58,18 +58,18 @@ public class PatternBasedExternalArtifactCache extends AbstractArtifactCache<Art
                 return fileTree.filter(pattern);
             }
 
-            public List<CachedArtifact> transform(ArtifactRevisionId artifactId) {
-                final List<CachedArtifact> cachedArtifacts = new LinkedList<CachedArtifact>();
+            public List<LocallyAvailableResource> transform(ArtifactRevisionId artifactId) {
+                final List<LocallyAvailableResource> locallyAvailableResources = new LinkedList<LocallyAvailableResource>();
 
                 if (artifactId != null) {
                     getMatchingFiles(artifactId).visit(new EmptyFileVisitor() {
                         public void visitFile(FileVisitDetails fileDetails) {
-                            cachedArtifacts.add(new DefaultCachedArtifact(fileDetails.getFile()));
+                            locallyAvailableResources.add(new DefaultLocallyAvailableResource(fileDetails.getFile()));
                         }
                     });
                 }
 
-                return cachedArtifacts;
+                return locallyAvailableResources;
             }
         };
     }

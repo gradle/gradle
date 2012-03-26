@@ -35,8 +35,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifactResolutionIndexArtifactCache;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ExternalArtifactCacheBuilder;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinderBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleDescriptorCache;
@@ -203,7 +202,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     private File getCentralisedFileStoreBase() {
-        return new File(get(ArtifactCacheMetaData.class).getCacheDir(), "filestore");
+        return new File(get(ArtifactCacheMetaData.class).getCacheDir(), "local");
     }
 
     protected CentralisedFileStore createCentralisedFileStore() {
@@ -231,15 +230,14 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
-        ExternalArtifactCacheBuilder cacheBuilder = new ExternalArtifactCacheBuilder(get(ArtifactCacheMetaData.class), get(LocalMavenRepositoryLocator.class));
+        LocallyAvailableResourceFinderBuilder cacheBuilder = new LocallyAvailableResourceFinderBuilder(get(ArtifactCacheMetaData.class), get(LocalMavenRepositoryLocator.class));
         cacheBuilder.addCurrent(getCentralisedFileStoreBase());
         cacheBuilder.addMilestone8and9();
         cacheBuilder.addMilestone7();
         cacheBuilder.addMilestone6();
         cacheBuilder.addMilestone3();
         cacheBuilder.addMavenLocal();
-        cacheBuilder.setUrlCache(new CachedArtifactResolutionIndexArtifactCache(get(ByUrlCachedExternalResourceIndex.class)));
-        return new RepositoryTransportFactory(cacheBuilder.getExternalArtifactCache(), get(ProgressLoggerFactory.class),
+        return new RepositoryTransportFactory(cacheBuilder.build(), get(ProgressLoggerFactory.class),
                 get(ArtifactRevisionIdFileStore.class), get(ByUrlCachedExternalResourceIndex.class));
     }
 

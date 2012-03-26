@@ -16,8 +16,12 @@
 
 package org.gradle.api.internal.externalresource;
 
+import org.gradle.util.hash.HashUtil;
+import org.gradle.util.hash.HashValue;
+
 import java.io.File;
 import java.io.Serializable;
+import java.util.Date;
 
 public class DefaultCachedExternalResource implements CachedExternalResource, Serializable {
 
@@ -53,4 +57,22 @@ public class DefaultCachedExternalResource implements CachedExternalResource, Se
     public ExternalResourceMetaData getExternalResourceMetaData() {
         return externalResourceMetaData;
     }
+
+    public Date getExternalLastModified() {
+        return externalResourceMetaData != null ? externalResourceMetaData.getLastModified() : null;
+    }
+
+    public long getExternalLastModifiedAsTimestamp() {
+        Date externalLastModified = getExternalLastModified();
+        return externalLastModified == null ? -1 : externalLastModified.getTime();
+    }
+
+    public long getContentLength() {
+        return isMissing() ? -1 : cachedFile.length();
+    }
+
+    public HashValue getSha1() {
+        return isMissing() ? null : HashUtil.createHash(cachedFile, "SHA1");
+    }
+
 }

@@ -17,8 +17,10 @@
 package org.gradle.api.internal.externalresource;
 
 import org.gradle.api.Nullable;
+import org.gradle.util.hash.HashValue;
 
 import java.io.File;
+import java.util.Date;
 
 public interface CachedExternalResource {
 
@@ -29,7 +31,29 @@ public interface CachedExternalResource {
 
     long getCachedAt();
 
+    /**
+     * Always the actual content length of the cached file
+     *
+     * @return
+     */
+    long getContentLength();
+
+    /**
+     * Always the actual checksum of the cached file
+     *
+     * @return
+     */
+    HashValue getSha1();
+
     @Nullable
     ExternalResourceMetaData getExternalResourceMetaData();
+
+    /**
+     * Null safe shortcut for getExternalResourceMetaData().getLastModified();
+     * @return
+     */
+    Date getExternalLastModified();
+
+    long getExternalLastModifiedAsTimestamp();
 
 }

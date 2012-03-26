@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.filestore;
+package org.gradle.api.internal.externalresource.local;
 
 import org.gradle.api.Transformer;
 
-import java.util.Collections;
 import java.util.List;
 
-public class NoopArtifactCache<T> extends AbstractArtifactCache<T> {
-    public NoopArtifactCache() {
-        super(new Transformer<List<CachedArtifact>, T>() {
-            public List<CachedArtifact> transform(T original) {
-                return Collections.emptyList();
-            }
-        });
+public class AbstractLocallyAvailableResourceFinder<C> implements LocallyAvailableResourceFinder<C> {
+
+    private final Transformer<List<LocallyAvailableResource>, C> producer;
+
+    public AbstractLocallyAvailableResourceFinder(Transformer<List<LocallyAvailableResource>, C> producer) {
+        this.producer = producer;
     }
+
+    public LocallyAvailableResourceCandidates findCandidates(C criterion) {
+        return new DefaultLocallyAvailableResourceCandidates(producer.transform(criterion));
+    }
+
 }

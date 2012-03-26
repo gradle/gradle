@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.filestore;
+package org.gradle.api.internal.externalresource.local;
 
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
@@ -23,13 +23,12 @@ import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 import java.io.File;
 import java.util.LinkedList;
 
-public class ExternalArtifactCacheBuilder {
-    private final LinkedList<ArtifactCache<ArtifactRevisionId>> hashCaches = new LinkedList<ArtifactCache<ArtifactRevisionId>>();
-    private ArtifactCache<String> urlCache = new NoopArtifactCache<String>();
+public class LocallyAvailableResourceFinderBuilder {
+    private final LinkedList<LocallyAvailableResourceFinder<ArtifactRevisionId>> hashCaches = new LinkedList<LocallyAvailableResourceFinder<ArtifactRevisionId>>();
     private final File rootCachesDirectory;
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
 
-    public ExternalArtifactCacheBuilder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator) {
+    public LocallyAvailableResourceFinderBuilder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator) {
         this.rootCachesDirectory = artifactCacheMetaData.getCacheDir().getParentFile();
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
     }
@@ -39,7 +38,7 @@ public class ExternalArtifactCacheBuilder {
     }
 
     public void addMilestone8and9() {
-        addExternalCache(new File(rootCachesDirectory, "artifacts-8"), "filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addExternalCache(new File(rootCachesDirectory, "artifacts-8"), "local/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
     }
 
     public void addMilestone7() {
@@ -58,21 +57,18 @@ public class ExternalArtifactCacheBuilder {
     public void addMavenLocal() {
         File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
         if (localMavenRepository.exists()) {
-            hashCaches.add(new PatternBasedExternalArtifactCache(localMavenRepository, "[organisation-path]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"));
+            hashCaches.add(new PatternBasedLocallyAvailableResourceFinder(localMavenRepository, "[organisation-path]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"));
         }
     }
 
     private void addExternalCache(File baseDir, String pattern) {
         if (baseDir.exists()) {
-            hashCaches.add(new PatternBasedExternalArtifactCache(baseDir, pattern));
+            hashCaches.add(new PatternBasedLocallyAvailableResourceFinder(baseDir, pattern));
         }
     }
 
-    public ArtifactCaches getExternalArtifactCache() {
-        return new DefaultArtifactCaches(new CompositeArtifactCache<ArtifactRevisionId>(hashCaches), urlCache);
+    public LocallyAvailableResourceFinder<ArtifactRevisionId> build() {
+        return new CompositeLocallyAvailableResourceFinder<ArtifactRevisionId>(hashCaches);
     }
 
-    public void setUrlCache(ArtifactCache<String> urlCache) {
-        this.urlCache = urlCache;
-    }
 }

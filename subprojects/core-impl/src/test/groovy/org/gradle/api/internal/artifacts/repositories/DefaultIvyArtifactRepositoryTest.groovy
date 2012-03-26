@@ -18,15 +18,15 @@ package org.gradle.api.internal.artifacts.repositories
 import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.artifacts.repositories.transport.file.FileResourceCollection
 import org.gradle.api.internal.artifacts.repositories.transport.file.FileTransport
 import org.gradle.api.internal.artifacts.repositories.transport.http.HttpResourceCollection
 import org.gradle.api.internal.artifacts.repositories.transport.http.HttpTransport
+import org.gradle.api.internal.externalresource.CachedExternalResourceIndex
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactCaches
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
@@ -76,7 +76,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
         fileResolver.resolveUri('http://other/') >> new URI('http://other/')
-        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ArtifactCaches), cacheManager)
+        transportFactory.createHttpTransport('name', credentials) >> createHttpTransport("name", credentials)
 
         when:
         def resolver = repository.createResolver()
@@ -118,7 +118,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ArtifactCaches), cacheManager)
+        transportFactory.createHttpTransport('name', credentials) >> createHttpTransport("name", credentials)
 
         when:
         def resolver = repository.createResolver()
@@ -138,7 +138,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ArtifactCaches), cacheManager)
+        transportFactory.createHttpTransport('name', credentials) >> createHttpTransport("name", credentials)
 
         when:
         def resolver = repository.createResolver()
@@ -162,7 +162,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ArtifactCaches), cacheManager)
+        transportFactory.createHttpTransport('name', credentials) >> createHttpTransport("name", credentials)
 
         when:
         def resolver = repository.createResolver()
@@ -183,7 +183,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         given:
         fileResolver.resolveUri('http://host/') >> new URI('http://host/')
-        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ArtifactCaches), cacheManager)
+        transportFactory.createHttpTransport('name', credentials) >> createHttpTransport("name", credentials)
 
         when:
         def resolver = repository.createResolver()
@@ -203,7 +203,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             artifact '[layoutPattern]'
         }
         repository.artifactPattern 'http://other/[additionalPattern]'
-        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ArtifactCaches), cacheManager)
+        transportFactory.createHttpTransport('name', credentials) >> createHttpTransport("name", credentials)
 
         given:
         fileResolver.resolveUri('http://host') >> new URI('http://host')
@@ -219,7 +219,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     def "fails when no artifact patterns specified"() {
         given:
-        transportFactory.createHttpTransport('name', credentials) >> new HttpTransport('name', credentials, Mock(ArtifactCaches), cacheManager)
+        transportFactory.createHttpTransport('name', credentials) >> createHttpTransport("name", credentials)
 
         when:
         repository.createResolver()
@@ -228,4 +228,9 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         InvalidUserDataException e = thrown()
         e.message == 'You must specify a base url or at least one artifact pattern for an Ivy repository.'
     }
+
+    private HttpTransport createHttpTransport(String name, PasswordCredentials credentials) {
+        return new HttpTransport(name, credentials, Mock(LocallyAvailableResourceFinder), Mock(CachedExternalResourceIndex), cacheManager)
+    }
+
 }

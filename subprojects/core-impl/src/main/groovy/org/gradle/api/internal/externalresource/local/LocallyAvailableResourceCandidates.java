@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.filestore;
+package org.gradle.api.internal.externalresource.local;
 
-import org.gradle.api.Transformer;
+import org.gradle.util.hash.HashValue;
 
-import java.util.List;
+import java.util.Collection;
 
-public class AbstractArtifactCache<C> implements ArtifactCache<C> {
+public interface LocallyAvailableResourceCandidates {
 
-    private final Transformer<List<CachedArtifact>, C> producer;
+    boolean isNone();
 
-    public AbstractArtifactCache(Transformer<List<CachedArtifact>, C> producer) {
-        this.producer = producer;
-    }
-
-    public CachedArtifactCandidates findCandidates(C criterion) {
-        return new DefaultCachedArtifactCandidates(producer.transform(criterion));
-    }
+    LocallyAvailableResource findByHashValue(HashValue hashValue);
+    
+    Collection<LocallyAvailableResource> getAll();
 
 }

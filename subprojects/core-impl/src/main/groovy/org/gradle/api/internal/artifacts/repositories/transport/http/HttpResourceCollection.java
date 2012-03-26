@@ -28,10 +28,12 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.plugins.repository.*;
 import org.apache.ivy.util.url.ApacheURLLister;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.ArtifactCaches;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifactCandidates;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResource;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.artifacts.repositories.transport.ResourceCollection;
+import org.gradle.api.internal.externalresource.CachedExternalResource;
+import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
@@ -41,7 +43,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -54,13 +55,19 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
     private final RepositoryCopyProgressListener progress = new RepositoryCopyProgressListener(this);
     private final List<HttpResource> openResources = new ArrayList<HttpResource>();
 
-    private final ArtifactCaches artifactCaches;
-    private final HttpClientConfigurer configurer;
 
-    public HttpResourceCollection(HttpSettings httpSettings, ArtifactCaches artifactCaches) {
-        this.artifactCaches = artifactCaches;
+    private final HttpClientConfigurer configurer;
+    private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
+    private final CachedExternalResourceIndex<String> byUrlCachedExternalResourceIndex;
+
+    public HttpResourceCollection(HttpSettings httpSettings, 
+                                  LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
+                                  CachedExternalResourceIndex<String> byUrlCachedExternalResourceIndex) {
         configurer = new HttpClientConfigurer(httpSettings);
         configurer.configure(client);
+
+        this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
+        this.byUrlCachedExternalResourceIndex = byUrlCachedExternalResourceIndex;
     }
 
     public HttpResource getResource(String source) throws IOException {
@@ -103,16 +110,16 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         LOGGER.debug("Constructing GET resource: {}", source);
 
         // Do we have any artifacts in the cache with the same checksum
-        CachedArtifactCandidates byHashCacheCandidates = artifactCaches.getArtifactIdCache().findCandidates(artifactId);
-        if (!byHashCacheCandidates.isEmpty()) {
-            CachedHttpResource cachedResource = findCachedResourceBySha1(source, byHashCacheCandidates);
+        LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifactId);
+        if (!localCandidates.isNone()) {
+            HttpResource cachedResource = findCachedResourceBySha1(source, localCandidates);
             if (cachedResource != null) {
                 return cachedResource;
             }
         }
 
         HttpGet request = new HttpGet(source);
-        return processHttpRequest(source, request, artifactCaches.getUrlCache().findCandidates(source).getMostRecent());
+        return processHttpRequest(source, request, byUrlCachedExternalResourceIndex.lookup(source));
     }
 
     private HttpResource initHead(String source) {
@@ -121,12 +128,12 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         return processHttpRequest(source, request, null);
     }
 
-    private HttpResource processHttpRequest(String source, HttpRequestBase request, CachedArtifact potentialCachedArtifact) {
+    private HttpResource processHttpRequest(String source, HttpRequestBase request, CachedExternalResource cachedExternalResource) {
         String method = request.getMethod();
         configurer.configureMethod(request);
 
-        if (potentialCachedArtifact != null) {
-            String formattedDate = DateUtils.formatDate(new Date(potentialCachedArtifact.getLastModified()));
+        if (cachedExternalResource != null && cachedExternalResource.getExternalResourceMetaData() != null && cachedExternalResource.getExternalResourceMetaData().getLastModified() != null) {
+            String formattedDate = DateUtils.formatDate(cachedExternalResource.getExternalResourceMetaData().getLastModified());
             LOGGER.info("Adding If-Modified-Since: {}. [HTTP {}: {}]", new Object[]{formattedDate, method, source});
             request.addHeader("If-Modified-Since", formattedDate);
         }
@@ -142,9 +149,9 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
             LOGGER.info("Resource missing. [HTTP {}: {}]", method, source);
             return new MissingHttpResource(source);
         }
-        if (potentialCachedArtifact != null && wasUnmodified(response)) {
+        if (cachedExternalResource != null && wasUnmodified(response)) {
             LOGGER.info("Resource was unmodified. [HTTP {}: {}]", method, source);
-            return new CachedHttpResource(source, potentialCachedArtifact, HttpResourceCollection.this);
+            return new CachedHttpResource(source, cachedExternalResource, HttpResourceCollection.this);
         }
         if (!wasSuccessful(response)) {
             LOGGER.info("Failed to get resource: {}. [HTTP {}: {}]", new Object[]{method, response.getStatusLine(), source});
@@ -161,7 +168,7 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         };
     }
 
-    private CachedHttpResource findCachedResourceBySha1(String source, CachedArtifactCandidates candidates) {
+    private HttpResource findCachedResourceBySha1(String source, LocallyAvailableResourceCandidates candidates) {
         String checksumType = "SHA-1";
         String checksumUrl = source + ".sha1";
 
@@ -169,10 +176,10 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         if (sha1 == null) {
             LOGGER.info("Checksum {} unavailable. [HTTP GET: {}]", checksumType, checksumUrl);
         } else {
-            CachedArtifact cached = candidates.findByHashValue(sha1);
-            if (cached != null) {
+            LocallyAvailableResource locallyAvailable = candidates.findByHashValue(sha1);
+            if (locallyAvailable != null) {
                 LOGGER.info("Checksum {} matched cached resource: [HTTP GET: {}]", checksumType, checksumUrl);
-                return new CachedHttpResource(source, cached, HttpResourceCollection.this);
+                return new LocallyAvailableResourceHttpResource(source, locallyAvailable, HttpResourceCollection.this);
             }
 
             LOGGER.info("Checksum {} did not match cached resources: [HTTP GET: {}]", checksumType, checksumUrl);

@@ -15,78 +15,32 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
-import org.apache.ivy.util.CopyProgressListener;
-import org.gradle.api.internal.artifacts.ivyservice.filestore.CachedArtifact;
-import org.gradle.util.hash.HashUtil;
+import org.gradle.api.internal.externalresource.CachedExternalResource;
 import org.gradle.util.hash.HashValue;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+class CachedHttpResource extends LocalFileStandInHttpResource {
+    private final CachedExternalResource cachedExternalResource;
 
-class CachedHttpResource extends AbstractHttpResource {
-    private final String source;
-    private final CachedArtifact cachedArtifact;
-
-    private final HttpResourceCollection resourceCollection;
-
-    public CachedHttpResource(String source, CachedArtifact cachedArtifact, HttpResourceCollection resourceCollection) {
-        this.source = source;
-        this.cachedArtifact = cachedArtifact;
-        this.resourceCollection = resourceCollection;
+    public CachedHttpResource(String source, CachedExternalResource cachedExternalResource, HttpResourceCollection resourceCollection) {
+        super(source, cachedExternalResource.getCachedFile(), resourceCollection);
+        this.cachedExternalResource = cachedExternalResource;
     }
 
     @Override
     public String toString() {
-        return "CachedResource: " + cachedArtifact.getOrigin() + " for " + source;
-    }
-
-    public String getName() {
-        return source;
+        return "CachedResource: " + cachedExternalResource.getCachedFile() + " for " + getName();
     }
 
     public long getLastModified() {
-        return cachedArtifact.getLastModified();
+        return cachedExternalResource.getExternalLastModifiedAsTimestamp();
     }
 
     public long getContentLength() {
-        return cachedArtifact.getContentLength();
+        return cachedExternalResource.getContentLength();
     }
 
-    public boolean exists() {
-        return true;
-    }
-
-    public boolean isLocal() {
-        return true;
-    }
-
-    public InputStream openStream() throws IOException {
-        return new FileInputStream(cachedArtifact.getOrigin());
-    }
-
-    public void writeTo(File destination, CopyProgressListener progress) throws IOException {
-        try {
-            super.writeTo(destination, progress);
-        } catch (IOException e) {
-            downloadResourceDirect(destination, progress);
-            return;
-        }
-
-        // If the checksum of the downloaded file does not match the cached artifact, download it directly.
-        // This may be the case if the cached artifact was changed before copying
-        if (!getSha1(destination).equals(cachedArtifact.getSha1())) {
-            downloadResourceDirect(destination, progress);
-        }
-    }
-
-    private void downloadResourceDirect(File destination, CopyProgressListener progress) throws IOException {
-        // Perform a regular download, without considering external caches
-        resourceCollection.getResource(source).writeTo(destination, progress);
-    }
-
-    private HashValue getSha1(File contentFile) {
-        return HashUtil.createHash(contentFile, "SHA1");
+    @Override
+    protected HashValue getLocalFileSha1() {
+        return cachedExternalResource.getSha1();
     }
 }
