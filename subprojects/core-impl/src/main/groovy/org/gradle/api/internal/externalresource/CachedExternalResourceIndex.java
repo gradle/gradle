@@ -51,7 +51,7 @@ public interface CachedExternalResourceIndex<K> {
     /**
      * Lookup a cached resolution.
      *
-     * The {@link org.gradle.api.internal.artifacts.resolutioncache.CachedArtifactResolution#getArtifactFile()} is guaranteed
+     * The {@link CachedExternalResource#getCachedFile()} is guaranteed
      * to exist at the time that the entry is returned from this method.
      *
      * @param key The key to search the index for
