@@ -202,7 +202,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     private File getCentralisedFileStoreBase() {
-        return new File(get(ArtifactCacheMetaData.class).getCacheDir(), "local");
+        return new File(get(ArtifactCacheMetaData.class).getCacheDir(), "filestore");
     }
 
     protected CentralisedFileStore createCentralisedFileStore() {
