@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.externalresource.local;
+package org.gradle.api.internal.externalresource.local.ivy;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
@@ -22,6 +22,9 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.internal.externalresource.local.AbstractLocallyAvailableResourceFinder;
+import org.gradle.api.internal.externalresource.local.DefaultLocallyAvailableResource;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResource;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;

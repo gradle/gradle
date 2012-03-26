@@ -21,7 +21,7 @@ import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
-import org.gradle.api.internal.externalresource.local.PatternBasedLocallyAvailableResourceFinder;
+import org.gradle.api.internal.externalresource.local.ivy.PatternBasedLocallyAvailableResourceFinder;
 import org.gradle.api.internal.filestore.CentralisedFileStore;
 import org.gradle.api.internal.filestore.GroupedAndNamedUniqueFileStore;
 
