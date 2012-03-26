@@ -1,18 +1,3 @@
-<!--
-  ~ Copyright 2009 the original author or authors.
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~      http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
 <appendix id='gradle_command_line'>
     <title>Gradle Command Line</title>
     <para>The
@@ -29,54 +14,48 @@
     </para>
     <variablelist>
         <varlistentry>
-            <term><option>-?</option>,<option>-h</option>,
-                <option>--help</option>
+            <term><option>-?</option>, <option>-h</option>, <option>--help</option>
             </term>
             <listitem>
                 <para>Shows a help message.</para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-D</option>,
-                <option>--system-prop</option>
+            <term><option>-D</option>, <option>--system-prop</option>
             </term>
             <listitem>
-                <para>Sets a system property of the JVM, for example<literal>-Dmyprop=myvalue</literal>.
-                    See<xref linkend="sec:gradle_properties_and_system_properties"/>.
+                <para>Sets a system property of the JVM, for example <literal>-Dmyprop=myvalue</literal>.
+                    See <xref linkend="sec:gradle_properties_and_system_properties"/>.
                 </para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-I</option>,
-                <option>--init-script</option>
+            <term><option>-I</option>, <option>--init-script</option>
             </term>
             <listitem>
-                <para>Specifies an initialization script. See<xref linkend="init_scripts"/>.
+                <para>Specifies an initialization script. See <xref linkend="init_scripts"/>.
                 </para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-P</option>,
-                <option>--project-prop</option>
+            <term><option>-P</option>, <option>--project-prop</option>
             </term>
             <listitem>
                 <para>Sets a project property of the root project, for example
-                    <literal>-Pmyprop=myvalue</literal>. See<xref linkend="sec:gradle_properties_and_system_properties"/>.
+                    <literal>-Pmyprop=myvalue</literal>. See <xref linkend="sec:gradle_properties_and_system_properties"/>.
                 </para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-S</option>,
-                <option>--full-stacktrace</option>
+            <term><option>-S</option>, <option>--full-stacktrace</option>
             </term>
             <listitem>
-                <para>Print out the full (very verbose) stacktrace for any exceptions. See<xref linkend="logging"/>.
+                <para>Print out the full (very verbose) stacktrace for any exceptions. See <xref linkend="logging"/>.
                 </para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-a</option>,
-                <option>--no-rebuild</option>
+            <term><option>-a</option>, <option>--no-rebuild</option>
             </term>
             <listitem>
                 <para>Do not rebuild project dependencies.
@@ -88,39 +67,35 @@
                 <option>--all</option>
             </term>
             <listitem>
-                <para>Shows additional detail in the task listing. See<xref linkend="sec:listing_tasks"/>.
+                <para>Shows additional detail in the task listing. See <xref linkend="sec:listing_tasks"/>.
                 </para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-b</option>,
-                <option>--build-file</option>
+            <term><option>-b</option>, <option>--build-file</option>
             </term>
             <listitem>
-                <para>Specifies the build file. See<xref linkend="sec:selecting_build"/>.
+                <para>Specifies the build file. See <xref linkend="sec:selecting_build"/>.
                 </para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-c</option>,
-                <option>--settings-file</option>
+            <term><option>-c</option>, <option>--settings-file</option>
             </term>
             <listitem>
                 <para>Specifies the settings file.</para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-d</option>,
-                <option>--debug</option>
+            <term><option>-d</option>, <option>--debug</option>
             </term>
             <listitem>
-                <para>Log in debug mode (includes normal stacktrace). See<xref linkend="logging"/>.
+                <para>Log in debug mode (includes normal stacktrace). See <xref linkend="logging"/>.
                 </para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-e</option>,
-                <option>--embedded</option>
+            <term><option>-e</option>, <option>--embedded</option>
             </term>
             <listitem>
                 <para>Specify an embedded build script.
@@ -128,8 +103,7 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-g</option>,
-                <option>--gradle-user-home</option>
+            <term><option>-g</option>, <option>--gradle-user-home</option>
             </term>
             <listitem>
                 <para>Specifies the Gradle user home directory. The default is the
@@ -143,25 +117,23 @@
                 <option>--gui</option>
             </term>
             <listitem>
-                <para>Launches the Gradle GUI. See<xref linkend="tutorial_gradle_gui"/>.
+                <para>Launches the Gradle GUI. See <xref linkend="tutorial_gradle_gui"/>.
                 </para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-i</option>,
-                <option>--info</option>
+            <term><option>-i</option>, <option>--info</option>
             </term>
             <listitem>
-                <para>Set log level to info. See<xref linkend="logging"/>.
+                <para>Set log level to info. See <xref linkend="logging"/>.
                 </para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-m</option>,
-                <option>--dry-run</option>
+            <term><option>-m</option>, <option>--dry-run</option>
             </term>
             <listitem>
-                <para>Runs the build with all task actions disabled. See<xref linkend="sec:dry_run"/>.
+                <para>Runs the build with all task actions disabled. See <xref linkend="sec:dry_run"/>.
                 </para>
             </listitem>
         </varlistentry>
@@ -174,12 +146,11 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-p</option>,
-                <option>--project-dir</option>
+            <term><option>-p</option>, <option>--project-dir</option>
             </term>
             <listitem>
                 <para>Specifies the start directory for Gradle. Defaults to current directory.
-                    See<xref linkend="sec:selecting_build"/>.
+                    See <xref linkend="sec:selecting_build"/>.
                 </para>
             </listitem>
         </varlistentry>
@@ -189,9 +160,8 @@
             </term>
             <listitem>
                 <para>Profiles build execution time and generates a report in the
-                    <filename><replaceable>buildDir</replaceable>/reports/profile
-                    </filename>
-                    directory. See<xref linkend="sec:profiling_build"/>.
+                    <filename><replaceable>buildDir</replaceable>/reports/profile</filename>
+                    directory. See <xref linkend="sec:profiling_build"/>.
                 </para>
             </listitem>
         </varlistentry>
@@ -202,16 +172,15 @@
             <listitem>
                 <para>Specifies the project-specific cache directory. Default value is
                     <filename>.gradle</filename>
-                    in the root project directory. See<xref linkend="sec:caching"/>.
+                    in the root project directory. See <xref linkend="sec:caching"/>.
                 </para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-q</option>,
-                <option>--quiet</option>
+            <term><option>-q</option>, <option>--quiet</option>
             </term>
             <listitem>
-                <para>Log errors only. See<xref linkend="logging"/>.
+                <para>Log errors only. See <xref linkend="logging"/>.
                 </para>
             </listitem>
         </varlistentry>
@@ -221,7 +190,7 @@
             </term>
             <listitem>
                 <para>Refresh the state of dependencies.
-                    See<xref linkend="sec:cache_command_line_options"/>.
+                    See <xref linkend="sec:cache_command_line_options"/>.
                 </para>
             </listitem>
         </varlistentry>
@@ -231,7 +200,7 @@
             </term>
             <listitem>
                 <para>Specifies that cached build scripts are skipped and forced to be recompiled.
-                    See<xref linkend="sec:caching"/>.
+                    See <xref linkend="sec:caching"/>.
                 </para>
             </listitem>
         </varlistentry>
@@ -245,17 +214,15 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-s</option>,
-                <option>--stacktrace</option>
+            <term><option>-s</option>, <option>--stacktrace</option>
             </term>
             <listitem>
-                <para>Print out the stacktrace also for user exceptions (e.g. compile error). See<xref linkend="logging"/>.
+                <para>Print out the stacktrace also for user exceptions (e.g. compile error). See <xref linkend="logging"/>.
                 </para>
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-u</option>,
-                <option>--no-search-upwards</option>
+            <term><option>-u</option>, <option>--no-search-upwards</option>
             </term>
             <listitem>
                 <para>Don't search in parent directories for a
@@ -265,8 +232,7 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-v</option>,
-                <option>--version</option>
+            <term><option>-v</option>, <option>--version</option>
             </term>
             <listitem>
                 <para>Prints version info.
@@ -274,11 +240,10 @@
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-x</option>,
-                <option>--exclude-task</option>
+            <term><option>-x</option>, <option>--exclude-task</option>
             </term>
             <listitem>
-                <para>Specifies a task to be excluded from execution. See<xref linkend="sec:excluding_tasks_from_the_command_line"/>.
+                <para>Specifies a task to be excluded from execution. See <xref linkend="sec:excluding_tasks_from_the_command_line"/>.
                 </para>
             </listitem>
         </varlistentry>
@@ -290,8 +255,16 @@
                 <para>Continues task execution after a task failure.</para>
             </listitem>
         </varlistentry>
+        <varlistentry>
+            <term>
+                <option>--offline</option>
+            </term>
+            <listitem>
+                <para>Specifies that the build should operate without accessing network resources. See <xref linkend="sec:cache_command_line_options"/>.</para>
+            </listitem>
+        </varlistentry>
     </variablelist>
-    <para>The above information is printed to the console when you execute<userinput>gradle -h</userinput>.
+    <para>The above information is printed to the console when you execute <userinput>gradle -h</userinput>.
     </para>
 
     <section>
@@ -299,32 +272,20 @@
         <para>The following options are deprecated and will be removed in a future version of Gradle:</para>
         <variablelist>
             <varlistentry>
-                <term><option>-C</option>,
-                    <option>--cache</option>
+                <term><option>-C</option>, <option>--cache</option>
                 </term>
                 <listitem>
                     <para>(deprecated) Specifies how compiled build scripts should be cached. Possible values are:
                         <literal>rebuild</literal>
-                        or<literal>on</literal>. Default value is
+                        or <literal>on</literal>. Default value is
                         <literal>on</literal>. You should use
                         <option>--recompile-scripts</option>
-                        instead. See<xref linkend="sec:caching"/>.
+                        instead.
                     </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term><option>-n</option>,
-                    <option>--dependencies</option>
-                </term>
-                <listitem>
-                    <para>(deprecated) Show list of all project dependencies. You should use
-                        <userinput>gradle dependencies</userinput>
-                        instead. See<xref linkend="sec:listing_dependencies"/>.
-                    </para>
-                </listitem>
-            </varlistentry>
-            <varlistentry>
-                <term><option>-no-opt</option>
+                <term><option>--no-opt</option>
                 </term>
                 <listitem>
                     <para>(deprecated) Specifies to ignore all task optimization. You should use
@@ -334,24 +295,11 @@
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term><option>-r</option>,
-                    <option>--properties</option>
+                <term><option>--refresh</option>
                 </term>
                 <listitem>
-                    <para>(deprecated) Show list of all available project properties. You should use
-                        <userinput>gradle properties</userinput>
-                        instead. See<xref linkend="sec:listing_properties"/>.
-                    </para>
-                </listitem>
-            </varlistentry>
-            <varlistentry>
-                <term><option>-t</option>,
-                    <option>--tasks</option>
-                </term>
-                <listitem>
-                    <para>(deprecated) Show list of available tasks. You should use
-                        <userinput>gradle tasks</userinput>
-                        instead. See<xref linkend="sec:listing_tasks"/>.
+                    <para>(deprecated) Refresh the state of resources of the type(s) specified. Currently only <literal>dependencies</literal> is supported.
+                        You should use <option>--refresh-dependencies</option> instead.
                     </para>
                 </listitem>
             </varlistentry>
@@ -409,7 +357,7 @@
                 <listitem>
                     <para>Stops the Gradle daemon if it is running.
                         You can only stop daemons that were started with
-                        the Gradle version you use when running<literal>--stop</literal>.
+                        the Gradle version you use when running <literal>--stop</literal>.
                     </para>
                 </listitem>
             </varlistentry>
