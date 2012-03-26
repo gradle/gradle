@@ -103,6 +103,20 @@
             </thead>
             <tr>
                 <td>
+                    <literal>contextPath</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
+                <td>
+                    <literal>WAR file base name</literal>
+                </td>
+                <td>
+                    The application deployment location within the Jetty container.
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <literal>httpPort</literal>
                 </td>
                 <td>
