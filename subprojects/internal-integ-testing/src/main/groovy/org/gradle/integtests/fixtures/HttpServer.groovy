@@ -29,10 +29,6 @@ import org.mortbay.jetty.security.*
 
 class HttpServer extends ExternalResource {
 
-    static enum IfModResponse {
-        UNMODIFIED, MODIFIED
-    }
-
     private static Logger logger = LoggerFactory.getLogger(HttpServer.class)
 
     private final Server server = new Server(0)
@@ -88,7 +84,7 @@ class HttpServer extends ExternalResource {
         allow(path, true, ['GET', 'HEAD'], fileHandler(path, srcFile))
     }
 
-    private AbstractHandler fileHandler(String path, File srcFile) {
+    private AbstractHandler fileHandler(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
         return new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 def file
@@ -99,7 +95,7 @@ class HttpServer extends ExternalResource {
                     file = new File(srcFile, relativePath)
                 }
                 if (file.isFile()) {
-                    sendFile(response, file)
+                    sendFile(response, file, lastModified, contentLength)
                 } else if (file.isDirectory()) {
                     sendDirectoryListing(response, file)
                 } else {
@@ -145,15 +141,15 @@ class HttpServer extends ExternalResource {
     /**
      * Allows one HEAD request for the given URL.
      */
-    void expectHead(String path, File srcFile) {
-        expect(path, false, ['HEAD'], fileHandler(path, srcFile))
+    void expectHead(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
+        expect(path, false, ['HEAD'], fileHandler(path, srcFile, lastModified, contentLength))
     }
 
     /**
      * Allows one GET request for the given URL. Reads the request content from the given file.
      */
-    void expectGet(String path, File srcFile) {
-        expect(path, false, ['GET'], fileHandler(path, srcFile))
+    void expectGet(String path, File srcFile, Long lastModified = null, Long contentLength = null) {
+        expect(path, false, ['GET'], fileHandler(path, srcFile, lastModified, contentLength))
     }
 
     /**
@@ -216,9 +212,9 @@ class HttpServer extends ExternalResource {
         })
     }
 
-    private sendFile(HttpServletResponse response, File file) {
-        response.setDateHeader(HttpHeaders.LAST_MODIFIED, file.lastModified())
-        response.setContentLength((int) file.length())
+    private sendFile(HttpServletResponse response, File file, Long lastModified, Long contentLength) {
+        response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified ?: file.lastModified())
+        response.setContentLength((contentLength ?: file.length()) as int)
         response.setContentType(new MimeTypes().getMimeByExtension(file.name).toString())
         response.outputStream << new FileInputStream(file)
     }
@@ -336,36 +332,6 @@ class HttpServer extends ExternalResource {
 
     int getPort() {
         return server.connectors[0].localPort
-    }
-
-    void expectGetIfNotModifiedSince(String path, File file, IfModResponse ifModResponse) {
-        expectGetIfNotModifiedSince(path, new Date(file.lastModified()), file, ifModResponse)
-    }
-
-    void expectGetIfNotModifiedSince(String path, Date date, File file, IfModResponse ifModResponse) {
-        expect(path, false, ["GET"], new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-                long ifModifiedSinceLong = request.getDateHeader("If-Modified-Since")
-                if (ifModifiedSinceLong < 0) {
-                    throw new AssertionError("Expected request to have If-Modified-Since header")
-                }
-                Date ifModifiedSince = new Date(ifModifiedSinceLong)
-                if (ifModifiedSince != date) {
-                    throw new AssertionError("Expected request to have If-Modified-Since of '$date' (got: $ifModifiedSince")
-                }
-                handleIfModified(response, file, ifModResponse)
-            }
-        })
-    }
-
-    private void handleIfModified(HttpServletResponse response, File file, IfModResponse ifModResponse) {
-        if (ifModResponse == IfModResponse.UNMODIFIED) {
-            response.sendError(304, "Unmodified")
-        } else if (ifModResponse == IfModResponse.MODIFIED) {
-            sendFile(response, file)
-        } else {
-            throw new IllegalStateException("Can't handle IfModResponse $ifModResponse")
-        }
     }
 
     static class TestUserRealm implements UserRealm {

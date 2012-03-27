@@ -18,10 +18,13 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.MavenModule
 import org.gradle.integtests.fixtures.MavenRepository
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
-import static org.gradle.integtests.fixtures.HttpServer.IfModResponse.UNMODIFIED
-import static org.gradle.integtests.fixtures.HttpServer.IfModResponse.MODIFIED
 
 class MavenSnapshotRemoteDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
+
+    def cleanup() {
+        server.resetExpectations()
+    }
+
     def "can find and cache snapshots in multiple Maven HTTP repositories"() {
         server.start()
 
@@ -168,8 +171,8 @@ task retrieve(type: Sync) {
         def nonUniqueVersionModule = mavenRepo().module("org.gradle", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
 
         and: "Server handles requests"
-        expectModuleServed(uniqueVersionModule, '/repo')
-        expectModuleServed(nonUniqueVersionModule, '/repo')
+        expectModuleServed(uniqueVersionModule, '/repo', false, true)
+        expectModuleServed(nonUniqueVersionModule, '/repo', false, true)
 
         and: "We resolve dependencies"
         run 'retrieve'
@@ -184,8 +187,8 @@ task retrieve(type: Sync) {
         nonUniqueVersionModule.artifactFile << 'more content'
 
         and: "No server requests"
-        expectModuleServed(uniqueVersionModule, '/repo', true)
-        expectModuleServed(nonUniqueVersionModule, '/repo', true)
+        expectModuleServed(uniqueVersionModule, '/repo', true, true)
+        expectModuleServed(nonUniqueVersionModule, '/repo', true, true)
 
         and: "Resolve dependencies again"
         run 'retrieve'
@@ -256,8 +259,8 @@ task retrieve(type: Sync) {
         file('libs/nonunique-1.0-SNAPSHOT.jar').assertHasNotChangedSince(nonUniqueJarSnapshot)
 
         when: "Server handles requests"
-        expectModuleServed(uniqueVersionModule, '/repo', true)
-        expectModuleServed(nonUniqueVersionModule, '/repo', true)
+        expectModuleServed(uniqueVersionModule, '/repo', true, true)
+        expectModuleServed(nonUniqueVersionModule, '/repo', true, true)
 
         and: "Resolve dependencies with cache expired"
         executer.withArguments("-PnoTimeout")
@@ -367,6 +370,7 @@ allprojects {
         given:
         def module = mavenRepo().module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
         def module2 = new MavenRepository(file('repo2')).module("org.gradle", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publishWithChangedContent()
+        module2.artifactFile << module2.artifactFile.bytes // ensure it's a different length to the first one
 
         and:
         settingsFile << "include 'lock', 'resolve'"
@@ -416,8 +420,21 @@ project('resolve') {
 }
 """
         when: "Module is requested once"
-        expectModuleServed(module, '/repo')
-        expectModuleServed(module2, '/repo', true)
+        def moduleName = module.artifactId
+        def prefix = "/repo"
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}", module.pomFile)
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}", module.artifactFile)
+
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module2.moduleDir.file("maven-metadata.xml"))
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}.sha1", module2.sha1File(module2.pomFile))
+        server.expectHead("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}", module2.pomFile)
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}", module2.pomFile)
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module2.moduleDir.file("maven-metadata.xml"))
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}.sha1", module2.sha1File(module2.artifactFile))
+        server.expectHead("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}", module2.artifactFile)
+        server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}", module2.artifactFile)
 
         then:
         run 'cleanup'
@@ -451,7 +468,7 @@ project('resolve') {
                 from configurations.compile
             }
         """
-        
+
         and:
         def module = mavenRepo().module("group", "projectA", "1.1-SNAPSHOT").withNonUniqueSnapshots().publish()
         // Set the last modified to something that's not going to be anything “else”.
@@ -464,10 +481,12 @@ project('resolve') {
         def metaDataPath = "$base/maven-metadata.xml"
         def pomPath = "$base/$module.pomFile.name"
         def pomSha1Path = "${pomPath}.sha1"
-        def originalPomLastMod = new Date(module.pomFile.lastModified())
+        def originalPomLastMod = module.pomFile.lastModified()
+        def originalPomContentLength = module.pomFile.length()
         def jarPath = "$base/$module.artifactFile.name"
         def jarSha1Path = "${jarPath}.sha1"
-        def originalJarLastMod = new Date(module.artifactFile.lastModified())
+        def originalJarLastMod = module.artifactFile.lastModified()
+        def originalJarContentLength = module.artifactFile.length()
 
         when:
         server.expectGet(metaDataPath, module.mavenMetaDataFile)
@@ -489,10 +508,10 @@ project('resolve') {
         server.resetExpectations()
         server.expectGet(metaDataPath, module.mavenMetaDataFile)
         server.expectGetMissing(pomSha1Path)
-        server.expectGetIfNotModifiedSince(pomPath, originalPomLastMod, module.pomFile, UNMODIFIED)
+        server.expectHead(pomPath, module.pomFile, originalPomLastMod, originalPomContentLength)
         server.expectGet(metaDataPath, module.mavenMetaDataFile)
         server.expectGetMissing(jarSha1Path)
-        server.expectGetIfNotModifiedSince(jarPath, originalJarLastMod, module.artifactFile, UNMODIFIED)
+        server.expectHead(jarPath, module.artifactFile, originalJarLastMod, originalJarContentLength)
 
         run "retrieve"
 
@@ -503,10 +522,13 @@ project('resolve') {
         server.resetExpectations()
         server.expectGet(metaDataPath, module.mavenMetaDataFile)
         server.expectGetMissing(pomSha1Path)
-        server.expectGetIfNotModifiedSince(pomPath, originalPomLastMod, module.pomFile, MODIFIED)
+        server.expectHead(pomPath, module.pomFile)
+        server.expectGet(pomPath, module.pomFile)
         server.expectGet(metaDataPath, module.mavenMetaDataFile)
         server.expectGetMissing(jarSha1Path)
-        server.expectGetIfNotModifiedSince(jarPath, originalJarLastMod, module.artifactFile, MODIFIED)
+        server.expectHead(jarPath, module.artifactFile)
+        server.expectGet(jarPath, module.artifactFile)
+
 
         run "retrieve"
 
@@ -515,7 +537,7 @@ project('resolve') {
         downloadedJarFile.assertIsCopyOf(module.artifactFile)
     }
 
-    private expectModuleServed(MavenModule module, def prefix, boolean sha1requests = false) {
+    private expectModuleServed(MavenModule module, def prefix, boolean sha1requests = false, boolean headRequests = false) {
         def moduleName = module.artifactId;
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/maven-metadata.xml", module.moduleDir.file("maven-metadata.xml"))
         server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}", module.pomFile)
@@ -526,6 +548,11 @@ project('resolve') {
         if (sha1requests) {
             server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}.sha1", module.sha1File(module.pomFile))
             server.expectGet("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}.sha1", module.sha1File(module.artifactFile))
+        }
+
+        if (headRequests) {
+            server.expectHead("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.pomFile.name}", module.pomFile)
+            server.expectHead("${prefix}/org/gradle/${moduleName}/1.0-SNAPSHOT/${module.artifactFile.name}", module.artifactFile)
         }
     }
 

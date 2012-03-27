@@ -108,7 +108,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         String url = artifactRef.getResource().getName();
         long lastModifiedTimestamp = artifactRef.getResource().getLastModified();
         Date lastModified = lastModifiedTimestamp > 0 ? new Date(lastModifiedTimestamp) : null;
-        artifactUrlCachedResolutionIndex.store(artifactRef.getResource().getName(), fileInFileStore, new DefaultExternalResourceMetaData(url, lastModified, -1));
+        artifactUrlCachedResolutionIndex.store(artifactRef.getResource().getName(), fileInFileStore, new DefaultExternalResourceMetaData(url, lastModified, artifactRef.getResource().getContentLength()));
 
         return fileInFileStore;
     }

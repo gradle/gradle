@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
-import static org.gradle.integtests.fixtures.HttpServer.IfModResponse.*
 
 class IvyChangingModuleRemoteResolutionIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -372,10 +371,12 @@ task retrieve(type: Copy) {
         def base = "/repo/group/projectA/1.1"
         def ivyPath = "$base/$module.ivyFile.name"
         def ivySha1Path = "${ivyPath}.sha1"
-        def originalIvyLastMod = new Date(module.ivyFile.lastModified())
+        def originalIvyLastMod = module.ivyFile.lastModified()
+        def originalIvyContentLength = module.ivyFile.length()
         def jarPath = "$base/$module.jarFile.name"
         def jarSha1Path = "${jarPath}.sha1"
-        def originalJarLastMod = new Date(module.jarFile.lastModified())
+        def originalJarLastMod = module.jarFile.lastModified()
+        def originalJarContentLength = module.jarFile.length()
 
         when:
         server.expectGet(ivyPath, module.ivyFile)
@@ -394,9 +395,9 @@ task retrieve(type: Copy) {
         when:
         server.resetExpectations()
         server.expectGetMissing(ivySha1Path)
-        server.expectGetIfNotModifiedSince(ivyPath, originalIvyLastMod, module.ivyFile, UNMODIFIED)
+        server.expectHead(ivyPath, module.ivyFile, originalIvyLastMod, originalIvyContentLength)
         server.expectGetMissing(jarSha1Path)
-        server.expectGetIfNotModifiedSince(jarPath, originalJarLastMod, module.jarFile, UNMODIFIED)
+        server.expectHead(jarPath, module.jarFile, originalJarLastMod, originalJarContentLength)
 
         run 'retrieve'
 
@@ -406,9 +407,11 @@ task retrieve(type: Copy) {
         when:
         server.resetExpectations()
         server.expectGetMissing(ivySha1Path)
-        server.expectGetIfNotModifiedSince(ivyPath, originalIvyLastMod, module.ivyFile, MODIFIED)
+        server.expectHead(ivyPath, module.ivyFile)
+        server.expectGet(ivyPath, module.ivyFile)
         server.expectGetMissing(jarSha1Path)
-        server.expectGetIfNotModifiedSince(jarPath, originalJarLastMod, module.jarFile, MODIFIED)
+        server.expectHead(jarPath, module.jarFile)
+        server.expectGet(jarPath, module.jarFile)
 
         run 'retrieve'
 

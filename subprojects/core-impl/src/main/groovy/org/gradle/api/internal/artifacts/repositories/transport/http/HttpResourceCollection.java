@@ -24,7 +24,6 @@ import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.client.ContentEncodingHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
@@ -45,6 +44,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -120,25 +120,46 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
             }
         }
 
+        CachedExternalResource cachedExternalResource = byUrlCachedExternalResourceIndex.lookup(source);
+        if (cachedExternalResource != null) {
+            if (isUnchanged(source, cachedExternalResource)) {
+                return new CachedExternalResourceAdapter(source, cachedExternalResource, HttpResourceCollection.this);
+            }
+        }
+
         HttpGet request = new HttpGet(source);
-        return processHttpRequest(source, request, byUrlCachedExternalResourceIndex.lookup(source));
+        return processHttpRequest(source, request);
+    }
+
+    private boolean isUnchanged(String source, CachedExternalResource cachedExternalResource) {
+        ExternalResourceMetaData metaData = cachedExternalResource.getExternalResourceMetaData();
+        if (metaData != null) {
+            Date lastModified = metaData.getLastModified();
+            long contentLength = metaData.getContentLength();
+
+            if (lastModified != null && contentLength > 0) {
+                ExternalResource headResource = initHead(source);
+                if (headResource.getContentLength() == contentLength && headResource.getLastModified() == lastModified.getTime()) {
+                    LOGGER.info("Resource matches cached (lastModified: {}). [HTTP: {}]", lastModified, source);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        return false;
     }
 
     private ExternalResource initHead(String source) {
         LOGGER.debug("Constructing HEAD resource: {}", source);
         HttpHead request = new HttpHead(source);
-        return processHttpRequest(source, request, null);
+        return processHttpRequest(source, request);
     }
 
-    private ExternalResource processHttpRequest(String source, HttpRequestBase request, CachedExternalResource cachedExternalResource) {
+    private ExternalResource processHttpRequest(String source, HttpRequestBase request) {
         String method = request.getMethod();
         configurer.configureMethod(request);
-
-        if (cachedExternalResource != null && cachedExternalResource.getExternalResourceMetaData() != null && cachedExternalResource.getExternalResourceMetaData().getLastModified() != null) {
-            String formattedDate = DateUtils.formatDate(cachedExternalResource.getExternalResourceMetaData().getLastModified());
-            LOGGER.info("Adding If-Modified-Since: {}. [HTTP {}: {}]", new Object[]{formattedDate, method, source});
-            request.addHeader("If-Modified-Since", formattedDate);
-        }
 
         HttpResponse response;
         try {
@@ -150,10 +171,6 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
         if (wasMissing(response)) {
             LOGGER.info("Resource missing. [HTTP {}: {}]", method, source);
             return new MissingExternalResource(source);
-        }
-        if (cachedExternalResource != null && wasUnmodified(response)) {
-            LOGGER.info("Resource was unmodified. [HTTP {}: {}]", method, source);
-            return new CachedExternalResourceAdapter(source, cachedExternalResource, HttpResourceCollection.this);
         }
         if (!wasSuccessful(response)) {
             LOGGER.info("Failed to get resource: {}. [HTTP {}: {}]", new Object[]{method, response.getStatusLine(), source});
@@ -307,11 +324,6 @@ public class HttpResourceCollection extends AbstractRepository implements Resour
     private boolean wasSuccessful(HttpResponse response) {
         int statusCode = response.getStatusLine().getStatusCode();
         return statusCode >= 200 && statusCode < 300;
-    }
-
-    private boolean wasUnmodified(HttpResponse response) {
-        int statusCode = response.getStatusLine().getStatusCode();
-        return statusCode == 304;
     }
 
 }
