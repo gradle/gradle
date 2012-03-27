@@ -92,4 +92,8 @@ task retrieve(type: Sync) {
     MavenRepository repo() {
         return new MavenRepository(file('repo'))
     }
+
+    def cleanup() {
+        server.resetExpectations()
+    }
 }

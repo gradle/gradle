@@ -21,10 +21,6 @@ import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class MavenSnapshotRemoteDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
 
-    def cleanup() {
-        server.resetExpectations()
-    }
-
     def "can find and cache snapshots in multiple Maven HTTP repositories"() {
         server.start()
 

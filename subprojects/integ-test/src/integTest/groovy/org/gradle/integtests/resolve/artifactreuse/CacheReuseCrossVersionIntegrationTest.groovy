@@ -70,4 +70,8 @@ task retrieve(type: Sync) {
         file('libs/projectB-1.0.jar').assertContentsHaveNotChangedSince(snapshot)
     }
 
+    def cleanup() {
+        server.resetExpectations()
+    }
+
 }

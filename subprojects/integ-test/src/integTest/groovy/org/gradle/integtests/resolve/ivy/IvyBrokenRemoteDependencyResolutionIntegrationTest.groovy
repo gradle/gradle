@@ -23,10 +23,6 @@ import org.gradle.integtests.resolve.AbstractDependencyResolutionTest
 
 class IvyBrokenRemoteDependencyResolutionIntegrationTest extends AbstractDependencyResolutionTest {
 
-    def cleanup() {
-        server.resetExpectations()
-    }
-
     public void "reports and caches missing module"() {
         server.start()
 
