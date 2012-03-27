@@ -49,10 +49,12 @@ public class DefaultConnection implements InternalConnection {
         //embedded use of the tooling api is not supported publicly so we don't care about its thread safety
         //we can keep still keep this state:
         embeddedExecuterSupport = new EmbeddedExecuterSupport();
+        LOGGER.debug("Embedded executer support created.");
     }
 
     public void configureLogging(boolean verboseLogging) {
         LogLevel providerLogLevel = verboseLogging? LogLevel.DEBUG : LogLevel.INFO;
+        LOGGER.debug("Configuring logging to level: {}", providerLogLevel);
         loggingConfigurer.configure(providerLogLevel);
     }
 
