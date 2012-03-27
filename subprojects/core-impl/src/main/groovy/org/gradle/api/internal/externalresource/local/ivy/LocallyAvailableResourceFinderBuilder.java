@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.externalresource.local.CompositeLocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinderSearchableFileStoreAdapter;
 import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 
 import java.io.File;
@@ -29,14 +30,17 @@ public class LocallyAvailableResourceFinderBuilder {
     private final LinkedList<LocallyAvailableResourceFinder<ArtifactRevisionId>> hashCaches = new LinkedList<LocallyAvailableResourceFinder<ArtifactRevisionId>>();
     private final File rootCachesDirectory;
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
+    private final ArtifactRevisionIdFileStore fileStore;
 
-    public LocallyAvailableResourceFinderBuilder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator) {
+    public LocallyAvailableResourceFinderBuilder(
+            ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, ArtifactRevisionIdFileStore fileStore) {
         this.rootCachesDirectory = artifactCacheMetaData.getCacheDir().getParentFile();
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
+        this.fileStore = fileStore;
     }
 
-    public void addCurrent(File baseDir) {
-        hashCaches.add(ArtifactRevisionIdFileStore.asArtifactCache(baseDir));
+    public void addCurrent() {
+        hashCaches.add(new LocallyAvailableResourceFinderSearchableFileStoreAdapter<ArtifactRevisionId>(fileStore));
     }
 
     public void addMilestone8and9() {

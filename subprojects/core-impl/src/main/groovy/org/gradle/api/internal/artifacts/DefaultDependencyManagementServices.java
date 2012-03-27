@@ -35,7 +35,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
-import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleDescriptorCache;
@@ -51,10 +50,11 @@ import org.gradle.api.internal.artifacts.repositories.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.ByUrlCachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderBuilder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 import org.gradle.api.internal.filestore.UniquePathFileStore;
+import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.cache.CacheRepository;
@@ -202,12 +202,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         );
     }
 
-    private File getUniquePathFileStoreBase() {
-        return new File(get(ArtifactCacheMetaData.class).getCacheDir(), "filestore");
-    }
-
     protected UniquePathFileStore createUniquePathFileStore() {
-        return new UniquePathFileStore(getUniquePathFileStoreBase());
+        return new UniquePathFileStore(new File(get(ArtifactCacheMetaData.class).getCacheDir(), "filestore"));
     }
 
     protected ArtifactRevisionIdFileStore createArtifactRevisionIdFileStore() {
@@ -231,8 +227,10 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
     }
 
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
-        LocallyAvailableResourceFinderBuilder cacheBuilder = new LocallyAvailableResourceFinderBuilder(get(ArtifactCacheMetaData.class), get(LocalMavenRepositoryLocator.class));
-        cacheBuilder.addCurrent(getUniquePathFileStoreBase());
+        LocallyAvailableResourceFinderBuilder cacheBuilder = new LocallyAvailableResourceFinderBuilder(
+                get(ArtifactCacheMetaData.class), get(LocalMavenRepositoryLocator.class), get(ArtifactRevisionIdFileStore.class)
+        );
+        cacheBuilder.addCurrent();
         cacheBuilder.addMilestone8and9();
         cacheBuilder.addMilestone7();
         cacheBuilder.addMilestone6();

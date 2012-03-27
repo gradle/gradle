@@ -44,7 +44,4 @@ public class ArtifactRevisionIdFileStore extends GroupedAndNamedUniqueFileStore<
         };
     }
 
-    public static LocallyAvailableResourceFinder<ArtifactRevisionId> asArtifactCache(File baseDir) {
-        return new PatternBasedLocallyAvailableResourceFinder(baseDir, String.format("%s/*/%s", GROUP_PATTERN, NAME_PATTERN));
-    }
 }
