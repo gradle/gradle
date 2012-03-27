@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.m8
+package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.BasicGradleDistribution
+import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.ReleasedVersions
 import org.gradle.integtests.tooling.fixture.ConfigurableOperation
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.tests.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.GradleConnector
@@ -32,12 +31,15 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
 import spock.lang.Issue
+import spock.lang.Specification
 
-@MinToolingApiVersion('1.0-milestone-8')
-@MinTargetGradleVersion('1.0-milestone-8')
 @Issue("GRADLE-1933")
-class ConcurrentToolingApiCrossVersionSpec extends ToolingApiSpecification {
-    @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
+class ConcurrentToolingApiIntegrationSpec extends Specification {
+
+    @Rule final ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
+    @Rule final GradleDistribution dist = new GradleDistribution()
+    final ToolingApi toolingApi = new ToolingApi(dist)
+
     int threads = 3
 
     def setup() {
@@ -56,7 +58,7 @@ class ConcurrentToolingApiCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         threads.times {
-            concurrent.start { useToolingApi() }
+            concurrent.start { useToolingApi(dist) }
         }
 
         then:
@@ -65,27 +67,23 @@ class ConcurrentToolingApiCrossVersionSpec extends ToolingApiSpecification {
 
     def "handles different target gradle versions concurrently"() {
         given:
-        def current = getTargetDist()
-        def previous = new ReleasedVersions(dist).getPreviousOf(current)
-        assert current != previous
-        println "Combination of versions used: current - $current, previous - $previous"
+        def current = dist
+        def last = new ReleasedVersions(dist).getLast()
+        assert current != last
+        println "Combination of versions used: current - $current, last - $last"
 
         dist.file('build.gradle')  << "apply plugin: 'java'"
 
         when:
         concurrent.start { useToolingApi(current) }
-        concurrent.start { useToolingApi(previous)}
+        concurrent.start { useToolingApi(last)}
 
         then:
         concurrent.finished()
     }
 
-    def useToolingApi(BasicGradleDistribution target = null) {
-        if (target != null) {
-            selectTargetDist(target)
-        }
-
-        withConnection { ProjectConnection connection ->
+    def useToolingApi(BasicGradleDistribution target) {
+        new ToolingApi(target, dist.userHomeDir, { dist.testDir }, false).withConnection { ProjectConnection connection ->
             try {
                 def model = connection.getModel(IdeaProject)
                 assert model != null
@@ -108,7 +106,7 @@ project.description = text
 """
 
         when:
-        withConnection { connection ->
+        toolingApi.withConnection { connection ->
             threads.times { idx ->
                 concurrent.start {
                     def model = connection.model(GradleProject.class)
@@ -182,7 +180,7 @@ project.description = text
         def allProgress = []
 
         concurrent.start {
-            def connector = connector()
+            def connector = toolingApi.connector()
             distributionOperation(connector, { it.description = "download for 1"; Thread.sleep(500) } )
             connector.forProjectDirectory(dist.file("build1"))
 
@@ -197,7 +195,7 @@ project.description = text
         }
 
         concurrent.start {
-            def connector = connector()
+            def connector = toolingApi.connector()
             distributionOperation(connector, { it.description = "download for 2"; Thread.sleep(500) } )
             connector.forProjectDirectory(dist.file("build2"))
 
@@ -232,7 +230,7 @@ project.description = text
         when:
         threads.times { idx ->
             concurrent.start {
-                def connector = connector()
+                def connector = toolingApi.connector()
                 distributionProgressMessage(connector, "download for " + idx)
 
                 def connection = connector.connect()
@@ -350,8 +348,8 @@ logger.lifecycle 'this is lifecycle: $idx'
     }
 
     def withConnectionInDir(String dir, Closure cl) {
-        GradleConnector connector = connector()
+        GradleConnector connector = toolingApi.connector()
         connector.forProjectDirectory(dist.file(dir))
-        withConnection(connector, cl)
+        toolingApi.withConnection(connector, cl)
     }
 }

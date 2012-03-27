@@ -16,6 +16,7 @@
 package org.gradle.integtests.tooling.fixture
 
 import java.util.concurrent.TimeUnit
+import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.IntegrationTestHint
@@ -27,14 +28,25 @@ import org.slf4j.LoggerFactory
 
 class ToolingApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApi)
-    File projectDir
-    private GradleDistribution dist
+
+    private File projectDir
+    private BasicGradleDistribution dist
+    private Closure getProjectDir
+    private File userHomeDir
+
     private final List<Closure> connectorConfigurers = []
-    boolean isEmbedded = GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded
+    boolean isEmbedded
     boolean verboseLogging = true
 
     ToolingApi(GradleDistribution dist) {
+        this(dist, dist.userHomeDir, { dist.testDir }, GradleDistributionExecuter.systemPropertyExecuter == GradleDistributionExecuter.Executer.embedded)
+    }
+
+    ToolingApi(BasicGradleDistribution dist, File userHomeDir, Closure getProjectDir, boolean isEmbedded) {
         this.dist = dist
+        this.userHomeDir = userHomeDir
+        this.getProjectDir = getProjectDir
+        this.isEmbedded = isEmbedded
     }
 
     void withConnector(Closure cl) {
@@ -73,14 +85,10 @@ class ToolingApi {
         }
     }
 
-    File getProjectDir() {
-        return projectDir ?: dist.testDir
-    }
-
     GradleConnector connector() {
         GradleConnector connector = GradleConnector.newConnector()
-        connector.useGradleUserHomeDir(new File(dist.userHomeDir.absolutePath))
-        connector.forProjectDirectory(new File(getProjectDir().absolutePath))
+        connector.useGradleUserHomeDir(userHomeDir)
+        connector.forProjectDirectory(getProjectDir().absoluteFile)
         connector.searchUpwards(false)
         connector.daemonMaxIdleTime(60, TimeUnit.SECONDS)
         if (connector.metaClass.hasProperty(connector, 'verboseLogging')) {
@@ -92,7 +100,7 @@ class ToolingApi {
             connector.embedded(true)
         } else {
             LOGGER.info("Using daemon tooling API provider");
-            connector.useInstallation(new File(dist.gradleHomeDir.absolutePath))
+            connector.useInstallation(dist.gradleHomeDir.absoluteFile)
             connector.embedded(false)
         }
         connectorConfigurers.each {
