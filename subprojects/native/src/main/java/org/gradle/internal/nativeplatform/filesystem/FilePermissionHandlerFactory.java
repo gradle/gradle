@@ -16,6 +16,7 @@
 
 package org.gradle.internal.nativeplatform.filesystem;
 
+import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeplatform.jna.LibC;
@@ -63,8 +64,12 @@ public class FilePermissionHandlerFactory {
             this.libc = libc;
         }
 
-        public void chmod(File f, int mode) {
-            libc.chmod(f.getAbsolutePath(), mode);
+        public void chmod(File f, int mode) throws IOException {
+            try{
+                libc.chmod(f.getAbsolutePath(), mode);
+            }catch(LastErrorException exception){
+                throw new IOException(String.format("Failed to set file permissions %s on file %s. errno: %d", mode, f.getName(), exception.getErrorCode()));
+            }
         }
     }
 

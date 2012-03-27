@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.nativeplatform.jna;
 
+import com.sun.jna.LastErrorException;
 import com.sun.jna.Library;
 
 public interface LibC extends Library {
@@ -26,6 +27,6 @@ public interface LibC extends Library {
     public int errno();
     public int getpid();
     public int isatty(int fdes);
-    public int chmod(String filename, int mode);
+    public int chmod(String filename, int mode) throws LastErrorException;
     //CHECKSTYLE:ON
 }

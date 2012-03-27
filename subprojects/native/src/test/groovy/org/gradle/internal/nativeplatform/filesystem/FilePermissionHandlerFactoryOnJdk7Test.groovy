@@ -19,7 +19,6 @@ package org.gradle.internal.nativeplatform.filesystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
-import com.google.common.io.Files
 
 @Requires(TestPrecondition.JDK7)
 class FilePermissionHandlerFactoryOnJdk7Test extends Specification{
@@ -43,9 +42,7 @@ class FilePermissionHandlerFactoryOnJdk7Test extends Specification{
     @Requires(TestPrecondition.UNKNOWN_OS)
         def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Unknown OS"() {
             setup:
-            def File dir = Files.createTempDir();
-            def File file = new File(dir, "f")
-            Files.touch(file)
+            def File file = temporaryFolder.newFile()
             def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
             def originalMode = handler.getUnixMode(file);
             when:

@@ -20,10 +20,13 @@ package org.gradle.internal.nativeplatform.filesystem;
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
-import com.google.common.io.Files
+import org.junit.rules.TemporaryFolder
+import org.junit.Rule
 
 @Requires(TestPrecondition.NOT_JDK7)
 public class FilePermissionHandlerFactoryOnNonJdk7Test extends Specification {
+
+    @Rule TemporaryFolder temporaryFolder
 
     @Requires(TestPrecondition.WINDOWS)
     def "createDefaultFilePermissionHandler creates WindowsFilePermissionHandler on Windows OS"() {
@@ -44,9 +47,7 @@ public class FilePermissionHandlerFactoryOnNonJdk7Test extends Specification {
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with enabled Chmod on Unknown OS"() {
         setup:
-        def File dir = Files.createTempDir();
-        def File file = new File(dir, "f")
-        Files.touch(file)
+        def file = temporaryFolder.newFile()
         def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
         when:
         handler.chmod(file, mode);
@@ -56,12 +57,23 @@ public class FilePermissionHandlerFactoryOnNonJdk7Test extends Specification {
         mode << [0722, 0644, 0744, 0755]
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "Throws IOException for failed chmod calls"() {
+        setup:
+        def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
+        def notExistingFile = new File(temporaryFolder.newFolder(), "nonexisting.file");
+        when:
+        handler.chmod(notExistingFile, 622);
+        then:
+        def e = thrown(IOException)
+        e.message == "Failed to set file permissions 622 on file nonexisting.file. errno: 2"
+    }
+
     @Requires(TestPrecondition.UNKNOWN_OS)
     def "createDefaultFilePermissionHandler creates ComposedFilePermissionHandler with disabled Chmod on Unknown OS"() {
         setup:
-        def File dir = Files.createTempDir();
-        def File file = new File(dir, "f")
-        Files.touch(file)
+        def file = temporaryFolder.newFile()
+
         def handler = FilePermissionHandlerFactory.createDefaultFilePermissionHandler()
         def originalMode = handler.getUnixMode(file);
         when:
