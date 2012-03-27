@@ -30,6 +30,7 @@ import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
 import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache;
+import org.gradle.util.TimeProvider;
 import org.gradle.util.WrapUtil;
 
 import java.util.List;
@@ -43,12 +44,14 @@ public class ResolveIvyFactory {
     private final CachedExternalResourceIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex;
     private final CacheLockingManager cacheLockingManager;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
+    private final TimeProvider timeProvider;
 
 
     public ResolveIvyFactory(IvyFactory ivyFactory, ResolverProvider resolverProvider, SettingsConverter settingsConverter,
                              ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
                              CachedExternalResourceIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
-                             CacheLockingManager cacheLockingManager, StartParameterResolutionOverride startParameterResolutionOverride) {
+                             CacheLockingManager cacheLockingManager, StartParameterResolutionOverride startParameterResolutionOverride,
+                             TimeProvider timeProvider) {
         this.ivyFactory = ivyFactory;
         this.resolverProvider = resolverProvider;
         this.settingsConverter = settingsConverter;
@@ -57,6 +60,7 @@ public class ResolveIvyFactory {
         this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
         this.cacheLockingManager = cacheLockingManager;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
+        this.timeProvider = timeProvider;
     }
 
     public IvyAdapter create(ConfigurationInternal configuration) {
@@ -81,7 +85,7 @@ public class ResolveIvyFactory {
             moduleVersionRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleVersionRepository);
             ModuleVersionRepository cachingRepository =
                     new CachingModuleVersionRepository(moduleVersionRepository, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCachedResolutionIndex,
-                                                       configuration.getResolutionStrategy().getCachePolicy());
+                                                       configuration.getResolutionStrategy().getCachePolicy(), timeProvider);
             // Need to contextualise outside of caching, since parsing of module descriptors in the cache requires ivy settings, which is provided via the context atm
             ModuleVersionRepository ivyContextualisedRepository = contextualiser.contextualise(ModuleVersionRepository.class, cachingRepository);
             userResolverChain.add(ivyContextualisedRepository);

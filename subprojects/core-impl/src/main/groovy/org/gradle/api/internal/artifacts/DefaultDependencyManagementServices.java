@@ -65,6 +65,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.TimeProvider;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -325,8 +326,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                     get(ModuleDescriptorCache.class),
                     get(ArtifactAtRepositoryCachedExternalResourceIndex.class),
                     get(CacheLockingManager.class),
-                    startParameterResolutionOverride
-            );
+                    startParameterResolutionOverride,
+                    get(TimeProvider.class));
 
             ResolvedArtifactFactory resolvedArtifactFactory = new ResolvedArtifactFactory(
                     get(CacheLockingManager.class)

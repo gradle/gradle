@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptor
 import org.gradle.api.internal.externalresource.CachedExternalResource;
 import org.gradle.api.internal.externalresource.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
+import org.gradle.util.TimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,15 +47,16 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
     private final CachePolicy cachePolicy;
 
     private final ModuleVersionRepository delegate;
+    private final TimeProvider timeProvider;
 
     public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleResolutionCache moduleResolutionCache, ModuleDescriptorCache moduleDescriptorCache,
                                           CachedExternalResourceIndex<ArtifactAtRepositoryKey> artifactAtRepositoryCachedResolutionIndex,
-                                          CachePolicy cachePolicy) {
+                                          CachePolicy cachePolicy, TimeProvider timeProvider) {
         this.delegate = delegate;
         this.moduleDescriptorCache = moduleDescriptorCache;
         this.moduleResolutionCache = moduleResolutionCache;
         this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
-
+        this.timeProvider = timeProvider;
         this.cachePolicy = cachePolicy;
     }
 
@@ -201,14 +203,15 @@ public class CachingModuleVersionRepository implements ModuleVersionRepository {
 
         if (cached != null) {
             ArtifactIdentifier artifactIdentifier = createArtifactIdentifier(artifact);
+            long age = timeProvider.getCurrentTime() - cached.getCachedAt();
             if (cached.isMissing()) {
-                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, cached.getCachedAt())) {
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age)) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact.getId());
                     return null;
                 }
             } else {
                 File cachedArtifactFile = cached.getCachedFile();
-                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, cached.getCachedAt())) {
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age)) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact.getId(), cachedArtifactFile);
                     return new DownloadedArtifact(cachedArtifactFile, cached.getExternalResourceMetaData());
                 }
