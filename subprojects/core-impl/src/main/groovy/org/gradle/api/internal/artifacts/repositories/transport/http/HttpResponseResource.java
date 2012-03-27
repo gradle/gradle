@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.transport.http;
 
 import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.util.EntityUtils;
@@ -61,7 +62,21 @@ class HttpResponseResource extends AbstractExternalResource {
     }
 
     public long getContentLength() {
-        return response.getEntity().getContentLength();
+        Header header = response.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
+        if (header == null) {
+            return -1;            
+        }
+
+        String value = header.getValue();
+        if (value == null) {
+            return -1;
+        }
+
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 
     public boolean exists() {
