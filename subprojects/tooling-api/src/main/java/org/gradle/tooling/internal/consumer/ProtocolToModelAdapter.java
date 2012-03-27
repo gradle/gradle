@@ -16,6 +16,9 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
@@ -34,12 +37,12 @@ public class ProtocolToModelAdapter {
         configuredTargetTypes.put(IdeaModuleDependency.class.getCanonicalName(), IdeaModuleDependency.class);
     }
 
-    public <T, S> T adapt(Class<T> targetType, S protocolObject) {
+    public <T, S> T adapt(Class<T> targetType, S protocolObject, VersionDetails versionDetails) {
         Class<T> target = guessTarget(targetType, protocolObject);
         if (target.isInstance(protocolObject)) {
             return target.cast(protocolObject);
         }
-        Object proxy = Proxy.newProxyInstance(target.getClassLoader(), new Class<?>[]{target}, new InvocationHandlerImpl(protocolObject));
+        Object proxy = Proxy.newProxyInstance(target.getClassLoader(), new Class<?>[]{target}, new InvocationHandlerImpl(protocolObject, versionDetails));
         return target.cast(proxy);
     }
 
@@ -59,13 +62,15 @@ public class ProtocolToModelAdapter {
 
     private class InvocationHandlerImpl implements InvocationHandler {
         private final Object delegate;
+        private final VersionDetails versionDetails;
         private final Map<Method, Method> methods = new HashMap<Method, Method>();
         private final Map<String, Object> properties = new HashMap<String, Object>();
         private final Method equalsMethod;
         private final Method hashCodeMethod;
 
-        public InvocationHandlerImpl(Object delegate) {
+        public InvocationHandlerImpl(Object delegate, VersionDetails versionDetails) {
             this.delegate = delegate;
+            this.versionDetails = versionDetails;
             try {
                 equalsMethod = Object.class.getMethod("equals", Object.class);
                 hashCodeMethod = Object.class.getMethod("hashCode");
@@ -108,7 +113,15 @@ public class ProtocolToModelAdapter {
                 if (properties.containsKey(method.getName())) {
                     return properties.get(method.getName());
                 }
-                Object value = doInvokeMethod(method, params);
+
+                Object value;
+                if (method.getName().equals("getGradleProject")
+                        && delegate instanceof EclipseProjectVersion3
+                        && !versionDetails.supportsGradleProjectModel()) {
+                    value = new GradleProjectConverter().convert((EclipseProjectVersion3) delegate);
+                } else {
+                    value = doInvokeMethod(method, params);
+                }
                 properties.put(method.getName(), value);
                 return value;
             }
@@ -182,7 +195,7 @@ public class ProtocolToModelAdapter {
                 if (((Class) targetType).isPrimitive()) {
                     return value;
                 }
-                return adapt((Class) targetType, value);
+                return adapt((Class) targetType, value, versionDetails);
             }
             throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", value.getClass(), targetType));
         }

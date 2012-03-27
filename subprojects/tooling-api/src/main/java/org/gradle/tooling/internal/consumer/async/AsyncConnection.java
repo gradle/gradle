@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.consumer.async;
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
@@ -27,4 +28,6 @@ public interface AsyncConnection {
     void stop();
 
     String getDisplayName();
+    
+    VersionDetails getVersionDetails();
 }

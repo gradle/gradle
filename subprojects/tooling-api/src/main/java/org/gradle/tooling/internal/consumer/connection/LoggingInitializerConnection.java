@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.consumer.SynchronizedLogging;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 
 /**
@@ -39,8 +40,12 @@ public class LoggingInitializerConnection implements ConsumerConnection {
         connection.stop();
     }
 
-    public ConsumerConnectionMetadata getMetaData() {
-        return connection.getMetaData();
+    public String getDisplayName() {
+        return connection.getDisplayName();
+    }
+
+    public VersionDetails getVersionDetails() {
+        return connection.getVersionDetails();
     }
 
     public <T> T getModel(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {

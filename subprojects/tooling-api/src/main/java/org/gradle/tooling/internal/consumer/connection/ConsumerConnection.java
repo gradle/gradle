@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 
 /**
@@ -25,8 +26,10 @@ import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 public interface ConsumerConnection {
 
     void stop();
-
-    ConsumerConnectionMetadata getMetaData();
+    
+    String getDisplayName();
+    
+    VersionDetails getVersionDetails();
 
     <T> T getModel(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
 

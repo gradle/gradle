@@ -26,7 +26,7 @@ import org.gradle.tooling.model.internal.Exceptions;
 public class FeatureValidator {
 
     public void validate(ConsumerConnection connection, ConsumerOperationParameters operationParameters) {
-        VersionDetails version = connection.getMetaData().getVersionDetails();
+        VersionDetails version = connection.getVersionDetails();
         if (operationParameters.getJavaHome() != null) {
             if(!version.supportsConfiguringJavaHome()) {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setJavaHome() and buildLauncher.setJavaHome()");

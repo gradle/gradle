@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer
 
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency
 import org.gradle.tooling.internal.idea.DefaultIdeaSingleEntryLibraryDependency
 import org.gradle.tooling.model.DomainObjectSet
@@ -27,21 +28,22 @@ import spock.lang.Specification
 
 class ProtocolToModelAdapterTest extends Specification {
     final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter()
+    final VersionDetails versionDetails = Mock()
 
     def createsProxyAdapterForProtocolModel() {
         TestProtocolModel protocolModel = Mock()
 
         expect:
-        adapter.adapt(TestModel.class, protocolModel) instanceof TestModel
+        adapter.adapt(TestModel.class, protocolModel, versionDetails) instanceof TestModel
     }
 
     def proxiesAreEqualWhenTargetProtocolObjectsAreEqual() {
         TestProtocolModel protocolModel1 = Mock()
         TestProtocolModel protocolModel2 = Mock()
 
-        def model = adapter.adapt(TestModel.class, protocolModel1)
-        def equal = adapter.adapt(TestModel.class, protocolModel1)
-        def different = adapter.adapt(TestModel.class, protocolModel2)
+        def model = adapter.adapt(TestModel.class, protocolModel1, versionDetails)
+        def equal = adapter.adapt(TestModel.class, protocolModel1, versionDetails)
+        def different = adapter.adapt(TestModel.class, protocolModel2, versionDetails)
 
         expect:
         Matchers.strictlyEquals(model, equal)
@@ -53,7 +55,7 @@ class ProtocolToModelAdapterTest extends Specification {
         _ * protocolModel.getName() >> 'name'
 
         expect:
-        def model = adapter.adapt(TestModel.class, protocolModel)
+        def model = adapter.adapt(TestModel.class, protocolModel, versionDetails)
         model.name == 'name'
     }
 
@@ -64,7 +66,7 @@ class ProtocolToModelAdapterTest extends Specification {
         _ * protocolProject.getName() >> 'name'
 
         expect:
-        def model = adapter.adapt(TestModel.class, protocolModel)
+        def model = adapter.adapt(TestModel.class, protocolModel, versionDetails)
         model.project instanceof TestProject
         model.project.name == 'name'
     }
@@ -74,7 +76,7 @@ class ProtocolToModelAdapterTest extends Specification {
         _ * protocolModel.getProject() >> null
 
         expect:
-        def model = adapter.adapt(TestModel.class, protocolModel)
+        def model = adapter.adapt(TestModel.class, protocolModel, versionDetails)
         model.project == null
     }
 
@@ -85,7 +87,7 @@ class ProtocolToModelAdapterTest extends Specification {
         _ * protocolProject.getName() >> 'name'
 
         expect:
-        def model = adapter.adapt(TestModel.class, protocolModel)
+        def model = adapter.adapt(TestModel.class, protocolModel, versionDetails)
         model.children.size() == 1
         model.children[0] instanceof TestProject
         model.children[0].name == 'name'
@@ -99,7 +101,7 @@ class ProtocolToModelAdapterTest extends Specification {
         _ * protocolProject.getName() >> 'name'
 
         expect:
-        def model = adapter.adapt(TestModel.class, protocolModel)
+        def model = adapter.adapt(TestModel.class, protocolModel, versionDetails)
         model.project.is(model.project)
         model.children.is(model.children)
     }
@@ -108,7 +110,7 @@ class ProtocolToModelAdapterTest extends Specification {
         PartialTestProtocolModel protocolModel = Mock()
 
         when:
-        def model = adapter.adapt(TestModel.class, protocolModel)
+        def model = adapter.adapt(TestModel.class, protocolModel, versionDetails)
         model.project
 
         then:
@@ -121,7 +123,7 @@ class ProtocolToModelAdapterTest extends Specification {
         RuntimeException failure = new RuntimeException()
 
         when:
-        def model = adapter.adapt(TestModel.class, protocolModel)
+        def model = adapter.adapt(TestModel.class, protocolModel, versionDetails)
         model.name
 
         then:
@@ -135,8 +137,8 @@ class ProtocolToModelAdapterTest extends Specification {
         def moduleDep = new GroovyClassLoader().loadClass(DefaultIdeaModuleDependency.class.getCanonicalName()).newInstance()
 
         when:
-        def library = adapter.adapt(IdeaDependency.class, libraryDep)
-        def module  = adapter.adapt(IdeaDependency.class, moduleDep)
+        def library = adapter.adapt(IdeaDependency.class, libraryDep, versionDetails)
+        def module  = adapter.adapt(IdeaDependency.class, moduleDep, versionDetails)
 
         then:
         library instanceof IdeaSingleEntryLibraryDependency

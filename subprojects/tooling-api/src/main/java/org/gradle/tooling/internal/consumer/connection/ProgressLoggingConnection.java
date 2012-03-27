@@ -23,6 +23,7 @@ import org.gradle.logging.internal.ProgressListener;
 import org.gradle.logging.internal.ProgressStartEvent;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
@@ -43,8 +44,12 @@ public class ProgressLoggingConnection implements ConsumerConnection {
         connection.stop();
     }
 
-    public ConsumerConnectionMetadata getMetaData() {
-        return connection.getMetaData();
+    public String getDisplayName() {
+        return connection.getDisplayName();
+    }
+
+    public VersionDetails getVersionDetails() {
+        return connection.getVersionDetails();
     }
 
     public void executeBuild(final BuildParametersVersion1 buildParameters, final ConsumerOperationParameters operationParameters) {

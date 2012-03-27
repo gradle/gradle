@@ -32,7 +32,7 @@ import org.gradle.tooling.model.GradleProject;
 public class ModelProvider {
 
     public <T> T provide(ConsumerConnection connection, Class<T> type, ConsumerOperationParameters operationParameters) {
-        VersionDetails version = connection.getMetaData().getVersionDetails();
+        VersionDetails version = connection.getVersionDetails();
         if (type == InternalBuildEnvironment.class && !version.supportsCompleteBuildEnvironment()) {
             //early versions of provider do not support BuildEnvironment model
             //since we know the gradle version at least we can give back some result

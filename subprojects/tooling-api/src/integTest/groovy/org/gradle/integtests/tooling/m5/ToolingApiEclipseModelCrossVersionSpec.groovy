@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @MinToolingApiVersion('1.0-milestone-5')
-@MinTargetGradleVersion('1.0-milestone-5')
+@MinTargetGradleVersion('1.0-milestone-3')
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     def "eclipse project has access to gradle project and its tasks"() {
         def projectDir = dist.testDir

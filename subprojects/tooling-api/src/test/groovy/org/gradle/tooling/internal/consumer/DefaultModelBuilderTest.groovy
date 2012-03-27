@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.internal.consumer.async.AsyncConnection
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.model.GradleProject
@@ -29,6 +30,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
     final ProtocolToModelAdapter adapter = Mock()
     final ConnectionParameters parameters = Mock()
     final DefaultModelBuilder<GradleProject, ProjectVersion3> builder = new DefaultModelBuilder<GradleProject, ProjectVersion3>(GradleProject, ProjectVersion3, protocolConnection, adapter, parameters)
+    final VersionDetails versionDetails = Mock()
 
     def getModelDelegatesToProtocolConnectionToFetchModel() {
         ResultHandler<GradleProject> handler = Mock()
@@ -52,7 +54,8 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         adaptedHandler.onComplete(result)
 
         then:
-        1 * adapter.adapt(GradleProject.class, result) >> adaptedResult
+        1 * protocolConnection.versionDetails >> versionDetails
+        1 * adapter.adapt(GradleProject.class, result, versionDetails) >> adaptedResult
         1 * handler.onComplete(adaptedResult)
         0 * _._
     }
@@ -105,7 +108,7 @@ class DefaultModelBuilderTest extends ConcurrentSpecification {
         def supplyResult = waitsForAsyncCallback()
         ProjectVersion3 result = Mock()
         GradleProject adaptedResult = Mock()
-        _ * adapter.adapt(GradleProject.class, result) >> adaptedResult
+        _ * adapter.adapt(GradleProject.class, result, _) >> adaptedResult
 
         when:
         def model

@@ -15,7 +15,10 @@
  */
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.tooling.model.*;
+import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.ExternalDependency;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.HasGradleProject;
 
 import java.io.File;
 
@@ -42,6 +45,7 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
      * See {@link HasGradleProject}
      *
      * @return associated gradle project
+     * @since 1.0-milestone-5
      */
     GradleProject getGradleProject();
 

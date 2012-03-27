@@ -19,6 +19,7 @@ import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 
@@ -38,7 +39,11 @@ public class DefaultAsyncConnection implements AsyncConnection {
     }
 
     public String getDisplayName() {
-        return connection.getMetaData().getDisplayName();
+        return connection.getDisplayName();
+    }
+
+    public VersionDetails getVersionDetails() {
+        return connection.getVersionDetails();
     }
 
     public void executeBuild(final BuildParametersVersion1 buildParameters, final ConsumerOperationParameters operationParameters, ResultHandlerVersion1<? super Void> handler) throws IllegalStateException {

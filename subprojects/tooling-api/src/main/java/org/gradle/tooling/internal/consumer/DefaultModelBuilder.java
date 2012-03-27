@@ -103,8 +103,7 @@ public class DefaultModelBuilder<T extends Model, P> implements ModelBuilder<T> 
         }
 
         public void onComplete(P result) {
-            handler.onComplete(adapter.adapt(modelType, result));
-
+            handler.onComplete(adapter.adapt(modelType, result, connection.getVersionDetails()));
         }
 
         public void onFailure(GradleConnectionException failure) {
