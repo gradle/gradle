@@ -28,6 +28,7 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResource;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -39,8 +40,8 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
         super(createProducer(baseDir, pattern));
     }
 
-    private static Transformer<List<LocallyAvailableResource>, ArtifactRevisionId> createProducer(final File baseDir, final String pattern) {
-        return new Transformer<List<LocallyAvailableResource>, ArtifactRevisionId>() {
+    private static Transformer<Factory<List<File>>, ArtifactRevisionId> createProducer(final File baseDir, final String pattern) {
+        return new Transformer<Factory<List<File>>, ArtifactRevisionId>() {
             DirectoryFileTree fileTree = new DirectoryFileTree(baseDir);
 
             private String getArtifactPattern(ArtifactRevisionId artifactId) {
@@ -61,18 +62,20 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
                 return fileTree.filter(pattern);
             }
 
-            public List<LocallyAvailableResource> transform(ArtifactRevisionId artifactId) {
-                final List<LocallyAvailableResource> locallyAvailableResources = new LinkedList<LocallyAvailableResource>();
-
-                if (artifactId != null) {
-                    getMatchingFiles(artifactId).visit(new EmptyFileVisitor() {
-                        public void visitFile(FileVisitDetails fileDetails) {
-                            locallyAvailableResources.add(new DefaultLocallyAvailableResource(fileDetails.getFile()));
+            public Factory<List<File>> transform(final ArtifactRevisionId artifactId) {
+                return new Factory<List<File>>() {
+                    public List<File> create() {
+                        final List<File> files = new LinkedList<File>();
+                        if (artifactId != null) {
+                            getMatchingFiles(artifactId).visit(new EmptyFileVisitor() {
+                                public void visitFile(FileVisitDetails fileDetails) {
+                                    files.add(fileDetails.getFile());
+                                }
+                            });
                         }
-                    });
-                }
-
-                return locallyAvailableResources;
+                        return files;
+                    }
+                };
             }
         };
     }

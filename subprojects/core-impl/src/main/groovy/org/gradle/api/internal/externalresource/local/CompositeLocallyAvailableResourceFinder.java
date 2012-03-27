@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.externalresource.local;
 
+import org.gradle.util.hash.HashValue;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,10 +30,40 @@ public class CompositeLocallyAvailableResourceFinder<C> implements LocallyAvaila
     }
 
     public LocallyAvailableResourceCandidates findCandidates(C criterion) {
-        List<LocallyAvailableResource> locallyAvailableResources = new LinkedList<LocallyAvailableResource>();
-        for (LocallyAvailableResourceFinder<C> cache : composites) {
-            locallyAvailableResources.addAll(cache.findCandidates(criterion).getAll());
+        List<LocallyAvailableResourceCandidates> allCandidates = new LinkedList<LocallyAvailableResourceCandidates>();
+        for (LocallyAvailableResourceFinder<C> finder : composites) {
+            allCandidates.add(finder.findCandidates(criterion));
         }
-        return new DefaultLocallyAvailableResourceCandidates(locallyAvailableResources);
+
+        return new CompositeLocallyAvailableResourceCandidates(allCandidates);
+    }
+    
+    private static class CompositeLocallyAvailableResourceCandidates implements LocallyAvailableResourceCandidates {
+        private final List<LocallyAvailableResourceCandidates> allCandidates;
+
+        public CompositeLocallyAvailableResourceCandidates(List<LocallyAvailableResourceCandidates> allCandidates) {
+            this.allCandidates = allCandidates;
+        }
+
+        public boolean isNone() {
+            for (LocallyAvailableResourceCandidates candidates : allCandidates) {
+                if (!candidates.isNone()) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public LocallyAvailableResource findByHashValue(HashValue hashValue) {
+            for (LocallyAvailableResourceCandidates candidates : allCandidates) {
+                LocallyAvailableResource match = candidates.findByHashValue(hashValue);
+                if (match != null) {
+                    return match;
+                }
+            }
+
+            return null;
+        }
     }
 }

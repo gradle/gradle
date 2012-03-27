@@ -28,7 +28,5 @@ public interface LocallyAvailableResourceCandidates {
     boolean isNone();
 
     LocallyAvailableResource findByHashValue(HashValue hashValue);
-    
-    Collection<LocallyAvailableResource> getAll();
 
 }

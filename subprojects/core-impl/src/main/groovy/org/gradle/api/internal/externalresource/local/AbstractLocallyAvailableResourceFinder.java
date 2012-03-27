@@ -17,19 +17,21 @@
 package org.gradle.api.internal.externalresource.local;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.Factory;
 
+import java.io.File;
 import java.util.List;
 
 public class AbstractLocallyAvailableResourceFinder<C> implements LocallyAvailableResourceFinder<C> {
 
-    private final Transformer<List<LocallyAvailableResource>, C> producer;
+    private final Transformer<Factory<List<File>>, C> producer;
 
-    public AbstractLocallyAvailableResourceFinder(Transformer<List<LocallyAvailableResource>, C> producer) {
+    public AbstractLocallyAvailableResourceFinder(Transformer<Factory<List<File>>, C> producer) {
         this.producer = producer;
     }
 
     public LocallyAvailableResourceCandidates findCandidates(C criterion) {
-        return new DefaultLocallyAvailableResourceCandidates(producer.transform(criterion));
+        return new LazyLocallyAvailableResourceCandidates(producer.transform(criterion));
     }
 
 }

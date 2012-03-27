@@ -18,10 +18,7 @@ package org.gradle.util.hash;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -33,10 +30,17 @@ public class HashUtil {
     }
 
     public static HashValue createHash(File file, String algorithm) {
+        try {
+            return createHash(new FileInputStream(file), algorithm);
+        } catch (FileNotFoundException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static HashValue createHash(InputStream instr, String algorithm) {
         MessageDigest messageDigest = createMessageDigest(algorithm);
         try {
             byte[] buffer = new byte[4096];
-            InputStream instr = new FileInputStream(file);
             try {
                 while (true) {
                     int nread = instr.read(buffer);
@@ -64,5 +68,17 @@ public class HashUtil {
 
     public static String createCompactMD5(String scriptText) {
         return createHash(scriptText, "MD5").asCompactString();
+    }
+
+    public static HashValue sha1(byte[] bytes) {
+        return createHash(new ByteArrayInputStream(bytes), "SHA1");
+    }
+
+    public static HashValue sha1(InputStream inputStream) {
+        return createHash(inputStream, "SHA1");
+    }
+
+    public static HashValue sha1(File file) {
+        return createHash(file, "SHA1");
     }
 }

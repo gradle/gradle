@@ -33,13 +33,18 @@ public class DefaultLocallyAvailableResource implements LocallyAvailableResource
         this.origin = origin;
     }
 
+    public DefaultLocallyAvailableResource(File origin, HashValue sha1) {
+        this(origin);
+        this.sha1 = sha1;
+    }
+
     public File getOrigin() {
         return origin;
     }
 
     public HashValue getSha1() {
         if (sha1 == null) {
-            this.sha1 = HashUtil.createHash(origin, "SHA1");
+            this.sha1 = HashUtil.sha1(origin);
         }
         return sha1;
     }
