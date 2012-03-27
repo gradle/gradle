@@ -27,14 +27,13 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.notations.NotationParserBuilder;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.api.internal.notations.api.TopLevelNotationParser;
+import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -87,14 +86,8 @@ public class DefaultPublishArtifactFactory implements NotationParser<PublishArti
             this.fileParser = fileParser;
         }
 
-        @Override
-        protected Collection<String> getRequiredKeys() {
-            return Arrays.asList("file");
-        }
-
-        @Override
-        protected PublishArtifact parseMap(Map<String, Object> values) {
-            return fileParser.parseType((File) values.get("file"));
+        protected PublishArtifact parseMap(@MapKey("file") File file) {
+            return fileParser.parseType(file);
         }
     }
 

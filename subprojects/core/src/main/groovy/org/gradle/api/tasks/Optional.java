@@ -39,6 +39,6 @@ import java.lang.annotation.Target;
  * <li>{@link org.gradle.api.tasks.OutputDirectory}</li> </ul>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.FIELD})
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})
 public @interface Optional {
 }

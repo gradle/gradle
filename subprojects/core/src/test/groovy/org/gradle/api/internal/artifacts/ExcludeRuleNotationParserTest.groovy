@@ -70,11 +70,12 @@ class ExcludeRuleNotationParserTest extends Specification {
 
     def "checkValidExcludeRuleMap is true if group or module is defined"() {
         expect:
-        parser.checkValidExcludeRuleMap(WrapUtil.toMap(ExcludeRule.GROUP_KEY, "aGroup"));
-        parser.checkValidExcludeRuleMap(WrapUtil.toMap(ExcludeRule.MODULE_KEY, "aModule"));
+        parser.parseNotation(WrapUtil.toMap(ExcludeRule.GROUP_KEY, "aGroup"));
+        parser.parseNotation(WrapUtil.toMap(ExcludeRule.MODULE_KEY, "aModule"));
 
         when:
-        parser.checkValidExcludeRuleMap(WrapUtil.toMap("unknownKey", "someValue"))
+        parser.parseNotation(WrapUtil.toMap("unknownKey", "someValue"))
+
         then:
         thrown(InvalidUserDataException)
     }

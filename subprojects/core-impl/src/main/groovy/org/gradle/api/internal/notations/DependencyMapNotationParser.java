@@ -18,11 +18,11 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
+import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
+import org.gradle.api.tasks.Optional;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -39,23 +39,17 @@ public class DependencyMapNotationParser<T extends ExternalDependency> extends M
 
     @Override
     public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0'].");
+        candidateFormats.add("Maps, e.g. [group: 'org.gradle', name: 'gradle-core', version: '1.0'].");
     }
 
-    @Override
-    protected Collection<String> getOptionalKeys() {
-        return Arrays.asList("group", "name", "version", "configuration", "ext", "classifier");
-    }
-
-    @Override
-    protected T parseMap(Map<String, Object> values) {
-        String group = get(values, "group");
-        String name = get(values, "name");
-        String version = get(values, "version");
-        String configuration = get(values, "configuration");
+    protected T parseMap(@MapKey("group") @Optional String group,
+                         @MapKey("name") @Optional String name,
+                         @MapKey("version") @Optional String version,
+                         @MapKey("configuration") @Optional String configuration,
+                         @MapKey("ext") @Optional String ext,
+                         @MapKey("classifier") @Optional String classifier) {
         T dependency = instantiator.newInstance(resultingType, group, name, version, configuration);
-        ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, get(values, "ext"), get(values,
-                "classifier"));
+        ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, ext, classifier);
         return dependency;
     }
 
