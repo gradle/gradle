@@ -39,11 +39,11 @@ public class MissingExternalResource extends AbstractExternalResource {
     }
 
     public long getLastModified() {
-        throw new UnsupportedOperationException();
+        return -1;
     }
 
     public long getContentLength() {
-        throw new UnsupportedOperationException();
+        return -1;
     }
 
     public boolean isLocal() {
