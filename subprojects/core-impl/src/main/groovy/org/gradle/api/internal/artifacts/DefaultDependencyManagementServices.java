@@ -54,7 +54,7 @@ import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedEx
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
-import org.gradle.api.internal.filestore.CentralisedFileStore;
+import org.gradle.api.internal.filestore.UniquePathFileStore;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.cache.CacheRepository;
@@ -202,16 +202,16 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         );
     }
 
-    private File getCentralisedFileStoreBase() {
+    private File getUniquePathFileStoreBase() {
         return new File(get(ArtifactCacheMetaData.class).getCacheDir(), "filestore");
     }
 
-    protected CentralisedFileStore createCentralisedFileStore() {
-        return new CentralisedFileStore(getCentralisedFileStoreBase());
+    protected UniquePathFileStore createUniquePathFileStore() {
+        return new UniquePathFileStore(getUniquePathFileStoreBase());
     }
 
     protected ArtifactRevisionIdFileStore createArtifactRevisionIdFileStore() {
-        return new ArtifactRevisionIdFileStore(get(CentralisedFileStore.class));
+        return new ArtifactRevisionIdFileStore(get(UniquePathFileStore.class));
     }
 
     protected SettingsConverter createSettingsConverter() {
@@ -232,7 +232,7 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     protected RepositoryTransportFactory createRepositoryTransportFactory() {
         LocallyAvailableResourceFinderBuilder cacheBuilder = new LocallyAvailableResourceFinderBuilder(get(ArtifactCacheMetaData.class), get(LocalMavenRepositoryLocator.class));
-        cacheBuilder.addCurrent(getCentralisedFileStoreBase());
+        cacheBuilder.addCurrent(getUniquePathFileStoreBase());
         cacheBuilder.addMilestone8and9();
         cacheBuilder.addMilestone7();
         cacheBuilder.addMilestone6();

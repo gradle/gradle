@@ -22,7 +22,7 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.ivy.PatternBasedLocallyAvailableResourceFinder;
-import org.gradle.api.internal.filestore.CentralisedFileStore;
+import org.gradle.api.internal.filestore.UniquePathFileStore;
 import org.gradle.api.internal.filestore.GroupedAndNamedUniqueFileStore;
 
 import java.io.File;
@@ -32,7 +32,7 @@ public class ArtifactRevisionIdFileStore extends GroupedAndNamedUniqueFileStore<
     private static final String GROUP_PATTERN = "[organisation]/[module](/[branch])/[revision]/[type]";
     private static final String NAME_PATTERN = "[artifact]-[revision](-[classifier])(.[ext])";
 
-    public ArtifactRevisionIdFileStore(CentralisedFileStore delegate) {
+    public ArtifactRevisionIdFileStore(UniquePathFileStore delegate) {
         super(delegate, toTransformer(GROUP_PATTERN), toTransformer(NAME_PATTERN));
     }
 

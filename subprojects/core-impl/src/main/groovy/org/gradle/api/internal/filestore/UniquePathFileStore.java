@@ -28,13 +28,21 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-public class CentralisedFileStore implements SearchableFileStore<String, String> {
+/**
+ * File store that stores items under a given path within a base directory.
+ *
+ * Paths are expected to be unique. If a request is given to store a file at a particular path
+ * where a file exists already then it will not be copied. That is, it is expected to be equal.
+ *
+ * This file store also provides searching via relative ant path patterns.
+ */
+public class UniquePathFileStore implements SearchableFileStore<String, String> {
 
     private final Random generator = new Random(System.currentTimeMillis());
 
     private final File baseDir;
 
-    public CentralisedFileStore(File baseDir) {
+    public UniquePathFileStore(File baseDir) {
         this.baseDir = baseDir;
     }
 
@@ -44,7 +52,9 @@ public class CentralisedFileStore implements SearchableFileStore<String, String>
 
     public File add(String path, File contentFile) {
         File destination = getFile(path);
-        saveIntoFileStore(contentFile, destination);
+        if (!destination.exists()) {
+            saveIntoFileStore(contentFile, destination);
+        }
         return destination;
     }
 
@@ -59,9 +69,9 @@ public class CentralisedFileStore implements SearchableFileStore<String, String>
     }
 
     private void saveIntoFileStore(File contentFile, File storageFile) {
-        if (!storageFile.getParentFile().exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            storageFile.getParentFile().mkdirs();
+        File parentDir = storageFile.getParentFile();
+        if (!parentDir.mkdirs() && !parentDir.exists()) {
+            throw new GradleException(String.format("Unabled to create filestore directory %s", parentDir));
         }
         if (!contentFile.renameTo(storageFile)) {
             throw new GradleException(String.format("Failed to copy downloaded content into storage file: %s", storageFile));
