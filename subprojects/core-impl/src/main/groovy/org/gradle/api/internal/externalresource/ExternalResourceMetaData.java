@@ -16,14 +16,20 @@
 
 package org.gradle.api.internal.externalresource;
 
+import org.gradle.api.Nullable;
+
 import java.util.Date;
 
 public interface ExternalResourceMetaData {
 
     String getLocation();
 
+    @Nullable
     Date getLastModified();
 
     long getContentLength();
+
+    @Nullable
+    String getEtag();
 
 }

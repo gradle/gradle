@@ -19,7 +19,6 @@ import org.gradle.util.hash.HashUtil;
 import org.gradle.util.hash.HashValue;
 
 import java.io.File;
-import java.util.Date;
 
 public class DefaultLocallyAvailableResource implements LocallyAvailableResource {
     private final File origin;

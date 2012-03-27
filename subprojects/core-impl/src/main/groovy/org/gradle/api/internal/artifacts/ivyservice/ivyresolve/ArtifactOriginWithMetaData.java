@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.ExternalResourceMetaData;
 
@@ -27,13 +28,13 @@ public class ArtifactOriginWithMetaData extends ArtifactOrigin {
 
     private final ExternalResourceMetaData metaData;
 
-    public ArtifactOriginWithMetaData(Artifact artifact, boolean isLocal, String location, long lastModified, long contentLength) {
-        this(artifact, isLocal, location, lastModified > 0 ? new Date(lastModified) : null, contentLength);
+    public ArtifactOriginWithMetaData(Artifact artifact, boolean isLocal, String location, long lastModified, long contentLength, @Nullable String etag) {
+        this(artifact, isLocal, location, lastModified > 0 ? new Date(lastModified) : null, contentLength, etag);
     }
 
-    public ArtifactOriginWithMetaData(Artifact artifact, boolean isLocal, String location, Date lastModified, long contentLength) {
+    public ArtifactOriginWithMetaData(Artifact artifact, boolean isLocal, String location, Date lastModified, long contentLength, @Nullable String etag) {
         super(artifact, isLocal, location);
-        metaData = new DefaultExternalResourceMetaData(location, lastModified, contentLength);
+        metaData = new DefaultExternalResourceMetaData(location, lastModified, contentLength, etag);
     }
 
     public ExternalResourceMetaData getMetaData() {

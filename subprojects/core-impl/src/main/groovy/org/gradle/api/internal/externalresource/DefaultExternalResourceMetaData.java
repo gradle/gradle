@@ -26,11 +26,13 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
     private final String location;
     private final Date lastModified;
     private final long contentLength;
+    private final String etag;
 
-    public DefaultExternalResourceMetaData(String location, @Nullable Date lastModified, long contentLength) {
+    public DefaultExternalResourceMetaData(String location, @Nullable Date lastModified, long contentLength, @Nullable String etag) {
         this.location = location;
         this.lastModified = lastModified;
         this.contentLength = contentLength;
+        this.etag = etag;
     }
 
     public String getLocation() {
@@ -44,5 +46,10 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
 
     public long getContentLength() {
         return contentLength;
+    }
+
+    @Nullable
+    public String getEtag() {
+        return etag;
     }
 }

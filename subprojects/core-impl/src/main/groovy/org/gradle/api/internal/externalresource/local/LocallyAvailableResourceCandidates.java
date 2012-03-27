@@ -18,8 +18,6 @@ package org.gradle.api.internal.externalresource.local;
 
 import org.gradle.util.hash.HashValue;
 
-import java.util.Collection;
-
 /**
  * A set of locally available resources that were “selected” through some means.
  */

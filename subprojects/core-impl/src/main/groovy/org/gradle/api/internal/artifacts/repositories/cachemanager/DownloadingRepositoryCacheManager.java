@@ -71,7 +71,7 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
             if (artifactRef != null) {
                 ArtifactOrigin origin = new ArtifactOriginWithMetaData(
                         artifact, artifactRef.getResource().isLocal(), artifactRef.getResource().getName(),
-                        artifactRef.getLastModified(), artifactRef.getResource().getContentLength()
+                        artifactRef.getLastModified(), artifactRef.getResource().getContentLength(), null
                 );
                 if (listener != null) {
                     listener.startArtifactDownload(this, artifactRef, artifact, origin);
@@ -108,7 +108,9 @@ public class DownloadingRepositoryCacheManager extends AbstractRepositoryCacheMa
         String url = artifactRef.getResource().getName();
         long lastModifiedTimestamp = artifactRef.getResource().getLastModified();
         Date lastModified = lastModifiedTimestamp > 0 ? new Date(lastModifiedTimestamp) : null;
-        artifactUrlCachedResolutionIndex.store(artifactRef.getResource().getName(), fileInFileStore, new DefaultExternalResourceMetaData(url, lastModified, artifactRef.getResource().getContentLength()));
+        artifactUrlCachedResolutionIndex.store(artifactRef.getResource().getName(), fileInFileStore, new DefaultExternalResourceMetaData(
+                url, lastModified, artifactRef.getResource().getContentLength(), null)
+        );
 
         return fileInFileStore;
     }

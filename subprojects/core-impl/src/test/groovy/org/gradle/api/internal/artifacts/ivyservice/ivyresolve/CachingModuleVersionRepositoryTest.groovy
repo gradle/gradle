@@ -46,7 +46,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
     
     @Unroll "last modified date is cached - lastModified = #lastModified"(Date lastModified) {
         given:
-        ExternalResourceMetaData externalResourceMetaData = new DefaultExternalResourceMetaData("remote url", lastModified, -1)
+        ExternalResourceMetaData externalResourceMetaData = new DefaultExternalResourceMetaData("remote url", lastModified, -1, null)
         DownloadedArtifact downloadedArtifact = new DownloadedArtifact(new File("artifact"), externalResourceMetaData)
         Artifact artifact = Mock()
         ArtifactRevisionId id = arid()

@@ -115,7 +115,8 @@ public class ResourceCollectionResolver extends BasicResolver {
                     artifactRef.getResource().isLocal(),
                     artifactRef.getResource().getName(),
                     artifactRef.getLastModified(),
-                    artifactRef.getResource().getContentLength()
+                    artifactRef.getResource().getContentLength(),
+                    null
             );
         }
         return null;

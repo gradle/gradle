@@ -16,15 +16,11 @@
 
 package org.gradle.api.internal.externalresource.local;
 
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.hash.HashUtil;
 import org.gradle.util.hash.HashValue;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class LazyLocallyAvailableResourceCandidates implements LocallyAvailableResourceCandidates {

@@ -44,7 +44,7 @@ public class CachedExternalResourceAdapterTest extends Specification {
     def "delegates to cached artifact"() {
         given:
         cachedExternalResource.contentLength >> 22
-        cachedExternalResource.externalResourceMetaData >> new DefaultExternalResourceMetaData("url", new Date(), 0)
+        cachedExternalResource.externalResourceMetaData >> new DefaultExternalResourceMetaData("url", new Date(), 0, null)
         cachedExternalResource.externalLastModifiedAsTimestamp >> 33
 
         expect:
