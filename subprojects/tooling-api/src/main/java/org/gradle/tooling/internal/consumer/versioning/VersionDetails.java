@@ -59,4 +59,8 @@ public class VersionDetails {
     public String getVersion() {
         return gradleVersion.getVersion();
     }
+
+    public boolean supportsGradleProjectModel() {
+        return gradleVersion.compareTo(M5) >= 0;
+    }
 }

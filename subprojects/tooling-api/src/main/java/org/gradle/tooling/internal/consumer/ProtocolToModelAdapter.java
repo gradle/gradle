@@ -36,6 +36,9 @@ public class ProtocolToModelAdapter {
 
     public <T, S> T adapt(Class<T> targetType, S protocolObject) {
         Class<T> target = guessTarget(targetType, protocolObject);
+        if (target.isInstance(protocolObject)) {
+            return target.cast(protocolObject);
+        }
         Object proxy = Proxy.newProxyInstance(target.getClassLoader(), new Class<?>[]{target}, new InvocationHandlerImpl(protocolObject));
         return target.cast(proxy);
     }

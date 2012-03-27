@@ -18,9 +18,13 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.consumer.converters.GradleProjectConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
+import org.gradle.tooling.internal.protocol.InternalGradleProject;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3;
+import org.gradle.tooling.model.GradleProject;
 
 /**
  * by Szczepan Faber, created at: 12/21/11
@@ -42,6 +46,13 @@ public class ModelProvider {
                 String message = String.format("I don't know how to build a model of type '%s'.", type.getSimpleName());
                 throw new UnsupportedOperationException(message);
             }
+        }
+        if (type == InternalGradleProject.class && !version.supportsGradleProjectModel()) {
+            //we broke compatibility around M9 wrt getting the tasks of a project (issue GRADLE-1875)
+            //this patch enables getting gradle tasks for target gradle version pre M5
+            EclipseProjectVersion3 project = connection.getModel(EclipseProjectVersion3.class, operationParameters);
+            GradleProject gradleProject = new GradleProjectConverter().convert(project);
+            return (T) gradleProject;
         }
         return connection.getModel(type, operationParameters);
     }
