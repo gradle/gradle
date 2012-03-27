@@ -32,6 +32,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.externalresource.CachedExternalResourceIndex
 import org.gradle.api.internal.externalresource.ExternalResourceMetaData
 import org.gradle.api.internal.externalresource.DefaultExternalResourceMetaData
+import org.gradle.util.TrueTimeProvider
 
 class CachingModuleVersionRepositoryTest extends Specification {
 
@@ -41,7 +42,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
     CachedExternalResourceIndex artifactAtRepositoryCache = Mock()
     CachePolicy cachePolicy = Mock()
 
-    CachingModuleVersionRepository repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache, cachePolicy)
+    CachingModuleVersionRepository repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache, cachePolicy, new TrueTimeProvider())
     
     @Unroll "last modified date is cached - lastModified = #lastModified"(Date lastModified) {
         given:
