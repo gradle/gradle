@@ -19,11 +19,14 @@ package org.gradle.internal.nativeplatform.jna
 import org.gradle.internal.nativeplatform.NativeIntegrationException
 import org.gradle.internal.nativeplatform.services.NativeServices
 import spock.lang.Specification
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class LibCBackedProcessEnvironmentTest extends Specification {
 
     NativeServices registry = new NativeServices();
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS) //MACOSX & UNIX
     def "setNativeEnvironmentVariable throws NativeEnvironmentException for NULL value on env name with errno code"() {
         setup:
         LibCBackedProcessEnvironment processEnvironment = new LibCBackedProcessEnvironment(registry.get(LibC.class))
