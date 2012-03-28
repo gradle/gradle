@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.externalresource.local.CompositeLocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinderSearchableFileStoreAdapter;
-import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
+import org.gradle.api.internal.filestore.SearchableFileStore;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -30,10 +30,10 @@ public class LocallyAvailableResourceFinderBuilder {
     private final LinkedList<LocallyAvailableResourceFinder<ArtifactRevisionId>> hashCaches = new LinkedList<LocallyAvailableResourceFinder<ArtifactRevisionId>>();
     private final File rootCachesDirectory;
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
-    private final ArtifactRevisionIdFileStore fileStore;
+    private final SearchableFileStore<?, ArtifactRevisionId> fileStore;
 
     public LocallyAvailableResourceFinderBuilder(
-            ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, ArtifactRevisionIdFileStore fileStore) {
+            ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, SearchableFileStore<?, ArtifactRevisionId> fileStore) {
         this.rootCachesDirectory = artifactCacheMetaData.getCacheDir().getParentFile();
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileStore = fileStore;
