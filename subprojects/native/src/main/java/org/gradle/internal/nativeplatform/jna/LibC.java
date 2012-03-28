@@ -20,11 +20,10 @@ import com.sun.jna.Library;
 
 public interface LibC extends Library {
     //CHECKSTYLE:OFF
-    public int setenv(String name, String value, int overwrite);
-    public int unsetenv(String name);
-    public String getcwd(byte[] out, int size);
-    public int chdir(String dirAbsolutePath);
-    public int errno();
+    public int setenv(String name, String value, int overwrite) throws LastErrorException;
+    public int unsetenv(String name) throws LastErrorException;
+    public String getcwd(byte[] out, int size) throws LastErrorException;
+    public int chdir(String dirAbsolutePath) throws LastErrorException;
     public int getpid();
     public int isatty(int fdes);
     public int chmod(String filename, int mode) throws LastErrorException;

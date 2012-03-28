@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.nativeplatform.jna;
 
+import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
 import org.gradle.internal.nativeplatform.NativeIntegrationException;
 
@@ -32,31 +33,35 @@ public class LibCBackedProcessEnvironment extends AbstractProcessEnvironment {
     }
 
     public void setNativeEnvironmentVariable(String name, String value) {
-        int retval = libc.setenv(name, value, 1);
-        if (retval != 0) {
-            throw new NativeIntegrationException(String.format("Could not set environment variable '%s'. errno: %d", name, libc.errno()));
+        try {
+            libc.setenv(name, value, 1);
+        } catch (LastErrorException lastErrorException) {
+            throw new NativeIntegrationException(String.format("Could not set environment variable '%s'. errno: %d", name, lastErrorException.getErrorCode()));
         }
     }
 
     public void removeNativeEnvironmentVariable(String name) {
-        int retval = libc.unsetenv(name);
-        if (retval != 0) {
-            throw new NativeIntegrationException(String.format("Could not unset environment variable '%s'. errno: %d", name, libc.errno()));
+        try {
+            libc.unsetenv(name);
+        } catch (LastErrorException lastErrorException) {
+            throw new NativeIntegrationException(String.format("Could not unset environment variable '%s'. errno: %d", name, lastErrorException.getErrorCode()));
         }
     }
 
     public void setNativeProcessDir(File dir) {
-        int retval = libc.chdir(dir.getAbsolutePath());
-        if (retval != 0) {
-            throw new NativeIntegrationException(String.format("Could not set process working directory to '%s'. errno: %d", dir, libc.errno()));
+        try {
+            libc.chdir(dir.getAbsolutePath());
+        } catch (LastErrorException lastErrorException) {
+            throw new NativeIntegrationException(String.format("Could not set process working directory to '%s'. errno: %d", dir, lastErrorException.getErrorCode()));
         }
     }
 
     public File getProcessDir() {
         byte[] out = new byte[LOTS_OF_CHARS];
-        String retval = libc.getcwd(out, LOTS_OF_CHARS);
-        if (retval == null) {
-            throw new NativeIntegrationException(String.format("Could not get process working directory. errno: %d", libc.errno()));
+        try {
+            libc.getcwd(out, LOTS_OF_CHARS);
+        } catch (LastErrorException lastErrorException) {
+            throw new NativeIntegrationException(String.format("Could not get process working directory. errno: %d", lastErrorException.getErrorCode()));
         }
         return new File(Native.toString(out));
     }
