@@ -27,6 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Makes a LocallyAvailableResourceFinder out of a SearchableFileStore.
+ * @param <C> The type of criterion the filestore can be searched for, and therefore locally available resources searched for.
+ */
 public class LocallyAvailableResourceFinderSearchableFileStoreAdapter<C> extends AbstractLocallyAvailableResourceFinder<C> {
 
     public LocallyAvailableResourceFinderSearchableFileStoreAdapter(final SearchableFileStore<?, C> fileStore) {
