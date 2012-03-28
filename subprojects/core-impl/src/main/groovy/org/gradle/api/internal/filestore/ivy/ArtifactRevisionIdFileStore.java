@@ -20,12 +20,8 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
-import org.gradle.api.internal.externalresource.local.ivy.PatternBasedLocallyAvailableResourceFinder;
-import org.gradle.api.internal.filestore.UniquePathFileStore;
 import org.gradle.api.internal.filestore.GroupedAndNamedUniqueFileStore;
-
-import java.io.File;
+import org.gradle.api.internal.filestore.UniquePathFileStore;
 
 public class ArtifactRevisionIdFileStore extends GroupedAndNamedUniqueFileStore<ArtifactRevisionId> {
 

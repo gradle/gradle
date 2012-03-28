@@ -21,7 +21,7 @@ import org.gradle.util.hash.HashUtil;
 import java.io.File;
 import java.util.Set;
 
-public class GroupedAndNamedUniqueFileStore<K> implements SearchableFileStore<K, K> {
+public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStoreSearcher<K> {
 
     private UniquePathFileStore delegate;
     private final Transformer<String, K> grouper;

@@ -36,7 +36,7 @@ import java.util.Set;
  *
  * This file store also provides searching via relative ant path patterns.
  */
-public class UniquePathFileStore implements SearchableFileStore<String, String> {
+public class UniquePathFileStore implements FileStore<String>, FileStoreSearcher<String> {
 
     private final Random generator = new Random(System.currentTimeMillis());
 

@@ -18,7 +18,7 @@ package org.gradle.api.internal.externalresource.local;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.filestore.FileStoreEntry;
-import org.gradle.api.internal.filestore.SearchableFileStore;
+import org.gradle.api.internal.filestore.FileStoreSearcher;
 import org.gradle.internal.Factory;
 import org.gradle.util.CollectionUtils;
 
@@ -28,12 +28,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Makes a LocallyAvailableResourceFinder out of a SearchableFileStore.
+ * Makes a LocallyAvailableResourceFinder out of a FileStoreSearcher.
  * @param <C> The type of criterion the filestore can be searched for, and therefore locally available resources searched for.
  */
 public class LocallyAvailableResourceFinderSearchableFileStoreAdapter<C> extends AbstractLocallyAvailableResourceFinder<C> {
 
-    public LocallyAvailableResourceFinderSearchableFileStoreAdapter(final SearchableFileStore<?, C> fileStore) {
+    public LocallyAvailableResourceFinderSearchableFileStoreAdapter(final FileStoreSearcher<C> fileStore) {
         super(new Transformer<Factory<List<File>>, C>() {
             public Factory<List<File>> transform(final C criterion) {
                 return new Factory<List<File>>() {

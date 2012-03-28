@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.externalresource.local.CompositeLocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinderSearchableFileStoreAdapter;
-import org.gradle.api.internal.filestore.SearchableFileStore;
+import org.gradle.api.internal.filestore.FileStoreSearcher;
 import org.gradle.internal.Factory;
 
 import java.io.File;
@@ -31,10 +31,10 @@ import java.util.List;
 public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAvailableResourceFinder<ArtifactRevisionId>> {
     private final File rootCachesDirectory;
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
-    private final SearchableFileStore<?, ArtifactRevisionId> fileStore;
+    private final FileStoreSearcher<ArtifactRevisionId> fileStore;
 
     public LocallyAvailableResourceFinderFactory(
-            ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, SearchableFileStore<?, ArtifactRevisionId> fileStore) {
+            ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, FileStoreSearcher<ArtifactRevisionId> fileStore) {
         this.rootCachesDirectory = artifactCacheMetaData.getCacheDir().getParentFile();
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileStore = fileStore;

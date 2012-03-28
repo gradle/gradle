@@ -18,7 +18,7 @@ package org.gradle.api.internal.filestore;
 
 import java.util.Set;
 
-public interface SearchableFileStore<K, S> extends FileStore<K> {
+public interface FileStoreSearcher<S> {
 
     Set<? extends FileStoreEntry> search(S key);
 
